@@ -44,7 +44,8 @@ public interface IDeadLetterService
     /// <param name="deadLetterQueueName">Nome da fila de dead letter</param>
     /// <param name="messageId">ID da mensagem</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
-    Task ReprocessDeadLetterMessageAsync(
+    /// <returns>True se a mensagem foi encontrada e reprocessada, False caso contrário</returns>
+    Task<bool> ReprocessDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default);
@@ -67,7 +68,8 @@ public interface IDeadLetterService
     /// <param name="deadLetterQueueName">Nome da fila de dead letter</param>
     /// <param name="messageId">ID da mensagem</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
-    Task PurgeDeadLetterMessageAsync(
+    /// <returns>True se a mensagem foi encontrada e removida, False caso contrário</returns>
+    Task<bool> PurgeDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default);

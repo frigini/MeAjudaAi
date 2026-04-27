@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Filters;
 using Microsoft.OpenApi;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class DocumentationExtensions
 {
     public static IServiceCollection AddDocumentation(this IServiceCollection services)

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Jobs.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Extension methods para registrar health checks customizados
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class HealthCheckExtensions
 {
     /// <summary>

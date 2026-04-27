@@ -1,0 +1,43 @@
+meta {
+  name: Cancel Booking
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/v1/bookings/00000000-0000-0000-0000-000000000000/cancel
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "reason": "Mudança de planos."
+  }
+}
+
+docs {
+  # Cancel Booking
+  
+  Cancela um agendamento pendente ou confirmado. O dono da reserva, prestador ou admin pode cancelar.
+  
+  Popule a variável `bookingId` na collection ou environment antes de executar.
+  
+  ## Parâmetros Body
+  - `reason` (string): Motivo do cancelamento (Obrigatório, máx 500 caracteres)
+  
+  ## Códigos de Status
+  - **204**: Cancelado com sucesso
+  - **400**: Estado inválido ou motivo ausente
+  - **401**: Não autenticado — token ausente ou inválido
+  - **403**: Sem permissão
+  - **404**: Não encontrado
+}

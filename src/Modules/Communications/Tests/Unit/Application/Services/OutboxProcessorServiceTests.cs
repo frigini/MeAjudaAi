@@ -284,4 +284,22 @@ public class OutboxProcessorServiceTests
         // Assert
         _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody.Contains("&lt;b&gt;")), It.IsAny<CancellationToken>()));
     }
+
+    [Fact]
+    public async Task ProcessPendingMessagesAsync_WhenTokenAlreadyCanceled_ShouldReturnZero()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var result = await _service.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
+
+        // Assert
+        result.Should().Be(0);
+        _outboxRepositoryMock.Verify(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
+        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _smsSenderMock.Verify(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _pushSenderMock.Verify(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

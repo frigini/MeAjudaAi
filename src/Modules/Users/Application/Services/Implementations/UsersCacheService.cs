@@ -10,8 +10,8 @@ namespace MeAjudaAi.Modules.Users.Application.Services.Implementations;
 /// </summary>
 public class UsersCacheService(ICacheService cacheService) : IUsersCacheService
 {
-    private static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan LongExpiration = TimeSpan.FromHours(2);
+    public static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(30);
+    public static readonly TimeSpan LongExpiration = TimeSpan.FromHours(2);
 
     /// <summary>
     /// Obtém ou cria cache para usuário por ID

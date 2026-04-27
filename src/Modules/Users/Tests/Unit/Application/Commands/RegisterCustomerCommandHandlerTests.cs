@@ -14,6 +14,7 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
+[Trait("Category", "Unit")]
 public class RegisterCustomerCommandHandlerTests
 {
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
@@ -214,7 +215,7 @@ public class RegisterCustomerCommandHandlerTests
             .ReturnsAsync(Result<User>.Success(user));
 
         _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB Error"));
+            .ThrowsAsync(new InvalidOperationException("DB Error"));
 
         _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
@@ -227,6 +228,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -241,7 +243,7 @@ public class RegisterCustomerCommandHandlerTests
             .ReturnsAsync(Result<User>.Success(user));
 
         _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB Error"));
+            .ThrowsAsync(new InvalidOperationException("DB Error"));
 
         _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
@@ -251,6 +253,48 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_AndLogCritical_WhenCompensationFails()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
+        var user = User.Create(new Username("test_user"), new Email(command.Email), "John", "Doe", Guid.NewGuid().ToString(), null).Value!;
+
+        _userDomainServiceMock.Setup(x => x.CreateUserAsync(
+            It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), 
+            It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<User>.Success(user));
+
+        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("DB Error"));
+
+        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+
+        _userDomainServiceMock.Setup(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Keycloak Failure"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => 
+                    ((IEnumerable<KeyValuePair<string, object>>)v).Any(kvp => kvp.Key == "{OriginalFormat}" && kvp.Value.ToString() == RegisterCustomerCommandHandler.FailedToCompensateKeycloakUserMessage) &&
+                    ((IEnumerable<KeyValuePair<string, object>>)v).Any(kvp => kvp.Key == "UserId" && kvp.Value.ToString() == user.Id.ToString())),
+                It.Is<Exception>(ex => ex.Message.Contains("Keycloak Failure")),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }

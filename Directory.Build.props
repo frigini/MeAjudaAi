@@ -50,6 +50,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <AnalysisMode>Minimum</AnalysisMode>
+    <VSTestSkipEmptyProjects>true</VSTestSkipEmptyProjects>
   </PropertyGroup>
 
   <!-- Pacotes globais de análise estática -->

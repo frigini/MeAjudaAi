@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Options.RateLimit;
 
 namespace MeAjudaAi.ApiService.Options;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.ApiService.Options;
 /// <summary>
 /// Opções para Rate Limiting com suporte a usuários autenticados.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class RateLimitOptions
 {
     public const string SectionName = "AdvancedRateLimit";

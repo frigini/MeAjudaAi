@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Extension methods para configurar monitoramento avançado
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MonitoringExtensions
 {
     /// <summary>

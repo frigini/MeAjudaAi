@@ -4,6 +4,31 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
+## ✅ Sprint 12 - Bookings & Messaging Excellence (Em conclusão - Meta: 21 Abr 2026)
+
+**Objetivo**: Implementar o sistema de agendamentos e consolidar a infraestrutura de mensageria com Rebus.
+
+### Entregas:
+- ✅ **Bookings Module**: Implementação completa (Backend/Frontend) de agendamentos com gestão de disponibilidade do prestador e fluxo de reserva do cliente.
+- ✅ **Messaging Excellence**: Migração parcial para Rebus v3 e implementação de atributos `[DedicatedTopic]`, `[HighVolumeEvent]` e `[CriticalEvent]` para roteamento avançado.
+    - **Nota Técnica**: `RabbitMQ.Client` ainda é utilizado diretamente em `RabbitMqDeadLetterService`. `RabbitMqInfrastructureManager` contém stubs não finalizados (`CreateQueueAsync`, etc.) que devem ser completados para finalizar a migração.
+- ✅ **Qualidade**: Cobertura completa aguardando inclusão do módulo Bookings no workflow (pendente adição do projeto MeAjudaAi.Modules.Bookings.Tests.csproj ao campo MODULES do workflow).
+- ✅ **API & Contratos**: Padronização de enums (`EBookingStatus`) e exposição via Minimal APIs com autorização.
+
+---
+
+## ✅ Sprint 11 - Monetização & Polimento (Concluída em 15 Abr 2026)
+
+**Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
+
+### Entregas:
+- ✅ **Payments Module**: Implementação de assinaturas (Stripe), webhooks, billing portal e renovações automáticas com padrão ACL.
+- ✅ **Localização Frontend**: Suporte completo a i18n (PT-BR/EN-US) no Customer App, incluindo formulários e erros.
+- ✅ **UX Polish**: Implementação de skeleton loaders animados para melhor percepção de desempenho.
+- ✅ **Qualidade**: Cobertura de testes unitários e de integração para todos os fluxos críticos de pagamento e localização.
+
+---
+
 ## ✅ Sprint 10 - Qualidade & Onboarding (Concluída em 14 Abr 2026)
 
 **Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
@@ -45,7 +70,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
 **Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints) para o status detalhado atualizado.
-**Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
+**Testes/Cobertura**: Backend — Testes: N/A | Cobertura: 91.2%; Frontend — Testes: 42 (Vitest); Cobertura: N/A (Verificação via [coverage-report.xml](artifacts/coverage-report.xml) pós-merge)
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 (Customer, Provider, Admin) + Tailwind v4
 
 ### Marcos Principais

@@ -3,6 +3,7 @@ using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Integration.Tests.Mocks;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
@@ -10,6 +11,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Modules.Documents.Tests;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -54,7 +56,9 @@ public enum TestModule
     SearchProviders = 1 << 5,
     Communications = 1 << 6,
     Payments = 1 << 7,
-    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments
+    Bookings = 1 << 8,
+    Ratings = 1 << 9,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments | Bookings | Ratings
     }
 
 /// <summary>
@@ -170,6 +174,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
                     RemoveDbContextRegistrations<CommunicationsDbContext>(services);
                     RemoveDbContextRegistrations<PaymentsDbContext>(services);
+                    RemoveDbContextRegistrations<BookingsDbContext>(services);
+                    RemoveDbContextRegistrations<RatingsDbContext>(services);
 
                     AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
@@ -179,6 +185,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
+                    AddTestDbContext<BookingsDbContext>(services, "bookings", "MeAjudaAi.Modules.Bookings.Infrastructure");
+                    AddTestDbContext<RatingsDbContext>(services, "ratings", "MeAjudaAi.Modules.Ratings.Infrastructure");
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
@@ -261,20 +269,29 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
         }
 
+        if (modules.HasFlag(TestModule.Bookings))
+        {
+            if (!modules.HasFlag(TestModule.Users)) modules |= TestModule.Users;
+            if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
+            if (!modules.HasFlag(TestModule.Providers)) modules |= TestModule.Providers;
+        }
+
         // Lock para evitar que múltiplas migrações ocorram simultaneamente no MESMO banco, 
         // mas como os bancos agora são isolados, o lock serve apenas como precaução 
         // caso algo tente acessar o banco master simultaneamente.
         await MigrationLock.WaitAsync();
         try
         {
-            // Apply migrations in production priority order: Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications
+            // Apply migrations in production priority order: Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications -> Ratings -> Payments -> Bookings -> SearchProviders
             if (modules.HasFlag(TestModule.Users)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<UsersDbContext>(), "Users", logger);
             if (modules.HasFlag(TestModule.ServiceCatalogs)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ServiceCatalogsDbContext>(), "ServiceCatalogs", logger);
             if (modules.HasFlag(TestModule.Locations)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<LocationsDbContext>(), "Locations", logger);
             if (modules.HasFlag(TestModule.Documents)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<DocumentsDbContext>(), "Documents", logger);
             if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
             if (modules.HasFlag(TestModule.Communications)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<CommunicationsDbContext>(), "Communications", logger);
+            if (modules.HasFlag(TestModule.Ratings)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<RatingsDbContext>(), "Ratings", logger);
             if (modules.HasFlag(TestModule.Payments)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<PaymentsDbContext>(), "Payments", logger);
+            if (modules.HasFlag(TestModule.Bookings)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<BookingsDbContext>(), "Bookings", logger);
             
             if (modules.HasFlag(TestModule.SearchProviders))
             {

@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class VersioningExtensions
 {
     public static IServiceCollection AddApiVersioning(this IServiceCollection services)

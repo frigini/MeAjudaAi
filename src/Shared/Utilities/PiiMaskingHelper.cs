@@ -1,11 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
 /// Utilitário para mascarar informações sensíveis (PII) em logs.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class PiiMaskingHelper
 {
     /// <summary>
@@ -56,6 +53,21 @@ public static class PiiMaskingHelper
         }
         
         return $"{phoneNumber[..5]}****{phoneNumber[^4..]}";
+    }
+
+    /// <summary>
+    /// Mascara um CPF (ex: 123.***.***-00).
+    /// </summary>
+    public static string MaskCpf(string? cpf)
+    {
+        if (string.IsNullOrWhiteSpace(cpf)) return "[EMPTY]";
+        
+        // Remove caracteres não numéricos
+        var digits = new string(cpf.Where(char.IsDigit).ToArray());
+        
+        if (digits.Length != 11) return "****";
+        
+        return $"{digits[..3]}.***.***-{digits[^2..]}";
     }
 
     /// <summary>

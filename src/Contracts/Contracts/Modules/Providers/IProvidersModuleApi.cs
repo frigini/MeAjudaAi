@@ -120,5 +120,14 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se existe ao menos um provider oferecendo o serviço</returns>
     Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verifica se um prestador específico oferece um serviço específico.
+    /// </summary>
+    /// <param name="providerId">Identificador do prestador</param>
+    /// <param name="serviceId">Identificador do serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Resultado contendo verdadeiro se o prestador oferece o serviço, falso caso contrário</returns>
+    Task<Result<bool>> IsServiceOfferedByProviderAsync(Guid providerId, Guid serviceId, CancellationToken cancellationToken = default);
 }
 

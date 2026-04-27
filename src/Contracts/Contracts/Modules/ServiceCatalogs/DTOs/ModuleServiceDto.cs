@@ -5,10 +5,10 @@ namespace MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 /// </summary>
 public sealed record ModuleServiceDto(
     Guid Id,
+    Guid? ProviderId,
     Guid CategoryId,
     string CategoryName,
     string Name,
     string? Description,
     bool IsActive
 );
-

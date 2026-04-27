@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Middlewares;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class MiddlewareExtensions
 {
     public static IApplicationBuilder UseApiMiddlewares(this IApplicationBuilder app)

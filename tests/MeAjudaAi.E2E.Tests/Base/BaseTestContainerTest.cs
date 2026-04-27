@@ -4,6 +4,7 @@ using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
@@ -206,7 +207,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
                     ReconfigureDbContext<LocationsDbContext>(services);
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-                    ReconfigureSearchProvidersDbContext(services);
+                    ReconfigureDbContext<BookingsDbContext>(services);
+                    ReconfigureDbContext<SearchProvidersDbContext>(services);
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
                     var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -359,6 +361,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<BookingsDbContext>());
 
             // 6. SearchProviders (Depends on Providers + PostGIS)
             var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
@@ -405,6 +408,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         await CleanupContext<ServiceCatalogsDbContext>(services);
         await CleanupContext<LocationsDbContext>(services);
         await CleanupContext<CommunicationsDbContext>(services);
+        await CleanupContext<BookingsDbContext>(services);
         await CleanupContext<SearchProvidersDbContext>(services);
         await CleanupContext<RatingsDbContext>(services);
 
@@ -535,7 +539,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     /// <summary>
     /// Configura autenticação como usuário regular para testes
     /// </summary>
-    protected static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
+    protected static void AuthenticateAsUser(string userId = "00000000-0000-0000-0000-000000000002", string username = "testuser")
     {
         ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
@@ -585,40 +589,21 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
-                npgsqlOptions.UseNetTopologySuite();
+                
+                // Apenas SearchProviders requer NetTopologySuite (PostGIS)
+                if (typeof(TContext) == typeof(SearchProvidersDbContext))
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                }
+                
                 npgsqlOptions.CommandTimeout(120);
             })
-            .UseSnakeCaseNamingConvention()
-            .EnableSensitiveDataLogging(true)
-            .ConfigureWarnings(warnings =>
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-    }
-
-    /// <summary>
-    /// Reconfigura SearchProvidersDbContext com suporte PostGIS/NetTopologySuite
-    /// </summary>
-    private void ReconfigureSearchProvidersDbContext(IServiceCollection services)
-    {
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<SearchProvidersDbContext>));
-        if (descriptor != null)
-            services.Remove(descriptor);
-
-        services.AddDbContext<SearchProvidersDbContext>(options =>
-        {
-            options.UseNpgsql(
-                _postgresContainer.GetConnectionString(),
-                npgsqlOptions =>
-                {
-                    npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                })
                 .UseSnakeCaseNamingConvention()
-                .EnableSensitiveDataLogging(false)
+                .EnableSensitiveDataLogging(true)
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-    }
+            });
+            }
 
     /// <summary>
     /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.

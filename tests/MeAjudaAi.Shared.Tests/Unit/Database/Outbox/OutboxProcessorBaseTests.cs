@@ -77,6 +77,37 @@ public class OutboxProcessorBaseTests
         _processor.OnFailureCalled.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task ProcessPendingMessagesAsync_WhenCancelled_ShouldResetProcessingMessagesToPending()
+    {
+        // Arrange
+        var message = OutboxMessage.Create("T", "P");
+        _repositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<OutboxMessage> { message });
+
+        var cts = new CancellationTokenSource();
+        _processor.CancelTokenSource = cts;
+
+        // Capturar a sequência de status da mensagem durante as chamadas de SaveChangesAsync
+        var capturedStatuses = new List<EOutboxMessageStatus>();
+        _repositoryMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Callback<CancellationToken>(ct => capturedStatuses.Add(message.Status))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = () => _processor.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        
+        capturedStatuses.Should().Contain(EOutboxMessageStatus.Processing, "a mensagem deve ter passado pelo estado Processing antes do cancelamento");
+        message.Status.Should().Be(EOutboxMessageStatus.Pending, "a mensagem deve ter sido resetada para Pending após o cancelamento");
+        
+        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeast(2), 
+            "deve salvar pelo menos duas vezes: uma para Processing e outra para o reset após falha/cancelamento");
+    }
+
     // Concrete implementation for testing the abstract base
     private class TestOutboxProcessor(IOutboxRepository<OutboxMessage> repository, ILogger logger) 
         : OutboxProcessorBase<OutboxMessage>(repository, logger)
@@ -85,9 +116,15 @@ public class OutboxProcessorBaseTests
         public bool ShouldThrowException { get; set; }
         public bool OnSuccessCalled { get; private set; }
         public bool OnFailureCalled { get; private set; }
+        public CancellationTokenSource? CancelTokenSource { get; set; }
 
         protected override Task<DispatchResult> DispatchAsync(OutboxMessage message, CancellationToken cancellationToken)
         {
+            if (CancelTokenSource != null)
+            {
+                CancelTokenSource.Cancel();
+                CancelTokenSource.Token.ThrowIfCancellationRequested();
+            }
             if (ShouldThrowException) throw new Exception("Unexpected");
             return Task.FromResult(DispatchResultToReturn);
         }

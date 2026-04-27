@@ -16,6 +16,9 @@ public class SlugHelperTests
     [InlineData("UPPERCASE text", "uppercase-text")]
     [InlineData("multiple---hifens", "multiple-hifens")]
     [InlineData("!@#$%^&*()_+", "")]
+    [InlineData("Emoji 🚀 test", "emoji-test")]
+    [InlineData("Mixing 123 symbols $$$ and text", "mixing-123-symbols-and-text")]
+    [InlineData("   ", "")]
     [InlineData(null, "")]
     [InlineData("", "")]
     public void Generate_ShouldReturnExpectedSlug(string? input, string expected)
@@ -25,6 +28,30 @@ public class SlugHelperTests
 
         // Assert
         result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("Some complex text with áccents and SYMBOLS $$$")]
+    [InlineData("already-a-slug")]
+    [InlineData("Text with 123 and spaces")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Generate_ShouldBeIdempotent(string? input)
+    {
+        // Act
+        var firstPass = SlugHelper.Generate(input!);
+        var secondPass = SlugHelper.Generate(firstPass);
+
+        // Assert
+        secondPass.Should().Be(firstPass);
+    }
+
+    [Theory]
+    [InlineData("test--test", "test-test")]
+    [InlineData("test--test--test", "test-test-test")]
+    public void Generate_Should_NormalizeMultipleHyphens(string input, string expected)
+    {
+        SlugHelper.Generate(input).Should().Be(expected);
     }
 
     [Theory]

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Shared.Jobs;
 /// <summary>
 /// Extensões para configuração do Hangfire Dashboard.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class HangfireExtensions
 {
     private const string DashboardEnabledKey = "Hangfire:DashboardEnabled";

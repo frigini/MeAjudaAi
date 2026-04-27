@@ -1,7 +1,10 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Messaging.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -11,16 +14,20 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 /// <summary>
 /// Implementação do serviço de Dead Letter Queue usando RabbitMQ
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class RabbitMqDeadLetterService(
     RabbitMqOptions rabbitMqOptions,
     IOptions<DeadLetterOptions> deadLetterOptions,
+    IMessageSerializer serializer,
     ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable, IDisposable
 {
     private readonly DeadLetterOptions _deadLetterOptions = deadLetterOptions.Value;
     private IConnection? _connection;
     private IChannel? _channel;
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
+    private readonly SemaphoreSlim _channelSemaphore = new(1, 1);
     private readonly CancellationTokenSource _disposeCts = new();
+    private readonly ConcurrentDictionary<string, bool> _declaredQuarantineQueues = new();
     private int _disposedValue; // 0 = not disposed, 1 = disposing/disposed
     private bool _disposed => _disposedValue == 1;
 
@@ -46,7 +53,7 @@ public sealed class RabbitMqDeadLetterService(
             await EnsureConnectionAsync();
             await EnsureDeadLetterInfrastructureAsync(deadLetterQueueName);
 
-            var messageBody = Encoding.UTF8.GetBytes(failedMessageInfo.ToJson());
+            var messageBody = Encoding.UTF8.GetBytes(serializer.Serialize(failedMessageInfo));
             var properties = new BasicProperties
             {
                 Persistent = _deadLetterOptions.RabbitMq.EnablePersistence,
@@ -66,13 +73,21 @@ public sealed class RabbitMqDeadLetterService(
                 ["failed-at"] = DateTime.UtcNow.ToString("O")
             };
 
-            await _channel!.BasicPublishAsync(
-                exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
-                routingKey: GetDeadLetterRoutingKey(sourceQueue),
-                mandatory: false,
-                basicProperties: properties,
-                body: messageBody,
-                cancellationToken: cancellationToken);
+            await _channelSemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                await _channel!.BasicPublishAsync(
+                    exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
+                    routingKey: GetDeadLetterRoutingKey(sourceQueue),
+                    mandatory: false,
+                    basicProperties: properties,
+                    body: messageBody,
+                    cancellationToken: cancellationToken);
+            }
+            finally
+            {
+                _channelSemaphore.Release();
+            }
 
             logger.LogWarning(
                 "Message sent to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Queue: {Queue}, Attempts: {Attempts}, Reason: {Reason}",
@@ -119,7 +134,7 @@ public sealed class RabbitMqDeadLetterService(
         return exponentialDelay > maxDelay ? maxDelay : exponentialDelay;
     }
 
-    public async Task ReprocessDeadLetterMessageAsync(
+    public async Task<bool> ReprocessDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default)
@@ -128,45 +143,176 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-            if (result != null)
+            uint initialCount;
+            await _channelSemaphore.WaitAsync(cancellationToken);
+            try
             {
+                var queueDeclareResult = await _channel!.QueueDeclarePassiveAsync(deadLetterQueueName, cancellationToken);
+                initialCount = queueDeclareResult.MessageCount;
+            }
+            finally
+            {
+                _channelSemaphore.Release();
+            }
+
+            // Buscamos na fila até encontrar a mensagem ou esgotar a contagem inicial
+            for (uint i = 0; i < initialCount; i++)
+            {
+                await _channelSemaphore.WaitAsync(cancellationToken);
+                BasicGetResult? result;
+                try
+                {
+                    result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
+                }
+                finally
+                {
+                    _channelSemaphore.Release();
+                }
+
+                if (result == null) break;
+
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = FailedMessageInfoExtensions.FromJson(messageBodyJson);
+                FailedMessageInfo? failedMessageInfo = null;
+
+                try
+                {
+                    failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                }
+                catch (Exception ex)
+                {
+                    var bodyPreview = messageBodyJson.Length > 100 ? messageBodyJson[..100] + "..." : messageBodyJson;
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue} (DeliveryTag: {DeliveryTag}). Body Preview: {BodyPreview}. Moving to quarantine.", 
+                        deadLetterQueueName, result.DeliveryTag, bodyPreview);
+                    
+                    try
+                    {
+                        await SendToQuarantineAsync(deadLetterQueueName, result.Body, result.BasicProperties, cancellationToken);
+                        
+                        await _channelSemaphore.WaitAsync(cancellationToken);
+                        try
+                        {
+                            await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        }
+                        finally
+                        {
+                            _channelSemaphore.Release();
+                        }
+                    }
+                    catch (Exception quarantineEx)
+                    {
+                        await _channelSemaphore.WaitAsync(cancellationToken);
+                        try
+                        {
+                            await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        }
+                        finally
+                        {
+                            _channelSemaphore.Release();
+                        }
+
+                        logger.LogCritical(
+                            quarantineEx,
+                            "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, PayloadHash: {PayloadHash}, PayloadLength: {PayloadLength}, DeadLetterQueueName: {Queue}",
+                            result.DeliveryTag,
+                            result.BasicProperties?.MessageId ?? "null",
+                            GetPayloadHash(result.Body),
+                            result.Body.Length,
+                            deadLetterQueueName);
+                    }
+                    continue; // Tenta o próximo
+                }
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
                     // Reenvia para a fila original
                     var originalMessageBody = Encoding.UTF8.GetBytes(failedMessageInfo.OriginalMessage);
-                    var properties = new BasicProperties();
-                    properties.MessageId = Guid.NewGuid().ToString();
-                    properties.Headers = new Dictionary<string, object?>
+                    var properties = new BasicProperties
                     {
-                        ["reprocessed-from-dlq"] = true,
-                        ["original-message-id"] = messageId,
-                        ["reprocessed-at"] = DateTime.UtcNow.ToString("O")
+                        Persistent = true,
+                        MessageId = Guid.NewGuid().ToString(),
+                        Headers = new Dictionary<string, object?>
+                        {
+                            ["reprocessed-from-dlq"] = true,
+                            ["original-message-id"] = messageId,
+                            ["reprocessed-at"] = DateTime.UtcNow.ToString("O")
+                        }
                     };
 
-                    await _channel.BasicPublishAsync(
-                        exchange: "",
-                        routingKey: failedMessageInfo.SourceQueue,
-                        mandatory: false,
-                        basicProperties: properties,
-                        body: originalMessageBody,
-                        cancellationToken: cancellationToken);
+                    await _channelSemaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        await _channel!.BasicPublishAsync(
+                            exchange: "",
+                            routingKey: failedMessageInfo.SourceQueue,
+                            mandatory: false,
+                            basicProperties: properties,
+                            body: originalMessageBody,
+                            cancellationToken: cancellationToken);
 
-                    // Remove da DLQ
-                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        // Remove da DLQ
+                        await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    }
+                    finally
+                    {
+                        _channelSemaphore.Release();
+                    }
 
                     logger.LogInformation("Message {MessageId} reprocessed from dead letter queue {Queue}",
                         messageId, deadLetterQueueName);
+                    
+                    return true;
                 }
                 else
                 {
-                    // Rejeita a mensagem de volta para a fila
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    // Rejeita a mensagem sem recolocar no início para evitar loop infinito
+                    // Republicamos para o fim da fila ANTES do Ack para evitar perda
+                    
+                    var foundId = result.BasicProperties?.MessageId ?? "null";
+                    logger.LogWarning("Requested reprocess for MessageId {RequestedId}, but found {FoundId} in queue {Queue}. Republishing to tail.",
+                        messageId, foundId, deadLetterQueueName);
+
+                    var props = result.BasicProperties ?? new BasicProperties();
+                    var publishProperties = new BasicProperties
+                    {
+                        Persistent = true,
+                        MessageId = props.MessageId,
+                        CorrelationId = props.CorrelationId,
+                        ContentType = props.ContentType,
+                        ContentEncoding = props.ContentEncoding,
+                        Timestamp = props.Timestamp,
+                        Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : null,
+                        Priority = props.Priority,
+                        ReplyTo = props.ReplyTo,
+                        Expiration = props.Expiration,
+                        Type = props.Type,
+                        UserId = props.UserId,
+                        AppId = props.AppId,
+                        ClusterId = props.ClusterId
+                    };
+
+                    await _channelSemaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        await _channel!.BasicPublishAsync(
+                            exchange: "",
+                            routingKey: deadLetterQueueName,
+                            mandatory: false,
+                            basicProperties: publishProperties,
+                            body: result.Body,
+                            cancellationToken: cancellationToken);
+
+                        await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    }
+                    finally
+                    {
+                        _channelSemaphore.Release();
+                    }
                 }
             }
+
+            logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue} after scanning {Count} messages",
+                messageId, deadLetterQueueName, initialCount);
+            return false;
         }
         catch (Exception ex)
         {
@@ -184,6 +330,7 @@ public sealed class RabbitMqDeadLetterService(
         CancellationToken cancellationToken = default)
     {
         var messages = new List<FailedMessageInfo>();
+        var seenMessageIds = new HashSet<string>();
 
         try
         {
@@ -192,20 +339,76 @@ public sealed class RabbitMqDeadLetterService(
             var count = 0;
             while (count < maxCount)
             {
-                var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-                if (result == null) break;
-
-                var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = FailedMessageInfoExtensions.FromJson(messageBodyJson);
-
-                if (failedMessageInfo != null)
+                await _channelSemaphore.WaitAsync(cancellationToken);
+                BasicGetResult? result;
+                try
                 {
-                    messages.Add(failedMessageInfo);
+                    result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
+                }
+                finally
+                {
+                    _channelSemaphore.Release();
                 }
 
-                // Importante: Rejeita a mensagem de volta para a fila
-                await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
-                count++;
+                if (result == null) break;
+
+                // Em modo de inspeção (list), não queremos remover mensagens da fila,
+                // exceto duplicadas que já processamos nesta iteração.
+                var wasAcked = false;
+                var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
+                FailedMessageInfo? failedMessageInfo = null;
+
+                try
+                {
+                    failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+
+                    // Deduplicação adicional por MessageId se disponível
+                    if (failedMessageInfo?.MessageId != null && seenMessageIds.Contains(failedMessageInfo.MessageId))
+                    {
+                        await _channelSemaphore.WaitAsync(cancellationToken);
+                        try
+                        {
+                            await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        }
+                        finally
+                        {
+                            _channelSemaphore.Release();
+                        }
+                        wasAcked = true;
+                        continue;
+                    }
+
+                    if (failedMessageInfo != null)
+                    {
+                        messages.Add(failedMessageInfo);
+                        if (failedMessageInfo.MessageId != null)
+                        {
+                            seenMessageIds.Add(failedMessageInfo.MessageId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to deserialize dead letter message during list operation. Queue: {Queue}", deadLetterQueueName);
+                }
+                finally
+                {
+                    if (!wasAcked)
+                    {
+                        // Se não foi um duplicado removido via Ack, devolvemos para a fila com Nack(requeue:true)
+                        // Isso garante que a inspeção não seja destrutiva.
+                        await _channelSemaphore.WaitAsync(cancellationToken);
+                        try
+                        {
+                            await _channel!.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                        }
+                        finally
+                        {
+                            _channelSemaphore.Release();
+                        }
+                    }
+                    count++;
+                }
             }
         }
         catch (Exception ex)
@@ -219,7 +422,7 @@ public sealed class RabbitMqDeadLetterService(
         return messages;
     }
 
-    public async Task PurgeDeadLetterMessageAsync(
+    public async Task<bool> PurgeDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default)
@@ -228,23 +431,152 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-            if (result != null)
+            uint initialCount;
+            await _channelSemaphore.WaitAsync(cancellationToken);
+            try
             {
+                var queueDeclareResult = await _channel!.QueueDeclarePassiveAsync(deadLetterQueueName, cancellationToken);
+                initialCount = queueDeclareResult.MessageCount;
+            }
+            finally
+            {
+                _channelSemaphore.Release();
+            }
+
+            for (uint i = 0; i < initialCount; i++)
+            {
+                await _channelSemaphore.WaitAsync(cancellationToken);
+                BasicGetResult? result;
+                try
+                {
+                    result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
+                }
+                finally
+                {
+                    _channelSemaphore.Release();
+                }
+
+                if (result == null) break;
+
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = FailedMessageInfoExtensions.FromJson(messageBodyJson);
+                FailedMessageInfo? failedMessageInfo = null;
+
+                try
+                {
+                    failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                }
+                catch (Exception ex)
+                {
+                    var bodyPreview = messageBodyJson.Length > 100 ? messageBodyJson[..100] + "..." : messageBodyJson;
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue} (DeliveryTag: {DeliveryTag}). Body Preview: {BodyPreview}. Moving to quarantine.", 
+                        deadLetterQueueName, result.DeliveryTag, bodyPreview);
+                    
+                    try
+                    {
+                        await SendToQuarantineAsync(deadLetterQueueName, result.Body, result.BasicProperties, cancellationToken);
+                        
+                        await _channelSemaphore.WaitAsync(cancellationToken);
+                        try
+                        {
+                            await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        }
+                        finally
+                        {
+                            _channelSemaphore.Release();
+                        }
+                    }
+                    catch (Exception quarantineEx)
+                    {
+                        await _channelSemaphore.WaitAsync(cancellationToken);
+                        try
+                        {
+                            await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        }
+                        finally
+                        {
+                            _channelSemaphore.Release();
+                        }
+
+                        logger.LogCritical(
+                            quarantineEx,
+                            "Critical: could not move message to quarantine during purge. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, PayloadHash: {PayloadHash}, PayloadLength: {PayloadLength}, DeadLetterQueueName: {Queue}",
+                            result.DeliveryTag,
+                            result.BasicProperties?.MessageId ?? "null",
+                            GetPayloadHash(result.Body),
+                            result.Body.Length,
+                            deadLetterQueueName);
+                    }
+                    continue;
+                }
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
-                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    await _channelSemaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    }
+                    finally
+                    {
+                        _channelSemaphore.Release();
+                    }
+
                     logger.LogInformation("Dead letter message {MessageId} purged from queue {Queue}",
                         messageId, deadLetterQueueName);
+                    
+                    return true;
                 }
                 else
                 {
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    // Rejeita a mensagem sem recolocar no início para evitar loop infinito
+                    // Republicamos para o fim da fila ANTES do Ack para evitar perda
+                    
+                    var foundId = result.BasicProperties?.MessageId ?? "null";
+                    logger.LogWarning("Requested purge for MessageId {RequestedId}, but found {FoundId} in queue {Queue}. Republishing to tail.",
+                        messageId, foundId, deadLetterQueueName);
+
+                    var props = result.BasicProperties ?? new BasicProperties();
+                    var publishProperties = new BasicProperties
+                    {
+                        Persistent = true,
+                        MessageId = props.MessageId,
+                        CorrelationId = props.CorrelationId,
+                        ContentType = props.ContentType,
+                        ContentEncoding = props.ContentEncoding,
+                        Timestamp = props.Timestamp,
+                        Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : null,
+                        Priority = props.Priority,
+                        ReplyTo = props.ReplyTo,
+                        Expiration = props.Expiration,
+                        Type = props.Type,
+                        UserId = props.UserId,
+                        AppId = props.AppId,
+                        ClusterId = props.ClusterId
+                    };
+
+                    await _channelSemaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        await _channel!.BasicPublishAsync(
+                            exchange: "",
+                            routingKey: deadLetterQueueName,
+                            mandatory: false,
+                            basicProperties: publishProperties,
+                            body: result.Body,
+                            cancellationToken: cancellationToken);
+
+                        await _channel!.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    }
+                    finally
+                    {
+                        _channelSemaphore.Release();
+                    }
                 }
             }
+
+            logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue} for purge after scanning {Count} messages",
+                messageId, deadLetterQueueName, initialCount);
+            return false;
         }
         catch (Exception ex)
         {
@@ -271,7 +603,17 @@ public sealed class RabbitMqDeadLetterService(
             {
                 try
                 {
-                    var queueInfo = await _channel!.QueueDeclarePassiveAsync(queueName, cancellationToken);
+                    await _channelSemaphore.WaitAsync(cancellationToken);
+                    QueueDeclareOk queueInfo;
+                    try
+                    {
+                        queueInfo = await _channel!.QueueDeclarePassiveAsync(queueName, cancellationToken);
+                    }
+                    finally
+                    {
+                        _channelSemaphore.Release();
+                    }
+
                     statistics.MessagesByQueue[queueName] = (int)queueInfo.MessageCount;
                     statistics.TotalDeadLetterMessages += (int)queueInfo.MessageCount;
                 }
@@ -323,6 +665,9 @@ public sealed class RabbitMqDeadLetterService(
 
                 _connection = await factory.CreateConnectionAsync();
                 _channel = await _connection.CreateChannelAsync();
+
+                // Limpa o cache de filas declaradas quando o canal é recriado
+                _declaredQuarantineQueues.Clear();
             }
             catch (Exception ex)
             {
@@ -343,31 +688,39 @@ public sealed class RabbitMqDeadLetterService(
         if (_channel == null)
             throw new InvalidOperationException("RabbitMQ channel not available");
 
-        // Declara o exchange de dead letter
-        await _channel.ExchangeDeclareAsync(
-            exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
-            type: ExchangeType.Topic,
-            durable: true);
-
-        // Declara a fila de dead letter
-        var arguments = new Dictionary<string, object?>();
-        if (_deadLetterOptions.DeadLetterTtlHours > 0)
+        await _channelSemaphore.WaitAsync();
+        try
         {
-            arguments["x-message-ttl"] = (int)TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds;
+            // Declara o exchange de dead letter
+            await _channel.ExchangeDeclareAsync(
+                exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
+                type: ExchangeType.Topic,
+                durable: true);
+
+            // Declara a fila de dead letter
+            var arguments = new Dictionary<string, object?>();
+            if (_deadLetterOptions.DeadLetterTtlHours > 0)
+            {
+                arguments["x-message-ttl"] = (int)TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds;
+            }
+
+            await _channel.QueueDeclareAsync(
+                queue: deadLetterQueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: arguments);
+
+            // Vincula a fila ao exchange
+            await _channel.QueueBindAsync(
+                queue: deadLetterQueueName,
+                exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
+                routingKey: GetDeadLetterRoutingKey(deadLetterQueueName));
         }
-
-        await _channel.QueueDeclareAsync(
-            queue: deadLetterQueueName,
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: arguments);
-
-        // Vincula a fila ao exchange
-        await _channel.QueueBindAsync(
-            queue: deadLetterQueueName,
-            exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
-            routingKey: GetDeadLetterRoutingKey(deadLetterQueueName));
+        finally
+        {
+            _channelSemaphore.Release();
+        }
     }
 
     private FailedMessageInfo CreateFailedMessageInfo<TMessage>(
@@ -381,7 +734,7 @@ public sealed class RabbitMqDeadLetterService(
         {
             MessageId = Guid.NewGuid().ToString(),
             MessageType = typeof(TMessage).FullName ?? "Unknown",
-            OriginalMessage = JsonSerializer.Serialize(message),
+            OriginalMessage = serializer.Serialize(message),
             SourceQueue = sourceQueue,
             FirstAttemptAt = DateTime.UtcNow.AddMinutes(-attemptCount * 2), // Estimativa
             LastAttemptAt = DateTime.UtcNow,
@@ -399,6 +752,82 @@ public sealed class RabbitMqDeadLetterService(
         return failedMessageInfo;
     }
 
+    private async Task SendToQuarantineAsync(
+        string deadLetterQueueName,
+        ReadOnlyMemory<byte> body,
+        IReadOnlyBasicProperties? properties,
+        CancellationToken cancellationToken)
+    {
+        var quarantineQueue = $"{deadLetterQueueName}.quarantine";
+        
+        try
+        {
+            await _channelSemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                // Evitamos declarações redundantes via cache em memória (race condition resolvida via idempotência do RMQ)
+                if (!_declaredQuarantineQueues.ContainsKey(quarantineQueue))
+                {
+                    var args = new Dictionary<string, object?>
+                    {
+                        ["x-message-ttl"] = (int)TimeSpan.FromDays(30).TotalMilliseconds,
+                        ["x-max-length"] = 10000, // Limite de 10k mensagens
+                        ["x-overflow"] = "reject-publish"
+                    };
+
+                    await _channel!.QueueDeclareAsync(
+                        queue: quarantineQueue,
+                        durable: true,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: args,
+                        cancellationToken: cancellationToken);
+                    
+                    _declaredQuarantineQueues.TryAdd(quarantineQueue, true);
+                }
+
+                var publishProperties = new BasicProperties
+                {
+                    Persistent = true,
+                    MessageId = properties?.MessageId,
+                    CorrelationId = properties?.CorrelationId,
+                    ContentType = properties?.ContentType,
+                    ContentEncoding = properties?.ContentEncoding,
+                    Timestamp = properties?.Timestamp ?? default,
+                    Headers = properties?.Headers != null ? new Dictionary<string, object?>(properties.Headers) : new Dictionary<string, object?>()
+                };
+
+                // Estende headers com metadados de quarentena
+                var headers = publishProperties.Headers!;
+                headers["x-quarantine-reason"] = "deserialization_failure";
+                headers["x-original-queue"] = deadLetterQueueName;
+                headers["x-quarantined-at"] = DateTime.UtcNow.ToString("O");
+
+                await _channel!.BasicPublishAsync(
+                    exchange: "",
+                    routingKey: quarantineQueue,
+                    mandatory: false,
+                    basicProperties: publishProperties,
+                    body: body,
+                    cancellationToken: cancellationToken);
+            }
+            finally
+            {
+                _channelSemaphore.Release();
+            }
+
+            logger.LogWarning("Corrupt dead letter message moved to quarantine queue: {Queue}. Metric: dead_letter_quarantined_total=1", quarantineQueue);
+        }
+        catch (Exception ex)
+        {
+            // Se falhou ao declarar, removemos do cache para tentar novamente na próxima
+            _declaredQuarantineQueues.TryRemove(quarantineQueue, out _);
+
+            logger.LogError(ex, "Critical failure: could not move corrupt message to quarantine queue {Queue}", quarantineQueue);
+            throw; // Re-lança para forçar Nack com requeue se o chamador tratar
+        }
+    }
+
     private string GetDeadLetterQueueName(string sourceQueue)
     {
         return $"{_deadLetterOptions.DeadLetterQueuePrefix}.{sourceQueue}";
@@ -407,6 +836,12 @@ public sealed class RabbitMqDeadLetterService(
     private string GetDeadLetterRoutingKey(string sourceQueue)
     {
         return $"{_deadLetterOptions.RabbitMq.DeadLetterRoutingKey}.{sourceQueue}";
+    }
+
+    private static string GetPayloadHash(ReadOnlyMemory<byte> body)
+    {
+        var hashBytes = SHA256.HashData(body.Span);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
     private List<string> GetKnownDeadLetterQueues()
@@ -456,11 +891,19 @@ public sealed class RabbitMqDeadLetterService(
             await _disposeCts.CancelAsync();
             _disposeCts.Dispose();
 
-            if (_channel != null)
+            await _channelSemaphore.WaitAsync();
+            try
             {
-                await _channel.CloseAsync();
-                await _channel.DisposeAsync();
-                _channel = null;
+                if (_channel != null)
+                {
+                    await _channel.CloseAsync();
+                    await _channel.DisposeAsync();
+                    _channel = null;
+                }
+            }
+            finally
+            {
+                _channelSemaphore.Release();
             }
 
             if (_connection != null)
@@ -477,6 +920,7 @@ public sealed class RabbitMqDeadLetterService(
         finally
         {
             _connectionSemaphore?.Dispose();
+            _channelSemaphore?.Dispose();
         }
     }
 
@@ -494,6 +938,7 @@ public sealed class RabbitMqDeadLetterService(
             _disposeCts.Cancel();
             _disposeCts.Dispose();
             _connectionSemaphore?.Dispose();
+            _channelSemaphore?.Dispose();
 
             _channel?.Dispose();
             _connection?.Dispose();

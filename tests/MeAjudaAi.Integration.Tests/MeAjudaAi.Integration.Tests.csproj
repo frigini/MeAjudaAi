@@ -55,35 +55,52 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
     <ProjectReference Include="..\..\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Providers\Domain\MeAjudaAi.Modules.Providers.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Providers\Application\MeAjudaAi.Modules.Providers.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Bookings\API\MeAjudaAi.Modules.Bookings.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Bookings\Application\MeAjudaAi.Modules.Bookings.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Bookings\Domain\MeAjudaAi.Modules.Bookings.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Bookings\Infrastructure\MeAjudaAi.Modules.Bookings.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Bookings\Tests\MeAjudaAi.Modules.Bookings.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Communications\API\MeAjudaAi.Modules.Communications.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Communications\Application\MeAjudaAi.Modules.Communications.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Communications\Domain\MeAjudaAi.Modules.Communications.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Communications\Infrastructure\MeAjudaAi.Modules.Communications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\API\MeAjudaAi.Modules.Documents.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Documents\Domain\MeAjudaAi.Modules.Documents.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Documents\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Documents\API\MeAjudaAi.Modules.Documents.API.csproj" />
     <ProjectReference Include="..\..\src\Modules\Documents\Tests\MeAjudaAi.Modules.Documents.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Locations\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Locations\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\API\MeAjudaAi.Modules.Payments.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Domain\MeAjudaAi.Modules.Payments.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Tests\MeAjudaAi.Modules.Payments.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Application\MeAjudaAi.Modules.Providers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Domain\MeAjudaAi.Modules.Providers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\API\MeAjudaAi.Modules.Ratings.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\Application\MeAjudaAi.Modules.Ratings.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\Domain\MeAjudaAi.Modules.Ratings.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\Infrastructure\MeAjudaAi.Modules.Ratings.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\SearchProviders\API\MeAjudaAi.Modules.SearchProviders.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\SearchProviders\Application\MeAjudaAi.Modules.SearchProviders.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\SearchProviders\Domain\MeAjudaAi.Modules.SearchProviders.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\SearchProviders\Infrastructure\MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Application\MeAjudaAi.Modules.ServiceCatalogs.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Domain\MeAjudaAi.Modules.ServiceCatalogs.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Application\MeAjudaAi.Modules.ServiceCatalogs.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
-    <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Locations\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Locations\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Payments\Domain\MeAjudaAi.Modules.Payments.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Payments\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Payments\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Payments\API\MeAjudaAi.Modules.Payments.API.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Payments\Tests\MeAjudaAi.Modules.Payments.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

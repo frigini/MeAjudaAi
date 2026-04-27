@@ -22,6 +22,8 @@ public abstract class OutboxProcessorBase<TMessage>(
         int batchSize = 20,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested) return 0;
+
         var messages = await outboxRepository.GetPendingAsync(batchSize, DateTime.UtcNow, cancellationToken);
         if (messages.Count == 0) return 0;
 

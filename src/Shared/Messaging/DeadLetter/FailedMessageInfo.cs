@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 
@@ -178,32 +177,8 @@ public enum EFailureType
 /// <summary>
 /// Extensões para facilitar o trabalho com FailedMessageInfo
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class FailedMessageInfoExtensions
 {
-    /// <summary>
-    /// Serializa FailedMessageInfo para JSON
-    /// </summary>
-    public static string ToJson(this FailedMessageInfo failedMessage)
-    {
-        return JsonSerializer.Serialize(failedMessage, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        });
-    }
-
-    /// <summary>
-    /// Deserializa FailedMessageInfo do JSON
-    /// </summary>
-    public static FailedMessageInfo? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<FailedMessageInfo>(json, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
-    }
-
     /// <summary>
     /// Adiciona uma nova tentativa de falha ao histórico
     /// </summary>

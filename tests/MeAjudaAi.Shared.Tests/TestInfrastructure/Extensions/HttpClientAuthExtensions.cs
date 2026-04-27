@@ -47,4 +47,14 @@ public static class HttpClientAuthExtensions
     {
         return client.WithoutAuthorizationHeader();
     }
+
+    /// <summary>
+    /// Configura usando o esquema de autenticação por instância
+    /// </summary>
+    public static HttpClient AsTestInstance(this HttpClient client, string token = "dummy-token")
+    {
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("TestInstance", token);
+        return client;
+    }
 }

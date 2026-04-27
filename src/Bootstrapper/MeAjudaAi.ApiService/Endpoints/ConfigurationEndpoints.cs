@@ -29,9 +29,10 @@ public static class ConfigurationEndpoints
     /// Retorna a configuração do cliente.
     /// Apenas informações não-sensíveis são expostas.
     /// </summary>
-    private static Ok<ClientConfiguration> GetClientConfiguration(
-        [FromServices] IConfiguration configuration,
-        [FromServices] IWebHostEnvironment environment)
+    internal static Ok<ClientConfiguration> GetClientConfiguration(
+        IConfiguration configuration,
+        IWebHostEnvironment environment,
+        ILogger<Program> logger)
     {
         // Obter URL base da API do host atual ou configuração
         var apiBaseUrl = configuration["ApiBaseUrl"] 
@@ -43,38 +44,36 @@ public static class ConfigurationEndpoints
 
         // Configuração do Keycloak - suportar tanto o novo formato (BaseUrl + Realm) quanto o legado (Authority)
         var keycloakAuthority = configuration["Keycloak:Authority"]?.TrimEnd('/');
-        
+
         if (string.IsNullOrWhiteSpace(keycloakAuthority))
         {
-
-
-
-
-
-        
-        
             // Construir Authority a partir de BaseUrl e Realm
             var keycloakBaseUrl = configuration["Keycloak:BaseUrl"];
             if (string.IsNullOrWhiteSpace(keycloakBaseUrl))
                 throw new InvalidOperationException("Keycloak:BaseUrl ou Keycloak:Authority deve estar configurado");
-            
+
             keycloakBaseUrl = keycloakBaseUrl.TrimEnd('/');
-            
+
             var keycloakRealm = configuration["Keycloak:Realm"];
             if (string.IsNullOrWhiteSpace(keycloakRealm))
                 keycloakRealm = "meajudaai"; // Valor padrão
-            
+
             keycloakRealm = keycloakRealm.Trim('/');
 
             keycloakAuthority = $"{keycloakBaseUrl}/realms/{keycloakRealm}";
         }
-
         var keycloakClientId = configuration["Keycloak:ClientId"] 
             ?? throw new InvalidOperationException("Keycloak:ClientId não configurado");
 
         // URL de logout - usa a URL base do cliente WASM
         var clientBaseUrl = configuration["ClientBaseUrl"] ?? "http://localhost:5165";
         var postLogoutRedirectUri = $"{clientBaseUrl.TrimEnd('/')}/";
+
+        var rawEnableFakeAuth = configuration["FeatureFlags:EnableFakeAuth"]?.Trim();
+        if (!bool.TryParse(rawEnableFakeAuth, out var enableFakeAuth) && !string.IsNullOrEmpty(rawEnableFakeAuth))
+        {
+            logger.LogWarning("Invalid value for FeatureFlags:EnableFakeAuth: '{Value}'. Treating as false.", rawEnableFakeAuth);
+        }
 
         var clientConfig = new ClientConfiguration
         {
@@ -96,7 +95,7 @@ public static class ConfigurationEndpoints
             {
                 EnableReduxDevTools = environment.IsDevelopment(),
                 EnableDebugMode = environment.IsDevelopment(),
-                EnableFakeAuth = configuration.GetValue<bool>("FeatureFlags:EnableFakeAuth")
+                EnableFakeAuth = enableFakeAuth
             }
         };
 

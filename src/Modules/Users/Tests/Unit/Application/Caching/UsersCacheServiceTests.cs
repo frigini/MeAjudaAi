@@ -2,10 +2,15 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Services.Implementations;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Caching;
 
+[Trait("Category", "Unit")]
 public class UsersCacheServiceTests
 {
     private readonly Mock<ICacheService> _cacheServiceMock;
@@ -16,6 +21,15 @@ public class UsersCacheServiceTests
     {
         _cacheServiceMock = new Mock<ICacheService>();
         _usersCacheService = new UsersCacheService(_cacheServiceMock.Object);
+    }
+
+    private static bool TagsMatch(IEnumerable<string>? tags, IEnumerable<string> expectedTags)
+    {
+        // Nota: Duplicatas na entrada 'tags' serão colapsadas pelo HashSet.
+        // Se a detecção de tags duplicadas se tornar importante para CacheTags.GetUserRelatedTags,
+        // este método deve ser alterado para comparar contagens antes de usar SetEquals.
+        if (tags == null) return false;
+        return new HashSet<string>(tags).SetEquals(expectedTags);
     }
 
     [Fact]
@@ -53,13 +67,127 @@ public class UsersCacheServiceTests
                 UsersCacheKeys.UserById(userId),
                 _cancellationToken),
             Times.Once);
+
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 expectedUser,
-                It.IsAny<TimeSpan?>(),
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
+                _cancellationToken),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrCacheUserByIdAsync_WhenCacheHit_ShouldReturnCachedValue_AndNotCallFactory()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var cachedUser = new UserDto(
+            Id: userId,
+            Username: "cacheduser",
+            Email: "cached@example.com",
+            FirstName: "Cached",
+            LastName: "User",
+            FullName: "Cached User",
+            KeycloakId: "keycloak456",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null
+        );
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => {
+            factoryCalled = true;
+            return ValueTask.FromResult<UserDto?>(null);
+        };
+
+        _cacheServiceMock
+            .Setup(x => x.GetAsync<UserDto?>(
+                UsersCacheKeys.UserById(userId),
+                _cancellationToken))
+            .ReturnsAsync((cachedUser, true));
+
+        // Act
+        var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
+
+        // Assert
+        result.Should().Be(cachedUser);
+        factoryCalled.Should().BeFalse();
+        _cacheServiceMock.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<UserDto>(), It.IsAny<TimeSpan?>(), It.IsAny<HybridCacheEntryOptions?>(), It.IsAny<IReadOnlyCollection<string>?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetOrCacheUserByIdAsync_WhenFactoryReturnsNull_ShouldNotSetCache()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => 
+        {
+            factoryCalled = true;
+            return ValueTask.FromResult<UserDto?>(null);
+        };
+
+        _cacheServiceMock
+            .Setup(x => x.GetAsync<UserDto?>(
+                UsersCacheKeys.UserById(userId),
+                _cancellationToken))
+            .ReturnsAsync((null, false));
+
+        // Act
+        var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        factoryCalled.Should().BeTrue();
+        _cacheServiceMock.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<UserDto>(), It.IsAny<TimeSpan?>(), It.IsAny<HybridCacheEntryOptions?>(), It.IsAny<IReadOnlyCollection<string>?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetOrCacheUserByIdAsync_WhenCachedFlagTrueButValueNull_ShouldCallFactoryAndCacheResult()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new UserDto(
+            Id: userId,
+            Username: "testuser",
+            Email: "test@example.com",
+            FirstName: "Test",
+            LastName: "User",
+            FullName: "Test User",
+            KeycloakId: "keycloak123",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null
+        );
+
+        _cacheServiceMock.Setup(x => x.GetAsync<UserDto?>(
+                UsersCacheKeys.UserById(userId),
+                _cancellationToken))
+            .ReturnsAsync((null, true));
+
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct =>
+        {
+            factoryCalled = true;
+            return ValueTask.FromResult<UserDto?>(user);
+        };
+
+        // Act
+        var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
+
+        // Assert
+        result.Should().Be(user);
+        factoryCalled.Should().BeTrue();
+
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        _cacheServiceMock.Verify(
+            x => x.SetAsync(
+                UsersCacheKeys.UserById(userId),
+                user,
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -93,6 +221,39 @@ public class UsersCacheServiceTests
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.IsAny<IReadOnlyCollection<string>?>(),
+                _cancellationToken),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SetUserAsync_ShouldCallCacheService_WithCorrectParameters()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new UserDto(
+            Id: userId,
+            Username: "testuser",
+            Email: "test@example.com",
+            FirstName: "Test",
+            LastName: "User",
+            FullName: "Test User",
+            KeycloakId: "keycloak123",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null
+        );
+
+        // Act
+        await _usersCacheService.SetUserAsync(user, _cancellationToken);
+
+        // Assert
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UserByEmail, CacheTags.UserEmailTag(user.Email), CacheTags.UsersList };
+        _cacheServiceMock.Verify(
+            x => x.SetAsync(
+                UsersCacheKeys.UserById(userId),
+                user,
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -214,7 +375,7 @@ public class UsersCacheServiceTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
         );
-        ValueTask<UserDto?> factory(CancellationToken ct) => ValueTask.FromResult<UserDto?>(userData);
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => ValueTask.FromResult<UserDto?>(userData);
 
         // Setup GetAsync to return cache miss (not cached)
         _cacheServiceMock
@@ -232,13 +393,15 @@ public class UsersCacheServiceTests
                 UsersCacheKeys.UserById(userId),
                 _cancellationToken),
             Times.Once);
+
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 userData,
-                It.IsAny<TimeSpan?>(),
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }

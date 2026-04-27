@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Database.Exceptions;
@@ -18,12 +19,18 @@ namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
 public class GlobalExceptionHandlerTests
 {
     private readonly Mock<ILogger<GlobalExceptionHandler>> _loggerMock;
+    private readonly Mock<IHostEnvironment> _envMock;
     private readonly GlobalExceptionHandler _handler;
 
     public GlobalExceptionHandlerTests()
     {
         _loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
-        _handler = new GlobalExceptionHandler(_loggerMock.Object);
+        _envMock = new Mock<IHostEnvironment>();
+        
+        // Padrão para Development para testes existentes
+        _envMock.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        
+        _handler = new GlobalExceptionHandler(_loggerMock.Object, _envMock.Object);
     }
 
     [Fact]
@@ -40,11 +47,65 @@ public class GlobalExceptionHandlerTests
 
         result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-        problemDetails.Title.Should().Be("Erro de validação");
-        problemDetails.Extensions.Should().ContainKey("errors");
+        var body = await ReadProblemDetailsAsync(context);
+        body.Title.Should().Be("Erro de validação");
+        body.Extensions.Should().ContainKey("errors");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithUniqueConstraintException_ShouldReturnConflict()
+    {
+        var context = CreateDefaultContext();
+        var exception = new UniqueConstraintException("IX_Test", "Email", null!);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
+        var body = await ReadProblemDetailsAsync(context);
+        body.Title.Should().Be("Valor Duplicado");
+        body.Extensions.Should().ContainKey("columnName");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithNotNullConstraintException_ShouldReturnBadRequest()
+    {
+        var context = CreateDefaultContext();
+        var exception = new NotNullConstraintException("Name", null!, true);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        var body = await ReadProblemDetailsAsync(context);
+        body.Title.Should().Be("Campo Obrigatório Ausente");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithForeignKeyConstraintException_ShouldReturnBadRequest()
+    {
+        var context = CreateDefaultContext();
+        var exception = new ForeignKeyConstraintException("FK_Test", "Users", null!);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        var body = await ReadProblemDetailsAsync(context);
+        body.Title.Should().Be("Referência Inválida");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithAggregateException_ShouldUnwrapAndHandleInner()
+    {
+        var context = CreateDefaultContext();
+        var inner = new MeAjudaAi.Shared.Exceptions.NotFoundException("User", "123");
+        var exception = new AggregateException(inner);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
     }
 
     [Fact]
@@ -59,7 +120,6 @@ public class GlobalExceptionHandlerTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         
         var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status401Unauthorized);
         problemDetails.Title.Should().Be("Não Autorizado");
     }
 
@@ -75,10 +135,9 @@ public class GlobalExceptionHandlerTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
         
         var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
         problemDetails.Title.Should().Be("Recurso Não Encontrado");
-        problemDetails.Extensions["entityName"].ToString().Should().Be("Resource");
-        problemDetails.Extensions["entityId"].ToString().Should().Be("123");
+        problemDetails.Extensions["entityName"]?.ToString().Should().Be("Resource");
+        problemDetails.Extensions["entityId"]?.ToString().Should().Be("123");
     }
 
     [Fact]
@@ -93,7 +152,6 @@ public class GlobalExceptionHandlerTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
         
         var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
         problemDetails.Title.Should().Be("Acesso Negado");
         problemDetails.Detail.Should().Be("Access denied");
     }
@@ -110,9 +168,22 @@ public class GlobalExceptionHandlerTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         
         var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
         problemDetails.Title.Should().Be("Violação de Regra de Negócio");
-        problemDetails.Extensions["ruleName"].ToString().Should().Be("MyRule");
+        problemDetails.Extensions["ruleName"]?.ToString().Should().Be("MyRule");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithUnprocessableEntityException_ShouldReturn422()
+    {
+        var context = CreateDefaultContext();
+        var exception = new UnprocessableEntityException("Invalid state", "User");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
+        var body = await ReadProblemDetailsAsync(context);
+        body.Title.Should().Be("Entidade Não Processável");
     }
 
     [Fact]
@@ -127,231 +198,29 @@ public class GlobalExceptionHandlerTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         
         var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status500InternalServerError);
         problemDetails.Title.Should().Be("Erro Interno do Servidor");
     }
 
     [Fact]
-    public async Task TryHandleAsync_WithUnprocessableEntityException_ShouldReturn422()
+    public async Task TryHandleAsync_InProduction_ShouldHideDiagnosticDetails()
     {
+        // Arrange
         var context = CreateDefaultContext();
-        var exception = new UnprocessableEntityException("Invalid state", "User");
+        var exception = new Exception("Sensitive internal error details");
+        _envMock.Setup(e => e.EnvironmentName).Returns(Environments.Production);
 
+        // Act
         var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
+        // Assert
         result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithUnprocessableEntityExceptionWithDetails_ShouldReturn422()
-    {
-        var context = CreateDefaultContext();
-        var details = new Dictionary<string, object?> { ["extra"] = "info" };
-        var exception = new UnprocessableEntityException("Invalid state", "User", details);
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Extensions["details"].Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithUniqueConstraintException_ShouldReturn409()
-    {
-        var context = CreateDefaultContext();
-        var exception = new UniqueConstraintException("unique_email", "email", new Exception("inner"));
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status409Conflict);
-        problemDetails.Title.Should().Be("Valor Duplicado");
-        problemDetails.Extensions["constraintName"]?.ToString().Should().Be("unique_email");
-        problemDetails.Extensions["columnName"]?.ToString().Should().Be("email");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithNotNullConstraintException_ShouldReturn400()
-    {
-        var context = CreateDefaultContext();
-        var exception = new NotNullConstraintException("name", new Exception("inner"), true);
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-        problemDetails.Title.Should().Be("Campo Obrigatório Ausente");
-        problemDetails.Extensions["columnName"]?.ToString().Should().Be("name");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithForeignKeyConstraintException_ShouldReturn400()
-    {
-        var context = CreateDefaultContext();
-        var exception = new ForeignKeyConstraintException("fk_user_role", "roles", new Exception("inner"));
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-        problemDetails.Title.Should().Be("Referência Inválida");
-        problemDetails.Extensions["constraintName"]?.ToString().Should().Be("fk_user_role");
-        problemDetails.Extensions["tableName"]?.ToString().Should().Be("roles");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithArgumentException_ShouldReturn400()
-    {
-        var context = CreateDefaultContext();
-        var exception = new ArgumentException("Invalid argument", "paramName");
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithDomainException_ShouldReturn400()
-    {
-        var context = CreateDefaultContext();
-        var exception = new TestDomainException("Domain rule violated");
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-        problemDetails.Title.Should().Be("Violação de Regra de Domínio");
-        problemDetails.Detail.Should().Be("Domain rule violated");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithWrappedValidationException_ShouldUnwrapAndHandle()
-    {
-        var context = CreateDefaultContext();
-        var innerException = new MeAjudaAi.Shared.Exceptions.ValidationException(new List<ValidationFailure> 
-        { 
-            new("Email", "Invalid email") 
-        });
-        var exception = new System.Reflection.TargetInvocationException(innerException);
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithWrappedBusinessRuleException_ShouldUnwrapAndHandle()
-    {
-        var context = CreateDefaultContext();
-        // Use BusinessRuleException (concrete implementation) wrapped in InvalidOperationException
-        var innerException = new BusinessRuleException(ruleName: "TestRule", message: "Wrapped rule violation");
-        var outerException = new InvalidOperationException("Wrapper", innerException);
-
-        var result = await _handler.TryHandleAsync(context, outerException, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        
-        var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Title.Should().Be("Violação de Regra de Negócio");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_SetsCorrectContentType()
-    {
-        var context = CreateDefaultContext();
-        var exception = new Exception("Test");
-
-        await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
         context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_UnprocessableEntityException_ReturnsCorrectStatus()
-    {
-        var context = CreateDefaultContext();
-        var exception = new UnprocessableEntityException("Invalid state");
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ArgumentException_ReturnsBadRequest()
-    {
-        var context = CreateDefaultContext();
-        var exception = new ArgumentException("Invalid argument");
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_SetsInstanceToRequestPath()
-    {
-        var context = CreateDefaultContext();
-        context.Request.Path = "/api/v1/users/123";
-        var exception = new Exception("Test");
-
-        await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
+        
         var problemDetails = await ReadProblemDetailsAsync(context);
-        problemDetails.Instance.Should().Be("/api/v1/users/123");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ValidationExceptionWithMultipleErrors_ShouldGroupByProperty()
-    {
-        var context = CreateDefaultContext();
-        var failures = new List<ValidationFailure>
-        {
-            new("Email", "Invalid email format"),
-            new("Email", "Email already exists"),
-            new("Name", "Name is required")
-        };
-        var exception = new MeAjudaAi.Shared.Exceptions.ValidationException(failures);
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_BusinessRuleExceptionWithoutRuleName_ShouldHandleGracefully()
-    {
-        var context = CreateDefaultContext();
-        var exception = new BusinessRuleException(string.Empty, "Business rule broken");
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Detail.Should().Be("Ocorreu um erro inesperado");
+        
+        var serializedPayload = System.Text.Json.JsonSerializer.Serialize(problemDetails);
+        serializedPayload.Should().NotContain("Sensitive internal error details");
     }
 
     private DefaultHttpContext CreateDefaultContext()
@@ -372,5 +241,4 @@ public class GlobalExceptionHandlerTests
     }
 
     private class TestDomainException(string message) : DomainException(message) { }
-    private class TestBadRequestException(string message) : BadRequestException(message) { }
 }

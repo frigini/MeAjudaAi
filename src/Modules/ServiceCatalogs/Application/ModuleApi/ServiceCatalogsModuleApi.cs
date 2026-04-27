@@ -132,12 +132,13 @@ public sealed class ServiceCatalogsModuleApi(
             var categoryName = service.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName;
 
             var dto = new ModuleServiceDto(
-                service.Id.Value,
-                service.CategoryId.Value,
-                categoryName,
-                service.Name,
-                service.Description,
-                service.IsActive
+                Id: service.Id.Value,
+                ProviderId: null,
+                CategoryId: service.CategoryId.Value,
+                CategoryName: categoryName,
+                Name: service.Name,
+                Description: service.Description,
+                IsActive: service.IsActive
             );
 
             return Result<ModuleServiceDto?>.Success(dto);
@@ -189,12 +190,13 @@ public sealed class ServiceCatalogsModuleApi(
             var services = await serviceRepository.GetByCategoryAsync(id, activeOnly, cancellationToken);
 
             var dtos = services.Select(s => new ModuleServiceDto(
-                s.Id.Value,
-                s.CategoryId.Value,
-                s.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName,
-                s.Name,
-                s.Description,
-                s.IsActive
+                Id: s.Id.Value,
+                ProviderId: null,
+                CategoryId: s.CategoryId.Value,
+                CategoryName: s.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName,
+                Name: s.Name,
+                Description: s.Description,
+                IsActive: s.IsActive
             )).ToList();
 
             return Result<IReadOnlyList<ModuleServiceDto>>.Success(dtos);

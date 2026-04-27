@@ -186,33 +186,71 @@ public class UuidGeneratorTests
         result.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
-    public void IsValid_WithDefaultGuidString_ShouldReturnFalse(string guidString)
+    [Fact]
+    public void NewIdStringCompact_RoundTrip_ShouldBeEquivalent()
     {
-        // Arrange
-        var guid = Guid.Parse(guidString);
-
         // Act
-        var result = UuidGenerator.IsValid(guid);
+        var compactId = UuidGenerator.NewIdStringCompact();
+        var parsedGuid = Guid.ParseExact(compactId, "N");
+        var backToCompact = parsedGuid.ToString("N");
+
+        // Assert
+        backToCompact.Should().Be(compactId);
+        parsedGuid.Should().NotBe(Guid.Empty);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("not-a-guid")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    [InlineData("00000000000000000000000000000000")]
+    [InlineData("{00000000-0000-0000-0000-000000000000}")]
+    [InlineData("(00000000-0000-0000-0000-000000000000)")]
+    public void IsValidString_WithInvalidOrEmptyInputs_ShouldReturnFalse(string? input)
+    {
+        // Act
+        var result = UuidGenerator.IsValid(input);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void NewIdString_AndNewIdStringCompact_ShouldRepresentSameConcept()
+    public void IsValidString_WithValidGuid_ShouldReturnTrue()
     {
-        // Act
-        var standardId = UuidGenerator.NewIdString();
-        var compactId = UuidGenerator.NewIdStringCompact();
+        // Arrange
+        var id = UuidGenerator.NewIdString();
 
-        // Faz parse de ambos para verificar que são GUIDs válidos
-        var standardGuid = Guid.Parse(standardId);
-        var compactGuid = Guid.ParseExact(compactId, "N");
+        // Act
+        var result = UuidGenerator.IsValid(id);
 
         // Assert
-        standardGuid.Should().NotBe(Guid.Empty);
-        compactGuid.Should().NotBe(Guid.Empty);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsValidString_WithValidCompactGuid_ShouldReturnTrue()
+    {
+        // Arrange
+        var id = UuidGenerator.NewIdStringCompact();
+
+        // Act
+        var result = UuidGenerator.IsValid(id);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void NewId_ShouldReturnValidVersion7Guid()
+    {
+        // Act
+        var id = UuidGenerator.NewId();
+        
+        // Assert
+        UuidGenerator.IsValid(id).Should().BeTrue();
+        id.ToString()[14].Should().Be('7');
     }
 }

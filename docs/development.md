@@ -703,9 +703,8 @@ public async Task CheckPermission_WithAuthorizedUser_ShouldReturnTrue()
 ### **6. Code Coverage Guidelines**
 
 #### Coverage Thresholds
-- **Minimum**: 70% (warning threshold)
-- **Good**: 85% (recommended threshold)
-- **Excellent**: 90%+
+- **Minimum**: 90% (required threshold for CI/CD)
+- **Excellent**: 95%+
 
 #### Viewing Coverage Reports
 ```bash
@@ -721,7 +720,7 @@ reportgenerator -reports:"./coverage/**/coverage.opencover.xml" -targetdir:"./co
 O pipeline automaticamente:
 - Gera relatórios de coverage para cada PR
 - Comenta automaticamente nos PRs com estatísticas
-- Falha se o coverage cair abaixo de 70%
+- Falha se o coverage cair abaixo de 90%
 
 ### **7. Integration Test Setup**
 

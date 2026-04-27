@@ -291,66 +291,78 @@ public sealed class ProvidersModuleApi(
     {
         logger.LogDebug("Getting provider indexing data for provider {ProviderId}", providerId);
 
-        // 1. Buscar entidade Provider diretamente do repositório (inclui Services)
-        var providerEntity = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
-
-        if (providerEntity == null)
+        try
         {
-            logger.LogDebug("Provider {ProviderId} not found for indexing", providerId);
-            return Result<ModuleProviderIndexingDto?>.Success(null);
+            // 1. Buscar entidade Provider diretamente do repositório (inclui Services)
+            var providerEntity = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+
+            if (providerEntity == null)
+            {
+                logger.LogDebug("Provider {ProviderId} not found for indexing", providerId);
+                return Result<ModuleProviderIndexingDto?>.Success(null);
+            }
+
+            // 2. Obter coordenadas do endereço primário via ILocationsModuleApi
+            var address = providerEntity.BusinessProfile.PrimaryAddress;
+            var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
+
+            var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
+
+            if (coordinatesResult.IsFailure)
+            {
+                logger.LogWarning(
+                    "Failed to get coordinates for provider {ProviderId} address '{Address}': {Error}",
+                    providerId, fullAddress, coordinatesResult.Error.Message);
+
+                // Sem coordenadas não podemos indexar (SearchableProvider exige Location)
+                return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
+            }
+
+            var coordinates = coordinatesResult.Value;
+
+            // 3. Obter ServiceIds do provider (da coleção Services)
+            var serviceIds = providerEntity.GetServiceIds();
+
+            // 4. TODO: Buscar rating e reviews do provider (quando implementarmos Reviews)
+            // Por enquanto, valores padrão
+            decimal averageRating = 0;
+            int totalReviews = 0;
+
+            // 5. TODO: Mapear subscription tier do provider
+            // Por enquanto, Free como padrão
+            var subscriptionTier = ESubscriptionTier.Free;
+
+            // 6. Criar DTO de indexação
+            var indexingDto = new ModuleProviderIndexingDto(
+                ProviderId: providerEntity.Id.Value,
+                Name: providerEntity.Name,
+                Slug: providerEntity.Slug,
+                Latitude: coordinates.Latitude,
+                Longitude: coordinates.Longitude,
+                ServiceIds: serviceIds,
+                AverageRating: averageRating,
+                TotalReviews: totalReviews,
+                SubscriptionTier: subscriptionTier,
+                IsActive: providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted,
+                Description: providerEntity.BusinessProfile.Description,
+                City: address.City,
+                State: address.State);
+
+            logger.LogInformation(
+                "Successfully prepared indexing data for provider {ProviderId} at ({Lat}, {Lon})",
+                providerId, coordinates.Latitude, coordinates.Longitude);
+
+            return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
         }
-
-        // 2. Obter coordenadas do endereço primário via ILocationsModuleApi
-        var address = providerEntity.BusinessProfile.PrimaryAddress;
-        var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
-
-        var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
-
-        if (coordinatesResult.IsFailure)
+        catch (OperationCanceledException)
         {
-            logger.LogWarning(
-                "Failed to get coordinates for provider {ProviderId} address '{Address}': {Error}",
-                providerId, fullAddress, coordinatesResult.Error.Message);
-
-            // Sem coordenadas não podemos indexar (SearchableProvider exige Location)
-            return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
+            throw;
         }
-
-        var coordinates = coordinatesResult.Value;
-
-        // 3. Obter ServiceIds do provider (da coleção Services)
-        var serviceIds = providerEntity.GetServiceIds();
-
-        // 4. TODO: Buscar rating e reviews do provider (quando implementarmos Reviews)
-        // Por enquanto, valores padrão
-        decimal averageRating = 0;
-        int totalReviews = 0;
-
-        // 5. TODO: Mapear subscription tier do provider
-        // Por enquanto, Free como padrão
-        var subscriptionTier = ESubscriptionTier.Free;
-
-        // 6. Criar DTO de indexação
-        var indexingDto = new ModuleProviderIndexingDto(
-            ProviderId: providerEntity.Id.Value,
-            Name: providerEntity.Name,
-            Slug: providerEntity.Slug,
-            Latitude: coordinates.Latitude,
-            Longitude: coordinates.Longitude,
-            ServiceIds: serviceIds,
-            AverageRating: averageRating,
-            TotalReviews: totalReviews,
-            SubscriptionTier: subscriptionTier,
-            IsActive: providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted,
-            Description: providerEntity.BusinessProfile.Description,
-            City: address.City,
-            State: address.State);
-
-        logger.LogInformation(
-            "Successfully prepared indexing data for provider {ProviderId} at ({Lat}, {Lon})",
-            providerId, coordinates.Latitude, coordinates.Longitude);
-
-        return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting provider indexing data for {ProviderId}", providerId);
+            return Result<ModuleProviderIndexingDto?>.Failure(ProvidersErrorMessages.IndexingDataError);
+        }
     }
 
     /// <summary>
@@ -422,10 +434,45 @@ public sealed class ProvidersModuleApi(
             var hasProviders = await providerRepository.HasProvidersWithServiceAsync(serviceId, cancellationToken);
             return Result<bool>.Success(hasProviders);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking if providers offer service {ServiceId}", serviceId);
-            return Result<bool>.Failure($"Erro ao verificar se os prestadores oferecem o serviço: {ex.Message}");
+            return Result<bool>.Failure(ProvidersErrorMessages.ServiceProvidersCheckError);
+        }
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Se o provedor não existir, retorna Success(false) de forma defensiva, 
+    /// pois o CreateBookingCommandHandler valida a existência do provedor previamente.
+    /// </remarks>
+    public async Task<Result<bool>> IsServiceOfferedByProviderAsync(Guid providerId, Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
+
+        try
+        {
+            var provider = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+            if (provider == null)
+            {
+                return Result<bool>.Success(false);
+            }
+
+            var offersService = provider.OffersService(serviceId);
+            return Result<bool>.Success(offersService);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
+            return Result<bool>.Failure(ProvidersErrorMessages.ProviderServiceCheckError);
         }
     }
 }

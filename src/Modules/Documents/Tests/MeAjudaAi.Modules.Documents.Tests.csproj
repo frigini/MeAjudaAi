@@ -31,6 +31,7 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Respawn" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     
     <!-- Integration Testing -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />

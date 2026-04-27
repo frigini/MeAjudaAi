@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Options;
@@ -9,6 +10,7 @@ namespace MeAjudaAi.ApiService.Extensions;
 /// <summary>
 /// Extensões para registro de middlewares específicos por ambiente
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class EnvironmentSpecificExtensions
 {
     /// <summary>

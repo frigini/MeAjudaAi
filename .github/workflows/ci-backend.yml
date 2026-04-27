@@ -178,6 +178,7 @@ jobs:
             "src/Modules/Ratings/Tests/MeAjudaAi.Modules.Ratings.Tests.csproj"
             "src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj"
             "src/Modules/Payments/Tests/MeAjudaAi.Modules.Payments.Tests.csproj"
+            "src/Modules/Bookings/Tests/MeAjudaAi.Modules.Bookings.Tests.csproj"
             "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
             "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"
             "tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj"
@@ -186,11 +187,23 @@ jobs:
           for module in "${MODULES[@]}"; do
             if [ -f "$module" ]; then
               module_name=$(basename "$module" .csproj)
+              echo "--------------------------------------------------------"
+              echo "🧪 Testing module: $module_name"
               dotnet test "$module" \
                 --configuration Release --no-build \
                 --collect:"XPlat Code Coverage" \
                 --results-directory "./coverage/unit/$module_name" \
                 --settings ./coverlet.runsettings
+
+              # Verify if coverage was produced
+              if ! find "./coverage/unit/$module_name" -name "coverage.cobertura.xml" | grep -q .; then
+                echo "::error::No coverage produced for $module_name (project may have been silently skipped)"
+                exit 1
+              fi
+              echo "✅ Coverage produced for $module_name"
+            else
+              echo "::error::Module $module not found or path is incorrect"
+              exit 1
             fi
           done
 
@@ -268,7 +281,7 @@ jobs:
           reporttypes: "Cobertura;JsonSummary"
           groupby: "Namespace"
           assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts;-MeAjudaAi.Modules.Ratings.API"
-          classfilters: "+*;-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*DbContextFactory;+MeAjudaAi.Modules.Payments.API.*Endpoint;-*Endpoint;-*Options;-*IntegrationEvent;-*Request;-*Response;-*Dto;-*DTO"
+          classfilters: "+*;-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*DbContextFactory;+MeAjudaAi.Modules.Payments.API.*Endpoint;+MeAjudaAi.Modules.Bookings.API.*Endpoint;-*Endpoint;-*Options;-*IntegrationEvent;-*Request;-*Response;-*Dto;-*DTO"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -285,7 +298,7 @@ jobs:
           badge: true
           format: markdown
           output: both
-          thresholds: "85 75" # line branch (temporário - reverter para 90/80 em sprints futuras)
+          thresholds: "90 80" # line branch
           fail_below_min: true
 
       - name: Generate Coverage PR Comment
@@ -363,11 +376,55 @@ jobs:
           fi
 
       - name: Check for Breaking Changes
+        id: breaking-changes
         uses: oasdiff/oasdiff-action/breaking@v0.0.39
+        continue-on-error: true # Permitir falhas durante a Sprint 12 para evolução de contrato
         with:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'
           fail-on: 'ERR'
+          err-ignore: '.oasdiff-ignore.yaml'
+
+      - name: Warn if Breaking Changes Found
+        if: steps.breaking-changes.outcome == 'failure'
+        run: |
+          echo "::warning title=Breaking Changes Detected::Changes that break the API contract were found. Review the oasdiff output above."
+
+      - name: Post Breaking Changes PR Comment
+        if: steps.breaking-changes.outcome == 'failure'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          recreate: true
+          header: oasdiff-breaking-changes
+          message: |
+            ## ⚠️ Breaking Changes Detectados
+
+            O `oasdiff` identificou mudanças que quebram o contrato da API em relação à branch base (`${{ github.base_ref }}`).
+
+            **Ação necessária:** Revise os logs do step _Check for Breaking Changes_ acima e garanta que as alterações são intencionais e documentadas em `.oasdiff-ignore.yaml`.
+
+      - name: Clear Breaking Changes PR Comment
+        if: steps.breaking-changes.outcome == 'success'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          recreate: true
+          header: oasdiff-breaking-changes
+          message: |
+            ## ✅ Contrato da API Validado
+
+            Nenhuma breaking change detectada pelo `oasdiff` em relação à branch base.
+
+      - name: Ensure Breaking Changes PR Comment State
+        if: always() && (steps.breaking-changes.outcome == 'skipped' || steps.breaking-changes.outcome == 'cancelled')
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          recreate: true
+          header: oasdiff-breaking-changes
+          message: |
+            ## ℹ️ Validação de Contrato Indisponível
+
+            A verificação de breaking changes foi **${{ steps.breaking-changes.outcome }}**.
+            Consulte os logs para mais detalhes se necessário.
 
   security-scan:
     name: Security Scan

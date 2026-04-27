@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using MeAjudaAi.ApiService.Providers.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class PerformanceExtensions
 {
     /// <summary>

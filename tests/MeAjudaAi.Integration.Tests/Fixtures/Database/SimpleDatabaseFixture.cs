@@ -133,8 +133,8 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             if (_azuriteContainer == null)
             {
                 // Cria container Azurite para testes determinísticos de blob storage
-                // Fixado na versão 3.33.0 para estabilidade — corresponde ao ambiente de CI/CD de produção
-                _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+                // Usando tag 3.30.0 para estabilidade
+                _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
                     .WithCleanUp(true)
                     .Build();
             }

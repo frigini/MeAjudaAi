@@ -1,0 +1,10 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Shared.Commands;
+
+namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+
+public record SetProviderScheduleCommand(
+    Guid ProviderId,
+    IEnumerable<ProviderScheduleDto> Availabilities,
+    Guid CorrelationId) : ICommand<Result>;

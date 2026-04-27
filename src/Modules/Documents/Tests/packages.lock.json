@@ -61,6 +61,21 @@
           "Microsoft.Extensions.Logging": "10.0.6"
         }
       },
+      "Microsoft.EntityFrameworkCore.Sqlite": {
+        "type": "Direct",
+        "requested": "[10.0.6, )",
+        "resolved": "10.0.6",
+        "contentHash": "EEkOdl08u45mfcQwTZfcwA0D6vjR4XqpJSIsLn9Wd++buEja3VK7oy0nVMF9b58P6ZKerUf2vGszc/6owUAANg==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Sqlite.Core": "10.0.6",
+          "Microsoft.Extensions.Caching.Memory": "10.0.6",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.6",
+          "Microsoft.Extensions.DependencyModel": "10.0.6",
+          "Microsoft.Extensions.Logging": "10.0.6",
+          "SQLitePCLRaw.bundle_e_sqlite3": "2.1.11",
+          "SQLitePCLRaw.core": "2.1.11"
+        }
+      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[18.4.0, )",
@@ -298,6 +313,14 @@
         "resolved": "18.4.0",
         "contentHash": "9O0BtCfzCWrkAmK187ugKdq72HHOXoOUjuWFDVc2LsZZ0pOnA9bTt+Sg9q4cF+MoAaUU+MuWtvBuFsnduviJow=="
       },
+      "Microsoft.Data.Sqlite.Core": {
+        "type": "Transitive",
+        "resolved": "10.0.6",
+        "contentHash": "OqZDg2/SROHR33XJLaf3kIU2zEbxcZ2ef+O/HIyZWfiKenp/B2qgy/jv6wJmmsBgh4ETaRKdlcLyJ9es2woKCg==",
+        "dependencies": {
+          "SQLitePCLRaw.core": "2.1.11"
+        }
+      },
       "Microsoft.EntityFrameworkCore.Abstractions": {
         "type": "Transitive",
         "resolved": "10.0.6",
@@ -307,6 +330,20 @@
         "type": "Transitive",
         "resolved": "10.0.6",
         "contentHash": "PIcmALdKzeSJNWmxsLDsS8XKFqiH5+9GzIM+qd3w1efYIwmO0w5304i37/SkfynctHZwkiiQjb2mkoIXU1CGZg=="
+      },
+      "Microsoft.EntityFrameworkCore.Sqlite.Core": {
+        "type": "Transitive",
+        "resolved": "10.0.6",
+        "contentHash": "dxlPx5pTERV+MhoG35tDyZ5sj50uoOs3FjLaHjpG62dpGXKsDk85VN0H0iDbJYBU+7w7F0wNr4HPxgl62utWqw==",
+        "dependencies": {
+          "Microsoft.Data.Sqlite.Core": "10.0.6",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.6",
+          "Microsoft.Extensions.Caching.Memory": "10.0.6",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.6",
+          "Microsoft.Extensions.DependencyModel": "10.0.6",
+          "Microsoft.Extensions.Logging": "10.0.6",
+          "SQLitePCLRaw.core": "2.1.11"
+        }
       },
       "Microsoft.Extensions.AmbientMetadata.Application": {
         "type": "Transitive",
@@ -667,11 +704,6 @@
           "NetTopologySuite": "[2.0.0, 3.0.0-A)"
         }
       },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "13.0.4",
-        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
-      },
       "Npgsql.DependencyInjection": {
         "type": "Transitive",
         "resolved": "10.0.1",
@@ -815,6 +847,33 @@
         "type": "Transitive",
         "resolved": "1.4.2",
         "contentHash": "yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A=="
+      },
+      "SQLitePCLRaw.bundle_e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "DC4nA7yWnf4UZdgJDF+9Mus4/cb0Y3Sfgi3gDnAoKNAIBwzkskNAbNbyu+u4atT0ruVlZNJfwZmwiEwE5oz9LQ==",
+        "dependencies": {
+          "SQLitePCLRaw.lib.e_sqlite3": "2.1.11",
+          "SQLitePCLRaw.provider.e_sqlite3": "2.1.11"
+        }
+      },
+      "SQLitePCLRaw.core": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "PK0GLFkfhZzLQeR3PJf71FmhtHox+U3vcY6ZtswoMjrefkB9k6ErNJEnwXqc5KgXDSjige2XXrezqS39gkpQKA=="
+      },
+      "SQLitePCLRaw.lib.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "Ev2ytaXiOlWZ4b3R67GZBsemTINslLD1DCJr2xiacpn4tbapu0Q4dHEzSvZSMnVWeE5nlObU3VZN2p81q3XOYQ=="
+      },
+      "SQLitePCLRaw.provider.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "Y/0ZkR+r0Cg3DQFuCl1RBnv/tmxpIZRU3HUvelPw6MVaKHwYYR8YNvgs0vuNuXCMvlyJ+Fh88U1D4tah1tt6qw==",
+        "dependencies": {
+          "SQLitePCLRaw.core": "2.1.11"
+        }
       },
       "SSH.NET": {
         "type": "Transitive",
@@ -1024,6 +1083,7 @@
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
@@ -1046,6 +1106,34 @@
         "type": "Project",
         "dependencies": {
           "FluentValidation": "[12.1.1, )"
+        }
+      },
+      "meajudaai.modules.bookings.api": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.bookings.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Domain": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.bookings.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.bookings.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
       "meajudaai.modules.communications.api": {
@@ -1390,6 +1478,7 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.5.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
@@ -1994,6 +2083,12 @@
         "requested": "[2.7.3, )",
         "resolved": "2.7.3",
         "contentHash": "riS56czrBUgnvTmJqgXXiKUuTZisnvFfi4BzW9vGcjvTMUPsbCrdG5Nohwsx7G+pVwXgZIQOM+MnT/xgT7bisA=="
+      },
+      "Newtonsoft.Json": {
+        "type": "CentralTransitive",
+        "requested": "[13.0.4, )",
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "Npgsql": {
         "type": "CentralTransitive",

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApiServices(

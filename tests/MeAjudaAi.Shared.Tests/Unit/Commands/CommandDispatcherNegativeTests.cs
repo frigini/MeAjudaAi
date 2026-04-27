@@ -27,7 +27,7 @@ public class CommandDispatcherNegativeTests
         var commandMock = new Mock<ITestCommand>();
         // GetRequiredService calls GetService and throws if null
         _serviceProviderMock.Setup(s => s.GetService(typeof(ICommandHandler<ITestCommand>)))
-            .Returns(null);
+            .Returns(default(ICommandHandler<ITestCommand>));
 
         // Act
         var act = () => _sut.SendAsync(commandMock.Object);

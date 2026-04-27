@@ -20,6 +20,22 @@
     <Project Path="src/Client/MeAjudaAi.Client.Contracts/MeAjudaAi.Client.Contracts.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Bookings/" />
+  <Folder Name="/src/Modules/Bookings/API/">
+    <Project Path="src/Modules/Bookings/API/MeAjudaAi.Modules.Bookings.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Bookings/Application/">
+    <Project Path="src/Modules/Bookings/Application/MeAjudaAi.Modules.Bookings.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Bookings/Domain/">
+    <Project Path="src/Modules/Bookings/Domain/MeAjudaAi.Modules.Bookings.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Bookings/Infrastructure/">
+    <Project Path="src/Modules/Bookings/Infrastructure/MeAjudaAi.Modules.Bookings.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Bookings/Tests/">
+    <Project Path="src/Modules/Bookings/Tests/MeAjudaAi.Modules.Bookings.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Communications/" />
   <Folder Name="/src/Modules/Communications/API/">
     <Project Path="src/Modules/Communications/API/MeAjudaAi.Modules.Communications.API.csproj" />

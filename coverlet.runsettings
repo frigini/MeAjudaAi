@@ -6,9 +6,10 @@
         <Configuration>
           <Format>cobertura</Format>
           <Include>[MeAjudaAi*]*</Include>
+          <!-- Exclude only glue/DTO/Endpoints patterns, keep Configuration, Extensions and Monitoring -->
           <Exclude>[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.DbContextFactory,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*,[*]*.Enums.*</Exclude>
           <ExcludeByFile>**/Migrations/*.cs,**/Migrations/**/*.cs,**/*DbContextFactory.cs</ExcludeByFile>
-          <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
+          <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated,ExcludeFromCodeCoverage</ExcludeByAttribute>
           <!-- Threshold set to 0 to allow full report generation. Final check is done by CodeCoverageSummary -->
           <Threshold>0</Threshold>
           <ThresholdType>line</ThresholdType>

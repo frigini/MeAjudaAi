@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -12,6 +13,7 @@ import { ReviewForm } from "@/components/reviews/review-form";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Loader2, MapPin } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { BookingModal } from "@/components/bookings/booking-modal";
 import { z } from "zod";
 import { getWhatsappLink } from "@/lib/utils/phone";
 import { EProviderType } from "@/types/api/provider";
@@ -29,24 +31,31 @@ const PublicProviderSchema = z.object({
     rating: z.number().optional().nullable(),
     reviewCount: z.number().optional().nullable(),
     phoneNumbers: z.array(z.string()).optional().nullable(),
-    services: z.array(z.string()).optional().nullable(),
+    services: z.array(z.object({ id: z.string().uuid(), name: z.string() })).optional().nullable(),
     email: z.string().email().optional().nullable(),
     verificationStatus: VerificationStatusSchema
 });
 
 export default function ProviderProfilePage() {
     const { id } = useParams() as { id: string };
-    const { data: session } = useSession();
-    const isAuthenticated = !!session?.user;
+    const { data: session, status } = useSession();
+    
+    const isAuthenticated = status === "authenticated";
+    const isLoadingAuth = status === "loading";
+    const [selectedServiceId, setSelectedServiceId] = useState<string>("");
 
     const { data: providerData, isLoading, error } = useQuery({
         queryKey: ["public-provider", id],
         queryFn: async () => {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const headers: Record<string, string> = {};
+            
+            if (session?.accessToken) {
+                headers["Authorization"] = `Bearer ${session.accessToken}`;
+            }
+
             const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
-                headers: session?.accessToken ? {
-                    "Authorization": `Bearer ${session.accessToken}`
-                } : {}
+                headers
             });
 
             if (res.status === 404) return null;
@@ -104,7 +113,41 @@ export default function ProviderProfilePage() {
                             fallback={displayName.substring(0, 2).toUpperCase()}
                             containerClassName="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
                         />
-                        <div className="flex items-center gap-2">
+                        
+                        {/* Botão de Agendamento */}
+                        <div className="w-full pt-2">
+                            {isLoadingAuth ? (
+                                <Button disabled className="w-full bg-slate-200 text-slate-500 py-6 text-lg">
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando...
+                                </Button>
+                            ) : isAuthenticated ? (
+                                services.length > 0 ? (
+                                    <BookingModal 
+                                        providerId={providerData.id} 
+                                        providerName={displayName} 
+                                        serviceId={selectedServiceId}
+                                        trigger={
+                                            <Button 
+                                                disabled={!selectedServiceId}
+                                                className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                            >
+                                                {selectedServiceId ? "Agendar Horário" : "Selecione um Serviço"}
+                                            </Button>
+                                        }
+                                    />
+                                ) : (
+                                    <Button disabled className="w-full bg-slate-200 text-slate-500 py-6 text-lg">
+                                        Nenhum serviço disponível
+                                    </Button>
+                                )
+                            ) : (
+                                <Button asChild className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg">
+                                    <Link href={`/api/auth/signin?callbackUrl=${encodeURIComponent(`/prestador/${id}`)}`}>Entrar para Agendar</Link>
+                                </Button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
                             <Rating value={rating} className="text-[#E0702B]" />
                             {reviewCount > 0 && (
                                 <span className="text-sm text-gray-600">({reviewCount} avaliações)</span>
@@ -137,11 +180,11 @@ export default function ProviderProfilePage() {
                             <div className="w-full p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700">Este prestador não informou contatos.</p>
                             </div>
-                        ) : (
+                        ) : !isLoadingAuth && (
                             <div className="w-full p-4 bg-orange-50 border border-orange-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700 mb-2">Faça login para visualizar os contatos deste prestador.</p>
                                 <Link
-                                    href={`/api/auth/signin?callbackUrl=/prestador/${id}`}
+                                    href={`/api/auth/signin?callbackUrl=${encodeURIComponent(`/prestador/${id}`)}`}
                                     className="text-sm font-bold text-[#E0702B] hover:underline"
                                 >
                                     Fazer Login
@@ -173,15 +216,33 @@ export default function ProviderProfilePage() {
                             <div className="pt-4">
                                 <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
                                 <div className="flex flex-wrap gap-2">
-                                    {services.map((service: string, i: number) => (
+                                    {services.map((service) => (
                                         <Badge
-                                            key={i}
-                                            className="px-3 py-1 bg-[#E0702B] text-white text-sm rounded-full"
+                                            key={service.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => setSelectedServiceId(service.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                    e.preventDefault();
+                                                    setSelectedServiceId(service.id);
+                                                }
+                                            }}
+                                            className={`px-3 py-1 cursor-pointer transition-colors text-sm rounded-full ${
+                                                selectedServiceId === service.id 
+                                                    ? "bg-[#002D62] text-white ring-2 ring-offset-1 ring-[#002D62]" 
+                                                    : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
+                                            }`}
                                         >
-                                            {service}
+                                            {service.name}
                                         </Badge>
                                     ))}
                                 </div>
+                                {!selectedServiceId && isAuthenticated && (
+                                    <p className="text-xs text-orange-600 mt-2 font-medium animate-pulse">
+                                        * Clique em um serviço acima para agendar
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>

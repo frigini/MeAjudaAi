@@ -1,0 +1,50 @@
+meta {
+  name: Set Provider Schedule
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/v1/bookings/schedule
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "providerId": "{{providerId}}",
+    "availabilities": [
+      {
+        "dayOfWeek": 1,
+        "slots": [
+          { "start": "08:00:00", "end": "12:00:00" },
+          { "start": "13:00:00", "end": "18:00:00" }
+        ]
+      }
+    ]
+  }
+}
+
+docs {
+  # Set Provider Schedule
+  
+  Define a agenda de horários de trabalho de um prestador.
+  
+  ## Autorização
+  - **Política**: Authenticated (Prestador ou Admin)
+  - Admin pode especificar qualquer providerId; prestador usa seus próprios claims.
+  
+  ## Códigos de Status
+  - **204**: Agenda atualizada com sucesso
+  - **400**: Dados inválidos
+  - **401/403**: Sem permissão
+}

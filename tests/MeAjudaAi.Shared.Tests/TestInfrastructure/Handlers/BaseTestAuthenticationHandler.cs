@@ -17,7 +17,7 @@ public abstract class BaseTestAuthenticationHandler(
     ILoggerFactory logger,
     UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    protected virtual string GetTestUserId() => "test-user-id";
+    protected virtual string GetTestUserId() => "00000000-0000-0000-0000-000000000001";
     protected virtual string GetTestUserName() => "test-user";
     protected virtual string GetTestUserEmail() => "test@example.com";
     protected virtual string[] GetTestUserRoles() => ["admin"];

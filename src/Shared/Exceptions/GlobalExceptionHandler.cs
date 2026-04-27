@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Exceptions;
 
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger,
+    IHostEnvironment env) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
@@ -126,10 +129,23 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 null,
                 []),
 
+            BadHttpRequestException badHttpRequestException => (
+                badHttpRequestException.StatusCode is >= 400 and < 500 
+                    ? badHttpRequestException.StatusCode 
+                    : StatusCodes.Status400BadRequest,
+                "Requisição inválida",
+                "A requisição enviada é inválida ou está mal formatada.",
+                null,
+                env.IsDevelopment() 
+                    ? new Dictionary<string, object?> { ["originalMessage"] = badHttpRequestException.Message }
+                    : []),
+
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "Erro Interno do Servidor",
-                "Ocorreu um erro inesperado no servidor.",
+                env.IsDevelopment() 
+                    ? $"[{exception.GetType().Name}] {exception.Message} {(exception.InnerException != null ? exception.InnerException.Message : "")}"
+                    : "Ocorreu um erro inesperado",
                 null,
                 new Dictionary<string, object?>
                 {
@@ -170,9 +186,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         }
 
         httpContext.Response.StatusCode = statusCode;
-        httpContext.Response.ContentType = "application/problem+json";
 
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, options: null, contentType: "application/problem+json", cancellationToken: cancellationToken);
 
         return true;
     }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Commands;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Commands;
 /// <summary>
 /// Extension methods para configuração de Commands (CQRS)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class CommandsExtensions
 {
     public static IServiceCollection AddCommands(this IServiceCollection services)

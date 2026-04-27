@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.ApiService;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.ApiService;
 /// <summary>
 /// Extension methods para aplicar migrations dos módulos no startup
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MigrationExtensions
 {
     /// <summary>
@@ -19,7 +21,8 @@ public static class MigrationExtensions
 
         var dbContextTypes = DiscoverDbContextTypes(logger);
         
-        // Garantir que ServiceCatalogs rode antes de Providers (dependência SQL entre módulos nas migrations)
+        // Ordem de migração (dependências SQL entre módulos): 
+        // Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications -> Ratings -> Payments -> Bookings -> SearchProviders
         var modulePriority = new Dictionary<string, int>
         {
             { "Users", 1 },
@@ -28,7 +31,10 @@ public static class MigrationExtensions
             { "Documents", 4 },
             { "Providers", 5 },
             { "Communications", 6 },
-            { "SearchProviders", 7 }
+            { "Ratings", 7 },
+            { "Payments", 8 },
+            { "Bookings", 9 },
+            { "SearchProviders", 10 }
         };
 
         dbContextTypes = dbContextTypes.OrderBy(t => 

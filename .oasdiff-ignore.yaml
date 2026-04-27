@@ -1,0 +1,5 @@
+# Configuração para ignorar breaking changes intencionais.
+# Formato: METHOD PATH ERROR_ID
+
+GET /api/v1/providers/public/{idOrSlug} response-property-type-changed
+GET /api/v1/providers/public/{idOrSlug} response-body-type-changed

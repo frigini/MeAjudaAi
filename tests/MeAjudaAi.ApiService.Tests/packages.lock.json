@@ -589,11 +589,6 @@
           "NetTopologySuite": "[2.0.0, 3.0.0-A)"
         }
       },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "13.0.4",
-        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
-      },
       "Npgsql.DependencyInjection": {
         "type": "Transitive",
         "resolved": "10.0.1",
@@ -920,6 +915,7 @@
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
@@ -942,6 +938,34 @@
         "type": "Project",
         "dependencies": {
           "FluentValidation": "[12.1.1, )"
+        }
+      },
+      "meajudaai.modules.bookings.api": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.bookings.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Domain": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.bookings.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.bookings.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
       "meajudaai.modules.communications.api": {
@@ -1286,6 +1310,7 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.5.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
@@ -1842,6 +1867,12 @@
           "Microsoft.IdentityModel.Protocols": "8.16.0",
           "System.IdentityModel.Tokens.Jwt": "8.16.0"
         }
+      },
+      "Newtonsoft.Json": {
+        "type": "CentralTransitive",
+        "requested": "[13.0.4, )",
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "Npgsql": {
         "type": "CentralTransitive",

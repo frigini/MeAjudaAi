@@ -74,6 +74,24 @@ public class RegisterCustomerCommandValidatorTests
     }
 
     [Fact]
+    public void Should_Have_Error_When_Email_Is_Empty()
+    {
+        var command = new RegisterCustomerCommand("Jean Valjean", "", "Password123!", "123456789", true, true);
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(x => x.Email)
+            .WithErrorMessage("Email é obrigatório");
+    }
+
+    [Fact]
+    public void Should_Have_Error_When_Password_Is_Empty()
+    {
+        var command = new RegisterCustomerCommand("Jean Valjean", "test@test.com", "", "123456789", true, true);
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(x => x.Password)
+            .WithErrorMessage("Senha é obrigatória");
+    }
+
+    [Fact]
     public void Should_Have_Error_When_Terms_Not_Accepted()
     {
         var command = new RegisterCustomerCommand("Jean Valjean", "test@test.com", "Password123!", "123456789", false, true);

@@ -7,6 +7,8 @@ using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
+using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
+using MeAjudaAi.Shared.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,6 +17,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
+using Rebus.Serialization.Json;
+using Rebus.Topic;
 
 namespace MeAjudaAi.Shared.Messaging;
 
@@ -30,6 +34,8 @@ internal sealed class MessagingConfiguration
 /// </summary>
 public static class MessagingExtensions
 {
+    private const string UseNewtonsoftJsonKey = "Messaging:UseNewtonsoftJson";
+
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -71,6 +77,17 @@ public static class MessagingExtensions
             return options;
         });
 
+        // Registro do Serializador de Mensagens (usado pelo DeadLetter e infra)
+        var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
+        if (useNewtonsoftJson)
+        {
+            services.TryAddSingleton<IMessageSerializer, NewtonsoftJsonMessageSerializer>();
+        }
+        else
+        {
+            services.TryAddSingleton<IMessageSerializer, SystemTextJsonMessageSerializer>();
+        }
+
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
         // Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
@@ -95,12 +112,20 @@ public static class MessagingExtensions
 
                 var connectionString = options.BuildConnectionString();
                 
-                return configure
-                    .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName))
+                var config = configure
+                    .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));
+
+                if (useNewtonsoftJson)
+                {
+                    config = config.Serialization(s => s.UseNewtonsoftJson());
+                }
+
+                return config
                     .Options(o => 
                     {
                         o.SetMaxParallelism(20);
                         o.SetNumberOfWorkers(2);
+                        o.Decorate<ITopicNameConvention>(c => new AttributeTopicNameConvention(c.Get<ITopicNameConvention>()));
                     })
                     .Routing(r => r.TypeBased());
             });
@@ -128,9 +153,22 @@ public static class MessagingExtensions
 
     public static async Task EnsureMessagingInfrastructureAsync(this IHost host)
     {
+        var configuration = host.Services.GetRequiredService<IConfiguration>();
+        var isEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
+        if (!isEnabled)
+        {
+            return;
+        }
+
         using var scope = host.Services.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
+
+        var useNewtonsoftJson = ResolveUseNewtonsoftJson(configuration);
+        if (useNewtonsoftJson)
+        {
+            logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");
+        }
 
         try
         {
@@ -145,16 +183,6 @@ public static class MessagingExtensions
         }
     }
 
-    #region Message Retry
-
-    /// <summary>
-    /// Adiciona o middleware de retry para mensagens
-    /// </summary>
-    public static IServiceCollection AddMessageRetryMiddleware(this IServiceCollection services)
-    {
-        services.TryAddScoped<IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory>();
-        return services;
-    }
-
-    #endregion
+    private static bool ResolveUseNewtonsoftJson(IConfiguration cfg) =>
+        cfg.GetValue<bool>(UseNewtonsoftJsonKey, false);
 }

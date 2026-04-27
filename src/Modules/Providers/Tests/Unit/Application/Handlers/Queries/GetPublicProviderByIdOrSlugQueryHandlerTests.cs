@@ -348,6 +348,6 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.Value!.Id.Should().Be(provider.Id);
         result.Value.Email.Should().Be("privacy@test.com");
         result.Value.PhoneNumbers.Should().NotBeEmpty();
-        result.Value.Services.Should().Contain("Known Service");
+        result.Value.Services.Should().ContainSingle(s => s.Id == expectedServiceId && s.Name == "Known Service");
     }
 }

@@ -1,0 +1,42 @@
+meta {
+  name: Reject Booking
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/v1/bookings/{{bookingId}}/reject
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "reason": "Sem disponibilidade no horário solicitado."
+  }
+}
+
+docs {
+  # Reject Booking
+  
+  Rejeita um agendamento pendente. Apenas o prestador dono ou admin pode rejeitar.
+  
+  ## Parâmetros Body
+  - `reason` (string): Motivo da rejeição (Obrigatório, máx 500 caracteres)
+  
+  ## Códigos de Status
+  - **204**: Rejeitado com sucesso
+  - **400**: Estado inválido ou motivo ausente
+  - **401**: Não autenticado / token inválido
+  - **403**: Sem permissão
+  - **404**: Não encontrado
+  - **409**: Conflito — tentativa de rejeitar booking em estado não-pendente
+}

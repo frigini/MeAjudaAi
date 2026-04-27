@@ -44,15 +44,21 @@ public class ConfigurableTestAuthenticationHandler(
         var contextId = GetTestContextId();
 
         // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
-        if (contextId == null || !_userConfigs.TryGetValue(contextId, out _))
+        if (contextId == null)
+        {
+            Logger.LogDebug("No authentication configuration set (contextId is null)");
+            return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
+        }
+        
+        if (!_userConfigs.TryGetValue(contextId, out _))
         {
             // If allowUnauthenticated is true for this context, succeed with an anonymous principal
-            if (contextId != null && _allowUnauthenticatedByContext.TryGetValue(contextId, out var allowUnauth) && allowUnauth)
+            if (_allowUnauthenticatedByContext.TryGetValue(contextId, out var allowUnauth) && allowUnauth)
             {
                 // Return success with an empty identity (no claims, no roles, no permissions)
                 // This represents a truly anonymous/unauthenticated user
                 var anonymousIdentity = new System.Security.Claims.ClaimsIdentity(
-                    authenticationType: SchemeName,
+                    authenticationType: null,
                     nameType: null,
                     roleType: null);
                 var anonymousPrincipal = new System.Security.Claims.ClaimsPrincipal(anonymousIdentity);
@@ -63,6 +69,7 @@ public class ConfigurableTestAuthenticationHandler(
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
 
+        Logger.LogDebug("HandleAuthenticateAsync: SUCCESS for contextId {ContextId}", contextId);
         return Task.FromResult(CreateSuccessResult());
     }
 
@@ -201,7 +208,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <param name="userId">O ID do usuário</param>
     /// <param name="userName">O nome de usuário</param>
     /// <param name="email">O email do usuário</param>
-    public static void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com")
+    public static void ConfigureAdmin(string userId = "00000000-0000-0000-0000-000000000001", string userName = "admin", string email = "admin@test.com")
     {
         ConfigureUser(
             userId,
@@ -218,7 +225,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <param name="userId">O ID do usuário</param>
     /// <param name="username">O nome de usuário</param>
     /// <param name="email">O email do usuário</param>
-    public static void ConfigureRegularUser(string userId = "user-id", string username = "user", string email = "user@test.com")
+    public static void ConfigureRegularUser(string userId = "00000000-0000-0000-0000-000000000002", string username = "user", string email = "user@test.com")
     {
         ConfigureUserWithRoles(userId, username, email, "user");
     }
@@ -226,7 +233,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <summary>
     /// Configura um usuário prestador com um ID de prestador específico.
     /// </summary>
-    public static void ConfigureProvider(Guid providerId, string userId = "provider-id", string username = "provider", string email = "provider@test.com", bool isSystemAdmin = false)
+    public static void ConfigureProvider(Guid providerId, string userId = "00000000-0000-0000-0000-000000000003", string username = "provider", string email = "provider@test.com", bool isSystemAdmin = false)
     {
         var contextId = GetOrCreateTestContext();
         _userConfigs[contextId] = new UserConfig(

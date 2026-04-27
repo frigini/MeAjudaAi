@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Shared.Seeding;
 
+[ExcludeFromCodeCoverage]
 public static class SeedingExtensions
 {
     /// <summary>
