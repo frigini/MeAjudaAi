@@ -26,7 +26,7 @@ public sealed class RabbitMqInfrastructureIntegrationTests : IAsyncLifetime
         // Arrange
         var connectionString = _container.GetConnectionString();
         var factory = new ConnectionFactory { Uri = new Uri(connectionString) };
-        var connection = await factory.CreateConnectionAsync();
+        await using var connection = await factory.CreateConnectionAsync();
 
         var options = new RabbitMqOptions
         {
@@ -34,17 +34,18 @@ public sealed class RabbitMqInfrastructureIntegrationTests : IAsyncLifetime
             DomainQueues = { ["Auth"] = "auth-integration-queue" }
         };
 
+        var exchangeName = $"{options.DefaultQueueName}.exchange";
+
         var registryMock = new Mock<IEventTypeRegistry>();
         registryMock.Setup(r => r.GetAllEventTypesAsync()).ReturnsAsync(new List<Type>());
 
-        var sut = new RabbitMqInfrastructureManager(connection, options, registryMock.Object, NullLogger<RabbitMqInfrastructureManager>.Instance);
+        await using var sut = new RabbitMqInfrastructureManager(connection, options, registryMock.Object, NullLogger<RabbitMqInfrastructureManager>.Instance);
 
         // Act
         await sut.EnsureInfrastructureAsync();
 
-        // Assert
-        // Verify by trying to declare passively
-        var channel = await connection.CreateChannelAsync();
+        // Assert - verify by passive declare (throws if not found)
+        await using var channel = await connection.CreateChannelAsync();
         
         var defaultQueue = await channel.QueueDeclarePassiveAsync("test-integration-queue");
         defaultQueue.QueueName.Should().Be("test-integration-queue");
@@ -52,9 +53,7 @@ public sealed class RabbitMqInfrastructureIntegrationTests : IAsyncLifetime
         var domainQueue = await channel.QueueDeclarePassiveAsync("auth-integration-queue");
         domainQueue.QueueName.Should().Be("auth-integration-queue");
 
-        // Verify exchange (constructed as defaultQueueName + ".exchange")
-        await channel.ExchangeDeclarePassiveAsync("test-integration-queue.exchange");
-        
-        await connection.CloseAsync();
+        // Verify exchange exists (passive declare throws OperationInterruptedException if not found)
+        await channel.ExchangeDeclarePassiveAsync(exchangeName);
     }
 }

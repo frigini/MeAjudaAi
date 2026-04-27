@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -27,7 +27,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { href: APP_ROUTES.DASHBOARD, label: t("dashboard"), icon: LayoutDashboard },
     { href: APP_ROUTES.PROVIDERS, label: t("providers"), icon: Users },
     { href: APP_ROUTES.DOCUMENTS, label: t("documents"), icon: FileText },
@@ -35,7 +35,7 @@ export function Sidebar() {
     { href: APP_ROUTES.SERVICES, label: t("services"), icon: Wrench },
     { href: APP_ROUTES.CITIES, label: t("cities"), icon: MapPin },
     { href: APP_ROUTES.SETTINGS, label: t("settings"), icon: Settings },
-  ];
+  ], [t]);
 
   const name = session?.user?.name || "Admin";
   const nameTrimmed = name.trim();
@@ -111,7 +111,7 @@ export function Sidebar() {
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-sm font-medium">{nameTrimmed}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {isAdmin ? "Administrador" : "Usuário"}
+                  {isAdmin ? t("role_admin") : t("role_user")}
                 </p>
               </div>
             </div>

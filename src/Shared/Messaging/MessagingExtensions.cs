@@ -133,33 +133,33 @@ public static class MessagingExtensions
 
             services.TryAddSingleton<RebusMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
+
+            // Registro da infraestrutura de conexão do RabbitMQ (somente fora de testes)
+            services.AddSingleton<IConnectionFactory>(provider =>
+            {
+                var options = provider.GetRequiredService<RabbitMqOptions>();
+                return new ConnectionFactory
+                {
+                    Uri = new Uri(options.BuildConnectionString())
+                };
+            });
+
+            services.AddSingleton<IConnection>(provider =>
+            {
+                var factory = provider.GetRequiredService<IConnectionFactory>();
+                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+            });
+
+            services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
         }
 
-        // Registrar o factory e o IMessageBus baseado no ambiente
+        // Registrar o factory e o IMessageBus baseado no ambiente (sempre disponível)
         services.AddSingleton<IMessageBusFactory, MessageBusFactory>();
         services.AddSingleton(serviceProvider =>
         {
             var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
             return factory.CreateMessageBus();
         });
-
-        // Registro da infraestrutura de conexão do RabbitMQ
-        services.AddSingleton<IConnectionFactory>(provider =>
-        {
-            var options = provider.GetRequiredService<RabbitMqOptions>();
-            return new ConnectionFactory
-            {
-                Uri = new Uri(options.BuildConnectionString())
-            };
-        });
-
-        services.AddSingleton<IConnection>(provider =>
-        {
-            var factory = provider.GetRequiredService<IConnectionFactory>();
-            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        });
-
-        services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
         // Adicionar sistema de Dead Letter Queue
         services.AddDeadLetterQueue(configuration);
@@ -178,7 +178,15 @@ public static class MessagingExtensions
         }
 
         using var scope = host.Services.CreateScope();
-        var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
+        var manager = scope.ServiceProvider.GetService<IRabbitMqInfrastructureManager>();
+        if (manager is null)
+        {
+            // Em ambientes de teste ou quando o RabbitMQ não está configurado (ex: Swashbuckle CLI)
+            var fallbackLogger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
+            fallbackLogger.LogWarning("IRabbitMqInfrastructureManager not registered. Skipping messaging infrastructure setup.");
+            return;
+        }
+
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
         var useNewtonsoftJson = ResolveUseNewtonsoftJson(configuration);

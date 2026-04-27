@@ -2,6 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { useMemo } from "react";
 import { Users, Clock, CheckCircle, AlertCircle, TrendingUp, Loader2, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
@@ -16,7 +17,7 @@ const TypedLegend = Legend as any;
 const verificationColors = {
   approved: "#22c55e",
   pending: "#f59e0b",
-  underReview: "#3b82f6",
+  under_review: "#3b82f6",
   rejected: "#ef4444",
   suspended: "#6b7280",
 };
@@ -29,23 +30,23 @@ const typeColors = {
 };
 
 export default function DashboardPage() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const { data: stats, isLoading, error, refetch } = useDashboardStats();
 
-  const verificationData = [
+  const verificationData = useMemo(() => [
     { name: t("approved"), value: stats?.approved ?? 0, color: verificationColors.approved },
-    { name: t("underReview"), value: stats?.underReview ?? 0, color: verificationColors.underReview },
+    { name: t("under_review"), value: stats?.underReview ?? 0, color: verificationColors.under_review },
     { name: t("pending"), value: stats?.pending ?? 0, color: verificationColors.pending },
     { name: t("rejected"), value: stats?.rejected ?? 0, color: verificationColors.rejected },
     { name: t("suspended"), value: stats?.suspended ?? 0, color: verificationColors.suspended },
-  ].filter((d) => d.value > 0);
+  ].filter((d) => d.value > 0), [stats, t]);
 
-  const typeData = [
+  const typeData = useMemo(() => [
     { name: t("individual"), value: stats?.individual ?? 0, color: typeColors.individual },
     { name: t("company"), value: stats?.company ?? 0, color: typeColors.company },
     { name: t("freelancer"), value: stats?.freelancer ?? 0, color: typeColors.freelancer },
     { name: t("cooperative"), value: stats?.cooperative ?? 0, color: typeColors.cooperative },
-  ].filter((d) => d.value > 0);
+  ].filter((d) => d.value > 0), [stats, t]);
 
   if (isLoading && !stats) {
     return (
@@ -77,7 +78,7 @@ export default function DashboardPage() {
         {stats?.updatedAt && (
           <div className="flex items-center space-x-4">
             <span data-testid="last-updated" className="text-sm text-muted-foreground">
-              {t("updated_at")} {stats.updatedAt.toLocaleTimeString()}
+              {t("updated_at")} {stats.updatedAt.toLocaleTimeString(i18n.language)}
             </span>
             <Button data-testid="refresh-dashboard" variant="secondary" size="icon" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4" />
@@ -99,7 +100,7 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.total ?? 0}</div>
               <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="kpi-label">
                 <TrendingUp className="h-3 w-3 text-green-500" />
-                {t("total_providers")}
+                {t("total_providers_label")}
               </p>
             </CardContent>
           </Card>
@@ -114,7 +115,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="kpi-value">{(stats?.pending ?? 0) + (stats?.underReview ?? 0)}</div>
-            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("waiting_verification")}</p>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("waiting_verification_label")}</p>
           </CardContent>
         </Card>
 
@@ -127,7 +128,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.approved ?? 0}</div>
-            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("approved")}</p>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("approved_label")}</p>
           </CardContent>
         </Card>
 
@@ -140,7 +141,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.rejected ?? 0}</div>
-            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("rejected")}</p>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("rejected_label")}</p>
           </CardContent>
         </Card>
       </div>

@@ -11,6 +11,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
     private readonly RabbitMqOptions _options;
     private readonly IEventTypeRegistry _eventRegistry;
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
+    private readonly SemaphoreSlim _channelLock = new(1, 1);
     private IChannel? _channel;
 
     public RabbitMqInfrastructureManager(
@@ -32,8 +33,30 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             return _channel;
         }
 
-        _channel = await _connection.CreateChannelAsync();
-        return _channel;
+        await _channelLock.WaitAsync();
+        try
+        {
+            // Double-check after acquiring lock
+            if (_channel is { IsOpen: true })
+            {
+                return _channel;
+            }
+
+            var oldChannel = _channel;
+            _channel = await _connection.CreateChannelAsync();
+
+            // Dispose the old non-open channel if it exists
+            if (oldChannel is not null)
+            {
+                await oldChannel.DisposeAsync();
+            }
+
+            return _channel;
+        }
+        finally
+        {
+            _channelLock.Release();
+        }
     }
 
     public async Task EnsureInfrastructureAsync()
@@ -67,9 +90,15 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
                 }
             }
 
-            var eventNames = eventTypes.Select(e => e.Name).Distinct();
+            var eventNames = eventTypes.Select(e => e.FullName).Distinct();
             foreach (var eventName in eventNames)
             {
+                if (string.IsNullOrWhiteSpace(eventName))
+                {
+                    _logger.LogWarning("Skipping event type with null/empty FullName.");
+                    continue;
+                }
+
                 foreach (var queueName in allQueues)
                 {
                     await BindQueueToExchangeAsync(queueName, exchangeName, eventName);
@@ -133,9 +162,9 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
     {
         if (_channel is not null)
         {
-            await _channel.CloseAsync();
-            _channel.Dispose();
+            await _channel.DisposeAsync();
         }
+        _channelLock.Dispose();
         GC.SuppressFinalize(this);
     }
 }

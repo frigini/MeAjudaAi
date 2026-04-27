@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { User, Calendar as CalendarIcon } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useTranslation } from "react-i18next";
 
 export interface HeaderProps {
     className?: string;
@@ -11,12 +12,13 @@ export interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
     const { data: session, status } = useSession();
+    const { t } = useTranslation("common");
 
     return (
         <header className={`border-b border-[#E0702B] bg-white shadow-sm ${className || ''}`}>
             <div className="container mx-auto flex h-24 items-center justify-between px-4">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-4 cursor-pointer shrink-0" aria-label="Ir para a página inicial">
+                <Link href="/" className="flex items-center gap-4 cursor-pointer shrink-0" aria-label={t("welcome")}>
                     <Image
                         src="/logo-icon-azul.png"
                         alt="Logo Icon"
@@ -47,18 +49,18 @@ export function Header({ className }: HeaderProps) {
                         ) : session ? (
                             <>
                                 <Link href="/agenda" className="text-sm font-medium hover:underline flex flex-row items-center gap-2 mr-4 text-[#002D62]">
-                                    <CalendarIcon className="h-5 w-5" /> Agenda
+                                    <CalendarIcon className="h-5 w-5" /> {t("schedule")}
                                 </Link>
                                 <Link href="/configuracoes" className="text-sm font-medium hover:underline flex flex-row items-center gap-2">
-                                    <User className="h-5 w-5" /> Configurações
+                                    <User className="h-5 w-5" /> {t("settings")}
                                 </Link>
                                 <button onClick={() => signOut({ callbackUrl: '/' })} className="text-sm font-medium text-destructive hover:underline ml-4">
-                                    Sair
+                                    {t("logout")}
                                 </button>
                             </>
                         ) : (
                             <button onClick={() => signIn("keycloak")} className="text-sm font-medium text-primary hover:underline flex flex-row items-center gap-2">
-                                <User className="h-5 w-5" /> Entrar
+                                <User className="h-5 w-5" /> {t("login")}
                             </button>
                         )}
                     </div>

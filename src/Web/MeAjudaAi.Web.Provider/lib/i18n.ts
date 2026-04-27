@@ -1,3 +1,5 @@
+'use client';
+
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -19,36 +21,12 @@ i18n
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
     detection: {
-      order: ['cookie'],
+      order: ['cookie', 'navigator', 'htmlTag'],
       caches: ['cookie'],
     },
     react: {
       useSuspense: false,
     },
-    resources: {
-      pt: {
-        common: {
-          loading: "Carregando...",
-          error: "Ocorreu um erro",
-          welcome: "Bem-vindo ao Portal do Prestador",
-          dashboard: "Painel",
-          services: "Serviços",
-          schedule: "Agenda",
-          profile: "Perfil"
-        }
-      },
-      en: {
-        common: {
-          loading: "Loading...",
-          error: "An error occurred",
-          welcome: "Welcome to the Provider Portal",
-          dashboard: "Dashboard",
-          services: "Services",
-          schedule: "Schedule",
-          profile: "Profile"
-        }
-      }
-    }
   });
 
 export default i18n;

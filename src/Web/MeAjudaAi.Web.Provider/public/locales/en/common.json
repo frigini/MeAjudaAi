@@ -8,5 +8,15 @@
   "profile": "Profile",
   "logout": "Logout",
   "notifications": "Notifications",
-  "settings": "Settings"
+  "settings": "Settings",
+  "login": "Sign In",
+  "mission": "Mission",
+  "mission_text": "Our mission is to make the search for trusted professionals simpler and safer. We connect those in need with those who know how to help, facilitating access to quality services based on real and transparent reviews.",
+  "vision": "Vision",
+  "vision_text": "To become the largest platform connecting service providers in Brazil. We facilitate the hiring of freelance professionals, promoting the local economy and making people's lives more practical.",
+  "values": "Values",
+  "values_text": "Responsibility, ethics, seriousness, excellence, safety and respect for others. We believe in a fair and transparent market for everyone.",
+  "contacts": "Contacts",
+  "privacy_policy": "Privacy Policy",
+  "copyright": "All rights reserved."
 }
