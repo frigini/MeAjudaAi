@@ -6,9 +6,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 13 (Escala & Provedores Reais)
+**Sprint Atual**: 13 (Infraestrutura & Excelência UX)
 
-**Status**: 🚀 Em Início
+**Status**: 🛠️ Em Execução (Início em 27 Abr 2026)
 
 **Meta MVP**: 12 a 16 de maio de 2026
 
@@ -18,11 +18,12 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 🔮 Roadmaps Futuros (MVP Launch & Além)
 
-### Fase 3: Escala e Provedores Reais (Próximas Atividades)
-*   **Provedores de Comunicação**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
-*   **Verificação Automatizada**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
-*   **i18n Apps Provider/Admin**: Localização frontend para os apps de Prestador e Administrador.
-*   **Documentação Final**: Manuais de Usuário e Guias de Implantação (revisão global).
+### Fase 3: Escala e Provedores Reais (Em Execução)
+*   **RabbitMQ Excellence**: Consolidação total da infraestrutura de mensageria, removendo stubs e dependências diretas de driver.
+*   **i18n Apps Provider/Admin**: Implementação de localização frontend para os apps de Prestador e Administrador.
+*   **UI/UX Admin Portal**: Padronização visual com cores da marca e melhorias de usabilidade no portal administrativo.
+*   **Provedores de Comunicação (Próximo)**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
+*   **Verificação Automatizada (Próximo)**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
 
 ### Fase 4: Experiência e Engajamento
 *   **Sistema de Disputas**: Mediação administrativa para conflitos.
@@ -37,7 +38,6 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 12**: Módulo de Bookings completo (Backend/Frontend), Atributos de roteamento avançado de mensageria (`[DedicatedTopic]`, `[HighVolumeEvent]`, `[CriticalEvent]`) e testes de arquitetura. (Abril 2026)
 *   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente. (Abril 2026)
 *   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141), Alinhamento de Realms Keycloak, Infra CI/CD (OpenAPI gating) e Documentação (coleções Bruno). (Abril 2026)
 
