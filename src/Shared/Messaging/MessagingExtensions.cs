@@ -135,6 +135,7 @@ public static class MessagingExtensions
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
 
             // Registro da infraestrutura de conexão do RabbitMQ (somente fora de testes)
+            // Em ambiente de Testing, o messaging não precisa de conexão real
             services.AddSingleton<IConnectionFactory>(provider =>
             {
                 var options = provider.GetRequiredService<RabbitMqOptions>();
@@ -144,11 +145,13 @@ public static class MessagingExtensions
                 };
             });
 
-            services.AddSingleton<IConnection>(provider =>
+            services.AddSingleton<Lazy<IConnection>>(provider =>
             {
                 var factory = provider.GetRequiredService<IConnectionFactory>();
-                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+                return new Lazy<IConnection>(() => factory.CreateConnectionAsync().GetAwaiter().GetResult());
             });
+
+            services.AddSingleton<IConnection>(provider => provider.GetRequiredService<Lazy<IConnection>>().Value);
 
             services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
         }
