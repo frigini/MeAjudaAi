@@ -145,10 +145,10 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Transitive",
         "resolved": "13.2.2",
-        "contentHash": "a3AOGoRskQuvcvD9OipwKOGWvhgajUN8qHAoOkQnpmC6TmELzZ6RLAA+lHbEyyoJsnenuRbliuwkqvnDLsUtWw=="
+        "contentHash": "zwZY2xKzx2S95WjWLF9SjTnSL/YWwKJkSq8Qta+9TmpGJbtkYRHlhy7U8tL993hp2VcJ75ni/MWfM0m5fqBtow=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -373,10 +373,10 @@
           "System.IO.Hashing": "10.0.3"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Transitive",
         "resolved": "13.2.2",
-        "contentHash": "BlQpgpIaABomSSSJI64n7KgtBSuEcEjaMANL3K70h5ZwCqLBrkIeJBUbCOUrs6DRt+Bqo27VtO/nfKWIQM510w=="
+        "contentHash": "uG+sK1jZ3INzZvKVLUvDgYdUKWJ/W+EbnwTmhz65qHIF8t+lF0siPezWOAC05Rcif0TYtkXAy9NofSE9GHO8JA=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -1681,13 +1681,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.2.2, )",
+          "Aspire.Dashboard.Sdk.linux-x64": "[13.2.2, )",
           "Aspire.Hosting.AppHost": "[13.2.2, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.2.2, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.2.2, )",
           "Aspire.Hosting.JavaScript": "[13.2.2, )",
           "Aspire.Hosting.Keycloak": "[13.2.2-preview.1.26207.2, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.2.2, )",
+          "Aspire.Hosting.Orchestration.linux-x64": "[13.2.2, )",
           "Aspire.Hosting.PostgreSQL": "[13.2.2, )",
           "Aspire.Hosting.RabbitMQ": "[13.2.2, )",
           "Aspire.Hosting.Redis": "[13.2.2, )",
@@ -2144,7 +2144,7 @@
           "Microsoft.EntityFrameworkCore": "[10.0.6, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.6, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.5.0, )",
-          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
+          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.7, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
@@ -2843,13 +2843,13 @@
       },
       "Microsoft.Extensions.Caching.StackExchangeRedis": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "26xccg2/iKzDb3SYcI/bsQoujno5bb8pUp1WSRZ5BP43qk2L25XgY80cDO0dr2qeu152mcF2Qn2FjLeZn1yZZQ==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "TvD0totA8qeyrZ2YeY/qRNgYBy4BvO6dG59ziJDLVnLH4s2jeLUFEFcgA3xzqPhCMMbuz9bJTRwHxkZ/7c87jQ==",
         "dependencies": {
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.6",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.6",
-          "Microsoft.Extensions.Options": "10.0.6",
+          "Microsoft.Extensions.Caching.Abstractions": "10.0.7",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.7",
+          "Microsoft.Extensions.Options": "10.0.7",
           "StackExchange.Redis": "2.7.27"
         }
       },

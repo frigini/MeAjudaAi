@@ -59,7 +59,7 @@
     <!-- Extensões Microsoft -->
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.5.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.6" />
