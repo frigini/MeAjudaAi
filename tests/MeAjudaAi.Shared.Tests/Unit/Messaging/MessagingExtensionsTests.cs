@@ -90,60 +90,68 @@ public class MessagingExtensionsTests
     [Fact]
     public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldThrowException()
     {
-        // Arrange - Save and set environment to avoid early return
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        var originalIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        using var envScope = new EnvironmentVariableScope(
+            ("ASPNETCORE_ENVIRONMENT", "Development"),
+            ("DOTNET_ENVIRONMENT", "Development"), 
+            ("INTEGRATION_TESTS", null));
+
+        var services = new ServiceCollection();
         
-        try
+        // Registrar IHostEnvironment com ambiente de Desenvolvimento para exercer o branch correto
+        var hostEnvironment = new MockHostEnvironment("Development");
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+        
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
+
+        var serviceProvider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(serviceProvider);
+
+        // Act & Assert - agora deve lançar exceção para fail-fast
+        var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
+        
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*IRabbitMqInfrastructureManager*not registered*");
+    }
+}
+
+internal sealed class EnvironmentVariableScope : IDisposable
+{
+    private static readonly object _lock = new();
+    private readonly (string Name, string? OriginalValue)[] _variables;
+    private bool _disposed;
+
+    public EnvironmentVariableScope(params (string Name, string? NewValue)[] variables)
+    {
+        _variables = variables.Select(v => (v.Name, Environment.GetEnvironmentVariable(v.Name))).ToArray();
+        
+        lock (_lock)
         {
-            // Set to non-testing environment so the method doesn't return early
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
-            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", null);
-            
-            var services = new ServiceCollection();
-            
-            // Registrar IHostEnvironment com ambiente de Desenvolvimento para exercer o branch correto
-            var hostEnvironment = new MockHostEnvironment("Development");
-            services.AddSingleton<IHostEnvironment>(hostEnvironment);
-            
-            services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Messaging:Enabled"] = "true"
-                }).Build());
-            
-            services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
-            // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
-
-            var serviceProvider = services.BuildServiceProvider();
-            var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
-            hostMock.Setup(h => h.Services).Returns(serviceProvider);
-
-            // Act & Assert - agora deve lançar exceção para fail-fast
-            var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
-            
-            await act.Should().ThrowAsync<InvalidOperationException>()
-                .WithMessage("*IRabbitMqInfrastructureManager*not registered*");
+            foreach (var v in variables)
+            {
+                Environment.SetEnvironmentVariable(v.Name, v.NewValue);
+            }
         }
-        finally
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        
+        lock (_lock)
         {
-            // Restore environment variables
-            if (originalAspNetCoreEnv == null)
-                Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-            else
-                Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-                
-            if (originalDotNetEnv == null)
-                Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-            else
-                Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
-                
-            if (originalIntegrationTests == null)
-                Environment.SetEnvironmentVariable("INTEGRATION_TESTS", null);
-            else
-                Environment.SetEnvironmentVariable("INTEGRATION_TESTS", originalIntegrationTests);
+            foreach (var (name, originalValue) in _variables)
+            {
+                Environment.SetEnvironmentVariable(name, originalValue);
+            }
         }
     }
 }

@@ -135,21 +135,16 @@ public static class MessagingExtensions
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
 
             // Registro da infraestrutura de conexão do RabbitMQ
-            // Apenas registrar se Messaging:Enabled for true (ou default true)
-            var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
-            if (isMessagingEnabled)
+            services.AddSingleton<IConnectionFactory>(provider =>
             {
-                services.AddSingleton<IConnectionFactory>(provider =>
+                var options = provider.GetRequiredService<RabbitMqOptions>();
+                return new ConnectionFactory
                 {
-                    var options = provider.GetRequiredService<RabbitMqOptions>();
-                    return new ConnectionFactory
-                    {
-                        Uri = new Uri(options.BuildConnectionString())
-                    };
-                });
+                    Uri = new Uri(options.BuildConnectionString())
+                };
+            });
 
-                services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
-            }
+            services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
         }
 
         // Registrar o factory e o IMessageBus baseado no ambiente (sempre disponível)

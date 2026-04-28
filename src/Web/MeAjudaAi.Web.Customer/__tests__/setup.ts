@@ -44,7 +44,7 @@ vi.mock('react-i18next', () => ({
         }
 
         // Use defaultValue only if key resolution found nothing
-        if (options.defaultValue && result === key) {
+        if (options.defaultValue !== undefined && result === key) {
           return options.defaultValue as string;
         }
 

@@ -31,7 +31,7 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 ### 🚀 Infraestrutura & Messaging (RabbitMQ Excellence)
 
 **Resolvido em**: Abr 2026 (Sprint 13) | **Severidade original**: MÉDIA  
-A infraestrutura do RabbitMQ foi consolidada com a implementação real do `RabbitMqInfrastructureManager`, eliminando stubs e garantindo a declaração automática de exchanges (Topic), filas de domínio e bindings. O sistema foi atualizado para o `RabbitMQ.Client` 7.x utilizando o novo padrão assíncrono. Cobertura de testes unitários e de integração (via Testcontainers) garantida acima de 90%. O uso direto do RabbitMQ agora é gerenciado de forma centralizada e resiliente.
+A infraestrutura do RabbitMQ foi consolidada com a implementação real do `RabbitMqInfrastructureManager`, eliminando stubs e garantindo a declaração automática de exchanges (Topic), filas de domínio e bindings. O sistema foi atualizado para o `RabbitMQ.Client` 7.x utilizando o novo padrão assíncrono. Cobertura de testes unitários e de integração (via Testcontainers) superior a 90% no fechamento da Sprint 13. O uso direto do RabbitMQ agora é gerenciado de forma centralizada e resiliente.
 
 ### ⚠️ Hangfire + Npgsql 10.x Compatibility Risk
 
