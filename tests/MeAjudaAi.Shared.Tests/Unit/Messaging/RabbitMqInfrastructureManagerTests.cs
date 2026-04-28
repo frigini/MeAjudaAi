@@ -12,6 +12,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 [Trait("Category", "Unit")]
 public class RabbitMqInfrastructureManagerTests
 {
+    private readonly Mock<IConnectionFactory> _connectionFactoryMock = new();
     private readonly Mock<IConnection> _connectionMock = new();
     private readonly Mock<IChannel> _channelMock = new();
     private readonly Mock<IEventTypeRegistry> _registryMock = new();
@@ -26,6 +27,8 @@ public class RabbitMqInfrastructureManagerTests
     {
         _connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(_channelMock.Object);
+        _connectionFactoryMock.Setup(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_connectionMock.Object);
 
         // Capture queue declarations (8-parameter signature for QueueDeclareAsync)
         _channelMock.Setup(c => c.QueueDeclareAsync(
@@ -65,7 +68,7 @@ public class RabbitMqInfrastructureManagerTests
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        _sut = new RabbitMqInfrastructureManager(_connectionMock.Object, _options, _registryMock.Object, _loggerMock.Object);
+        _sut = new RabbitMqInfrastructureManager(_connectionFactoryMock.Object, _options, _registryMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -181,8 +184,7 @@ public class RabbitMqInfrastructureManagerTests
     public async Task EnsureInfrastructureAsync_WhenChannelFails_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        _connectionMock.Setup(c => c.CreateChannelAsync(
-            It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+        _connectionFactoryMock.Setup(f => f.CreateConnectionAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("broker unavailable"));
 
         // Act & Assert

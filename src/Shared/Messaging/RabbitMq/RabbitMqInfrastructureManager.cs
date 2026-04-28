@@ -7,20 +7,21 @@ namespace MeAjudaAi.Shared.Messaging.RabbitMq;
 
 internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
 {
-    private readonly IConnection _connection;
+    private readonly IConnectionFactory _connectionFactory;
     private readonly RabbitMqOptions _options;
     private readonly IEventTypeRegistry _eventRegistry;
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
     private readonly SemaphoreSlim _channelLock = new(1, 1);
+    private IConnection? _connection;
     private IChannel? _channel;
 
     public RabbitMqInfrastructureManager(
-        IConnection connection,
+        IConnectionFactory connectionFactory,
         RabbitMqOptions options,
         IEventTypeRegistry eventRegistry,
         ILogger<RabbitMqInfrastructureManager> logger)
     {
-        _connection = connection;
+        _connectionFactory = connectionFactory;
         _options = options;
         _eventRegistry = eventRegistry;
         _logger = logger;
@@ -43,6 +44,18 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             }
 
             var oldChannel = _channel;
+            
+            if (_connection is null || !_connection.IsOpen)
+            {
+                var oldConnection = _connection;
+                _connection = await _connectionFactory.CreateConnectionAsync();
+                
+                if (oldConnection is not null)
+                {
+                    await oldConnection.DisposeAsync();
+                }
+            }
+
             _channel = await _connection.CreateChannelAsync();
 
             // Dispose the old non-open channel if it exists
@@ -187,6 +200,10 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
         if (_channel is not null)
         {
             await _channel.DisposeAsync();
+        }
+        if (_connection is not null)
+        {
+            await _connection.DisposeAsync();
         }
         _channelLock.Dispose();
         GC.SuppressFinalize(this);

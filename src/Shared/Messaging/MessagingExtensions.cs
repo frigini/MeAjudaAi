@@ -148,14 +148,6 @@ public static class MessagingExtensions
                     };
                 });
 
-                services.AddSingleton<Lazy<IConnection>>(provider =>
-                {
-                    var factory = provider.GetRequiredService<IConnectionFactory>();
-                    return new Lazy<IConnection>(() => factory.CreateConnectionAsync().GetAwaiter().GetResult());
-                });
-
-                services.AddSingleton<IConnection>(provider => provider.GetRequiredService<Lazy<IConnection>>().Value);
-
                 services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
             }
         }
@@ -194,6 +186,13 @@ public static class MessagingExtensions
                                  integrationTests == "1";
 
         if (isTestingEnvironment)
+        {
+            return;
+        }
+
+        var entryAssembly = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name;
+        if (entryAssembly != null && (entryAssembly.Contains("swashbuckle", StringComparison.OrdinalIgnoreCase) || 
+                                      entryAssembly.Contains("swagger", StringComparison.OrdinalIgnoreCase)))
         {
             return;
         }
