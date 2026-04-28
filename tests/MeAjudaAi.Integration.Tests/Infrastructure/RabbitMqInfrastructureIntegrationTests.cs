@@ -39,7 +39,7 @@ public sealed class RabbitMqInfrastructureIntegrationTests : IAsyncLifetime
         var registryMock = new Mock<IEventTypeRegistry>();
         registryMock.Setup(r => r.GetAllEventTypesAsync()).ReturnsAsync(new List<Type>());
 
-        await using var sut = new RabbitMqInfrastructureManager(connection, options, registryMock.Object, NullLogger<RabbitMqInfrastructureManager>.Instance);
+        await using var sut = new RabbitMqInfrastructureManager(factory, options, registryMock.Object, NullLogger<RabbitMqInfrastructureManager>.Instance);
 
         // Act
         await sut.EnsureInfrastructureAsync();
