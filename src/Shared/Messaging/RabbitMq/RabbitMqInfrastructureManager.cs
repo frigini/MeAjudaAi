@@ -30,10 +30,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
     private async Task<IChannel> GetChannelAsync()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(RabbitMqInfrastructureManager));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, nameof(RabbitMqInfrastructureManager));
 
         if (_channel is { IsOpen: true })
         {
