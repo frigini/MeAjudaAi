@@ -90,56 +90,39 @@ public class MessagingExtensionsTests
     [Fact]
     public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldLogWarningAndReturn()
     {
-        // Arrange - Save original env values and set non-testing environment
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        var originalIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        // Arrange
+        var services = new ServiceCollection();
         
-        try
-        {
-            // Set environment to Development to avoid early return in the method
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
-            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", null);
-            
-            var services = new ServiceCollection();
-            
-            var hostEnvironment = new MockHostEnvironment("Development");
-            services.AddSingleton<IHostEnvironment>(hostEnvironment);
-            
-            services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Messaging:Enabled"] = "true"
-                }).Build());
-            
-            var loggerMock = new Mock<ILogger<MessagingConfiguration>>();
-            services.AddSingleton(loggerMock.Object);
-            // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
+        // Registrar IHostEnvironment com ambiente de Desenvolvimento para exercer o branch correto
+        var hostEnvironment = new MockHostEnvironment("Development");
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+        
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        
+        // Usar mock verificável para validar que o warning foi logado
+        var loggerMock = new Mock<ILogger<MessagingConfiguration>>();
+        services.AddSingleton(loggerMock.Object);
+        // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
 
-            var serviceProvider = services.BuildServiceProvider();
-            var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
-            hostMock.Setup(h => h.Services).Returns(serviceProvider);
+        var serviceProvider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(serviceProvider);
 
-            // Act
-            await hostMock.Object.EnsureMessagingInfrastructureAsync();
+        // Act
+        await hostMock.Object.EnsureMessagingInfrastructureAsync();
 
-            // Assert
-            loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-        }
-        finally
-        {
-            // Restore original environment variables
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
-            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", originalIntegrationTests);
-        }
+        // Assert - verificar que o warning foi logado
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }

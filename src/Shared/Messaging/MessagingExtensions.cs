@@ -176,9 +176,15 @@ public static class MessagingExtensions
             return;
         }
 
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                     Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? 
-                     EnvironmentNames.Development;
+        using var scope = host.Services.CreateScope();
+        
+        // Obter IHostEnvironment do escopo - permite mock em testes
+        var hostEnvironment = scope.ServiceProvider.GetService<IHostEnvironment>();
+        var envName = hostEnvironment?.EnvironmentName 
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") 
+            ?? EnvironmentNames.Development;
+            
         var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
         var isTestingEnvironment = envName == EnvironmentNames.Testing ||
                                  envName.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
@@ -197,7 +203,6 @@ public static class MessagingExtensions
             return;
         }
 
-        using var scope = host.Services.CreateScope();
         var manager = scope.ServiceProvider.GetService<IRabbitMqInfrastructureManager>();
         if (manager is null)
         {
