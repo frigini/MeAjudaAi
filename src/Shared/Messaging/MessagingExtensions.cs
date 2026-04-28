@@ -206,10 +206,13 @@ public static class MessagingExtensions
         var manager = scope.ServiceProvider.GetService<IRabbitMqInfrastructureManager>();
         if (manager is null)
         {
-            // Em ambientes de teste ou quando o RabbitMQ não está configurado (ex: Swashbuckle CLI)
-            var fallbackLogger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
-            fallbackLogger.LogWarning("IRabbitMqInfrastructureManager not registered. Skipping messaging infrastructure setup.");
-            return;
+            // IRabbitMqInfrastructureManager não registrado - falhar rapidamente se messaging está habilitado
+            // Isso indica um problema de DI que impedirá o funcionamento correto da aplicação
+            throw new InvalidOperationException(
+                "IRabbitMqInfrastructureManager is not registered in the dependency injection container. " +
+                "Ensure that AddRabbitMqInfrastructure() or AddMessaging() has been called to register " +
+                "the RabbitMQ infrastructure. The application cannot start with messaging enabled but " +
+                "missing the required infrastructure manager.");
         }
 
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();

@@ -88,7 +88,7 @@ public class MessagingExtensionsTests
     }
 
     [Fact]
-    public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldLogWarningAndReturn()
+    public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldThrowException()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -103,26 +103,17 @@ public class MessagingExtensionsTests
                 ["Messaging:Enabled"] = "true"
             }).Build());
         
-        // Usar mock verificável para validar que o warning foi logado
-        var loggerMock = new Mock<ILogger<MessagingConfiguration>>();
-        services.AddSingleton(loggerMock.Object);
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
         // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
 
         var serviceProvider = services.BuildServiceProvider();
         var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
         hostMock.Setup(h => h.Services).Returns(serviceProvider);
 
-        // Act
-        await hostMock.Object.EnsureMessagingInfrastructureAsync();
-
-        // Assert - verificar que o warning foi logado
-        loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        // Act & Assert - agora deve lançar exceção para fail-fast
+        var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
+        
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*IRabbitMqInfrastructureManager*not registered*");
     }
 }

@@ -12,7 +12,10 @@ import ptTranslations from '../public/locales/pt/translation.json';
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, options?: Record<string, unknown> | string) => {
-      if (typeof options === 'string') return options;
+      // Treat string options as defaultValue and try to resolve the key normally
+      if (typeof options === 'string') {
+        options = { defaultValue: options };
+      }
       
       const keys = key.split('.');
       let translation: any = ptTranslations;
@@ -40,6 +43,7 @@ vi.mock('react-i18next', () => ({
           }
         }
 
+        // Use defaultValue only if key resolution found nothing
         if (options.defaultValue && result === key) {
           return options.defaultValue as string;
         }
