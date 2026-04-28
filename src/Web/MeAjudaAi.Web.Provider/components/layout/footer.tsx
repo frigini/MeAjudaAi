@@ -1,51 +1,46 @@
 "use client";
 
 import { Mail, Phone, Instagram } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface FooterProps {
     className?: string;
 }
 
 export function Footer({ className }: FooterProps) {
+    const { t } = useTranslation("common");
+
     return (
         <footer className={`bg-secondary text-white ${className || ''}`}>
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Missão */}
                     <div>
-                        <h3 className="font-bold text-lg mb-4">Missão</h3>
+                        <h3 className="font-bold text-lg mb-4">{t("mission")}</h3>
                         <p className="text-sm text-white/90">
-                            Nossa missão é tornar a busca por profissionais de confiança
-                            mais simples e segura. Conectamos quem precisa com quem sabe
-                            fazer, facilitando o acesso a serviços de qualidade com base em
-                            avaliações reais e transparentes.
+                            {t("mission_text")}
                         </p>
                     </div>
 
                     {/* Visão */}
                     <div>
-                        <h3 className="font-bold text-lg mb-4">Visão</h3>
+                        <h3 className="font-bold text-lg mb-4">{t("vision")}</h3>
                         <p className="text-sm text-white/90">
-                            Tornar-se a maior plataforma de conexão de prestadores de
-                            serviços do Brasil. Facilitamos a contratação de profissionais
-                            autônomos, promovendo a economia local e tornando a vida das
-                            pessoas mais prática.
+                            {t("vision_text")}
                         </p>
                     </div>
 
                     {/* Valores */}
                     <div>
-                        <h3 className="font-bold text-lg mb-4">Valores</h3>
+                        <h3 className="font-bold text-lg mb-4">{t("values")}</h3>
                         <p className="text-sm text-white/90">
-                            Responsabilidade, ética, seriedade, excelência, segurança e
-                            respeito ao próximo. Acreditamos em um mercado justo e
-                            transparente para todos.
+                            {t("values_text")}
                         </p>
                     </div>
 
                     {/* Contatos */}
                     <div>
-                        <h3 className="font-bold text-lg mb-4">Contatos</h3>
+                        <h3 className="font-bold text-lg mb-4">{t("contacts")}</h3>
                         <div className="flex flex-col gap-3">
                             <a
                                 href="mailto:contato@ajudaai.com"
@@ -74,14 +69,14 @@ export function Footer({ className }: FooterProps) {
 
                         <div className="mt-6">
                             <p className="text-xs font-semibold mb-1">
-                                Política de Privacidade
+                                {t("privacy_policy")}
                             </p>
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm">
-                    © {new Date().getFullYear()} AjudaAi. Todos os direitos reservados.
+                    © {new Date().getFullYear()} AjudaAi. {t("copyright")}
                 </div>
             </div>
         </footer>

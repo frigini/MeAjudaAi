@@ -1,0 +1,22 @@
+{
+  "loading": "Carregando...",
+  "error": "Ocorreu um erro",
+  "welcome": "Bem-vindo ao Portal do Prestador",
+  "dashboard": "Painel",
+  "services": "Serviços",
+  "schedule": "Agenda",
+  "profile": "Perfil",
+  "logout": "Sair",
+  "notifications": "Notificações",
+  "settings": "Configurações",
+  "login": "Entrar",
+  "mission": "Missão",
+  "mission_text": "Nossa missão é tornar a busca por profissionais de confiança mais simples e segura. Conectamos quem precisa com quem sabe fazer, facilitando o acesso a serviços de qualidade com base em avaliações reais e transparentes.",
+  "vision": "Visão",
+  "vision_text": "Tornar-se a maior plataforma de conexão de prestadores de serviços do Brasil. Facilitamos a contratação de profissionais autônomos, promovendo a economia local e tornando a vida das pessoas mais prática.",
+  "values": "Valores",
+  "values_text": "Responsabilidade, ética, seriedade, excelência, segurança e respeito ao próximo. Acreditamos em um mercado justo e transparente para todos.",
+  "contacts": "Contatos",
+  "privacy_policy": "Política de Privacidade",
+  "copyright": "Todos os direitos reservados."
+}

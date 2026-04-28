@@ -2,12 +2,14 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { useMemo } from "react";
 import { Users, Clock, CheckCircle, AlertCircle, TrendingUp, Loader2, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useDashboardStats } from "@/hooks/admin";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const TypedTooltip = Tooltip as any;
 const TypedLegend = Legend as any;
@@ -15,7 +17,7 @@ const TypedLegend = Legend as any;
 const verificationColors = {
   approved: "#22c55e",
   pending: "#f59e0b",
-  underReview: "#3b82f6",
+  under_review: "#3b82f6",
   rejected: "#ef4444",
   suspended: "#6b7280",
 };
@@ -23,27 +25,28 @@ const verificationColors = {
 const typeColors = {
   individual: "#8b5cf6",
   company: "#06b6d4",
-  freelancer: "#f97316",
+  freelancer: "#D96704", // Marca secundária — laranja
   cooperative: "#ec4899",
 };
 
 export default function DashboardPage() {
+  const { t, i18n } = useTranslation("common");
   const { data: stats, isLoading, error, refetch } = useDashboardStats();
 
-  const verificationData = [
-    { name: "Aprovados", value: stats?.approved ?? 0, color: verificationColors.approved },
-    { name: "Em Análise", value: stats?.underReview ?? 0, color: verificationColors.underReview },
-    { name: "Pendentes", value: stats?.pending ?? 0, color: verificationColors.pending },
-    { name: "Rejeitados", value: stats?.rejected ?? 0, color: verificationColors.rejected },
-    { name: "Suspensos", value: stats?.suspended ?? 0, color: verificationColors.suspended },
-  ].filter((d) => d.value > 0);
+  const verificationData = useMemo(() => [
+    { name: t("approved"), value: stats?.approved ?? 0, color: verificationColors.approved },
+    { name: t("under_review"), value: stats?.underReview ?? 0, color: verificationColors.under_review },
+    { name: t("pending"), value: stats?.pending ?? 0, color: verificationColors.pending },
+    { name: t("rejected"), value: stats?.rejected ?? 0, color: verificationColors.rejected },
+    { name: t("suspended"), value: stats?.suspended ?? 0, color: verificationColors.suspended },
+  ].filter((d) => d.value > 0), [stats, t]);
 
-  const typeData = [
-    { name: "Pessoa Física", value: stats?.individual ?? 0, color: typeColors.individual },
-    { name: "Empresa", value: stats?.company ?? 0, color: typeColors.company },
-    { name: "Freelancer", value: stats?.freelancer ?? 0, color: typeColors.freelancer },
-    { name: "Cooperativa", value: stats?.cooperative ?? 0, color: typeColors.cooperative },
-  ].filter((d) => d.value > 0);
+  const typeData = useMemo(() => [
+    { name: t("individual"), value: stats?.individual ?? 0, color: typeColors.individual },
+    { name: t("company"), value: stats?.company ?? 0, color: typeColors.company },
+    { name: t("freelancer"), value: stats?.freelancer ?? 0, color: typeColors.freelancer },
+    { name: t("cooperative"), value: stats?.cooperative ?? 0, color: typeColors.cooperative },
+  ].filter((d) => d.value > 0), [stats, t]);
 
   if (isLoading && !stats) {
     return (
@@ -56,9 +59,9 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div data-testid="dashboard-error" className="flex flex-col items-center justify-center p-8 space-y-4">
-        <p className="text-destructive">Erro ao carregar dados do dashboard. Tente novamente.</p>
+        <p className="text-destructive">{t("error_loading_dashboard")}</p>
         <Button data-testid="retry-button" onClick={() => refetch()} variant="secondary">
-          Tentar Novamente
+          {t("retry")}
         </Button>
       </div>
     );
@@ -68,14 +71,14 @@ export default function DashboardPage() {
     <div className="p-8">
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Visão geral dos prestadores e métricas</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("dashboard")}</h1>
+          <p className="text-muted-foreground">{t("dashboard_subtitle")}</p>
         </div>
         
         {stats?.updatedAt && (
           <div className="flex items-center space-x-4">
             <span data-testid="last-updated" className="text-sm text-muted-foreground">
-              Atualizado em {stats.updatedAt.toLocaleTimeString('pt-BR')}
+              {t("updated_at")} {stats.updatedAt.toLocaleTimeString(i18n.language)}
             </span>
             <Button data-testid="refresh-dashboard" variant="secondary" size="icon" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4" />
@@ -86,67 +89,67 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8" data-testid="kpi-grid">
         <Link href="/admin/providers" className="block transition-transform hover:scale-[1.02]">
-          <Card data-testid="kpi-total-providers" className="h-full">
+          <Card data-testid="kpi-total-providers" className="h-full border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total de Prestadores
+                {t("total_providers")}
               </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.total ?? 0}</div>
               <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="kpi-label">
                 <TrendingUp className="h-3 w-3 text-green-500" />
-                Total de Prestadores
+                {t("total_providers_label")}
               </p>
             </CardContent>
           </Card>
         </Link>
 
-        <Card data-testid="kpi-pending-verification">
+        <Card data-testid="kpi-pending-verification" className="border-l-4 border-l-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Aguardando Verificação
+              {t("waiting_verification")}
             </CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <Clock className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="kpi-value">{(stats?.pending ?? 0) + (stats?.underReview ?? 0)}</div>
-            <p className="text-xs text-muted-foreground" data-testid="kpi-label">Aguardando Verificação</p>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("waiting_verification_label")}</p>
           </CardContent>
         </Card>
 
-        <Card data-testid="kpi-approved">
+        <Card data-testid="kpi-approved" className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Aprovados
+              {t("approved")}
             </CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.approved ?? 0}</div>
-            <p className="text-xs text-muted-foreground" data-testid="kpi-label">Aprovados</p>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("approved_label")}</p>
           </CardContent>
         </Card>
 
-        <Card data-testid="kpi-rejected">
+        <Card data-testid="kpi-rejected" className="border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Rejeitados
+              {t("rejected")}
             </CardTitle>
             <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.rejected ?? 0}</div>
-            <p className="text-xs text-muted-foreground" data-testid="kpi-label">Rejeitados</p>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">{t("rejected_label")}</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="mb-8">
-        <Card>
+        <Card className="bg-cream/20">
           <CardHeader>
-            <CardTitle data-testid="chart-title">Prestadores ao longo do tempo</CardTitle>
+            <CardTitle data-testid="chart-title-providers-over-time">{t("providers_over_time")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div data-testid="providers-line-chart" className="h-[300px] w-full">
@@ -159,7 +162,7 @@ export default function DashboardPage() {
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     wrapperProps={{ "data-testid": "chart-tooltip" } as any} 
                   />
-                  <Line type="monotone" dataKey="value" name="Total de Prestadores" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="value" name={t("total_providers")} stroke="#395873" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -170,7 +173,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle data-testid="chart-title">Status de Verificação</CardTitle>
+            <CardTitle data-testid="chart-title-verification-status">{t("verification_status")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div data-testid="verification-pie-chart" className="h-[250px] relative">
@@ -203,7 +206,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle data-testid="chart-title">Prestadores por Tipo</CardTitle>
+            <CardTitle data-testid="chart-title-providers-by-type">{t("providers_by_type")}</CardTitle>
           </CardHeader>
           <CardContent>
              <div className="h-[250px] relative">

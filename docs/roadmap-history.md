@@ -4,16 +4,17 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
-## ✅ Sprint 12 - Bookings & Messaging Excellence (Em conclusão - Meta: 21 Abr 2026)
+## ✅ Sprint 12 - Bookings & Messaging Excellence (Concluída em 26 Abr 2026)
 
 **Objetivo**: Implementar o sistema de agendamentos e consolidar a infraestrutura de mensageria com Rebus.
 
 ### Entregas:
 - ✅ **Bookings Module**: Implementação completa (Backend/Frontend) de agendamentos com gestão de disponibilidade do prestador e fluxo de reserva do cliente.
 - ✅ **Messaging Excellence**: Migração parcial para Rebus v3 e implementação de atributos `[DedicatedTopic]`, `[HighVolumeEvent]` e `[CriticalEvent]` para roteamento avançado.
-    - **Nota Técnica**: `RabbitMQ.Client` ainda é utilizado diretamente em `RabbitMqDeadLetterService`. `RabbitMqInfrastructureManager` contém stubs não finalizados (`CreateQueueAsync`, etc.) que devem ser completados para finalizar a migração.
-- ✅ **Qualidade**: Cobertura completa aguardando inclusão do módulo Bookings no workflow (pendente adição do projeto MeAjudaAi.Modules.Bookings.Tests.csproj ao campo MODULES do workflow).
+    - **Nota Técnica**: Consolidação completa do RabbitMQ adiada para Sprint 13 (implementação real de topologia com QueueDeclareAsync/ExchangeDeclareAsync/QueueBindAsync concluída na Sprint 13).
+- ✅ **Qualidade**: Cobertura completa atingida; módulo Bookings incluído no workflow de CI.
 - ✅ **API & Contratos**: Padronização de enums (`EBookingStatus`) e exposição via Minimal APIs com autorização.
+- ✅ **Manutenção**: Atualização da stack tecnológica (.NET 10.0.7, Aspire 13.2.4).
 
 ---
 

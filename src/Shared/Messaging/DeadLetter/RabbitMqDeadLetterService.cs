@@ -863,11 +863,11 @@ public sealed class RabbitMqDeadLetterService(
     {
         try
         {
-            // TODO(#247): Implement administrator notifications for RabbitMQ dead letter queue threshold.
-            // Strategy: Use IEmailService + RabbitMQ Management API for queue metrics.
-            // Threshold: Configure via DeadLetterOptions.MaxMessagesBeforeAlert (default: 100).
-            // Can query queue message count using RabbitMQ HTTP API: GET /api/queues/{vhost}/{queue}
-            // Could integrate: Email, Slack webhook, Microsoft Teams, or monitoring alerts.
+            // TODO(#247): Implementar notificações de administrador para limite de dead letter queue do RabbitMQ.
+            // Estratégia: Usar IEmailService + RabbitMQ Management API para métricas da fila.
+            // Limite: Configurar via DeadLetterOptions.MaxMessagesBeforeAlert (padrão: 100).
+            // Pode consultar contagem de mensagens da fila usando RabbitMQ HTTP API: GET /api/queues/{vhost}/{queue}
+            // Pode integrar: E-mail, Slack webhook, Microsoft Teams, ou alertas de monitoramento.
             logger.LogWarning(
                 "Admin notification: Message {MessageId} of type {MessageType} failed {AttemptCount} times and was sent to DLQ",
                 failedMessageInfo.MessageId, failedMessageInfo.MessageType, failedMessageInfo.AttemptCount);

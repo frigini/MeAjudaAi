@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,23 +17,25 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { APP_ROUTES, APP_ROUTE_LABELS, ROLES } from "@/lib/types";
-
-const navItems = [
-  { href: APP_ROUTES.DASHBOARD, label: APP_ROUTE_LABELS.DASHBOARD, icon: LayoutDashboard },
-  { href: APP_ROUTES.PROVIDERS, label: APP_ROUTE_LABELS.PROVIDERS, icon: Users },
-  { href: APP_ROUTES.DOCUMENTS, label: APP_ROUTE_LABELS.DOCUMENTS, icon: FileText },
-  { href: APP_ROUTES.CATEGORIES, label: APP_ROUTE_LABELS.CATEGORIES, icon: FolderTree },
-  { href: APP_ROUTES.SERVICES, label: APP_ROUTE_LABELS.SERVICES, icon: Wrench },
-  { href: APP_ROUTES.CITIES, label: APP_ROUTE_LABELS.CITIES, icon: MapPin },
-  { href: APP_ROUTES.SETTINGS, label: APP_ROUTE_LABELS.SETTINGS, icon: Settings },
-];
+import { APP_ROUTES, ROLES } from "@/lib/types";
 
 export function Sidebar() {
+  const { t } = useTranslation("common");
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
+
+  const navItems = useMemo(() => [
+    { href: APP_ROUTES.DASHBOARD, label: t("dashboard"), icon: LayoutDashboard },
+    { href: APP_ROUTES.PROVIDERS, label: t("providers"), icon: Users },
+    { href: APP_ROUTES.DOCUMENTS, label: t("documents"), icon: FileText },
+    { href: APP_ROUTES.CATEGORIES, label: t("categories"), icon: FolderTree },
+    { href: APP_ROUTES.SERVICES, label: t("services"), icon: Wrench },
+    { href: APP_ROUTES.CITIES, label: t("cities"), icon: MapPin },
+    { href: APP_ROUTES.SETTINGS, label: t("settings"), icon: Settings },
+  ], [t]);
 
   const name = session?.user?.name || "Admin";
   const nameTrimmed = name.trim();
@@ -69,7 +71,7 @@ export function Sidebar() {
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6" data-testid="mobile-menu">
           <Link href={APP_ROUTES.DASHBOARD} className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
             <span className="text-xl font-bold text-primary">MeAjudaAí</span>
-            <span className="text-xs font-medium text-muted-foreground">Admin</span>
+            <span className="text-xs font-medium text-secondary">Admin</span>
           </Link>
           <button className="md:hidden" onClick={() => setIsOpen(false)} aria-label="Close sidebar">
             <X className="h-5 w-5 text-muted-foreground" />
@@ -103,13 +105,13 @@ export function Sidebar() {
         <div className="border-t border-border p-4">
           <div className="mb-3 flex items-center justify-between px-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
                 {firstInitial}
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-sm font-medium">{nameTrimmed}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {isAdmin ? "Administrador" : "Usuário"}
+                  {isAdmin ? t("role_admin") : t("role_user")}
                 </p>
               </div>
             </div>
@@ -120,7 +122,7 @@ export function Sidebar() {
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <LogOut className="h-5 w-5" />
-            Sair
+            {t("logout")}
           </button>
         </div>
       </aside>

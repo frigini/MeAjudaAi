@@ -1,6 +1,13 @@
 using FluentAssertions;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
@@ -78,5 +85,73 @@ public class MessagingExtensionsTests
         options.LockDuration.Should().Be(TimeSpan.FromMinutes(5));
         options.EnableAutoDiscovery.Should().BeTrue();
         options.AssemblyPrefixes.Should().Contain("MeAjudaAi");
+    }
+
+    [Fact]
+    public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldThrowException()
+    {
+        using var envScope = new EnvironmentVariableScope(
+            ("ASPNETCORE_ENVIRONMENT", "Development"),
+            ("DOTNET_ENVIRONMENT", "Development"), 
+            ("INTEGRATION_TESTS", null));
+
+        var services = new ServiceCollection();
+        
+        // Registrar IHostEnvironment com ambiente de Desenvolvimento para exercer o branch correto
+        var hostEnvironment = new MockHostEnvironment("Development");
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+        
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
+
+        var serviceProvider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(serviceProvider);
+
+        // Act & Assert - agora deve lançar exceção para fail-fast
+        var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
+        
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*IRabbitMqInfrastructureManager*not registered*");
+    }
+}
+
+internal sealed class EnvironmentVariableScope : IDisposable
+{
+    private static readonly object _lock = new();
+    private readonly (string Name, string? OriginalValue)[] _variables;
+    private bool _disposed;
+
+    public EnvironmentVariableScope(params (string Name, string? NewValue)[] variables)
+    {
+        _variables = variables.Select(v => (v.Name, Environment.GetEnvironmentVariable(v.Name))).ToArray();
+        
+        lock (_lock)
+        {
+            foreach (var v in variables)
+            {
+                Environment.SetEnvironmentVariable(v.Name, v.NewValue);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        
+        lock (_lock)
+        {
+            foreach (var (name, originalValue) in _variables)
+            {
+                Environment.SetEnvironmentVariable(name, originalValue);
+            }
+        }
     }
 }

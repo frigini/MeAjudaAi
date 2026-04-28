@@ -28,10 +28,10 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ## 📋 Histórico
 
-### 🚀 Infraestrutura & Messaging (Migração Rebus v3)
+### 🚀 Infraestrutura & Messaging (RabbitMQ Excellence)
 
-**Parcialmente Resolvido em**: Abr 2026 (Sprint 12) | **Severidade original**: MÉDIA  
-Integração parcial do Rebus v3 concluída com a introdução do `RebusMessageBus` e `IMessageBus`, além de atributos de roteamento avançado (`[DedicatedTopic]`, `[HighVolumeEvent]`, `[CriticalEvent]`). No entanto, a consolidação completa do RabbitMQ está **incompleta**: `RabbitMQ.Client` ainda está presente no `RabbitMqDeadLetterService` e no `RabbitMqInfrastructureManager`. Além disso, os métodos `CreateQueueAsync`, `CreateExchangeAsync` e `BindQueueToExchangeAsync` do `RabbitMqInfrastructureManager` são stubs (pendentes de implementação real). A remoção completa do uso direto do RabbitMQ e implementação total da infraestrutura permanecem pendentes.
+**Resolvido em**: Abr 2026 (Sprint 13) | **Severidade original**: MÉDIA  
+A infraestrutura do RabbitMQ foi consolidada com a implementação real do `RabbitMqInfrastructureManager`, eliminando stubs e garantindo a declaração automática de exchanges (Topic), filas de domínio e bindings. O sistema foi atualizado para o `RabbitMQ.Client` 7.x utilizando o novo padrão assíncrono. Cobertura de testes unitários e de integração (via Testcontainers) superior a 90% no fechamento da Sprint 13. O uso direto do RabbitMQ agora é gerenciado de forma centralizada e resiliente.
 
 ### ⚠️ Hangfire + Npgsql 10.x Compatibility Risk
 

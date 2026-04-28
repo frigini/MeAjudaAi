@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
+using RabbitMQ.Client;
 using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
 using MeAjudaAi.Shared.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
@@ -132,17 +133,27 @@ public static class MessagingExtensions
 
             services.TryAddSingleton<RebusMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
+
+            // Registro da infraestrutura de conexão do RabbitMQ
+            services.AddSingleton<IConnectionFactory>(provider =>
+            {
+                var options = provider.GetRequiredService<RabbitMqOptions>();
+                return new ConnectionFactory
+                {
+                    Uri = new Uri(options.BuildConnectionString())
+                };
+            });
+
+            services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
         }
 
-        // Registrar o factory e o IMessageBus baseado no ambiente
+        // Registrar o factory e o IMessageBus baseado no ambiente (sempre disponível)
         services.AddSingleton<IMessageBusFactory, MessageBusFactory>();
         services.AddSingleton(serviceProvider =>
         {
             var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
             return factory.CreateMessageBus();
         });
-
-        services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
         // Adicionar sistema de Dead Letter Queue
         services.AddDeadLetterQueue(configuration);
@@ -161,7 +172,44 @@ public static class MessagingExtensions
         }
 
         using var scope = host.Services.CreateScope();
-        var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
+        
+        // Obter IHostEnvironment do escopo - permite mock em testes
+        var hostEnvironment = scope.ServiceProvider.GetService<IHostEnvironment>();
+        var envName = hostEnvironment?.EnvironmentName 
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") 
+            ?? EnvironmentNames.Development;
+            
+        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        var isTestingEnvironment = envName == EnvironmentNames.Testing ||
+                                 envName.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
+                                 integrationTests == "true" ||
+                                 integrationTests == "1";
+
+        if (isTestingEnvironment)
+        {
+            return;
+        }
+
+        var entryAssembly = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name;
+        if (entryAssembly != null && (entryAssembly.Contains("swashbuckle", StringComparison.OrdinalIgnoreCase) || 
+                                      entryAssembly.Contains("swagger", StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        var manager = scope.ServiceProvider.GetService<IRabbitMqInfrastructureManager>();
+        if (manager is null)
+        {
+            // IRabbitMqInfrastructureManager não registrado - falhar rapidamente se messaging está habilitado
+            // Isso indica um problema de DI que impedirá o funcionamento correto da aplicação
+            throw new InvalidOperationException(
+                "IRabbitMqInfrastructureManager is not registered in the dependency injection container. " +
+                "Ensure that AddRabbitMqInfrastructure() or AddMessaging() has been called to register " +
+                "the RabbitMQ infrastructure. The application cannot start with messaging enabled but " +
+                "missing the required infrastructure manager.");
+        }
+
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
         var useNewtonsoftJson = ResolveUseNewtonsoftJson(configuration);

@@ -175,3 +175,5 @@ src/Aspire/MeAjudaAi.AppHost/infrastructure/
 test-results/
 playwright-report/
 playwright/.cache/
+
+scratch/
