@@ -149,7 +149,7 @@ export default function DashboardPage() {
       <div className="mb-8">
         <Card className="bg-cream/20">
           <CardHeader>
-            <CardTitle data-testid="chart-title">{t("providers_over_time")}</CardTitle>
+            <CardTitle data-testid="chart-title-providers-over-time">{t("providers_over_time")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div data-testid="providers-line-chart" className="h-[300px] w-full">
@@ -173,7 +173,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle data-testid="chart-title">{t("verification_status")}</CardTitle>
+            <CardTitle data-testid="chart-title-verification-status">{t("verification_status")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div data-testid="verification-pie-chart" className="h-[250px] relative">
@@ -206,7 +206,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle data-testid="chart-title">{t("providers_by_type")}</CardTitle>
+            <CardTitle data-testid="chart-title-providers-by-type">{t("providers_by_type")}</CardTitle>
           </CardHeader>
           <CardContent>
              <div className="h-[250px] relative">

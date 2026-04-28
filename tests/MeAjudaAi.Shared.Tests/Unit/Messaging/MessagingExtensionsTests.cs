@@ -2,8 +2,10 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -90,19 +92,35 @@ public class MessagingExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
+        
+        var hostEnvironment = new MockHostEnvironment("Development");
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+        
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Messaging:Enabled"] = "true"
             }).Build());
-        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        
+        var loggerMock = new Mock<ILogger<MessagingConfiguration>>();
+        services.AddSingleton(loggerMock.Object);
         // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
 
         var serviceProvider = services.BuildServiceProvider();
         var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
         hostMock.Setup(h => h.Services).Returns(serviceProvider);
 
-        // Act & Assert — não deve lançar, deve retornar normalmente
+        // Act
         await hostMock.Object.EnsureMessagingInfrastructureAsync();
+
+        // Assert
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }

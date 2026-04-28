@@ -37,7 +37,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
         await _channelLock.WaitAsync();
         try
         {
-            // Double-check after acquiring lock
+            // Verificação dupla após adquirir o lock
             if (_channel is { IsOpen: true })
             {
                 return _channel;
@@ -58,7 +58,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
             _channel = await _connection.CreateChannelAsync();
 
-            // Dispose the old non-open channel if it exists
+            // Remove o canal antigo não aberto se existir
             if (oldChannel is not null)
             {
                 await oldChannel.DisposeAsync();
