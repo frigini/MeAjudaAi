@@ -187,12 +187,12 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
         // Não deve registrar métricas específicas de negócio (user registration, login, help requests, etc)
         // se o caminho não for reconhecido como versionado.
         // Métricas de API (RecordApiCall) ainda são registradas, então verificamos as métricas de negócio específicas.
-        var businessMetrics = _longMeasurements.Where(m => 
+        var businessMetricsList = _longMeasurements.Where(m => 
         {
             var tagsArray = m.Tags.ToArray();
             return tagsArray.Any(t => t.Key == "category" || t.Key == "type");
         }).ToList();
-        businessMetrics.Should().BeEmpty();
+        businessMetricsList.Should().BeEmpty();
     }
 
     public void Dispose()

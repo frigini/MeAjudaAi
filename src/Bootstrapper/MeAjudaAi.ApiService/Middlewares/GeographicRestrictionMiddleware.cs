@@ -149,7 +149,6 @@ public class GeographicRestrictionMiddleware(
 
     private async Task<bool> IsLocationAllowedAsync(string? city, string? state, IGeographicValidationService? geographicValidationService, CancellationToken cancellationToken)
     {
-        // Se não conseguiu detectar localização, permitir (fail-open)
         // Mas se a string estiver vazia (Length == 0), significa que detectamos malformação ou header vazio
         if (city?.Length == 0 || state?.Length == 0)
         {

@@ -75,9 +75,19 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .ValueGeneratedOnAddOrUpdate()
             .IsConcurrencyToken();
 
-        // Índice para busca de agendamentos por prestador e data
-        builder.HasIndex(b => new { b.ProviderId, b.Date, b.Status });
+        // Índice composto para busca de agendamentos ativos por prestador, data e status
+        // Otimiza: GetActiveByProviderAndDateAsync (WHERE provider_id=X AND booking_date=X AND status=X)
+        builder.HasIndex(b => new { b.ProviderId, b.Date, b.Status })
+            .HasDatabaseName("ix_bookings_provider_date_status");
 
-        builder.HasIndex(b => b.ClientId);
+        // Índice composto para paginação por cliente com ordenação por data
+        // Otimiza: GetByClientIdPagedAsync (WHERE client_id=X [date range] ORDER BY booking_date DESC)
+        builder.HasIndex(b => new { b.ClientId, b.Date })
+            .HasDatabaseName("ix_bookings_client_date");
+
+        // Índice composto para paginação por prestador com ordenação por data
+        // Otimiza: GetByProviderIdPagedAsync sem filtro de status (WHERE provider_id=X [date range] ORDER BY booking_date DESC)
+        builder.HasIndex(b => new { b.ProviderId, b.Date })
+            .HasDatabaseName("ix_bookings_provider_date");
     }
 }
