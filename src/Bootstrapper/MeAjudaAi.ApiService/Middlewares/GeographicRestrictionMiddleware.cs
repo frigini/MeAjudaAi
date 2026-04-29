@@ -131,17 +131,13 @@ public class GeographicRestrictionMiddleware(
             return (string.Empty, string.Empty);
         }
 
-        // Prioridade 2: Header X-User-City e X-User-State (separados)
-        var city = context.Request.Headers.TryGetValue("X-User-City", out var cityHeader)
-            ? cityHeader.ToString().Trim()
-            : null;
+        var cityPresent = context.Request.Headers.TryGetValue("X-User-City", out var cityHeader);
+        var statePresent = context.Request.Headers.TryGetValue("X-User-State", out var stateHeader);
 
-        var state = context.Request.Headers.TryGetValue("X-User-State", out var stateHeader)
-            ? stateHeader.ToString().Trim()
-            : null;
-
-        if (!string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(state))
+        if (cityPresent || statePresent)
         {
+            var city = cityPresent ? (string.IsNullOrWhiteSpace(cityHeader.ToString()) ? string.Empty : cityHeader.ToString().Trim()) : null;
+            var state = statePresent ? (string.IsNullOrWhiteSpace(stateHeader.ToString()) ? string.Empty : stateHeader.ToString().Trim()) : null;
             return (city, state);
         }
 
@@ -154,10 +150,10 @@ public class GeographicRestrictionMiddleware(
     private async Task<bool> IsLocationAllowedAsync(string? city, string? state, IGeographicValidationService? geographicValidationService, CancellationToken cancellationToken)
     {
         // Se não conseguiu detectar localização, permitir (fail-open)
-        // Mas se a string estiver vazia (string.Empty), significa que detectamos malformação
-        if (city == string.Empty || state == string.Empty)
+        // Mas se a string estiver vazia (Length == 0), significa que detectamos malformação ou header vazio
+        if (city?.Length == 0 || state?.Length == 0)
         {
-            logger.LogWarning("Geographic restriction: Malformed location detected, rejecting request.");
+            logger.LogWarning("Geographic restriction: Malformed or empty location header detected, rejecting request.");
             return false;
         }
 

@@ -72,7 +72,8 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<UploadMyDocumentEndpoint>()
             .MapEndpoint<GetMyProviderStatusEndpoint>()
             .MapEndpoint<ActivateMyProviderProfileEndpoint>()
-            .MapEndpoint<DeactivateMyProviderProfileEndpoint>();
+            .MapEndpoint<DeactivateMyProviderProfileEndpoint>()
+            .MapEndpoint<ProviderVerificationEventsEndpoint>();
         
         // Endpoints de associação de serviços
         endpoints.MapEndpoint<AddServiceToProviderEndpoint>()

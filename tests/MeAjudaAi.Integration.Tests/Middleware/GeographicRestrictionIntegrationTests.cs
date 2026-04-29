@@ -230,17 +230,12 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
     }
 
     [Theory]
-    [InlineData("")] // Empty city
     [InlineData("  ")] // Only spaces
-    [InlineData(null)] // Null city
-    public async Task GetProviders_WithEmptyCityHeader_ShouldFailOpen(string? emptyCity)
+    public async Task GetProviders_WithEmptyCityHeader_ShouldBeRejected(string emptyCity)
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
-        if (emptyCity != null)
-        {
-            Client.DefaultRequestHeaders.Add("X-User-City", emptyCity);
-        }
+        Client.DefaultRequestHeaders.Add("X-User-City", emptyCity);
         Client.DefaultRequestHeaders.Add("X-User-State", "MG");
 
         try
@@ -254,18 +249,14 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
         }
         finally
         {
-            if (emptyCity != null)
-            {
-                Client.DefaultRequestHeaders.Remove("X-User-City");
-            }
+            Client.DefaultRequestHeaders.Remove("X-User-City");
             Client.DefaultRequestHeaders.Remove("X-User-State");
         }
     }
 
     [Theory]
-    [InlineData("")] // Empty state
     [InlineData("  ")] // Only spaces
-    public async Task GetProviders_WithEmptyStateHeader_ShouldValidateByCityList(string emptyState)
+    public async Task GetProviders_WithEmptyStateHeader_ShouldBeRejected(string emptyState)
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
