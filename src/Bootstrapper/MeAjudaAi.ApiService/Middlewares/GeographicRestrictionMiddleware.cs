@@ -110,21 +110,25 @@ public class GeographicRestrictionMiddleware(
                 var remainder = headerSpan[(separatorIndex + 1)..];
                 if (remainder.IndexOf('|') >= 0)
                 {
-                    // Malformed header, more than one separator. 
-                    // Return empty string instead of null to signal malformed but present.
+                    // Header malformado, contém mais de um separador.
+                    // Retorna string vazia em vez de null para sinalizar "malformado, mas presente".
                     return (string.Empty, string.Empty);
                 }
 
                 var locationCity = headerSpan[..separatorIndex].Trim().ToString();
                 var locationState = remainder.Trim().ToString();
 
-                // Rejeitar entradas malformadas onde city ou state estão vazios
+                // Rejeitar entradas malformadas onde city ou state estão vazios ou whitespace
                 // Exemplos rejeitados: "City|", "|State", "City| ", " |State"
-                if (!string.IsNullOrEmpty(locationCity) && !string.IsNullOrEmpty(locationState))
+                if (!string.IsNullOrWhiteSpace(locationCity) && !string.IsNullOrWhiteSpace(locationState))
                 {
                     return (locationCity, locationState);
                 }
             }
+            
+            // Header presente mas malformado (ex: sem separador ou valores vazios)
+            // Retorna sentinel para impedir fall-open para outros headers ou IP
+            return (string.Empty, string.Empty);
         }
 
         // Prioridade 2: Header X-User-City e X-User-State (separados)

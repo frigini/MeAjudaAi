@@ -53,18 +53,18 @@ public class BusinessMetricsMiddleware(
         {
             var pathSpan = pathValue.AsSpan();
 
-            // Registros de usuário (aceita rotas versionadas como /api/v1/users)
+            // Registros de usuário (aceita rotas versionadas exatas como /api/v1/users)
             if ((pathSpan.Equals("/api/users", StringComparison.OrdinalIgnoreCase) || 
-                 (VersionedApiPattern.IsMatch(pathValue) && pathSpan.EndsWith("/users", StringComparison.OrdinalIgnoreCase))) && 
+                 Regex.IsMatch(pathValue, @"^/api/v\d+/users$", RegexOptions.IgnoreCase)) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
                 logger.LogInformation("User registration completed via API");
             }
 
-            // Logins (aceita rotas versionadas como /api/v1/auth/login)
+            // Logins (aceita rotas versionadas exatas como /api/v1/auth/login)
             if ((pathSpan.Equals("/api/auth/login", StringComparison.OrdinalIgnoreCase) || 
-                 (VersionedApiPattern.IsMatch(pathValue) && pathSpan.EndsWith("/auth/login", StringComparison.OrdinalIgnoreCase))) && 
+                 Regex.IsMatch(pathValue, @"^/api/v\d+/auth/login$", RegexOptions.IgnoreCase)) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 // User is unauthenticated at login endpoint, so we record as 'anonymous'
@@ -73,9 +73,9 @@ public class BusinessMetricsMiddleware(
                 logger.LogInformation("User login completed");
             }
 
-            // Solicitações de ajuda (aceita rotas versionadas como /api/v1/help-requests)
+            // Solicitações de ajuda (aceita rotas versionadas exatas como /api/v1/help-requests)
             if ((pathSpan.Equals("/api/help-requests", StringComparison.OrdinalIgnoreCase) || 
-                 (VersionedApiPattern.IsMatch(pathValue) && pathSpan.EndsWith("/help-requests", StringComparison.OrdinalIgnoreCase))) && 
+                 Regex.IsMatch(pathValue, @"^/api/v\d+/help-requests$", RegexOptions.IgnoreCase)) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário

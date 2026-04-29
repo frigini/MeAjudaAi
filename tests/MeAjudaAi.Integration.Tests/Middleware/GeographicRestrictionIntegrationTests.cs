@@ -208,7 +208,7 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
     [InlineData(" |MG")] // Empty city (spaces) with state
     [InlineData("|")] // Both empty
     [InlineData("  |  ")] // Both empty with spaces
-    public async Task GetProviders_WithMalformedLocationHeader_ShouldFailOpen(string malformedLocation)
+    public async Task GetProviders_WithMalformedLocationHeader_ShouldBeRejected(string malformedLocation)
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
@@ -219,10 +219,9 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - entradas malformadas devem ser tratadas como sem localização (fail-open)
-            // Como não conseguimos determinar a localização, middleware permite acesso
-            response.StatusCode.Should().Be(HttpStatusCode.OK,
-                $"Malformed location '{malformedLocation}' should be ignored and fail-open");
+            // Assert - entradas malformadas agora são bloqueadas para impedir fail-open
+            response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+                $"Malformed location '{malformedLocation}' should be rejected (no fail-open)");
         }
         finally
         {
@@ -249,9 +248,9 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - cidade vazia deve fazer fail-open (não consegue determinar localização)
-            response.StatusCode.Should().Be(HttpStatusCode.OK,
-                "Empty city should be treated as undetermined location (fail-open)");
+            // Assert - cidade vazia no header deve ser bloqueada (impedir fail-open)
+            response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+                "Empty city header should be rejected (no fail-open)");
         }
         finally
         {
@@ -278,9 +277,9 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - deve validar contra lista de cidades (Muriaé é permitida)
-            response.StatusCode.Should().Be(HttpStatusCode.OK,
-                "Valid city with empty state should validate against city list");
+            // Assert - formato "City|" é malformado e deve ser bloqueado
+            response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+                "Malformed location header (empty state) should be rejected");
         }
         finally
         {

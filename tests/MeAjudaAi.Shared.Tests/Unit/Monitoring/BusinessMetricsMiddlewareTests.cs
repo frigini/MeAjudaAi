@@ -183,7 +183,7 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
         await middleware.InvokeAsync(context);
 
         // Assert
-        // Should NOT record any business-specific metrics if the path is not recognized as versioned
+        // Não deve registrar métricas específicas de negócio se o caminho não for reconhecido como versionado
         var registrationMetrics = _longMeasurements.Where(m => m.Tags.ToArray().Any(t => t.Key == "source" && ((string)t.Value!) == "api")).ToList();
         registrationMetrics.Should().BeEmpty();
     }

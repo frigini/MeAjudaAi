@@ -333,7 +333,7 @@ public sealed class RequestLoggingMiddlewareTests
 
         // Assert
         _nextMock.Verify(n => n(context), Times.Once);
-        // Verify that logging DID happen (at least the start log)
+        // Verifica que o logging ocorreu (pelo menos o log de início)
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Information,

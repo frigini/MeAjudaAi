@@ -129,16 +129,12 @@ public static class DocumentExtensions
     /// </summary>
     private static string GenerateValidDocument(int baseLength, ReadOnlySpan<int> firstMultipliers, ReadOnlySpan<int> secondMultipliers)
     {
-        using var random = RandomNumberGenerator.Create();
         var document = new char[baseLength + 2];
 
         // Gera números aleatórios para os primeiros dígitos
         for (int i = 0; i < baseLength; i++)
         {
-            var bytes = new byte[4];
-            random.GetBytes(bytes);
-            var randomNumber = Math.Abs(BitConverter.ToInt32(bytes, 0)) % 10;
-            document[i] = (char)('0' + randomNumber);
+            document[i] = (char)('0' + RandomNumberGenerator.GetInt32(0, 10));
         }
 
         // Calcula o primeiro dígito verificador

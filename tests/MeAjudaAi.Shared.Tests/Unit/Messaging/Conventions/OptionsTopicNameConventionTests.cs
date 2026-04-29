@@ -10,7 +10,11 @@ public class OptionsTopicNameConventionTests
     public void GetTopic_Should_DelegateToOptionsTopicNamingConvention()
     {
         // Arrange
-        var options = new MessageBusOptions();
+        var customTopic = "custom-topic-for-test";
+        var options = new MessageBusOptions
+        {
+            TopicNamingConvention = _ => customTopic
+        };
         var sut = new OptionsTopicNameConvention(options);
         var eventType = typeof(TestEvent);
 
@@ -18,8 +22,7 @@ public class OptionsTopicNameConventionTests
         var result = sut.GetTopic(eventType);
 
         // Assert
-        // Default convention should be "{lastPart}.events"
-        result.Should().Be("conventions.events");
+        result.Should().Be(customTopic);
     }
 }
 
