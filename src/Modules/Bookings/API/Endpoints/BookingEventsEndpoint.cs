@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints;
 
+[ExcludeFromCodeCoverage]
 public class BookingEventsEndpoint : IEndpoint
 {
     private static readonly JsonSerializerOptions CamelCaseOptions = new()

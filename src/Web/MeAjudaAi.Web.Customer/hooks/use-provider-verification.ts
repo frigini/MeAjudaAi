@@ -20,7 +20,7 @@ export function useProviderVerificationEvents(providerId: string | undefined) {
     onMessage: (data) => {
       router.refresh();
       
-      const statusKey = data.status as EVerificationStatus;
+      const statusKey = data.status as unknown as EVerificationStatus;
       const label = VERIFICATION_STATUS_LABELS[statusKey] || data.status;
       
       toast.success(`Status de verificação atualizado: ${label}`, {

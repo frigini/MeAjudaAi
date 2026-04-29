@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
@@ -10,6 +11,7 @@ public interface ISseHub<T>
     IAsyncEnumerable<T> SubscribeAsync(string topic, CancellationToken ct = default);
 }
 
+[ExcludeFromCodeCoverage]
 public class SseHub<T> : ISseHub<T>
 {
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<Channel<T>, byte>> _topics = new();

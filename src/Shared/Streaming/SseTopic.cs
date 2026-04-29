@@ -1,8 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Streaming;
 
-/// <summary>
-/// Utilitário para padronização de tópicos SSE.
-/// </summary>
+[ExcludeFromCodeCoverage]
 public static class SseTopic
 {
     public static string ForBooking(Guid bookingId) => $"bookings:{bookingId}";

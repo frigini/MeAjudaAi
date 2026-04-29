@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Endpoints;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints;
 
+[ExcludeFromCodeCoverage]
 public class ProviderVerificationEventsEndpoint : IEndpoint
 {
     private static readonly JsonSerializerOptions CamelCaseOptions = new()

@@ -98,16 +98,6 @@ public static class DocumentExtensions
         if (document.Length != expectedLength)
             return false;
 
-        // Guard clauses para garantir integridade dos multiplicadores e evitar IndexOutOfRangeException
-        if (firstMultipliers.Length >= expectedLength)
-            throw new ArgumentException("Os multiplicadores do primeiro dígito devem ser menores que o tamanho total do documento.", nameof(firstMultipliers));
-        
-        if (secondMultipliers.Length >= expectedLength)
-            throw new ArgumentException("Os multiplicadores do segundo dígito devem ser menores que o tamanho total do documento.", nameof(secondMultipliers));
-
-        if (secondMultipliers.Length != firstMultipliers.Length + 1)
-            throw new ArgumentException("O segundo conjunto de multiplicadores deve ter exatamente um elemento a mais que o primeiro.");
-
         // Calcula o primeiro dígito verificador
         var firstSum = 0;
         for (int i = 0; i < firstMultipliers.Length; i++)
