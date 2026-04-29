@@ -167,6 +167,27 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
         helpRequestCompletedMetrics.Should().NotBeEmpty();
     }
 
+    [Fact]
+    public async Task InvokeAsync_WhenPathHasNoVersionNumber_ShouldNOTRecordBusinessMetrics()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/api/validation/users";
+        context.Request.Method = "POST";
+        context.Response.StatusCode = 201;
+
+        RequestDelegate next = (ctx) => Task.CompletedTask;
+        var middleware = new BusinessMetricsMiddleware(next, _businessMetrics, _loggerMock.Object);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        // Should NOT record any business-specific metrics if the path is not recognized as versioned
+        var registrationMetrics = _longMeasurements.Where(m => m.Tags.ToArray().Any(t => t.Key == "source" && ((string)t.Value!) == "api")).ToList();
+        registrationMetrics.Should().BeEmpty();
+    }
+
     public void Dispose()
     {
         _meterListener.Dispose();

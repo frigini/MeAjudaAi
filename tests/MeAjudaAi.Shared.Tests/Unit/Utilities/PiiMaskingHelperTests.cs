@@ -56,6 +56,9 @@ public class PiiMaskingHelperTests
     [InlineData("a@b.com", "*@b.com")]
     [InlineData("abc@example.com", "ab**@example.com")]
     [InlineData("invalid-email", "***@***")]
+    [InlineData("@example.com", "***@***")]
+    [InlineData("user@", "***@***")]
+    [InlineData("@", "***@***")]
     [InlineData(null, "[EMPTY]")]
     [InlineData("", "[EMPTY]")]
     public void MaskEmail_Should_ReturnMaskedEmail(string? input, string expected)

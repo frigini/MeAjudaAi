@@ -316,4 +316,31 @@ public sealed class RequestLoggingMiddlewareTests
         context.Items["RequestId"].Should().NotBeNull();
         context.Items["RequestId"].Should().BeOfType<string>();
     }
+
+    [Fact]
+    public async Task InvokeAsync_WithPartialMatchPath_ShouldNOTSkipLogging()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/health-summary";
+        context.Request.Method = "GET";
+        context.Response.StatusCode = 200;
+
+        var middleware = new RequestLoggingMiddleware(_nextMock.Object, _loggerMock.Object);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        _nextMock.Verify(n => n(context), Times.Once);
+        // Verify that logging DID happen (at least the start log)
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting request")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
 }

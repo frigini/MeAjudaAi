@@ -110,8 +110,9 @@ public class GeographicRestrictionMiddleware(
                 var remainder = headerSpan[(separatorIndex + 1)..];
                 if (remainder.IndexOf('|') >= 0)
                 {
-                    // Malformed header, more than one separator
-                    return (null, null);
+                    // Malformed header, more than one separator. 
+                    // Return empty string instead of null to signal malformed but present.
+                    return (string.Empty, string.Empty);
                 }
 
                 var locationCity = headerSpan[..separatorIndex].Trim().ToString();
@@ -149,7 +150,13 @@ public class GeographicRestrictionMiddleware(
     private async Task<bool> IsLocationAllowedAsync(string? city, string? state, IGeographicValidationService? geographicValidationService, CancellationToken cancellationToken)
     {
         // Se não conseguiu detectar localização, permitir (fail-open)
-        // Produção deve ter GeoIP obrigatório
+        // Mas se a string estiver vazia (string.Empty), significa que detectamos malformação
+        if (city == string.Empty || state == string.Empty)
+        {
+            logger.LogWarning("Geographic restriction: Malformed location detected, rejecting request.");
+            return false;
+        }
+
         if (string.IsNullOrEmpty(city) && string.IsNullOrEmpty(state))
         {
             logger.LogWarning("Geographic restriction: Could not determine user location, allowing access (fail-open)");
