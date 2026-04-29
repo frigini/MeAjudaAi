@@ -89,8 +89,9 @@ public class KeycloakService(
             if (string.IsNullOrEmpty(locationHeader))
                 return Result<string>.Failure("Failed to get user ID from Keycloak response");
 
-            var segments = locationHeader.Split('/');
-            var keycloakUserId = segments[segments.Length - 1];
+            var span = locationHeader.AsSpan();
+            var lastSlash = span.LastIndexOf('/');
+            var keycloakUserId = (lastSlash >= 0 ? span[(lastSlash + 1)..] : span).ToString();
 
             // Atribui papéis se fornecidos
             if (roles.Any())

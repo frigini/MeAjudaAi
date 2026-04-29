@@ -117,13 +117,17 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
 
     private static bool ShouldSkipLogging(HttpContext context)
     {
-        var path = context.Request.Path.Value?.ToLowerInvariant();
-        return path?.Contains("/health") == true ||
-               path?.Contains("/metrics") == true ||
-               path?.Contains("/swagger") == true ||
-               path?.StartsWith("/css") == true ||
-               path?.StartsWith("/js") == true ||
-               path?.StartsWith("/images") == true;
+        var pathValue = context.Request.Path.Value;
+        if (string.IsNullOrEmpty(pathValue)) return false;
+        
+        var pathSpan = pathValue.AsSpan();
+        
+        return pathSpan.Contains("/health", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.Contains("/metrics", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.Contains("/swagger", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/css", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/js", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/images", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GetClientIpAddress(HttpContext context)
@@ -132,7 +136,10 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
         var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         if (!string.IsNullOrEmpty(xForwardedFor))
         {
-            return xForwardedFor.Split(',')[0].Trim();
+            var span = xForwardedFor.AsSpan();
+            var commaIndex = span.IndexOf(',');
+            if (commaIndex >= 0) span = span[..commaIndex];
+            return span.Trim().ToString();
         }
 
         var xRealIp = context.Request.Headers["X-Real-IP"].FirstOrDefault();

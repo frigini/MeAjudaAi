@@ -120,7 +120,7 @@ public sealed class PermissionOptimizationMiddleware(
     /// </summary>
     private async Task PreloadKnownPermissionsAsync(HttpContext context)
     {
-        var path = context.Request.Path.Value?.ToLowerInvariant();
+        var path = context.Request.Path.Value;
         if (string.IsNullOrEmpty(path))
             return;
 
@@ -151,18 +151,20 @@ public sealed class PermissionOptimizationMiddleware(
         if (!ReadOnlyMethods.Contains(context.Request.Method))
             return;
 
-        var path = context.Request.Path.Value?.ToLowerInvariant();
-        if (string.IsNullOrEmpty(path))
+        var pathValue = context.Request.Path.Value;
+        if (string.IsNullOrEmpty(pathValue))
             return;
 
+        var pathSpan = pathValue.AsSpan();
+
         // Para operações de leitura em endpoints específicos, pode usar cache mais agressivo
-        if (path.StartsWith("/api/v1/users/profile", StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
+        if (pathSpan.StartsWith("/api/v1/users/profile", StringComparison.OrdinalIgnoreCase) ||
+            pathSpan.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
             context.Items["UseAggressivePermissionCache"] = true;
             context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(30);
         }
-        else if (path.StartsWith("/api/") && context.Request.Method == "GET")
+        else if (pathSpan.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) && context.Request.Method == "GET")
         {
             // Catch-all para operações GET em qualquer versão da API - cache intermediário
             // Suporta múltiplas versões da API (v1, v2, etc.) para compatibilidade
@@ -248,9 +250,23 @@ public sealed class PermissionOptimizationMiddleware(
         if (string.IsNullOrEmpty(path))
             return false;
 
-        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        return segments.Any(segment =>
-            string.Equals(segment, "admin", StringComparison.OrdinalIgnoreCase));
+        var span = path.AsSpan();
+        while (true)
+        {
+            var nextSlash = span.IndexOf('/');
+            if (nextSlash == -1)
+            {
+                return span.Equals("admin", StringComparison.OrdinalIgnoreCase);
+            }
+
+            var segment = span[..nextSlash];
+            if (segment.Equals("admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            span = span[(nextSlash + 1)..];
+        }
     }
 
     /// <summary>

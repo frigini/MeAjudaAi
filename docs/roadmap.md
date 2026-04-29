@@ -6,13 +6,19 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 14 (Próxima)
+**Sprint Atual**: 13.1 (Otimizações e Refinamentos)
 
-**Status**: ✅ Sprint 13 Concluída (28 Abr 2026)
+**Status**: 🚧 Em Andamento
 
 **Meta MVP**: 12 a 16 de maio de 2026
 
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
+
+---
+
+## 🏃 Sprint 13.1: Otimizações e Refinamentos (Em Andamento)
+
+*   **Performance Zero-Allocation**: Redução drástica de pressão no Garbage Collector em *Hot Paths* (Middlewares de requisições, logging e métricas) e *Application Layer* via `Span<T>` e `ReadOnlySpan<char>`. Eliminação de alocações desnecessárias envolvendo strings e expressões regulares.
 
 ---
 

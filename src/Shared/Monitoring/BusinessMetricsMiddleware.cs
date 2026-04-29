@@ -43,15 +43,18 @@ public class BusinessMetricsMiddleware(
 
     private void LogBusinessEvents(HttpContext context, TimeSpan elapsed)
     {
-        var path = context.Request.Path.Value?.ToLowerInvariant();
+        var pathValue = context.Request.Path.Value;
         var method = context.Request.Method;
         var statusCode = context.Response.StatusCode;
 
         // Capturar eventos específicos de negócio
-        if (path != null)
+        if (!string.IsNullOrEmpty(pathValue))
         {
+            var pathSpan = pathValue.AsSpan();
+
             // Registros de usuário (aceita rotas versionadas como /api/v1/users)
-            if ((path == "/api/users" || (path.StartsWith("/api/v") && path.EndsWith("/users"))) && 
+            if ((pathSpan.Equals("/api/users", StringComparison.OrdinalIgnoreCase) || 
+                 (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/users", StringComparison.OrdinalIgnoreCase))) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
@@ -59,7 +62,8 @@ public class BusinessMetricsMiddleware(
             }
 
             // Logins (aceita rotas versionadas como /api/v1/auth/login)
-            if ((path == "/api/auth/login" || (path.StartsWith("/api/v") && path.EndsWith("/auth/login"))) && 
+            if ((pathSpan.Equals("/api/auth/login", StringComparison.OrdinalIgnoreCase) || 
+                 (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/auth/login", StringComparison.OrdinalIgnoreCase))) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 // User is unauthenticated at login endpoint, so we record as 'anonymous'
@@ -69,7 +73,8 @@ public class BusinessMetricsMiddleware(
             }
 
             // Solicitações de ajuda (aceita rotas versionadas como /api/v1/help-requests)
-            if ((path == "/api/help-requests" || (path.StartsWith("/api/v") && path.EndsWith("/help-requests"))) && 
+            if ((pathSpan.Equals("/api/help-requests", StringComparison.OrdinalIgnoreCase) || 
+                 (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/help-requests", StringComparison.OrdinalIgnoreCase))) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
@@ -78,8 +83,8 @@ public class BusinessMetricsMiddleware(
             }
 
             // Conclusão de ajuda (aceita rotas versionadas como /api/v1/help-requests/{id}/complete)
-            if (((path.StartsWith("/api/help-requests/") && path.EndsWith("/complete")) || 
-                 (path.StartsWith("/api/v") && path.Contains("/help-requests/") && path.EndsWith("/complete"))) && 
+            if (((pathSpan.StartsWith("/api/help-requests/", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/complete", StringComparison.OrdinalIgnoreCase)) || 
+                 (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && pathSpan.Contains("/help-requests/", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/complete", StringComparison.OrdinalIgnoreCase))) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordHelpRequestCompleted("general", elapsed);

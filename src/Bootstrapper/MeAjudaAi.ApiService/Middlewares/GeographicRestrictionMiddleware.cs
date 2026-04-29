@@ -102,11 +102,13 @@ public class GeographicRestrictionMiddleware(
         // Prioridade 1: Header X-User-Location (formato: "City|State")
         if (context.Request.Headers.TryGetValue("X-User-Location", out var locationHeader))
         {
-            var parts = locationHeader.ToString().Split('|');
-            if (parts.Length == 2)
+            var headerSpan = locationHeader.ToString().AsSpan();
+            var separatorIndex = headerSpan.IndexOf('|');
+            
+            if (separatorIndex >= 0)
             {
-                var locationCity = parts[0].Trim();
-                var locationState = parts[1].Trim();
+                var locationCity = headerSpan[..separatorIndex].Trim().ToString();
+                var locationState = headerSpan[(separatorIndex + 1)..].Trim().ToString();
 
                 // Rejeitar entradas malformadas onde city ou state estão vazios
                 // Exemplos rejeitados: "City|", "|State", "City| ", " |State"
@@ -203,12 +205,13 @@ public class GeographicRestrictionMiddleware(
 
             foreach (var allowedCity in options.CurrentValue.AllowedCities)
             {
-                var parts = allowedCity.Split('|');
+                var citySpan = allowedCity.AsSpan();
+                var separatorIndex = citySpan.IndexOf('|');
 
-                if (parts.Length != 2)
+                if (separatorIndex < 0)
                 {
                     // Tratar como entrada somente de cidade (sem estado)
-                    var configCityOnly = allowedCity.Trim();
+                    var configCityOnly = citySpan.Trim().ToString();
                     if (!string.IsNullOrEmpty(configCityOnly) &&
                         configCityOnly.Equals(city, StringComparison.OrdinalIgnoreCase))
                     {
@@ -223,8 +226,8 @@ public class GeographicRestrictionMiddleware(
                     continue;
                 }
 
-                var configCity = parts[0].Trim();
-                var configState = parts[1].Trim();
+                var configCity = citySpan[..separatorIndex].Trim().ToString();
+                var configState = citySpan[(separatorIndex + 1)..].Trim().ToString();
 
                 // Rejeitar entradas onde city ou state estão vazios
                 if (string.IsNullOrEmpty(configCity) || string.IsNullOrEmpty(configState))
