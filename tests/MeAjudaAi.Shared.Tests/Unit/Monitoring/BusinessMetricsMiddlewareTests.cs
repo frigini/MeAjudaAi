@@ -1,4 +1,5 @@
 using System.Diagnostics.Metrics;
+using System.Linq;
 using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Http;
@@ -183,8 +184,15 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
         await middleware.InvokeAsync(context);
 
         // Assert
-        // Não deve registrar métricas específicas de negócio se o caminho não for reconhecido como versionado
-        _longMeasurements.Should().BeEmpty();
+        // Não deve registrar métricas específicas de negócio (user registration, login, help requests, etc)
+        // se o caminho não for reconhecido como versionado.
+        // Métricas de API (RecordApiCall) ainda são registradas, então verificamos as métricas de negócio específicas.
+        var businessMetrics = _longMeasurements.Where(m => 
+        {
+            var tagsArray = m.Tags.ToArray();
+            return tagsArray.Any(t => t.Key == "category" || t.Key == "type");
+        }).ToList();
+        businessMetrics.Should().BeEmpty();
     }
 
     public void Dispose()

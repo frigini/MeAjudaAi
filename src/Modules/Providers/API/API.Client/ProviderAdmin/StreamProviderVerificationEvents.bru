@@ -1,0 +1,38 @@
+meta {
+  name: Stream Provider Verification Events (SSE)
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/providers/{{providerId}}/verification-events
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: text/event-stream
+  Cache-Control: no-cache
+}
+
+docs {
+  # Stream Provider Verification Events (SSE)
+
+  Recebe atualizações de verificação do prestador em tempo real.
+
+  **Autorização**: Bearer token requerido.
+
+  ## Notes
+
+  - O stream SSE não finaliza automaticamente
+  - Para encerrar, interrompa a execução manualmente ou feche o cliente HTTP
+  - Eventos são enviados no formato Server-Sent Events (text/event-stream)
+
+  ## Códigos de Status
+  - **200**: Conexão estabelecida, stream ativo
+  - **401**: Não autenticado
+  - **404**: Provider não encontrado
+}
