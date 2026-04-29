@@ -1,6 +1,7 @@
 import { useRouter } from 'next/navigation';
 import { useSse } from './use-sse';
 import { toast } from 'sonner';
+import { EVerificationStatus, VERIFICATION_STATUS_LABELS } from '@/types/api/provider';
 
 export interface ProviderVerificationSseDto {
   providerId: string;
@@ -9,10 +10,6 @@ export interface ProviderVerificationSseDto {
   rejectionReason?: string;
 }
 
-/**
- * Hook para ouvir atualizações de status de verificação do prestador.
- * @param providerId ID do prestador
- */
 export function useProviderVerificationEvents(providerId: string | undefined) {
   const router = useRouter();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
@@ -21,17 +18,10 @@ export function useProviderVerificationEvents(providerId: string | undefined) {
   const { lastMessage, isConnected } = useSse<ProviderVerificationSseDto>(url, {
     enabled: !!providerId,
     onMessage: (data) => {
-      // Força o refresh da página atual para atualizar o status visual
       router.refresh();
       
-      const statusLabels: Record<string, string> = {
-        'Verified': 'Verificado',
-        'Rejected': 'Rejeitado',
-        'Pending': 'Pendente',
-        'UnderReview': 'Em Análise'
-      };
-
-      const label = statusLabels[data.status] || data.status;
+      const statusKey = data.status as EVerificationStatus;
+      const label = VERIFICATION_STATUS_LABELS[statusKey] || data.status;
       
       toast.success(`Status de verificação atualizado: ${label}`, {
         description: data.rejectionReason ? `Motivo: ${data.rejectionReason}` : 'Seu perfil foi atualizado.',

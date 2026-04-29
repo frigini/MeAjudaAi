@@ -6,9 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Events;
 
-/// <summary>
-/// Handler paralelo que publica eventos de verificação de prestador via SSE.
-/// </summary>
 public class ProviderVerificationStatusUpdatedSseHandler(
     ISseHub<ProviderVerificationSseDto> sseHub,
     ILogger<ProviderVerificationStatusUpdatedSseHandler> logger) :
@@ -23,6 +20,6 @@ public class ProviderVerificationStatusUpdatedSseHandler(
             DateTime.UtcNow);
 
         logger.LogInformation("Streaming update: Provider {ProviderId} verification status is now {Status}", @event.AggregateId, @event.NewStatus);
-        await sseHub.PublishAsync(topic, data);
+        await sseHub.PublishAsync(topic, data, cancellationToken);
     }
 }
