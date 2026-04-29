@@ -377,7 +377,7 @@ jobs:
 
       - name: Check for Breaking Changes
         id: breaking-changes
-        uses: oasdiff/oasdiff-action/breaking@v0.0.43
+        uses: oasdiff/oasdiff-action/breaking@v0.0.44
         continue-on-error: true # Permitir falhas durante a Sprint 12 para evolução de contrato
         with:
           base: 'api-base.json'
