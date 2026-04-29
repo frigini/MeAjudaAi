@@ -59,7 +59,6 @@ public partial class Program
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
-            builder.Services.AddCustomRateLimiting(builder.Configuration);
 
             var app = builder.Build();
 
@@ -131,7 +130,6 @@ public partial class Program
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
-        app.UseRateLimiter();
         app.UseUsersModule();
         app.UseProvidersModule();
         app.UseDocumentsModule();

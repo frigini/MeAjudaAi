@@ -15,6 +15,7 @@
   </Folder>
   <Folder Name="/src/Bootstrapper/">
     <Project Path="src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj" />
+    <Project Path="src/Bootstrapper/MeAjudaAi.Gateway/MeAjudaAi.Gateway.csproj" />
   </Folder>
   <Folder Name="/src/Client/">
     <Project Path="src/Client/MeAjudaAi.Client.Contracts/MeAjudaAi.Client.Contracts.csproj" />

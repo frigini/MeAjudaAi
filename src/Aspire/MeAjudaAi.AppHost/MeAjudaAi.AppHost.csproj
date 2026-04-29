@@ -35,6 +35,7 @@
     <ProjectReference Include="..\..\Modules\SearchProviders\Infrastructure\MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\Bootstrapper\MeAjudaAi.Gateway\MeAjudaAi.Gateway.csproj" />
   </ItemGroup>
 
 </Project>
