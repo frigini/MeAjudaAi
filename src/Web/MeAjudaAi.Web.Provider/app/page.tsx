@@ -6,6 +6,7 @@ import { ProfileHeader } from "../components/profile/profile-header";
 import { ProfileDescription } from "../components/profile/profile-description";
 import { ProfileServices } from "../components/profile/profile-services";
 import { ProfileReviews } from "../components/profile/profile-reviews";
+import { useProviderVerificationEvents } from "../hooks/use-provider-verification";
 
 export default function ProviderDashboard() {
   const { data: response, isLoading, error } = useQuery({
@@ -34,6 +35,10 @@ export default function ProviderDashboard() {
   }
 
   const provider = response.data.data;
+  
+  // Ativa o streaming SSE para status de verificação
+  useProviderVerificationEvents(provider.id);
+
   const bp = provider.businessProfile;
   const contact = bp?.contactInfo;
   const addr = bp?.primaryAddress;

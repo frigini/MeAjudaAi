@@ -53,22 +53,26 @@ public class BusinessMetricsMiddleware(
         {
             var pathSpan = pathValue.AsSpan();
 
-            // Registros de usuário (aceita rotas versionadas exatas como /api/v1/users)
-            if ((pathSpan.Equals("/api/users", StringComparison.OrdinalIgnoreCase) || 
-                 Regex.IsMatch(pathValue, @"^/api/v\d+/users$", RegexOptions.IgnoreCase)) && 
-                method == "POST" && statusCode is >= 200 and < 300)
+            // Registros de usuário (aceita rotas exatas como /api/users ou /api/v1/users)
+            var isUserPath = pathSpan.Equals("/api/users", StringComparison.OrdinalIgnoreCase) || 
+                             (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && 
+                              pathSpan.Slice(5).IndexOf('/') > 0 && 
+                              pathValue.EndsWith("/users", StringComparison.OrdinalIgnoreCase) &&
+                              Regex.IsMatch(pathValue, @"^/api/v\d+/users$", RegexOptions.IgnoreCase));
+
+            if (isUserPath && method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
                 logger.LogInformation("User registration completed via API");
             }
 
-            // Logins (aceita rotas versionadas exatas como /api/v1/auth/login)
-            if ((pathSpan.Equals("/api/auth/login", StringComparison.OrdinalIgnoreCase) || 
-                 Regex.IsMatch(pathValue, @"^/api/v\d+/auth/login$", RegexOptions.IgnoreCase)) && 
-                method == "POST" && statusCode is >= 200 and < 300)
+            // Logins (aceita rotas exatas como /api/auth/login ou /api/v1/auth/login)
+            var isLoginPath = pathSpan.Equals("/api/auth/login", StringComparison.OrdinalIgnoreCase) || 
+                              (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && 
+                               Regex.IsMatch(pathValue, @"^/api/v\d+/auth/login$", RegexOptions.IgnoreCase));
+
+            if (isLoginPath && method == "POST" && statusCode is >= 200 and < 300)
             {
-                // User is unauthenticated at login endpoint, so we record as 'anonymous'
-                // To track actual userId, implement post-authentication metric or extract from request body
                 businessMetrics.RecordUserLogin("anonymous", "password");
                 logger.LogInformation("User login completed");
             }
