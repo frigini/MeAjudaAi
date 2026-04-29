@@ -248,7 +248,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .HasForeignKey(ps => ps.ProviderId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Índices
+        // Índices simples
         builder.HasIndex(p => p.UserId)
             .IsUnique()
             .HasDatabaseName("ix_providers_user_id");
@@ -270,5 +270,26 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 
         builder.HasIndex(p => p.IsDeleted)
             .HasDatabaseName("ix_providers_is_deleted");
+
+        // Índices compostos para hot paths de listagem paginada
+        // Otimiza: WHERE !is_deleted ORDER BY created_at DESC, id DESC
+        builder.HasIndex(p => new { p.IsDeleted, p.CreatedAt })
+            .HasDatabaseName("ix_providers_deleted_created")
+            .HasFilter("is_deleted = false");
+
+        // Otimiza: WHERE !is_deleted AND status = X ORDER BY created_at DESC
+        builder.HasIndex(p => new { p.IsDeleted, p.Status, p.CreatedAt })
+            .HasDatabaseName("ix_providers_deleted_status_created")
+            .HasFilter("is_deleted = false");
+
+        // Otimiza: WHERE !is_deleted AND verification_status = X ORDER BY created_at DESC
+        builder.HasIndex(p => new { p.IsDeleted, p.VerificationStatus, p.CreatedAt })
+            .HasDatabaseName("ix_providers_deleted_verification_created")
+            .HasFilter("is_deleted = false");
+
+        // Otimiza: WHERE !is_deleted AND type = X ORDER BY created_at DESC
+        builder.HasIndex(p => new { p.IsDeleted, p.Type, p.CreatedAt })
+            .HasDatabaseName("ix_providers_deleted_type_created")
+            .HasFilter("is_deleted = false");
     }
 }
