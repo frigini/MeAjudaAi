@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.ApiService.Middlewares;
+using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -36,5 +36,24 @@ public class GeographicRestrictionMiddlewareTests
         var context = new DefaultHttpContext();
         await sut.InvokeAsync(context);
         nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenHeaderHasMultipleSeparators_ShouldReject()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "City|State|Extra";
+        
+        var nextCalled = false;
+        RequestDelegate next = _ => { nextCalled = true; return Task.CompletedTask; };
+        var sut = new GeographicRestrictionMiddleware(next, _loggerMock.Object, _optionsMock.Object, _featureManagerMock.Object);
+
+        // Act
+        await sut.InvokeAsync(context);
+
+        // Assert
+        context.Response.StatusCode.Should().Be(451);
+        nextCalled.Should().BeFalse();
     }
 }

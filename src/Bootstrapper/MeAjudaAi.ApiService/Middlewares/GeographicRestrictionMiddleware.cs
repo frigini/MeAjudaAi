@@ -102,32 +102,42 @@ public class GeographicRestrictionMiddleware(
         // Prioridade 1: Header X-User-Location (formato: "City|State")
         if (context.Request.Headers.TryGetValue("X-User-Location", out var locationHeader))
         {
-            var parts = locationHeader.ToString().Split('|');
-            if (parts.Length == 2)
+            var headerSpan = locationHeader.ToString().AsSpan();
+            var separatorIndex = headerSpan.IndexOf('|');
+            
+            if (separatorIndex >= 0)
             {
-                var locationCity = parts[0].Trim();
-                var locationState = parts[1].Trim();
+                var remainder = headerSpan[(separatorIndex + 1)..];
+                if (remainder.IndexOf('|') >= 0)
+                {
+                    // Header malformado, contém mais de um separador.
+                    // Retorna string vazia em vez de null para sinalizar "malformado, mas presente".
+                    return (string.Empty, string.Empty);
+                }
 
-                // Rejeitar entradas malformadas onde city ou state estão vazios
+                var locationCity = headerSpan[..separatorIndex].Trim().ToString();
+                var locationState = remainder.Trim().ToString();
+
+                // Rejeitar entradas malformadas onde city ou state estão vazios ou whitespace
                 // Exemplos rejeitados: "City|", "|State", "City| ", " |State"
-                if (!string.IsNullOrEmpty(locationCity) && !string.IsNullOrEmpty(locationState))
+                if (!string.IsNullOrWhiteSpace(locationCity) && !string.IsNullOrWhiteSpace(locationState))
                 {
                     return (locationCity, locationState);
                 }
             }
+            
+            // Header presente mas malformado (ex: sem separador ou valores vazios)
+            // Retorna sentinel para impedir fall-open para outros headers ou IP
+            return (string.Empty, string.Empty);
         }
 
-        // Prioridade 2: Header X-User-City e X-User-State (separados)
-        var city = context.Request.Headers.TryGetValue("X-User-City", out var cityHeader)
-            ? cityHeader.ToString().Trim()
-            : null;
+        var cityPresent = context.Request.Headers.TryGetValue("X-User-City", out var cityHeader);
+        var statePresent = context.Request.Headers.TryGetValue("X-User-State", out var stateHeader);
 
-        var state = context.Request.Headers.TryGetValue("X-User-State", out var stateHeader)
-            ? stateHeader.ToString().Trim()
-            : null;
-
-        if (!string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(state))
+        if (cityPresent || statePresent)
         {
+            var city = cityPresent ? (string.IsNullOrWhiteSpace(cityHeader.ToString()) ? string.Empty : cityHeader.ToString().Trim()) : null;
+            var state = statePresent ? (string.IsNullOrWhiteSpace(stateHeader.ToString()) ? string.Empty : stateHeader.ToString().Trim()) : null;
             return (city, state);
         }
 
@@ -140,7 +150,13 @@ public class GeographicRestrictionMiddleware(
     private async Task<bool> IsLocationAllowedAsync(string? city, string? state, IGeographicValidationService? geographicValidationService, CancellationToken cancellationToken)
     {
         // Se não conseguiu detectar localização, permitir (fail-open)
-        // Produção deve ter GeoIP obrigatório
+        // Mas se a string estiver vazia (Length == 0), significa que detectamos malformação ou header vazio
+        if (city?.Length == 0 || state?.Length == 0)
+        {
+            logger.LogWarning("Geographic restriction: Malformed or empty location header detected, rejecting request.");
+            return false;
+        }
+
         if (string.IsNullOrEmpty(city) && string.IsNullOrEmpty(state))
         {
             logger.LogWarning("Geographic restriction: Could not determine user location, allowing access (fail-open)");
@@ -203,12 +219,13 @@ public class GeographicRestrictionMiddleware(
 
             foreach (var allowedCity in options.CurrentValue.AllowedCities)
             {
-                var parts = allowedCity.Split('|');
+                var citySpan = allowedCity.AsSpan();
+                var separatorIndex = citySpan.IndexOf('|');
 
-                if (parts.Length != 2)
+                if (separatorIndex < 0)
                 {
                     // Tratar como entrada somente de cidade (sem estado)
-                    var configCityOnly = allowedCity.Trim();
+                    var configCityOnly = citySpan.Trim().ToString();
                     if (!string.IsNullOrEmpty(configCityOnly) &&
                         configCityOnly.Equals(city, StringComparison.OrdinalIgnoreCase))
                     {
@@ -223,8 +240,15 @@ public class GeographicRestrictionMiddleware(
                     continue;
                 }
 
-                var configCity = parts[0].Trim();
-                var configState = parts[1].Trim();
+                var remainder = citySpan[(separatorIndex + 1)..];
+                if (remainder.IndexOf('|') >= 0)
+                {
+                    logger.LogWarning("Malformed configuration (too many separators): {AllowedCity}", allowedCity);
+                    continue;
+                }
+
+                var configCity = citySpan[..separatorIndex].Trim().ToString();
+                var configState = remainder.Trim().ToString();
 
                 // Rejeitar entradas onde city ou state estão vazios
                 if (string.IsNullOrEmpty(configCity) || string.IsNullOrEmpty(configState))

@@ -1,4 +1,5 @@
 using System.Diagnostics.Metrics;
+using System.Linq;
 using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Http;
@@ -143,7 +144,7 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData("/api/help-requests/123/complete")]
+    [InlineData("/api/v1/help-requests/123/complete")]
     [InlineData("/api/v1/help-requests/543/complete")]
     public async Task InvokeAsync_WhenHelpRequestCompleted_ShouldRecordHelpRequestCompleted(string path)
     {
@@ -165,6 +166,33 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
         // Exclude the API call metric if it was also tracked, focus on the business metric counter.
         // BusinessMetrics internally tracks this via `_helpRequestsCompleted` counter.
         helpRequestCompletedMetrics.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenPathHasNoVersionNumber_ShouldNOTRecordBusinessMetrics()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/api/validation/users";
+        context.Request.Method = "POST";
+        context.Response.StatusCode = 201;
+
+        RequestDelegate next = (ctx) => Task.CompletedTask;
+        var middleware = new BusinessMetricsMiddleware(next, _businessMetrics, _loggerMock.Object);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        // Não deve registrar métricas específicas de negócio (user registration, login, help requests, etc)
+        // se o caminho não for reconhecido como versionado.
+        // Métricas de API (RecordApiCall) ainda são registradas, então verificamos as métricas de negócio específicas.
+        var businessMetrics = _longMeasurements.Where(m => 
+        {
+            var tagsArray = m.Tags.ToArray();
+            return tagsArray.Any(t => t.Key == "category" || t.Key == "type");
+        }).ToList();
+        businessMetrics.Should().BeEmpty();
     }
 
     public void Dispose()

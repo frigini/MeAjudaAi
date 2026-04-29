@@ -11,6 +11,9 @@ using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Modules.Providers.Application.Events;
+using MeAjudaAi.Modules.Providers.Domain.Events;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Providers.Application;
@@ -53,6 +56,9 @@ public static class Extensions
 
         // Validators - registro dos validadores FluentValidation
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
+
+        // Event Handlers (SSE Realtime)
+        services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>, ProviderVerificationStatusUpdatedSseHandler>();
 
         return services;
     }

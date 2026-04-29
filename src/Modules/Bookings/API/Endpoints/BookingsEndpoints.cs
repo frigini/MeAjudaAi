@@ -26,6 +26,7 @@ public static class BookingsEndpoints
              .MapEndpoint<GetMyBookingsEndpoint>()
              .MapEndpoint<GetProviderBookingsEndpoint>()
              .MapEndpoint<GetProviderAvailabilityEndpoint>()
-             .MapEndpoint<SetProviderScheduleEndpoint>();
+             .MapEndpoint<SetProviderScheduleEndpoint>()
+             .MapEndpoint<BookingEventsEndpoint>();
     }
 }

@@ -6,9 +6,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 13 (Infraestrutura & Excelência UX)
+**Sprint Atual**: 13.1 (Otimizações e Refinamentos)
 
-**Status**: 🛠️ Em Execução (Início em 27 Abr 2026)
+**Status**: 🚧 Em Andamento
 
 **Meta MVP**: 12 a 16 de maio de 2026
 
@@ -16,12 +16,17 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
+## 🏃 Sprint 13.1: Otimizações e Refinamentos (Em Andamento)
+
+*   **Performance Zero-Allocation**: Redução drástica de pressão no Garbage Collector em *Hot Paths* (Middlewares de requisições, logging e métricas) e *Application Layer* via `Span<T>` e `ReadOnlySpan<char>`. Eliminação de alocações desnecessárias envolvendo strings e expressões regulares.
+*   **API Client Collections**: Adição de endpoints SSE para streaming de eventos (`/bookings/{id}/events`, `/providers/{id}/verification-events`), correções de paths em AllowedCitiesAdmin, padronização de variáveis (`{{bookingId}}`), remoção de tools/api-collections e referências a Postman nos docs.
+*   **Código e Testes**: Extração de constantes de mensagens SSE em BookingRealtimeEventsHandler, pré-compilação de Regex em BusinessMetricsMiddleware, expansão de casos de teste para headers de localização malformados.
+
+---
+
 ## 🔮 Roadmaps Futuros (MVP Launch & Além)
 
-### Fase 3: Escala e Provedores Reais (Em Execução)
-*   **[x] RabbitMQ Excellence**: Consolidação total da infraestrutura de mensageria, removendo stubs e dependências diretas de driver.
-*   **[ ] i18n Apps Provider/Admin**: Implementação de localização frontend para os apps de Prestador e Administrador.
-*   **[ ] UI/UX Admin Portal**: Padronização visual com cores da marca e melhorias de usabilidade no portal administrativo.
+### Fase 3: Escala e Provedores Reais
 *   **Provedores de Comunicação (Próximo)**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
 *   **Verificação Automatizada (Próximo)**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
 
@@ -38,8 +43,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente. (Abril 2026)
-*   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141), Alinhamento de Realms Keycloak, Infra CI/CD (OpenAPI gating) e Documentação (coleções Bruno). (Abril 2026)
+*   **Sprint 13**: RabbitMQ Excellence (infraestrutura real com RabbitMqInfrastructureManager, deadlocks corrigidos, dispose seguro), i18n mocks para testes (Provider/Admin/Customer), fail-fast em DI de Messaging.
+*   **Sprint 12**: Bookings Module completo, Command Handlers (Reject/Complete), queries de listagem, automação com Domain Events, integração frontend de agenda.
+*   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente.
 
 ---
 

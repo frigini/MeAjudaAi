@@ -46,23 +46,31 @@ public sealed partial class RegisterCustomerCommandHandler(
         {
             emailAsValueObject = new Email(command.Email);
             
-            var fullLocalPart = emailAsValueObject.Value.Split('@')[0];
-            var noTagLocalPart = fullLocalPart.Split('+')[0];
-            var sanitizedLocalPart = SanitizationRegex().Replace(noTagLocalPart, "");
+            var emailValueSpan = emailAsValueObject.Value.AsSpan();
+            var atIndex = emailValueSpan.IndexOf('@');
+            var localPartSpan = atIndex >= 0 ? emailValueSpan[..atIndex] : emailValueSpan;
+            
+            var plusIndex = localPartSpan.IndexOf('+');
+            if (plusIndex >= 0)
+            {
+                localPartSpan = localPartSpan[..plusIndex];
+            }
+            
+            var sanitizedLocalPart = SanitizationRegex().Replace(localPartSpan.ToString(), "");
             
             if (string.IsNullOrWhiteSpace(sanitizedLocalPart) || sanitizedLocalPart.Length < 3)
             {
-                sanitizedLocalPart = $"usr{Guid.NewGuid().ToString("N").Substring(0, 5)}";
+                sanitizedLocalPart = $"usr{Guid.NewGuid().ToString("N")[..5]}";
             }
             
             // UsernameMaxLength é 30 em ValidationConstants; deduz 1 para '_' e 6 para GUID => localPartMax = UsernameMaxLength - 7
             int maxLocalPartLength = ValidationConstants.UserLimits.UsernameMaxLength - 7;
             if (sanitizedLocalPart.Length > maxLocalPartLength)
             {
-                sanitizedLocalPart = sanitizedLocalPart.Substring(0, maxLocalPartLength);
+                sanitizedLocalPart = sanitizedLocalPart[..maxLocalPartLength];
             }
             
-            var slug = $"{sanitizedLocalPart}_{Guid.NewGuid().ToString("N").Substring(0, 6)}";
+            var slug = $"{sanitizedLocalPart}_{Guid.NewGuid().ToString("N")[..6]}";
             validUsername = new Username(slug);
         }
         catch (ArgumentException ex)
@@ -70,10 +78,7 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(Error.BadRequest(ex.Message));
         }
 
-        var emailParts = command.Email.Split('@');
-        var maskedEmail = emailParts.Length == 2 
-            ? $"{new string('*', Math.Min(3, emailParts[0].Length))}@{emailParts[1]}" 
-            : "***@***";
+        var maskedEmail = PiiMaskingHelper.MaskEmail(command.Email);
 
         // Valida unicidade primeiro
         var existingEmail = await userRepository.GetByEmailAsync(emailAsValueObject, cancellationToken);
@@ -83,20 +88,21 @@ public sealed partial class RegisterCustomerCommandHandler(
         }
 
         // Cria usuário com papel de "cliente"
-        var names = command.Name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-        var firstName = names.FirstOrDefault() ?? command.Name;
+        var trimmedName = command.Name.Trim();
+        var parts = trimmedName.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        var firstName = parts.Length > 0 ? parts[0] : string.Empty;
+        var lastName = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : string.Empty;
         
         if (firstName.Length < ValidationConstants.UserLimits.FirstNameMinLength)
         {
             return Result<UserDto>.Failure(Error.BadRequest($"O primeiro nome deve ter pelo menos {ValidationConstants.UserLimits.FirstNameMinLength} caracteres."));
         }
         
-        if (names.Length < 2 || string.IsNullOrWhiteSpace(names[1]))
+        if (string.IsNullOrWhiteSpace(lastName))
         {
             return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome é obrigatório e deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));
         }
-
-        var lastName = names[1];
         if (lastName.Length < ValidationConstants.UserLimits.LastNameMinLength)
         {
             return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));

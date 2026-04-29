@@ -13,20 +13,19 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 - [ ] Perfilagem de memória em produção
 
-### 🎨 Melhorias de UI/UX
-
-**Severidade**: BAIXA  
-**Sprint**: Backlog
-
-- [ ] Aplicar cores da marca (azul, creme, laranja) em todo o Portal Admin (React)
-- [ ] Atualizar o tema da biblioteca de componentes React
-- [ ] Padronizar a estilização dos componentes
-
-**Origem**: Sprint 7.19
-
 ---
 
 ## 📋 Histórico
+
+### 🎨 UI/UX Admin Portal - Cores da Marca
+
+**Resolvido em**: Abr 2026 (Sprint 13) | **Severidade original**: BAIXA  
+Aplicação de cores da marca (laranja #D96704, brand #E0702B, cream #FDFBF7) no CSS do Admin, variáveis CSS para cores secundárias, ring atualizado para cor da marca, e correção de `data-testid` duplicados em CardTitle.
+
+### 🌍 i18n Frontend Apps (Admin/Provider/Customer)
+
+**Resolvido em**: Abr 2026 (Sprint 13) | **Severidade original**: MÉDIA  
+Implementação de `useTranslation` no dashboard Admin, tradução de labels via i18n, e mocks de i18next para testes em todos os apps (Admin/Provider/Customer) com suporte a `defaultValue` (incluindo strings vazias).
 
 ### 🚀 Infraestrutura & Messaging (RabbitMQ Excellence)
 

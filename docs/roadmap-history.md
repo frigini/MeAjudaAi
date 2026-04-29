@@ -4,6 +4,22 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
+## ✅ Sprint 13 - RabbitMQ Excellence & i18n Tests (Concluída em 28 Abr 2026)
+
+**Objetivo**: Consolidação total da infraestrutura de mensageria, i18n frontend e UI/UX Admin.
+
+### Entregas:
+- ✅ **RabbitMQ Excellence**: Implementação real do `RabbitMqInfrastructureManager` com métodos assíncronos (`CreateQueueAsync`, `CreateExchangeAsync`, `BindQueueToExchangeAsync`), eliminando stubs.
+- ✅ **Deadlock Fix**: Remoção de deadlocks em `CreateQueueAsync`, `CreateExchangeAsync`, `BindQueueToExchangeAsync` - agora `GetChannelAsync` gerencia lock internamente.
+- ✅ **Safe Dispose**: `DisposeAsync` agora adquire lock antes de dispose e usa flag `_disposed` para prevenir operações pós-descarte.
+- ✅ **Fail-Fast DI**: `MessagingExtensions` agora lança `InvalidOperationException` quando `IRabbitMqInfrastructureManager` não está registrado (em vez de retornar silenciosamente).
+- ✅ **i18n Frontend**: Implementação de `useTranslation` no dashboard Admin, tradução de labels via i18n (`t()`), uso de `useMemo` para otimização.
+- ✅ **i18n Test Mocks**: Implementação de mocks de i18next para testes em Admin, Provider e Customer apps com suporte a `defaultValue` (incluindo strings vazias).
+- ✅ **UI/UX Admin Portal**: Aplicação de cores da marca (laranja #D96704, brand #E0702B, cream #FDFBF7) no CSS, variáveis CSS para cores secundárias, `data-testid` únicos em CardTitle.
+- ✅ **Testes Unitários**: Cobertura superior a 90%, testes de `MessagingExtensions` e `RabbitMqInfrastructureManager` atualizados e passando.
+
+---
+
 ## ✅ Sprint 12 - Bookings & Messaging Excellence (Concluída em 26 Abr 2026)
 
 **Objetivo**: Implementar o sistema de agendamentos e consolidar a infraestrutura de mensageria com Rebus.

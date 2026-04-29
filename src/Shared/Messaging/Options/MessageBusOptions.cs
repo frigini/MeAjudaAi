@@ -22,11 +22,29 @@ public sealed class MessageBusOptions
     public Func<Type, string> TopicNamingConvention { get; set; } =
         type =>
         {
-            var namespaceParts = type.Namespace?.Split('.') ?? Array.Empty<string>();
-            var lastPart = namespaceParts.Length > 0 ? namespaceParts[namespaceParts.Length - 1] : "events";
-            return $"{lastPart.ToLowerInvariant()}.events";
+            if (string.IsNullOrEmpty(type.Namespace)) return $"events.{type.Name.ToLowerInvariant()}";
+            
+            var nsSpan = type.Namespace.AsSpan();
+            var lastDotIndex = nsSpan.LastIndexOf('.');
+            
+            var lastPart = lastDotIndex >= 0 
+                ? nsSpan.Slice(lastDotIndex + 1) 
+                : nsSpan;
+                
+            return $"{type.Name.ToLowerInvariant()}.{lastPart.ToString().ToLowerInvariant()}";
         };
 
     public Func<Type, string> SubscriptionNamingConvention { get; set; } =
         type => Environment.MachineName.ToLowerInvariant();
+}
+
+public class OptionsTopicNameConvention(MessageBusOptions options) : global::Rebus.Topic.ITopicNameConvention
+{
+    public string GetTopic(Type eventType)
+    {
+        var convention = options.TopicNamingConvention;
+        return convention is not null 
+            ? convention(eventType) 
+            : $"events.{eventType.Name.ToLowerInvariant()}";
+    }
 }

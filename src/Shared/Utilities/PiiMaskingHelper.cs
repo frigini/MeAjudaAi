@@ -27,13 +27,20 @@ public static class PiiMaskingHelper
     public static string MaskEmail(string? email)
     {
         if (string.IsNullOrWhiteSpace(email)) return "[EMPTY]";
-        var parts = email.Split('@');
-        if (parts.Length != 2) return "***@***";
         
-        var name = parts[0];
-        if (name.Length <= 2) return $"*@{parts[1]}";
+        var emailSpan = email.AsSpan();
+        var atIndex = emailSpan.IndexOf('@');
         
-        return $"{name[..2]}**@{parts[1]}";
+        if (atIndex == -1) return "***@***";
+        
+        var name = emailSpan[..atIndex];
+        var domain = emailSpan[(atIndex + 1)..];
+        
+        if (name.Length == 0 || domain.Length == 0) return "***@***";
+        
+        if (name.Length <= 2) return $"*@{domain.ToString()}";
+        
+        return $"{name[..2].ToString()}**@{domain.ToString()}";
     }
 
     /// <summary>
@@ -62,12 +69,28 @@ public static class PiiMaskingHelper
     {
         if (string.IsNullOrWhiteSpace(cpf)) return "[EMPTY]";
         
-        // Remove caracteres não numéricos
-        var digits = new string(cpf.Where(char.IsDigit).ToArray());
+        Span<char> digits = stackalloc char[11];
+        int count = 0;
         
-        if (digits.Length != 11) return "****";
+        foreach (var c in cpf)
+        {
+            if (char.IsDigit(c))
+            {
+                if (count < 11)
+                {
+                    digits[count++] = c;
+                }
+                else
+                {
+                    // Tem mais de 11 números, CPF inválido
+                    return "****";
+                }
+            }
+        }
         
-        return $"{digits[..3]}.***.***-{digits[^2..]}";
+        if (count != 11) return "****";
+        
+        return $"{digits[..3].ToString()}.***.***-{digits[^2..].ToString()}";
     }
 
     /// <summary>

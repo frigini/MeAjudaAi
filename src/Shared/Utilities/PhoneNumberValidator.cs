@@ -17,10 +17,19 @@ public static class PhoneNumberValidator
         if (string.IsNullOrWhiteSpace(phoneNumber))
             return false;
 
-        if (!phoneNumber.StartsWith('+'))
+        if (phoneNumber[0] != '+')
             return false;
 
-        var digitsOnly = phoneNumber[1..].Replace(" ", "").Replace("-", "").Replace(".", "");
-        return digitsOnly.Length >= 8 && digitsOnly.Length <= 15 && digitsOnly.All(char.IsDigit);
+        int digitCount = 0;
+        var span = phoneNumber.AsSpan(1);
+        
+        foreach (var c in span)
+        {
+            if (c is ' ' or '-' or '.') continue;
+            if (!char.IsDigit(c)) return false;
+            digitCount++;
+        }
+
+        return digitCount is >= 8 and <= 15;
     }
 }
