@@ -268,9 +268,9 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - formato "City|" é malformado e deve ser bloqueado
+            // Assert - Headers X-User-City/X-User-State com state vazio devem ser bloqueados
             response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
-                "Malformed location header (empty state) should be rejected");
+                "Malformed location headers (empty X-User-State) should be rejected");
         }
         finally
         {

@@ -31,7 +31,7 @@ public sealed class MessageBusOptions
                 ? nsSpan.Slice(lastDotIndex + 1) 
                 : nsSpan;
                 
-            return $"{lastPart.ToString().ToLowerInvariant()}.events";
+            return $"{type.Name.ToLowerInvariant()}.{lastPart.ToString().ToLowerInvariant()}";
         };
 
     public Func<Type, string> SubscriptionNamingConvention { get; set; } =

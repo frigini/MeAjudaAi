@@ -14,8 +14,10 @@ public class ProviderVerificationStatusUpdatedSseHandlerTests
     public async Task HandleAsync_ShouldPublishVerificationStatusToHub()
     {
         var sseHubMock = new Mock<ISseHub<ProviderVerificationSseDto>>();
+        CancellationToken testToken = new CancellationTokenSource().Token;
+        
         sseHubMock
-            .Setup(h => h.PublishAsync(It.IsAny<string>(), It.IsAny<ProviderVerificationSseDto>(), It.IsAny<CancellationToken>()))
+            .Setup(h => h.PublishAsync(It.IsAny<string>(), It.IsAny<ProviderVerificationSseDto>(), testToken))
             .Returns(Task.CompletedTask);
 
         var logger = Mock.Of<ILogger<ProviderVerificationStatusUpdatedSseHandler>>();
@@ -29,20 +31,22 @@ public class ProviderVerificationStatusUpdatedSseHandlerTests
             EVerificationStatus.Verified,
             "admin");
 
-        await sut.HandleAsync(@event);
+        await sut.HandleAsync(@event, testToken);
 
         sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForProviderVerification(providerId),
             It.Is<ProviderVerificationSseDto>(d => d.ProviderId == providerId && d.Status == "Verified"),
-            It.IsAny<CancellationToken>()), Times.Once);
+            testToken), Times.Once);
     }
 
     [Fact]
     public async Task HandleAsync_ShouldPublishRejectedStatus()
     {
         var sseHubMock = new Mock<ISseHub<ProviderVerificationSseDto>>();
+        CancellationToken testToken = new CancellationTokenSource().Token;
+        
         sseHubMock
-            .Setup(h => h.PublishAsync(It.IsAny<string>(), It.IsAny<ProviderVerificationSseDto>(), It.IsAny<CancellationToken>()))
+            .Setup(h => h.PublishAsync(It.IsAny<string>(), It.IsAny<ProviderVerificationSseDto>(), testToken))
             .Returns(Task.CompletedTask);
 
         var logger = Mock.Of<ILogger<ProviderVerificationStatusUpdatedSseHandler>>();
@@ -56,11 +60,11 @@ public class ProviderVerificationStatusUpdatedSseHandlerTests
             EVerificationStatus.Rejected,
             "system");
 
-        await sut.HandleAsync(@event);
+        await sut.HandleAsync(@event, testToken);
 
         sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForProviderVerification(providerId),
             It.Is<ProviderVerificationSseDto>(d => d.Status == "Rejected"),
-            It.IsAny<CancellationToken>()), Times.Once);
+            testToken), Times.Once);
     }
 }

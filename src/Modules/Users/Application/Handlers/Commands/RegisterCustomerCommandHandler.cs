@@ -88,11 +88,11 @@ public sealed partial class RegisterCustomerCommandHandler(
         }
 
         // Cria usuário com papel de "cliente"
-        var nameSpan = command.Name.AsSpan().Trim();
-        var firstSpace = nameSpan.IndexOf(' ');
+        var trimmedName = command.Name.Trim();
+        var parts = trimmedName.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
         
-        var firstName = firstSpace >= 0 ? nameSpan[..firstSpace].ToString() : nameSpan.ToString();
-        var lastName = firstSpace >= 0 ? nameSpan[(firstSpace + 1)..].TrimStart().ToString() : string.Empty;
+        var firstName = parts.Length > 0 ? parts[0] : string.Empty;
+        var lastName = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : string.Empty;
         
         if (firstName.Length < ValidationConstants.UserLimits.FirstNameMinLength)
         {

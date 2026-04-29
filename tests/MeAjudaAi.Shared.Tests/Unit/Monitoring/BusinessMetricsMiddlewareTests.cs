@@ -184,8 +184,7 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
 
         // Assert
         // Não deve registrar métricas específicas de negócio se o caminho não for reconhecido como versionado
-        var registrationMetrics = _longMeasurements.Where(m => m.Tags.ToArray().Any(t => t.Key == "source" && ((string)t.Value!) == "api")).ToList();
-        registrationMetrics.Should().BeEmpty();
+        _longMeasurements.Should().BeEmpty();
     }
 
     public void Dispose()

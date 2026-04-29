@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Events;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
@@ -34,7 +35,10 @@ public class BookingRealtimeEventsHandlerTests
 
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
-            It.Is<BookingStatusSseDto>(d => d.BookingId == bookingId && d.Status == "Created"),
+            It.Is<BookingStatusSseDto>(d => 
+                d.BookingId == bookingId && 
+                d.Status == EBookingStatus.Pending.ToString() &&
+                d.Message == "Reserva criada com sucesso"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -50,7 +54,10 @@ public class BookingRealtimeEventsHandlerTests
 
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
-            It.Is<BookingStatusSseDto>(d => d.Status == "Confirmed"),
+            It.Is<BookingStatusSseDto>(d => 
+                d.BookingId == bookingId && 
+                d.Status == EBookingStatus.Confirmed.ToString() &&
+                d.Message == "Reserva confirmada pelo prestador"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -66,7 +73,10 @@ public class BookingRealtimeEventsHandlerTests
 
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
-            It.Is<BookingStatusSseDto>(d => d.Status == "Cancelled"),
+            It.Is<BookingStatusSseDto>(d => 
+                d.BookingId == bookingId && 
+                d.Status == EBookingStatus.Cancelled.ToString() &&
+                d.Message == "Reserva cancelada"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -82,7 +92,10 @@ public class BookingRealtimeEventsHandlerTests
 
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
-            It.Is<BookingStatusSseDto>(d => d.Status == "Rejected"),
+            It.Is<BookingStatusSseDto>(d => 
+                d.BookingId == bookingId && 
+                d.Status == EBookingStatus.Rejected.ToString() &&
+                d.Message == "Reserva rejeitada pelo prestador"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -98,7 +111,10 @@ public class BookingRealtimeEventsHandlerTests
 
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
-            It.Is<BookingStatusSseDto>(d => d.Status == "Completed"),
+            It.Is<BookingStatusSseDto>(d => 
+                d.BookingId == bookingId && 
+                d.Status == EBookingStatus.Completed.ToString() &&
+                d.Message == "Serviço finalizado"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

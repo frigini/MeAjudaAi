@@ -54,10 +54,7 @@ public class BusinessMetricsMiddleware(
 
             // Registros de usuário (aceita rotas exatas como /api/users ou /api/v1/users)
             var isUserPath = pathSpan.Equals("/api/users", StringComparison.OrdinalIgnoreCase) || 
-                             (pathSpan.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase) && 
-                              pathSpan.Slice(5).IndexOf('/') > 0 && 
-                              pathValue.EndsWith("/users", StringComparison.OrdinalIgnoreCase) &&
-                              Regex.IsMatch(pathValue, @"^/api/v\d+/users$", RegexOptions.IgnoreCase));
+                             Regex.IsMatch(pathValue, @"^/api/v\d+/users$", RegexOptions.IgnoreCase);
 
             if (isUserPath && method == "POST" && statusCode is >= 200 and < 300)
             {
