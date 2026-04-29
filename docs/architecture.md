@@ -2304,16 +2304,9 @@ src/Shared/API.Collections/
 #### **Comandos Disponíveis**
 
 ```bash
-# Gerar todas as collections
-cd tools/api-collections
-./generate-all-collections.sh        # Linux/Mac
-./generate-all-collections.bat       # Windows
-
-# Apenas Postman
-npm run generate:postman
-
-# Validar collections
-npm run validate
+# Gerar API spec (OpenAPI)
+cd src/Bootstrapper/MeAjudaAi.ApiService
+dotnet run
 ```
 
 #### **Estrutura de Output**
@@ -2348,13 +2341,13 @@ options.OperationFilter<ApiVersionOperationFilter>();
 
 1. **Manter OpenAPI como fonte única da verdade**
 2. **Bruno para desenvolvimento diário**
-3. **Postman para colaboração e testes**
+3. **Gerar collections para colaboração**
 4. **Regenerar collections após mudanças na API**
 5. **Versionar Bruno collections no Git**
 
 #### **❌ EVITAR**
 
-1. **Edição manual de Postman collections geradas**
+1. **Edição manual de collections geradas**
 2. **Duplicação de documentação entre formatos**
 3. **Collections desatualizadas sem regeneração**
 4. **Hardcoding de URLs nos collections**
@@ -2363,8 +2356,8 @@ options.OperationFilter<ApiVersionOperationFilter>();
 
 1. **Desenvolver** API com documentação OpenAPI
 2. **Testar** localmente com Bruno collections
-3. **Gerar** Postman collections para colaboração
-4. **Compartilhar** com equipe via Postman workspace
+3. **Gerar** collections para colaboração
+4. **Compartilhar** com equipe via workspace
 5. **Regenerar** collections em cada release
 
 ### **Exportação OpenAPI para Clientes REST**
@@ -2385,11 +2378,8 @@ options.OperationFilter<ApiVersionOperationFilter>();
 
 #### **Importar em Clientes de API**
 
-**APIDog**: Importar → Do Arquivo → Selecionar arquivo  
-**Postman**: Importar → Arquivo → Fazer Envio de Arquivos → Selecionar arquivo  
-**Insomnia**: Import/Export → Import Data → Selecionar arquivo  
 **Bruno**: Import → OpenAPI → Selecionar arquivo  
-**Thunder Client**: Import → OpenAPI → Selecionar arquivo  
+**Insomnia**: Import/Export → Import Data → Selecionar arquivo  
 
 ### **Monitoramento e Testes**
 

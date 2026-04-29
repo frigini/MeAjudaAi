@@ -1,4 +1,5 @@
 using System.Diagnostics.Metrics;
+using System.Linq;
 using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Http;
@@ -143,7 +144,7 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData("/api/help-requests/123/complete")]
+    [InlineData("/api/v1/help-requests/123/complete")]
     [InlineData("/api/v1/help-requests/543/complete")]
     public async Task InvokeAsync_WhenHelpRequestCompleted_ShouldRecordHelpRequestCompleted(string path)
     {
@@ -183,9 +184,15 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
         await middleware.InvokeAsync(context);
 
         // Assert
-        // Não deve registrar métricas específicas de negócio se o caminho não for reconhecido como versionado
-        var registrationMetrics = _longMeasurements.Where(m => m.Tags.ToArray().Any(t => t.Key == "source" && ((string)t.Value!) == "api")).ToList();
-        registrationMetrics.Should().BeEmpty();
+        // Não deve registrar métricas específicas de negócio (user registration, login, help requests, etc)
+        // se o caminho não for reconhecido como versionado.
+        // Métricas de API (RecordApiCall) ainda são registradas, então verificamos as métricas de negócio específicas.
+        var businessMetricsList = _longMeasurements.Where(m => 
+        {
+            var tagsArray = m.Tags.ToArray();
+            return tagsArray.Any(t => t.Key == "category" || t.Key == "type");
+        }).ToList();
+        businessMetricsList.Should().BeEmpty();
     }
 
     public void Dispose()

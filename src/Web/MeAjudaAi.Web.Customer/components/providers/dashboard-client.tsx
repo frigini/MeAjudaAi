@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { ProviderDto } from "@/types/api/provider";
 import { ServiceSelector } from "./service-selector";
+import { useProviderVerificationEvents } from "@/hooks/use-provider-verification";
 import { DEFAULT_VERIFICATION_STATUS } from "@/lib/constants";
 
 
@@ -23,6 +24,10 @@ interface ProviderDashboardClientProps {
 
 export default function ProviderDashboardClient({ provider }: ProviderDashboardClientProps) {
     const router = useRouter();
+    
+    // Ativa o streaming SSE para status de verificação
+    useProviderVerificationEvents(provider.id);
+
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     // Description is nested in businessProfile
     const [description, setDescription] = useState(provider.businessProfile?.description || "");

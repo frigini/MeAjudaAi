@@ -12,6 +12,7 @@ using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Streaming;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -81,6 +82,9 @@ public static class ServiceCollectionExtensions
         // Módulos que precisam de Hangfire devem registrar HangfireBackgroundJobService explicitamente
         services.AddSingleton<IBackgroundJobService, NoOpBackgroundJobService>();
 
+        // Streaming services (SSE)
+        services.AddStreaming();
+
         return services;
     }
 
@@ -133,5 +137,10 @@ public static class ServiceCollectionExtensions
         app.UseErrorHandling();
         app.UseAdvancedMonitoring();
         app.UseHangfireDashboardIfEnabled(configuration);
+    }
+    public static IServiceCollection AddStreaming(this IServiceCollection services)
+    {
+        services.AddSingleton(typeof(ISseHub<>), typeof(SseHub<>));
+        return services;
     }
 }

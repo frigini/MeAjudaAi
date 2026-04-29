@@ -6,6 +6,11 @@ import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
 
+vi.mock('next-auth/react', () => ({
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+  useSession: () => ({ data: { accessToken: 'mock-token' }, status: 'authenticated' }),
+}));
+
 import ptTranslations from '../public/locales/pt/translation.json';
 
 // Mock i18next

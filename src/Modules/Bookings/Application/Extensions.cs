@@ -8,6 +8,9 @@ using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Modules.Bookings.Application.Events;
+using MeAjudaAi.Modules.Bookings.Domain.Events;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -33,6 +36,14 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>, GetBookingsByProviderQueryHandler>();
 
         services.AddScoped<ProviderAuthorizationResolver>();
+
+        // Event Handlers (SSE Realtime)
+        services.AddScoped<BookingRealtimeEventsHandler>();
+        services.AddScoped<IEventHandler<BookingCreatedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
+        services.AddScoped<IEventHandler<BookingConfirmedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
+        services.AddScoped<IEventHandler<BookingCancelledDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
+        services.AddScoped<IEventHandler<BookingRejectedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
+        services.AddScoped<IEventHandler<BookingCompletedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
 
         return services;
     }

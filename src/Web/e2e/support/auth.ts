@@ -14,6 +14,14 @@ export async function loginAsCustomer(page: Page) {
 }
 
 export async function setupPageForE2E(page: Page, portal: 'admin' | 'provider' | 'customer') {
+  // Configure the API client BEFORE any React render by using window.location.origin
+  await page.addInitScript(() => {
+    // Override environment variable AFTER page loads using current origin
+    (window as any).process = (window as any).process || {};
+    (window as any).process.env = (window as any).process.env || {};
+    (window as any).process.env.NEXT_PUBLIC_API_URL = window.location.origin;
+  });
+  
   // Set cookie and extra headers to bypass middleware
   const context = page.context();
   await context.addCookies([

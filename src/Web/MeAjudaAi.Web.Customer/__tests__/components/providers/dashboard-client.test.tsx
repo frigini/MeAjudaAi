@@ -6,6 +6,11 @@ import DashboardClient from '@/components/providers/dashboard-client';
 
 const mockRefresh = vi.fn();
 
+vi.mock('next-auth/react', () => ({
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+  useSession: () => ({ data: null, status: 'unauthenticated' }),
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),

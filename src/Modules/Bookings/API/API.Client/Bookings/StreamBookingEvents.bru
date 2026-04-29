@@ -1,0 +1,38 @@
+meta {
+  name: Stream Booking Events (SSE)
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/bookings/{{bookingId}}/events
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: text/event-stream
+  Cache-Control: no-cache
+}
+
+docs {
+  # Stream Booking Events (SSE)
+
+  Mantém uma conexão aberta e recebe eventos de status do agendamento em tempo real.
+
+  **Autorização**: Bearer token requerido.
+
+  ## Notes
+
+  - O stream SSE não finaliza automaticamente
+  - Para encerrar, interrompa a execução manualmente ou feche o cliente HTTP
+  - Eventos são enviados no formato Server-Sent Events (text/event-stream)
+
+  ## Códigos de Status
+  - **200**: Conexão estabelecida, stream ativo
+  - **401**: Não autenticado
+  - **404**: Booking não encontrado
+}

@@ -5,7 +5,7 @@ meta {
 }
 
 put {
-  url: {{baseUrl}}/api/v1/bookings/00000000-0000-0000-0000-000000000000/cancel
+  url: {{baseUrl}}/api/{{apiVersion}}/bookings/{{bookingId}}/cancel
   body: json
   auth: bearer
 }

@@ -19,6 +19,8 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 ## 🏃 Sprint 13.1: Otimizações e Refinamentos (Em Andamento)
 
 *   **Performance Zero-Allocation**: Redução drástica de pressão no Garbage Collector em *Hot Paths* (Middlewares de requisições, logging e métricas) e *Application Layer* via `Span<T>` e `ReadOnlySpan<char>`. Eliminação de alocações desnecessárias envolvendo strings e expressões regulares.
+*   **API Client Collections**: Adição de endpoints SSE para streaming de eventos (`/bookings/{id}/events`, `/providers/{id}/verification-events`), correções de paths em AllowedCitiesAdmin, padronização de variáveis (`{{bookingId}}`), remoção de tools/api-collections e referências a Postman nos docs.
+*   **Código e Testes**: Extração de constantes de mensagens SSE em BookingRealtimeEventsHandler, pré-compilação de Regex em BusinessMetricsMiddleware, expansão de casos de teste para headers de localização malformados.
 
 ---
 
