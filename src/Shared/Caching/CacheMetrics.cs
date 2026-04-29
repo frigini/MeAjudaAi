@@ -32,19 +32,19 @@ public sealed class CacheMetrics : ICacheMetrics
         if (string.IsNullOrEmpty(key))
             return "empty";
 
-        var parts = key.Split(':');
-        if (parts.Length >= 2)
+        var colonIndex = key.AsSpan().IndexOf(':');
+        if (colonIndex >= 0)
         {
-            var type = parts[0];
-            if (type.Equals("user", StringComparison.OrdinalIgnoreCase))
+            var type = key.AsSpan()[..colonIndex];
+            if (type.Equals("user".AsSpan(), StringComparison.OrdinalIgnoreCase))
                 return "user:{id}";
-            if (type.Equals("provider", StringComparison.OrdinalIgnoreCase))
+            if (type.Equals("provider".AsSpan(), StringComparison.OrdinalIgnoreCase))
                 return "provider:{id}";
-            if (type.Equals("permission", StringComparison.OrdinalIgnoreCase))
+            if (type.Equals("permission".AsSpan(), StringComparison.OrdinalIgnoreCase))
                 return "permission:{id}";
-            if (type.Equals("role", StringComparison.OrdinalIgnoreCase))
+            if (type.Equals("role".AsSpan(), StringComparison.OrdinalIgnoreCase))
                 return "role:{id}";
-            return $"{type}:{{id}}";
+            return $"{type.ToString()}:{{id}}";
         }
 
         if (key.Length > 20)

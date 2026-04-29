@@ -132,7 +132,9 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
         var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         if (!string.IsNullOrEmpty(xForwardedFor))
         {
-            return xForwardedFor.Split(',')[0].Trim();
+            var span = xForwardedFor.AsSpan();
+            var commaIndex = span.IndexOf(',');
+            return (commaIndex >= 0 ? span[..commaIndex] : span).Trim().ToString();
         }
 
         var xRealIp = context.Request.Headers["X-Real-IP"].FirstOrDefault();

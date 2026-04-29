@@ -78,9 +78,7 @@ public class BusinessMetricsMiddleware(
             }
 
             // Conclusão de ajuda (aceita rotas versionadas como /api/v1/help-requests/{id}/complete)
-            if (((path.StartsWith("/api/help-requests/") && path.EndsWith("/complete")) || 
-                 (path.StartsWith("/api/v") && path.Contains("/help-requests/") && path.EndsWith("/complete"))) && 
-                method == "POST" && statusCode is >= 200 and < 300)
+            if (IsHelpRequestCompletePath(path) && method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordHelpRequestCompleted("general", elapsed);
                 logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);
@@ -88,10 +86,28 @@ public class BusinessMetricsMiddleware(
         }
     }
 
+    /// <summary>
+    /// Verifica se o path corresponde a uma conclusão de help-request (rotas simples ou versionadas).
+    /// Usa ReadOnlySpan para evitar alocações em um hot path executado a cada requisição POST.
+    /// </summary>
+    private static bool IsHelpRequestCompletePath(string path)
+    {
+        var span = path.AsSpan();
+        ReadOnlySpan<char> completeSuffix = "/complete".AsSpan();
+        if (!span.EndsWith(completeSuffix, StringComparison.Ordinal))
+            return false;
+
+        ReadOnlySpan<char> directPrefix = "/api/help-requests/".AsSpan();
+        ReadOnlySpan<char> segment = "/help-requests/".AsSpan();
+        return span.StartsWith(directPrefix, StringComparison.Ordinal)
+               || (span.StartsWith("/api/v".AsSpan(), StringComparison.Ordinal)
+                   && span.Contains(segment, StringComparison.Ordinal));
+    }
+
     private static string GetEndpointName(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
-        if (endpoint != null)
+
         {
             return endpoint.DisplayName ?? context.Request.Path.Value ?? "unknown";
         }

@@ -248,9 +248,19 @@ public sealed class PermissionOptimizationMiddleware(
         if (string.IsNullOrEmpty(path))
             return false;
 
-        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        return segments.Any(segment =>
-            string.Equals(segment, "admin", StringComparison.OrdinalIgnoreCase));
+        var span = path.AsSpan();
+        while (span.Length > 0)
+        {
+            var slashIndex = span.IndexOf('/');
+            var segment = slashIndex >= 0 ? span[..slashIndex] : span;
+            if (segment.Equals("admin".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (slashIndex < 0)
+                break;
+            span = span[(slashIndex + 1)..];
+        }
+
+        return false;
     }
 
     /// <summary>

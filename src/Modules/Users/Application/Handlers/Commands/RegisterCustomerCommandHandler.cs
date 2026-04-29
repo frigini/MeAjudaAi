@@ -45,24 +45,27 @@ public sealed partial class RegisterCustomerCommandHandler(
         try
         {
             emailAsValueObject = new Email(command.Email);
-            
-            var fullLocalPart = emailAsValueObject.Value.Split('@')[0];
-            var noTagLocalPart = fullLocalPart.Split('+')[0];
-            var sanitizedLocalPart = SanitizationRegex().Replace(noTagLocalPart, "");
-            
+
+            var emailSpan = emailAsValueObject.Value.AsSpan();
+            var atIdx = emailSpan.IndexOf('@');
+            var localSpan = atIdx >= 0 ? emailSpan[..atIdx] : emailSpan;
+            var plusIdx = localSpan.IndexOf('+');
+            var noTagSpan = plusIdx >= 0 ? localSpan[..plusIdx] : localSpan;
+            var sanitizedLocalPart = SanitizationRegex().Replace(noTagSpan.ToString(), "");
+
             if (string.IsNullOrWhiteSpace(sanitizedLocalPart) || sanitizedLocalPart.Length < 3)
             {
-                sanitizedLocalPart = $"usr{Guid.NewGuid().ToString("N").Substring(0, 5)}";
+                sanitizedLocalPart = $"usr{Guid.NewGuid().ToString("N").AsSpan(0, 5).ToString()}";
             }
-            
+
             // UsernameMaxLength é 30 em ValidationConstants; deduz 1 para '_' e 6 para GUID => localPartMax = UsernameMaxLength - 7
             int maxLocalPartLength = ValidationConstants.UserLimits.UsernameMaxLength - 7;
             if (sanitizedLocalPart.Length > maxLocalPartLength)
             {
-                sanitizedLocalPart = sanitizedLocalPart.Substring(0, maxLocalPartLength);
+                sanitizedLocalPart = sanitizedLocalPart[..maxLocalPartLength];
             }
-            
-            var slug = $"{sanitizedLocalPart}_{Guid.NewGuid().ToString("N").Substring(0, 6)}";
+
+            var slug = $"{sanitizedLocalPart}_{Guid.NewGuid().ToString("N").AsSpan(0, 6).ToString()}";
             validUsername = new Username(slug);
         }
         catch (ArgumentException ex)
@@ -70,9 +73,10 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(Error.BadRequest(ex.Message));
         }
 
-        var emailParts = command.Email.Split('@');
-        var maskedEmail = emailParts.Length == 2 
-            ? $"{new string('*', Math.Min(3, emailParts[0].Length))}@{emailParts[1]}" 
+        var rawEmailSpan = command.Email.AsSpan();
+        var atSeparator = rawEmailSpan.IndexOf('@');
+        var maskedEmail = atSeparator >= 0
+            ? $"{new string('*', Math.Min(3, atSeparator))}@{rawEmailSpan[(atSeparator + 1)..].ToString()}"
             : "***@***";
 
         // Valida unicidade primeiro
