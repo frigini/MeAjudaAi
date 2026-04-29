@@ -19,7 +19,7 @@ public static class DocumentExtensions
         int count = 0;
         foreach (var c in cpf)
         {
-            if (char.IsDigit(c))
+            if (c is >= '0' and <= '9')
             {
                 if (count == 11) return false;
                 digitsOnly[count++] = c;
@@ -49,7 +49,7 @@ public static class DocumentExtensions
         int count = 0;
         foreach (var c in cnpj)
         {
-            if (char.IsDigit(c))
+            if (c is >= '0' and <= '9')
             {
                 if (count == 14) return false;
                 digitsOnly[count++] = c;

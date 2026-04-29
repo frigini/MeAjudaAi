@@ -126,6 +126,9 @@ public static class MessagingExtensions
                     {
                         o.SetMaxParallelism(20);
                         o.SetNumberOfWorkers(2);
+                        // Registra a convenção padrão do bus antes de ser decorada
+                        var busOptions = provider.GetRequiredService<MessageBusOptions>();
+                        o.Register<ITopicNameConvention>(c => new OptionsTopicNameConvention(busOptions));
                         o.Decorate<ITopicNameConvention>(c => new AttributeTopicNameConvention(c.Get<ITopicNameConvention>()));
                     })
                     .Routing(r => r.TypeBased());

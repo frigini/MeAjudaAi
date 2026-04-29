@@ -181,12 +181,12 @@ public sealed class PermissionOptimizationMiddleware(
         var permissions = new List<EPermission>();
 
         // Users module
-        if (path.StartsWith("/api/v1/users"))
+        if (path.StartsWith("/api/v1/users", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
-                "GET" when path.Contains("/profile") => new[] { EPermission.UsersProfile },
-                "GET" when path.Contains("/admin") => new[] { EPermission.AdminUsers, EPermission.UsersList },
+                "GET" when path.Contains("/profile", StringComparison.OrdinalIgnoreCase) => new[] { EPermission.UsersProfile },
+                "GET" when path.Contains("/admin", StringComparison.OrdinalIgnoreCase) => new[] { EPermission.AdminUsers, EPermission.UsersList },
                 "GET" => new[] { EPermission.UsersRead },
                 "POST" => new[] { EPermission.UsersCreate },
                 "PUT" or "PATCH" => new[] { EPermission.UsersUpdate },
@@ -196,7 +196,7 @@ public sealed class PermissionOptimizationMiddleware(
         }
 
         // Providers module
-        else if (path.StartsWith("/api/v1/providers"))
+        else if (path.StartsWith("/api/v1/providers", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -209,7 +209,7 @@ public sealed class PermissionOptimizationMiddleware(
         }
 
         // Orders module (futuro) - Aguardando implementação do módulo completo
-        else if (path.StartsWith("/api/v1/orders"))
+        else if (path.StartsWith("/api/v1/orders", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -222,11 +222,11 @@ public sealed class PermissionOptimizationMiddleware(
         }
 
         // Reports module (futuro) - Aguardando implementação do módulo completo
-        else if (path.StartsWith("/api/v1/reports"))
+        else if (path.StartsWith("/api/v1/reports", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
-                "GET" when path.Contains("/export") => new[] { EPermission.ReportsExport },
+                "GET" when path.Contains("/export", StringComparison.OrdinalIgnoreCase) => new[] { EPermission.ReportsExport },
                 "GET" => new[] { EPermission.ReportsView },
                 "POST" => new[] { EPermission.ReportsCreate },
                 _ => Array.Empty<EPermission>()
@@ -234,7 +234,7 @@ public sealed class PermissionOptimizationMiddleware(
         }
 
         // Admin endpoints - Verifica /api/v1/admin ou qualquer segmento "admin" no path
-        else if (path.StartsWith("/api/v1/admin") || IsAdminPath(path))
+        else if (path.StartsWith("/api/v1/admin", StringComparison.OrdinalIgnoreCase) || IsAdminPath(path))
         {
             permissions.Add(EPermission.AdminSystem);
         }

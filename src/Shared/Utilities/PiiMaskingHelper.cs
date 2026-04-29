@@ -36,6 +36,8 @@ public static class PiiMaskingHelper
         var name = emailSpan[..atIndex];
         var domain = emailSpan[(atIndex + 1)..];
         
+        if (name.Length == 0 || domain.Length == 0) return "***@***";
+        
         if (name.Length <= 2) return $"*@{domain.ToString()}";
         
         return $"{name[..2].ToString()}**@{domain.ToString()}";

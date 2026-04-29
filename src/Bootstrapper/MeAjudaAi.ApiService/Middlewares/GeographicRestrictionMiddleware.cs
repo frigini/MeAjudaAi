@@ -107,8 +107,15 @@ public class GeographicRestrictionMiddleware(
             
             if (separatorIndex >= 0)
             {
+                var remainder = headerSpan[(separatorIndex + 1)..];
+                if (remainder.IndexOf('|') >= 0)
+                {
+                    // Malformed header, more than one separator
+                    return (null, null);
+                }
+
                 var locationCity = headerSpan[..separatorIndex].Trim().ToString();
-                var locationState = headerSpan[(separatorIndex + 1)..].Trim().ToString();
+                var locationState = remainder.Trim().ToString();
 
                 // Rejeitar entradas malformadas onde city ou state estão vazios
                 // Exemplos rejeitados: "City|", "|State", "City| ", " |State"
@@ -226,8 +233,15 @@ public class GeographicRestrictionMiddleware(
                     continue;
                 }
 
+                var remainder = citySpan[(separatorIndex + 1)..];
+                if (remainder.IndexOf('|') >= 0)
+                {
+                    logger.LogWarning("Malformed configuration (too many separators): {AllowedCity}", allowedCity);
+                    continue;
+                }
+
                 var configCity = citySpan[..separatorIndex].Trim().ToString();
-                var configState = citySpan[(separatorIndex + 1)..].Trim().ToString();
+                var configState = remainder.Trim().ToString();
 
                 // Rejeitar entradas onde city ou state estão vazios
                 if (string.IsNullOrEmpty(configCity) || string.IsNullOrEmpty(configState))

@@ -122,12 +122,15 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
         
         var pathSpan = pathValue.AsSpan();
         
-        return pathSpan.Contains("/health", StringComparison.OrdinalIgnoreCase) ||
-               pathSpan.Contains("/metrics", StringComparison.OrdinalIgnoreCase) ||
-               pathSpan.Contains("/swagger", StringComparison.OrdinalIgnoreCase) ||
-               pathSpan.StartsWith("/css", StringComparison.OrdinalIgnoreCase) ||
-               pathSpan.StartsWith("/js", StringComparison.OrdinalIgnoreCase) ||
-               pathSpan.StartsWith("/images", StringComparison.OrdinalIgnoreCase);
+        return pathSpan.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/health/", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.Equals("/metrics", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/metrics/", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.Equals("/swagger", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/swagger/", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/css/", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/js/", StringComparison.OrdinalIgnoreCase) ||
+               pathSpan.StartsWith("/images/", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GetClientIpAddress(HttpContext context)

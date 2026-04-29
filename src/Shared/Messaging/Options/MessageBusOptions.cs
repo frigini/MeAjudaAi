@@ -22,7 +22,7 @@ public sealed class MessageBusOptions
     public Func<Type, string> TopicNamingConvention { get; set; } =
         type =>
         {
-            if (string.IsNullOrEmpty(type.Namespace)) return "events.events";
+            if (string.IsNullOrEmpty(type.Namespace)) return $"events.{type.Name.ToLowerInvariant()}";
             
             var nsSpan = type.Namespace.AsSpan();
             var lastDotIndex = nsSpan.LastIndexOf('.');
@@ -36,4 +36,12 @@ public sealed class MessageBusOptions
 
     public Func<Type, string> SubscriptionNamingConvention { get; set; } =
         type => Environment.MachineName.ToLowerInvariant();
+}
+
+public class OptionsTopicNameConvention(MessageBusOptions options) : global::Rebus.Topic.ITopicNameConvention
+{
+    public string GetTopic(Type eventType)
+    {
+        return options.TopicNamingConvention(eventType);
+    }
 }
