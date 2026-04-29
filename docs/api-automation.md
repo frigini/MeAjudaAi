@@ -138,23 +138,8 @@ cd tools/api-collections
 - ✅ Inicia API em background
 - ✅ Aguarda API ficar pronta
 - ✅ Gera `api-spec.json`
-- ✅ Gera Postman Collections
 - ✅ Cria Environments (dev/prod)
 - ✅ Para a API
-
-### Opção 2: Node.js apenas (spec + collections)
-
-```bash
-# Pré-requisito: API rodando
-cd src/Bootstrapper/MeAjudaAi.ApiService
-dotnet run
-```
-
-**Vantagens:**
-- ✅ Gera api-spec.json
-- ✅ Gera Collections
-- ✅ Cria environments (dev/prod)
-- ✅ Testes automáticos incluídos
 
 ## 🔧 Configuração Inicial
 

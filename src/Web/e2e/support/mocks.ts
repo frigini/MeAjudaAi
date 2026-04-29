@@ -161,27 +161,25 @@ export function setupProviderMocks(page: Page) {
       contentType: 'application/json',
       body: JSON.stringify({
         data: {
-          data: {
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            name: 'Provider Test',
-            isActive: true,
-            verificationStatus: 3,
-            type: 0,
-            businessProfile: {
-              description: 'Prestador de serviços de teste para E2E.',
-              contactInfo: { 
-                email: 'provider@test.com', 
-                phoneNumber: '11999999999' 
-              }
-            },
-            services: [
-              { serviceId: '550e8400-e29b-41d4-a716-446655440101', serviceName: 'Limpeza Residencial' },
-              { serviceId: '550e8400-e29b-41d4-a716-446655440102', serviceName: 'Reparo Elétrico' }
-            ]
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'Provider Test',
+          isActive: true,
+          verificationStatus: 3,
+          type: 0,
+          businessProfile: {
+            description: 'Prestador de serviços de teste para E2E.',
+            contactInfo: { 
+              email: 'provider@test.com', 
+              phoneNumber: '11999999999' 
+            }
           },
-          success: true,
-          error: null
-        }
+          services: [
+            { serviceId: '550e8400-e29b-41d4-a716-446655440101', serviceName: 'Limpeza Residencial' },
+            { serviceId: '550e8400-e29b-41d4-a716-446655440102', serviceName: 'Reparo Elétrico' }
+          ]
+        },
+        success: true,
+        error: null
       }),
     });
   });

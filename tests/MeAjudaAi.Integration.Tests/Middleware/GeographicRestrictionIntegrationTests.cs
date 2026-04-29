@@ -202,12 +202,17 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
     /// Devem ser rejeitados com status 451 (Unavailable For Legal Reasons) para impedir acesso indevido por ambiguidade.
     /// </summary>
     [Theory]
+    [InlineData("Muriaé")] // No separator
+    [InlineData("MG")] // No separator  
     [InlineData("Muriaé|")] // City without state
     [InlineData("|MG")] // State without city
     [InlineData("Muriaé| ")] // City with empty state (spaces)
     [InlineData(" |MG")] // Empty city (spaces) with state
     [InlineData("|")] // Both empty
     [InlineData("  |  ")] // Both empty with spaces
+    [InlineData("Muriaé||MG")] // Empty between separators
+    [InlineData("Muriaé|MG|Extra")] // Too many separators
+    [InlineData("")] // Empty string
     public async Task GetProviders_WithMalformedLocationHeader_ShouldBeRejected(string malformedLocation)
     {
         // Arrange

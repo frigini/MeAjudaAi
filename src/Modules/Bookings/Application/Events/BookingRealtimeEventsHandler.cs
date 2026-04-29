@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Modules.Bookings.Application.Constants;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Shared.Events;
@@ -18,27 +19,27 @@ public class BookingRealtimeEventsHandler(
 {
     public async Task HandleAsync(BookingCreatedDomainEvent @event, CancellationToken cancellationToken = default)
     {
-        await PublishUpdate(@event.AggregateId, EBookingStatus.Pending, "Reserva criada com sucesso", cancellationToken);
+        await PublishUpdate(@event.AggregateId, EBookingStatus.Pending, BookingSseMessages.Created, cancellationToken);
     }
 
     public async Task HandleAsync(BookingConfirmedDomainEvent @event, CancellationToken cancellationToken = default)
     {
-        await PublishUpdate(@event.AggregateId, EBookingStatus.Confirmed, "Reserva confirmada pelo prestador", cancellationToken);
+        await PublishUpdate(@event.AggregateId, EBookingStatus.Confirmed, BookingSseMessages.Confirmed, cancellationToken);
     }
 
     public async Task HandleAsync(BookingCancelledDomainEvent @event, CancellationToken cancellationToken = default)
     {
-        await PublishUpdate(@event.AggregateId, EBookingStatus.Cancelled, "Reserva cancelada", cancellationToken);
+        await PublishUpdate(@event.AggregateId, EBookingStatus.Cancelled, BookingSseMessages.Cancelled, cancellationToken);
     }
 
     public async Task HandleAsync(BookingRejectedDomainEvent @event, CancellationToken cancellationToken = default)
     {
-        await PublishUpdate(@event.AggregateId, EBookingStatus.Rejected, "Reserva rejeitada pelo prestador", cancellationToken);
+        await PublishUpdate(@event.AggregateId, EBookingStatus.Rejected, BookingSseMessages.Rejected, cancellationToken);
     }
 
     public async Task HandleAsync(BookingCompletedDomainEvent @event, CancellationToken cancellationToken = default)
     {
-        await PublishUpdate(@event.AggregateId, EBookingStatus.Completed, "Serviço finalizado", cancellationToken);
+        await PublishUpdate(@event.AggregateId, EBookingStatus.Completed, BookingSseMessages.Completed, cancellationToken);
     }
 
     private async Task PublishUpdate(Guid bookingId, EBookingStatus status, string message, CancellationToken cancellationToken)
