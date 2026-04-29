@@ -3,6 +3,7 @@ using System.Security.Claims;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options.RateLimit;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Logging;
@@ -24,6 +25,9 @@ public static class ServiceCollectionExtensions
         // Detecta se estamos em ambiente de teste (integração ou E2E)
         var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase) ||
                                environment.IsEnvironment("Testing");
+
+        // Configuração de Rate Limiting
+        services.Configure<RateLimitOptions>(configuration.GetSection("AdvancedRateLimit"));
 
         services.AddDocumentation();
         services.AddApiVersioning(); // Adiciona versionamento de API

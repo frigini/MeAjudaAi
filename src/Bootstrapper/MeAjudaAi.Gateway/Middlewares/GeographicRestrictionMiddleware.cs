@@ -54,7 +54,7 @@ public class GeographicRestrictionMiddleware(
             context.Response.ContentType = "application/json";
 
             var allowedRegions = GetAllowedRegionsDescription();
-            var template = options.CurrentValue.BlockedMessage ?? "Access from your region is not allowed. Allowed regions: {allowedRegions}.";
+            var template = options.CurrentValue.BlockedMessage ?? "Acesso da sua região não permitido. Regiões permitidas: {allowedRegions}.";
             var message = template.Replace("{allowedRegions}", allowedRegions);
 
             var allowedCitiesResponse = options.CurrentValue.AllowedCities?
@@ -132,8 +132,14 @@ public class GeographicRestrictionMiddleware(
 
         if (string.IsNullOrEmpty(city) && string.IsNullOrEmpty(state))
         {
-            logger.LogWarning("Geographic restriction: Could not determine user location, allowing access (fail-open)");
-            return true;
+            var failOpen = options.CurrentValue.FailOpen;
+            if (failOpen)
+            {
+                logger.LogWarning("Geographic restriction: Could not determine user location, allowing access (FailOpen=true)");
+                return true;
+            }
+            logger.LogError("Geographic restriction: Could not determine user location, rejecting request (FailOpen=false)");
+            return false;
         }
 
         var simpleValidation = ValidateLocationSimple(city, state);
@@ -172,8 +178,13 @@ public class GeographicRestrictionMiddleware(
                         configCityOnly.Equals(city, StringComparison.OrdinalIgnoreCase))
                     {
                         if (string.IsNullOrEmpty(state)) return true;
-                        return options.CurrentValue.AllowedStates?.Any(s =>
-                            s.Equals(state, StringComparison.OrdinalIgnoreCase)) == true;
+                        if (options.CurrentValue.AllowedStates == null || 
+                            !options.CurrentValue.AllowedStates.Any())
+                        {
+                            return false;
+                        }
+                        return options.CurrentValue.AllowedStates.Any(s =>
+                            s.Equals(state, StringComparison.OrdinalIgnoreCase));
                     }
                     continue;
                 }
@@ -183,7 +194,18 @@ public class GeographicRestrictionMiddleware(
 
                 if (configCity.Equals(city, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!string.IsNullOrEmpty(state)) return configState.Equals(state, StringComparison.OrdinalIgnoreCase);
+                    if (string.IsNullOrEmpty(configState))
+                    {
+                        return true;
+                    }
+                    if (!string.IsNullOrEmpty(state))
+                    {
+                        if (configState.Equals(state, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        continue;
+                    }
                     return true;
                 }
             }
@@ -201,8 +223,8 @@ public class GeographicRestrictionMiddleware(
 
     private string GetAllowedRegionsDescription()
     {
-        var cities = options.CurrentValue.AllowedCities?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedCities) : "N/A";
-        var states = options.CurrentValue.AllowedStates?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedStates) : "N/A";
-        return $"Cities: {cities} | States: {states}";
+        var cities = options.CurrentValue.AllowedCities?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedCities) : "Nenhuma";
+        var states = options.CurrentValue.AllowedStates?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedStates) : "Nenhum";
+        return $"Cidades: {cities} | Estados: {states}";
     }
 }

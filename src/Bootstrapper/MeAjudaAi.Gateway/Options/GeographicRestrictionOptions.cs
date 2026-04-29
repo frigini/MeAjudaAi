@@ -8,10 +8,9 @@ public sealed class GeographicRestrictionOptions
     public const string SectionName = "GeographicRestriction";
 
     /// <summary>
-    /// Lista de cidades permitidas no formato "Cidade|Estado" ou apenas "Cidade".
-    /// Exemplo: ["Muriaé|MG", "Itaperuna|RJ", "Linhares"]
+    /// Indica se a restrição geográfica está habilitada.
     /// </summary>
-    public List<string>? AllowedCities { get; set; }
+    public bool Enabled { get; set; } = false;
 
     /// <summary>
     /// Lista de estados permitidos (UF).
@@ -20,10 +19,21 @@ public sealed class GeographicRestrictionOptions
     public List<string>? AllowedStates { get; set; }
 
     /// <summary>
+    /// Lista de cidades permitidas no formato "Cidade|Estado" ou apenas "Cidade".
+    /// Exemplo: ["Muriaé|MG", "Itaperuna|RJ", "Linhares"]
+    /// </summary>
+    public List<string>? AllowedCities { get; set; }
+
+    /// <summary>
     /// Mensagem customizada para requisições bloqueadas.
     /// Suporta o placeholder {allowedRegions}.
     /// </summary>
     public string? BlockedMessage { get; set; }
+
+    /// <summary>
+    /// Mensagem padrão quando BlockedMessage não está configurado.
+    /// </summary>
+    public string? DefaultBlockedMessage { get; set; }
 
     /// <summary>
     /// Se true, permite acesso quando a localização não puder ser determinada (IP privado, sem cabeçalhos).

@@ -280,7 +280,7 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
-        builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)
@@ -291,5 +291,10 @@ internal static class Program
             .WaitFor(keycloak.Keycloak)
             .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
+
+        var gateway = builder.AddProject<Projects.MeAjudaAi_Gateway>("gateway")
+            .WithReference(apiService)
+            .WithExternalHttpEndpoints()
+            .WaitFor(apiService);
     }
 }

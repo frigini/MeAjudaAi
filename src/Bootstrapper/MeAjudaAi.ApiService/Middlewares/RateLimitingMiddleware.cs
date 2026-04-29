@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options.RateLimit;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
