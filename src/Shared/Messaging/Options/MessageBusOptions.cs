@@ -42,6 +42,9 @@ public class OptionsTopicNameConvention(MessageBusOptions options) : global::Reb
 {
     public string GetTopic(Type eventType)
     {
-        return options.TopicNamingConvention(eventType);
+        var convention = options.TopicNamingConvention;
+        return convention is not null 
+            ? convention(eventType) 
+            : $"events.{eventType.Name.ToLowerInvariant()}";
     }
 }

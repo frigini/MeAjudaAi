@@ -67,7 +67,7 @@ jobs:
           - 5432:5432
 
       azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:3.33.0
+        image: mcr.microsoft.com/azure-storage/azurite:3.33.0@sha256:2628ee10a72833cc344b9d194cd8b245543892b307d16cf26a2cf55a15b816af
         ports:
           - 10000:10000
           - 10001:10001

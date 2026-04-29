@@ -143,7 +143,7 @@ public sealed class BusinessMetricsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData("/api/help-requests/123/complete")]
+    [InlineData("/api/v1/help-requests/123/complete")]
     [InlineData("/api/v1/help-requests/543/complete")]
     public async Task InvokeAsync_WhenHelpRequestCompleted_ShouldRecordHelpRequestCompleted(string path)
     {

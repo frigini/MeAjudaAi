@@ -199,7 +199,7 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
 
     /// <summary>
     /// Testes de casos extremos para cabeçalhos de localização malformados.
-    /// Devem acionar comportamento fail-open (permitir acesso) já que a localização não pode ser determinada confiavelmente.
+    /// Devem ser rejeitados com status 451 (Unavailable For Legal Reasons) para impedir acesso indevido por ambiguidade.
     /// </summary>
     [Theory]
     [InlineData("Muriaé|")] // City without state

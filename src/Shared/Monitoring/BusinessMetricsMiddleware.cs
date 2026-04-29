@@ -16,7 +16,6 @@ public class BusinessMetricsMiddleware(
     ILogger<BusinessMetricsMiddleware> logger)
 {
     private static readonly Regex IdPattern = new(@"/\d+", RegexOptions.Compiled);
-    private static readonly Regex VersionedApiPattern = new(@"^/api/v\d+(?:/|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -87,10 +86,10 @@ public class BusinessMetricsMiddleware(
                 logger.LogInformation("Help request created");
             }
 
-            // Conclusão de ajuda (aceita rotas versionadas como /api/v1/help-requests/{id}/complete)
-            if (((pathSpan.StartsWith("/api/help-requests/", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/complete", StringComparison.OrdinalIgnoreCase)) || 
-                 (VersionedApiPattern.IsMatch(pathValue) && pathSpan.Contains("/help-requests/", StringComparison.OrdinalIgnoreCase) && pathSpan.EndsWith("/complete", StringComparison.OrdinalIgnoreCase))) && 
-                method == "POST" && statusCode is >= 200 and < 300)
+            // Conclusão de ajuda (aceita rotas exatas como /api/v1/help-requests/{id}/complete)
+            var isCompleteHelpPath = Regex.IsMatch(pathValue, @"^/api/v\d+/help-requests/[^/]+/complete$", RegexOptions.IgnoreCase);
+
+            if (isCompleteHelpPath && method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordHelpRequestCompleted("general", elapsed);
                 logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);

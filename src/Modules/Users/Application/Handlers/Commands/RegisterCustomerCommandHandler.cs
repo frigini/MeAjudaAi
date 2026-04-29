@@ -78,11 +78,7 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(Error.BadRequest(ex.Message));
         }
 
-        var rawEmailSpan = command.Email.AsSpan();
-        var rawAtIndex = rawEmailSpan.IndexOf('@');
-        var maskedEmail = rawAtIndex >= 0 
-            ? $"{new string('*', Math.Min(3, rawAtIndex))}@{rawEmailSpan[(rawAtIndex + 1)..].ToString()}" 
-            : "***@***";
+        var maskedEmail = PiiMaskingHelper.MaskEmail(command.Email);
 
         // Valida unicidade primeiro
         var existingEmail = await userRepository.GetByEmailAsync(emailAsValueObject, cancellationToken);
@@ -95,7 +91,7 @@ public sealed partial class RegisterCustomerCommandHandler(
         var nameSpan = command.Name.AsSpan().Trim();
         var firstSpace = nameSpan.IndexOf(' ');
         
-        var firstName = firstSpace >= 0 ? nameSpan[..firstSpace].ToString() : command.Name.Trim();
+        var firstName = firstSpace >= 0 ? nameSpan[..firstSpace].ToString() : nameSpan.ToString();
         var lastName = firstSpace >= 0 ? nameSpan[(firstSpace + 1)..].TrimStart().ToString() : string.Empty;
         
         if (firstName.Length < ValidationConstants.UserLimits.FirstNameMinLength)
