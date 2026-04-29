@@ -187,6 +187,39 @@ export function setupProviderMocks(page: Page) {
     });
   });
 
+  // Also intercept requests to port 7002 (default API port for Provider app)
+  page.route('http://localhost:7002/api/v1/providers/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          data: {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'Provider Test',
+            isActive: true,
+            verificationStatus: 3,
+            type: 0,
+            businessProfile: {
+              description: 'Prestador de serviços de teste para E2E.',
+              contactInfo: { 
+                email: 'provider@test.com', 
+                phoneNumber: '11999999999' 
+              }
+            },
+            services: [
+              { serviceId: '550e8400-e29b-41d4-a716-446655440101', serviceName: 'Limpeza Residencial' },
+              { serviceId: '550e8400-e29b-41d4-a716-446655440102', serviceName: 'Reparo Elétrico' }
+            ]
+          },
+          isSuccess: true
+        },
+        success: true,
+        error: null
+      }),
+    });
+  });
+
   page.route('**/api/v1/providers/me/services**', async (route) => {
     await route.fulfill({
       status: 200,
