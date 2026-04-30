@@ -11,10 +11,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
-using System.Threading.RateLimiting;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

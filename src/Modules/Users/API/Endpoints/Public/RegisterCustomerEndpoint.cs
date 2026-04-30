@@ -35,7 +35,6 @@ public class RegisterCustomerEndpoint : IEndpoint
         .WithTags("Users")
         .WithSummary("Registers a new customer")
         .WithDescription("Creates a new user account with 'customer' role.")
-        .RequireRateLimiting(RateLimitPolicies.Registration)
         .AllowAnonymous(); // Endpoint público
     }
 }

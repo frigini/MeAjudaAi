@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Geolocation;
@@ -6,6 +7,7 @@ using MeAjudaAi.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.FeatureManagement;
+using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,10 @@ builder.Services.Configure<GeographicRestrictionOptions>(
     builder.Configuration.GetSection(GeographicRestrictionOptions.SectionName));
 builder.Services.Configure<RateLimitingOptions>(
     builder.Configuration.GetSection(RateLimitingOptions.SectionName));
+builder.Services.Configure<GatewayResilienceOptions>(
+    builder.Configuration.GetSection(GatewayResilienceOptions.SectionName));
+builder.Services.Configure<EdgeAuthGuardOptions>(
+    builder.Configuration.GetSection(EdgeAuthGuardOptions.SectionName));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddFeatureManagement();
@@ -80,6 +86,8 @@ builder.Services.AddAuthorization();
 
 var timeoutSeconds = builder.Configuration.GetValue<int>("GatewayResilience:TimeoutSeconds", 30);
 
+builder.Services.AddSingleton<IForwarderHttpClientFactory, ResilientForwarderHttpClientFactory>();
+
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(transforms =>
@@ -97,6 +105,8 @@ builder.Services.AddReverseProxy()
 var app = builder.Build();
 
 app.UseCors();
+
+app.UseEdgeAuthGuard();
 
 app.UseAuthentication();
 app.UseAuthorization();
