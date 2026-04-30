@@ -276,12 +276,95 @@ public class RateLimitingMiddlewareBehaviorTests
     }
 
     [Fact]
+    public async Task InvokeAsync_LimitExceeded_ResponseBodyContainsJsonFields()
+    {
+        var middleware = CreateMiddleware(configureOptions: opts =>
+        {
+            opts.Anonymous.RequestsPerMinute = 1;
+            opts.Anonymous.RequestsPerHour = 100;
+            opts.Anonymous.RequestsPerDay = 10000;
+            opts.General.ErrorMessage = "Too many requests";
+        });
+
+        var responseBody = new System.IO.MemoryStream();
+        var context = new DefaultHttpContext();
+        context.Response.Body = responseBody;
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("10.0.0.1");
+
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(429);
+
+        responseBody.Seek(0, System.IO.SeekOrigin.Begin);
+        var json = await new System.IO.StreamReader(responseBody).ReadToEndAsync();
+        json.Should().Contain("RateLimitExceeded");
+        json.Should().Contain("retryAfterSeconds");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_NullRemoteIpAddress_UsesUnknown()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; },
+            configureOptions: opts =>
+            {
+                opts.Anonymous.RequestsPerMinute = 100;
+            });
+
+        var context = new DefaultHttpContext();
+        // RemoteIpAddress is null by default in DefaultHttpContext
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ZeroWindowSeconds_UsesMinimumOfOne()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; },
+            configureOptions: opts =>
+            {
+                opts.General.WindowInSeconds = 0; // Should be clamped to 1
+                opts.Anonymous.RequestsPerMinute = 100;
+            });
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("10.0.0.2");
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhitelistEnabled_NonWhitelistedIp_IsRateLimited()
+    {
+        var middleware = CreateMiddleware(configureOptions: opts =>
+        {
+            opts.General.EnableIpWhitelist = true;
+            opts.General.WhitelistedIps = ["127.0.0.1"];
+            opts.Anonymous.RequestsPerMinute = 1;
+        });
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("192.168.5.5");
+
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(429);
+    }
+
+    [Fact]
     public async Task InvokeAsync_LimitExceeded_SetsCorrectStatusCodeAndHeaders()
     {
         var loggerMock = new Mock<ILogger<RateLimitingMiddleware>>();
         var optionsMock = new Mock<IOptionsMonitor<RateLimitingOptions>>();
         var cache = new MemoryCache(new MemoryCacheOptions());
-        
+
         var options = new RateLimitingOptions
         {
             General = new GeneralSettings
@@ -325,7 +408,7 @@ public class RateLimitingMiddlewareBehaviorTests
         var loggerMock = new Mock<ILogger<RateLimitingMiddleware>>();
         var optionsMock = new Mock<IOptionsMonitor<RateLimitingOptions>>();
         var cache = new MemoryCache(new MemoryCacheOptions());
-        
+
         var options = new RateLimitingOptions
         {
             General = new GeneralSettings

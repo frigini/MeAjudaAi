@@ -292,6 +292,260 @@ public class GeographicRestrictionMiddlewareBehaviorTests
     }
 
     [Fact]
+    public async Task InvokeAsync_OptionsDisabled_FeatureEnabled_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(
+            _ => { nextCalled = true; return Task.CompletedTask; },
+            configure: opts => { opts.Enabled = false; opts.FailOpen = false; });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "Blockedville|BA";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_SwaggerPath_Bypasses()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/swagger/index.html";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_FrameworkPath_Bypasses()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/_framework/blazor.webassembly.js";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_XUserCityHeader_AllowedCity_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(
+            _ => { nextCalled = true; return Task.CompletedTask; },
+            configure: opts =>
+            {
+                opts.AllowedStates = ["SP"];
+                opts.AllowedCities = [];
+            });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-City"] = "São Paulo";
+        context.Request.Headers["X-User-State"] = "SP";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_XUserCityHeader_BlockedCity_Returns451()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedStates = ["SP"];
+            opts.AllowedCities = [];
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-City"] = "Salvador";
+        context.Request.Headers["X-User-State"] = "BA";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(451);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_AllowedCityWithStateFormat_MatchingCity_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(
+            _ => { nextCalled = true; return Task.CompletedTask; },
+            configure: opts =>
+            {
+                opts.AllowedStates = [];
+                opts.AllowedCities = ["São Paulo|SP", "Rio de Janeiro|RJ"];
+            });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "São Paulo|SP";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_AllowedCityWithStateFormat_WrongState_Returns451()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedStates = [];
+            opts.AllowedCities = ["São Paulo|SP"];
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "São Paulo|RJ";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(451);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_CityOnlyConfig_MatchingCity_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(
+            _ => { nextCalled = true; return Task.CompletedTask; },
+            configure: opts =>
+            {
+                opts.AllowedStates = [];
+                opts.AllowedCities = ["São Paulo"];
+            });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "São Paulo|SP";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_IbgeServiceException_FallsBackToSimpleValidation_AndBlocks()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedStates = ["SP"];
+            opts.AllowedCities = [];
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        // Simulate IBGE service that throws an exception
+        var ibgeServiceMock = new Mock<MeAjudaAi.Shared.Geolocation.IGeographicValidationService>();
+        ibgeServiceMock
+            .Setup(x => x.ValidateCityAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("IBGE unavailable"));
+
+        var context = new DefaultHttpContext();
+        // City "Salvador" / state "BA" is NOT in AllowedStates (only SP allowed)
+        // simpleValidation = false → IBGE is invoked → throws → fallback to simpleValidation (false) → blocked
+        context.Request.Headers["X-User-Location"] = "Salvador|BA";
+
+        await middleware.InvokeAsync(context, ibgeServiceMock.Object);
+
+        context.Response.StatusCode.Should().Be(451);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_BlockedResponse_ContainsExpectedJsonFields()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedStates = ["SP"];
+            opts.AllowedCities = ["São Paulo|SP"];
+            opts.BlockedMessage = "Acesso bloqueado. Regiões: {allowedRegions}.";
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var responseBody = new System.IO.MemoryStream();
+        var context = new DefaultHttpContext();
+        context.Response.Body = responseBody;
+        context.Request.Headers["X-User-Location"] = "Salvador|BA";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(451);
+        context.Response.ContentType.Should().Be("application/json");
+        responseBody.Seek(0, System.IO.SeekOrigin.Begin);
+        var json = await new System.IO.StreamReader(responseBody).ReadToEndAsync();
+        json.Should().Contain("message");
+        json.Should().Contain("userLocation");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_NoAllowedCitiesOrStates_AllowsEveryone()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(
+            _ => { nextCalled = true; return Task.CompletedTask; },
+            configure: opts =>
+            {
+                opts.AllowedStates = [];
+                opts.AllowedCities = [];
+            });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "Anywhere|XX";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task InvokeAsync_BlockedCity_Returns451()
     {
         var nextCalled = false;
