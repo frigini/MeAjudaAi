@@ -28,7 +28,7 @@ runs:
 
     - name: Restore dependencies
       shell: bash
-      run: dotnet restore ${{ inputs.solution-path }}
+      run: dotnet restore ${{ inputs.solution-path }} --force-evaluate
 
     - name: Install Tools
       shell: bash

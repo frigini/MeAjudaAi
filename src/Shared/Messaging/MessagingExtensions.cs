@@ -194,13 +194,8 @@ public static class MessagingExtensions
             return;
         }
 
-        var entryAssembly = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name;
-        if (entryAssembly != null && (entryAssembly.Contains("swashbuckle", StringComparison.OrdinalIgnoreCase) || 
-                                      entryAssembly.Contains("swagger", StringComparison.OrdinalIgnoreCase)))
-        {
-            return;
-        }
-
+        // Verificar registro do manager ANTES de qualquer early return para garantir fail-fast em cenários de DI incorretos
+        // (exceto para ambientes de testing onde Infrastructure é stubbed)
         var manager = scope.ServiceProvider.GetService<IRabbitMqInfrastructureManager>();
         if (manager is null)
         {
@@ -211,6 +206,13 @@ public static class MessagingExtensions
                 "Ensure that AddRabbitMqInfrastructure() or AddMessaging() has been called to register " +
                 "the RabbitMQ infrastructure. The application cannot start with messaging enabled but " +
                 "missing the required infrastructure manager.");
+        }
+
+        var entryAssembly = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name;
+        if (entryAssembly != null && (entryAssembly.Contains("swashbuckle", StringComparison.OrdinalIgnoreCase) || 
+                                      entryAssembly.Contains("swagger", StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
         }
 
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();

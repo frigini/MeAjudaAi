@@ -15,6 +15,7 @@
     <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.7" />
     <!-- .NET & Microsoft Core -->
+    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="10.0.7" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <!-- Pacotes Microsoft.Build - atualizados para 18.0.2 (CVE-2025-55247 resolvido) -->
@@ -177,7 +178,6 @@
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
     <PackageVersion Include="Refit" Version="10.1.6" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.1.6" />
-    <!-- Testes Blazor -->
-    <PackageVersion Include="bUnit" Version="2.6.2" />
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 </Project>

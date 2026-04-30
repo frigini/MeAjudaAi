@@ -22,6 +22,14 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **API Client Collections**: Adição de endpoints SSE para streaming de eventos (`/bookings/{id}/events`, `/providers/{id}/verification-events`), correções de paths em AllowedCitiesAdmin, padronização de variáveis (`{{bookingId}}`), remoção de tools/api-collections e referências a Postman nos docs.
 *   **Código e Testes**: Extração de constantes de mensagens SSE em BookingRealtimeEventsHandler, pré-compilação de Regex em BusinessMetricsMiddleware, expansão de casos de teste para headers de localização malformados.
 
+## 🚀 Sprint 13.2: Edge Infrastructure & API Gateway (Planejado)
+
+*   **Implementação do YARP Gateway**: Criação do projeto `MeAjudaAi.Gateway` como ponto único de entrada para todos os frontends (Admin, Mobile, Web).
+*   **BFF (Backend for Frontend)**: Configuração de rotas segregadas e políticas de CORS/Rate Limiting específicas para cada perfil de acesso.
+*   **Security Hardening**: Centralização de validação de tokens JWT/Keycloak e sanitização de headers globais no Gateway.
+*   **Service Discovery**: Integração com .NET Aspire para roteamento dinâmico para o ApiService.
+*   **Resiliência**: Configuração de retentativas (Retries) e Circuit Breaker para endpoints críticos de integração.
+
 ---
 
 ## 🔮 Roadmaps Futuros (MVP Launch & Além)

@@ -135,7 +135,14 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
 
     private static string GetClientIpAddress(HttpContext context)
     {
-        // Considera proxies e load balancers
+        // Usar RemoteIpAddress que já foi normalizado pelo UseForwardedHeaders
+        var remoteIp = context.Connection.RemoteIpAddress?.ToString();
+        if (!string.IsNullOrEmpty(remoteIp) && remoteIp != "::1" && remoteIp != "127.0.0.1")
+        {
+            return remoteIp;
+        }
+
+        // Fallback para headers de proxy apenas se RemoteIpAddress não disponível
         var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         if (!string.IsNullOrEmpty(xForwardedFor))
         {
@@ -151,7 +158,13 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
             return xRealIp;
         }
 
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        // Se RemoteIpAddress for loopback ou null, retornar "unknown"
+        if (string.IsNullOrEmpty(remoteIp) || remoteIp == "::1" || remoteIp == "127.0.0.1")
+        {
+            return "unknown";
+        }
+
+        return remoteIp;
     }
 
     private static string GetUserId(HttpContext context)

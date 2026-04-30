@@ -15,6 +15,7 @@
   </Folder>
   <Folder Name="/src/Bootstrapper/">
     <Project Path="src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj" />
+    <Project Path="src/Bootstrapper/MeAjudaAi.Gateway/MeAjudaAi.Gateway.csproj" />
   </Folder>
   <Folder Name="/src/Client/">
     <Project Path="src/Client/MeAjudaAi.Client.Contracts/MeAjudaAi.Client.Contracts.csproj" />
@@ -192,6 +193,7 @@
     <Project Path="tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj" />
+    <Project Path="tests/MeAjudaAi.Gateway.Tests/MeAjudaAi.Gateway.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj" />
   </Folder>

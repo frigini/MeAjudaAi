@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.Modules.Communications.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.API;
@@ -16,6 +17,7 @@ using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Seeding;
+using Microsoft.FeatureManagement;
 using Serilog;
 using Serilog.Context;
 
@@ -59,7 +61,10 @@ public partial class Program
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
-            builder.Services.AddCustomRateLimiting(builder.Configuration);
+
+            builder.Services.AddCors();
+
+            builder.Services.AddFeatureManagement();
 
             var app = builder.Build();
 
@@ -127,11 +132,21 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
+if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
+        {
+            app.UseCors(policy =>
+            {
+                policy.SetIsOriginAllowed(_ => true)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        }
+
         app.MapDefaultEndpoints();
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
-        app.UseRateLimiter();
         app.UseUsersModule();
         app.UseProvidersModule();
         app.UseDocumentsModule();

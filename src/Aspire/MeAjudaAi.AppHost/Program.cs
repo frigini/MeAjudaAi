@@ -210,6 +210,11 @@ internal static class Program
             .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
+        var gateway = builder.AddProject<Projects.MeAjudaAi_Gateway>("gateway")
+            .WithReference(apiService)
+            .WithExternalHttpEndpoints()
+            .WaitFor(apiService);
+
         // Admin Portal (Next.js 15 React)
         var adminWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Admin");
         if (!Directory.Exists(adminWebPath))
@@ -220,8 +225,8 @@ internal static class Program
         var adminPortal = builder.AddJavaScriptApp("admin-portal", adminWebPath)
             .WithHttpEndpoint(port: 3002, env: "PORT")
             .WithExternalHttpEndpoints()
-            .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
-            .WaitFor(apiService)
+            .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
+            .WaitFor(gateway)
             .WaitFor(keycloak.Keycloak)
             .WaitFor(keycloakBootstrap);
 
@@ -235,8 +240,8 @@ internal static class Program
         var customerWeb = builder.AddJavaScriptApp("customer-web", customerWebPath)
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()
-            .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
-            .WaitFor(apiService)
+            .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
+            .WaitFor(gateway)
             .WaitFor(keycloakBootstrap);
             // Nota: AddJavaScriptApp usa "dev" script por padrão em desenvolvimento
             // e "build" script em produção. Ver package.json para scripts configurados.
@@ -251,8 +256,8 @@ internal static class Program
         var providerWeb = builder.AddJavaScriptApp("provider-web", providerWebPath)
             .WithHttpEndpoint(port: 3001, env: "PORT")
             .WithExternalHttpEndpoints()
-            .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
-            .WaitFor(apiService)
+            .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
+            .WaitFor(gateway)
             .WaitFor(keycloakBootstrap);
 
         // Pass resolved endpoints to Keycloak options for bootstrap
@@ -275,7 +280,7 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
-        builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)
@@ -286,5 +291,10 @@ internal static class Program
             .WaitFor(keycloak.Keycloak)
             .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
+
+        var gateway = builder.AddProject<Projects.MeAjudaAi_Gateway>("gateway")
+            .WithReference(apiService)
+            .WithExternalHttpEndpoints()
+            .WaitFor(apiService);
     }
 }

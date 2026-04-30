@@ -6,6 +6,7 @@ using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Middleware;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,45 +22,18 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        // Valida a configuração de segurança logo no início do startup
-        SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
-
         // Detecta se estamos em ambiente de teste (integração ou E2E)
         var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase) ||
                                environment.IsEnvironment("Testing");
 
-        // Registro da configuração de Rate Limit com validação usando Options pattern
-        // Suporte tanto para nova seção "AdvancedRateLimit" quanto para legado "RateLimit"
-        var optionsBuilder = services.AddOptions<RateLimitOptions>()
-            .BindConfiguration(RateLimitOptions.SectionName) // "AdvancedRateLimit"
-            .BindConfiguration("RateLimit") // fallback para configuração legada
-            .ValidateDataAnnotations(); // Valida atributos [Required] etc.
-
-        // Apenas valida na inicialização se NÃO estiver em ambiente de teste
-
-        if (!isTestEnvironment)
-        {
-            optionsBuilder.ValidateOnStart() // Valida na inicialização da aplicação
-                .Validate(options =>
-                {
-                    // Validações customizadas para a configuração avançada
-                    if (options.Anonymous.RequestsPerMinute <= 0 || options.Anonymous.RequestsPerHour <= 0 || options.Anonymous.RequestsPerDay <= 0)
-                        return false;
-                    if (options.Authenticated.RequestsPerMinute <= 0 || options.Authenticated.RequestsPerHour <= 0 || options.Authenticated.RequestsPerDay <= 0)
-                        return false;
-                    if (options.General.WindowInSeconds <= 0)
-                        return false;
-                    if (options.General.EnableIpWhitelist && (options.General.WhitelistedIps == null || options.General.WhitelistedIps.Count == 0))
-                        return false;
-                    return true;
-                }, "Rate limit configuration is invalid. All limits must be greater than zero.");
-        }
-
         services.AddDocumentation();
         services.AddApiVersioning(); // Adiciona versionamento de API
-        services.AddCorsPolicy(configuration, environment);
         services.AddCustomAntiforgery();
         services.AddMemoryCache();
+
+        // Configuração de GeographicRestriction (vincula as opções do appsettings.json)
+        services.Configure<GeographicRestrictionOptions>(
+            configuration.GetSection(GeographicRestrictionOptions.SectionName));
 
         // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
         services.Configure<ForwardedHeadersOptions>(options =>
@@ -75,10 +49,6 @@ public static class ServiceCollectionExtensions
             // Exemplo para Docker/Kubernetes:
             // options.KnownIPNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
         });
-
-        // Configurar Geographic Restriction
-        services.Configure<GeographicRestrictionOptions>(
-            configuration.GetSection("GeographicRestriction"));
 
         // Configuração de autenticação baseada no ambiente
         if (!isTestEnvironment)
@@ -153,9 +123,6 @@ public static class ServiceCollectionExtensions
         app.UseResponseCompression();
         app.UseResponseCaching();
 
-        // Geographic Restriction ANTES de qualquer roteamento
-        app.UseMiddleware<GeographicRestrictionMiddleware>();
-
         // Middleware de arquivos estáticos com cache
         app.UseMiddleware<StaticFilesMiddleware>();
         app.UseStaticFiles();
@@ -165,13 +132,14 @@ public static class ServiceCollectionExtensions
 
         app.UseApiMiddlewares();
 
+        app.UseMiddleware<GeographicRestrictionMiddleware>();
+
         // Documentação apenas em desenvolvimento e testes
         if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
         {
             app.UseDocumentation();
         }
 
-        app.UseCors("DefaultPolicy");
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAntiforgery();
