@@ -31,6 +31,10 @@ public static class ServiceCollectionExtensions
         services.AddCustomAntiforgery();
         services.AddMemoryCache();
 
+        // Configuração de GeographicRestriction (vincula as opções do appsettings.json)
+        services.Configure<GeographicRestrictionOptions>(
+            configuration.GetSection(GeographicRestrictionOptions.SectionName));
+
         // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
         services.Configure<ForwardedHeadersOptions>(options =>
         {
@@ -128,7 +132,6 @@ public static class ServiceCollectionExtensions
 
         app.UseApiMiddlewares();
 
-        // Geographic restriction (deve rodar antes de authentication para permitir 451 sem auth)
         app.UseMiddleware<GeographicRestrictionMiddleware>();
 
         // Documentação apenas em desenvolvimento e testes

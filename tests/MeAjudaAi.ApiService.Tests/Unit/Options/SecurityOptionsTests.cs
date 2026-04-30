@@ -1,12 +1,11 @@
 using FluentAssertions;
-using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Options;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Options;
 
 [Trait("Category", "Unit")]
 [Trait("Layer", "ApiService")]
-public class OptionsTests
+public class SecurityOptionsTests
 {
     [Fact]
     public void SecurityOptions_DefaultValues_ShouldBeInitialized()

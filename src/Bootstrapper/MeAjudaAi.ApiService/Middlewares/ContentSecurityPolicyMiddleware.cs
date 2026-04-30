@@ -56,7 +56,7 @@ public class ContentSecurityPolicyMiddleware
         else
         {
             // Em produção, usar configurações
-            var keycloakAuthority = configuration["Keycloak:Authority"] ?? "";
+            var keycloakAuthority = GetKeycloakAuthority(configuration);
             var apiBaseUrl = configuration["ApiBaseUrl"] ?? "";
             var websocketUrl = configuration["WebSocketUrl"] ?? "";
             
@@ -118,6 +118,20 @@ public class ContentSecurityPolicyMiddleware
         var finalPolicy = string.Join("; ", policy.Where(p => !string.IsNullOrWhiteSpace(p)));
 
         return finalPolicy;
+    }
+
+    private static string GetKeycloakAuthority(IConfiguration configuration)
+    {
+        var authority = configuration["Keycloak:Authority"];
+        if (!string.IsNullOrWhiteSpace(authority))
+            return authority;
+
+        var baseUrl = configuration["Keycloak:BaseUrl"];
+        var realm = configuration["Keycloak:Realm"];
+        if (!string.IsNullOrWhiteSpace(baseUrl) && !string.IsNullOrWhiteSpace(realm))
+            return $"{baseUrl.TrimEnd('/')}/realms/{realm}";
+
+        return "";
     }
 }
 

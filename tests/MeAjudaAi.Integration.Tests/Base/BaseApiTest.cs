@@ -33,6 +33,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
+using Moq;
 using Xunit;
 using System.Runtime.CompilerServices;
 
@@ -124,7 +126,10 @@ public abstract class BaseApiTest : IAsyncLifetime
 
                 var wireMockUrl = _wireMockFixture!.BaseUrl;
 
-                // Configurar URLs do WireMock nos provedores de CEP específicos para esta instância
+                builder.UseSetting("FeatureManagement:GeographicRestriction", "true");
+                builder.UseSetting("GeographicRestriction:Enabled", "true");
+                builder.UseSetting("GeographicRestriction:FailOpen", "true");
+
                 builder.UseSetting("Locations:ExternalApis:ViaCep:BaseUrl", wireMockUrl);
                 builder.UseSetting("Locations:ExternalApis:BrasilApi:BaseUrl", wireMockUrl);
                 builder.UseSetting("Locations:ExternalApis:OpenCep:BaseUrl", wireMockUrl);
@@ -145,19 +150,19 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Messaging:Provider"] = "Mock",
                         ["Keycloak:Enabled"] = "false",
                         ["FeatureManagement:GeographicRestriction"] = "true",
-                        ["Locations:ExternalApis:ViaCep:BaseUrl"] = wireMockUrl,
-                        ["Locations:ExternalApis:BrasilApi:BaseUrl"] = wireMockUrl,
-                        ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
-                        ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
-                        ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
                         ["GeographicRestriction:Enabled"] = "true",
-                        ["GeographicRestriction:FailOpen"] = "false",
+                        ["GeographicRestriction:FailOpen"] = "true",
                         ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
                         ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
                         ["GeographicRestriction:AllowedCities:2"] = "Linhares",
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
                         ["GeographicRestriction:AllowedStates:1"] = "RJ",
                         ["GeographicRestriction:AllowedStates:2"] = "ES",
+                        ["Locations:ExternalApis:ViaCep:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:BrasilApi:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
                         ["Cache:Enabled"] = "false",
                         ["RateLimit:Enabled"] = "false",
                         ["AdvancedRateLimit:General:Enabled"] = "false"
@@ -201,7 +206,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     // Register dummy Stripe client to satisfy DI validation
                     services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
                     
-                    services.AddHttpContextAccessor();
+services.AddHttpContextAccessor();
 
                     if (UseMockGeographicValidation)
                     {
