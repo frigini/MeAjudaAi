@@ -204,12 +204,162 @@ public class ContentSecurityPolicyMiddlewareTests
 
         // Assert
         var csp = context.Response.Headers["Content-Security-Policy"].ToString();
-        
+
         // Should contain basic CSP directives
         csp.Should().Contain("default-src");
         csp.Should().Contain("script-src");
         csp.Should().Contain("style-src");
         csp.Should().Contain("img-src");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionWithKeycloakAuthority_ShouldIncludeAuthorityInCsp()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+        _configurationMock.Setup(x => x["Keycloak:Authority"]).Returns("https://keycloak.example.com/realms/myrealm");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().Contain("https://keycloak.example.com/realms/myrealm");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionWithBaseUrlAndRealm_ShouldBuildKeycloakUrl()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+        _configurationMock.Setup(x => x["Keycloak:Authority"]).Returns((string?)null);
+        _configurationMock.Setup(x => x["Keycloak:BaseUrl"]).Returns("https://keycloak.example.com");
+        _configurationMock.Setup(x => x["Keycloak:Realm"]).Returns("meajudaai");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().Contain("https://keycloak.example.com/realms/meajudaai");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionWithNoKeycloakConfig_ShouldNotIncludeKeycloakInCsp()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+        _configurationMock.Setup(x => x["Keycloak:Authority"]).Returns((string?)null);
+        _configurationMock.Setup(x => x["Keycloak:BaseUrl"]).Returns((string?)null);
+        _configurationMock.Setup(x => x["Keycloak:Realm"]).Returns((string?)null);
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        // connect-src should only contain 'self' (no keycloak URL)
+        csp.Should().Contain("connect-src 'self'");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionWithBaseUrlTrailingSlash_ShouldBuildCorrectUrl()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+        _configurationMock.Setup(x => x["Keycloak:Authority"]).Returns((string?)null);
+        _configurationMock.Setup(x => x["Keycloak:BaseUrl"]).Returns("https://keycloak.example.com/");
+        _configurationMock.Setup(x => x["Keycloak:Realm"]).Returns("testrealm");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().Contain("https://keycloak.example.com/realms/testrealm");
+        csp.Should().NotContain("https://keycloak.example.com//realms/testrealm");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionWithApiBaseUrl_ShouldIncludeApiUrlInCsp()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+        _configurationMock.Setup(x => x["ApiBaseUrl"]).Returns("https://api.example.com");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().Contain("https://api.example.com");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionWithWebSocketUrl_ShouldIncludeWebSocketInCsp()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+        _configurationMock.Setup(x => x["WebSocketUrl"]).Returns("wss://ws.example.com");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().Contain("wss://ws.example.com");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ProductionEnvironment_ShouldContainUpgradeInsecureRequests()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Production");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().Contain("upgrade-insecure-requests");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_DevelopmentEnvironment_ShouldNotContainUpgradeInsecureRequests()
+    {
+        // Arrange
+        _environmentMock.SetupGet(x => x.EnvironmentName).Returns("Development");
+
+        var middleware = CreateMiddleware();
+        var context = CreateHttpContext();
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        csp.Should().NotContain("upgrade-insecure-requests");
     }
 
     private ContentSecurityPolicyMiddleware CreateMiddleware()
