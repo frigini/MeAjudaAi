@@ -64,14 +64,12 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
 
             var json = JsonSerializer.Deserialize<JsonElement>(content);
 
-            // Verify all expected fields are present
-            json.TryGetProperty("error", out var errorProp).Should().BeTrue($"Missing 'error' property. JSON: {content}");
-            json.TryGetProperty("detail", out var detailProp).Should().BeTrue($"Missing 'detail' property. JSON: {content}");
+            // Verify all expected fields are present (new response format from GeographicRestrictionErrorResponse)
+            json.TryGetProperty("message", out var messageProp).Should().BeTrue($"Missing 'message' property. JSON: {content}");
             json.TryGetProperty("allowedCities", out var citiesProp).Should().BeTrue($"Missing 'allowedCities' property. JSON: {content}");
-            json.TryGetProperty("yourLocation", out var locationProp).Should().BeTrue($"Missing 'yourLocation' property. JSON: {content}");
+            json.TryGetProperty("userLocation", out var locationProp).Should().BeTrue($"Missing 'userLocation' property. JSON: {content}");
 
-            errorProp.GetString().Should().Be("geographic_restriction");
-            detailProp.GetString().Should().Contain("Muriaé");
+            messageProp.GetString().Should().Contain("Muriaé");
             citiesProp.GetArrayLength().Should().BeGreaterThan(0, "should have at least one allowed city");
             locationProp.TryGetProperty("city", out var cityProp).Should().BeTrue();
             cityProp.GetString().Should().Be("São Paulo");

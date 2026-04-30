@@ -31,6 +31,10 @@ public static class ServiceCollectionExtensions
         services.AddCustomAntiforgery();
         services.AddMemoryCache();
 
+        // Configurar Geographic Restriction options para o middleware
+        services.Configure<GeographicRestrictionOptions>(
+            configuration.GetSection(GeographicRestrictionOptions.SectionName));
+
         // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
         services.Configure<ForwardedHeadersOptions>(options =>
         {

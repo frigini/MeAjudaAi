@@ -99,12 +99,12 @@ public sealed class IbgeUnavailabilityTests : BaseApiTest
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons,
             $"Expected 451 but got {(int)response.StatusCode}. Response body: {content}");
 
-        // Verify error payload structure
+        // Verify error payload structure (new response format from GeographicRestrictionErrorResponse)
         var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
 
-        json.GetProperty("error").GetString().Should().Be("geographic_restriction");
-        json.GetProperty("yourLocation").GetProperty("city").GetString().Should().Be("Rio de Janeiro");
-        json.GetProperty("yourLocation").GetProperty("state").GetString().Should().Be("RJ");
+        json.GetProperty("message").GetString().Should().NotBeNullOrEmpty();
+        json.GetProperty("userLocation").GetProperty("city").GetString().Should().Be("Rio de Janeiro");
+        json.GetProperty("userLocation").GetProperty("state").GetString().Should().Be("RJ");
         json.GetProperty("allowedCities").GetArrayLength().Should().BeGreaterThan(0);
         json.GetProperty("allowedStates").GetArrayLength().Should().BeGreaterThan(0);
     }
