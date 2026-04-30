@@ -1,5 +1,7 @@
+using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Shared.Middleware;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -108,5 +110,168 @@ public class RateLimitingMiddlewareTests
         counter.IncrementAndGet().Should().Be(2);
         counter.IncrementAndGet().Should().Be(3);
         counter.Value.Should().Be(3);
+    }
+}
+
+[Trait("Category", "Unit")]
+[Trait("Layer", "Gateway")]
+public class RateLimitingMiddlewareBehaviorTests
+{
+    private Mock<ILogger<RateLimitingMiddleware>> _loggerMock = null!;
+    private Mock<IOptionsMonitor<RateLimitingOptions>> _optionsMock = null!;
+    private IMemoryCache _cache = null!;
+
+    private RateLimitingMiddleware CreateMiddleware(
+        RequestDelegate? next = null,
+        Action<RateLimitingOptions>? configureOptions = null)
+    {
+        _loggerMock = new Mock<ILogger<RateLimitingMiddleware>>();
+        _optionsMock = new Mock<IOptionsMonitor<RateLimitingOptions>>();
+        _cache = new MemoryCache(new MemoryCacheOptions());
+
+        var options = new RateLimitingOptions
+        {
+            General = new GeneralSettings
+            {
+                Enabled = true,
+                WindowInSeconds = 60,
+                EnableIpWhitelist = false,
+                WhitelistedIps = [],
+                ErrorMessage = "Rate limit exceeded"
+            },
+            Anonymous = new AnonymousLimits
+            {
+                RequestsPerMinute = 30,
+                RequestsPerHour = 300,
+                RequestsPerDay = 1000
+            },
+            Authenticated = new AuthenticatedLimits
+            {
+                RequestsPerMinute = 120,
+                RequestsPerHour = 2000,
+                RequestsPerDay = 10000
+            }
+        };
+        configureOptions?.Invoke(options);
+        _optionsMock.Setup(x => x.CurrentValue).Returns(options);
+
+        next ??= _ => Task.CompletedTask;
+        return new RateLimitingMiddleware(
+            next,
+            _loggerMock.Object,
+            _optionsMock.Object,
+            _cache);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Disabled_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, opts =>
+        {
+            opts.General.Enabled = false;
+        });
+
+        var context = new DefaultHttpContext();
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhitelistedIp_Bypasses()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, opts =>
+        {
+            opts.General.EnableIpWhitelist = true;
+            opts.General.WhitelistedIps = ["127.0.0.1"];
+        });
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("127.0.0.1");
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_LimitExceeded_Returns429WithRetryAfter()
+    {
+        var middleware = CreateMiddleware();
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("192.168.1.1");
+
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(429);
+        context.Response.Headers["Retry-After"].Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_UnderLimit_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; });
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("192.168.1.1");
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_AuthenticatedUser_UsesHigherLimit()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(next: _ => { nextCalled = true; return Task.CompletedTask; }, configureOptions: opts =>
+        {
+            opts.Anonymous.RequestsPerMinute = 2;
+            opts.Authenticated.RequestsPerMinute = 100;
+        });
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("192.168.1.1");
+        var claims = new List<System.Security.Claims.Claim>
+        {
+            new("sub", "user123")
+        };
+        var identity = new System.Security.Claims.ClaimsIdentity(claims, "Test");
+        context.User = new System.Security.Claims.ClaimsPrincipal(identity);
+
+        for (int i = 0; i < 3; i++)
+        {
+            await middleware.InvokeAsync(context);
+        }
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_AnonymousUser_UsesLowerLimit()
+    {
+        var middleware = CreateMiddleware(configureOptions: opts =>
+        {
+            opts.Anonymous.RequestsPerMinute = 2;
+            opts.Authenticated.RequestsPerMinute = 100;
+        });
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("192.168.1.1");
+
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(429);
     }
 }

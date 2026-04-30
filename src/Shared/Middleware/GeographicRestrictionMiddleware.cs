@@ -54,7 +54,11 @@ public class GeographicRestrictionMiddleware(
             var errorResponse = new GeographicRestrictionErrorResponse(
                 message: message,
                 userLocation: UserLocation.Create(city, state),
-                allowedCities: options.CurrentValue.AllowedCities?.Select((name, index) => AllowedCity.Create(name, null)),
+                allowedCities: options.CurrentValue.AllowedCities?.Select(cityConfig =>
+                {
+                    var parts = cityConfig.Split('|', 2);
+                    return AllowedCity.Create(parts[0].Trim(), parts.Length > 1 ? parts[1].Trim() : null);
+                }),
                 allowedStates: options.CurrentValue.AllowedStates);
 
             await context.Response.WriteAsync(
@@ -128,6 +132,11 @@ public class GeographicRestrictionMiddleware(
 
         var simpleValidation = ValidateLocationSimple(city, state);
 
+        if (simpleValidation)
+        {
+            return true;
+        }
+
         if (geographicValidationService is not null && !string.IsNullOrEmpty(city))
         {
             try
@@ -146,8 +155,10 @@ public class GeographicRestrictionMiddleware(
 
     private bool ValidateLocationSimple(string? city, string? state)
     {
-        var hasAllowedCities = options.CurrentValue.AllowedCities?.Any() ?? false;
-        var hasAllowedStates = options.CurrentValue.AllowedStates?.Any() ?? false;
+        var allowedCities = options.CurrentValue.AllowedCities;
+        var allowedStates = options.CurrentValue.AllowedStates;
+        var hasAllowedCities = allowedCities?.Any() ?? false;
+        var hasAllowedStates = allowedStates?.Any() ?? false;
 
         if (!hasAllowedCities && !hasAllowedStates)
         {
@@ -161,14 +172,14 @@ public class GeographicRestrictionMiddleware(
             if (!hasAllowedCities)
             {
                 if (hasAllowedStates && !string.IsNullOrEmpty(state) &&
-                    options.CurrentValue.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase)))
+                    allowedStates?.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase)) == true)
                 {
                     return true;
                 }
                 return false;
             }
 
-            foreach (var allowedCity in options.CurrentValue.AllowedCities ?? [])
+            foreach (var allowedCity in allowedCities ?? [])
             {
                 var citySpan = allowedCity.AsSpan();
                 var separatorIndex = citySpan.IndexOf('|');
@@ -180,12 +191,11 @@ public class GeographicRestrictionMiddleware(
                         configCityOnly.Equals(city, StringComparison.OrdinalIgnoreCase))
                     {
                         if (string.IsNullOrEmpty(state)) return true;
-                        if (!options.CurrentValue.AllowedStates.Any())
+                        if (allowedStates is null || !allowedStates.Any())
                         {
                             return true;
                         }
-                        return options.CurrentValue.AllowedStates.Any(s =>
-                            s.Equals(state, StringComparison.OrdinalIgnoreCase));
+                        return allowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));
                     }
                     continue;
                 }
