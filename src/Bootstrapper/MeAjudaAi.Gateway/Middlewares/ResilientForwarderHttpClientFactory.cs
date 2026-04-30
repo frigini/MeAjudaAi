@@ -23,7 +23,8 @@ public class ResilientForwarderHttpClientFactory : IForwarderHttpClientFactory
     public HttpMessageInvoker CreateClient(ForwarderHttpClientContext context)
     {
         var handler = CreateHandler(context);
-        return new HttpMessageInvoker(handler);
+        var invoker = new HttpMessageInvoker(handler);
+        return invoker;
     }
 
     public HttpMessageHandler CreateHandler(ForwarderHttpClientContext context)
@@ -67,6 +68,9 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds));
+
         var retryableMethods = _options.RetryableMethods?.Count > 0 
             ? _options.RetryableMethods 
             : DefaultRetryableMethods.ToList();
@@ -75,7 +79,7 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
         
         if (!allowRetry || _options.RetryCount <= 0)
         {
-            return await base.SendAsync(request, ct);
+            return await base.SendAsync(request, timeoutCts.Token);
         }
 
         HttpResponseMessage? last = null;
@@ -85,7 +89,7 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
         {
             try
             {
-                last = await base.SendAsync(request, ct);
+                last = await base.SendAsync(request, timeoutCts.Token);
                 
                 if (!IsTransient(last))
                 {
@@ -100,8 +104,11 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
                     request.RequestUri,
                     last.StatusCode);
 
-                last.Dispose();
-                last = null;
+                if (attempt < _options.RetryCount)
+                {
+                    last.Dispose();
+                    last = null;
+                }
             }
             catch (Exception ex) when (IsTransientException(ex))
             {
@@ -118,7 +125,7 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
             if (attempt < _options.RetryCount)
             {
                 var delay = TimeSpan.FromMilliseconds(_options.RetryBaseDelayMs * Math.Pow(2, attempt));
-                await Task.Delay(delay, ct);
+                await Task.Delay(delay, timeoutCts.Token);
             }
         }
 

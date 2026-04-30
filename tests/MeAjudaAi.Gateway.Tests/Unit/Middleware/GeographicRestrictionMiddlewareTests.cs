@@ -166,7 +166,8 @@ public class GeographicRestrictionMiddlewareBehaviorTests
     [Fact]
     public async Task InvokeAsync_BlockedState_Returns451()
     {
-        var middleware = CreateMiddleware();
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; });
 
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
@@ -177,6 +178,7 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
     }
 
@@ -236,7 +238,8 @@ public class GeographicRestrictionMiddlewareBehaviorTests
     [Fact]
     public async Task InvokeAsync_MalformedHeader_IsAlwaysBlocked()
     {
-        var middleware = CreateMiddleware(configure: opts => opts.FailOpen = true);
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts => opts.FailOpen = true);
 
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
@@ -247,13 +250,15 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
     }
 
     [Fact]
     public async Task InvokeAsync_MalformedHeader_FailOpenFalse_Returns451()
     {
-        var middleware = CreateMiddleware(configure: opts => opts.FailOpen = false);
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts => opts.FailOpen = false);
 
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
@@ -264,13 +269,15 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
     }
 
     [Fact]
     public async Task InvokeAsync_FailOpenFalse_NoHeader_Returns451()
     {
-        var middleware = CreateMiddleware(configure: opts => opts.FailOpen = false);
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts => opts.FailOpen = false);
 
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
@@ -280,13 +287,15 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
     }
 
     [Fact]
     public async Task InvokeAsync_BlockedCity_Returns451()
     {
-        var middleware = CreateMiddleware(configure: opts =>
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts =>
         {
             opts.AllowedCities = ["Muriaé"];
             opts.AllowedStates = [];
@@ -301,13 +310,15 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
     }
 
     [Fact]
     public async Task InvokeAsync_BlockedCityWithAllowedStates_Returns451()
     {
-        var middleware = CreateMiddleware(configure: opts =>
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts =>
         {
             opts.AllowedCities = [];
             opts.AllowedStates = ["MG", "RJ"];
@@ -322,13 +333,15 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
     }
 
     [Fact]
     public async Task InvokeAsync_BlockedCityWithPipeFormat_Returns451WithProperResponse()
     {
-        var middleware = CreateMiddleware(configure: opts =>
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts =>
         {
             opts.AllowedCities = ["Muriaé"];
             opts.AllowedStates = ["MG"];
@@ -344,6 +357,7 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         await middleware.InvokeAsync(context);
 
+        nextCalled.Should().BeFalse();
         context.Response.StatusCode.Should().Be(451);
         context.Response.ContentType.Should().Contain("application/json");
     }

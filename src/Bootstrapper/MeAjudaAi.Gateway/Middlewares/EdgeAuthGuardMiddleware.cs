@@ -69,8 +69,7 @@ public class EdgeAuthGuardMiddleware
             var errorResponse = new
             {
                 error = "authentication_required",
-                message = "Autenticação necessária. Por favor, forneça um token válido.",
-                publicRoutes = _options.PublicRoutes
+                message = "Autenticação necessária. Por favor, forneça um token válido."
             };
 
             await context.Response.WriteAsJsonAsync(errorResponse);
