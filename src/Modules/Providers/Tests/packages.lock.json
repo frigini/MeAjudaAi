@@ -748,8 +748,8 @@
       },
       "Polly.Core": {
         "type": "Transitive",
-        "resolved": "8.4.2",
-        "contentHash": "BpE2I6HBYYA5tF0Vn4eoQOGYTYIK1BlF5EXVgkWGn3mqUUjbXAr13J6fZVbp7Q3epRR8yshacBMlsHMhpOiV3g=="
+        "resolved": "8.6.6",
+        "contentHash": "lCBL9mmhF9TZxHG3beVRkyjlLohkIC464xIAq7J7Y59C+z42hmsdUaeCKl2SIAYertOUU5TeBXyQDLDQGIKePQ=="
       },
       "Polly.Extensions": {
         "type": "Transitive",
@@ -759,6 +759,14 @@
           "Microsoft.Extensions.Logging.Abstractions": "8.0.0",
           "Microsoft.Extensions.Options": "8.0.0",
           "Polly.Core": "8.4.2"
+        }
+      },
+      "Polly.Extensions.Http": {
+        "type": "Transitive",
+        "resolved": "3.0.0",
+        "contentHash": "drrG+hB3pYFY7w1c3BD+lSGYvH2oIclH8GRSehgfyP5kjnFnHKQuuBhuHLv+PWyFuaTDyk/vfRpnxOzd11+J8g==",
+        "dependencies": {
+          "Polly": "7.1.0"
         }
       },
       "Polly.RateLimiting": {
@@ -1028,6 +1036,7 @@
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Gateway": "[1.0.0, )",
           "MeAjudaAi.Modules.Bookings.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
@@ -1051,6 +1060,18 @@
         "type": "Project",
         "dependencies": {
           "FluentValidation": "[12.1.1, )"
+        }
+      },
+      "meajudaai.gateway": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.ServiceDefaults": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.7, )",
+          "Microsoft.Extensions.Http.Polly": "[10.0.7, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
+          "Yarp.ReverseProxy": "[2.3.0, )"
         }
       },
       "meajudaai.modules.bookings.api": {
@@ -1919,6 +1940,17 @@
           "Microsoft.Extensions.Options": "10.0.7"
         }
       },
+      "Microsoft.Extensions.Http.Polly": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "pcUsPoqMHvOp+QJsLA/Hlg/W+IBnAoUXKEBc7FqMcY0sUez15DOKXtbEo81TvHL9xwjWQcF3ZMayNpcvpI7Bqg==",
+        "dependencies": {
+          "Microsoft.Extensions.Http": "10.0.7",
+          "Polly": "7.2.4",
+          "Polly.Extensions.Http": "3.0.0"
+        }
+      },
       "Microsoft.Extensions.Http.Resilience": {
         "type": "CentralTransitive",
         "requested": "[10.5.0, )",
@@ -2124,6 +2156,15 @@
           "OpenTelemetry.Api": "[1.15.3, 2.0.0)"
         }
       },
+      "Polly": {
+        "type": "CentralTransitive",
+        "requested": "[8.6.6, )",
+        "resolved": "8.6.6",
+        "contentHash": "czKHYJ6uGowPijuZt4kgF4njfGvWxVZ8mKBcrZ9iEtwDe9HKdF0ug6p6TwUG8EHuuufgbDU//rSBFebt5/0Fyw==",
+        "dependencies": {
+          "Polly.Core": "8.6.6"
+        }
+      },
       "RabbitMQ.Client": {
         "type": "CentralTransitive",
         "requested": "[7.2.1, )",
@@ -2324,6 +2365,15 @@
         "contentHash": "+4rDOXdjwwDx11vUpSAAK/gDOPtZ/LC+qj02RiulHtIMEAzC4KjyP5hEactvwSuGfcomFnmtJqYn1Pwyh+pPDw==",
         "dependencies": {
           "Testcontainers": "4.11.0"
+        }
+      },
+      "Yarp.ReverseProxy": {
+        "type": "CentralTransitive",
+        "requested": "[2.3.0, )",
+        "resolved": "2.3.0",
+        "contentHash": "gxtkN3a+9biu9V9Zd5NaTO6VZWXAnS2mhQ0R/VXmSPoTuiQNZsakKikrKpDtKxrL5nUYzbRsHtl40WNq+ZBKKg==",
+        "dependencies": {
+          "System.IO.Hashing": "8.0.0"
         }
       }
     }
