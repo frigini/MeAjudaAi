@@ -27,11 +27,32 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(corsConfig.AllowedOrigins.ToArray())
-              .WithMethods(corsConfig.AllowedMethods.ToArray())
-              .WithHeaders(corsConfig.AllowedHeaders.ToArray())
-              .AllowCredentials()
-              .SetPreflightMaxAge(TimeSpan.FromSeconds(corsConfig.MaxAgeSeconds));
+        if (corsConfig.AllowedOrigins.Contains("*"))
+        {
+            policy.SetIsOriginAllowed(_ => true);
+        }
+        else
+        {
+            policy.WithOrigins(corsConfig.AllowedOrigins.ToArray());
+        }
+
+        policy.WithMethods(corsConfig.AllowedMethods.ToArray());
+
+        if (corsConfig.AllowedHeaders.Contains("*"))
+        {
+            policy.AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithHeaders(corsConfig.AllowedHeaders.ToArray());
+        }
+
+        if (corsConfig.AllowCredentials)
+        {
+            policy.AllowCredentials();
+        }
+
+        policy.SetPreflightMaxAge(TimeSpan.FromSeconds(corsConfig.MaxAgeSeconds));
     });
 });
 
@@ -124,10 +145,10 @@ app.Use(async (context, next) =>
         return new GatewayRateCounter();
     });
 
-    counter.Increment();
+    var currentCount = counter.IncrementAndGet();
 
     var scaledLimit = CalculateScaledLimit(requestsPerMinute, requestsPerHour, requestsPerDay, windowSeconds);
-    if (counter.Value > scaledLimit)
+    if (currentCount > scaledLimit)
     {
         context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.Response.ContentType = "application/json";
@@ -168,7 +189,9 @@ static int CalculateScaledLimit(int perMinute, int perHour, int perDay, int wind
 
 class GatewayRateCounter
 {
-    public int Value { get; set; }
+    private int _value;
 
-    public void Increment() => Value++;
+    public int Value => _value;
+
+    public int IncrementAndGet() => Interlocked.Increment(ref _value);
 }

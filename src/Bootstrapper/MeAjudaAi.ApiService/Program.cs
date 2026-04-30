@@ -126,50 +126,63 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
-        // CORS fallback para ambientes de teste (Testing/Integration)
+        // CORS para ambientes de teste (Testing/Integration) - fallback simples
         // O CORS principal está no Gateway em produção
-        var corsConfig = app.Configuration.GetSection("Cors");
-        if (corsConfig.Exists())
+        if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
         {
-            var allowedOrigins = corsConfig.GetSection("AllowedOrigins").Get<List<string>>() ?? [];
-            var allowedMethods = corsConfig.GetSection("AllowedMethods").Get<List<string>>() ?? ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
-            var allowedHeaders = corsConfig.GetSection("AllowedHeaders").Get<List<string>>() ?? ["*"];
-            var allowCredentials = corsConfig.GetValue<bool>("AllowCredentials", true);
-            var maxAge = corsConfig.GetValue<int>("MaxAgeSeconds", 3600);
-
             app.UseCors(policy =>
             {
-                if (allowedOrigins.Count == 0)
-                {
-                    policy.AllowAnyOrigin();
-                }
-                else
-                {
-                    policy.WithOrigins(allowedOrigins.ToArray());
-                }
-
-                policy.WithMethods(allowedMethods.ToArray());
-
-                if (allowedHeaders.Contains("*"))
-                {
-                    policy.AllowAnyHeader();
-                }
-                else
-                {
-                    policy.WithHeaders(allowedHeaders.ToArray());
-                }
-
-                if (allowCredentials && allowedOrigins.Count > 0)
-                {
-                    policy.AllowCredentials();
-                }
-                else if (allowCredentials)
-                {
-                    throw new InvalidOperationException("Cannot use AllowCredentials with AllowAnyOrigin. Set AllowCredentials to false or specify allowed origins.");
-                }
-
-                policy.SetPreflightMaxAge(TimeSpan.FromSeconds(maxAge));
+                policy.SetIsOriginAllowed(_ => true)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
             });
+        }
+        else
+        {
+            var corsConfig = app.Configuration.GetSection("Cors");
+            if (corsConfig.Exists())
+            {
+                var allowedOrigins = corsConfig.GetSection("AllowedOrigins").Get<List<string>>() ?? [];
+                var allowedMethods = corsConfig.GetSection("AllowedMethods").Get<List<string>>() ?? ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
+                var allowedHeaders = corsConfig.GetSection("AllowedHeaders").Get<List<string>>() ?? ["*"];
+                var allowCredentials = corsConfig.GetValue<bool>("AllowCredentials", true);
+                var maxAge = corsConfig.GetValue<int>("MaxAgeSeconds", 3600);
+
+                app.UseCors(policy =>
+                {
+                    if (allowedOrigins.Count == 0)
+                    {
+                        policy.AllowAnyOrigin();
+                    }
+                    else
+                    {
+                        policy.WithOrigins(allowedOrigins.ToArray());
+                    }
+
+                    policy.WithMethods(allowedMethods.ToArray());
+
+                    if (allowedHeaders.Contains("*"))
+                    {
+                        policy.AllowAnyHeader();
+                    }
+                    else
+                    {
+                        policy.WithHeaders(allowedHeaders.ToArray());
+                    }
+
+                    if (allowCredentials && allowedOrigins.Count > 0)
+                    {
+                        policy.AllowCredentials();
+                    }
+                    else if (allowCredentials)
+                    {
+                        throw new InvalidOperationException("Cannot use AllowCredentials with AllowAnyOrigin. Set AllowCredentials to false or specify allowed origins.");
+                    }
+
+                    policy.SetPreflightMaxAge(TimeSpan.FromSeconds(maxAge));
+                });
+            }
         }
 
         app.MapDefaultEndpoints();

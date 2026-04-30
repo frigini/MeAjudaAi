@@ -162,9 +162,17 @@ public class GeographicRestrictionMiddleware(
 
     private bool ValidateLocationSimple(string? city, string? state)
     {
+        var hasAllowedCities = options.CurrentValue.AllowedCities.Any();
+        var hasAllowedStates = options.CurrentValue.AllowedStates.Any();
+
+        if (!hasAllowedCities && !hasAllowedStates)
+        {
+            return true;
+        }
+
         if (!string.IsNullOrEmpty(city))
         {
-            if (options.CurrentValue.AllowedCities == null) return true;
+            if (!hasAllowedCities) return false;
 
             foreach (var allowedCity in options.CurrentValue.AllowedCities)
             {
@@ -178,8 +186,7 @@ public class GeographicRestrictionMiddleware(
                         configCityOnly.Equals(city, StringComparison.OrdinalIgnoreCase))
                     {
                         if (string.IsNullOrEmpty(state)) return true;
-                        if (options.CurrentValue.AllowedStates == null || 
-                            !options.CurrentValue.AllowedStates.Any())
+                        if (!options.CurrentValue.AllowedStates.Any())
                         {
                             return true;
                         }
@@ -214,17 +221,17 @@ public class GeographicRestrictionMiddleware(
 
         if (!string.IsNullOrEmpty(state))
         {
-            if (options.CurrentValue.AllowedStates == null) return true;
+            if (!hasAllowedStates) return false;
             return options.CurrentValue.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));
         }
 
         return false;
     }
 
-    private string GetAllowedRegionsDescription()
+private string GetAllowedRegionsDescription()
     {
-        var cities = options.CurrentValue.AllowedCities?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedCities) : "Nenhuma";
-        var states = options.CurrentValue.AllowedStates?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedStates) : "Nenhum";
+        var cities = options.CurrentValue.AllowedCities.Any() ? string.Join(", ", options.CurrentValue.AllowedCities) : "Nenhuma";
+        var states = options.CurrentValue.AllowedStates.Any() ? string.Join(", ", options.CurrentValue.AllowedStates) : "Nenhum";
         return $"Cidades: {cities} | Estados: {states}";
     }
 }
