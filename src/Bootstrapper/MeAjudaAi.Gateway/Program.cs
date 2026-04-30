@@ -58,13 +58,13 @@ builder.Services.AddCors(options =>
 
 var keycloakBaseUrl = builder.Configuration["Keycloak:BaseUrl"] ?? "http://localhost:8080";
 var keycloakRealm = builder.Configuration["Keycloak:Realm"] ?? "meajudaai";
-var keycloakAudience = builder.Configuration["Keycloak:Audience"] ?? "account";
+var keycloakClientId = builder.Configuration["Keycloak:ClientId"] ?? "admin-portal";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = $"{keycloakBaseUrl}/realms/{keycloakRealm}";
-        options.Audience = keycloakAudience;
+        options.Audience = keycloakClientId;
         options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.TokenValidationParameters = new()
         {
@@ -87,7 +87,7 @@ builder.Services.AddReverseProxy()
         transforms.AddRequestTransform(async context =>
         {
             context.ProxyRequest.Headers.Add("X-Forwarded-For", context.HttpContext.Connection.RemoteIpAddress?.ToString());
-            context.ProxyRequest.Headers.Add("X-Forwarded-Proto", "https");
+            context.ProxyRequest.Headers.Add("X-Forwarded-Proto", context.HttpContext.Request.Scheme);
             context.ProxyRequest.Headers.Add("X-Original-Host", context.HttpContext.Request.Host.ToString());
             context.ProxyRequest.Headers.Add("X-Gateway-Name", "MeAjudaAi-Gateway");
             context.ProxyRequest.Headers.Add("X-Request-Timeout", timeoutSeconds.ToString());

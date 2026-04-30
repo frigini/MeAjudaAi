@@ -11,9 +11,6 @@ public static class MiddlewareExtensions
         // Cabeçalhos de segurança (no início do pipeline)
         app.UseMiddleware<SecurityHeadersMiddleware>();
 
-        // Limitação de taxa (rate limiting)
-        app.UseMiddleware<RateLimitingMiddleware>();
-
         return app;
     }
 }

@@ -132,9 +132,7 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
-        // CORS para ambientes de teste (Testing/Integration) - fallback simples
-        // O CORS principal está no Gateway em produção
-        if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
+if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
         {
             app.UseCors(policy =>
             {
