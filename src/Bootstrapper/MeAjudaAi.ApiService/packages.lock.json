@@ -38,6 +38,15 @@
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
         }
       },
+      "Microsoft.FeatureManagement.AspNetCore": {
+        "type": "Direct",
+        "requested": "[4.5.0, )",
+        "resolved": "4.5.0",
+        "contentHash": "CafI8Ne0xuXRNzHMoRGAX4WRvLxpTE7RceBncgME/fRcPD2KwYrxfZpLyJ/kVfYt8uvHkC2xy0VlStj687mVoA==",
+        "dependencies": {
+          "Microsoft.FeatureManagement": "4.5.0"
+        }
+      },
       "Serilog.AspNetCore": {
         "type": "Direct",
         "requested": "[10.0.0, )",
@@ -1177,15 +1186,6 @@
         "dependencies": {
           "Microsoft.Extensions.Http.Diagnostics": "10.5.0",
           "Microsoft.Extensions.Resilience": "10.5.0"
-        }
-      },
-      "Microsoft.FeatureManagement.AspNetCore": {
-        "type": "CentralTransitive",
-        "requested": "[4.5.0, )",
-        "resolved": "4.5.0",
-        "contentHash": "CafI8Ne0xuXRNzHMoRGAX4WRvLxpTE7RceBncgME/fRcPD2KwYrxfZpLyJ/kVfYt8uvHkC2xy0VlStj687mVoA==",
-        "dependencies": {
-          "Microsoft.FeatureManagement": "4.5.0"
         }
       },
       "Microsoft.IdentityModel.Protocols": {

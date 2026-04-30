@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.Modules.Communications.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.API;
@@ -16,6 +17,7 @@ using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Seeding;
+using Microsoft.FeatureManagement;
 using Serilog;
 using Serilog.Context;
 
@@ -61,6 +63,8 @@ public partial class Program
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
             builder.Services.AddCors();
+
+            builder.Services.AddFeatureManagement();
 
             var app = builder.Build();
 
@@ -186,6 +190,8 @@ public partial class Program
                 });
             }
         }
+
+        app.UseMiddleware<GeographicRestrictionMiddleware>();
 
         app.MapDefaultEndpoints();
         // Configurar serviços e módulos

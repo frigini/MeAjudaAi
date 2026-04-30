@@ -16,13 +16,13 @@ public sealed class GeographicRestrictionOptions
     /// Lista de estados permitidos (UF).
     /// Exemplo: ["MG", "RJ", "ES"]
     /// </summary>
-    public List<string>? AllowedStates { get; set; }
+    public List<string> AllowedStates { get; set; } = [];
 
     /// <summary>
     /// Lista de cidades permitidas no formato "Cidade|Estado" ou apenas "Cidade".
     /// Exemplo: ["Muriaé|MG", "Itaperuna|RJ", "Linhares"]
     /// </summary>
-    public List<string>? AllowedCities { get; set; }
+    public List<string> AllowedCities { get; set; } = [];
 
     /// <summary>
     /// Mensagem customizada para requisições bloqueadas.
