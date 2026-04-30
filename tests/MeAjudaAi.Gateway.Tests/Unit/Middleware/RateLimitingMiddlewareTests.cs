@@ -318,4 +318,48 @@ public class RateLimitingMiddlewareBehaviorTests
         context.Response.ContentType.Should().Contain("application/json");
         context.Response.Headers["Retry-After"].Should().NotBeEmpty();
     }
+
+    [Fact]
+    public async Task InvokeAsync_LimitExceeded_WritesJsonBody()
+    {
+        var loggerMock = new Mock<ILogger<RateLimitingMiddleware>>();
+        var optionsMock = new Mock<IOptionsMonitor<RateLimitingOptions>>();
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        
+        var options = new RateLimitingOptions
+        {
+            General = new GeneralSettings
+            {
+                Enabled = true,
+                WindowInSeconds = 60
+            },
+            Anonymous = new AnonymousLimits
+            {
+                RequestsPerMinute = 30
+            }
+        };
+        optionsMock.Setup(x => x.CurrentValue).Returns(options);
+
+        var middleware = new RateLimitingMiddleware(
+            _ => Task.CompletedTask,
+            loggerMock.Object,
+            optionsMock.Object,
+            cache);
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("10.0.0.1");
+        context.Response.Body = new MemoryStream();
+
+        for (int i = 0; i < 35; i++)
+            await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(429);
+        context.Response.ContentType.Should().Contain("application/json");
+
+        context.Response.Body.Position = 0;
+        using var reader = new StreamReader(context.Response.Body);
+        var json = await reader.ReadToEndAsync();
+        json.Should().Contain("\"error\"");
+        json.Should().Contain("\"retryAfterSeconds\"");
+    }
 }

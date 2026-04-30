@@ -347,4 +347,28 @@ public class GeographicRestrictionMiddlewareBehaviorTests
         context.Response.StatusCode.Should().Be(451);
         context.Response.ContentType.Should().Contain("application/json");
     }
+
+    [Fact]
+    public async Task InvokeAsync_AllowedCity_CallsNext()
+    {
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ => { nextCalled = true; return Task.CompletedTask; }, configure: opts =>
+        {
+            opts.Enabled = true;
+            opts.FailOpen = false;
+            opts.AllowedCities = ["Muriaé|MG"];
+            opts.AllowedStates = [];
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "Muriaé|MG";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
 }
