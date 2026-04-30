@@ -126,6 +126,39 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
+        // CORS fallback para ambientes de teste (Testing/Integration)
+        // O CORS principal está no Gateway em produção
+        var corsConfig = app.Configuration.GetSection("Cors");
+        if (corsConfig.Exists())
+        {
+            var allowedOrigins = corsConfig.GetSection("AllowedOrigins").Get<List<string>>() ?? [];
+            var allowedMethods = corsConfig.GetSection("AllowedMethods").Get<List<string>>() ?? ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
+            var allowedHeaders = corsConfig.GetSection("AllowedHeaders").Get<List<string>>() ?? ["*"];
+            var allowCredentials = corsConfig.GetValue<bool>("AllowCredentials", true);
+            var maxAge = corsConfig.GetValue<int>("MaxAgeSeconds", 3600);
+
+            app.UseCors(policy =>
+            {
+                policy.WithOrigins(allowedOrigins.ToArray())
+                      .WithMethods(allowedMethods.ToArray())
+                      .WithHeaders(allowedHeaders.ToArray())
+                      .AllowCredentials()
+                      .SetPreflightMaxAge(TimeSpan.FromSeconds(maxAge));
+            });
+        }
+
+        // GeographicRestriction fallback para ambientes de teste (Testing/Integration)
+        // O GeographicRestriction principal está no Gateway em produção
+        var geoRestrictionConfig = app.Configuration.GetSection("GeographicRestriction");
+        if (geoRestrictionConfig.Exists())
+        {
+            var enabled = geoRestrictionConfig.GetValue<bool>("Enabled", false);
+            if (enabled)
+            {
+                app.UseMiddleware<MeAjudaAi.Gateway.Middlewares.GeographicRestrictionMiddleware>();
+            }
+        }
+
         app.MapDefaultEndpoints();
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();

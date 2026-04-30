@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/Modules/**'
       - 'src/Bootstrapper/**'
+      - 'src/Aspire/**'
       - 'src/Shared/**'
       - 'src/Contracts/**'
       - 'tests/**'
@@ -20,6 +21,7 @@ on:
     paths:
       - 'src/Modules/**'
       - 'src/Bootstrapper/**'
+      - 'src/Aspire/**'
       - 'src/Shared/**'
       - 'src/Contracts/**'
       - 'tests/**'
@@ -181,6 +183,7 @@ jobs:
             "src/Modules/Bookings/Tests/MeAjudaAi.Modules.Bookings.Tests.csproj"
             "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
             "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"
+            "tests/MeAjudaAi.Gateway.Tests/MeAjudaAi.Gateway.Tests.csproj"
             "tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj"
           )
 
