@@ -1,11 +1,12 @@
 using System.Text.Json;
-using MeAjudaAi.ApiService.Options;
-using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Geolocation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 
-namespace MeAjudaAi.ApiService.Middlewares;
+namespace MeAjudaAi.Shared.Middleware;
 
 public class GeographicRestrictionMiddleware(
     RequestDelegate next,
@@ -50,13 +51,11 @@ public class GeographicRestrictionMiddleware(
             var template = options.CurrentValue.BlockedMessage ?? "Acesso da sua região não permitido. Regiões permitidas: {allowedRegions}.";
             var message = template.Replace("{allowedRegions}", allowedRegions);
 
-            var errorResponse = new
-            {
-                message = message,
-                userLocation = new { city, state },
-                allowedCities = options.CurrentValue.AllowedCities,
-                allowedStates = options.CurrentValue.AllowedStates
-            };
+            var errorResponse = new GeographicRestrictionErrorResponse(
+                message: message,
+                userLocation: UserLocation.Create(city, state),
+                allowedCities: options.CurrentValue.AllowedCities?.Select((name, index) => AllowedCity.Create(name, null)),
+                allowedStates: options.CurrentValue.AllowedStates);
 
             await context.Response.WriteAsync(
                 JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
@@ -147,8 +146,8 @@ public class GeographicRestrictionMiddleware(
 
     private bool ValidateLocationSimple(string? city, string? state)
     {
-        var hasAllowedCities = options.CurrentValue.AllowedCities.Any();
-        var hasAllowedStates = options.CurrentValue.AllowedStates.Any();
+        var hasAllowedCities = options.CurrentValue.AllowedCities?.Any() ?? false;
+        var hasAllowedStates = options.CurrentValue.AllowedStates?.Any() ?? false;
 
         if (!hasAllowedCities && !hasAllowedStates)
         {
@@ -157,9 +156,19 @@ public class GeographicRestrictionMiddleware(
 
         if (!string.IsNullOrEmpty(city))
         {
-            if (!hasAllowedCities) return false;
+            if (!hasAllowedCities && !hasAllowedStates) return false;
 
-            foreach (var allowedCity in options.CurrentValue.AllowedCities)
+            if (!hasAllowedCities)
+            {
+                if (hasAllowedStates && !string.IsNullOrEmpty(state) &&
+                    options.CurrentValue.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            foreach (var allowedCity in options.CurrentValue.AllowedCities ?? [])
             {
                 var citySpan = allowedCity.AsSpan();
                 var separatorIndex = citySpan.IndexOf('|');
@@ -198,7 +207,7 @@ public class GeographicRestrictionMiddleware(
                         }
                         continue;
                     }
-                    return true;
+                    continue;
                 }
             }
             return false;
@@ -215,8 +224,36 @@ public class GeographicRestrictionMiddleware(
 
     private string GetAllowedRegionsDescription()
     {
-        var cities = options.CurrentValue.AllowedCities.Any() ? string.Join(", ", options.CurrentValue.AllowedCities) : "Nenhuma";
-        var states = options.CurrentValue.AllowedStates.Any() ? string.Join(", ", options.CurrentValue.AllowedStates) : "Nenhum";
+        var cities = options.CurrentValue.AllowedCities?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedCities) : "Nenhuma";
+        var states = options.CurrentValue.AllowedStates?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedStates) : "Nenhum";
         return $"Cidades: {cities} | Estados: {states}";
     }
+}
+
+public class GeographicRestrictionOptions
+{
+    public const string SectionName = "GeographicRestriction";
+
+    public bool Enabled { get; set; } = false;
+    public List<string>? AllowedStates { get; set; }
+    public List<string>? AllowedCities { get; set; }
+    public string? BlockedMessage { get; set; }
+    public string? DefaultBlockedMessage { get; set; }
+    public bool FailOpen { get; set; } = true;
+}
+
+public record GeographicRestrictionErrorResponse(
+    string message,
+    UserLocation? userLocation,
+    IEnumerable<AllowedCity>? allowedCities,
+    List<string>? allowedStates);
+
+public record AllowedCity(string Name, string? State)
+{
+    public static AllowedCity Create(string name, string? state = null) => new(name, state);
+}
+
+public record UserLocation(string? City, string? State)
+{
+    public static UserLocation Create(string? city, string? state) => new(city, state);
 }

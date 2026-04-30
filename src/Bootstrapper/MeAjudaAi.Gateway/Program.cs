@@ -1,8 +1,8 @@
 using System.Text.Json;
-using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.FeatureManagement;
@@ -16,8 +16,8 @@ builder.Services.Configure<GatewayCorsOptions>(
     builder.Configuration.GetSection(GatewayCorsOptions.SectionName));
 builder.Services.Configure<GeographicRestrictionOptions>(
     builder.Configuration.GetSection(GeographicRestrictionOptions.SectionName));
-builder.Services.Configure<GatewayRateLimitOptions>(
-    builder.Configuration.GetSection(GatewayRateLimitOptions.SectionName));
+builder.Services.Configure<RateLimitingOptions>(
+    builder.Configuration.GetSection(RateLimitingOptions.SectionName));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddFeatureManagement();
@@ -101,73 +101,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.Use(async (context, next) =>
-{
-    var rateLimitOptions = context.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<GatewayRateLimitOptions>>();
-    var options = rateLimitOptions.CurrentValue;
-    if (!options.General.Enabled)
-    {
-        await next();
-        return;
-    }
-
-    var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    if (options.General.EnableIpWhitelist && options.General.WhitelistedIps.Contains(clientIp))
-    {
-        await next();
-        return;
-    }
-
-    var isAuthenticated = context.User.Identity?.IsAuthenticated ?? false;
-    int requestsPerMinute, requestsPerHour, requestsPerDay;
-
-    if (isAuthenticated)
-    {
-        requestsPerMinute = options.Authenticated.RequestsPerMinute;
-        requestsPerHour = options.Authenticated.RequestsPerHour;
-        requestsPerDay = options.Authenticated.RequestsPerDay;
-    }
-    else
-    {
-        requestsPerMinute = options.Anonymous.RequestsPerMinute;
-        requestsPerHour = options.Anonymous.RequestsPerHour;
-        requestsPerDay = options.Anonymous.RequestsPerDay;
-    }
-
-    var windowSeconds = Math.Max(1, options.General.WindowInSeconds);
-    var window = TimeSpan.FromSeconds(windowSeconds);
-
-    var windowKey = $"gateway_rate_{clientIp}_{isAuthenticated}";
-    var cache = context.RequestServices.GetRequiredService<IMemoryCache>();
-    var counter = cache.GetOrCreate(windowKey, entry =>
-    {
-        entry.AbsoluteExpirationRelativeToNow = window;
-        return new GatewayRateCounter();
-    });
-
-    var currentCount = counter.IncrementAndGet();
-
-    var scaledLimit = CalculateScaledLimit(requestsPerMinute, requestsPerHour, requestsPerDay, windowSeconds);
-    if (currentCount > scaledLimit)
-    {
-        context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.Response.ContentType = "application/json";
-        context.Response.Headers.Append("Retry-After", windowSeconds.ToString());
-        var errorResponse = new
-        {
-            error = "RateLimitExceeded",
-            message = options.General.ErrorMessage,
-            retryAfterSeconds = windowSeconds
-        };
-        await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse));
-        return;
-    }
-
-    await next();
-});
-
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseMiddleware<RateLimitingMiddleware>();
 
 app.MapDefaultEndpoints();
 
@@ -176,22 +110,3 @@ app.UseMiddleware<GeographicRestrictionMiddleware>();
 app.MapReverseProxy();
 
 app.Run();
-
-static int CalculateScaledLimit(int perMinute, int perHour, int perDay, int windowSeconds)
-{
-    var candidates = new List<double>();
-    if (perMinute > 0) candidates.Add(perMinute * windowSeconds / 60.0);
-    if (perHour > 0) candidates.Add(perHour * windowSeconds / 3600.0);
-    if (perDay > 0) candidates.Add(perDay * windowSeconds / 86400.0);
-
-    return candidates.Count > 0 ? Math.Max(1, (int)Math.Floor(candidates.Min())) : 1;
-}
-
-class GatewayRateCounter
-{
-    private int _value;
-
-    public int Value => _value;
-
-    public int IncrementAndGet() => Interlocked.Increment(ref _value);
-}

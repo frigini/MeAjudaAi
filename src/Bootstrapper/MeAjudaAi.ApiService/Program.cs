@@ -191,8 +191,6 @@ public partial class Program
             }
         }
 
-        app.UseMiddleware<GeographicRestrictionMiddleware>();
-
         app.MapDefaultEndpoints();
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();

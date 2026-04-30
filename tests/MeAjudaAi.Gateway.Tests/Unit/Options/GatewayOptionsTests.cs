@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Gateway.Options;
+using MeAjudaAi.Shared.Middleware;
 
 namespace MeAjudaAi.Gateway.Tests.Unit.Options;
 
@@ -29,12 +30,12 @@ public class GatewayCorsOptionsTests
 
 [Trait("Category", "Unit")]
 [Trait("Layer", "Gateway")]
-public class GatewayRateLimitOptionsTests
+public class RateLimitingOptionsTests
 {
     [Fact]
-    public void GatewayRateLimitOptions_DefaultValues_ShouldBeInitialized()
+    public void RateLimitingOptions_DefaultValues_ShouldBeInitialized()
     {
-        var options = new GatewayRateLimitOptions();
+        var options = new RateLimitingOptions();
 
         options.Should().NotBeNull();
         options.General.Enabled.Should().BeTrue();
@@ -46,9 +47,9 @@ public class GatewayRateLimitOptionsTests
     }
 
     [Fact]
-    public void GatewayRateLimitOptions_SectionName_ShouldBeGatewayRateLimit()
+    public void RateLimitingOptions_SectionName_ShouldBeRateLimiting()
     {
-        GatewayRateLimitOptions.SectionName.Should().Be("GatewayRateLimit");
+        RateLimitingOptions.SectionName.Should().Be("RateLimiting");
     }
 }
 
