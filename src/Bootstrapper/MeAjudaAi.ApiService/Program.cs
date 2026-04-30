@@ -60,6 +60,8 @@ public partial class Program
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
+            builder.Services.AddCors();
+
             var app = builder.Build();
 
             await ConfigureMiddlewareAsync(app);

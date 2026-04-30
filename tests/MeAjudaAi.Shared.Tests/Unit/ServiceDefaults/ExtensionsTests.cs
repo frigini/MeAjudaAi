@@ -1236,7 +1236,8 @@ public class ExtensionsTests
         var host = ((HostApplicationBuilder)builder).Build();
 
         // Assert
-        var snapshot = host.Services.GetService<IFeatureManagerSnapshot>();
+        using var scope = host.Services.CreateScope();
+        var snapshot = scope.ServiceProvider.GetService<IFeatureManagerSnapshot>();
         snapshot.Should().NotBeNull();
     }
 
