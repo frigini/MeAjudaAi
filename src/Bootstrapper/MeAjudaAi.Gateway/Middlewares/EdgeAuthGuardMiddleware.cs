@@ -35,6 +35,12 @@ public class EdgeAuthGuardMiddleware
         var path = context.Request.Path.Value ?? string.Empty;
         var pathString = new PathString(path);
 
+        if (!pathString.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        {
+            await _next(context);
+            return;
+        }
+
         var isPublicRoute = false;
         foreach (var publicPrefix in _publicPathPrefixes)
         {

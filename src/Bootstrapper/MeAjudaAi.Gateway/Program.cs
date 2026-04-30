@@ -106,10 +106,10 @@ var app = builder.Build();
 
 app.UseCors();
 
-app.UseEdgeAuthGuard();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEdgeAuthGuard();
 
 app.UseMiddleware<RateLimitingMiddleware>();
 
