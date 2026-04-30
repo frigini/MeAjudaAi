@@ -150,6 +150,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
+                        ["GeographicRestriction:Enabled"] = "true",
+                        ["GeographicRestriction:FailOpen"] = "false",
                         ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
                         ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
                         ["GeographicRestriction:AllowedCities:2"] = "Linhares",
