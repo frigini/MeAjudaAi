@@ -6,9 +6,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 13.1 (Otimizações e Refinamentos)
+**Sprint Atual**: 13.3 (Refatoração de Persistência — Fase 0)
 
-**Status**: 🚧 Em Andamento
+**Status**: 🚧 Em Andamento — Fase 0 Shared
 
 **Meta MVP**: 12 a 16 de maio de 2026
 
@@ -16,11 +16,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 🏃 Sprint 13.1: Otimizações e Refinamentos (Em Andamento)
-
-*   **Performance Zero-Allocation**: Redução drástica de pressão no Garbage Collector em *Hot Paths* (Middlewares de requisições, logging e métricas) e *Application Layer* via `Span<T>` e `ReadOnlySpan<char>`. Eliminação de alocações desnecessárias envolvendo strings e expressões regulares.
-*   **API Client Collections**: Adição de endpoints SSE para streaming de eventos (`/bookings/{id}/events`, `/providers/{id}/verification-events`), correções de paths em AllowedCitiesAdmin, padronização de variáveis (`{{bookingId}}`), remoção de tools/api-collections e referências a Postman nos docs.
-*   **Código e Testes**: Extração de constantes de mensagens SSE em BookingRealtimeEventsHandler, pré-compilação de Regex em BusinessMetricsMiddleware, expansão de casos de teste para headers de localização malformados.
+## 🏃 Sprint 13.1: Otimizações e Refinamentos (Concluído)
 
 ## 🚀 Sprint 13.2: Edge Infrastructure & API Gateway (Planejado)
 
@@ -29,6 +25,18 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **Security Hardening**: Centralização de validação de tokens JWT/Keycloak e sanitização de headers globais no Gateway.
 *   **Service Discovery**: Integração com .NET Aspire para roteamento dinâmico para o ApiService.
 *   **Resiliência**: Configuração de retentativas (Retries) e Circuit Breaker para endpoints críticos de integração.
+
+---
+
+## 🔧 Sprint 13.3: Refatoração de Persistência — Fase 0 (Em Andamento)
+
+*   **Preparação da Camada Compartilhada**: Criação das interfaces base `IRepository<TAggregate, TKey>` e `IUnitOfWork` no Shared.
+*   **Cria��ão de `IRepository`**: Interface genérica com métodos `TryFindAsync`, `Add`, `Delete` e implementação default de `DeleteAsync`. Elimina o anti-pattern de `SaveChangesAsync` por método.
+*   **Criação de `IUnitOfWork`**: Interface com `GetRepository<TAggregate, TKey>()` e `SaveChangesAsync`. O DbContext será a implementação concreta.
+*   **Verificação do `BaseDbContext`**: Confirmação de que o dispatch de domain events funciona corretamente com a nova herança.
+*   **Remoção do Scrutor Scan**: Eliminação do scan automático de `*Repository` via `AddModuleRepositories`, substituído por registro explícito do DbContext por módulo.
+
+> **Nota**: Esta é a Fase 0 (Shared) do plano de refatoração em 5 fases. Serve como base para todas as fases seguintes. O módulo Locations será o piloto na Fase 1.
 
 ---
 
