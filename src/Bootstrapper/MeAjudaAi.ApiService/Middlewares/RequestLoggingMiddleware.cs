@@ -158,7 +158,13 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
             return xRealIp;
         }
 
-        return remoteIp ?? "unknown";
+        // Se RemoteIpAddress for loopback ou null, retornar "unknown"
+        if (string.IsNullOrEmpty(remoteIp) || remoteIp == "::1" || remoteIp == "127.0.0.1")
+        {
+            return "unknown";
+        }
+
+        return remoteIp;
     }
 
     private static string GetUserId(HttpContext context)

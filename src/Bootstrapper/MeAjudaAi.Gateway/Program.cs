@@ -1,6 +1,5 @@
-using MeAjudaAi.Gateway.Middleware;
+using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
-using MeAjudaAi.Gateway.Resilience;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,8 +19,8 @@ builder.Services.Configure<RateLimitingOptions>(
     builder.Configuration.GetSection(RateLimitingOptions.SectionName));
 builder.Services.Configure<GatewayResilienceOptions>(
     builder.Configuration.GetSection(GatewayResilienceOptions.SectionName));
-builder.Services.Configure<PublicRoutesOptions>(
-    builder.Configuration.GetSection(PublicRoutesOptions.SectionName));
+builder.Services.Configure<EdgeAuthGuardOptions>(
+    builder.Configuration.GetSection(EdgeAuthGuardOptions.SectionName));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddFeatureManagement();
@@ -82,10 +81,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Registra a fábrica resiliente de clientes HTTP para o YARP (Polly timeout + retry)
-builder.Services.AddSingleton<IForwarderHttpClientFactory, ResilientForwarderHttpClientFactory>();
-
 var timeoutSeconds = builder.Configuration.GetValue<int>("GatewayResilience:TimeoutSeconds", 30);
+
+builder.Services.AddSingleton<IForwarderHttpClientFactory, ResilientForwarderHttpClientFactory>();
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
@@ -108,9 +106,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Edge auth guard: bloqueia requisições não autenticadas para rotas protegidas
-// (rotas públicas definidas em PublicRoutes:Routes são passadas sem verificação)
-app.UseMiddleware<AuthenticationGuardMiddleware>();
+app.UseEdgeAuthGuard();
 
 app.UseMiddleware<RateLimitingMiddleware>();
 

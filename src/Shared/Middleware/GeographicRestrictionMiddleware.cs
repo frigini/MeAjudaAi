@@ -17,8 +17,9 @@ public class GeographicRestrictionMiddleware(
     public async Task InvokeAsync(HttpContext context, IGeographicValidationService? geographicValidationService = null)
     {
         var isFeatureEnabled = await featureManager.IsEnabledAsync(FeatureFlags.GeographicRestriction);
+        var optionsValue = options.CurrentValue;
 
-        if (!isFeatureEnabled)
+        if (!isFeatureEnabled || !optionsValue.Enabled)
         {
             await next(context);
             return;
@@ -48,7 +49,8 @@ public class GeographicRestrictionMiddleware(
             context.Response.ContentType = "application/json";
 
             var allowedRegions = GetAllowedRegionsDescription();
-            var template = options.CurrentValue.BlockedMessage ?? "Acesso da sua região não permitido. Regiões permitidas: {allowedRegions}.";
+            var blockedMessage = options.CurrentValue.BlockedMessage ?? options.CurrentValue.DefaultBlockedMessage;
+            var template = blockedMessage ?? "Acesso da sua região não permitido. Regiões permitidas: {allowedRegions}.";
             var message = template.Replace("{allowedRegions}", allowedRegions);
 
             var errorResponse = new GeographicRestrictionErrorResponse(

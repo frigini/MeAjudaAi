@@ -33,8 +33,7 @@ public static class ProviderRegistrationEndpoints
                 "e a entidade Provider com Tier=Standard. Endpoint público, sem autenticação.")
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
-            .AllowAnonymous()
-            .RequireRateLimiting(RateLimitPolicies.ProviderRegistration);
+            .AllowAnonymous();
 
         return endpoints;
     }
