@@ -1,7 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
-using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,7 +19,6 @@ builder.Services.Configure<GeographicRestrictionOptions>(
 builder.Services.Configure<GatewayRateLimitOptions>(
     builder.Configuration.GetSection(GatewayRateLimitOptions.SectionName));
 
-builder.Services.AddHttpClient<IGeographicValidationService, GeographicValidationService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddFeatureManagement();
 
@@ -79,6 +77,9 @@ var app = builder.Build();
 
 app.UseCors();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.Use(async (context, next) =>
 {
     var rateLimitOptions = context.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<GatewayRateLimitOptions>>();
@@ -123,7 +124,7 @@ app.Use(async (context, next) =>
         return new GatewayRateCounter();
     });
 
-    counter.Value = counter.Value + 1;
+    counter.Increment();
 
     var scaledLimit = CalculateScaledLimit(requestsPerMinute, requestsPerHour, requestsPerDay, windowSeconds);
     if (counter.Value > scaledLimit)
@@ -168,4 +169,6 @@ static int CalculateScaledLimit(int perMinute, int perHour, int perDay, int wind
 class GatewayRateCounter
 {
     public int Value { get; set; }
+
+    public void Increment() => Value++;
 }

@@ -139,24 +139,37 @@ public partial class Program
 
             app.UseCors(policy =>
             {
-                policy.WithOrigins(allowedOrigins.ToArray())
-                      .WithMethods(allowedMethods.ToArray())
-                      .WithHeaders(allowedHeaders.ToArray())
-                      .AllowCredentials()
-                      .SetPreflightMaxAge(TimeSpan.FromSeconds(maxAge));
-            });
-        }
+                if (allowedOrigins.Count == 0)
+                {
+                    policy.AllowAnyOrigin();
+                }
+                else
+                {
+                    policy.WithOrigins(allowedOrigins.ToArray());
+                }
 
-        // GeographicRestriction fallback para ambientes de teste (Testing/Integration)
-        // O GeographicRestriction principal está no Gateway em produção
-        var geoRestrictionConfig = app.Configuration.GetSection("GeographicRestriction");
-        if (geoRestrictionConfig.Exists())
-        {
-            var enabled = geoRestrictionConfig.GetValue<bool>("Enabled", false);
-            if (enabled)
-            {
-                app.UseMiddleware<MeAjudaAi.Gateway.Middlewares.GeographicRestrictionMiddleware>();
-            }
+                policy.WithMethods(allowedMethods.ToArray());
+
+                if (allowedHeaders.Contains("*"))
+                {
+                    policy.AllowAnyHeader();
+                }
+                else
+                {
+                    policy.WithHeaders(allowedHeaders.ToArray());
+                }
+
+                if (allowCredentials && allowedOrigins.Count > 0)
+                {
+                    policy.AllowCredentials();
+                }
+                else if (allowCredentials)
+                {
+                    throw new InvalidOperationException("Cannot use AllowCredentials with AllowAnyOrigin. Set AllowCredentials to false or specify allowed origins.");
+                }
+
+                policy.SetPreflightMaxAge(TimeSpan.FromSeconds(maxAge));
+            });
         }
 
         app.MapDefaultEndpoints();

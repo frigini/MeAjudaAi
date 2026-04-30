@@ -193,6 +193,7 @@
     <Project Path="tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj" />
+    <Project Path="tests/MeAjudaAi.Gateway.Tests/MeAjudaAi.Gateway.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj" />
   </Folder>

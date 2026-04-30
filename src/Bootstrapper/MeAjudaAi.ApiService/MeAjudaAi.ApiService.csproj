@@ -38,8 +38,6 @@
     <ProjectReference Include="..\..\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
     <ProjectReference Include="..\..\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />
     <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.csproj" />
-    <!-- Referência para GeographicRestrictionMiddleware (usado em Testing/Integration) -->
-    <ProjectReference Include="..\MeAjudaAi.Gateway\MeAjudaAi.Gateway.csproj" />
   </ItemGroup>
 
   <ItemGroup>

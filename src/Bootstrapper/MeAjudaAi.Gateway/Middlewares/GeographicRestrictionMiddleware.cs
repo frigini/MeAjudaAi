@@ -181,7 +181,7 @@ public class GeographicRestrictionMiddleware(
                         if (options.CurrentValue.AllowedStates == null || 
                             !options.CurrentValue.AllowedStates.Any())
                         {
-                            return false;
+                            return true;
                         }
                         return options.CurrentValue.AllowedStates.Any(s =>
                             s.Equals(state, StringComparison.OrdinalIgnoreCase));
