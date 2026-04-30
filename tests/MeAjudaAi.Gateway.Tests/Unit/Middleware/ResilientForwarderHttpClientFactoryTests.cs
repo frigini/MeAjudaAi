@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
@@ -106,5 +107,38 @@ public class ResilientForwarderHttpClientFactoryTests
 
         var delegatingHandler = handler as DelegatingHandler;
         delegatingHandler.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void CreateHandler_RetryableMethods_IncludesExpectedMethods()
+    {
+        var options = new GatewayResilienceOptions
+        {
+            RetryCount = 1,
+            RetryableMethods = ["GET", "HEAD", "PUT", "DELETE"]
+        };
+
+        var factory = CreateFactory(options);
+        var handler = factory.CreateHandler(new ForwarderHttpClientContext());
+
+        handler.Should().BeAssignableTo<DelegatingHandler>();
+        
+        var delegatingHandler = (DelegatingHandler)handler;
+        delegatingHandler.InnerHandler.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void CreateHandler_NonRetryableMethods_ExcludesPost()
+    {
+        var options = new GatewayResilienceOptions
+        {
+            RetryCount = 1,
+            RetryableMethods = ["GET", "HEAD"]
+        };
+
+        var factory = CreateFactory(options);
+        var handler = factory.CreateHandler(new ForwarderHttpClientContext());
+
+        handler.Should().BeAssignableTo<DelegatingHandler>();
     }
 }

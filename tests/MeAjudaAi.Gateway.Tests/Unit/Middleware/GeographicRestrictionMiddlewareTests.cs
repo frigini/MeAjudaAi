@@ -282,4 +282,69 @@ public class GeographicRestrictionMiddlewareBehaviorTests
 
         context.Response.StatusCode.Should().Be(451);
     }
+
+    [Fact]
+    public async Task InvokeAsync_BlockedCity_Returns451()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedCities = ["Muriaé"];
+            opts.AllowedStates = [];
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "São Paulo|SP";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(451);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_BlockedCityWithAllowedStates_Returns451()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedCities = [];
+            opts.AllowedStates = ["MG", "RJ"];
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "São Paulo|SP";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(451);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_BlockedCityWithPipeFormat_Returns451WithProperResponse()
+    {
+        var middleware = CreateMiddleware(configure: opts =>
+        {
+            opts.AllowedCities = ["Muriaé"];
+            opts.AllowedStates = ["MG"];
+            opts.DefaultBlockedMessage = "Default message: {allowedRegions}";
+        });
+
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.GeographicRestriction))
+            .ReturnsAsync(true);
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers["X-User-Location"] = "São Paulo|SP";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(451);
+        context.Response.ContentType.Should().Contain("application/json");
+    }
 }

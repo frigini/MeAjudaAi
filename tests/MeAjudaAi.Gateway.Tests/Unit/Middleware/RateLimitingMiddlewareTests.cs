@@ -274,4 +274,48 @@ public class RateLimitingMiddlewareBehaviorTests
 
         context.Response.StatusCode.Should().Be(429);
     }
+
+    [Fact]
+    public async Task InvokeAsync_LimitExceeded_SetsCorrectStatusCodeAndHeaders()
+    {
+        var loggerMock = new Mock<ILogger<RateLimitingMiddleware>>();
+        var optionsMock = new Mock<IOptionsMonitor<RateLimitingOptions>>();
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        
+        var options = new RateLimitingOptions
+        {
+            General = new GeneralSettings
+            {
+                Enabled = true,
+                WindowInSeconds = 60,
+                ErrorMessage = "Custom rate limit message"
+            },
+            Anonymous = new AnonymousLimits
+            {
+                RequestsPerMinute = 30,
+                RequestsPerHour = 300,
+                RequestsPerDay = 1000
+            }
+        };
+        optionsMock.Setup(x => x.CurrentValue).Returns(options);
+
+        var middleware = new RateLimitingMiddleware(
+            _ => Task.CompletedTask,
+            loggerMock.Object,
+            optionsMock.Object,
+            cache);
+
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("10.0.0.1");
+        context.Request.Method = "GET";
+
+        for (int i = 0; i < 35; i++)
+        {
+            await middleware.InvokeAsync(context);
+        }
+
+        context.Response.StatusCode.Should().Be(429);
+        context.Response.ContentType.Should().Contain("application/json");
+        context.Response.Headers["Retry-After"].Should().NotBeEmpty();
+    }
 }

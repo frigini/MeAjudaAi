@@ -79,22 +79,41 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
         }
 
         HttpResponseMessage? last = null;
+        Exception? lastException = null;
+        
         for (int attempt = 0; attempt <= _options.RetryCount; attempt++)
         {
-            last = await base.SendAsync(request, ct);
-            
-            if (!IsTransient(last))
+            try
             {
-                return last;
-            }
+                last = await base.SendAsync(request, ct);
+                
+                if (!IsTransient(last))
+                {
+                    return last;
+                }
 
-            _logger.LogWarning(
-                "Retry attempt {AttemptNumber}/{MaxAttempts} for {Method} {Url} - Status: {StatusCode}",
-                attempt + 1,
-                _options.RetryCount,
-                request.Method.Method,
-                request.RequestUri,
-                last.StatusCode);
+                _logger.LogWarning(
+                    "Retry attempt {AttemptNumber}/{MaxAttempts} for {Method} {Url} - Status: {StatusCode}",
+                    attempt + 1,
+                    _options.RetryCount,
+                    request.Method.Method,
+                    request.RequestUri,
+                    last.StatusCode);
+
+                last.Dispose();
+                last = null;
+            }
+            catch (Exception ex) when (IsTransientException(ex))
+            {
+                lastException = ex;
+                _logger.LogWarning(
+                    "Retry attempt {AttemptNumber}/{MaxAttempts} for {Method} {Url} - Exception: {Message}",
+                    attempt + 1,
+                    _options.RetryCount,
+                    request.Method.Method,
+                    request.RequestUri,
+                    ex.Message);
+            }
 
             if (attempt < _options.RetryCount)
             {
@@ -103,10 +122,23 @@ internal sealed class RetryDelegatingHandler : DelegatingHandler
             }
         }
 
-        return last!;
+        if (last != null)
+        {
+            return last;
+        }
+
+        if (lastException != null)
+        {
+            throw lastException;
+        }
+
+        throw new HttpRequestException("All retry attempts failed");
     }
 
     private static bool IsTransient(HttpResponseMessage response) =>
         (int)response.StatusCode >= 500 ||
         response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout;
+
+    private static bool IsTransientException(Exception ex) =>
+        ex is HttpRequestException or TaskCanceledException or IOException;
 }
