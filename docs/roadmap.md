@@ -30,11 +30,13 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 🔧 Sprint 13.3: Refatoração de Persistência — Fase 0 (Em Andamento)
 
-*   **Preparação da Camada Compartilhada**: Criação das interfaces base `IRepository<TAggregate, TKey>` e `IUnitOfWork` no Shared.
-*   **Cria��ão de `IRepository`**: Interface genérica com métodos `TryFindAsync`, `Add`, `Delete` e implementação default de `DeleteAsync`. Elimina o anti-pattern de `SaveChangesAsync` por método.
-*   **Criação de `IUnitOfWork`**: Interface com `GetRepository<TAggregate, TKey>()` e `SaveChangesAsync`. O DbContext será a implementação concreta.
+*   **Preparação da Camada Compartilhada**: Criação das interfaces base `IRepository<TAggregate, TKey>` e `IUnitOfWork` sob `src/Shared/Database/`. O `DbContext` de cada módulo será a implementação concreta, eliminando o anti-pattern de wrapping classes.
+*   **Criação de `IRepository<TAggregate, TKey>`**: Interface genérica com métodos `TryFindAsync`, `Add`, `Delete` e implementação default de `DeleteAsync`. Elimina o anti-pattern de `SaveChangesAsync` por método.
+*   **Criação de `IUnitOfWork`**: Interface com `GetRepository<TAggregate, TKey>()` e `SaveChangesAsync`. O `DbContext` será a implementação concreta.
 *   **Verificação do `BaseDbContext`**: Confirmação de que o dispatch de domain events funciona corretamente com a nova herança.
-*   **Remoção do Scrutor Scan**: Eliminação do scan automático de `*Repository` via `AddModuleRepositories`, substituído por registro explícito do DbContext por módulo.
+*   **Remoção do Scrutor Scan**: Eliminação do scan automático de `*Repository` via `AddModuleRepositories`, substituído por registro explícito do `DbContext` por módulo.
+
+> **Exceções acordadas**: `IOutboxRepository<TMessage>` permanece em seu local atual (infraestrutura de mensageria, não aggregate DDD). A operação `AddIfNoOverlapAsync` de Bookings será movida para um `IBookingCommandService` dedicado (transação serializável com retry).
 
 > **Nota**: Esta é a Fase 0 (Shared) do plano de refatoração em 5 fases. Serve como base para todas as fases seguintes. O módulo Locations será o piloto na Fase 1.
 
