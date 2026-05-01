@@ -1,36 +1,24 @@
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
-using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
-namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Repositories;
+namespace MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 
-public class ReviewRepository(RatingsDbContext context) : IReviewRepository
+public class DbContextReviewQueries(RatingsDbContext dbContext) : IReviewQueries
 {
-    public async Task AddAsync(Review review, CancellationToken cancellationToken = default)
+    public async Task<Review?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await context.Reviews.AddAsync(review, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
-        {
-            throw new DuplicateReviewException(review.ProviderId, review.CustomerId);
-        }
-    }
-
-    public async Task<Review?> GetByIdAsync(ReviewId id, CancellationToken cancellationToken = default)
-    {
-        return await context.Reviews.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        return await dbContext.Reviews
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
     public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        return await context.Reviews
+        return await dbContext.Reviews
+            .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)
             .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -38,21 +26,17 @@ public class ReviewRepository(RatingsDbContext context) : IReviewRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task UpdateAsync(Review review, CancellationToken cancellationToken = default)
-    {
-        context.Reviews.Update(review);
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
     public async Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default)
     {
-        return await context.Reviews
+        return await dbContext.Reviews
+            .AsNoTracking()
             .FirstOrDefaultAsync(r => r.ProviderId == providerId && r.CustomerId == customerId, cancellationToken);
     }
 
     public async Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        var query = context.Reviews
+        var query = dbContext.Reviews
+            .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved);
 
         var total = await query.CountAsync(cancellationToken);

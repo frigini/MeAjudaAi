@@ -1,20 +1,24 @@
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
+using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using FluentAssertions;
 
-namespace MeAjudaAi.Modules.Ratings.Tests.Integration.Persistence.Repositories;
+namespace MeAjudaAi.Modules.Ratings.Tests.Integration;
 
-public class ReviewRepositoryTests : IAsyncDisposable
+public class RatingsPersistenceIntegrationTests : IAsyncDisposable
 {
     private readonly RatingsDbContext _context;
-    private readonly ReviewRepository _repository;
+    private readonly IUnitOfWork _uow;
+    private readonly IReviewQueries _queries;
     private readonly SqliteConnection _connection;
 
-    public ReviewRepositoryTests()
+    public RatingsPersistenceIntegrationTests()
     {
         _connection = new SqliteConnection("DataSource=:memory:");
         _connection.Open();
@@ -25,7 +29,8 @@ public class ReviewRepositoryTests : IAsyncDisposable
 
         _context = new RatingsDbContext(options);
         _context.Database.EnsureCreated();
-        _repository = new ReviewRepository(_context);
+        _uow = _context;
+        _queries = new DbContextReviewQueries(_context);
     }
 
     public async ValueTask DisposeAsync()
@@ -34,14 +39,17 @@ public class ReviewRepositoryTests : IAsyncDisposable
         await _connection.DisposeAsync();
     }
 
+    private IRepository<Review, ReviewId> GetRepository() => _uow.GetRepository<Review, ReviewId>();
+
     [Fact]
-    public async Task AddAsync_ShouldPersistReview()
+    public async Task Add_ShouldPersistReview()
     {
         // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
 
         // Act
-        await _repository.AddAsync(review);
+        GetRepository().Add(review);
+        await _uow.SaveChangesAsync();
 
         // Assert
         var persisted = await _context.Reviews.FindAsync(review.Id);
@@ -56,10 +64,11 @@ public class ReviewRepositoryTests : IAsyncDisposable
         var providerId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var review = Review.Create(providerId, customerId, 4, "Test");
-        await _repository.AddAsync(review);
+        GetRepository().Add(review);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByProviderAndCustomerAsync(providerId, customerId);
+        var result = await _queries.GetByProviderAndCustomerAsync(providerId, customerId);
 
         // Assert
         result.Should().NotBeNull();
@@ -67,14 +76,15 @@ public class ReviewRepositoryTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task GetByIdAsync_WithValidId_ShouldReturnReview()
+    public async Task TryFindAsync_WithValidId_ShouldReturnReview()
     {
         // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
-        await _repository.AddAsync(review);
+        GetRepository().Add(review);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByIdAsync(review.Id);
+        var result = await GetRepository().TryFindAsync(review.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -97,12 +107,13 @@ public class ReviewRepositoryTests : IAsyncDisposable
         var r3 = Review.Create(providerId, Guid.NewGuid(), 1, "Rejected");
         r3.Reject("Bad");
 
-        await _repository.AddAsync(r1);
-        await _repository.AddAsync(r2);
-        await _repository.AddAsync(r3);
+        GetRepository().Add(r1);
+        GetRepository().Add(r2);
+        GetRepository().Add(r3);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = (await _repository.GetByProviderIdAsync(providerId, 1, 10)).ToList();
+        var result = (await _queries.GetByProviderIdAsync(providerId, 1, 10)).ToList();
 
         // Assert
         result.Should().HaveCount(2);
@@ -111,15 +122,17 @@ public class ReviewRepositoryTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task UpdateAsync_ShouldPersistChanges()
+    public async Task SaveChangesAsync_ShouldPersistChanges()
     {
         // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
-        await _repository.AddAsync(review);
+        GetRepository().Add(review);
+        await _uow.SaveChangesAsync();
+        
         review.Approve();
 
         // Act
-        await _repository.UpdateAsync(review);
+        await _uow.SaveChangesAsync();
 
         // Assert
         var persisted = await _context.Reviews.FindAsync(review.Id);
@@ -138,12 +151,13 @@ public class ReviewRepositoryTests : IAsyncDisposable
         r2.Approve();
         var r3 = Review.Create(providerId, Guid.NewGuid(), 1, null); // Not approved
         
-        await _repository.AddAsync(r1);
-        await _repository.AddAsync(r2);
-        await _repository.AddAsync(r3);
+        GetRepository().Add(r1);
+        GetRepository().Add(r2);
+        GetRepository().Add(r3);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var (average, total) = await _repository.GetAverageRatingForProviderAsync(providerId);
+        var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
 
         // Assert
         average.Should().Be(4.5m);
@@ -156,10 +170,11 @@ public class ReviewRepositoryTests : IAsyncDisposable
         // Arrange
         var providerId = Guid.NewGuid();
         var review = Review.Create(providerId, Guid.NewGuid(), 5, "Pending");
-        await _repository.AddAsync(review);
+        GetRepository().Add(review);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var (average, total) = await _repository.GetAverageRatingForProviderAsync(providerId);
+        var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
 
         // Assert
         average.Should().Be(0);
@@ -175,12 +190,13 @@ public class ReviewRepositoryTests : IAsyncDisposable
         {
             var r = Review.Create(providerId, Guid.NewGuid(), 5, $"Review {i}");
             r.Approve();
-            await _repository.AddAsync(r);
+            GetRepository().Add(r);
         }
+        await _uow.SaveChangesAsync();
 
         // Act
-        var page1 = await _repository.GetByProviderIdAsync(providerId, 1, 3);
-        var page2 = await _repository.GetByProviderIdAsync(providerId, 2, 3);
+        var page1 = await _queries.GetByProviderIdAsync(providerId, 1, 3);
+        var page2 = await _queries.GetByProviderIdAsync(providerId, 2, 3);
 
         // Assert
         page1.Should().HaveCount(3);
@@ -191,27 +207,29 @@ public class ReviewRepositoryTests : IAsyncDisposable
     public async Task GetByProviderIdAsync_WhenNoReviews_ShouldReturnEmpty()
     {
         // Act
-        var result = await _repository.GetByProviderIdAsync(Guid.NewGuid());
+        var result = await _queries.GetByProviderIdAsync(Guid.NewGuid());
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task AddAsync_ShouldThrowDbUpdateException_WhenDuplicateProviderAndCustomer()
+    public async Task SaveChangesAsync_ShouldThrowDbUpdateException_WhenDuplicateProviderAndCustomer()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var review1 = Review.Create(providerId, customerId, 5, "First");
-        await _repository.AddAsync(review1);
+        GetRepository().Add(review1);
+        await _uow.SaveChangesAsync();
 
         // Tenta inserir outro review para o mesmo par ProviderId/CustomerId, 
         // o que deve disparar uma violação de chave única no banco de dados.
         var review2 = Review.Create(providerId, customerId, 4, "Second");
+        GetRepository().Add(review2);
         
         // Act & Assert
-        var act = () => _repository.AddAsync(review2);
+        var act = () => _uow.SaveChangesAsync();
         
         // No ambiente de teste (SQLite), a violação de unicidade lança uma DbUpdateException
         // com uma InnerException do tipo Microsoft.Data.Sqlite.SqliteException.

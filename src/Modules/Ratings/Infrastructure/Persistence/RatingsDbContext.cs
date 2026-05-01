@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
-public class RatingsDbContext : BaseDbContext
+public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
 {
     public RatingsDbContext(DbContextOptions<RatingsDbContext> options) 
         : base(options)
@@ -23,6 +23,9 @@ public class RatingsDbContext : BaseDbContext
     }
 
     public DbSet<Review> Reviews { get; set; } = null!;
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>() =>
+        (IRepository<TAggregate, TKey>)this;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
