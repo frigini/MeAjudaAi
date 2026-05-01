@@ -1,24 +1,20 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Queries;
-using MeAjudaAi.Modules.Documents.Domain.Entities;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 /// <summary>
 /// Handles queries to retrieve all documents for a specific provider.
 /// </summary>
-/// <param name="documentRepository">Document repository for data access.</param>
 public class GetProviderDocumentsQueryHandler(
-    IDocumentRepository documentRepository) : IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>
+    IDocumentQueries queries) : IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>
 {
-    private readonly IDocumentRepository _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
+    private readonly IDocumentQueries _queries = queries ?? throw new ArgumentNullException(nameof(queries));
 
     public async Task<IEnumerable<DocumentDto>> HandleAsync(GetProviderDocumentsQuery query, CancellationToken cancellationToken = default)
     {
-        var documents = await _documentRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
+        var documents = await _queries.GetByProviderIdAsync(query.ProviderId, cancellationToken);
 
         return documents.Select(d => new DocumentDto(
             d.Id,

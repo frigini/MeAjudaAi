@@ -5,21 +5,25 @@ using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
-using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
+using MeAjudaAi.Modules.Documents.Domain;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Moq;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class UploadDocumentCommandHandlerTests
 {
-    private readonly Mock<IDocumentRepository> _mockRepository;
+    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IRepository<Document, DocumentId>> _mockRepository;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
     private readonly Mock<IBackgroundJobService> _mockJobService;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
@@ -29,12 +33,15 @@ public class UploadDocumentCommandHandlerTests
 
     public UploadDocumentCommandHandlerTests()
     {
-        _mockRepository = new Mock<IDocumentRepository>();
+        _mockUow = new Mock<IUnitOfWork>();
+        _mockRepository = new Mock<IRepository<Document, DocumentId>>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
         _mockJobService = new Mock<IBackgroundJobService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockUploadOptions = new Mock<IOptions<DocumentUploadOptions>>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
+
+        _mockUow.Setup(u => u.GetRepository<Document, DocumentId>()).Returns(_mockRepository.Object);
 
         // Configure default upload options
         _mockUploadOptions.Setup(x => x.Value).Returns(new DocumentUploadOptions
@@ -51,7 +58,7 @@ public class UploadDocumentCommandHandlerTests
             .Returns(Task.CompletedTask);
 
         _handler = new UploadDocumentCommandHandler(
-            _mockRepository.Object,
+            _mockUow.Object,
             _mockBlobStorage.Object,
             _mockJobService.Object,
             _mockHttpContextAccessor.Object,
@@ -94,12 +101,11 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync((uploadUrl, expiresAt));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository
+        _mockUow
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -111,15 +117,14 @@ public class UploadDocumentCommandHandlerTests
         result.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromSeconds(1));
 
         _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d =>
+            x => x.Add(It.Is<Document>(d =>
                 d.ProviderId == providerId &&
                 d.DocumentType == EDocumentType.IdentityDocument &&
                 d.FileName == "test.pdf" &&
-                d.Status == EDocumentStatus.Uploaded),
-                It.IsAny<CancellationToken>()),
+                d.Status == EDocumentStatus.Uploaded)),
             Times.Once);
 
-        _mockRepository.Verify(
+        _mockUow.Verify(
             x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
 
@@ -149,17 +154,16 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync(("upload", DateTime.UtcNow.AddHours(1)));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => d.DocumentType == EDocumentType.ProofOfResidence), It.IsAny<CancellationToken>()),
+            x => x.Add(It.Is<Document>(d => d.DocumentType == EDocumentType.ProofOfResidence)),
             Times.Once);
 
         _mockJobService.Verify(
@@ -192,10 +196,9 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync((uploadUrl, expiresAt));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -285,12 +288,11 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository
+        _mockUow
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -382,12 +384,11 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync((uploadUrl, expiresAt));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository
+        _mockUow
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -398,7 +399,7 @@ public class UploadDocumentCommandHandlerTests
         result.UploadUrl.Should().Be(uploadUrl);
 
         _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => d.ProviderId == providerId), It.IsAny<CancellationToken>()),
+            x => x.Add(It.Is<Document>(d => d.ProviderId == providerId)),
             Times.Once);
 
         _mockJobService.Verify(
@@ -431,12 +432,11 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync((uploadUrl, expiresAt));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository
+        _mockUow
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -567,7 +567,10 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.Add(It.IsAny<Document>()));
+
+        _mockUow
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act & Assert
@@ -631,12 +634,9 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -646,9 +646,8 @@ public class UploadDocumentCommandHandlerTests
         result.DocumentId.Should().NotBeEmpty();
         
         _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => 
-                d.DocumentType == EDocumentType.IdentityDocument), 
-                It.IsAny<CancellationToken>()),
+            x => x.Add(It.Is<Document>(d => 
+                d.DocumentType == EDocumentType.IdentityDocument)),
             Times.Once);
     }
 
@@ -672,12 +671,9 @@ public class UploadDocumentCommandHandlerTests
             .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
 
         _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<Document>()));
 
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -686,9 +682,8 @@ public class UploadDocumentCommandHandlerTests
         result.Should().NotBeNull();
         
         _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => 
-                d.DocumentType == EDocumentType.Other), 
-                It.IsAny<CancellationToken>()),
+            x => x.Add(It.Is<Document>(d => 
+                d.DocumentType == EDocumentType.Other)),
             Times.Once);
     }
 
@@ -721,4 +716,3 @@ public class UploadDocumentCommandHandlerTests
         exception.Message.Should().Contain(expectedLimit);
     }
 }
-

@@ -10,12 +10,22 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 /// Database context for the Documents module.
 /// Manages document entities and their persistence.
 /// </summary>
-public class DocumentsDbContext : BaseDbContext
+public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 {
     /// <summary>
     /// Gets the collection of documents.
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+        
+        throw new InvalidOperationException(
+            $"DocumentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: Document(DocumentId)");
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for design-time (migrations).

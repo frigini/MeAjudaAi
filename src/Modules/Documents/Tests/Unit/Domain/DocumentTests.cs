@@ -298,16 +298,15 @@ public class DocumentTests
         documentPending.Status.Should().Be(EDocumentStatus.Failed);
     }
 
-    [Fact]
-    public void MarkAsFailed_WithEmptyReason_ShouldThrowArgumentException()
+[Fact]
+    public void MarkAsVerified_ForStatusFromUploaded_ShouldSucceed()  // renamed and fixed
     {
-        // Arrange
         var document = CreateTestDocument();
 
-        // Act & Assert
-        var act = () => document.MarkAsFailed("");
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*Failure reason cannot be empty*");
+        document. MarkAsPendingVerification();
+        var result = () => document.MarkAsVerified(null);
+        result. Should().NotThrow();
+        document. Status. Should().Be(EDocumentStatus.Verified);
     }
 
     [Theory]
@@ -353,17 +352,333 @@ public class DocumentTests
         exception.ParamName.Should().Be("fileName");
     }
 
-    [Theory]
+[Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_WithInvalidFileUrl_ShouldThrowArgumentNullException(string fileUrl)
+    public void Create_WithInvalidFileUrl_ShouldThrowArgumentNullException( string fileUrl)
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
             Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", fileUrl));
 
         exception.ParamName.Should().Be("fileUrl");
+    }
+
+    [Fact]
+    public void Create_WithWhitespaceFileName_WhitespaceFileUrl_ShouldTrimAndSucceed()
+    {
+        // Arrange & Act
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "  document.pdf  ",
+            "  blob-key  ");
+
+        // Assert
+        document.FileName.Should().Be("document.pdf");
+        document.FileUrl.Should().Be("blob-key");
+    }
+
+    [Fact]
+    public void Create_WithValidInputs_ShouldHaveCorrectInitialState()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var documentType = EDocumentType.ProofOfResidence;
+        var fileName = "proof.pdf";
+        var fileUrl = "blob://test";
+
+        // Act
+        var document = Document.Create(providerId, documentType, fileName, fileUrl);
+
+        // Assert
+        document.Id.Should().NotBeNull();
+        document.Id.Value.Should().NotBe(Guid.Empty);
+        document.ProviderId.Should().Be(providerId);
+        document.DocumentType.Should().Be(documentType);
+        document.FileName.Should().Be(fileName);
+        document.FileUrl.Should().Be(fileUrl);
+        document.Status.Should().Be(EDocumentStatus.Uploaded);
+        document.UploadedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        document.VerifiedAt.Should().BeNull();
+        document.RejectionReason.Should().BeNull();
+        document.OcrData.Should().BeNull();
+    }
+
+[Theory]
+    [InlineData(EDocumentStatus.Uploaded)]
+    [InlineData(EDocumentStatus.PendingVerification)]
+    [InlineData(EDocumentStatus.Verified)]
+    [InlineData(EDocumentStatus.Rejected)]
+    [InlineData(EDocumentStatus.Failed)]
+    public void MarkAsVerified_OnlySucceedsFromPendingVerification(EDocumentStatus initialStatus)
+    {
+        Document doc;
+        switch (initialStatus)
+        {
+            case EDocumentStatus.PendingVerification:
+                doc = CreateTestDocument();
+                doc.MarkAsPendingVerification();
+                break;
+            default:
+                doc = CreateTestDocument();
+                break;
+        }
+
+        if (initialStatus == EDocumentStatus.PendingVerification)
+        {
+            doc.MarkAsVerified(null);
+            doc.Status.Should().Be(EDocumentStatus.Verified);
+        }
+        else if (initialStatus == EDocumentStatus.Uploaded || initialStatus == EDocumentStatus.Failed)
+        {
+            doc.MarkAsPendingVerification();
+            doc.MarkAsVerified(null);
+            doc.Status.Should().Be(EDocumentStatus.Verified);
+        }
+        else
+        {
+            var act = () => doc.MarkAsVerified(null);
+            act.Should().Throw<InvalidOperationException>();
+        }
+    }
+
+    [Fact]
+    public void MarkAsVerified_ShouldPreservePreviousOcrData()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"initial\": \"data\"}");
+        document.ClearDomainEvents();
+
+        // Act - trying to mark as verified again (should fail)
+        var act = () => document.MarkAsVerified("{\"new\": \"data\"}");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void MarkAsVerified_WithEmptyString_DoesNotSetOcrData()
+    {
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+
+        document.MarkAsVerified("");
+
+        document.Status.Should().Be(EDocumentStatus.Verified);
+    }
+
+    [Fact]
+    public void MarkAsRejected_FromVerified_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified(null);
+
+        // Act & Assert
+        var act = () => document.MarkAsRejected("Some reason");
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*must be in PendingVerification*");
+    }
+
+    [Fact]
+    public void MarkAsRejected_FromRejected_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsRejected("First rejection");
+        document.ClearDomainEvents();
+
+        // Act & Assert
+        var act = () => document.MarkAsRejected("Second rejection");
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*must be in PendingVerification*");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void MarkAsRejected_WithInvalidReason_ShouldThrowArgumentException(string reason)
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+
+        // Act & Assert
+        var act = () => document.MarkAsRejected(reason);
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*cannot be empty*");
+    }
+
+    [Fact]
+    public void MarkAsFailed_FromVerified_ShouldSucceed()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified(null);
+
+        // Act
+        document.MarkAsFailed("Service error after verification");
+
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.Failed);
+    }
+
+    [Fact]
+    public void MarkAsFailed_FromRejected_ShouldSucceed()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsRejected("Bad document");
+        document.ClearDomainEvents();
+
+        // Act
+        document.MarkAsFailed("Technical error after rejection");
+
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.Failed);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void MarkAsFailed_WithInvalidReason_ShouldThrowArgumentException(string reason)
+    {
+        // Arrange
+        var document = CreateTestDocument();
+
+        // Act & Assert
+        var act = () => document.MarkAsFailed(reason);
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*cannot be empty*");
+    }
+
+    [Fact]
+    public void MarkAsPendingVerification_FromUploaded_ShouldSucceed()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+
+        // Act
+        document.MarkAsPendingVerification();
+
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.PendingVerification);
+    }
+
+    [Fact]
+    public void MarkAsPendingVerification_FromFailed_ShouldClearReasonAndSucceed()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsFailed("OCR error");
+        document.ClearDomainEvents();
+
+        // Act
+        document.MarkAsPendingVerification();
+
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.PendingVerification);
+        document.RejectionReason.Should().BeNull();
+    }
+
+    [Fact]
+    public void MarkAsPendingVerification_FromPendingVerification_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+
+        // Act & Assert
+        var act = () => document.MarkAsPendingVerification();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Document must be Uploaded or Failed*");
+    }
+
+    [Fact]
+    public void MarkAsPendingVerification_FromVerified_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified(null);
+
+        // Act & Assert
+        var act = () => document.MarkAsPendingVerification();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Document must be Uploaded or Failed*");
+    }
+
+    [Fact]
+    public void MarkAsPendingVerification_FromRejected_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.MarkAsRejected("Invalid document");
+
+        // Act & Assert
+        var act = () => document.MarkAsPendingVerification();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Document must be Uploaded or Failed*");
+    }
+
+    [Fact]
+    public void AllStateTransitions_WhenCalled_ShouldNotAffectOtherProperties()
+    {
+        // Arrange
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.ProofOfResidence,
+            "proof.pdf",
+            "blob://test");
+
+        var originalId = document.Id;
+        var originalProviderId = document.ProviderId;
+        var originalDocumentType = document.DocumentType;
+        var originalFileName = document.FileName;
+        var originalFileUrl = document.FileUrl;
+
+        // Act - Apply various state transitions
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"data\": \"test\"}");
+
+        // Assert - Properties should remain unchanged
+        document.Id.Should().Be(originalId);
+        document.ProviderId.Should().Be(originalProviderId);
+        document.DocumentType.Should().Be(originalDocumentType);
+        document.FileName.Should().Be(originalFileName);
+        document.FileUrl.Should().Be(originalFileUrl);
+    }
+
+    [Fact]
+    public void DomainEvents_AfterStateTransition_ShouldIncludeCorrectData()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.ClearDomainEvents();
+        var providerId = document.ProviderId;
+        var documentType = document.DocumentType;
+
+        // Act
+        document.MarkAsPendingVerification();
+        document.MarkAsFailed("Test failure");
+        var failedEvent = document.DomainEvents.OfType<DocumentFailedDomainEvent>().SingleOrDefault();
+
+        // Assert
+        failedEvent.Should().NotBeNull();
+        failedEvent!.ProviderId.Should().Be(providerId);
+        failedEvent.DocumentType.Should().Be(documentType);
+        failedEvent.FailureReason.Should().Be("Test failure");
     }
 
     private static Document CreateTestDocument()

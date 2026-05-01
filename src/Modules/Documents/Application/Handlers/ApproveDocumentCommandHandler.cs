@@ -1,9 +1,11 @@
 using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Helpers;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
@@ -16,12 +18,11 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por aprovar documentos após verificação manual.
 /// </summary>
 public class ApproveDocumentCommandHandler(
-    IDocumentRepository repository,
+    IUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<ApproveDocumentCommandHandler> logger)
     : ICommandHandler<ApproveDocumentCommand, Result>
 {
-    private readonly IDocumentRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<ApproveDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -34,7 +35,8 @@ public class ApproveDocumentCommandHandler(
                 command.DocumentId, command.CorrelationId);
 
             // Validar se o documento existe
-            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
+            var repository = uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for approval", command.DocumentId);
@@ -77,8 +79,7 @@ public class ApproveDocumentCommandHandler(
             
             document.MarkAsVerified(ocrData);
             
-            await _repository.UpdateAsync(document, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} approved successfully. CorrelationId: {CorrelationId}",

@@ -13,8 +13,15 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<AllowedCity> AllowedCities => Set<AllowedCity>();
 
-    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>() =>
-        (IRepository<TAggregate, TKey>)this;
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+        
+        throw new InvalidOperationException(
+            $"LocationsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: AllowedCity(Guid)");
+    }
 
     /// <summary>
     /// Inicializa uma nova instância da classe <see cref="LocationsDbContext"/> para operações design-time (migrações).

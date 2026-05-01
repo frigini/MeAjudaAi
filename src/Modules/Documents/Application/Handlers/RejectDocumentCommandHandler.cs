@@ -1,8 +1,10 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Helpers;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
@@ -15,12 +17,11 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por rejeitar documentos após verificação manual.
 /// </summary>
 public class RejectDocumentCommandHandler(
-    IDocumentRepository repository,
+    IUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RejectDocumentCommandHandler> logger)
     : ICommandHandler<RejectDocumentCommand, Result>
 {
-    private readonly IDocumentRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RejectDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -33,7 +34,8 @@ public class RejectDocumentCommandHandler(
                 command.DocumentId, command.CorrelationId);
 
             // Validar se o documento existe
-            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
+            var repository = uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for rejection", command.DocumentId);
@@ -81,8 +83,7 @@ public class RejectDocumentCommandHandler(
             // Rejeitar o documento
             document.MarkAsRejected(command.RejectionReason);
             
-            await _repository.UpdateAsync(document, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} rejected successfully. Reason: {Reason}. CorrelationId: {CorrelationId}",

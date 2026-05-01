@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using Moq;
 using Xunit;
 
@@ -11,19 +10,18 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class GetProviderDocumentsQueryHandlerTests
 {
-    private readonly Mock<IDocumentRepository> _mockRepository;
+    private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly GetProviderDocumentsQueryHandler _handler;
 
     public GetProviderDocumentsQueryHandlerTests()
     {
-        _mockRepository = new Mock<IDocumentRepository>();
-        _handler = new GetProviderDocumentsQueryHandler(_mockRepository.Object);
+        _mockQueries = new Mock<IDocumentQueries>();
+        _handler = new GetProviderDocumentsQueryHandler(_mockQueries.Object);
     }
 
     [Fact]
     public async Task HandleAsync_WithExistingDocuments_ShouldReturnDocumentList()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<Document>
         {
@@ -31,35 +29,30 @@ public class GetProviderDocumentsQueryHandlerTests
             Document.Create(providerId, EDocumentType.ProofOfResidence, "doc2.pdf", "url2")
         };
 
-        _mockRepository.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
         var query = new GetProviderDocumentsQuery(providerId);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Select(d => d.DocumentType).Should().Contain(new[] { EDocumentType.IdentityDocument, EDocumentType.ProofOfResidence });
-        _mockRepository.Verify(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()), Times.Once);
+        _mockQueries.Verify(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task HandleAsync_WithNoDocuments_ShouldReturnEmptyList()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        _mockRepository.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Document>());
 
         var query = new GetProviderDocumentsQuery(providerId);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result.Should().BeEmpty();
     }
@@ -67,7 +60,6 @@ public class GetProviderDocumentsQueryHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldMapAllDocumentProperties()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         var document = Document.Create(
             providerId,
@@ -75,20 +67,16 @@ public class GetProviderDocumentsQueryHandlerTests
             "test.pdf",
             "blob-url");
 
-        // Transicionar documento para testar propriedades opcionais com valores não-nulos
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"cpf\":\"12345678900\"}");
-        // Não podemos marcar como rejeitado após verificado - testar apenas verified state
 
-        _mockRepository.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Document> { document });
 
         var query = new GetProviderDocumentsQuery(providerId);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         var dto = result.Single();
         dto.Id.Should().Be(document.Id);
         dto.ProviderId.Should().Be(document.ProviderId);
@@ -99,7 +87,7 @@ public class GetProviderDocumentsQueryHandlerTests
         dto.UploadedAt.Should().Be(document.UploadedAt);
         dto.VerifiedAt.Should().NotBeNull();
         dto.VerifiedAt.Should().Be(document.VerifiedAt);
-        dto.RejectionReason.Should().BeNull(); // Verified, não rejected
+        dto.RejectionReason.Should().BeNull();
         dto.OcrData.Should().NotBeNullOrEmpty();
         dto.OcrData.Should().Be(document.OcrData);
     }
@@ -107,14 +95,12 @@ public class GetProviderDocumentsQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WhenRepositoryThrows_ShouldPropagateException()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        _mockRepository.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var query = new GetProviderDocumentsQuery(providerId);
 
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(query, CancellationToken.None));
     }

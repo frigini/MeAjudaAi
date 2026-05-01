@@ -3,6 +3,7 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,7 +39,7 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
         var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         var cityName = _faker.Address.City();
@@ -46,8 +47,8 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
         var createdBy = _faker.Internet.Email();
 
         var city = new AllowedCity(cityName, state, createdBy);
-        uow.GetRepository<AllowedCity, Guid>().Add(city);
-        await uow.SaveChangesAsync();
+        dbContext.GetRepository<AllowedCity, Guid>().Add(city);
+        await dbContext.SaveChangesAsync();
 
         // Act
         var exists = await queries.ExistsAsync(cityName, state);
@@ -61,11 +62,11 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var uow = scope.ServiceProvider.GetService<IUnitOfWork>();
+        var dbContext = scope.ServiceProvider.GetService<LocationsDbContext>();
         var queries = scope.ServiceProvider.GetService<IAllowedCityQueries>();
 
         // Assert
-        uow.Should().NotBeNull();
+        dbContext.Should().NotBeNull();
         queries.Should().NotBeNull();
     }
 }

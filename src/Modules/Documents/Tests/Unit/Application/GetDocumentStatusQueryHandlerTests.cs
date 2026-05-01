@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -12,21 +11,20 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class GetDocumentStatusQueryHandlerTests
 {
-    private readonly Mock<IDocumentRepository> _mockRepository;
+    private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<ILogger<GetDocumentStatusQueryHandler>> _mockLogger;
     private readonly GetDocumentStatusQueryHandler _handler;
 
     public GetDocumentStatusQueryHandlerTests()
     {
-        _mockRepository = new Mock<IDocumentRepository>();
+        _mockQueries = new Mock<IDocumentQueries>();
         _mockLogger = new Mock<ILogger<GetDocumentStatusQueryHandler>>();
-        _handler = new GetDocumentStatusQueryHandler(_mockRepository.Object, _mockLogger.Object);
+        _handler = new GetDocumentStatusQueryHandler(_mockQueries.Object, _mockLogger.Object);
     }
 
     [Fact]
     public async Task HandleAsync_WithExistingDocument_ShouldReturnDocumentDto()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(
@@ -35,15 +33,13 @@ public class GetDocumentStatusQueryHandlerTests
             "test.pdf",
             "blob-url");
 
-        _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(document.Id);
         result.ProviderId.Should().Be(document.ProviderId);
@@ -55,24 +51,20 @@ public class GetDocumentStatusQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WithNonExistentDocument_ShouldReturnNull()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
-        _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.Should().BeNull();
     }
 
     [Fact]
     public async Task HandleAsync_ShouldMapAllDocumentProperties()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(
@@ -81,20 +73,16 @@ public class GetDocumentStatusQueryHandlerTests
             "test.pdf",
             "blob-url");
 
-        // Transicionar documento para testar mapeamento com valores não-nulos
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"cpf\":\"98765432100\"}");
 
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(document.Id);
         result.ProviderId.Should().Be(document.ProviderId);
@@ -113,14 +101,12 @@ public class GetDocumentStatusQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WhenRepositoryThrows_ShouldPropagateException()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
-        _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(query, CancellationToken.None));
     }
@@ -128,17 +114,14 @@ public class GetDocumentStatusQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WithNonExistentDocument_ShouldLogWarning()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
-        _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act
         await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Warning,

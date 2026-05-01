@@ -1,8 +1,10 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
@@ -14,18 +16,13 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// <summary>
 /// Manipula solicitações para iniciar a verificação de documentos.
 /// </summary>
-/// <param name="repository">Repositório de documentos para acesso a dados.</param>
-/// <param name="backgroundJobService">Serviço para enfileirar jobs em segundo plano.</param>
-/// <param name="httpContextAccessor">Acessor para o contexto HTTP.</param>
-/// <param name="logger">Instância do logger.</param>
 public class RequestVerificationCommandHandler(
-    IDocumentRepository repository,
+    IUnitOfWork uow,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RequestVerificationCommandHandler> logger)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
-    private readonly IDocumentRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RequestVerificationCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -35,7 +32,8 @@ public class RequestVerificationCommandHandler(
         try
         {
             // Validar se o documento existe
-            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
+            var repository = uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
@@ -83,8 +81,7 @@ public class RequestVerificationCommandHandler(
 
             // Atualizar status do documento para PendingVerification
             document.MarkAsPendingVerification();
-            await _repository.UpdateAsync(document, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             // Enfileirar job de verificação
             await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
