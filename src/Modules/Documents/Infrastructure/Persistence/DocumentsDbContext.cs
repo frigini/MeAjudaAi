@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 {
     /// <summary>
-    /// Gets the collection of documents.
+    /// Obtém a coleção de documentos.
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
 
@@ -39,21 +39,22 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for design-time (migrations).
+    /// Inicializa uma nova instância da classe <see cref="DocumentsDbContext"/> para operações design-time (migrações).
     /// </summary>
-    /// <param name="options">The options to be used by the DbContext.</param>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
     public DocumentsDbContext(DbContextOptions<DocumentsDbContext> options) : base(options)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for runtime with dependency injection.
+    /// Inicializa uma nova instância da classe <see cref="DocumentsDbContext"/> para runtime com injeção de dependência.
     /// </summary>
-    /// <param name="options">The options to be used by the DbContext.</param>
-    /// <param name="domainEventProcessor">The domain event processor for publishing events.</param>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
+    /// <param name="domainEventProcessor">O processador de eventos de domínio.</param>
     public DocumentsDbContext(DbContextOptions<DocumentsDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
     {
     }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
