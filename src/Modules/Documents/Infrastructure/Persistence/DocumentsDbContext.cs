@@ -1,6 +1,7 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -68,13 +69,10 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 
     protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
-        // Se mais agregados com eventos de domínio forem adicionados a este contexto,
-        // considere generalizar esta query usando um tipo base comum (ex: IAggregateRoot)
-        // para capturar eventos de todas as entidades automaticamente
         var domainEvents = ChangeTracker
-            .Entries<Document>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents)
+            .Entries()
+            .Where(entry => entry.Entity is AggregateRoot<Guid>)
+            .SelectMany(entry => ((AggregateRoot<Guid>)entry.Entity).DomainEvents)
             .ToList();
 
         return await Task.FromResult(domainEvents);
@@ -82,11 +80,10 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 
     protected override void ClearDomainEvents()
     {
-        // Se mais agregados forem adicionados, generalize para capturar todos
         var entities = ChangeTracker
-            .Entries<Document>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .Select(entry => entry.Entity);
+            .Entries()
+            .Where(entry => entry.Entity is AggregateRoot<Guid>)
+            .Select(entry => (AggregateRoot<Guid>)entry.Entity);
 
         foreach (var entity in entities)
         {

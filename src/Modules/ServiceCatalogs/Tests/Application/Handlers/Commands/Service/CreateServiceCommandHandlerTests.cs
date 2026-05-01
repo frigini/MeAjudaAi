@@ -2,8 +2,9 @@ using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using Moq;
 using Xunit;
@@ -12,15 +13,21 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.
 
 public class CreateServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepositoryMock;
+    private readonly Mock<IRepository<Domain.Entities.Service, ServiceId>> _serviceRepositoryMock;
     private readonly CreateServiceCommandHandler _handler;
 
     public CreateServiceCommandHandlerTests()
     {
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new CreateServiceCommandHandler(_serviceRepositoryMock.Object, _categoryRepositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _categoryRepositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
+        _serviceRepositoryMock = new Mock<IRepository<Domain.Entities.Service, ServiceId>>();
+        
+        _uowMock.Setup(u => u.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_categoryRepositoryMock.Object);
+        _uowMock.Setup(u => u.GetRepository<Domain.Entities.Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
+        
+        _handler = new CreateServiceCommandHandler(_uowMock.Object);
     }
 
     [Fact]

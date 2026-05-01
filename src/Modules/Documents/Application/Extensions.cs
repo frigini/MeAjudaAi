@@ -33,9 +33,6 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>, GetDocumentStatusQueryHandler>();
         services.AddScoped<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>, GetProviderDocumentsQueryHandler>();
 
-        // Repositório de Outbox (usando implementação via UnitOfWork)
-        services.AddScoped(sp => sp.GetRequiredService<MeAjudaAi.Shared.Database.IUnitOfWork>().GetOutboxRepository());
-
         // Module API - interface pública para outros módulos
         services.AddScoped<IDocumentsModuleApi, DocumentsModuleApi>();
 
