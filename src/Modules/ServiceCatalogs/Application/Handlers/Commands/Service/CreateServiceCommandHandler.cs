@@ -19,7 +19,7 @@ public sealed class CreateServiceCommandHandler(
         try
         {
             if (request.CategoryId == Guid.Empty)
-                return Result<ServiceDto>.Failure("Category ID cannot be empty.");
+                return Result<ServiceDto>.Failure("O ID da categoria não pode ser vazio.");
 
             var categoryId = ServiceCategoryId.From(request.CategoryId);
             var categoryRepository = uow.GetRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory, ServiceCategoryId>();
@@ -40,13 +40,8 @@ public sealed class CreateServiceCommandHandler(
             var normalizedName = request.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceDto>.Failure("Service name is required.");
+                return Result<ServiceDto>.Failure("O nome do serviço é obrigatório.");
 
-            // Verificar se já existe serviço com o mesmo nome na categoria
-            // IRepository genérico não tem ExistsWithNameAsync, precisa ser via Query
-            // Vou ajustar para usar o repositório se necessário ou implementar query.
-            // Para manter o comportamento, vou usar o novo padrão.
-            
             // FIXME: A refatoração precisa de acesso às queries ou repositório com filtro nome+categoria
             // Por hora, busco via repository e verifico no código para não quebrar.
             
