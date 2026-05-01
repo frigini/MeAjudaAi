@@ -87,12 +87,12 @@
       },
       "System.IdentityModel.Tokens.Jwt": {
         "type": "Direct",
-        "requested": "[8.17.0, )",
-        "resolved": "8.17.0",
-        "contentHash": "nKikRYheDeSaXA3wGr2otwaiRFygBa25m+hc7MEomZVIEWZvKVqd8wgP9yn+8QpLRGgw//dUs4LErGx9gtVmAA==",
+        "requested": "[8.18.0, )",
+        "resolved": "8.18.0",
+        "contentHash": "JxKlBca3/eXeH4koAGjEXOwrBdtwyDXwHXdYT5TQunp64TcVBl4wBCfmlGwhSG017Q/Qrz24leLxV6v2eknnJg==",
         "dependencies": {
-          "Microsoft.IdentityModel.JsonWebTokens": "8.17.0",
-          "Microsoft.IdentityModel.Tokens": "8.17.0"
+          "Microsoft.IdentityModel.JsonWebTokens": "8.18.0",
+          "Microsoft.IdentityModel.Tokens": "8.18.0"
         }
       },
       "Testcontainers.Azurite": {
@@ -145,10 +145,10 @@
           "Microsoft.Extensions.Primitives": "10.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Transitive",
         "resolved": "13.2.4",
-        "contentHash": "9PjR4aGeEgxe4H4+Ix19Ps7+LxNaT7+ykWVG1XlaBVBqg7LSbflBWr8eg+TD692BV7wBVC+6yW+uBSK3wWkw2Q=="
+        "contentHash": "9/Nl+3Hc/oK8upfYl7swUy5MEkwMPUtWpQkUJZcs1F0XvROI48V5ZXaPycDxxyNMAn/DYXgpOvU+QLdr2uTjCg=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -373,10 +373,10 @@
           "System.IO.Hashing": "10.0.3"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Transitive",
         "resolved": "13.2.4",
-        "contentHash": "jQ67V8hG78O2Ok0DR0rBvWb5409NEDiVSPIO5viA+NEU+69Z85i4sUfEMc4AGfK9d2sj6fUl7ZdwUJyGZRFgBA=="
+        "contentHash": "/OzUdJUKWDVbK2igP+X3r455Y8SV+5Y7WaTur7fPcS6FalTFtNvfR2NZWiwd9UjY3M7ytdIS4PKHnReWyX7rLg=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -1090,32 +1090,32 @@
       },
       "Microsoft.IdentityModel.Abstractions": {
         "type": "Transitive",
-        "resolved": "8.17.0",
-        "contentHash": "6NrxQGcZg6IunkN8K2F0UVMavNpfCjbjjjON7PYcL8FwI8aULKUreiHsRX/yaA8j3XsTJnQKUYpoQk5gBjULZw=="
+        "resolved": "8.18.0",
+        "contentHash": "8VUcDy66uw1GUC/ytyRJAUgGxydPu2rLtUbUAiniCHd5SMB/01Q28XgqFyxIqb3srz6HWTgSsZdDbkdVJr3LXQ=="
       },
       "Microsoft.IdentityModel.JsonWebTokens": {
         "type": "Transitive",
-        "resolved": "8.17.0",
-        "contentHash": "JbFZ3OVwtvqcqgBL0cIkhRYbIP7u9GIUYLOgbNqLWtBtZY8tGDpdGyXMzUVX0gVHq1ovuHsKZrkVv+ziHEnBHw==",
+        "resolved": "8.18.0",
+        "contentHash": "ZUMJt3r1zOi67AVSfnh3u9hg9KCq06roOIX5gs7FqsucSZ/VTsI89DI9h2gHyU0xOtj/qVZV2ugWS6JlLMTwHQ==",
         "dependencies": {
-          "Microsoft.IdentityModel.Tokens": "8.17.0"
+          "Microsoft.IdentityModel.Tokens": "8.18.0"
         }
       },
       "Microsoft.IdentityModel.Logging": {
         "type": "Transitive",
-        "resolved": "8.17.0",
-        "contentHash": "w1vjfri0BWqW7RkSZY3ZsqekNfIJJg5BQSFs2j+a+pCXOVrkezmJcn74pT3djwjXJh71577C6wJQgNc2UPz30w==",
+        "resolved": "8.18.0",
+        "contentHash": "c2l/VEtW1XI/ifcu49xzDwgrZZ0a0aX/TwCPC7mEHFQk/KixDgtSdjB5eDhYyCO38GJiRUjeRTz9aWCy1t55ww==",
         "dependencies": {
-          "Microsoft.IdentityModel.Abstractions": "8.17.0"
+          "Microsoft.IdentityModel.Abstractions": "8.18.0"
         }
       },
       "Microsoft.IdentityModel.Tokens": {
         "type": "Transitive",
-        "resolved": "8.17.0",
-        "contentHash": "teaW35URIV2x78Tzk+dVJiC4M62/9mQoSEoDjDGoEZmcQa3H2rE+XQpm9Tmdo9KK1Lcrnve4zoyLavl69kCFGg==",
+        "resolved": "8.18.0",
+        "contentHash": "c6ksXXFj5oPPsl8pfsui5zv8Gs7uxrGetXCTc1p7k7Nue/C8iBMtAVgtRrH7Esqe596QWD7KS3exKYY1FJG2iw==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "8.0.0",
-          "Microsoft.IdentityModel.Logging": "8.17.0"
+          "Microsoft.IdentityModel.Logging": "8.18.0"
         }
       },
       "Microsoft.NETCore.Platforms": {
@@ -1682,13 +1682,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.2.4, )",
+          "Aspire.Dashboard.Sdk.linux-x64": "[13.2.4, )",
           "Aspire.Hosting.AppHost": "[13.2.4, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.2.4, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.2.4, )",
           "Aspire.Hosting.JavaScript": "[13.2.4, )",
           "Aspire.Hosting.Keycloak": "[13.2.4-preview.1.26224.4, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.2.4, )",
+          "Aspire.Hosting.Orchestration.linux-x64": "[13.2.4, )",
           "Aspire.Hosting.PostgreSQL": "[13.2.4, )",
           "Aspire.Hosting.RabbitMQ": "[13.2.4, )",
           "Aspire.Hosting.Redis": "[13.2.4, )",
@@ -2083,7 +2083,7 @@
           "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
-          "System.IdentityModel.Tokens.Jwt": "[8.17.0, )"
+          "System.IdentityModel.Tokens.Jwt": "[8.18.0, )"
         }
       },
       "meajudaai.modules.users.tests": {
