@@ -23,6 +23,11 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
             $"This context only supports: AllowedCity(Guid)");
     }
 
+    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
+    {
+        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
+    }
+
     /// <summary>
     /// Inicializa uma nova instância da classe <see cref="LocationsDbContext"/> para operações design-time (migrações).
     /// </summary>

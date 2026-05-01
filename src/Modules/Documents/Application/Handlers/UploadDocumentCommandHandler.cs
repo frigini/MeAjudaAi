@@ -25,12 +25,15 @@ public class UploadDocumentCommandHandler(
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     IOptions<DocumentUploadOptions> uploadOptions,
+    MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> outboxRepository,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly DocumentUploadOptions _uploadOptions = uploadOptions?.Value ?? throw new ArgumentNullException(nameof(uploadOptions));
+    private readonly MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> _outboxRepository = outboxRepository ?? throw new ArgumentNullException(nameof(outboxRepository));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
@@ -112,20 +115,16 @@ public class UploadDocumentCommandHandler(
                 command.FileName,
                 blobName); // Armazena o nome do blob, não a URL completa com SAS
 
-            uow.GetRepository<Document, DocumentId>().Add(document);
+            _uow.GetRepository<Document, DocumentId>().Add(document);
 
             // Cria mensagem de outbox para o job de verificação
             var outboxMessage = MeAjudaAi.Shared.Database.Outbox.OutboxMessage.Create(
-                "DocumentVerification",
-                System.Text.Json.JsonSerializer.Serialize(new { DocumentId = document.Id.Value }),
-                "documents");
+                type: "DocumentVerification",
+                payload: System.Text.Json.JsonSerializer.Serialize(new { DocumentId = document.Id.Value }),
+                priority: MeAjudaAi.Contracts.Shared.ECommunicationPriority.Normal);
 
-            // Registra no DbSet (requer cast para DbContext ou acesso direto se houver repositório)
-            // Assumindo que temos acesso ao DbContext através do IUnitOfWork que implementa DocumentsDbContext
-            var dbContext = uow as MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext;
-            dbContext?.OutboxMessages.Add(outboxMessage);
-
-            await uow.SaveChangesAsync(cancellationToken);
+            await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Document {DocumentId} created and job enqueued in outbox for provider {ProviderId}",
                 document.Id, command.ProviderId);

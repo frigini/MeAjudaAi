@@ -11,6 +11,7 @@ using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,7 @@ public class UploadDocumentCommandHandlerTests
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<IOptions<DocumentUploadOptions>> _mockUploadOptions;
     private readonly Mock<ILogger<UploadDocumentCommandHandler>> _mockLogger;
+    private readonly Mock<IOutboxRepository<OutboxMessage>> _mockOutboxRepository;
     private readonly UploadDocumentCommandHandler _handler;
 
     public UploadDocumentCommandHandlerTests()
@@ -40,6 +42,7 @@ public class UploadDocumentCommandHandlerTests
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockUploadOptions = new Mock<IOptions<DocumentUploadOptions>>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
+        _mockOutboxRepository = new Mock<IOutboxRepository<OutboxMessage>>();
 
         _mockUow.Setup(u => u.GetRepository<Document, DocumentId>()).Returns(_mockRepository.Object);
 
@@ -63,6 +66,7 @@ public class UploadDocumentCommandHandlerTests
             _mockJobService.Object,
             _mockHttpContextAccessor.Object,
             _mockUploadOptions.Object,
+            _mockOutboxRepository.Object,
             _mockLogger.Object);
     }
 

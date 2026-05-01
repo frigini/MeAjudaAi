@@ -18,20 +18,25 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     public DbSet<Document> Documents => Set<Document>();
 
     /// <summary>
-    /// Gets the collection of outbox messages.
+    /// Obtém a coleção de mensagens de outbox.
     /// </summary>
     public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
-
     {
         if (this is IRepository<TAggregate, TKey> repository)
             return repository;
-        
+
         throw new InvalidOperationException(
             $"DocumentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
             $"This context only supports: Document(DocumentId)");
     }
+
+    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
+    {
+        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
+    }
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for design-time (migrations).

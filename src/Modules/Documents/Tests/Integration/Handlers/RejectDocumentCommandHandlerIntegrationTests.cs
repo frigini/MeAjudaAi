@@ -84,6 +84,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
 
         var command = new RejectDocumentCommand(document.Id.Value, "Inlegível");
         await _handler!.HandleAsync(command);
+        _dbContext!.ChangeTracker.Clear();
 
         var updatedDocument = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
         updatedDocument.Should().NotBeNull();
