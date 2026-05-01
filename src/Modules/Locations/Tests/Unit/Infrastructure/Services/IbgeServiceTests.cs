@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
@@ -13,14 +13,14 @@ using Xunit;
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Services;
 
 /// <summary>
-/// Unit tests para IbgeService com mock de IIbgeClient, ICacheService e IAllowedCityRepository.
+/// Unit tests para IbgeService com mock de IIbgeClient, ICacheService e IAllowedCityQueries.
 /// Testa validação de cidades, cache behavior e error handling.
 /// </summary>
 public sealed class IbgeServiceTests
 {
     private readonly Mock<IIbgeClient> _ibgeClientMock;
     private readonly Mock<ICacheService> _cacheServiceMock;
-    private readonly Mock<IAllowedCityRepository> _allowedCityRepositoryMock;
+    private readonly Mock<IAllowedCityQueries> _allowedCityQueriesMock;
     private readonly Mock<ILogger<IbgeService>> _loggerMock;
     private readonly IbgeService _sut;
 
@@ -28,12 +28,12 @@ public sealed class IbgeServiceTests
     {
         _ibgeClientMock = new Mock<IIbgeClient>(MockBehavior.Strict);
         _cacheServiceMock = new Mock<ICacheService>(MockBehavior.Strict);
-        _allowedCityRepositoryMock = new Mock<IAllowedCityRepository>(MockBehavior.Strict);
+        _allowedCityQueriesMock = new Mock<IAllowedCityQueries>(MockBehavior.Strict);
         _loggerMock = new Mock<ILogger<IbgeService>>();
         _sut = new IbgeService(
             _ibgeClientMock.Object,
             _cacheServiceMock.Object,
-            _allowedCityRepositoryMock.Object,
+            _allowedCityQueriesMock.Object,
             _loggerMock.Object);
     }
 
@@ -49,7 +49,7 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
-        _allowedCityRepositoryMock
+        _allowedCityQueriesMock
             .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -59,7 +59,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
-        _allowedCityRepositoryMock.Verify();
+        _allowedCityQueriesMock.Verify();
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3550308, "São Paulo", "SP");
 
         SetupCacheGetOrCreate(cityName, municipio);
-        _allowedCityRepositoryMock
+        _allowedCityQueriesMock
             .Setup(x => x.IsCityAllowedAsync("São Paulo", "SP", It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -83,7 +83,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeFalse();
         _cacheServiceMock.Verify();
-        _allowedCityRepositoryMock.Verify();
+        _allowedCityQueriesMock.Verify();
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
-        _allowedCityRepositoryMock
+        _allowedCityQueriesMock
             .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -106,7 +106,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
-        _allowedCityRepositoryMock.Verify();
+        _allowedCityQueriesMock.Verify();
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
-        _allowedCityRepositoryMock
+        _allowedCityQueriesMock
             .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -169,7 +169,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
-        _allowedCityRepositoryMock.Verify();
+        _allowedCityQueriesMock.Verify();
     }
 
     [Fact]

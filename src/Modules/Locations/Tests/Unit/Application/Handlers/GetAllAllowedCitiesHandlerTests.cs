@@ -1,9 +1,7 @@
 using FluentAssertions;
-using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using Moq;
 using Xunit;
 
@@ -11,13 +9,13 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
 public class GetAllAllowedCitiesHandlerTests
 {
-    private readonly Mock<IAllowedCityRepository> _repositoryMock;
+    private readonly Mock<IAllowedCityQueries> _queriesMock;
     private readonly GetAllAllowedCitiesHandler _handler;
 
     public GetAllAllowedCitiesHandlerTests()
     {
-        _repositoryMock = new Mock<IAllowedCityRepository>();
-        _handler = new GetAllAllowedCitiesHandler(_repositoryMock.Object);
+        _queriesMock = new Mock<IAllowedCityQueries>();
+        _handler = new GetAllAllowedCitiesHandler(_queriesMock.Object);
     }
 
     [Fact]
@@ -30,7 +28,7 @@ public class GetAllAllowedCitiesHandlerTests
             new("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0)
         };
 
-        _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(activeCities);
 
         // Act
@@ -39,7 +37,7 @@ public class GetAllAllowedCitiesHandlerTests
         // Assert
         result.Should().HaveCount(1);
         result.First().CityName.Should().Be("Muriaé");
-        _repositoryMock.Verify(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -53,7 +51,7 @@ public class GetAllAllowedCitiesHandlerTests
             new("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0, false)
         };
 
-        _repositoryMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(allCities);
 
         // Act
@@ -61,7 +59,7 @@ public class GetAllAllowedCitiesHandlerTests
 
         // Assert
         result.Should().HaveCount(2);
-        _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -69,7 +67,7 @@ public class GetAllAllowedCitiesHandlerTests
     {
         // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
-        _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AllowedCity>());
 
         // Act
@@ -85,7 +83,7 @@ public class GetAllAllowedCitiesHandlerTests
         // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, -21.1308, -42.3689, 25.5);
-        _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AllowedCity> { city });
 
         // Act

@@ -1,7 +1,9 @@
 using FluentAssertions;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
+using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
@@ -9,13 +11,14 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Integration;
 
-public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
+public class LocationsPersistenceIntegrationTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgresContainer;
-    private AllowedCityRepository _repository = null!;
+    private IUnitOfWork _uow = null!;
+    private IAllowedCityQueries _queries = null!;
     private LocationsDbContext _context = null!;
 
-    public AllowedCityRepositoryIntegrationTests()
+    public LocationsPersistenceIntegrationTests()
     {
         var options = new TestDatabaseOptions
         {
@@ -45,17 +48,21 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
         _context = new LocationsDbContext(options);
         await _context.Database.MigrateAsync();
 
-        _repository = new AllowedCityRepository(_context);
+        _uow = _context;
+        _queries = new DbContextAllowedCityQueries(_context);
     }
 
+    private IRepository<AllowedCity, Guid> GetRepository() => _uow.GetRepository<AllowedCity, Guid>();
+
     [Fact]
-    public async Task AddAsync_WithValidCity_ShouldPersistCity()
+    public async Task Add_WithValidCity_ShouldPersistCity()
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         // Act
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Assert
         var savedCity = await _context.AllowedCities.FirstOrDefaultAsync(c => c.Id == city.Id);
@@ -75,12 +82,13 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
         var activeCity2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
         var inactiveCity = new AllowedCity("São Paulo", "SP", "admin@test.com", 3550308, 0, 0, 0, false);
 
-        await AddCityAndSaveAsync(activeCity1);
-        await AddCityAndSaveAsync(activeCity2);
-        await AddCityAndSaveAsync(inactiveCity);
+        GetRepository().Add(activeCity1);
+        GetRepository().Add(activeCity2);
+        GetRepository().Add(inactiveCity);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllActiveAsync();
+        var result = await _queries.GetAllActiveAsync();
 
         // Assert
         result.Should().HaveCount(2);
@@ -97,11 +105,12 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
         var activeCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         var inactiveCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0, false);
 
-        await AddCityAndSaveAsync(activeCity);
-        await AddCityAndSaveAsync(inactiveCity);
+        GetRepository().Add(activeCity);
+        GetRepository().Add(inactiveCity);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync();
+        var result = await _queries.GetAllAsync();
 
         // Assert
         result.Should().HaveCount(2);
@@ -110,14 +119,15 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetByIdAsync_WithExistingCity_ShouldReturnCity()
+    public async Task TryFindAsync_WithExistingCity_ShouldReturnCity()
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByIdAsync(city.Id);
+        var result = await GetRepository().TryFindAsync(city.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -128,13 +138,13 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetByIdAsync_WithNonExistingCity_ShouldReturnNull()
+    public async Task TryFindAsync_WithNonExistingCity_ShouldReturnNull()
     {
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var result = await _repository.GetByIdAsync(nonExistingId);
+        var result = await GetRepository().TryFindAsync(nonExistingId);
 
         // Assert
         result.Should().BeNull();
@@ -145,10 +155,11 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByCityAndStateAsync("Muriaé", "MG");
+        var result = await _queries.GetByCityAndStateAsync("Muriaé", "MG");
 
         // Assert
         result.Should().NotBeNull();
@@ -160,7 +171,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetByCityAndStateAsync_WithNonExistingCityAndState_ShouldReturnNull()
     {
         // Act
-        var result = await _repository.GetByCityAndStateAsync("Não Existe", "XX");
+        var result = await _queries.GetByCityAndStateAsync("Não Existe", "XX");
 
         // Assert
         result.Should().BeNull();
@@ -171,10 +182,11 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.IsCityAllowedAsync("Muriaé", "MG");
+        var result = await _queries.IsCityAllowedAsync("Muriaé", "MG");
 
         // Assert
         result.Should().BeTrue();
@@ -185,10 +197,11 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.IsCityAllowedAsync("Muriaé", "MG");
+        var result = await _queries.IsCityAllowedAsync("Muriaé", "MG");
 
         // Assert
         result.Should().BeFalse();
@@ -198,22 +211,23 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task IsCityAllowedAsync_WithNonExistingCity_ShouldReturnFalse()
     {
         // Act
-        var result = await _repository.IsCityAllowedAsync("Não Existe", "XX");
+        var result = await _queries.IsCityAllowedAsync("Não Existe", "XX");
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public async Task UpdateAsync_WithValidChanges_ShouldPersistChanges()
+    public async Task SaveChangesAsync_WithValidChanges_ShouldPersistChanges()
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
         city.Update("Itaperuna", "RJ", 3302270, 0, 0, 0, true, "admin2@test.com");
-        await UpdateCityAndSaveAsync(city);
+        await _uow.SaveChangesAsync();
 
         // Assert
         var updatedCity = await _context.AllowedCities.FirstOrDefaultAsync(c => c.Id == city.Id);
@@ -226,15 +240,16 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task DeleteAsync_WithExistingCity_ShouldRemoveCity()
+    public async Task Delete_WithExistingCity_ShouldRemoveCity()
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        await _repository.DeleteAsync(city);
-        await _context.SaveChangesAsync();
+        GetRepository().Delete(city);
+        await _uow.SaveChangesAsync();
 
         // Assert
         var deletedCity = await _context.AllowedCities.FirstOrDefaultAsync(c => c.Id == city.Id);
@@ -246,10 +261,11 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.ExistsAsync("Muriaé", "MG");
+        var result = await _queries.ExistsAsync("Muriaé", "MG");
 
         // Assert
         result.Should().BeTrue();
@@ -259,7 +275,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task ExistsAsync_WithNonExistingCity_ShouldReturnFalse()
     {
         // Act
-        var result = await _repository.ExistsAsync("Não Existe", "XX");
+        var result = await _queries.ExistsAsync("Não Existe", "XX");
 
         // Assert
         result.Should().BeFalse();
@@ -273,12 +289,13 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
         var city2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
         var city3 = new AllowedCity("Bom Jesus do Itabapoana", "RJ", "admin@test.com", 3300704, 0, 0, 0);
 
-        await AddCityAndSaveAsync(city1);
-        await AddCityAndSaveAsync(city2);
-        await AddCityAndSaveAsync(city3);
+        GetRepository().Add(city1);
+        GetRepository().Add(city2);
+        GetRepository().Add(city3);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllActiveAsync();
+        var result = await _queries.GetAllActiveAsync();
 
         // Assert
         result.Should().HaveCount(3);
@@ -296,11 +313,12 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     {
         // Arrange
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city);
+        GetRepository().Add(city);
+        await _uow.SaveChangesAsync();
 
         // Act
-        var result1 = await _repository.GetByCityAndStateAsync("MURIAÉ", "mg");
-        var result2 = await _repository.GetByCityAndStateAsync("muriaé", "MG");
+        var result1 = await _queries.GetByCityAndStateAsync("MURIAÉ", "mg");
+        var result2 = await _queries.GetByCityAndStateAsync("muriaé", "MG");
 
         // Assert
         result1.Should().NotBeNull();
@@ -310,19 +328,20 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task AddAsync_WithDuplicateCityAndState_ShouldThrowException()
+    public async Task Add_WithDuplicateCityAndState_ShouldThrowException()
     {
         // Arrange
         var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city1);
+        GetRepository().Add(city1);
+        await _uow.SaveChangesAsync();
 
         var city2 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         // Act
         var act = async () =>
         {
-            await _repository.AddAsync(city2);
-            await _context.SaveChangesAsync();
+            GetRepository().Add(city2);
+            await _uow.SaveChangesAsync();
         };
 
         // Assert
@@ -330,19 +349,20 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task AddAsync_WithDuplicateIbgeCode_ShouldThrowException()
+    public async Task Add_WithDuplicateIbgeCode_ShouldThrowException()
     {
         // Arrange
         var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        await AddCityAndSaveAsync(city1);
+        GetRepository().Add(city1);
+        await _uow.SaveChangesAsync();
 
         var city2 = new AllowedCity("Outra Cidade", "SP", "admin@test.com", 3143906, 0, 0, 0);
 
         // Act
         var act = async () =>
         {
-            await _repository.AddAsync(city2);
-            await _context.SaveChangesAsync();
+            GetRepository().Add(city2);
+            await _uow.SaveChangesAsync();
         };
 
         // Assert
@@ -359,17 +379,5 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     {
         await _context.DisposeAsync();
         await _postgresContainer.DisposeAsync();
-    }
-
-    private async Task AddCityAndSaveAsync(AllowedCity city)
-    {
-        await _repository.AddAsync(city);
-        await _context.SaveChangesAsync();
-    }
-
-    private async Task UpdateCityAndSaveAsync(AllowedCity city)
-    {
-        await _repository.UpdateAsync(city);
-        await _context.SaveChangesAsync();
     }
 }

@@ -1,8 +1,9 @@
 using Bogus;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
@@ -22,14 +23,14 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IAllowedCityRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var city = await repository.GetByIdAsync(nonExistingId);
+        var city = await queries.GetByIdAsync(nonExistingId);
 
         // Assert
-        city.Should().BeNull("cidade não existe e repository deve retornar null");
+        city.Should().BeNull("cidade não existe e queries deve retornar null");
     }
 
     [Fact]
@@ -37,31 +38,34 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IAllowedCityRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         var cityName = _faker.Address.City();
         var state = "SP";
         var createdBy = _faker.Internet.Email();
 
         var city = new AllowedCity(cityName, state, createdBy);
-        await repository.AddAsync(city);
+        uow.GetRepository<AllowedCity, Guid>().Add(city);
+        await uow.SaveChangesAsync();
 
         // Act
-        var exists = await repository.ExistsAsync(cityName, state);
+        var exists = await queries.ExistsAsync(cityName, state);
 
         // Assert
         exists.Should().BeTrue("cidade duplicada deve ser detectada");
     }
 
     [Fact]
-    public async Task ValidRepository_ShouldHaveAllMethods()
+    public async Task ValidPersistenceRegistration_ShouldHaveRequiredServices()
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IAllowedCityRepository>();
+        var uow = scope.ServiceProvider.GetService<IUnitOfWork>();
+        var queries = scope.ServiceProvider.GetService<IAllowedCityQueries>();
 
         // Assert
-        repository.Should().NotBeNull();
-        repository.Should().BeAssignableTo<IAllowedCityRepository>();
+        uow.Should().NotBeNull();
+        queries.Should().NotBeNull();
     }
 }
