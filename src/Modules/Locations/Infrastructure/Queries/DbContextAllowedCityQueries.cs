@@ -23,9 +23,11 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
             .AsNoTracking()
             .ToListAsync( cancellationToken);
 
-    public async Task<AllowedCity?> GetByIdAsync( Guid id, CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
-            .FirstOrDefaultAsync( x => x.Id == id, cancellationToken);
+    public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await dbContext.AllowedCities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
 
     public async Task<AllowedCity?> GetByCityAndStateAsync( string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {

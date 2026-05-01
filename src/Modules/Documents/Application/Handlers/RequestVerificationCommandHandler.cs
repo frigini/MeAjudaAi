@@ -29,6 +29,7 @@ public class RequestVerificationCommandHandler(
 
     public async Task<Result> HandleAsync(RequestVerificationCommand command, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("DEBUG: HandleAsync called for {DocumentId}", command.DocumentId);
         try
         {
             // Validar se o documento existe
@@ -39,6 +40,7 @@ public class RequestVerificationCommandHandler(
                 _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
                 return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
             }
+            _logger.LogInformation("Document {DocumentId} found. ProviderId: {ProviderId}, Status: {Status}", command.DocumentId, document.ProviderId, document.Status);
 
             // Autorização no nível do recurso: o usuário deve corresponder ao ProviderId ou possuir permissões de administrador
             var httpContext = _httpContextAccessor.HttpContext;
@@ -81,13 +83,22 @@ public class RequestVerificationCommandHandler(
 
             // Atualizar status do documento para PendingVerification
             document.MarkAsPendingVerification();
+            _logger.LogInformation("Attempting to save changes to DB for document {DocumentId}", command.DocumentId);
             await uow.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Document {DocumentId} status updated to PendingVerification", command.DocumentId);
 
             // Enfileirar job de verificação
-            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(command.DocumentId, CancellationToken.None));
-
-            _logger.LogInformation("Document {DocumentId} marked for verification and job enqueued", command.DocumentId);
+            try
+            {
+                await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
+                    service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to enqueue verification job for document {DocumentId}", command.DocumentId);
+                throw; // Rethrow to let the main handler catch it, but now with context
+            }
+            _logger.LogInformation("Job enqueued for {DocumentId}", command.DocumentId);
 
             return Result.Success();
         }

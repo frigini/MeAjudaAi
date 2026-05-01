@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 
 /// <summary>
-/// Database context for the Documents module.
-/// Manages document entities and their persistence.
+/// Contexto de banco de dados para o módulo de Documentos.
+/// Gerencia entidades de documentos e sua persistência.
 /// </summary>
 public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 {
@@ -17,7 +17,13 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
 
+    /// <summary>
+    /// Gets the collection of outbox messages.
+    /// </summary>
+    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
+
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+
     {
         if (this is IRepository<TAggregate, TKey> repository)
             return repository;

@@ -407,43 +407,47 @@ public class DocumentTests
     }
 
 [Theory]
-    [InlineData(EDocumentStatus.Uploaded)]
-    [InlineData(EDocumentStatus.PendingVerification)]
-    [InlineData(EDocumentStatus.Verified)]
-    [InlineData(EDocumentStatus.Rejected)]
-    [InlineData(EDocumentStatus.Failed)]
-    public void MarkAsVerified_OnlySucceedsFromPendingVerification(EDocumentStatus initialStatus)
-    {
-        Document doc;
-        switch (initialStatus)
-        {
-            case EDocumentStatus.PendingVerification:
-                doc = CreateTestDocument();
-                doc.MarkAsPendingVerification();
-                break;
-            default:
-                doc = CreateTestDocument();
-                break;
-        }
+[InlineData(EDocumentStatus.PendingVerification)]
+[InlineData(EDocumentStatus.Uploaded)]
+[InlineData(EDocumentStatus.Failed)]
+[InlineData(EDocumentStatus.Verified)]
+[InlineData(EDocumentStatus.Rejected)]
+public void MarkAsVerified_OnlySucceedsFromPendingVerification(EDocumentStatus initialStatus)
+{
+    var doc = CreateTestDocument();
 
-        if (initialStatus == EDocumentStatus.PendingVerification)
-        {
-            doc.MarkAsVerified(null);
-            doc.Status.Should().Be(EDocumentStatus.Verified);
-        }
-        else if (initialStatus == EDocumentStatus.Uploaded || initialStatus == EDocumentStatus.Failed)
-        {
+    switch (initialStatus)
+    {
+        case EDocumentStatus.PendingVerification:
             doc.MarkAsPendingVerification();
-            doc.MarkAsVerified(null);
-            doc.Status.Should().Be(EDocumentStatus.Verified);
-        }
-        else
-        {
-            var act = () => doc.MarkAsVerified(null);
-            act.Should().Throw<InvalidOperationException>();
-        }
+            break;
+        case EDocumentStatus.Failed:
+            doc.MarkAsPendingVerification();
+            doc.MarkAsFailed("failed");
+            break;
+        case EDocumentStatus.Verified:
+            doc.MarkAsPendingVerification();
+            doc.MarkAsVerified("{\"data\": \"test\"}");
+            break;
+        case EDocumentStatus.Rejected:
+            doc.MarkAsPendingVerification();
+            doc.MarkAsRejected("rejected");
+            break;
+        case EDocumentStatus.Uploaded:
+            break;
     }
 
+    if (initialStatus == EDocumentStatus.PendingVerification)
+    {
+        doc.MarkAsVerified(null);
+        doc.Status.Should().Be(EDocumentStatus.Verified);
+    }
+    else
+    {
+        var act = () => doc.MarkAsVerified(null);
+        act.Should().Throw<InvalidOperationException>();
+    }
+}
     [Fact]
     public void MarkAsVerified_ShouldPreservePreviousOcrData()
     {
@@ -469,6 +473,7 @@ public class DocumentTests
         document.MarkAsVerified("");
 
         document.Status.Should().Be(EDocumentStatus.Verified);
+        document.OcrData.Should().BeNull();
     }
 
     [Fact]

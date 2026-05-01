@@ -113,14 +113,22 @@ public class UploadDocumentCommandHandler(
                 blobName); // Armazena o nome do blob, não a URL completa com SAS
 
             uow.GetRepository<Document, DocumentId>().Add(document);
+
+            // Cria mensagem de outbox para o job de verificação
+            var outboxMessage = MeAjudaAi.Shared.Database.Outbox.OutboxMessage.Create(
+                "DocumentVerification",
+                System.Text.Json.JsonSerializer.Serialize(new { DocumentId = document.Id.Value }),
+                "documents");
+
+            // Registra no DbSet (requer cast para DbContext ou acesso direto se houver repositório)
+            // Assumindo que temos acesso ao DbContext através do IUnitOfWork que implementa DocumentsDbContext
+            var dbContext = uow as MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext;
+            dbContext?.OutboxMessages.Add(outboxMessage);
+
             await uow.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Document {DocumentId} created for provider {ProviderId}",
+            _logger.LogInformation("Document {DocumentId} created and job enqueued in outbox for provider {ProviderId}",
                 document.Id, command.ProviderId);
-
-            // Enfileira job de verificação do documento
-            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
 
             return new UploadDocumentResponse(
                 document.Id,

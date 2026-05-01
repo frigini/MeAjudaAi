@@ -6,9 +6,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 13.3 (Refatoração de Persistência — Fase 0)
+**Sprint Atual**: 13.3 (Refatoração de Persistência)
 
-**Status**: 🚧 Em Andamento — Fase 0 Shared
+**Status**: 🚧 Em Andamento — Fase 0 Shared — rollout em Locations, Documents, Ratings
 
 **Meta MVP**: 12 a 16 de maio de 2026
 

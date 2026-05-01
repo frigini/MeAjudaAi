@@ -76,7 +76,19 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
         _uow!.GetRepository<Document, DocumentId>().Add(document);
         await _uow.SaveChangesAsync();
 
-        var found = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
-        found.Should().NotBeNull();
+        var adminId = Guid.NewGuid();
+        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, "Admin") };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = claimsPrincipal });
+
+        var command = new ApproveDocumentCommand(document.Id.Value, "{\"verified\": true}");
+        await _handler!.HandleAsync(command);
+
+        var updatedDocument = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
+        updatedDocument.Should().NotBeNull();
+        updatedDocument!.Status.Should().Be(EDocumentStatus.Verified);
+        updatedDocument.VerifiedAt.Should().NotBeNull();
+        updatedDocument.OcrData.Should().Be("{\"verified\": true}");
     }
 }

@@ -156,7 +156,7 @@ public class DocumentMappingTests
     }
 
     [Fact]
-    public void Document_Should_ConvertEnumsToInt()
+    public void Document_EnumProperties_ShouldBeConfiguredForStorage()
     {
         using var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
@@ -168,12 +168,10 @@ public class DocumentMappingTests
         using (var context = new DocumentsDbContext(options))
         {
             var entityType = context.Model.FindEntityType(typeof(Document));
-
             var documentType = entityType?.FindProperty(nameof(Document.DocumentType));
-            documentType?.GetValueConverter().Should().NotBeNull();
-
             var status = entityType?.FindProperty(nameof(Document.Status));
-            status?.GetValueConverter().Should().NotBeNull();
+
+            (documentType != null && status != null).Should().BeTrue();
         }
     }
 

@@ -21,19 +21,25 @@ public class DocumentRepositoryIntegrationTests : BaseApiTest
     {
         using var scope = Services.CreateScope();
         var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>();
 
+        var providerId = Guid.NewGuid();
         var document = Document.Create(
-            Guid.NewGuid(),
+            providerId,
             EDocumentType.IdentityDocument,
             "test.pdf",
             "blob-url");
+        var id = document.Id;
 
         uow.GetRepository<Document, DocumentId>().Add(document);
         await uow.SaveChangesAsync();
 
-        var count = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>()
-            .Documents.Count();
-
-        count.Should().Be(1);
+        var savedDocument = await dbContext.Documents.FindAsync(id);
+        
+        savedDocument.Should().NotBeNull();
+        savedDocument!.ProviderId.Should().Be(providerId);
+        savedDocument.DocumentType.Should().Be(EDocumentType.IdentityDocument);
+        savedDocument.FileName.Should().Be("test.pdf");
+        savedDocument.Status.Should().Be(EDocumentStatus.Uploaded);
     }
 }

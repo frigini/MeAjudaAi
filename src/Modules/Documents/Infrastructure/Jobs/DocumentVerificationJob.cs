@@ -35,26 +35,27 @@ public class DocumentVerificationJob : IDocumentVerificationService
     {
         _logger.LogInformation("Starting document processing for {DocumentId}", documentId);
 
-        var document = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(new DocumentId(documentId), cancellationToken);
-        if (document == null)
-        {
-            _logger.LogWarning("Document {DocumentId} not found", documentId);
-            return;
-        }
-
-        if (document.Status != EDocumentStatus.Uploaded &&
-            document.Status != EDocumentStatus.PendingVerification &&
-            document.Status != EDocumentStatus.Failed)
-        {
-            _logger.LogInformation(
-                "Documento {DocumentId} já foi processado (Status: {Status})",
-                documentId,
-                document.Status);
-            return;
-        }
-
         try
         {
+            var repository = _uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(new DocumentId(documentId), cancellationToken);
+            if (document == null)
+            {
+                _logger.LogWarning("Document {DocumentId} not found", documentId);
+                return;
+            }
+            _logger.LogInformation("Document {DocumentId} found, current status: {Status}", documentId, document.Status);
+
+            if (document.Status != EDocumentStatus.Uploaded &&
+                document.Status != EDocumentStatus.PendingVerification &&
+                document.Status != EDocumentStatus.Failed)
+            {
+                _logger.LogInformation(
+                    "Documento {DocumentId} já foi processado (Status: {Status})",
+                    documentId, document.Status);
+                return;
+            }
+
             if (document.Status == EDocumentStatus.Uploaded || document.Status == EDocumentStatus.Failed)
             {
                 document.MarkAsPendingVerification();
@@ -122,12 +123,22 @@ public class DocumentVerificationJob : IDocumentVerificationService
                 throw;
             }
 
+            // Note: document might be null if TryFindAsync fails, handle carefully
+            // In case of non-transient error, document may have been fetched but not updated
+            // Re-fetch if necessary or track status in memory.
             _logger.LogError(
                 "Permanent error processing document {DocumentId}: {Message}. Marking as Failed.",
                 documentId,
                 ex.Message);
-            document.MarkAsFailed($"Erro durante processamento: {ex.Message}");
-            await _uow.SaveChangesAsync(cancellationToken);
+            
+            // Re-fetch to ensure we have the tracked entity if it was fetched earlier
+            var repository = _uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(new DocumentId(documentId), cancellationToken);
+            if (document != null)
+            {
+                document.MarkAsFailed($"Erro durante processamento: {ex.Message}");
+                await _uow.SaveChangesAsync(cancellationToken);
+            }
         }
     }
 

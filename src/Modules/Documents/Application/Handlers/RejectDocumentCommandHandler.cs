@@ -33,15 +33,6 @@ public class RejectDocumentCommandHandler(
                 "Rejecting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
 
-            // Validar se o documento existe
-            var repository = uow.GetRepository<Document, DocumentId>();
-            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
-            if (document == null)
-            {
-                _logger.LogWarning("Document {DocumentId} not found for rejection", command.DocumentId);
-                throw new NotFoundException("Document", command.DocumentId.ToString());
-            }
-
             // Verificar autorização - apenas admins podem rejeitar documentos
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
@@ -53,12 +44,15 @@ public class RejectDocumentCommandHandler(
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)
+                throw new ForbiddenAccessException("Apenas administradores podem rejeitar documentos");
+
+            // Validar se o documento existe
+            var repository = uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
+            if (document == null)
             {
-                var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
-                _logger.LogWarning(
-                    "User {UserId} attempted to reject document {DocumentId} without admin privileges",
-                    userId, command.DocumentId);
-                throw new ForbiddenAccessException("Only administrators can reject documents");
+                _logger.LogWarning("Document {DocumentId} not found for rejection", command.DocumentId);
+                throw new NotFoundException("Document", command.DocumentId.ToString());
             }
 
             // Verificar se o documento está em estado válido para rejeição

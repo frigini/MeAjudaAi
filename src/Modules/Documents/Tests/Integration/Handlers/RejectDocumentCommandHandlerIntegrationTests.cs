@@ -52,7 +52,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
         _dbContext = new DocumentsDbContext(options);
         _uow = _dbContext;
 
-        await _dbContext.Database.EnsureCreatedAsync();
+        await _dbContext.Database.MigrateAsync();
 
         _handler = new RejectDocumentCommandHandler(_uow, _mockHttpContextAccessor.Object, _mockLogger.Object);
     }
@@ -76,7 +76,19 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
         _uow!.GetRepository<Document, DocumentId>().Add(document);
         await _uow.SaveChangesAsync();
 
-        var found = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
-        found.Should().NotBeNull();
+        var adminId = Guid.NewGuid();
+        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, "Admin") };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = claimsPrincipal });
+
+        var command = new RejectDocumentCommand(document.Id.Value, "Inlegível");
+        await _handler!.HandleAsync(command);
+
+        var updatedDocument = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
+        updatedDocument.Should().NotBeNull();
+        updatedDocument!.Status.Should().Be(EDocumentStatus.Rejected);
+        updatedDocument.RejectionReason.Should().Be("Inlegível");
+        updatedDocument.VerifiedAt.Should().NotBeNull();
     }
 }

@@ -63,9 +63,10 @@ public class LocationsPersistenceIntegrationTests : IAsyncLifetime
         // Act
         GetRepository().Add(city);
         await _uow.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
 
         // Assert
-        var savedCity = await _context.AllowedCities.FirstOrDefaultAsync(c => c.Id == city.Id);
+        var savedCity = await _context.AllowedCities.AsNoTracking().FirstOrDefaultAsync(c => c.Id == city.Id);
         savedCity.Should().NotBeNull();
         savedCity!.CityName.Should().Be("Muriaé");
         savedCity.StateSigla.Should().Be("MG");
@@ -345,7 +346,10 @@ public class LocationsPersistenceIntegrationTests : IAsyncLifetime
         };
 
         // Assert
-        await act.Should().ThrowAsync<DbUpdateException>();
+        var exception = await act.Should().ThrowAsync<DbUpdateException>();
+        var postgresException = exception.Which.InnerException as Npgsql.PostgresException;
+        postgresException.Should().NotBeNull();
+        postgresException!.SqlState.Should().Be("23505"); // UniqueViolation
     }
 
     [Fact]
@@ -366,7 +370,10 @@ public class LocationsPersistenceIntegrationTests : IAsyncLifetime
         };
 
         // Assert
-        await act.Should().ThrowAsync<DbUpdateException>();
+        var exception = await act.Should().ThrowAsync<DbUpdateException>();
+        var postgresException = exception.Which.InnerException as Npgsql.PostgresException;
+        postgresException.Should().NotBeNull();
+        postgresException!.SqlState.Should().Be("23505"); // UniqueViolation
     }
 
     public async ValueTask InitializeAsync()
