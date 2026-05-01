@@ -13,6 +13,8 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<AllowedCity> AllowedCities => Set<AllowedCity>();
 
+    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
+
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
         if (this is IRepository<TAggregate, TKey> repository)

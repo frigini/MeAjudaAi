@@ -11,7 +11,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
-using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
@@ -80,9 +79,11 @@ public static class Extensions
             }
         });
 
-        // Registra repositórios
-        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
-        services.AddScoped<IServiceRepository, ServiceRepository>();
+        // Registra repositórios (OBSOLETO: usar IUnitOfWork via DbContext)
+        [System.Obsolete("Será removido na Fase 5. Use IUnitOfWork/IRepository.")]
+        static void AddModuleRepositories(IServiceCollection services)
+        {
+        }
 
         // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();

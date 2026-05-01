@@ -24,6 +24,8 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
 
     public DbSet<Review> Reviews { get; set; } = null!;
 
+    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
+
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
         if (this is IRepository<TAggregate, TKey> repository)

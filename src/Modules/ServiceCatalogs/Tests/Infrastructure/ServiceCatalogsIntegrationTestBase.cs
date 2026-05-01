@@ -6,6 +6,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 
@@ -45,7 +46,15 @@ public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
     /// </summary>
     protected override void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
     {
-        services.AddServiceCatalogsTestInfrastructure(options);
+        // As migrações são aplicadas automaticamente pelo sistema de auto-descoberta
+        services.AddDbContext<ServiceCatalogsDbContext>(dbOptions =>
+        {
+            dbOptions.UseNpgsql(options.Database.ConnectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(ServiceCatalogsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
+            });
+        });
     }
 
     /// <summary>

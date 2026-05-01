@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -77,7 +78,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
         await _uow.SaveChangesAsync();
 
         var adminId = Guid.NewGuid();
-        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, "Admin") };
+        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, RoleConstants.Admin) };
         var identity = new ClaimsIdentity(claims, "TestAuthType");
         var claimsPrincipal = new ClaimsPrincipal(identity);
         _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = claimsPrincipal });
