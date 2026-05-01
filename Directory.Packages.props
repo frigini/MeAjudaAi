@@ -118,7 +118,7 @@
     <PackageVersion Include="Rebus.Serialization.Json" Version="8.9.2" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.2" />
     <!-- Autenticação e Autorização -->
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
     <!-- Health Checks -->
