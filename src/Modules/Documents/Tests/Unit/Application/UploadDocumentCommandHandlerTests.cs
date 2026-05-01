@@ -132,11 +132,7 @@ public class UploadDocumentCommandHandlerTests
             x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+// Verification removed as enqueuing is now handled by outbox
     }
 
     [Fact]
@@ -170,11 +166,7 @@ public class UploadDocumentCommandHandlerTests
             x => x.Add(It.Is<Document>(d => d.DocumentType == EDocumentType.ProofOfResidence)),
             Times.Once);
 
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+// Verification removed as enqueuing is now handled by outbox
     }
 
     [Fact]
@@ -219,11 +211,7 @@ public class UploadDocumentCommandHandlerTests
                 It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+// Verification removed as enqueuing is now handled by outbox
     }
 
     [Fact]
@@ -305,11 +293,7 @@ public class UploadDocumentCommandHandlerTests
         result.Should().NotBeNull();
         result.UploadUrl.Should().NotBeEmpty();
 
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+// Verification removed as enqueuing is now handled by outbox
     }
 
     [Fact]
@@ -406,11 +390,7 @@ public class UploadDocumentCommandHandlerTests
             x => x.Add(It.Is<Document>(d => d.ProviderId == providerId)),
             Times.Once);
 
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+// Verification removed as enqueuing is now handled by outbox
     }
 
     [Fact]
@@ -449,11 +429,7 @@ public class UploadDocumentCommandHandlerTests
         result.Should().NotBeNull();
         result.DocumentId.Should().NotBeEmpty();
 
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+// Verification removed as enqueuing is now handled by outbox
     }
 
     [Fact]

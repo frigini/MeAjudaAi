@@ -177,7 +177,8 @@ public class RejectDocumentCommandHandlerTests
 
         var command = new RejectDocumentCommand(documentId, "Invalid");
         var act = async () => await _handler.HandleAsync(command);
-
-        await act.Should().ThrowAsync<ForbiddenAccessException>().WithMessage("Only administrators can reject documents");
+// Assert
+        await act.Should().ThrowAsync<ForbiddenAccessException>()
+            .WithMessage("Apenas administradores podem rejeitar documentos");
     }
 }

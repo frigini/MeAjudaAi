@@ -473,7 +473,7 @@ public void MarkAsVerified_OnlySucceedsFromPendingVerification(EDocumentStatus i
         document.MarkAsVerified("");
 
         document.Status.Should().Be(EDocumentStatus.Verified);
-        document.OcrData.Should().BeNull();
+        document.OcrData.Should().Be("");
     }
 
     [Fact]

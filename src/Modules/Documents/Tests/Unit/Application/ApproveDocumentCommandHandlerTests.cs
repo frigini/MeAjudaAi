@@ -190,8 +190,9 @@ public class ApproveDocumentCommandHandlerTests
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
         var act = async () => await _handler.HandleAsync(command);
+// Assert
+await act.Should().ThrowAsync<ForbiddenAccessException>()
+    .WithMessage("Apenas administradores podem aprovar documentos");
+}
 
-        await act.Should().ThrowAsync<ForbiddenAccessException>()
-            .WithMessage("Apenas administradores podem approve documents");
-    }
 }

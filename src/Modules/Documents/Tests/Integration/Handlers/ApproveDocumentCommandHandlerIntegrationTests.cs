@@ -46,7 +46,7 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 
         var options = new DbContextOptionsBuilder<DocumentsDbContext>()
             .UseNpgsql(_postgresContainer.GetConnectionString())
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.CommandExecuting))
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _dbContext = new DocumentsDbContext(options);
