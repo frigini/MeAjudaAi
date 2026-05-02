@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(DocumentsDbContext))]
-    [Migration("20260501181441_AddOutboxToDocuments")]
+    [Migration("20260501220914_AddOutboxToDocuments")]
     partial class AddOutboxToDocuments
     {
         /// <inheritdoc />
@@ -98,50 +98,62 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MeAjudaAi.Shared.Database.Outbox.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("CorrelationId")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("correlation_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
 
                     b.Property<int>("MaxRetries")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("max_retries");
 
                     b.Property<string>("Payload")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("payload");
 
                     b.Property<int>("Priority")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
 
                     b.Property<int>("RetryCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("retry_count");
 
                     b.Property<DateTime?>("ScheduledAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_at");
 
                     b.Property<DateTime?>("SentAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
-                    b.ToTable("OutboxMessages", "documents");
+                    b.ToTable("outbox_messages", "documents");
                 });
 #pragma warning restore 612, 618
         }

@@ -18,11 +18,6 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
 
-    /// <summary>
-    /// Obtém a coleção de mensagens de outbox.
-    /// </summary>
-    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
-
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
         if (this is IRepository<TAggregate, TKey> repository)
@@ -31,11 +26,6 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
         throw new InvalidOperationException(
             $"DocumentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
             $"This context only supports: Document(DocumentId)");
-    }
-
-    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
-    {
-        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
     }
 
 
@@ -63,6 +53,9 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        // Ignora OutboxMessage explicitamente para evitar erro de migração em E2E
+        modelBuilder.Ignore<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
 
         base.OnModelCreating(modelBuilder);
     }

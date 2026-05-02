@@ -380,27 +380,33 @@ public class TestContainerFixture : IAsyncLifetime
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
     {
         var context = services.GetRequiredService<TContext>();
+        
+        // Obter tabelas diretamente do banco para garantir nomes reais
         var tableNames = new List<string>();
-
-        foreach (var entityType in context.Model.GetEntityTypes())
+        var connection = context.Database.GetDbConnection();
+        await connection.OpenAsync();
+        
+        using (var command = connection.CreateCommand())
         {
-            var tableName = entityType.GetTableName();
-            var schema = entityType.GetSchema();
-
-            if (!string.IsNullOrEmpty(tableName))
+            var schema = DbContextSchemaHelper.GetSchemaName(typeof(TContext).Name);
+            command.CommandText = $@"
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = '{schema}' 
+                AND table_type = 'BASE TABLE';";
+            
+            using (var reader = await command.ExecuteReaderAsync())
             {
-                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
-                    ? $"\"{tableName}\""
-                    : $"\"{schema}\".\"{tableName}\"";
-                
-                tableNames.Add(qualifiedTableName);
+                while (await reader.ReadAsync())
+                {
+                    tableNames.Add($"\"{schema}\".\"{reader.GetString(0)}\"");
+                }
             }
         }
 
         if (tableNames.Count > 0)
         {
-            var uniqueTables = tableNames.Distinct().ToList();
-            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
+            var batchSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
             await context.Database.ExecuteSqlRawAsync(batchSql);
         }
     }

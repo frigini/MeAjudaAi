@@ -44,16 +44,11 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
                 column: "provider_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_documents_provider_type",
-                schema: "documents",
-                table: "documents",
-                columns: new[] { "provider_id", "document_type" });
-
-            migrationBuilder.CreateIndex(
                 name: "ix_documents_status",
                 schema: "documents",
                 table: "documents",
                 column: "status");
+
         }
 
         /// <inheritdoc />

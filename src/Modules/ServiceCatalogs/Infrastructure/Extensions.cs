@@ -85,6 +85,16 @@ public static class Extensions
         {
         }
 
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<MeAjudaAi.Shared.Database.IRepository<Domain.Entities.ServiceCategory, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<MeAjudaAi.Shared.Database.IRepository<Domain.Entities.Service, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        
+        // Registra os repositórios diretamente como o DbContext (que implementa as interfaces)
+        services.AddScoped<IServiceCategoryRepository>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<IServiceRepository>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+
+        services.AddScoped<MeAjudaAi.Contracts.Modules.ServiceCatalogs.IServiceCatalogsModuleApi, MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi.ServiceCatalogsModuleApi>();
+
         // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateServiceCommand, Result<ServiceDto>>, CreateServiceCommandHandler>();

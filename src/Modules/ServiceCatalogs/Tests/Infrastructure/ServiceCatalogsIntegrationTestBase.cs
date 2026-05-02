@@ -55,6 +55,8 @@ public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
             });
         });
+
+        services.AddScoped<MeAjudaAi.Contracts.Modules.ServiceCatalogs.IServiceCatalogsModuleApi, MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi.ServiceCatalogsModuleApi>();
     }
 
     /// <summary>
