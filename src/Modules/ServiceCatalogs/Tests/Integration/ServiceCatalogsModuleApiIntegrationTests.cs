@@ -101,7 +101,7 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
     private async Task<ServiceCategoryEntity> CreateServiceCategoryAsync(string name, string? description = null, int displayOrder = 0)
     {
         var uow = GetService<MeAjudaAi.Shared.Database.IUnitOfWork>();
-        var category = ServiceCategoryEntity.Create(name, description, displayOrder);
+        var category = ServiceCategoryEntity.Create($"{name}_{Guid.NewGuid()}", description, displayOrder);
         uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
         await uow.SaveChangesAsync();
         return category;
@@ -110,7 +110,7 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
     private async Task<ServiceEntity> CreateServiceAsync(MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId categoryId, string name, bool isActive = true)
     {
         var uow = GetService<MeAjudaAi.Shared.Database.IUnitOfWork>();
-        var service = ServiceEntity.Create(categoryId, name);
+        var service = ServiceEntity.Create(categoryId, $"{name}_{Guid.NewGuid()}");
         if (isActive)
             service.Activate();
         else

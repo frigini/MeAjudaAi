@@ -8,28 +8,28 @@ Queries complexas migram para interfaces `IXxxQueries` próprias. O `IOutboxRepo
 
 ### Definições arquiteturais
 
-| Conceito EF Core | Papel no novo modelo |
-|---|---|
-| `DbSet<T>` | Repositório |
-| LINQ to Entities | Especificação (sem Specification Pattern) |
-| `DbContext` | Unit of Work |
-| Partial classes do DbContext | Implementação de `IRepository<T, K>` por aggregate |
-| `IXxxQueries` + implementação na infra | CQRS para leituras complexas |
+| Conceito EF Core                       | Papel no novo modelo                               |
+| -------------------------------------- | -------------------------------------------------- |
+| `DbSet<T>`                             | Repositório                                        |
+| LINQ to Entities                       | Especificação (sem Specification Pattern)          |
+| `DbContext`                            | Unit of Work                                       |
+| Partial classes do DbContext           | Implementação de `IRepository<T, K>` por aggregate |
+| `IXxxQueries` + implementação na infra | CQRS para leituras complexas                       |
 
 ### Estado atual — inventário por módulo
 
-| Módulo | DbContext | Interfaces IRepository | Classes Repository |
-|---|---|---|---|
-| Bookings | `BookingsDbContext` | 2 | 2 |
-| Communications | `CommunicationsDbContext` | 3 | 1 (Outbox) |
-| Documents | `DocumentsDbContext` | 1 | 1 |
-| Locations | `LocationsDbContext` | 1 | 1 |
-| Payments | `PaymentsDbContext` | 2 | 2 |
-| Providers | `ProvidersDbContext` | 1 | 1 |
-| Ratings | `RatingsDbContext` | 1 | 1 |
-| SearchProviders | `SearchProvidersDbContext` | 1 | 1 |
-| ServiceCatalogs | `ServiceCatalogsDbContext` | 2 | 2 |
-| Users | `UsersDbContext` | 1 | 1 |
+| Módulo          | DbContext                  | Interfaces IRepository | Classes Repository |
+| --------------- | -------------------------- | ---------------------- | ------------------ |
+| Bookings        | `BookingsDbContext`        | 2                      | 2                  |
+| Communications  | `CommunicationsDbContext`  | 3                      | 1 (Outbox)         |
+| Documents       | `DocumentsDbContext`       | 1                      | 1                  |
+| Locations       | `LocationsDbContext`       | 1                      | 1                  |
+| Payments        | `PaymentsDbContext`        | 2                      | 2                  |
+| Providers       | `ProvidersDbContext`       | 1                      | 1                  |
+| Ratings         | `RatingsDbContext`         | 1                      | 1                  |
+| SearchProviders | `SearchProvidersDbContext` | 1                      | 1                  |
+| ServiceCatalogs | `ServiceCatalogsDbContext` | 2                      | 2                  |
+| Users           | `UsersDbContext`           | 1                      | 1                  |
 
 ### Problemas concretos que a refatoração resolve
 
@@ -59,14 +59,14 @@ Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
 ## Visão geral das fases
 
-| Fase | Escopo | Dependência |
-|---|---|---|
-| **0** | Shared — `IRepository`, `IUnitOfWork` | Nenhuma |
-| **1** | Locations (módulo piloto) | Fase 0 |
-| **2** | Ratings, Documents, ServiceCatalogs | Fase 1 validada |
-| **3** | Providers, Users, SearchProviders | Fase 2 |
-| **4** | Bookings, Communications, Payments | Fase 2 |
-| **5** | Limpeza e consolidação global | Fases 3 e 4 |
+| Fase  | Escopo                                | Dependência     |
+| ----- | ------------------------------------- | --------------- |
+| **0** | Shared — `IRepository`, `IUnitOfWork` | Nenhuma         |
+| **1** | Locations (módulo piloto)             | Fase 0          |
+| **2** | Ratings, Documents, ServiceCatalogs   | Fase 1 validada |
+| **3** | Providers, Users, SearchProviders     | Fase 2          |
+| **4** | Bookings, Communications, Payments    | Fase 2          |
+| **5** | Limpeza e consolidação global         | Fases 3 e 4     |
 
 > **Regra de branch:** criar uma branch por fase, com PR de validação antes de avançar. Locations como piloto é crítico — valida o padrão inteiro antes de comprometer os demais módulos.
 
@@ -269,21 +269,21 @@ O `IProviderRepository` atual possui 12+ métodos. A maioria são queries puras 
 
 **Mapeamento completo de `IProviderRepository`:**
 
-| Método atual | Destino no novo modelo |
-|---|---|
-| `GetBySlugAsync` | `IProviderQueries` |
-| `GetByIdsAsync` | `IProviderQueries` |
-| `GetByCityAsync` | `IProviderQueries` |
-| `GetByStateAsync` | `IProviderQueries` |
-| `GetByVerificationStatusAsync` | `IProviderQueries` |
-| `GetByTypeAsync` | `IProviderQueries` |
-| `GetProviderStatusAsync` | `IProviderQueries` |
-| `HasProvidersWithServiceAsync` | `IProviderQueries` |
-| `GetByUserIdAsync` | `IProviderQueries` |
-| `ExistsAsync` | `IProviderQueries` ou lógica inline no handler |
-| `GetByIdAsync` (command side) | `IRepository<Provider, ProviderId>.TryFindAsync` |
-| `AddAsync` | `IRepository<Provider, ProviderId>.Add` |
-| `DeleteAsync` | `IRepository<Provider, ProviderId>.Delete` |
+| Método atual                   | Destino no novo modelo                           |
+| ------------------------------ | ------------------------------------------------ |
+| `GetBySlugAsync`               | `IProviderQueries`                               |
+| `GetByIdsAsync`                | `IProviderQueries`                               |
+| `GetByCityAsync`               | `IProviderQueries`                               |
+| `GetByStateAsync`              | `IProviderQueries`                               |
+| `GetByVerificationStatusAsync` | `IProviderQueries`                               |
+| `GetByTypeAsync`               | `IProviderQueries`                               |
+| `GetProviderStatusAsync`       | `IProviderQueries`                               |
+| `HasProvidersWithServiceAsync` | `IProviderQueries`                               |
+| `GetByUserIdAsync`             | `IProviderQueries`                               |
+| `ExistsAsync`                  | `IProviderQueries` ou lógica inline no handler   |
+| `GetByIdAsync` (command side)  | `IRepository<Provider, ProviderId>.TryFindAsync` |
+| `AddAsync`                     | `IRepository<Provider, ProviderId>.Add`          |
+| `DeleteAsync`                  | `IRepository<Provider, ProviderId>.Delete`       |
 
 ### Users
 

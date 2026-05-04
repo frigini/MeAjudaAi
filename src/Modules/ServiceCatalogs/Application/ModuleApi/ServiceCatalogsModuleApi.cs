@@ -1,5 +1,4 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Modules;
@@ -17,6 +16,8 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class ServiceCatalogsModuleApi(
     IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries,
+    IServiceQueries serviceQueries,
     ILogger<ServiceCatalogsModuleApi> logger) : IServiceCatalogsModuleApi
 {
     private static class ModuleMetadata
@@ -71,9 +72,14 @@ public sealed class ServiceCatalogsModuleApi(
         bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
-        var categoryRepository = uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>();
+        var categories = await categoryQueries.GetAllAsync(activeOnly, cancellationToken);
         
-        var dtos = new List<ModuleServiceCategoryDto>();
+        var dtos = categories.Select(c => new ModuleServiceCategoryDto(
+            c.Id.Value,
+            c.Name,
+            c.Description,
+            c.IsActive,
+            c.DisplayOrder)).ToList();
         
         return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Success(dtos);
     }
@@ -111,9 +117,18 @@ public sealed class ServiceCatalogsModuleApi(
         bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
-        var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
+        var services = await serviceQueries.GetAllAsync(activeOnly, cancellationToken);
+        var categories = await categoryQueries.GetAllAsync(false, cancellationToken);
+        var categoryDict = categories.ToDictionary(c => c.Id, c => c.Name);
         
-        var dtos = new List<ModuleServiceListDto>();
+        var dtos = services.Select(s => new ModuleServiceListDto(
+            s.Id.Value,
+            null,
+            s.CategoryId.Value,
+            categoryDict.GetValueOrDefault(s.CategoryId, string.Empty),
+            s.Name,
+            s.Description,
+            s.IsActive)).ToList();
         
         return Result<IReadOnlyList<ModuleServiceListDto>>.Success(dtos);
     }
@@ -123,9 +138,18 @@ public sealed class ServiceCatalogsModuleApi(
         bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
-        var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
+        var categoryIdObj = ServiceCategoryId.From(categoryId);
+        var services = await serviceQueries.GetByCategoryAsync(categoryIdObj, activeOnly, cancellationToken);
+        var category = await categoryQueries.GetByIdAsync(categoryIdObj, cancellationToken);
         
-        var dtos = new List<ModuleServiceDto>();
+        var dtos = services.Select(s => new ModuleServiceDto(
+            s.Id.Value,
+            null,
+            s.CategoryId.Value,
+            category?.Name ?? string.Empty,
+            s.Name,
+            s.Description,
+            s.IsActive)).ToList();
         
         return Result<IReadOnlyList<ModuleServiceDto>>.Success(dtos);
     }
@@ -173,7 +197,7 @@ public sealed class ServiceCatalogsModuleApi(
 return Result<ModuleServiceValidationResultDto>.Success(
                 new ModuleServiceValidationResultDto(
                     valid.Count == serviceIds.Count && invalid.Count == 0 && inactive.Count == 0,
-                    valid,
+                    invalid,
                     inactive
                 ));
     }

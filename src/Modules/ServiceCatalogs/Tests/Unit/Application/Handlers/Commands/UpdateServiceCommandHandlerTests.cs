@@ -72,7 +72,7 @@ public class UpdateServiceCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("existe nesta categoria");
+        result.Error.Message.Should().Contain("Já existe um serviço com o nome");
     }
 
     [Fact]
