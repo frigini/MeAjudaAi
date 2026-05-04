@@ -51,6 +51,7 @@ public class GetServiceByIdQueryHandlerTests
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
     }
 

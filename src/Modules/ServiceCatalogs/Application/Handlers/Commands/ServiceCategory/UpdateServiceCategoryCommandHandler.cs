@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -10,7 +11,8 @@ using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class UpdateServiceCategoryCommandHandler(
-    IUnitOfWork uow)
+    IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries)
     : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -29,6 +31,9 @@ public sealed class UpdateServiceCategoryCommandHandler(
             var normalizedName = request.Name?.Trim();
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Result.Failure(ValidationMessages.Required.CategoryName);
+
+            if (await categoryQueries.ExistsWithNameAsync(normalizedName, category.Id, cancellationToken))
+                return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 

@@ -53,39 +53,7 @@ public partial class ServiceCatalogsDbContext : BaseDbContext, IUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = new List<IDomainEvent>();
 
-        domainEvents.AddRange(ChangeTracker
-            .Entries<AggregateRoot<ServiceId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents));
-
-        domainEvents.AddRange(ChangeTracker
-            .Entries<AggregateRoot<ServiceCategoryId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents));
-
-        return Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        foreach (var entry in ChangeTracker
-            .Entries<AggregateRoot<ServiceId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0))
-        {
-            entry.Entity.ClearDomainEvents();
-        }
-
-        foreach (var entry in ChangeTracker
-            .Entries<AggregateRoot<ServiceCategoryId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0))
-        {
-            entry.Entity.ClearDomainEvents();
-        }
-    }
 }
 
 public partial class ServiceCatalogsDbContext : 

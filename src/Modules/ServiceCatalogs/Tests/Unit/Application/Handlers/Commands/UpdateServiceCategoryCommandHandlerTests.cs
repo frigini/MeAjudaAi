@@ -4,7 +4,10 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -14,18 +17,23 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 public class UpdateServiceCategoryCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
     private readonly UpdateServiceCategoryCommandHandler _handler;
 
     public UpdateServiceCategoryCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>())
             .Returns(_repositoryMock.Object);
         
-        _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object);
+        _categoryQueriesMock.Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+            
+        _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object, _categoryQueriesMock.Object);
     }
 
     [Fact]
@@ -43,6 +51,7 @@ public class UpdateServiceCategoryCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         category.Name.Should().Be("Categoria Atualizada");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

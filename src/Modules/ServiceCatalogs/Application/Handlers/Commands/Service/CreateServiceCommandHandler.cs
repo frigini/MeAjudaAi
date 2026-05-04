@@ -29,14 +29,14 @@ public sealed class CreateServiceCommandHandler(
             var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken); 
             
             if (category is null)
-                throw new UnprocessableEntityException(
+                return Result<ServiceDto>.Failure(Error.Unprocessable(
                     string.Format(ValidationMessages.NotFound.CategoryById, request.CategoryId),
-                    "ServiceCategory");
+                    "ServiceCategory"));
 
             if (!category.IsActive)
-                throw new UnprocessableEntityException(
+                return Result<ServiceDto>.Failure(Error.Unprocessable(
                     "Não é possível criar serviço em categoria inativa.",
-                    "ServiceCategory");
+                    "ServiceCategory"));
 
             var normalizedName = request.Name?.Trim();
             if (string.IsNullOrWhiteSpace(normalizedName))
@@ -68,6 +68,14 @@ public sealed class CreateServiceCommandHandler(
         catch (CatalogDomainException ex)
         {
             return Result<ServiceDto>.Failure(ex.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<ServiceDto>.Failure("Erro ao criar o serviço.");
         }
     }
 }

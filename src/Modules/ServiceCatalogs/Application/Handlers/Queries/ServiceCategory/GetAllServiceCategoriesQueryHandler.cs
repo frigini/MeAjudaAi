@@ -30,9 +30,13 @@ public sealed class GetAllServiceCategoriesQueryHandler : IQueryHandler<GetAllSe
             
             return Result<IReadOnlyList<ServiceCategoryDto>>.Success(dtos);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            return Result<IReadOnlyList<ServiceCategoryDto>>.Failure($"Erro ao buscar categorias: {ex.Message}");
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<IReadOnlyList<ServiceCategoryDto>>.Failure("Erro ao buscar categorias.");
         }
     }
 }

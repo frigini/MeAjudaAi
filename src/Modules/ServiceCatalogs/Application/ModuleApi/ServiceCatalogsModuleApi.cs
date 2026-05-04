@@ -49,7 +49,7 @@ public sealed class ServiceCatalogsModuleApi(
         CancellationToken cancellationToken = default)
     {
         if (categoryId == Guid.Empty)
-            return Result<ModuleServiceCategoryDto?>.Failure("Category id must be provided");
+            return Result<ModuleServiceCategoryDto?>.Failure("É necessário fornecer o id da categoria");
 
         var categoryRepository = uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>();
         var category = await categoryRepository.TryFindAsync(ServiceCategoryId.From(categoryId), cancellationToken);
@@ -89,7 +89,7 @@ public sealed class ServiceCatalogsModuleApi(
         CancellationToken cancellationToken = default)
     {
         if (serviceId == Guid.Empty)
-            return Result<ModuleServiceDto?>.Failure("Service id must be provided");
+            return Result<ModuleServiceDto?>.Failure("É necessário fornecer o id do serviço");
 
         var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
         var service = await serviceRepository.TryFindAsync(ServiceId.From(serviceId), cancellationToken);
@@ -117,17 +117,16 @@ public sealed class ServiceCatalogsModuleApi(
         bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
-        var services = await serviceQueries.GetAllAsync(activeOnly, cancellationToken);
+        var services = await serviceQueries.GetAllAsync(activeOnly, null, cancellationToken);
         var categories = await categoryQueries.GetAllAsync(false, cancellationToken);
         var categoryDict = categories.ToDictionary(c => c.Id, c => c.Name);
         
         var dtos = services.Select(s => new ModuleServiceListDto(
             s.Id.Value,
-            null,
             s.CategoryId.Value,
-            categoryDict.GetValueOrDefault(s.CategoryId, string.Empty),
             s.Name,
             s.Description,
+            s.DisplayOrder,
             s.IsActive)).ToList();
         
         return Result<IReadOnlyList<ModuleServiceListDto>>.Success(dtos);
@@ -138,6 +137,9 @@ public sealed class ServiceCatalogsModuleApi(
         bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
+        if (categoryId == Guid.Empty)
+            return Result<IReadOnlyList<ModuleServiceDto>>.Failure("É necessário fornecer o id da categoria");
+
         var categoryIdObj = ServiceCategoryId.From(categoryId);
         var services = await serviceQueries.GetByCategoryAsync(categoryIdObj, activeOnly, cancellationToken);
         var category = await categoryQueries.GetByIdAsync(categoryIdObj, cancellationToken);
@@ -194,24 +196,26 @@ public sealed class ServiceCatalogsModuleApi(
                 valid.Add(id);
         }
 
-return Result<ModuleServiceValidationResultDto>.Success(
-                new ModuleServiceValidationResultDto(
-                    valid.Count == serviceIds.Count && invalid.Count == 0 && inactive.Count == 0,
-                    invalid,
-                    inactive
-                ));
+        return Result<ModuleServiceValidationResultDto>.Success(
+            new ModuleServiceValidationResultDto(
+                valid.Count == serviceIds.Count && invalid.Count == 0 && inactive.Count == 0,
+                invalid,
+                inactive
+            ));
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            return HealthCheckResult.Healthy("ServiceCatalogs module is healthy.");
+            // Realizamos uma consulta leve para verificar conectividade
+            _ = await categoryQueries.GetAllAsync(true, cancellationToken);
+            return HealthCheckResult.Healthy("Módulo ServiceCatalogs está saudável.");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Health check failed");
-            return HealthCheckResult.Unhealthy("ServiceCatalogs module is unhealthy.", ex);
+            logger.LogError(ex, "Falha no health check do módulo ServiceCatalogs");
+            return HealthCheckResult.Unhealthy("Módulo ServiceCatalogs está com falha de conectividade.", ex);
         }
     }
 }

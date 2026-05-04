@@ -89,8 +89,8 @@ public class ServiceRepositoryIntegrationTests : BaseApiTest
             uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
             await uow.SaveChangesAsync();
 
-            s1 = ServiceEntity.Create(category.Id, "Serviço 1");
-            s2 = ServiceEntity.Create(category.Id, "Serviço 2");
+            s1 = ServiceEntity.Create(category.Id, "Serviço " + Guid.NewGuid());
+            s2 = ServiceEntity.Create(category.Id, "Serviço " + Guid.NewGuid());
 
             uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(s1);
             uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(s2);
@@ -99,11 +99,11 @@ public class ServiceRepositoryIntegrationTests : BaseApiTest
 
         using (var scope = Services.CreateScope())
         {
-            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var services = await uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>()
-                .TryFindAsync(MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId.From(Guid.NewGuid()));
+            var queries = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceQueries>();
+            var services = await queries.GetAllAsync(false);
 
-            services.Should().NotBeNull();
+            services.Should().Contain(s => s.Id == s1.Id);
+            services.Should().Contain(s => s.Id == s2.Id);
         }
     }
 

@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 
 public interface IServiceQueries
 {
-    Task<IReadOnlyList<ServiceEntity>> GetAllAsync(bool activeOnly, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ServiceEntity>> GetAllAsync(bool activeOnly, string? name = null, CancellationToken cancellationToken = default);
     Task<ServiceEntity?> GetByIdAsync(ServiceId id, CancellationToken cancellationToken = default);
     Task<ServiceEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ServiceEntity>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default);

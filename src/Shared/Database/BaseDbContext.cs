@@ -43,8 +43,29 @@ public abstract class BaseDbContext : DbContext
         return result;
     }
 
-    protected abstract Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default);
-    protected abstract void ClearDomainEvents();
+    protected virtual Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
+    {
+        var domainEvents = ChangeTracker
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Any())
+            .SelectMany(entry => entry.Entity.DomainEvents)
+            .ToList();
+
+        return Task.FromResult(domainEvents);
+    }
+
+    protected virtual void ClearDomainEvents()
+    {
+        var entries = ChangeTracker
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Any())
+            .ToList();
+
+        foreach (var entry in entries)
+        {
+            entry.Entity.ClearDomainEvents();
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

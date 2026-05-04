@@ -63,6 +63,7 @@ public class CreateServiceCommandHandlerTests
         result.Value.Name.Should().Be(command.Name);
         result.Value.CategoryId.Should().Be(command.CategoryId);
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -75,10 +76,10 @@ public class CreateServiceCommandHandlerTests
             .Setup(x => x.GetByIdAsync(ServiceCategoryId.From(categoryId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
-        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnprocessableEntityException>()
-            .WithMessage("*não encontrada*");
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("não encontrada");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -92,10 +93,10 @@ public class CreateServiceCommandHandlerTests
             .Setup(x => x.GetByIdAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnprocessableEntityException>()
-            .WithMessage("*inativa*");
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("inativa");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -116,6 +117,7 @@ public class CreateServiceCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("Já existe um serviço com o nome");
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
     [Fact]

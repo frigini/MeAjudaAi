@@ -33,8 +33,10 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
 
         _categoryQueriesMock.Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
-        _serviceQueriesMock.Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(false, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(true, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Service>());
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 

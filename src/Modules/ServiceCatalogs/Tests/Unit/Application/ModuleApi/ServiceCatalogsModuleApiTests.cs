@@ -15,15 +15,23 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.ModuleApi;
 public class ServiceCatalogsModuleApiTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceCategoryQueries> _categoryQueriesMock;
+    private readonly Mock<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceQueries> _serviceQueriesMock;
     private readonly Mock<ILogger<ServiceCatalogsModuleApi>> _loggerMock;
     private readonly ServiceCatalogsModuleApi _sut;
 
     public ServiceCatalogsModuleApiTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
+        _categoryQueriesMock = new Mock<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceCategoryQueries>();
+        _serviceQueriesMock = new Mock<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceQueries>();
         _loggerMock = new Mock<ILogger<ServiceCatalogsModuleApi>>();
 
-        _sut = new ServiceCatalogsModuleApi(_uowMock.Object, _loggerMock.Object);
+        _sut = new ServiceCatalogsModuleApi(
+            _uowMock.Object, 
+            _categoryQueriesMock.Object, 
+            _serviceQueriesMock.Object, 
+            _loggerMock.Object);
     }
 
     [Fact]

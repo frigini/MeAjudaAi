@@ -8,11 +8,14 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 
 public class DbContextServiceQueries(ServiceCatalogsDbContext dbContext) : IServiceQueries
 {
-    public async Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly, string? name = null, CancellationToken cancellationToken = default)
     {
         var query = dbContext.Services.AsQueryable();
         if (activeOnly)
             query = query.Where(s => s.IsActive);
+
+        if (!string.IsNullOrWhiteSpace(name))
+            query = query.Where(s => s.Name.Contains(name));
 
         return await query
             .OrderBy(s => s.Name)

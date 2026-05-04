@@ -33,7 +33,7 @@ public class GetAllServicesQueryHandlerTests
         };
         var query = new GetAllServicesQuery(ActiveOnly: false, Name: null);
 
-        _serviceQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -46,7 +46,7 @@ public class GetAllServicesQueryHandlerTests
     {
         var query = new GetAllServicesQuery(ActiveOnly: true);
 
-        _serviceQueriesMock.Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(true, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Service>());
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);

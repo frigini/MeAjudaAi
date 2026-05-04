@@ -111,13 +111,16 @@ public interface IUnitOfWork
 }
 ```
 
-### Passo 0.3 — Verificar `BaseDbContext`
+### Passo 0.3 — Verificar e Atualizar `BaseDbContext`
 
-Confirmar que `BaseDbContext` mantém o dispatch de domain events (via `GetDomainEventsAsync` / `ClearDomainEvents`) e que o override de `SaveChangesAsync` chama o dispatch antes de persistir. Nenhuma mudança de comportamento — apenas garantir que a herança funciona corretamente quando os DbContexts de módulo herdarem dele.
+Garantir que `BaseDbContext` suporte a coleta e despacho de domain events para `AggregateRoot<TKey>` de qualquer `TKey` (não apenas `Guid`). 
+- Atualizar `GetDomainEventsAsync` e `ClearDomainEvents` para iterar sobre entidades tipadas como `BaseEntity` (ou `AggregateRoot<T>`) de forma genérica.
+- Validar via teste unitário que agregados com IDs fortemente tipados (ex: `ServiceId`, `BookingId`) têm seus eventos capturados e despachados corretamente.
+- Confirmar que o override de `SaveChangesAsync` chama o dispatch antes de persistir.
 
-### Passo 0.4 — Remover o scan do Scrutor para `*Repository`
+### Passo 0.4 — Marcar scan do Scrutor como Obsoleto
 
-Localizar o `ModuleServiceRegistrationExtensions` (ou equivalente) que usa Scrutor com `AddModuleRepositories` e **remover** o scan automático de classes terminadas em `*Repository`. Esse scan será substituído por registro explícito do DbContext como `IUnitOfWork` em cada módulo nas fases seguintes.
+Localizar o `ModuleServiceRegistrationExtensions` (ou equivalente) que usa Scrutor com `AddModuleRepositories` e marcar o método como `[Obsolete]`. Esse scan automático será substituído por registro explícito do DbContext como `IUnitOfWork` em cada módulo nas fases seguintes. O método deve ser removido completamente apenas na Fase 5.
 
 ---
 
@@ -196,9 +199,12 @@ Remover o registro de `IAllowedCityRepository` / `AllowedCityRepository`. Adicio
 
 ```csharp
 services.AddDbContext<LocationsDbContext>(options => /* ... */);
-services.AddScoped<IUnitOfWork, LocationsDbContext>();
+// Importante: IUnitOfWork deve resolver a mesma instância do DbContext
+services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
 services.AddScoped<IAllowedCityQueries, DbContextAllowedCityQueries>();
 ```
+
+**Validação de DI:** Garantir que todos os agregados do módulo tenham suas interfaces `IXxxQueries` registradas para evitar `InvalidOperationException` em runtime.
 
 ### Passo 1.5 — Refatorar os handlers do módulo
 
@@ -244,20 +250,23 @@ Rodar todos os testes de integração do módulo Locations. Verificar que migrat
 
 > Seguir o mesmo roteiro da Fase 1 para cada módulo. Ordem recomendada: **Ratings → Documents → ServiceCatalogs**.
 
-### Checklist por módulo
+### Checklist de Completude por Módulo
 
 Para cada módulo, executar em sequência:
 
-1. Mapear métodos do repositório atual: separar command (tracking necessário) de query (leitura pura)
-2. Criar `IXxxQueries` para as leituras puras na camada de aplicação
-3. Transformar o DbContext em partial com um arquivo por aggregate
-4. Criar `DbContextXxxQueries` na camada de infraestrutura
-5. Atualizar o registro de DI do módulo
-6. Refatorar handlers substituindo `IXxxRepository` por `IUnitOfWork` + `IXxxQueries`
-7. Deletar `IXxxRepository.cs`, `XxxRepository.cs` e testes unitários do repositório
-8. Adaptar testes de integração
+1. Mapear métodos do repositório atual: separar command (tracking necessário) de query (leitura pura).
+2. Criar `IXxxQueries` para as leituras puras na camada de aplicação.
+3. Transformar o DbContext em partial com um arquivo por aggregate.
+4. Criar `DbContextXxxQueries` na camada de infraestrutura.
+5. Atualizar o registro de DI do módulo (garantir `IUnitOfWork` compartilhado e todas as queries registradas).
+6. Refatorar handlers substituindo `IXxxRepository` por `IUnitOfWork` + `IXxxQueries`.
+7. **Verificação Mandatória de Resíduos:** Realizar busca por injeções de interfaces legadas (ex: `rg "IServiceRepository|IServiceCategoryRepository"`) e garantir que 100% dos handlers (commands e queries) foram migrados.
+8. Deletar `IXxxRepository.cs`, `XxxRepository.cs` e testes unitários do repositório.
+9. Adaptar testes de integração.
+10. **Validação de Eventos de Domínio:** Adicionar teste de integração que persista um agregado, emita um evento e confirme que o respectivo handler foi invocado.
+11. **Verificação de Isolamento de DB:** Garantir que o módulo não faça chamadas diretas ao banco de dados de outros módulos e que toda comunicação inter-módulos ocorra exclusivamente via `IModuleApi`.
 
-> **Atenção — ServiceCatalogs:** possui 2 aggregates. Criar um arquivo partial separado no DbContext para cada aggregate.
+> **Atenção — ServiceCatalogs:** possui 2 aggregates. Criar um arquivo partial separado no DbContext para cada aggregate. Garantir que `BaseDbContext` processe `AggregateRoot<ServiceId>` e `AggregateRoot<ServiceCategoryId>`.
 
 ---
 

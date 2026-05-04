@@ -16,9 +16,14 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(IServiceCategoryQu
         CancellationToken cancellationToken = default)
     {
         var categories = await categoryQueries.GetAllAsync(request.ActiveOnly, cancellationToken);
-        var services = await serviceQueries.GetAllAsync(request.ActiveOnly, cancellationToken);
+        var allServices = await serviceQueries.GetAllAsync(false, null, cancellationToken);
+        var activeServices = await serviceQueries.GetAllAsync(true, null, cancellationToken);
         
-        var serviceCountByCategory = services
+        var totalCountDict = allServices
+            .GroupBy(s => s.CategoryId.Value)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var activeCountDict = activeServices
             .GroupBy(s => s.CategoryId.Value)
             .ToDictionary(g => g.Key, g => g.Count());
 
@@ -28,8 +33,8 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(IServiceCategoryQu
             c.Description,
             c.IsActive,
             c.DisplayOrder,
-            serviceCountByCategory.GetValueOrDefault(c.Id.Value, 0),
-            0
+            activeCountDict.GetValueOrDefault(c.Id.Value, 0),
+            totalCountDict.GetValueOrDefault(c.Id.Value, 0)
         )).ToList();
 
         return Result<IReadOnlyList<ServiceCategoryWithCountDto>>.Success(dtos);

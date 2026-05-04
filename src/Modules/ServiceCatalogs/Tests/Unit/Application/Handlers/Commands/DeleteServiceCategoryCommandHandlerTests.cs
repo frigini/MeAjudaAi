@@ -42,8 +42,10 @@ public class DeleteServiceCategoryCommandHandlerTests
             .ReturnsAsync(category);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
-
+        
         result.IsSuccess.Should().BeTrue();
+        _categoryRepoMock.Verify(x => x.Delete(It.Is<ServiceCategory>(c => c.Id == category.Id)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

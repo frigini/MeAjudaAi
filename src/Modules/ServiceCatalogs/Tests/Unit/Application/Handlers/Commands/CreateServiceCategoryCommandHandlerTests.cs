@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
 using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 

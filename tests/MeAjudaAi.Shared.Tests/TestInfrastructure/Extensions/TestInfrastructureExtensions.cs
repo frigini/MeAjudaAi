@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
+using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
@@ -57,7 +58,8 @@ public static class TestInfrastructureExtensions
     /// </summary>
     public static IServiceCollection AddTestMessageBus(this IServiceCollection services)
     {
-        services.Replace(ServiceDescriptor.Scoped<IMessageBus, MockMessageBus>());
+        var mock = new Mock<IMessageBus>();
+        services.Replace(ServiceDescriptor.Singleton<IMessageBus>(mock.Object));
         return services;
     }
 
@@ -108,36 +110,3 @@ public static class TestInfrastructureExtensions
     }
 }
 
-/// <summary>
-/// Mock genérico do message bus para testes
-/// </summary>
-internal class MockMessageBus : IMessageBus
-{
-    private readonly List<object> _recordedMessages = new();
-
-    public IReadOnlyList<object> RecordedMessages => _recordedMessages.AsReadOnly();
-
-    public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(message);
-        _recordedMessages.Add(message);
-        return Task.CompletedTask;
-    }
-
-    public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(@event);
-        _recordedMessages.Add(@event);
-        return Task.CompletedTask;
-    }
-
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
-    {
-        return Task.CompletedTask;
-    }
-
-    public void ClearMessages()
-    {
-        _recordedMessages.Clear();
-    }
-}

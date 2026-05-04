@@ -22,15 +22,20 @@ public sealed class GetAllServicesQueryHandler : IQueryHandler<GetAllServicesQue
     {
         try
         {
-            var services = await _queries.GetAllAsync(request.ActiveOnly, cancellationToken);
+            var services = await _queries.GetAllAsync(request.ActiveOnly, request.Name, cancellationToken);
             
             var dtos = services.Select(s => s.ToListDto()).ToList();
             
             return Result<IReadOnlyList<ServiceListDto>>.Success(dtos);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            return Result<IReadOnlyList<ServiceListDto>>.Failure($"Erro ao buscar serviços: {ex.Message}");
+            throw;
+        }
+        catch (Exception)
+        {
+            // Log ex internally if needed, but return generic message
+            return Result<IReadOnlyList<ServiceListDto>>.Failure("Erro ao buscar serviços. Tente novamente mais tarde.");
         }
     }
 }

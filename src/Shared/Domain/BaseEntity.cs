@@ -10,7 +10,7 @@ namespace MeAjudaAi.Shared.Domain;
 /// 2. A alternativa seria injetar IDateTimeProvider em todas as entidades (anti-pattern)
 /// 3. Para testes, use builders que permitem setar as datas explicitamente
 /// </summary>
-public abstract class BaseEntity
+public abstract class BaseEntity : IHasDomainEvents
 {
     public Guid Id { get; protected set; } = UuidGenerator.NewId();
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;

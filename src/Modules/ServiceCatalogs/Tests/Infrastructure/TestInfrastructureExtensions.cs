@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
@@ -58,7 +59,8 @@ public static class TestInfrastructureExtensions
         }
 
         // Add CQRS specific infrastructure
-        services.AddScoped<IUnitOfWork, ServiceCatalogsDbContext>();
+        services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
 

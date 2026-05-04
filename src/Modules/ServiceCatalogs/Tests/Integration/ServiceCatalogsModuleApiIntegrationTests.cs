@@ -98,6 +98,39 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
         result.Value.InactiveServiceIds.Should().NotBeEmpty();
     }
 
+    [Fact]
+    public async Task ActivateService_ShouldDispatchDomainEvent()
+    {
+        // Arrange
+        var category = await CreateServiceCategoryAsync("Category");
+        var service = await CreateServiceAsync(category.Id, "Service to Activate", isActive: false);
+        
+        var uow = GetService<MeAjudaAi.Shared.Database.IUnitOfWork>();
+        var messageBusMock = GetService<MeAjudaAi.Shared.Messaging.IMessageBus>();
+        
+        // Act
+        // Buscamos o serviço via repositório para ter o trackeamento
+        var serviceToUpdate = await uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>()
+            .TryFindAsync(service.Id);
+            
+        serviceToUpdate!.Activate();
+        await uow.SaveChangesAsync();
+
+        // Assert
+        // Verificamos se o integration event (publicado pelo domain event handler) foi disparado
+        // Isso prova que:
+        // 1. O domínio emitiu o evento
+        // 2. O SaveChangesAsync coletou o evento
+        // 3. O DomainEventProcessor resolveu o handler
+        // 4. O handler executou com sucesso
+        Mock.Get(messageBusMock)
+            .Verify(x => x.PublishAsync(
+                It.Is<MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs.ServiceActivatedIntegrationEvent>(e => e.ServiceId == service.Id.Value),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), 
+            Times.Once);
+    }
+
     private async Task<ServiceCategoryEntity> CreateServiceCategoryAsync(string name, string? description = null, int displayOrder = 0)
     {
         var uow = GetService<MeAjudaAi.Shared.Database.IUnitOfWork>();

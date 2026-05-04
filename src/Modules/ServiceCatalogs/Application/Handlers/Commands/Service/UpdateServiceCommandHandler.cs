@@ -46,5 +46,13 @@ public sealed class UpdateServiceCommandHandler(
         {
             return Result.Failure(ex.Message);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result.Failure("Erro ao atualizar o serviço.");
+        }
     }
 }

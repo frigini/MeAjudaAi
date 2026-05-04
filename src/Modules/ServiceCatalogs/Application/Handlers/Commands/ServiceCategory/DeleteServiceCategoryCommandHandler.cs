@@ -24,7 +24,8 @@ public sealed class DeleteServiceCategoryCommandHandler(
         if (category is null)
             return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
 
-        var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
+        categoryRepository.Delete(category);
+        await uow.SaveChangesAsync(cancellationToken);
         
         return Result.Success();
     }
