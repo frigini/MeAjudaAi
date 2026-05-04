@@ -1,14 +1,11 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
-using MeAjudaAi.Modules.ServiceCatalogs.API;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 
@@ -20,17 +17,10 @@ public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
     /// <summary>
     /// Configurações padrão para testes do módulo ServiceCatalogs
     /// </summary>
-    protected ServiceCatalogsIntegrationTestBase()
-    {
-        Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-    }
-
     protected override TestInfrastructureOptions GetTestOptions()
     {
         return new TestInfrastructureOptions
         {
-            Environment = "Testing",
             Database = new TestDatabaseOptions
             {
                 DatabaseName = $"test_db_{GetType().Name.ToUpperInvariant()[..Math.Min(50, GetType().Name.Length)]}",
@@ -40,7 +30,7 @@ public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
             },
             Cache = new TestCacheOptions
             {
-                Enabled = true
+                Enabled = true // Usa o Redis compartilhado
             },
             ExternalServices = new TestExternalServicesOptions
             {
@@ -55,17 +45,7 @@ public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
     /// </summary>
     protected override void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
     {
-        var configBuilder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
-        configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["Postgres:ConnectionString"] = options.Database.ConnectionString,
-            ["ConnectionStrings:DefaultConnection"] = options.Database.ConnectionString,
-            ["ConnectionStrings:ServiceCatalogs"] = options.Database.ConnectionString,
-            ["ConnectionStrings:meajudaai-db"] = options.Database.ConnectionString
-        });
-        var configuration = configBuilder.Build();
-
-        services.AddServiceCatalogsModule(configuration);
+        services.AddServiceCatalogsTestInfrastructure(options);
     }
 
     /// <summary>

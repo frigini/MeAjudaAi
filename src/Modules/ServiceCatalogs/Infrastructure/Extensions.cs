@@ -7,16 +7,16 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,19 +80,9 @@ public static class Extensions
             }
         });
 
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
-        services.AddScoped<MeAjudaAi.Shared.Database.IRepository<Domain.Entities.ServiceCategory, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
-        services.AddScoped<MeAjudaAi.Shared.Database.IRepository<Domain.Entities.Service, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
-
-        // Registra o QueryDispatcher do Shared
-        services.AddScoped<MeAjudaAi.Shared.Queries.IQueryDispatcher, MeAjudaAi.Shared.Queries.QueryDispatcher>();
-        services.AddScoped<MeAjudaAi.Shared.Commands.ICommandDispatcher, MeAjudaAi.Shared.Commands.CommandDispatcher>();
-        
-        // Registra queries services
-        services.AddScoped<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceQueries, DbContextServiceQueries>();
-        services.AddScoped<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceCategoryQueries, DbContextServiceCategoryQueries>();
-
-        services.AddScoped<MeAjudaAi.Contracts.Modules.ServiceCatalogs.IServiceCatalogsModuleApi, MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi.ServiceCatalogsModuleApi>();
+        // Registra repositórios
+        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+        services.AddScoped<IServiceRepository, ServiceRepository>();
 
         // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();
