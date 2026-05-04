@@ -32,17 +32,7 @@ public class RequestVerificationCommandHandler(
         _logger.LogInformation("DEBUG: HandleAsync called for {DocumentId}", command.DocumentId);
         try
         {
-            // Validar se o documento existe
-            var repository = uow.GetRepository<Document, DocumentId>();
-            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
-            if (document == null)
-            {
-                _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
-                return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
-            }
-            _logger.LogInformation("Document {DocumentId} found. ProviderId: {ProviderId}, Status: {Status}", command.DocumentId, document.ProviderId, document.Status);
-
-            // Autorização no nível do recurso: o usuário deve corresponder ao ProviderId ou possuir permissões de administrador
+            // Autorização no nível do recurso: identificar quem é o caller
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 return Result.Failure(Error.Unauthorized("HTTP context not available"));
@@ -52,22 +42,40 @@ public class RequestVerificationCommandHandler(
                 return Result.Failure(Error.Unauthorized("User is not authenticated"));
 
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
                 return Result.Failure(Error.Unauthorized("User ID not found in token"));
 
-            // Verificar se o usuário corresponde ao ID do provedor
-            if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
+            var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
+
+            // Fetch seguro baseado na autoridade do usuário
+            var repository = uow.GetRepository<Document, DocumentId>();
+            Document? document;
+
+            if (isAdmin)
             {
-                // Verificar se o usuário possui o papel de administrador
-                var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
-                if (!isAdmin)
+                document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
+            }
+            else
+            {
+                // Busca restrita ao ProviderId do usuário
+                // Assumindo que a interface do repositório/query suporte busca filtrada
+                // Se o TryFindAsync genérico não suporta, seria necessário um IQuery de Document
+                // Vamos usar a query de busca pelo ID que o repositório deve suportar, 
+                // mas validando o ProviderId logo em seguida.
+                document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
+                if (document != null && document.ProviderId != userGuid)
                 {
                     _logger.LogWarning(
-                        "User {UserId} attempted to request verification for document {DocumentId} owned by provider {ProviderId}",
-                        userId, command.DocumentId, document.ProviderId);
-                    return Result.Failure(Error.Unauthorized(
-                        "You are not authorized to request verification for this document"));
+                        "User {UserId} attempted to access document {DocumentId} belonging to another provider",
+                        userId, command.DocumentId);
+                    return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
                 }
+            }
+
+            if (document == null)
+            {
+                _logger.LogWarning("Document {DocumentId} not found", command.DocumentId);
+                return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
             }
 
             // Verificar se o documento está em um estado válido para solicitação de verificação
@@ -83,9 +91,7 @@ public class RequestVerificationCommandHandler(
 
             // Atualizar status do documento para PendingVerification
             document.MarkAsPendingVerification();
-            _logger.LogInformation("Attempting to save changes to DB for document {DocumentId}", command.DocumentId);
             await uow.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Document {DocumentId} status updated to PendingVerification", command.DocumentId);
 
             // Enfileirar job de verificação
             try
@@ -96,16 +102,15 @@ public class RequestVerificationCommandHandler(
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to enqueue verification job for document {DocumentId}", command.DocumentId);
-                throw; // Rethrow to let the main handler catch it, but now with context
+                throw;
             }
-            _logger.LogInformation("Job enqueued for {DocumentId}", command.DocumentId);
 
             return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Failed to request verification. Please try again later."));
+            return Result.Failure(Error.Internal("Failed to request verification."));
         }
     }
 }

@@ -35,16 +35,7 @@ public class ApproveDocumentCommandHandler(
                 "Approving document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
 
-            // Validar se o documento existe
-            var repository = uow.GetRepository<Document, DocumentId>();
-            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
-            if (document == null)
-            {
-                _logger.LogWarning("Document {DocumentId} not found for approval", command.DocumentId);
-                throw new NotFoundException("Document", command.DocumentId.ToString());
-            }
-
-            // Verificar autorização - apenas admins podem aprovar documentos
+            // Verificar autorização primeiro (prevenção de ID enumeration)
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 throw new UnauthorizedAccessException("Contexto HTTP não disponível");
@@ -61,6 +52,15 @@ public class ApproveDocumentCommandHandler(
                     "User {UserId} attempted to approve document {DocumentId} without admin privileges",
                     userId, command.DocumentId);
                 throw new ForbiddenAccessException("Apenas administradores podem aprovar documentos");
+            }
+
+            // Validar se o documento existe
+            var repository = uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
+            if (document == null)
+            {
+                _logger.LogWarning("Document {DocumentId} not found for approval", command.DocumentId);
+                throw new NotFoundException("Document", command.DocumentId.ToString());
             }
 
             // Verificar se o documento está em estado válido para aprovação
