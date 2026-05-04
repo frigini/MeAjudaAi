@@ -1,15 +1,16 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class DeleteServiceCommandHandler(
-    IServiceRepository serviceRepository,
+    IUnitOfWork uow,
     IProvidersModuleApi providersModuleApi)
     : ICommandHandler<DeleteServiceCommand, Result>
 {
@@ -18,13 +19,12 @@ public sealed class DeleteServiceCommandHandler(
         if (request.Id == Guid.Empty)
             return Result.Failure(ValidationMessages.Required.Id);
 
-        var serviceId = ServiceId.From(request.Id);
-        var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
+        var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
+        var service = await serviceRepository.TryFindAsync(ServiceId.From(request.Id), cancellationToken);
 
         if (service is null)
             return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service));
 
-        // Verificar se algum provedor oferece este serviço antes de deletar
         var hasProvidersResult = await providersModuleApi.HasProvidersOfferingServiceAsync(request.Id, cancellationToken);
 
         if (hasProvidersResult.IsFailure)
@@ -33,7 +33,8 @@ public sealed class DeleteServiceCommandHandler(
         if (hasProvidersResult.Value)
             return Result.Failure(string.Format(ValidationMessages.Catalogs.CannotDeleteServiceOffered, service.Name));
 
-        await serviceRepository.DeleteAsync(serviceId, cancellationToken);
+        serviceRepository.Delete(service);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -1,29 +1,29 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class ActivateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow)
     : ICommandHandler<ActivateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(ActivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result.Failure("Category ID cannot be empty.");
+            return Result.Failure("O ID da categoria não pode ser vazio.");
 
-        var categoryId = ServiceCategoryId.From(request.Id);
-        var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
+        var categoryRepository = uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>();
+        var category = await categoryRepository.TryFindAsync(ServiceCategoryId.From(request.Id), cancellationToken);
 
         if (category is null)
-            return Result.Failure($"Category with ID '{request.Id}' not found.");
+            return Result.Failure($"Categoria com ID '{request.Id}' não encontrada.");
 
         category.Activate();
-
-        await categoryRepository.UpdateAsync(category, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

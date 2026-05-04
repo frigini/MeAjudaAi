@@ -64,8 +64,13 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     {
         var domainEvents = ChangeTracker
             .Entries()
-            .Where(entry => entry.Entity is AggregateRoot<Guid>)
-            .SelectMany(entry => ((AggregateRoot<Guid>)entry.Entity).DomainEvents)
+            .Where(entry => entry.Entity?.GetType().IsGenericType == true 
+                && entry.Entity.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(AggregateRoot<>)))
+            .SelectMany(entry => 
+            {
+                dynamic d = entry.Entity;
+                return (List<IDomainEvent>)d.DomainEvents;
+            })
             .ToList();
 
         return await Task.FromResult(domainEvents);
@@ -75,12 +80,13 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     {
         var entities = ChangeTracker
             .Entries()
-            .Where(entry => entry.Entity is AggregateRoot<Guid>)
-            .Select(entry => (AggregateRoot<Guid>)entry.Entity);
+            .Where(entry => entry.Entity?.GetType().IsGenericType == true 
+                && entry.Entity.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(AggregateRoot<>)));
 
-        foreach (var entity in entities)
+        foreach (var entry in entities)
         {
-            entity.ClearDomainEvents();
+            dynamic d = entry.Entity;
+            d.ClearDomainEvents();
         }
     }
 }

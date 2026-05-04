@@ -1,15 +1,18 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class UpdateServiceCommandHandler(
-    IServiceRepository serviceRepository)
+    IUnitOfWork uow,
+    IServiceQueries serviceQueries)
     : ICommandHandler<UpdateServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCommand request, CancellationToken cancellationToken = default)
@@ -19,8 +22,8 @@ public sealed class UpdateServiceCommandHandler(
             if (request.Id == Guid.Empty)
                 return Result.Failure(ValidationMessages.Required.Id);
 
-            var serviceId = ServiceId.From(request.Id);
-            var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
+            var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
+            var service = await serviceRepository.TryFindAsync(ServiceId.From(request.Id), cancellationToken);
 
             if (service is null)
                 return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service));
@@ -30,13 +33,12 @@ public sealed class UpdateServiceCommandHandler(
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Result.Failure(ValidationMessages.Required.ServiceName);
 
-            // Verificar se já existe serviço com o mesmo nome na categoria (excluindo o serviço atual)
-            if (await serviceRepository.ExistsWithNameAsync(normalizedName, serviceId, service.CategoryId, cancellationToken))
+            if (await serviceQueries.ExistsWithNameAsync(normalizedName, service.Id, service.CategoryId, cancellationToken))
                 return Result.Failure(string.Format(ValidationMessages.Catalogs.ServiceNameExists, normalizedName));
 
             service.Update(normalizedName, request.Description, request.DisplayOrder);
 
-            await serviceRepository.UpdateAsync(service, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }

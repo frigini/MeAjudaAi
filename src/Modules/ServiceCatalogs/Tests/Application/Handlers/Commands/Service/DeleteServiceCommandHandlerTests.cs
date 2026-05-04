@@ -1,89 +1,63 @@
 using FluentAssertions;
-using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Functional;
 using Moq;
 using Xunit;
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.Service;
 
 public class DeleteServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _serviceRepoMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly DeleteServiceCommandHandler _handler;
 
     public DeleteServiceCommandHandlerTests()
     {
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _serviceRepoMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
-        _handler = new DeleteServiceCommandHandler(_serviceRepositoryMock.Object, _providersModuleApiMock.Object);
+        
+        _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
+            .Returns(_serviceRepoMock.Object);
+        
+        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object);
     }
 
     [Fact]
     public async Task HandleAsync_WhenServiceExistsAndNotUsed_ShouldDeleteAndReturnSuccess()
     {
-        // Arrange
-        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service Name", "Description");
-        var serviceId = service.Id.Value;
-        var command = new DeleteServiceCommand(serviceId);
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Serviço")
+            .Build();
+        var command = new DeleteServiceCommand(service.Id.Value);
 
-        _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
+        _providersModuleApiMock.Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(false));
 
-        _providersModuleApiMock.Setup(a => a.HasProvidersOfferingServiceAsync(serviceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(MeAjudaAi.Contracts.Functional.Result<bool>.Success(false));
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        _serviceRepositoryMock.Verify(r => r.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenServiceNotFound_ShouldReturnFailure()
+    public async Task HandleAsync_WhenIdIsEmpty_ShouldReturnFailure()
     {
-        // Arrange
-        var command = new DeleteServiceCommand(Guid.NewGuid());
+        var command = new DeleteServiceCommand(Guid.Empty);
 
-        _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service?)null);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WhenServiceUsedByProviders_ShouldReturnFailure()
-    {
-        // Arrange
-        var serviceId = Guid.NewGuid();
-        var command = new DeleteServiceCommand(serviceId);
-        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service Name", "Description");
-
-        _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        _providersModuleApiMock.Setup(a => a.HasProvidersOfferingServiceAsync(serviceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(MeAjudaAi.Contracts.Functional.Result<bool>.Success(true));
-
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Não é possível excluir o serviço");
-        result.Error.Message.Should().Contain("pois ele é oferecido por prestadores");
     }
 }

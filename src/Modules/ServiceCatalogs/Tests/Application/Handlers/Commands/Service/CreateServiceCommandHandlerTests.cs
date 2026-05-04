@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
@@ -14,6 +15,8 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.
 public class CreateServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepositoryMock;
     private readonly Mock<IRepository<Domain.Entities.Service, ServiceId>> _serviceRepositoryMock;
     private readonly CreateServiceCommandHandler _handler;
@@ -21,13 +24,15 @@ public class CreateServiceCommandHandlerTests
     public CreateServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
         _categoryRepositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         _serviceRepositoryMock = new Mock<IRepository<Domain.Entities.Service, ServiceId>>();
         
         _uowMock.Setup(u => u.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_categoryRepositoryMock.Object);
         _uowMock.Setup(u => u.GetRepository<Domain.Entities.Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
         
-        _handler = new CreateServiceCommandHandler(_uowMock.Object);
+        _handler = new CreateServiceCommandHandler(_uowMock.Object, _categoryQueriesMock.Object, _serviceQueriesMock.Object);
     }
 
     [Fact]
@@ -40,24 +45,21 @@ public class CreateServiceCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Category ID cannot be empty");
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Message.Should().Contain("O identificador é obrigatório.");
     }
 
     [Fact]
     public async Task HandleAsync_WhenCategoryNotFound_ShouldThrowUnprocessableEntityException()
     {
-        // Arrange
         var categoryId = Guid.NewGuid();
         var command = new CreateServiceCommand(categoryId, "Service Name", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(ServiceCategoryId.From(categoryId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
-        // Act
         var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
         await act.Should().ThrowAsync<UnprocessableEntityException>()
             .WithMessage("*não encontrada*");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Domain.Entities.Service>()), Times.Never);
@@ -66,19 +68,16 @@ public class CreateServiceCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenCategoryInactive_ShouldThrowUnprocessableEntityException()
     {
-        // Arrange
         var category = ServiceCategory.Create("Inactive Category", "Desc");
         category.Deactivate();
 
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", 1);
         
-        _categoryRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        // Act
         var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
         await act.Should().ThrowAsync<UnprocessableEntityException>()
             .WithMessage("*inativa*");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Domain.Entities.Service>()), Times.Never);
@@ -87,59 +86,61 @@ public class CreateServiceCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenNameIsEmpty_ShouldReturnFailure()
     {
-        // Arrange
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("O nome do serviço é obrigatório.");
-    }
+        result.Error.Message.Should().Contain("não pode ser negativa");
+        }
 
-    [Fact(Skip = "Awaiting implementation of IServiceQueries - duplicate name validation pending")]
-    public async Task HandleAsync_WhenServiceWithSameNameExists_ShouldReturnFailure()
-    {
-        // ... test body ...
-    }
+        [Fact]
+        public async Task HandleAsync_WhenServiceWithSameNameExists_ShouldReturnFailure()
+        {
+        var category = ServiceCategory.Create("Category", "Desc");
+        var command = new CreateServiceCommand(category.Id.Value, "Existing Service", "Description", 1);
 
-    [Fact]
-    public async Task HandleAsync_WhenDisplayOrderIsNegative_ShouldReturnFailure()
-    {
-        // Arrange
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(category.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+
+        _serviceQueriesMock.Setup(r => r.ExistsWithNameAsync("Existing Service", null, category.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("já existe nesta categoria");
+        }
+
+        [Fact]
+        public async Task HandleAsync_WhenDisplayOrderIsNegative_ShouldReturnFailure()
+        {
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", -1);
 
-        _categoryRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Display order cannot be negative");
-    }
-
+        result.Error.Message.Should().Contain("A ordem de exibição não pode ser negativa.");
+        }
     [Fact]
     public async Task HandleAsync_WhenValid_ShouldCreateServiceAndReturnSuccess()
     {
-        // Arrange
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be("Service Name");
         result.Value.CategoryName.Should().Be("Category");

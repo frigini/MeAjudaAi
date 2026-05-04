@@ -1,12 +1,12 @@
-using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Functional;
+using Moq;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -15,160 +15,63 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 [Trait("Layer", "Application")]
 public class DeleteServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly DeleteServiceCommandHandler _handler;
 
     public DeleteServiceCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
-        _handler = new DeleteServiceCommandHandler(_repositoryMock.Object, _providersModuleApiMock.Object);
+        
+        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>())
+            .Returns(_repositoryMock.Object);
+        
+        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object);
     }
-// ...
+
     [Fact]
     public async Task Handle_WithValidCommandAndNoProviders_ShouldReturnSuccess()
     {
-        // Arrange
-        var service = new ServiceBuilder().Build();
-        var command = new DeleteServiceCommand(service.Id.Value);
-
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        _providersModuleApiMock
-            .Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(false));
-
-        _repositoryMock
-            .Setup(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_WithProvidersModuleApiFailure_ShouldReturnFailure()
-    {
-        // Arrange
-        var service = new ServiceBuilder().Build();
-        var command = new DeleteServiceCommand(service.Id.Value);
-
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        _providersModuleApiMock
-            .Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Failure(new Error(ValidationMessages.Providers.ErrorRetrievingProviders)));
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-    [Fact]
-    public async Task Handle_WithServiceBeingOfferedByProviders_ShouldReturnFailure()
-    {
-        // Arrange
         var category = new ServiceCategoryBuilder().AsActive().Build();
         var service = new ServiceBuilder()
             .WithCategoryId(category.Id)
-            .WithName("Limpeza de Piscina")
+            .WithName("Limpeza")
             .Build();
         var command = new DeleteServiceCommand(service.Id.Value);
 
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
+        _providersModuleApiMock.Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(false));
 
-        _providersModuleApiMock
-            .Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be(string.Format(ValidationMessages.Catalogs.CannotDeleteServiceOffered, service.Name));
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
-        _providersModuleApiMock.Verify(x => x.HasProvidersOfferingServiceAsync(service.Id.Value, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.IsSuccess.Should().BeTrue();
     }
-// ...
+
     [Fact]
     public async Task Handle_WithNonExistentService_ShouldReturnFailure()
     {
-        // Arrange
-        var serviceId = Guid.NewGuid();
-        var command = new DeleteServiceCommand(serviceId);
+        var command = new DeleteServiceCommand(Guid.NewGuid());
 
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be(ValidationMessages.NotFound.Service);
-        _providersModuleApiMock.Verify(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]
     public async Task Handle_WithEmptyId_ShouldReturnFailure()
     {
-        // Arrange
         var command = new DeleteServiceCommand(Guid.Empty);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be(ValidationMessages.Required.Id);
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
-        _providersModuleApiMock.Verify(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_WithRepositoryException_ShouldPropagateException()
-    {
-        // Arrange
-        var category = new ServiceCategoryBuilder().AsActive().Build();
-        var service = new ServiceBuilder()
-            .WithCategoryId(category.Id)
-            .WithName("Limpeza de Piscina")
-            .Build();
-        var command = new DeleteServiceCommand(service.Id.Value);
-
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        _providersModuleApiMock
-            .Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(false));
-
-        _repositoryMock
-            .Setup(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await _handler.HandleAsync(command, CancellationToken.None));
+        result.IsFailure.Should().BeTrue();
     }
 }

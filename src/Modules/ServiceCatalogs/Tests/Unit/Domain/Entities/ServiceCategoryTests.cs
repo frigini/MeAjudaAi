@@ -42,7 +42,7 @@ public class ServiceCategoryTests
         // Act & Assert
         var act = () => ServiceCategory.Create(invalidName!, null, 0);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage("*name*");
+            .WithMessage("O nome da categoria é obrigatório.");
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class ServiceCategoryTests
         // Act & Assert
         var act = () => ServiceCategory.Create(tooLongName, null, 0);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage($"*cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength} characters*");
+            .WithMessage("*não pode exceder*");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class ServiceCategoryTests
         // Act & Assert
         var act = () => ServiceCategory.Create(name, null, negativeDisplayOrder);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage("*Display order cannot be negative*");
+            .WithMessage("A ordem de exibição não pode ser negativa.");
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class ServiceCategoryTests
         // Act & Assert
         var act = () => ServiceCategory.Create("Test", tooLongDescription, 0);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage($"*cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength} characters*");
+            .WithMessage("*não pode exceder*");
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class ServiceCategoryTests
         // Act & Assert
         var act = () => category.Update("Updated Name", null, negativeDisplayOrder);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage("*Display order cannot be negative*");
+            .WithMessage("A ordem de exibição não pode ser negativa.");
     }
 
     [Fact]

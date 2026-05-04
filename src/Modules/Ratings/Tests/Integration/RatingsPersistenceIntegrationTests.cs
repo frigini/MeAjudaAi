@@ -1,3 +1,4 @@
+using FluentAssertions;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
@@ -5,38 +6,52 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.Sqlite;
-using FluentAssertions;
+using Testcontainers.PostgreSql;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Integration;
 
-public class RatingsPersistenceIntegrationTests : IAsyncDisposable
+public class RatingsPersistenceIntegrationTests : IAsyncLifetime
 {
-    private readonly RatingsDbContext _context;
-    private readonly IUnitOfWork _uow;
-    private readonly IReviewQueries _queries;
-    private readonly SqliteConnection _connection;
+    private readonly PostgreSqlContainer _postgresContainer;
+    private IUnitOfWork _uow = null!;
+    private IReviewQueries _queries = null!;
+    private RatingsDbContext _context = null!;
 
     public RatingsPersistenceIntegrationTests()
     {
-        _connection = new SqliteConnection("DataSource=:memory:");
-        _connection.Open();
+        var options = new TestDatabaseOptions
+        {
+            DatabaseName = "ratings_test",
+            Username = "test_user",
+            Password = "test_password",
+            Schema = "ratings"
+        };
 
+        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+            .WithDatabase(options.DatabaseName)
+            .WithUsername(options.Username)
+            .WithPassword(options.Password)
+            .WithCleanUp(true)
+            .Build();
+    }
+
+    private async Task InitializeInternalAsync()
+    {
         var options = new DbContextOptionsBuilder<RatingsDbContext>()
-            .UseSqlite(_connection)
+            .UseNpgsql(_postgresContainer.GetConnectionString())
+            .UseSnakeCaseNamingConvention()
+            .ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _context = new RatingsDbContext(options);
-        _context.Database.EnsureCreated();
+        await _context.Database.MigrateAsync();
+
         _uow = _context;
         _queries = new DbContextReviewQueries(_context);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _context.DisposeAsync();
-        await _connection.DisposeAsync();
     }
 
     private IRepository<Review, ReviewId> GetRepository() => _uow.GetRepository<Review, ReviewId>();
@@ -44,14 +59,11 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task Add_ShouldPersistReview()
     {
-        // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
 
-        // Act
         GetRepository().Add(review);
         await _uow.SaveChangesAsync();
 
-        // Assert
         var persisted = await _context.Reviews.FindAsync(review.Id);
         persisted.Should().NotBeNull();
         persisted!.Rating.Should().Be(5);
@@ -60,17 +72,14 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task GetByProviderAndCustomerAsync_ShouldReturnCorrectReview()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var review = Review.Create(providerId, customerId, 4, "Test");
         GetRepository().Add(review);
         await _uow.SaveChangesAsync();
 
-        // Act
         var result = await _queries.GetByProviderAndCustomerAsync(providerId, customerId);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(review.Id);
     }
@@ -78,15 +87,12 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task TryFindAsync_WithValidId_ShouldReturnReview()
     {
-        // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
         GetRepository().Add(review);
         await _uow.SaveChangesAsync();
 
-        // Act
         var result = await GetRepository().TryFindAsync(review.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(review.Id);
     }
@@ -94,12 +100,11 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task GetByProviderIdAsync_WithApprovedReviews_ShouldReturnPaginatedAndOrdered()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         var r1 = Review.Create(providerId, Guid.NewGuid(), 4, "Oldest");
         r1.Approve();
         
-        await Task.Delay(20); // Garantir timestamps diferentes (SQLite pode ser rápido demais)
+        await Task.Delay(20);
         
         var r2 = Review.Create(providerId, Guid.NewGuid(), 5, "Latest");
         r2.Approve();
@@ -112,10 +117,8 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
         GetRepository().Add(r3);
         await _uow.SaveChangesAsync();
 
-        // Act
         var result = (await _queries.GetByProviderIdAsync(providerId, 1, 10)).ToList();
 
-        // Assert
         result.Should().HaveCount(2);
         result[0].Comment.Should().Be("Latest");
         result[1].Comment.Should().Be("Oldest");
@@ -124,17 +127,14 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task SaveChangesAsync_ShouldPersistChanges()
     {
-        // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
         GetRepository().Add(review);
         await _uow.SaveChangesAsync();
         
         review.Approve();
 
-        // Act
         await _uow.SaveChangesAsync();
 
-        // Assert
         var persisted = await _context.Reviews.FindAsync(review.Id);
         persisted!.Status.Should().Be(EReviewStatus.Approved);
     }
@@ -142,24 +142,21 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task GetAverageRatingForProviderAsync_ShouldCalculateCorrectly()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         
         var r1 = Review.Create(providerId, Guid.NewGuid(), 5, null);
         r1.Approve();
         var r2 = Review.Create(providerId, Guid.NewGuid(), 4, null);
         r2.Approve();
-        var r3 = Review.Create(providerId, Guid.NewGuid(), 1, null); // Not approved
+        var r3 = Review.Create(providerId, Guid.NewGuid(), 1, null);
         
         GetRepository().Add(r1);
         GetRepository().Add(r2);
         GetRepository().Add(r3);
         await _uow.SaveChangesAsync();
 
-        // Act
         var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
 
-        // Assert
         average.Should().Be(4.5m);
         total.Should().Be(2);
     }
@@ -167,16 +164,13 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task GetAverageRatingForProviderAsync_WhenNoApprovedReviews_ShouldReturnZero()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         var review = Review.Create(providerId, Guid.NewGuid(), 5, "Pending");
         GetRepository().Add(review);
         await _uow.SaveChangesAsync();
 
-        // Act
         var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
 
-        // Assert
         average.Should().Be(0);
         total.Should().Be(0);
     }
@@ -184,7 +178,6 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task GetByProviderIdAsync_Pagination_ShouldReturnCorrectSubset()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         for (int i = 1; i <= 5; i++)
         {
@@ -194,11 +187,9 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
         }
         await _uow.SaveChangesAsync();
 
-        // Act
         var page1 = await _queries.GetByProviderIdAsync(providerId, 1, 3);
         var page2 = await _queries.GetByProviderIdAsync(providerId, 2, 3);
 
-        // Assert
         page1.Should().HaveCount(3);
         page2.Should().HaveCount(2);
     }
@@ -206,36 +197,40 @@ public class RatingsPersistenceIntegrationTests : IAsyncDisposable
     [Fact]
     public async Task GetByProviderIdAsync_WhenNoReviews_ShouldReturnEmpty()
     {
-        // Act
         var result = await _queries.GetByProviderIdAsync(Guid.NewGuid());
 
-        // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task SaveChangesAsync_ShouldThrowDbUpdateException_WhenDuplicateProviderAndCustomer()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var review1 = Review.Create(providerId, customerId, 5, "First");
         GetRepository().Add(review1);
         await _uow.SaveChangesAsync();
 
-        // Tenta inserir outro review para o mesmo par ProviderId/CustomerId, 
-        // o que deve disparar uma violação de chave única no banco de dados.
         var review2 = Review.Create(providerId, customerId, 4, "Second");
         GetRepository().Add(review2);
         
-        // Act & Assert
         var act = () => _uow.SaveChangesAsync();
         
-        // No ambiente de teste (SQLite), a violação de unicidade lança uma DbUpdateException
-        // com uma InnerException do tipo Microsoft.Data.Sqlite.SqliteException.
         var assertions = await act.Should().ThrowAsync<DbUpdateException>();
-        var sqliteEx = assertions.Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>().Subject;
-        sqliteEx.SqliteErrorCode.Should().Be(19); // SQLITE_CONSTRAINT
-        sqliteEx.Message.Should().Contain("UNIQUE");
+        var postgresException = assertions.Which.InnerException as Npgsql.PostgresException;
+        postgresException.Should().NotBeNull();
+        postgresException!.SqlState.Should().Be("23505"); // UniqueViolation
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _postgresContainer.StartAsync();
+        await InitializeInternalAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync();
+        await _postgresContainer.DisposeAsync();
     }
 }

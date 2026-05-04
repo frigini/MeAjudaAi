@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
@@ -7,29 +8,29 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class CreateServiceCommandHandler(
-    IUnitOfWork uow)
+    IUnitOfWork uow, 
+    IServiceCategoryQueries categoryQueries,
+    IServiceQueries serviceQueries)
     : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
-{
+{   
     public async Task<Result<ServiceDto>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
     {
         try
         {
             if (request.CategoryId == Guid.Empty)
-                return Result<ServiceDto>.Failure("O ID da categoria não pode ser vazio.");
+                return Result<ServiceDto>.Failure(ValidationMessages.Required.Id);
 
             var categoryId = ServiceCategoryId.From(request.CategoryId);
-            var categoryRepository = uow.GetRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory, ServiceCategoryId>();
-            var serviceRepository = uow.GetRepository<Domain.Entities.Service, ServiceId>();
-
-            // Verificar se a categoria existe e está ativa
-            var category = await categoryRepository.TryFindAsync(categoryId, cancellationToken);
+            var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken); 
+            
             if (category is null)
                 throw new UnprocessableEntityException(
-                    $"Categoria com ID '{request.CategoryId}' não encontrada.",
+                    string.Format(ValidationMessages.NotFound.CategoryById, request.CategoryId),
                     "ServiceCategory");
 
             if (!category.IsActive)
@@ -38,16 +39,16 @@ public sealed class CreateServiceCommandHandler(
                     "ServiceCategory");
 
             var normalizedName = request.Name?.Trim();
-
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceDto>.Failure("O nome do serviço é obrigatório.");
+                return Result<ServiceDto>.Failure(ValidationMessages.Required.ServiceName);
 
-            // FIXME: A refatoração precisa de acesso às queries ou repositório com filtro nome+categoria
-            // Por hora, busco via repository e verifico no código para não quebrar.
-            
+            if (await serviceQueries.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
+                return Result<ServiceDto>.Failure(string.Format(ValidationMessages.Catalogs.ServiceNameExists, normalizedName));
+
             var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
-            serviceRepository.Add(service);
+            var serviceRepo = uow.GetRepository<Domain.Entities.Service, ServiceId>();
+            serviceRepo.Add(service);
             await uow.SaveChangesAsync(cancellationToken);
 
             var dto = new ServiceDto(
@@ -61,6 +62,7 @@ public sealed class CreateServiceCommandHandler(
                 service.CreatedAt,
                 service.UpdatedAt
             );
+
             return Result<ServiceDto>.Success(dto);
         }
         catch (CatalogDomainException ex)
