@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
@@ -12,7 +12,7 @@ using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class CreateServiceCategoryCommandHandler(
-    IUnitOfWork uow,
+    IServiceCatalogUnitOfWork uow,
     IServiceCategoryQueries categoryQueries)
     : ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>
 {

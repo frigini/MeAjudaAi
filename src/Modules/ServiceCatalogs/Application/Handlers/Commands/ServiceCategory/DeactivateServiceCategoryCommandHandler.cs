@@ -4,12 +4,13 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using ValidationMessages = MeAjudaAi.Contracts.Utilities.Constants.ValidationMessages;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class DeactivateServiceCategoryCommandHandler(
-    IUnitOfWork uow)
+    IServiceCatalogUnitOfWork uow)
     : ICommandHandler<DeactivateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(DeactivateServiceCategoryCommand request, CancellationToken cancellationToken = default)

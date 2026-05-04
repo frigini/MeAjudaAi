@@ -20,7 +20,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Manipula comandos de upload de documentos gerando URLs SAS e persistindo metadados do documento.
 /// </summary>
 public class UploadDocumentCommandHandler(
-    IUnitOfWork uow,
+    IDocumentsUnitOfWork uow,
     IBlobStorageService blobStorageService,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
@@ -28,7 +28,7 @@ public class UploadDocumentCommandHandler(
     MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> outboxRepository,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
-    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IDocumentsUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
@@ -102,7 +102,7 @@ public class UploadDocumentCommandHandler(
             var extension = Path.GetExtension(command.FileName);
             var blobName = $"documents/{command.ProviderId}/{Guid.NewGuid()}{extension}";
 
-            // Gera SAS token para upload direto
+            _logger.LogInformation("Generating upload URL for blob {BlobName}", blobName);
             var (uploadUrl, expiresAt) = await _blobStorageService.GenerateUploadUrlAsync(
                 blobName,
                 command.ContentType,
@@ -123,6 +123,7 @@ public class UploadDocumentCommandHandler(
                 payload: System.Text.Json.JsonSerializer.Serialize(new { DocumentId = document.Id.Value }),
                 priority: MeAjudaAi.Contracts.Shared.ECommunicationPriority.Normal);
 
+            _logger.LogInformation("Saving document and outbox message to database for provider {ProviderId}", command.ProviderId);
             await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
 

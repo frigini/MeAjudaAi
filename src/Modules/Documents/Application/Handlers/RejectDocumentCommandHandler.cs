@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Helpers;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
@@ -17,7 +18,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por rejeitar documentos após verificação manual.
 /// </summary>
 public class RejectDocumentCommandHandler(
-    IUnitOfWork uow,
+    IDocumentsUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RejectDocumentCommandHandler> logger)
     : ICommandHandler<RejectDocumentCommand, Result>

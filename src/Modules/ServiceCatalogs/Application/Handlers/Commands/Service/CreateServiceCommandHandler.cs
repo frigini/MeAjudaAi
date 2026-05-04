@@ -1,11 +1,11 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -13,7 +13,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class CreateServiceCommandHandler(
-    IUnitOfWork uow, 
+    IServiceCatalogUnitOfWork uow, 
     IServiceCategoryQueries categoryQueries,
     IServiceQueries serviceQueries)
     : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>

@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -10,7 +10,7 @@ using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class DeleteServiceCommandHandler(
-    IUnitOfWork uow,
+    IServiceCatalogUnitOfWork uow,
     IProvidersModuleApi providersModuleApi)
     : ICommandHandler<DeleteServiceCommand, Result>
 {

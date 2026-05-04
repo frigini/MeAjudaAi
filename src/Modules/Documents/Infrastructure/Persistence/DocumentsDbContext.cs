@@ -1,4 +1,5 @@
 using System.Reflection;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
@@ -11,12 +12,17 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo de Documentos.
 /// Gerencia entidades de documentos e sua persistência.
 /// </summary>
-public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
+public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
 {
     /// <summary>
     /// Obtém a coleção de documentos.
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
+
+    /// <summary>
+    /// Obtém a coleção de mensagens do outbox para este módulo.
+    /// </summary>
+    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
@@ -24,8 +30,12 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
             return repository;
 
         throw new InvalidOperationException(
-            $"DocumentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context only supports: Document(DocumentId)");
+            $"DocumentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>.");
+    }
+
+    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
+    {
+        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
     }
 
 
@@ -54,39 +64,8 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Ignora OutboxMessage explicitamente para evitar erro de migração em E2E
-        modelBuilder.Ignore<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
-
         base.OnModelCreating(modelBuilder);
     }
 
-    protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries()
-            .Where(entry => entry.Entity?.GetType().IsGenericType == true 
-                && entry.Entity.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(AggregateRoot<>)))
-            .SelectMany(entry => 
-            {
-                dynamic d = entry.Entity;
-                return (List<IDomainEvent>)d.DomainEvents;
-            })
-            .ToList();
 
-        return await Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        var entities = ChangeTracker
-            .Entries()
-            .Where(entry => entry.Entity?.GetType().IsGenericType == true 
-                && entry.Entity.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(AggregateRoot<>)));
-
-        foreach (var entry in entities)
-        {
-            dynamic d = entry.Entity;
-            d.ClearDomainEvents();
-        }
-    }
 }

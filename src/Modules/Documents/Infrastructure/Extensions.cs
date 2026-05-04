@@ -85,8 +85,10 @@ public static class Extensions
         });
 
         // Persistence Components
-        services.AddScoped<IUnitOfWork, DocumentsDbContext>();
+        services.AddScoped<IDocumentsUnitOfWork, DocumentsDbContext>();
         services.AddScoped<IDocumentQueries, DbContextDocumentQueries>();
+        services.AddScoped<MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>>(sp => 
+            new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(sp.GetRequiredService<DocumentsDbContext>()));
 
         return services;
     }

@@ -4,13 +4,16 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class DeleteServiceCategoryCommandHandler(
-    IUnitOfWork uow)
+    IServiceCatalogUnitOfWork uow,
+    IServiceQueries serviceQueries)
     : ICommandHandler<DeleteServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -23,6 +26,14 @@ public sealed class DeleteServiceCategoryCommandHandler(
 
         if (category is null)
             return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
+
+        // Verificar se existem serviços vinculados
+        var serviceCount = await serviceQueries.CountByCategoryAsync(category.Id, false, cancellationToken);
+        if (serviceCount > 0)
+        {
+            return Result.Failure(Error.Conflict(
+                "Não é possível excluir uma categoria que possui serviços vinculados. Remova ou mova os serviços primeiro."));
+        }
 
         categoryRepository.Delete(category);
         await uow.SaveChangesAsync(cancellationToken);

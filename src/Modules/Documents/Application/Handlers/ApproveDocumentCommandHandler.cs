@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Helpers;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
@@ -18,7 +19,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por aprovar documentos após verificação manual.
 /// </summary>
 public class ApproveDocumentCommandHandler(
-    IUnitOfWork uow,
+    IDocumentsUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<ApproveDocumentCommandHandler> logger)
     : ICommandHandler<ApproveDocumentCommand, Result>

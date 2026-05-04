@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,100 +10,35 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_OutboxMessages",
+            migrationBuilder.CreateTable(
+                name: "outbox_messages",
                 schema: "documents",
-                table: "OutboxMessages");
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    payload = table.Column<string>(type: "jsonb", nullable: false),
+                    status = table.Column<int>(type: "integer", nullable: false),
+                    priority = table.Column<int>(type: "integer", nullable: false),
+                    retry_count = table.Column<int>(type: "integer", nullable: false),
+                    max_retries = table.Column<int>(type: "integer", nullable: false),
+                    scheduled_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    sent_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    error_message = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    correlation_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_outbox_messages", x => x.id);
+                });
 
-            migrationBuilder.RenameTable(
-                name: "OutboxMessages",
-                schema: "documents",
-                newName: "outbox_messages",
-                newSchema: "documents");
-
-            migrationBuilder.RenameColumn(
-                name: "Type",
+            migrationBuilder.CreateIndex(
+                name: "ix_outbox_messages_status_scheduled_priority",
                 schema: "documents",
                 table: "outbox_messages",
-                newName: "type");
-
-            migrationBuilder.RenameColumn(
-                name: "Status",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "status");
-
-            migrationBuilder.RenameColumn(
-                name: "Priority",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "priority");
-
-            migrationBuilder.RenameColumn(
-                name: "Payload",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "payload");
-
-            migrationBuilder.RenameColumn(
-                name: "Id",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "id");
-
-            migrationBuilder.RenameColumn(
-                name: "UpdatedAt",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "updated_at");
-
-            migrationBuilder.RenameColumn(
-                name: "SentAt",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "sent_at");
-
-            migrationBuilder.RenameColumn(
-                name: "ScheduledAt",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "scheduled_at");
-
-            migrationBuilder.RenameColumn(
-                name: "RetryCount",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "retry_count");
-
-            migrationBuilder.RenameColumn(
-                name: "MaxRetries",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "max_retries");
-
-            migrationBuilder.RenameColumn(
-                name: "ErrorMessage",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "error_message");
-
-            migrationBuilder.RenameColumn(
-                name: "CreatedAt",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "created_at");
-
-            migrationBuilder.RenameColumn(
-                name: "CorrelationId",
-                schema: "documents",
-                table: "outbox_messages",
-                newName: "correlation_id");
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_outbox_messages",
-                schema: "documents",
-                table: "outbox_messages",
-                column: "id");
+                columns: new[] { "status", "scheduled_at", "priority", "created_at" });
         }
 
         /// <inheritdoc />

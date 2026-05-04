@@ -10,14 +10,14 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 
 public class DocumentVerificationJob : IDocumentVerificationService
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IDocumentsUnitOfWork _uow;
     private readonly IDocumentIntelligenceService _documentIntelligenceService;
     private readonly IBlobStorageService _blobStorageService;
     private readonly ILogger<DocumentVerificationJob> _logger;
     private readonly float _minimumConfidence;
 
     public DocumentVerificationJob(
-        IUnitOfWork uow,
+        IDocumentsUnitOfWork uow,
         IDocumentIntelligenceService documentIntelligenceService,
         IBlobStorageService blobStorageService,
         IConfiguration configuration,

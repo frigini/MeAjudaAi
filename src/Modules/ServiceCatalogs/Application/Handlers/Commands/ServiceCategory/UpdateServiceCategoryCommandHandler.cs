@@ -6,12 +6,13 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class UpdateServiceCategoryCommandHandler(
-    IUnitOfWork uow,
+    IServiceCatalogUnitOfWork uow,
     IServiceCategoryQueries categoryQueries)
     : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
