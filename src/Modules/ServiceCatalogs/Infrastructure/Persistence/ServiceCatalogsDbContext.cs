@@ -16,6 +16,10 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 /// </summary>
 public partial class ServiceCatalogsDbContext : BaseDbContext, IServiceCatalogUnitOfWork
 {
+    /// <summary>
+    /// Inicializa uma nova instância da classe <see cref="ServiceCatalogsDbContext"/> para operações design-time (migrações).
+    /// </summary>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
     public ServiceCatalogsDbContext(DbContextOptions<ServiceCatalogsDbContext> options) 
         : base(options)
     {

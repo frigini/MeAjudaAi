@@ -1,3 +1,4 @@
+using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Database;
@@ -9,46 +10,79 @@ namespace MeAjudaAi.Shared.Database;
 /// </summary>
 public class RoutingUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
 {
+    private IUnitOfWork? _activeUow;
+
     /// <summary>
     /// Obtém o repositório correto procurando entre todas as implementações de IUnitOfWork registradas.
+    /// Caso mais de uma implementação suporte o agregado (ex: OutboxMessage), tenta resolver a ambiguidade
+    /// preferindo a Unidade de Trabalho que já está ativa no escopo atual.
     /// </summary>
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
         // Resolve todas as implementações de IUnitOfWork registradas no DI
         var uows = serviceProvider.GetServices<IUnitOfWork>();
-        
-        foreach (var uow in uows)
+        var matches = uows.Where(u => u is not RoutingUnitOfWork && u is IRepository<TAggregate, TKey>).ToList();
+
+        if (matches.Count == 0)
         {
-            // Evita recursão infinita
-            if (uow is RoutingUnitOfWork) continue;
-            
-            // Verifica se este DbContext/UoW implementa o repositório para o agregado solicitado
-            if (uow is IRepository<TAggregate, TKey> repository)
-            {
-                return repository;
-            }
+            throw new InvalidOperationException(
+                $"No Unit of Work (DbContext) found that supports aggregate {typeof(TAggregate).Name}. " +
+                "Ensure the corresponding module is registered and its DbContext implements IRepository for this aggregate.");
         }
-        
-        throw new InvalidOperationException(
-            $"Nenhuma Unidade de Trabalho (DbContext) encontrada que suporte a agregação {typeof(TAggregate).Name}. " +
-            "Certifique-se de que o módulo correspondente foi registrado e que seu DbContext implementa IRepository para este agregado.");
+
+        if (matches.Count > 1)
+        {
+            // Tenta resolver ambiguidade preferindo a UoW já ativa no escopo
+            if (_activeUow != null && matches.Contains(_activeUow))
+            {
+                return (IRepository<TAggregate, TKey>)_activeUow;
+            }
+
+            var types = string.Join(", ", matches.Select(m => m.GetType().Name));
+            throw new InvalidOperationException(
+                $"Ambiguous Unit of Work routing for aggregate {typeof(TAggregate).Name}. " +
+                $"Multiple implementations found: {types}. Please use a module-specific marker interface or ensure only the correct DbContext implements IRepository for this type.");
+        }
+
+        var match = matches[0];
+        _activeUow = match;
+        return (IRepository<TAggregate, TKey>)match;
     }
 
     /// <summary>
     /// Salva as alterações em todas as Unidades de Trabalho registradas.
+    /// Garante atomicidade cross-módulo usando TransactionScope com IsolationLevel.ReadCommitted.
     /// Em um fluxo de comando típico, apenas uma Unidade de Trabalho terá mudanças pendentes.
     /// </summary>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var uows = serviceProvider.GetServices<IUnitOfWork>();
-        int totalChanges = 0;
+        var uows = serviceProvider.GetServices<IUnitOfWork>()
+            .Where(u => u is not RoutingUnitOfWork)
+            .ToList();
+
+        if (uows.Count == 0) return 0;
+        if (uows.Count == 1) return await uows[0].SaveChangesAsync(cancellationToken);
+
+        // Para múltiplos DbContexts, usamos TransactionScope para garantir atomicidade.
+        // Importante: Usamos ReadCommitted para evitar deadlocks comuns com o padrão Serializable.
+        var transactionOptions = new TransactionOptions
+        {
+            IsolationLevel = IsolationLevel.ReadCommitted,
+            Timeout = TransactionManager.DefaultTimeout
+        };
+
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required,
+            transactionOptions,
+            TransactionScopeAsyncFlowOption.Enabled);
         
+        int totalChanges = 0;
         foreach (var uow in uows)
         {
-            if (uow is RoutingUnitOfWork) continue;
-            
             totalChanges += await uow.SaveChangesAsync(cancellationToken);
         }
+
+        scope.Complete();
         
         return totalChanges;
     }

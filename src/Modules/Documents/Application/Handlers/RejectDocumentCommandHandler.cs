@@ -38,11 +38,11 @@ public class RejectDocumentCommandHandler(
             // Verificar autorização - apenas admins podem rejeitar documentos
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                throw new UnauthorizedAccessException("HTTP context not available");
+                throw new UnauthorizedAccessException("Contexto HTTP não disponível");
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("User is not authenticated");
+                throw new UnauthorizedAccessException("Usuário não autenticado");
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)
@@ -79,7 +79,7 @@ public class RejectDocumentCommandHandler(
             // Rejeitar o documento
             document.MarkAsRejected(command.RejectionReason);
             
-            await uow.SaveChangesAsync(cancellationToken);
+            await _uow!.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} rejected successfully. Reason: {Reason}. CorrelationId: {CorrelationId}",

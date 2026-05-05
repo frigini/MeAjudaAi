@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Queries;
@@ -25,6 +26,7 @@ public class RequestVerificationCommandHandler(
     ILogger<RequestVerificationCommandHandler> logger)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RequestVerificationCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
@@ -37,19 +39,19 @@ public class RequestVerificationCommandHandler(
             // Autorização no nível do recurso: identificar quem é o caller
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                return Result.Failure(Error.Unauthorized("HTTP context not available"));
+                return Result.Failure(Error.Unauthorized("Contexto HTTP não disponível"));
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                return Result.Failure(Error.Unauthorized("User is not authenticated"));
+                return Result.Failure(Error.Unauthorized("Usuário não autenticado"));
 
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
-                return Result.Failure(Error.Unauthorized("User ID not found in token"));
+                return Result.Failure(Error.Unauthorized("ID do usuário não encontrado no token"));
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
 
-            var repository = uow.GetRepository<Document, DocumentId>();
+            var repository = _uow.GetRepository<Document, DocumentId>();
             Document? document;
 
             if (isAdmin)
@@ -58,14 +60,17 @@ public class RequestVerificationCommandHandler(
             }
             else
             {
-                document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
-                if (document == null || document.ProviderId != userGuid)
+                var queryResult = await _documentQueries.GetByIdAndProviderAsync(command.DocumentId, userGuid, cancellationToken);
+                if (queryResult == null)
                 {
                     _logger.LogWarning(
-                        "User {UserId} attempted to access document {DocumentId} belonging to another provider",
+                        "User {UserId} attempted to access document {DocumentId} belonging to another provider or not found",
                         userId, command.DocumentId);
                     return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado"));
                 }
+                
+                // Precisamos carregar o agregado para mutação
+                document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             }
 
             if (document == null)
@@ -91,19 +96,19 @@ public class RequestVerificationCommandHandler(
             // Criar mensagem outbox para verificação assíncrona
             var outboxMessage = OutboxMessage.Create(
                 OutboxMessageTypes.DocumentVerification,
-                System.Text.Json.JsonSerializer.Serialize(new
+                JsonSerializer.Serialize(new
                 {
-                    DocumentId = document.Id.Value,
-                    RequestedAt = DateTime.UtcNow
-                }),
+                    documentId = document.Id.Value,
+                    requestedAt = DateTime.UtcNow
+                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
                 ECommunicationPriority.High);
 
-            var outboxRepo = uow.GetRepository<OutboxMessage, Guid>();
+            var outboxRepo = _uow.GetRepository<OutboxMessage, Guid>();
             outboxRepo.Add(outboxMessage);
 
             try
             {
-                await uow.SaveChangesAsync(cancellationToken);
+                await _uow.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {

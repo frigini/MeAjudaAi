@@ -2,6 +2,7 @@ using System.Reflection;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
@@ -22,10 +23,15 @@ public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
     /// <summary>
     /// Obtém a coleção de mensagens do outbox para este módulo.
     /// </summary>
-    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
+        if (typeof(TAggregate) == typeof(OutboxMessage) && typeof(TKey) == typeof(Guid))
+        {
+            return (IRepository<TAggregate, TKey>)this;
+        }
+
         if (this is IRepository<TAggregate, TKey> repository)
             return repository;
 
@@ -33,9 +39,9 @@ public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
             $"DocumentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>.");
     }
 
-    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
+    public IOutboxRepository<OutboxMessage> GetOutboxRepository()
     {
-        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
+        return new OutboxRepository<OutboxMessage>(this);
     }
 
 

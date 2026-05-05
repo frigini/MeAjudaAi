@@ -20,9 +20,9 @@ public abstract class BaseDbContext : DbContext, IRepository<OutboxMessage, Guid
 
     #region IRepository<OutboxMessage, Guid>
 
-    public async Task<OutboxMessage?> TryFindAsync(Guid key, CancellationToken ct)
+    public async Task<OutboxMessage?> TryFindAsync(Guid key, CancellationToken cancellationToken)
     {
-        return await Set<OutboxMessage>().FirstOrDefaultAsync(x => x.Id == key, ct);
+        return await Set<OutboxMessage>().FirstOrDefaultAsync(x => x.Id == key, cancellationToken);
     }
 
     public void Add(OutboxMessage aggregate)

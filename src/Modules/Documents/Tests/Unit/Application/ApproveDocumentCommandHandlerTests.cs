@@ -105,6 +105,8 @@ public class ApproveDocumentCommandHandlerTests
 
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage($"Document with id {documentId} was not found");
+
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -133,6 +135,8 @@ public class ApproveDocumentCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error.StatusCode.Should().Be(400);
+        
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -173,27 +177,19 @@ public class ApproveDocumentCommandHandlerTests
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
 
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "blob-key-123");
-        document.MarkAsPendingVerification();
-
         SetupAuthenticatedUser("provider");
 
         var mockRepo = new Mock<IRepository<Document, DocumentId>>();
-        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
 
-        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
-
-var command = new ApproveDocumentCommand(documentId, "Notes");
+        var command = new ApproveDocumentCommand(documentId, "Notes");
 
         var act = async () => await _handler.HandleAsync(command);
         
         await act.Should().ThrowAsync<ForbiddenAccessException>()
             .WithMessage("Apenas administradores podem aprovar documentos");
+
+        mockRepo.Verify(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
 }

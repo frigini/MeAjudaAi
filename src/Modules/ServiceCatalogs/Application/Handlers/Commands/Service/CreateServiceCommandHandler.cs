@@ -78,7 +78,7 @@ public sealed class CreateServiceCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao criar o serviço.");
+            logger.LogError(ex, "Error creating service.");
             return Result<ServiceDto>.Failure(ValidationMessages.Catalogs.CreateServiceError);
         }
     }

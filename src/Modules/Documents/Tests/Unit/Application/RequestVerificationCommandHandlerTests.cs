@@ -39,7 +39,7 @@ public class RequestVerificationCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithExistingDocument_ShouldMarkAsPendingVerificationAndEnqueueJob()
+    public async Task HandleAsync_WithExistingDocument_ShouldMarkAsPendingVerificationAndCreateOutboxMessage()
     {
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
@@ -79,6 +79,7 @@ public class RequestVerificationCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockOutboxRepo.Verify(r => r.Add(It.Is<OutboxMessage>(m => m.Type == OutboxMessageTypes.DocumentVerification)), Times.Once);
     }
 
     [Fact]
@@ -201,7 +202,7 @@ public class RequestVerificationCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenDocumentNotFound_ShouldReturnNotFound()
     {
         var documentId = Guid.NewGuid();
         var userId = Guid.NewGuid();
@@ -231,6 +232,38 @@ public class RequestVerificationCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
         result.Error.Message.Should().Contain("não encontrado");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailureResult()
+    {
+        var documentId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        
+        var httpContext = new DefaultHttpContext();
+        var claims = new List<Claim>
+        {
+            new Claim("sub", userId.ToString()),
+            new Claim(ClaimTypes.Name, "test-user"),
+            new Claim(ClaimTypes.Role, RoleConstants.Admin)
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        httpContext.User = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+        
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("repo error"));
+
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+
+        var command = new RequestVerificationCommand(documentId);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.StatusCode.Should().Be(500);
     }
 
     [Fact]
