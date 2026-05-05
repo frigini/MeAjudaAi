@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Manipula solicitações para iniciar a verificação de documentos.
 /// </summary>
 public class RequestVerificationCommandHandler(
-    IDocumentsUnitOfWork uow,
+    IUnitOfWork uow,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RequestVerificationCommandHandler> logger)

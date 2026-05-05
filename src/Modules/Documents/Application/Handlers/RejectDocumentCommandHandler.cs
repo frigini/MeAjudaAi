@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por rejeitar documentos após verificação manual.
 /// </summary>
 public class RejectDocumentCommandHandler(
-    IDocumentsUnitOfWork uow,
+    IUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RejectDocumentCommandHandler> logger)
     : ICommandHandler<RejectDocumentCommand, Result>

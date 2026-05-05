@@ -4,7 +4,10 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging;
 using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -15,17 +18,19 @@ public class DeactivateServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
+    private readonly Mock<ILogger<DeactivateServiceCommandHandler>> _loggerMock;
     private readonly DeactivateServiceCommandHandler _handler;
 
     public DeactivateServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
-        
+        _loggerMock = new Mock<ILogger<DeactivateServiceCommandHandler>>();
+
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>())
             .Returns(_repositoryMock.Object);
-        
-        _handler = new DeactivateServiceCommandHandler(_uowMock.Object);
+
+        _handler = new DeactivateServiceCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     [Fact]

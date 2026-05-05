@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Jobs;
 
 public sealed class DocumentVerificationJobTests
 {
-    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IDocumentsUnitOfWork> _uowMock;
     private readonly Mock<IDocumentIntelligenceService> _intelligenceMock;
     private readonly Mock<IBlobStorageService> _blobStorageMock;
     private readonly IConfiguration _configuration;
@@ -24,7 +24,7 @@ public sealed class DocumentVerificationJobTests
 
     public DocumentVerificationJobTests()
     {
-        _uowMock = new Mock<IUnitOfWork>();
+        _uowMock = new Mock<IDocumentsUnitOfWork>();
         _intelligenceMock = new Mock<IDocumentIntelligenceService>();
         _blobStorageMock = new Mock<IBlobStorageService>();
         _loggerMock = new Mock<ILogger<DocumentVerificationJob>>();

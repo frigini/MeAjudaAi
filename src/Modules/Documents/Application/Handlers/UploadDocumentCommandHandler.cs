@@ -20,7 +20,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Manipula comandos de upload de documentos gerando URLs SAS e persistindo metadados do documento.
 /// </summary>
 public class UploadDocumentCommandHandler(
-    IDocumentsUnitOfWork uow,
+    IUnitOfWork uow,
     IBlobStorageService blobStorageService,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
@@ -28,7 +28,7 @@ public class UploadDocumentCommandHandler(
     MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> outboxRepository,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
-    private readonly IDocumentsUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));

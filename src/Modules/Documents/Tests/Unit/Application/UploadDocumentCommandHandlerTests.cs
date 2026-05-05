@@ -23,7 +23,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class UploadDocumentCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IRepository<Document, DocumentId>> _mockRepository;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
     private readonly Mock<IBackgroundJobService> _mockJobService;
@@ -35,7 +35,7 @@ public class UploadDocumentCommandHandlerTests
 
     public UploadDocumentCommandHandlerTests()
     {
-        _mockUow = new Mock<IUnitOfWork>();
+        _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockRepository = new Mock<IRepository<Document, DocumentId>>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
         _mockJobService = new Mock<IBackgroundJobService>();

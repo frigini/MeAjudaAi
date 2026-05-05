@@ -9,6 +9,9 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
@@ -30,7 +33,7 @@ public class RejectDocumentCommandHandlerTests
             _mockHttpContextAccessor.Object,
             _mockLogger.Object);
     }
-
+// ...
     private void SetupAuthenticatedUser(string role)
     {
         var claims = new List<Claim>

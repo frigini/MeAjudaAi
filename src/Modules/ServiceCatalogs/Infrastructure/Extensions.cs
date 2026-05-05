@@ -14,6 +14,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Queries;
@@ -80,7 +81,7 @@ public static class Extensions
             }
         });
 
-        services.AddScoped<IServiceCatalogUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
 

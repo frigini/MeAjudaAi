@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
@@ -19,7 +19,7 @@ public sealed class DeleteServiceCategoryCommandHandler(
         if (request.Id == Guid.Empty)
             return Result.Failure(ValidationMessages.Required.Id);
 
-        var categoryRepository = uow.GetRepository<ServiceCategory, ServiceCategoryId>();
+        var categoryRepository = uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>();
         var category = await categoryRepository.TryFindAsync(ServiceCategoryId.From(request.Id), cancellationToken);
 
         if (category is null)

@@ -14,9 +14,9 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo ServiceCatalogs.
 /// Gerencia entidades de catálogo de serviços e sua persistência.
 /// </summary>
-public partial class ServiceCatalogsDbContext : BaseDbContext, IServiceCatalogUnitOfWork
+public partial class ServiceCatalogsDbContext : BaseDbContext, IUnitOfWork
 {
-    internal ServiceCatalogsDbContext(DbContextOptions<ServiceCatalogsDbContext> options) 
+    public ServiceCatalogsDbContext(DbContextOptions<ServiceCatalogsDbContext> options) 
         : base(options)
     {
     }

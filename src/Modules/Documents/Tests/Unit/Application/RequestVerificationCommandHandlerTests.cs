@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class RequestVerificationCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IBackgroundJobService> _mockBackgroundJobService;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<RequestVerificationCommandHandler>> _mockLogger;
@@ -26,7 +26,7 @@ public class RequestVerificationCommandHandlerTests
 
     public RequestVerificationCommandHandlerTests()
     {
-        _mockUow = new Mock<IUnitOfWork>();
+        _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockBackgroundJobService = new Mock<IBackgroundJobService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<RequestVerificationCommandHandler>>();

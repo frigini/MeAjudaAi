@@ -19,7 +19,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por aprovar documentos após verificação manual.
 /// </summary>
 public class ApproveDocumentCommandHandler(
-    IDocumentsUnitOfWork uow,
+    IUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<ApproveDocumentCommandHandler> logger)
     : ICommandHandler<ApproveDocumentCommand, Result>
