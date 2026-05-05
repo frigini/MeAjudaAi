@@ -13,6 +13,7 @@ using MeAjudaAi.Contracts.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -39,15 +40,15 @@ public class RequestVerificationCommandHandler(
             // Autorização no nível do recurso: identificar quem é o caller
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                return Result.Failure(Error.Unauthorized("Contexto HTTP não disponível"));
+                return Result.Failure(Error.Unauthorized("Contexto HTTP não disponível", ErrorCodes.Unauthorized));
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                return Result.Failure(Error.Unauthorized("Usuário não autenticado"));
+                return Result.Failure(Error.Unauthorized("Usuário não autenticado", ErrorCodes.Unauthorized));
 
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
-                return Result.Failure(Error.Unauthorized("ID do usuário não encontrado no token"));
+                return Result.Failure(Error.Unauthorized("ID do usuário não encontrado no token", ErrorCodes.Unauthorized));
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
 
@@ -66,7 +67,7 @@ public class RequestVerificationCommandHandler(
                     _logger.LogWarning(
                         "User {UserId} attempted to access document {DocumentId} belonging to another provider or not found",
                         userId, command.DocumentId);
-                    return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado"));
+                    return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado", ErrorCodes.NotFound));
                 }
                 
                 // Precisamos carregar o agregado para mutação
@@ -76,7 +77,7 @@ public class RequestVerificationCommandHandler(
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found", command.DocumentId);
-                return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado"));
+                return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado", ErrorCodes.NotFound));
             }
 
             // Verificar se o documento está em um estado válido para solicitação de verificação
@@ -87,7 +88,8 @@ public class RequestVerificationCommandHandler(
                     "Document {DocumentId} cannot be marked for verification in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com status {document.Status} e não pode ser marcado para verificação"));
+                    $"O documento está com status {document.Status} e não pode ser marcado para verificação",
+                    ErrorCodes.BadRequest));
             }
 
             // Atualizar status do documento para PendingVerification
@@ -113,7 +115,7 @@ public class RequestVerificationCommandHandler(
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save verification request for document {DocumentId}", command.DocumentId);
-                return Result.Failure(Error.Internal("Falha ao solicitar verificação do documento."));
+                return Result.Failure(Error.Internal("Falha ao solicitar verificação do documento.", ErrorCodes.InternalError));
             }
 
             return Result.Success();
@@ -121,7 +123,7 @@ public class RequestVerificationCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Falha ao solicitar verificação."));
+            return Result.Failure(Error.Internal("Falha ao solicitar verificação.", ErrorCodes.InternalError));
         }
     }
 }

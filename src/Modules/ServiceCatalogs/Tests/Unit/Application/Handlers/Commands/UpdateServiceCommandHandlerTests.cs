@@ -89,12 +89,56 @@ public class UpdateServiceCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithEmptyId_ShouldReturnFailure()
+    public async Task Handle_WithEmptyName_ShouldReturnFailure()
+
     {
-        var command = new UpdateServiceCommand(Guid.Empty, "Nome", "Desc", 1);
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Serviço Original")
+            .Build();
+        var command = new UpdateServiceCommand(service.Id.Value, "", "Descrição", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("nome");
+    }
+
+    [Fact]
+    public async Task Handle_WhenDomainExceptionOccurs_ShouldReturnFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Serviço Original")
+            .Build();
+        var command = new UpdateServiceCommand(service.Id.Value, "Novo Nome", "Descrição", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        _serviceQueriesMock.Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+            
+        // Simula erro de domínio no método Update que é chamado pelo handler
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        // Como o método Update está no agregado e não no handler, 
+        // a única forma do handler capturar isso é se o Aggregate.Update lançar
+        // Mas o UpdateServiceCommandHandler captura CatalogDomainException.
+        // O teste precisa simular um erro que venha do domínio.
+        // Vamos forçar um erro na UoW SaveChangesAsync.
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions.CatalogDomainException("Erro de negócio"));
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
     }
 }
+

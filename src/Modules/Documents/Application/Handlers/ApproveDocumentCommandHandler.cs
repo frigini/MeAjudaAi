@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
 
+using MeAjudaAi.Contracts.Utilities.Constants;
+
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 /// <summary>
@@ -70,7 +72,8 @@ public class ApproveDocumentCommandHandler(
                     "Document {DocumentId} cannot be approved in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente"));
+                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente",
+                    ErrorCodes.BadRequest));
             }
 
             // Aprovar o documento

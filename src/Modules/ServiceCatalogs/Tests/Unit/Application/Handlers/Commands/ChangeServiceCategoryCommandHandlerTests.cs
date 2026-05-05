@@ -68,12 +68,44 @@ public class ChangeServiceCategoryCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithEmptyServiceId_ShouldReturnFailure()
+    public async Task Handle_WithEmptyNewCategoryId_ShouldReturnFailure()
     {
-        var command = new ChangeServiceCategoryCommand(Guid.Empty, Guid.NewGuid());
+        var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.Empty);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("não pode ser vazio");
+    }
+
+    [Fact]
+    public async Task Handle_WithNonExistentNewCategory_ShouldThrowUnprocessableEntityException()
+    {
+        var service = new ServiceBuilder().Build();
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, Guid.NewGuid());
+
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ServiceCategory?)null);
+
+        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        await act.Should().ThrowAsync<UnprocessableEntityException>();
+    }
+    [Fact]
+    public async Task Handle_WithInactiveCategory_ShouldThrowUnprocessableEntityException()
+    {
+        var service = new ServiceBuilder().Build();
+        var inactiveCategory = new ServiceCategoryBuilder().AsInactive().Build();
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, inactiveCategory.Id.Value);
+
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(inactiveCategory);
+
+        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        await act.Should().ThrowAsync<UnprocessableEntityException>();
     }
 }
+

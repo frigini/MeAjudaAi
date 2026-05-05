@@ -66,12 +66,45 @@ public class DeleteServiceCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithEmptyId_ShouldReturnFailure()
+    public async Task Handle_WhenProvidersApiFails_ShouldReturnFailure()
     {
-        var command = new DeleteServiceCommand(Guid.Empty);
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Limpeza")
+            .Build();
+        var command = new DeleteServiceCommand(service.Id.Value);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _providersModuleApiMock.Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Failure("API Error"));
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be("API Error");
+    }
+
+    [Fact]
+    public async Task Handle_WhenServiceIsOfferedByProviders_ShouldReturnFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Limpeza")
+            .Build();
+        var command = new DeleteServiceCommand(service.Id.Value);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _providersModuleApiMock.Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("pois ele é oferecido por prestadores");
     }
 }
+

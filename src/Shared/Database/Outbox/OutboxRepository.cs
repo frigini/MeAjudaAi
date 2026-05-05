@@ -16,9 +16,14 @@ public class OutboxRepository<TMessage>(DbContext dbContext) : IOutboxRepository
 
     public async Task<IReadOnlyList<TMessage>> GetPendingAsync(int batchSize = 20, DateTime? utcNow = null, CancellationToken cancellationToken = default)
     {
+        var now = utcNow ?? DateTime.UtcNow;
+        
         return await _dbSet
             .Where(m => m.Status == EOutboxMessageStatus.Pending)
-            .OrderBy(m => m.CreatedAt)
+            .Where(m => m.ScheduledAt == null || m.ScheduledAt <= now)
+            .OrderByDescending(m => m.Priority)
+            .ThenBy(m => m.ScheduledAt)
+            .ThenBy(m => m.CreatedAt)
             .Take(batchSize)
             .ToListAsync(cancellationToken);
     }

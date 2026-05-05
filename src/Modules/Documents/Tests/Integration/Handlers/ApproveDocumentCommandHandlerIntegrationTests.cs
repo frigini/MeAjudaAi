@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -156,7 +157,9 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 
         var adminId = Guid.NewGuid();
         var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, RoleConstants.Admin) };
-        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType")) });
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = claimsPrincipal });
 
         var command = new ApproveDocumentCommand(document.Id.Value, "notes");
 
@@ -165,6 +168,6 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Code.Should().Be("BadRequest");
+        result.Error.Code.Should().Be(ErrorCodes.BadRequest);
     }
 }
