@@ -1,10 +1,11 @@
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,7 +17,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Events.Han
 [Trait("Category", "Unit")]
 public class ServiceActivatedDomainEventHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<IServiceCatalogUnitOfWork> _uowMock = new();
     private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock = new();
     private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<ServiceActivatedDomainEventHandler>> _loggerMock = new();
