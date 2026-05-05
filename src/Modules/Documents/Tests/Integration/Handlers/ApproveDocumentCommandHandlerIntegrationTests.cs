@@ -53,7 +53,7 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
         _dbContext = new DocumentsDbContext(options);
         _uow = _dbContext;
 
-        await _dbContext.Database.EnsureCreatedAsync();
+        await _dbContext.Database.MigrateAsync();
 
         _handler = new ApproveDocumentCommandHandler(_uow, _mockHttpContextAccessor.Object, _mockLogger.Object);
     }
@@ -85,6 +85,8 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 
         var command = new ApproveDocumentCommand(document.Id.Value, "{\"verified\": true}");
         await _handler!.HandleAsync(command);
+
+        _dbContext!.ChangeTracker.Clear();
 
         var updatedDocument = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
         updatedDocument.Should().NotBeNull();

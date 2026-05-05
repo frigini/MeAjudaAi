@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using FluentAssertions;
@@ -19,6 +20,7 @@ public class UpdateServiceCategoryCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
+    private readonly Mock<ILogger<UpdateServiceCategoryCommandHandler>> _loggerMock;
     private readonly UpdateServiceCategoryCommandHandler _handler;
 
     public UpdateServiceCategoryCommandHandlerTests()
@@ -26,6 +28,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
+        _loggerMock = new Mock<ILogger<UpdateServiceCategoryCommandHandler>>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>())
             .Returns(_repositoryMock.Object);
@@ -33,7 +36,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         _categoryQueriesMock.Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
             
-        _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object, _categoryQueriesMock.Object);
+        _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object, _categoryQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]

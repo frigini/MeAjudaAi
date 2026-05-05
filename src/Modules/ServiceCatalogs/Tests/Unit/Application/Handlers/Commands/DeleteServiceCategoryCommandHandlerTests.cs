@@ -73,4 +73,23 @@ public class DeleteServiceCategoryCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Handle_WithCategoryHavingServices_ShouldReturnConflictFailure()
+    {
+        var category = new ServiceCategoryBuilder().WithName("Limpeza").Build();
+        var command = new DeleteServiceCategoryCommand(category.Id.Value);
+
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+        _serviceQueriesMock.Setup(x => x.CountByCategoryAsync(category.Id, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(5);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("serviço");
+        _categoryRepoMock.Verify(x => x.Delete(It.IsAny<ServiceCategory>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

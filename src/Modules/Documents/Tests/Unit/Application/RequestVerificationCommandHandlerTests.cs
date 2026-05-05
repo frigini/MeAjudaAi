@@ -3,11 +3,11 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,7 +19,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 public class RequestVerificationCommandHandlerTests
 {
     private readonly Mock<IDocumentsUnitOfWork> _mockUow;
-    private readonly Mock<IBackgroundJobService> _mockBackgroundJobService;
+    private readonly Mock<IDocumentQueries> _mockDocumentQueries;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<RequestVerificationCommandHandler>> _mockLogger;
     private readonly RequestVerificationCommandHandler _handler;
@@ -27,12 +27,12 @@ public class RequestVerificationCommandHandlerTests
     public RequestVerificationCommandHandlerTests()
     {
         _mockUow = new Mock<IDocumentsUnitOfWork>();
-        _mockBackgroundJobService = new Mock<IBackgroundJobService>();
+        _mockDocumentQueries = new Mock<IDocumentQueries>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<RequestVerificationCommandHandler>>();
         _handler = new RequestVerificationCommandHandler(
             _mockUow.Object,
-            _mockBackgroundJobService.Object,
+            _mockDocumentQueries.Object,
             _mockHttpContextAccessor.Object,
             _mockLogger.Object);
     }
@@ -64,10 +64,8 @@ public class RequestVerificationCommandHandlerTests
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _mockBackgroundJobService.Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
-            It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(),
-            It.IsAny<TimeSpan?>()))
-            .Returns(Task.CompletedTask);
+        _mockDocumentQueries.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -76,9 +74,6 @@ public class RequestVerificationCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _mockBackgroundJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(
-            It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(),
-            It.IsAny<TimeSpan?>()), Times.Once);
     }
 
     [Fact]
@@ -152,10 +147,8 @@ public class RequestVerificationCommandHandlerTests
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _mockBackgroundJobService.Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
-            It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(),
-            It.IsAny<TimeSpan?>()))
-            .Returns(Task.CompletedTask);
+        _mockDocumentQueries.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -312,10 +305,8 @@ public class RequestVerificationCommandHandlerTests
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _mockBackgroundJobService.Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
-            It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(),
-            It.IsAny<TimeSpan?>()))
-            .Returns(Task.CompletedTask);
+        _mockDocumentQueries.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -325,8 +316,5 @@ public class RequestVerificationCommandHandlerTests
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
         document.RejectionReason.Should().BeNull("rejection reason should be cleared on retry");
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _mockBackgroundJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(
-            It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(),
-            It.IsAny<TimeSpan?>()), Times.Once);
     }
 }

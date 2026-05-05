@@ -119,7 +119,7 @@ public class UploadDocumentCommandHandler(
 
             // Cria mensagem de outbox para o job de verificação
             var outboxMessage = MeAjudaAi.Shared.Database.Outbox.OutboxMessage.Create(
-                type: MeAjudaAi.Shared.Database.Outbox.OutboxMessageConstraints.DocumentVerification,
+                type: MeAjudaAi.Shared.Database.Outbox.OutboxMessageTypes.DocumentVerification,
                 payload: System.Text.Json.JsonSerializer.Serialize(new { DocumentId = document.Id.Value }),
                 priority: MeAjudaAi.Contracts.Shared.ECommunicationPriority.Normal);
 

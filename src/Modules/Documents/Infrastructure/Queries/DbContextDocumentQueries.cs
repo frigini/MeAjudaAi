@@ -14,6 +14,13 @@ public class DbContextDocumentQueries(DocumentsDbContext dbContext) : IDocumentQ
             .FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
     }
 
+    public async Task<Document?> GetByIdAndProviderAsync(Guid id, Guid providerId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == id && d.ProviderId == providerId, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Document>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Documents

@@ -1,2 +1,58 @@
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service; using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service; using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions; using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects; using MeAjudaAi.Shared.Commands; using MeAjudaAi.Shared.Database; using MeAjudaAi.Contracts.Functional; using MeAjudaAi.Contracts.Utilities.Constants; using Microsoft.Extensions.Logging;  namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;  public sealed class DeactivateServiceCommandHandler(     IUnitOfWork uow,     ILogger<DeactivateServiceCommandHandler> logger)     : ICommandHandler<DeactivateServiceCommand, Result> {     public async Task<Result> HandleAsync(DeactivateServiceCommand request, CancellationToken cancellationToken = default)     {         try         {             if (request.Id == Guid.Empty)             {                 logger.LogWarning("DeactivateServiceCommand failed: request Id is empty. Request: {RequestId}", request.Id);                 return Result.Failure(ValidationMessages.Required.Id);             }              var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();             var service = await serviceRepository.TryFindAsync(ServiceId.From(request.Id), cancellationToken);              if (service is null)             {                 logger.LogWarning("DeactivateServiceCommand failed: service not found. ServiceId: {ServiceId}", request.Id);                 return Result.Failure(Error.NotFound(string.Format(ValidationMessages.NotFound.ServiceById, request.Id)));             }              service.Deactivate();             await uow.SaveChangesAsync(cancellationToken);              logger.LogInformation("Service successfully deactivated. ServiceId: {ServiceId}", service.Id.Value);             return Result.Success();         }         catch (CatalogDomainException ex)         {             return Result.Failure(ex.Message);         }         catch (OperationCanceledException)         {             throw;         }         catch (Exception ex)         {             logger.LogError(ex, "An unexpected error occurred while deactivating service {ServiceId}", request.Id);             return Result.Failure("An unexpected error occurred while deactivating the service.");         }     } }
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using Microsoft.Extensions.Logging;
+
+namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
+
+public sealed class DeactivateServiceCommandHandler(
+    IUnitOfWork uow,
+    ILogger<DeactivateServiceCommandHandler> logger)
+    : ICommandHandler<DeactivateServiceCommand, Result>
+{
+    public async Task<Result> HandleAsync(DeactivateServiceCommand request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.Id == Guid.Empty)
+            {
+                logger.LogWarning("DeactivateServiceCommand failed: request Id is empty. Request: {RequestId}", request.Id);
+                return Result.Failure(ValidationMessages.Required.Id);
+            }
+
+            var serviceRepository = uow.GetRepository<ServiceEntity, ServiceId>();
+            var service = await serviceRepository.TryFindAsync(ServiceId.From(request.Id), cancellationToken);
+
+            if (service is null)
+            {
+                logger.LogWarning("DeactivateServiceCommand failed: service not found. ServiceId: {ServiceId}", request.Id);
+                return Result.Failure(Error.NotFound(string.Format(ValidationMessages.NotFound.ServiceById, request.Id)));
+            }
+
+            service.Deactivate();
+            await uow.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Service successfully deactivated. ServiceId: {ServiceId}", service.Id.Value);
+            return Result.Success();
+        }
+        catch (CatalogDomainException ex)
+        {
+            return Result.Failure(ex.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while deactivating service {ServiceId}", request.Id);
+            return Result.Failure(ValidationMessages.Generic.InternalError);
+        }
+    }
+}

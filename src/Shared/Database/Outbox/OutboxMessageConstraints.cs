@@ -9,6 +9,4 @@ public static class OutboxMessageConstraints
     /// Nome do índice de unicidade para correlation_id na tabela de outbox
     /// </summary>
     public const string CorrelationIdIndexName = "ix_outbox_messages_correlation_id";
-    
-    public const string DocumentVerification = "DocumentVerification";
 }

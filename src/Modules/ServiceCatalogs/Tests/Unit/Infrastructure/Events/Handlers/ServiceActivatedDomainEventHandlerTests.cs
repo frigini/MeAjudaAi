@@ -1,4 +1,3 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
@@ -17,7 +16,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Events.Han
 [Trait("Category", "Unit")]
 public class ServiceActivatedDomainEventHandlerTests
 {
-    private readonly Mock<IServiceCatalogUnitOfWork> _uowMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock = new();
     private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<ServiceActivatedDomainEventHandler>> _loggerMock = new();

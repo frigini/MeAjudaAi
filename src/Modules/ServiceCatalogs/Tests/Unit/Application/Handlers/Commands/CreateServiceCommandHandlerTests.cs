@@ -81,6 +81,7 @@ public class CreateServiceCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("não encontrada");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -98,6 +99,7 @@ public class CreateServiceCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("inativa");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -118,6 +120,7 @@ public class CreateServiceCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("Já existe um serviço com o nome");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -149,6 +152,7 @@ public class CreateServiceCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("O nome do serviço é obrigatório.");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -166,6 +170,7 @@ public class CreateServiceCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("não pode ser negativa");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

@@ -314,6 +314,7 @@ public sealed class DocumentVerificationJobTests
         await _job.ProcessDocumentAsync(documentId);
 
         document.Status.Should().Be(EDocumentStatus.Verified);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
