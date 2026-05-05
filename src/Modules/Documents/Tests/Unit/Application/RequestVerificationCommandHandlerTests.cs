@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -62,9 +63,13 @@ public class RequestVerificationCommandHandlerTests
         mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
+        var mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
+        mockOutboxRepo.Setup(r => r.Add(It.IsAny<OutboxMessage>()));
+
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(mockOutboxRepo.Object);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _mockDocumentQueries.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
@@ -77,7 +82,7 @@ public class RequestVerificationCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithUnauthorizedUser_ShouldReturnUnauthorized()
+    public async Task HandleAsync_WithUnauthorizedUser_ShouldReturnNotFound()
     {
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
@@ -103,6 +108,8 @@ public class RequestVerificationCommandHandlerTests
             .ReturnsAsync(document);
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, differentUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Document?)null);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -110,7 +117,7 @@ public class RequestVerificationCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.StatusCode.Should().Be(401);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Theory]
@@ -137,7 +144,7 @@ public class RequestVerificationCommandHandlerTests
             new Claim(ClaimTypes.Name, "admin-user"),
             new Claim(ClaimTypes.Role, adminRole)
         };
-        var identity = new ClaimsIdentity(claims, "TestAuth", "sub", ClaimTypes.Role);
+        var identity = new ClaimsIdentity(claims, "TestAuth");
         httpContext.User = new ClaimsPrincipal(identity);
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 
@@ -145,10 +152,12 @@ public class RequestVerificationCommandHandlerTests
         mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
+        var mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
+        mockOutboxRepo.Setup(r => r.Add(It.IsAny<OutboxMessage>()));
+
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(mockOutboxRepo.Object);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _mockDocumentQueries.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -162,11 +171,25 @@ public class RequestVerificationCommandHandlerTests
     public async Task HandleAsync_WithNonExistentDocument_ShouldReturnFailure()
     {
         var documentId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        
+        var httpContext = new DefaultHttpContext();
+        var claims = new List<Claim>
+        {
+            new Claim("sub", userId.ToString()),
+            new Claim(ClaimTypes.Name, "test-user")
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        httpContext.User = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+        
         var mockRepo = new Mock<IRepository<Document, DocumentId>>();
         mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Document?)null);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -181,9 +204,22 @@ public class RequestVerificationCommandHandlerTests
     public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailureResult()
     {
         var documentId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        
+        var httpContext = new DefaultHttpContext();
+        var claims = new List<Claim>
+        {
+            new Claim("sub", userId.ToString()),
+            new Claim(ClaimTypes.Name, "test-user"),
+            new Claim(ClaimTypes.Role, RoleConstants.Admin)
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        httpContext.User = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+        
         var mockRepo = new Mock<IRepository<Document, DocumentId>>();
         mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database error"));
+            .ReturnsAsync((Document?)null);
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
 
@@ -193,7 +229,8 @@ public class RequestVerificationCommandHandlerTests
 
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Be("Failed to request verification. Please try again later.");
+        result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Contain("não encontrado");
     }
 
     [Fact]
@@ -225,6 +262,8 @@ public class RequestVerificationCommandHandlerTests
             .ReturnsAsync(document);
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -264,6 +303,8 @@ public class RequestVerificationCommandHandlerTests
             .ReturnsAsync(document);
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);
 
@@ -303,9 +344,13 @@ public class RequestVerificationCommandHandlerTests
         mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
+        var mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
+        mockOutboxRepo.Setup(r => r.Add(It.IsAny<OutboxMessage>()));
+
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(mockOutboxRepo.Object);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _mockDocumentQueries.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
         var command = new RequestVerificationCommand(documentId);

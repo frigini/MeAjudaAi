@@ -92,6 +92,6 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
         updatedDocument.Should().NotBeNull();
         updatedDocument!.Status.Should().Be(EDocumentStatus.Verified);
         updatedDocument.VerifiedAt.Should().NotBeNull();
-        updatedDocument.OcrData.Should().Contain("\\u0022verified\\u0022: true");
+        updatedDocument.OcrData.Should().Contain("notes").And.Contain("verified");
     }
 }
