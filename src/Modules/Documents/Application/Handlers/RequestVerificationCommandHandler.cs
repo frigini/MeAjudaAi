@@ -49,17 +49,17 @@ public class RequestVerificationCommandHandler(
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
 
+            var repository = uow.GetRepository<Document, DocumentId>();
             Document? document;
 
             if (isAdmin)
             {
-                var repository = uow.GetRepository<Document, DocumentId>();
                 document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             }
             else
             {
-                document = await _documentQueries.GetByIdAndProviderAsync(command.DocumentId, userGuid, cancellationToken);
-                if (document == null)
+                document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
+                if (document == null || document.ProviderId != userGuid)
                 {
                     _logger.LogWarning(
                         "User {UserId} attempted to access document {DocumentId} belonging to another provider",
@@ -116,7 +116,7 @@ public class RequestVerificationCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Failed to request verification."));
+            return Result.Failure(Error.Internal("Falha ao solicitar verificação."));
         }
     }
 }

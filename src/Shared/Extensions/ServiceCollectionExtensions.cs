@@ -85,6 +85,9 @@ public static class ServiceCollectionExtensions
         // Streaming services (SSE)
         services.AddStreaming();
 
+        // Registra o RoutingUnitOfWork como implementação principal para suportar múltiplos módulos
+        services.AddScoped<IUnitOfWork, RoutingUnitOfWork>();
+
         return services;
     }
 

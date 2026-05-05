@@ -23,6 +23,7 @@ public class RejectDocumentCommandHandler(
     ILogger<RejectDocumentCommandHandler> logger)
     : ICommandHandler<RejectDocumentCommand, Result>
 {
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RejectDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -48,7 +49,7 @@ public class RejectDocumentCommandHandler(
                 throw new ForbiddenAccessException("Apenas administradores podem rejeitar documentos");
 
             // Validar se o documento existe
-            var repository = uow.GetRepository<Document, DocumentId>();
+            var repository = _uow.GetRepository<Document, DocumentId>();
             var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {

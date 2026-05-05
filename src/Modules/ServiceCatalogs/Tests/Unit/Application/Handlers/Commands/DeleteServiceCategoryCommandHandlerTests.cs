@@ -62,6 +62,9 @@ public class DeleteServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        
+        _categoryRepoMock.Verify(x => x.Delete(It.IsAny<ServiceCategory>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -72,6 +75,10 @@ public class DeleteServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        
+        _categoryRepoMock.Verify(
+            x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]

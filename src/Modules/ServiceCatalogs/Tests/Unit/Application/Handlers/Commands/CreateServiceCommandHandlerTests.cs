@@ -13,6 +13,7 @@ using MeAjudaAi.Contracts.Functional;
 using Moq;
 using Xunit;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -24,8 +25,8 @@ public class CreateServiceCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
-    private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepositoryMock;
     private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
+    private readonly Mock<ILogger<CreateServiceCommandHandler>> _loggerMock;
     private readonly CreateServiceCommandHandler _handler;
 
     public CreateServiceCommandHandlerTests()
@@ -33,13 +34,12 @@ public class CreateServiceCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
-        _categoryRepositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _loggerMock = new Mock<ILogger<CreateServiceCommandHandler>>();
         
-        _uowMock.Setup(u => u.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_categoryRepositoryMock.Object);
         _uowMock.Setup(u => u.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
 
-        _handler = new CreateServiceCommandHandler(_uowMock.Object, _categoryQueriesMock.Object, _serviceQueriesMock.Object);
+        _handler = new CreateServiceCommandHandler(_uowMock.Object, _categoryQueriesMock.Object, _serviceQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]

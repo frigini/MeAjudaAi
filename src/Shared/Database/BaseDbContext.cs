@@ -1,9 +1,10 @@
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Database;
 
-public abstract class BaseDbContext : DbContext
+public abstract class BaseDbContext : DbContext, IRepository<OutboxMessage, Guid>
 {
     private readonly IDomainEventProcessor? _domainEventProcessor;
 
@@ -16,6 +17,25 @@ public abstract class BaseDbContext : DbContext
     {
         _domainEventProcessor = domainEventProcessor;
     }
+
+    #region IRepository<OutboxMessage, Guid>
+
+    public async Task<OutboxMessage?> TryFindAsync(Guid key, CancellationToken ct)
+    {
+        return await Set<OutboxMessage>().FirstOrDefaultAsync(x => x.Id == key, ct);
+    }
+
+    public void Add(OutboxMessage aggregate)
+    {
+        Set<OutboxMessage>().Add(aggregate);
+    }
+
+    public void Delete(OutboxMessage aggregate)
+    {
+        Set<OutboxMessage>().Remove(aggregate);
+    }
+
+    #endregion
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

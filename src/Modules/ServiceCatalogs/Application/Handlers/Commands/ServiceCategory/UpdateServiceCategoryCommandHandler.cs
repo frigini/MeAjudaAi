@@ -8,6 +8,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -74,8 +75,19 @@ public sealed class UpdateServiceCategoryCommandHandler(
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
     {
-        return ex.InnerException?.Message.Contains("unique") == true ||
-               ex.InnerException?.Message.Contains("duplicate key") == true ||
-               ex.InnerException?.Message.Contains("ix_service_categories_name") == true;
+        if (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+        {
+            return true;
+        }
+        
+        if (ex.InnerException == null)
+        {
+            return false;
+        }
+        
+        var message = ex.InnerException.Message;
+        return message.Contains("unique") ||
+               message.Contains("duplicate key") ||
+               message.Contains("ix_service_categories_name");
     }
 }

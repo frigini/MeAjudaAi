@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo de Documentos.
 /// Gerencia entidades de documentos e sua persistência.
 /// </summary>
-public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
+public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
 {
     /// <summary>
     /// Obtém a coleção de documentos.

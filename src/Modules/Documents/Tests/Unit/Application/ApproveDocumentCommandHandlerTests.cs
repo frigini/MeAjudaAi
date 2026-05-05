@@ -188,12 +188,12 @@ public class ApproveDocumentCommandHandlerTests
 
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
 
-        var command = new ApproveDocumentCommand(documentId, "Notes");
+var command = new ApproveDocumentCommand(documentId, "Notes");
 
         var act = async () => await _handler.HandleAsync(command);
-// Assert
-await act.Should().ThrowAsync<ForbiddenAccessException>()
-    .WithMessage("Apenas administradores podem aprovar documentos");
-}
+        
+        await act.Should().ThrowAsync<ForbiddenAccessException>()
+            .WithMessage("Apenas administradores podem aprovar documentos");
+    }
 
 }
