@@ -37,17 +37,28 @@ jobs:
     name: Backend E2E
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
       - name: Setup Backend
         uses: ./.github/actions/setup-backend
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Docker diagnostics
+        run: |
+          docker --version
+          docker info
+          ls -la /var/run/docker.sock || true
+          id && groups
 
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
@@ -55,17 +66,7 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
-      - name: Debug Infraestrutura
-        if: failure()
-        run: |
-          echo "Verificando portas em uso:"
-          netstat -tuln || true
-          echo "Verificando containers rodando:"
-          docker ps || true
-          echo "Verificando logs dos serviços (Postgres):"
-          docker ps -q --filter "ancestor=postgis/postgis:16-3.4" | xargs -r docker logs || true
-
-      - name: Run Backend E2E Tests
+      - name: Run Backend E2E Tests (sequential + filter + diag)
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -73,8 +74,23 @@ jobs:
           MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
           MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
         run: |
-          dotnet test tests/MeAjudaAi.E2E.Tests/ \
-            --configuration Release --no-build --verbosity normal
+          dotnet test tests/MeAjudaAi.E2E.Tests \
+            --configuration Release --no-build \
+            --filter "Category=E2E" \
+            --settings tests/sequential.runsettings \
+            --collect:"XPlat Code Coverage" \
+            --logger "trx;LogFileName=e2e.trx" \
+            --diag e2e.vstest.diag.log
+
+      - name: Upload E2E diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-diag
+          path: |
+            **/e2e.trx
+            **/e2e.vstest.diag.log
+            **/TestResults/**/coverage.cobertura.xml
 
   frontend-e2e:
     name: Frontend E2E
