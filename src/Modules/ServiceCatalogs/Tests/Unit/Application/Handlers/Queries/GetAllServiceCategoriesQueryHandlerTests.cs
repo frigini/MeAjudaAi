@@ -31,12 +31,14 @@ public class GetAllServiceCategoriesQueryHandlerTests
         };
         var query = new GetAllServiceCategoriesQuery(ActiveOnly: false);
 
-        _categoryQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -50,6 +52,8 @@ public class GetAllServiceCategoriesQueryHandlerTests
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

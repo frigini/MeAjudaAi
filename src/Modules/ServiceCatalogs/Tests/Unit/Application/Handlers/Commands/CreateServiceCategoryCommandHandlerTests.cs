@@ -59,7 +59,7 @@ public class CreateServiceCategoryCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenSaveChangesThrowsDbUpdateException_ShouldReturnFailure()
+    public async Task Handle_WhenDbUpdateUniqueViolation_ShouldReturnFailure()
     {
         var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -74,16 +74,13 @@ public class CreateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithInvalidDescription_ShouldReturnFailure()
     {
-        // Simulando falha de domínio (DomainException)
-        var command = new CreateServiceCategoryCommand("Valid", new string('a', 1000), 1);
+        // Descrição > 500 chars deve disparar erro de validação (result.IsFailure) ou Exception de domínio capturada pelo handler
+        var invalidDescription = new string('a', 501);
+        var command = new CreateServiceCategoryCommand("Valid Name", invalidDescription, 1);
         
-        // Setup mock para forçar exceção caso necessário ou capturar erro de domínio
-        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions.CatalogDomainException("A descrição da categoria não pode exceder 500 caracteres."));
-
         var result = await _handler.HandleAsync(command);
 
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("não pode exceder");
+        result.Error!.Message.Should().Contain("não pode exceder 500 caracteres");
     }
 }

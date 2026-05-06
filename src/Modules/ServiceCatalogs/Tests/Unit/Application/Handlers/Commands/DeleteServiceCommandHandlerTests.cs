@@ -35,6 +35,7 @@ public class DeleteServiceCommandHandlerTests
 
         _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object);
     }
+    [Fact]
     public async Task Handle_WithValidCommandAndNoProviders_ShouldReturnSuccess()
     {
         var category = new ServiceCategoryBuilder().AsActive().Build();
@@ -52,6 +53,8 @@ public class DeleteServiceCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        _repositoryMock.Verify(x => x.Delete(service), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

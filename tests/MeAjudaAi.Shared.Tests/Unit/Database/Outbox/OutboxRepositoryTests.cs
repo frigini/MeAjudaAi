@@ -3,24 +3,23 @@ using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Shared;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database.Outbox;
 
 public class OutboxRepositoryTests
 {
-    private readonly DbContextOptions<BaseDbContext> _options;
+    private readonly DbContextOptions<TestDbContext> _options;
     
     public OutboxRepositoryTests()
     {
-        _options = new DbContextOptionsBuilder<BaseDbContext>()
+        _options = new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
     }
 
     private class TestDbContext : BaseDbContext
     {
-        public TestDbContext(DbContextOptions options) : base(options) { }
+        public TestDbContext(DbContextOptions<TestDbContext> options) : base(options) { }
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     }
 
@@ -68,6 +67,10 @@ public class OutboxRepositoryTests
         
         var m1 = OutboxMessage.Create("T", "P1", ECommunicationPriority.Normal, null);
         var m2 = OutboxMessage.Create("T", "P2", ECommunicationPriority.Normal, null);
+
+        // Force distinct timestamps to ensure deterministic ordering (Tiebreaker)
+        typeof(OutboxMessage).GetProperty(nameof(OutboxMessage.CreatedAt))?.SetValue(m1, DateTime.UtcNow.AddSeconds(-10));
+        typeof(OutboxMessage).GetProperty(nameof(OutboxMessage.CreatedAt))?.SetValue(m2, DateTime.UtcNow.AddSeconds(-5));
         
         context.OutboxMessages.AddRange(m1, m2);
         await context.SaveChangesAsync();
@@ -76,6 +79,7 @@ public class OutboxRepositoryTests
 
         pending.Should().HaveCount(2);
         pending[0].CreatedAt.Should().BeBefore(pending[1].CreatedAt);
+        pending[0].Id.Should().Be(m1.Id);
     }
 }
 

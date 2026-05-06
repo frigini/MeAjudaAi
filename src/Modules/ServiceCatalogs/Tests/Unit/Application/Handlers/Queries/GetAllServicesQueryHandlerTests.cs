@@ -33,12 +33,14 @@ public class GetAllServicesQueryHandlerTests
         };
         var query = new GetAllServicesQuery(ActiveOnly: false, Name: null);
 
-        _serviceQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(false, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+        _serviceQueriesMock.Verify(x => x.GetAllAsync(false, null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -46,12 +48,14 @@ public class GetAllServicesQueryHandlerTests
     {
         var query = new GetAllServicesQuery(ActiveOnly: true);
 
-        _serviceQueriesMock.Setup(x => x.GetAllAsync(true, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(true, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Service>());
 
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
+        _serviceQueriesMock.Verify(x => x.GetAllAsync(true, null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

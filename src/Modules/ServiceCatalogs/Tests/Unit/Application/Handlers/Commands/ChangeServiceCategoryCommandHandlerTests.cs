@@ -36,6 +36,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         _handler = new ChangeServiceCategoryCommandHandler(_uowMock.Object);
     }
+    [Fact]
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()
     {
         var oldCategory = new ServiceCategoryBuilder().WithName("Limpeza").AsActive().Build();
@@ -54,12 +55,15 @@ public class ChangeServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        service.CategoryId.Should().Be(newCategory.Id);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_WithNonExistentService_ShouldReturnFailure()
     {
-        var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.NewGuid());
+        var serviceId = Guid.NewGuid();
+        var command = new ChangeServiceCategoryCommand(serviceId, Guid.NewGuid());
 
         _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceEntity?)null);
@@ -67,6 +71,18 @@ public class ChangeServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain($"Serviço com ID {serviceId} não encontrado");
+    }
+
+    [Fact]
+    public async Task Handle_WithEmptyServiceId_ShouldReturnFailure()
+    {
+        var command = new ChangeServiceCategoryCommand(Guid.Empty, Guid.NewGuid());
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("não pode ser vazio");
     }
 
     [Fact]

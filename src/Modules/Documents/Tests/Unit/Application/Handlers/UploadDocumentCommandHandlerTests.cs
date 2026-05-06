@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using FluentAssertions;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers;
 
 public class UploadDocumentCommandHandlerTests
 {

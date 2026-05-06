@@ -13,7 +13,7 @@ using Moq;
 using FluentAssertions;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers;
 
 public class RejectDocumentCommandHandlerTests
 {

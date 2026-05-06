@@ -15,7 +15,7 @@ using Moq;
 using Xunit;
 using MeAjudaAi.Shared.Utilities.Constants;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers;
 
 public class RequestVerificationCommandHandlerTests
 {
@@ -100,12 +100,7 @@ public class RequestVerificationCommandHandlerTests
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var differentUserId = Guid.NewGuid();
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "test.pdf",
-            "test-blob-url");
-
+        
         var httpContext = new DefaultHttpContext();
         var claims = new List<Claim>
         {
@@ -116,11 +111,6 @@ public class RequestVerificationCommandHandlerTests
         httpContext.User = new ClaimsPrincipal(identity);
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 
-        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
-        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
-
-        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
         _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, differentUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
@@ -131,6 +121,7 @@ public class RequestVerificationCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(404);
+        _mockUow.Verify(x => x.GetRepository<Document, DocumentId>(), Times.Never);
     }
 
     [Theory]
@@ -178,6 +169,8 @@ public class RequestVerificationCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockOutboxRepo.Verify(r => r.Add(It.Is<OutboxMessage>(m => m.Type == OutboxMessageTypes.DocumentVerification)), Times.Once);
     }
 
     [Fact]
@@ -272,35 +265,6 @@ public class RequestVerificationCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(500);
     }
-
-    [Fact]
-    public async Task HandleAsync_WhenStatusIsVerified_ShouldReturnBadRequest()
-    {
-        var documentId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "test.pdf", "blob-url");
-        document.MarkAsPendingVerification(); // Status = PendingVerification
-        document.MarkAsVerified(null); // Status = Verified
-        
-        var httpContext = new DefaultHttpContext();
-        var claims = new List<Claim> { new Claim("sub", providerId.ToString()) };
-        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-
-        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
-        mockRepo.Setup(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>())).ReturnsAsync(document);
-        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
-        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
-
-        var command = new RequestVerificationCommand(documentId);
-
-        var result = await _handler.HandleAsync(command, default);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(400);
-    }
-
 
     [Fact]
     public async Task HandleAsync_WithVerifiedDocument_ShouldReturnValidationError()

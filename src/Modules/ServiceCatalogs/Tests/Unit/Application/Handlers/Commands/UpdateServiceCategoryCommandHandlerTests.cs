@@ -94,7 +94,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         _categoryQueriesMock.Setup(x => x.ExistsWithNameAsync("A", category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var result = await _handler.HandleAsync(cmd);
+        var result = await _handler.HandleAsync(cmd, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -109,12 +109,12 @@ public class UpdateServiceCategoryCommandHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        // Força a exceção no SaveChangesAsync
-        var inner = new Exception("duplicate key value violates unique constraint ix_service_categories_name");
+        // Simulando falha de unicidade com mensagem específica esperada pelo handler (ix_service_categories_name)
+        var inner = new Exception("duplicate key value violates unique constraint \"ix_service_categories_name\"");
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("err", inner));
+            .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("Database error", inner));
 
-        var result = await _handler.HandleAsync(cmd);
+        var result = await _handler.HandleAsync(cmd, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be(string.Format(MeAjudaAi.Contracts.Utilities.Constants.ValidationMessages.Catalogs.CategoryNameExists, "B"));

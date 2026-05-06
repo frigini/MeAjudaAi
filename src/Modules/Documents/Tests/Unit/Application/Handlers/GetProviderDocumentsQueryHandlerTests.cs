@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using Moq;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers;
 
 public class GetProviderDocumentsQueryHandlerTests
 {

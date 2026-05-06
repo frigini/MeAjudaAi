@@ -5,7 +5,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using FluentAssertions;
@@ -23,7 +22,6 @@ public class UpdateServiceCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<ServiceEntity, ServiceId>> _repositoryMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
-    private readonly Mock<ILogger<UpdateServiceCommandHandler>> _loggerMock;
     private readonly UpdateServiceCommandHandler _handler;
 
     public UpdateServiceCommandHandlerTests()
@@ -31,13 +29,13 @@ public class UpdateServiceCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
-        _loggerMock = new Mock<ILogger<UpdateServiceCommandHandler>>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
             .Returns(_repositoryMock.Object);
-        
+
         _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object);
-    }
+        }
+
 
     [Fact]
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()

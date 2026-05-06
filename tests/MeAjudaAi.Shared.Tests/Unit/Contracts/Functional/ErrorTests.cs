@@ -33,24 +33,33 @@ public class ErrorTests
     [Fact]
     public void NotFound_ShouldReturnErrorWithStatusCode404()
     {
-        var error = Error.NotFound("Recurso não encontrado");
+        var message = "Recurso não encontrado";
+        var error = Error.NotFound(message);
 
         error.StatusCode.Should().Be(404);
+        error.Message.Should().Be(message);
+        error.Code.Should().BeNull();
     }
 
     [Fact]
     public void BadRequest_ShouldReturnErrorWithStatusCode400()
     {
-        var error = Error.BadRequest("Requisição inválida");
+        var message = "Requisição inválida";
+        var error = Error.BadRequest(message);
 
         error.StatusCode.Should().Be(400);
+        error.Message.Should().Be(message);
+        error.Code.Should().BeNull();
     }
 
     [Fact]
     public void Conflict_ShouldReturnErrorWithStatusCode409()
     {
-        var error = Error.Conflict("Conflito detectado");
+        var message = "Conflito detectado";
+        var error = Error.Conflict(message);
 
         error.StatusCode.Should().Be(409);
+        error.Message.Should().Be(message);
+        error.Code.Should().BeNull();
     }
 }

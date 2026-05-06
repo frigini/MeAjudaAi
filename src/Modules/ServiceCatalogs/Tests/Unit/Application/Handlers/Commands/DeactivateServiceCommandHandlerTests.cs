@@ -48,11 +48,34 @@ public class DeactivateServiceCommandHandlerTests
 
         _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         service.IsActive.Should().BeFalse();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithAlreadyInactiveService_ShouldReturnFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Limpeza de Piscina")
+            .AsInactive()
+            .Build();
+        var command = new DeactivateServiceCommand(service.Id.Value);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("já está inativo");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

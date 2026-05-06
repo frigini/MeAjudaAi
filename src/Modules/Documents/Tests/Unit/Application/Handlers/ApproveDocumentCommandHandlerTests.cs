@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers;
 
 public class ApproveDocumentCommandHandlerTests
 {
@@ -175,11 +175,11 @@ public class ApproveDocumentCommandHandlerTests
     public async Task HandleAsync_WithNonAdminUser_ShouldThrowForbiddenAccessException()
     {
         var documentId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
 
         SetupAuthenticatedUser("provider");
 
         var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
 
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
@@ -188,6 +188,7 @@ public class ApproveDocumentCommandHandlerTests
         await act.Should().ThrowAsync<ForbiddenAccessException>()
             .WithMessage("Apenas administradores podem aprovar documentos");
 
+        _mockUow.Verify(u => u.GetRepository<Document, DocumentId>(), Times.Never);
         mockRepo.Verify(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -198,6 +199,9 @@ public class ApproveDocumentCommandHandlerTests
         var documentId = Guid.NewGuid();
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((Microsoft.AspNetCore.Http.HttpContext?)null);
 
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
         var act = async () => await _handler.HandleAsync(command);
@@ -205,6 +209,7 @@ public class ApproveDocumentCommandHandlerTests
         await act.Should().ThrowAsync<UnauthorizedAccessException>()
             .WithMessage("Contexto HTTP não disponível");
 
+        _mockUow.Verify(u => u.GetRepository<Document, DocumentId>(), Times.Never);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 

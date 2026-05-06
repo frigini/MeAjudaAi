@@ -49,13 +49,14 @@ jobs:
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
       - name: Debug Infraestrutura
+        if: failure()
         run: |
           echo "Verificando portas em uso:"
-          netstat -tuln
+          netstat -tuln || true
           echo "Verificando containers rodando:"
-          docker ps
+          docker ps || true
           echo "Verificando logs dos serviços (Postgres):"
-          docker ps -q --filter "ancestor=postgis/postgis:16-3.4" | xargs -r docker logs
+          docker ps -q --filter "ancestor=postgis/postgis:16-3.4" | xargs -r docker logs || true
 
       - name: Run Backend E2E Tests
         env:

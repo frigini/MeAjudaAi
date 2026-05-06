@@ -52,11 +52,11 @@ public class RequestVerificationCommandHandler(
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
 
-            var repository = _uow.GetRepository<Document, DocumentId>();
             Document? document;
 
             if (isAdmin)
             {
+                var repository = _uow.GetRepository<Document, DocumentId>();
                 document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             }
             else
@@ -71,6 +71,7 @@ public class RequestVerificationCommandHandler(
                 }
                 
                 // Precisamos carregar o agregado para mutação
+                var repository = _uow.GetRepository<Document, DocumentId>();
                 document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             }
 

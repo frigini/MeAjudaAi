@@ -132,6 +132,8 @@ public class CreateServiceCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("O identificador é obrigatório.");
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
@@ -191,5 +193,6 @@ public class CreateServiceCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be("Domain rule violation");
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
