@@ -364,6 +364,89 @@ public sealed class DocumentVerificationJobTests
         document.RejectionReason.Should().Contain("85");
     }
 
+    [Fact]
+    public async Task ProcessDocumentAsync_WithTimeoutException_ShouldRethrow()
+    {
+        var documentId = Guid.NewGuid();
+        var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
+
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        _uowMock.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TimeoutException("Operation timed out"));
+
+        var act = () => _job.ProcessDocumentAsync(documentId);
+
+        await act.Should().ThrowAsync<TimeoutException>();
+    }
+
+    [Fact]
+    public async Task ProcessDocumentAsync_WithMessagePatternNetworkError_ShouldRethrow()
+    {
+        var documentId = Guid.NewGuid();
+        var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
+
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        _uowMock.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        // Exception with "network" in message triggers the fallback pattern matching
+        _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("network connection failed"));
+
+        var act = () => _job.ProcessDocumentAsync(documentId);
+
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("*network*");
+    }
+
+    [Fact]
+    public async Task ProcessDocumentAsync_WithMessagePatternTimeout_ShouldRethrow()
+    {
+        var documentId = Guid.NewGuid();
+        var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
+
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        _uowMock.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        // Exception with "timeout" in message triggers the fallback pattern matching
+        _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("connection timeout occurred"));
+
+        var act = () => _job.ProcessDocumentAsync(documentId);
+
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("*timeout*");
+    }
+
+    [Fact]
+    public async Task ProcessDocumentAsync_WithInnerTransientException_ShouldRethrow()
+    {
+        var documentId = Guid.NewGuid();
+        var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
+
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        _uowMock.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        // Outer exception is not transient, but InnerException is HttpRequestException (transient)
+        var innerException = new HttpRequestException("Inner network error");
+        var outerException = new Exception("Outer error", innerException);
+        _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(outerException);
+
+        var act = () => _job.ProcessDocumentAsync(documentId);
+
+        await act.Should().ThrowAsync<Exception>();
+    }
+
     private static Document CreateDocument(Guid id, EDocumentStatus status)
     {
         var document = Document.Create(

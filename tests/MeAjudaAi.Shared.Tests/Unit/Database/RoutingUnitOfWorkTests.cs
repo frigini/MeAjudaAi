@@ -95,4 +95,74 @@ public sealed class RoutingUnitOfWorkTests
 
         total.Should().Be(3);
     }
+
+    [Fact]
+    public async Task SaveChangesAsync_WithNoUows_ShouldReturnZero()
+    {
+        var sc = new ServiceCollection();
+        using var sp = sc.BuildServiceProvider();
+
+        var routing = new RoutingUnitOfWork(sp);
+        var total = await routing.SaveChangesAsync();
+
+        total.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_WithSingleUow_ShouldReturnItsChanges()
+    {
+        var fakeUow = new FakeModuleUow(); // returns 1
+        var sc = new ServiceCollection();
+        sc.AddScoped<IUnitOfWork>(_ => fakeUow);
+        using var sp = sc.BuildServiceProvider();
+
+        var routing = new RoutingUnitOfWork(sp);
+        var total = await routing.SaveChangesAsync();
+
+        total.Should().Be(1);
+        fakeUow.SaveCalls.Should().Be(1);
+    }
+
+    private sealed class SecondAggregate { public Guid Id { get; set; } = Guid.NewGuid(); }
+
+    // UoW that supports BOTH FakeAggregate and SecondAggregate
+    private sealed class DualUow : IUnitOfWork, IRepository<FakeAggregate, Guid>, IRepository<SecondAggregate, Guid>
+    {
+        Task<FakeAggregate?> IRepository<FakeAggregate, Guid>.TryFindAsync(Guid key, CancellationToken ct) => Task.FromResult<FakeAggregate?>(null);
+        void IRepository<FakeAggregate, Guid>.Add(FakeAggregate aggregate) { }
+        void IRepository<FakeAggregate, Guid>.Delete(FakeAggregate aggregate) { }
+        Task<SecondAggregate?> IRepository<SecondAggregate, Guid>.TryFindAsync(Guid key, CancellationToken ct) => Task.FromResult<SecondAggregate?>(null);
+        void IRepository<SecondAggregate, Guid>.Add(SecondAggregate aggregate) { }
+        void IRepository<SecondAggregate, Guid>.Delete(SecondAggregate aggregate) { }
+        public Task<int> SaveChangesAsync(CancellationToken ct = default) => Task.FromResult(1);
+        public IRepository<TAgg, TKey> GetRepository<TAgg, TKey>() => throw new NotSupportedException();
+    }
+
+    [Fact]
+    public void GetRepository_WithAmbiguousMatch_WhenActiveUowIsOneOfMatches_ShouldPreferActiveUow()
+    {
+        // Arrange: DualUow supports both FakeAggregate and SecondAggregate.
+        // AnotherFakeModuleUow only supports FakeAggregate.
+        // First call for SecondAggregate is unambiguous -> sets _activeUow = dualUow.
+        // Second call for FakeAggregate is ambiguous (DualUow + AnotherFakeModuleUow match),
+        // but _activeUow (dualUow) is one of the matches -> should prefer it without throwing.
+        var dualUow = new DualUow();
+        var anotherUow = new AnotherFakeModuleUow();
+        var sc = new ServiceCollection();
+        sc.AddScoped<IUnitOfWork>(_ => dualUow);
+        sc.AddScoped<IUnitOfWork>(_ => anotherUow);
+        using var sp = sc.BuildServiceProvider();
+
+        var routing = new RoutingUnitOfWork(sp);
+
+        // First call: SecondAggregate only matched by dualUow -> sets _activeUow = dualUow
+        var secondRepo = routing.GetRepository<SecondAggregate, Guid>();
+        secondRepo.Should().NotBeNull();
+
+        // Second call: FakeAggregate matched by both dualUow and anotherUow (ambiguous),
+        // but _activeUow = dualUow is in the matches -> should prefer dualUow
+        var fakeRepo = routing.GetRepository<FakeAggregate, Guid>();
+        fakeRepo.Should().NotBeNull();
+        fakeRepo.Should().BeSameAs(dualUow); // should return the active UoW (dualUow)
+    }
 }
