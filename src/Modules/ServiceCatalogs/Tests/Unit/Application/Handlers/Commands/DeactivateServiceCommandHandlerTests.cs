@@ -58,7 +58,7 @@ public class DeactivateServiceCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithAlreadyInactiveService_ShouldReturnFailure()
+    public async Task Handle_WithAlreadyInactiveService_ShouldBeIdempotent()
     {
         var category = new ServiceCategoryBuilder().AsActive().Build();
         var service = new ServiceBuilder()
@@ -73,8 +73,8 @@ public class DeactivateServiceCommandHandlerTests
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("já está inativo");
+        result.IsSuccess.Should().BeTrue();
+        service.IsActive.Should().BeFalse();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 

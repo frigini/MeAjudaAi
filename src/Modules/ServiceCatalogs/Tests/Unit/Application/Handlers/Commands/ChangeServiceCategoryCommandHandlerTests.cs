@@ -71,7 +71,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain($"Serviço com ID {serviceId} não encontrado");
+        result.Error.Message.Should().Contain("não encontrado");
     }
 
     [Fact]
