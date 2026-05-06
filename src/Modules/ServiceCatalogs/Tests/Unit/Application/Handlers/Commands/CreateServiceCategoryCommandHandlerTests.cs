@@ -46,13 +46,44 @@ public class CreateServiceCategoryCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithEmptyName_ShouldReturnFailure()
+    public async Task Handle_WithDuplicateName_ShouldReturnFailure()
     {
-        var command = new CreateServiceCategoryCommand("", "Description", 1);
+        var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
+        _categoryQueriesMock.Setup(x => x.ExistsWithNameAsync("Limpeza", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var result = await _handler.HandleAsync(command);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Contain("Já existe");
+    }
+
+    [Fact]
+    public async Task Handle_WhenSaveChangesThrowsDbUpdateException_ShouldReturnFailure()
+    {
+        var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("Database error", new Exception("unique constraint ix_service_categories_name")));
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("Já existe");
+    }
+
+    [Fact]
+    public async Task Handle_WithInvalidDescription_ShouldReturnFailure()
+    {
+        // Simulando falha de domínio (DomainException)
+        var command = new CreateServiceCategoryCommand("Valid", new string('a', 1000), 1);
+        
+        // Setup mock para forçar exceção caso necessário ou capturar erro de domínio
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions.CatalogDomainException("A descrição da categoria não pode exceder 500 caracteres."));
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("não pode exceder");
     }
 }

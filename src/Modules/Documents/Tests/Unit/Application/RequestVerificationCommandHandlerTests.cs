@@ -39,6 +39,18 @@ public class RequestVerificationCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WhenHttpContextIsNull_ShouldReturnUnauthorized()
+    {
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+
+        var command = new RequestVerificationCommand(Guid.NewGuid());
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(401);
+    }
+
+    [Fact]
     public async Task HandleAsync_WithExistingDocument_ShouldMarkAsPendingVerificationAndCreateOutboxMessage()
     {
         var documentId = Guid.NewGuid();
