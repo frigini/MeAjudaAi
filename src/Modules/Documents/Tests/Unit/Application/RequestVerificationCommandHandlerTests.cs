@@ -235,36 +235,60 @@ public class RequestVerificationCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenSaveChangesThrows_ShouldReturnInternal()
     {
         var documentId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "test.pdf", "blob-url");
         
         var httpContext = new DefaultHttpContext();
-        var claims = new List<Claim>
-        {
-            new Claim("sub", userId.ToString()),
-            new Claim(ClaimTypes.Name, "test-user"),
-            new Claim(ClaimTypes.Role, RoleConstants.Admin)
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        httpContext.User = new ClaimsPrincipal(identity);
+        var claims = new List<Claim> { new Claim("sub", providerId.ToString()) };
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-        
-        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
-        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("repo error"));
 
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>())).ReturnsAsync(document);
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("db error"));
 
         var command = new RequestVerificationCommand(documentId);
 
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, default);
 
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(500);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenStatusIsVerified_ShouldReturnBadRequest()
+    {
+        var documentId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "test.pdf", "blob-url");
+        document.MarkAsPendingVerification(); // Status = PendingVerification
+        document.MarkAsVerified(null); // Status = Verified
+        
+        var httpContext = new DefaultHttpContext();
+        var claims = new List<Claim> { new Claim("sub", providerId.ToString()) };
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>())).ReturnsAsync(document);
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        var command = new RequestVerificationCommand(documentId);
+
+        var result = await _handler.HandleAsync(command, default);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(400);
+    }
+
 
     [Fact]
     public async Task HandleAsync_WithVerifiedDocument_ShouldReturnValidationError()
