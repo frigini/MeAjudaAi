@@ -142,4 +142,46 @@ public class ErrorTests
         result.Should().Contain("Test message");
         result.Should().Contain("400");
     }
+
+    [Fact]
+    public void Conflict_ShouldCreateErrorWithConflictStatusCode()
+    {
+        var message = "Conflict error";
+
+        var error = Error.Conflict(message);
+
+        error.StatusCode.Should().Be(409);
+        error.Message.Should().Be(message);
+        error.Code.Should().BeNull();
+    }
+
+    [Fact]
+    public void Conflict_WithCode_ShouldIncludeCode()
+    {
+        var error = Error.Conflict("Duplicate entry", "DUPLICATE_KEY");
+
+        error.StatusCode.Should().Be(409);
+        error.Code.Should().Be("DUPLICATE_KEY");
+    }
+
+    [Fact]
+    public void Unprocessable_ShouldCreateErrorWithUnprocessableStatusCode()
+    {
+        var message = "Unprocessable entity";
+
+        var error = Error.Unprocessable(message);
+
+        error.StatusCode.Should().Be(422);
+        error.Message.Should().Be(message);
+        error.Code.Should().BeNull();
+    }
+
+    [Fact]
+    public void Unprocessable_WithCode_ShouldIncludeCode()
+    {
+        var error = Error.Unprocessable("Invalid data", "INVALID_CATEGORY");
+
+        error.StatusCode.Should().Be(422);
+        error.Code.Should().Be("INVALID_CATEGORY");
+    }
 }

@@ -2,8 +2,10 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 using FluentAssertions;
@@ -54,5 +56,52 @@ public class CreateServiceCategoryCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Handle_WithDuplicateName_ShouldReturnFailure()
+    {
+        _categoryQueriesMock
+            .Setup(x => x.ExistsWithNameAsync("Limpeza", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("Limpeza");
+        _repositoryMock.Verify(x => x.Add(It.IsAny<ServiceCategory>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenDomainExceptionThrown_ShouldReturnFailure()
+    {
+        _repositoryMock
+            .Setup(x => x.Add(It.IsAny<ServiceCategory>()))
+            .Throws(new CatalogDomainException("Domain rule violation"));
+
+        var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("Domain rule violation");
+    }
+
+    [Fact]
+    public async Task Handle_WhenDbUpdateExceptionWithUniqueConstraint_ShouldReturnFailure()
+    {
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException("Update failed", new Exception("unique constraint violated")));
+
+        var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("Limpeza");
     }
 }
