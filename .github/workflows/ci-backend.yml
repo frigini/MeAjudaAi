@@ -293,12 +293,66 @@ jobs:
           name: coverage-reports
           path: coverage/**
 
+      e2e-tests:
+      name: E2E Tests (Backend)
+      runs-on: ubuntu-latest
+      timeout-minutes: 45
+      needs: build-and-test
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Backend
+        uses: ./.github/actions/setup-backend
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: E2E tests (with coverage)
+        run: |
+          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+            --filter "Category=E2E" \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage/e2e \
+            --settings ./coverlet.runsettings
+      - name: Upload E2E coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-e2e
+          path: coverage/e2e/**/coverage.cobertura.xml
+
+      code-coverage-summary:
+      name: Code Coverage Summary
+      runs-on: ubuntu-latest
+      needs: [build-and-test, e2e-tests]
+      if: always()
+      steps:
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-download
+      - name: Aggregate all reports
+        run: |
+          mkdir -p ./coverage/aggregate
+          find ./coverage-download -name "coverage.cobertura.xml" -exec cp {} ./coverage/aggregate/ \;
+      - name: Generate aggregated coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: "coverage/aggregate/**/*.cobertura.xml"
+          targetdir: "coverage/final_report"
+          reporttypes: "Cobertura;JsonSummary"
+          groupby: "Namespace"
+          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts;-MeAjudaAi.Modules.Ratings.API"
+          classfilters: "+*;-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*DbContextFactory;+MeAjudaAi.Modules.Documents.API.*Endpoint;+MeAjudaAi.Modules.ServiceCatalogs.API.*Endpoint;+MeAjudaAi.Modules.Payments.API.*Endpoint;+MeAjudaAi.Modules.Bookings.API.*Endpoint;-*Endpoint;-*Options;-*IntegrationEvent;-*Request;-*Response;-*Dto;-*DTO"
+
       - name: Code Coverage Summary
         uses: irongut/CodeCoverageSummary@v1.3.0
-        if: always()
         with:
           filename: "coverage/final_report/Cobertura.xml"
           badge: true
+          format: markdown
+          output: both
+          thresholds: "90 80" # line branch
+          fail_below_min: true
+
           format: markdown
           output: both
           thresholds: "90 80" # line branch
