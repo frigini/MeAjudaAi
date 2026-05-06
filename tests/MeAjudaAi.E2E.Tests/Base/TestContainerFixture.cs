@@ -63,9 +63,16 @@ public class TestContainerFixture : IAsyncLifetime
             {
                 if (!_containersInitialized)
                 {
+                    Console.WriteLine("🚀 Initializing containers...");
                     await InitializeContainersAsync();
                     _containersInitialized = true;
+                    Console.WriteLine("✅ Containers initialized.");
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error initializing containers: {ex.Message}");
+                throw;
             }
             finally
             {
@@ -89,9 +96,16 @@ public class TestContainerFixture : IAsyncLifetime
             {
                 if (!_migrationsApplied)
                 {
+                    Console.WriteLine("🔄 Applying migrations...");
                     await ApplyMigrationsAsync();
                     _migrationsApplied = true;
+                    Console.WriteLine("✅ Migrations applied.");
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error applying migrations: {ex.Message}");
+                throw;
             }
             finally
             {
@@ -378,53 +392,64 @@ public class TestContainerFixture : IAsyncLifetime
     }
 
 private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
+{
+    var context = services.GetRequiredService<TContext>();
+
+    var tableNames = new List<string>();
+    var connection = context.Database.GetDbConnection();
+
+    // Timeout para conexão para evitar espera infinita
+    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+    try
     {
-        var context = services.GetRequiredService<TContext>();
-        
-        var tableNames = new List<string>();
-        var connection = context.Database.GetDbConnection();
-        await connection.OpenAsync();
-        
-        try
+        await connection.OpenAsync(cts.Token);
+        using (var command = connection.CreateCommand())
         {
-            using (var command = connection.CreateCommand())
+            command.CommandTimeout = 10;
+            var schema = DbContextSchemaHelper.GetSchemaName(typeof(TContext).Name);
+            var schemaParam = command.CreateParameter();
+            schemaParam.ParameterName = "schema";
+            schemaParam.Value = schema;
+            command.Parameters.Add(schemaParam);
+
+            command.CommandText = @"
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = @schema 
+                AND table_type = 'BASE TABLE';";
+
+            using (var reader = await command.ExecuteReaderAsync(cts.Token))
             {
-                var schema = DbContextSchemaHelper.GetSchemaName(typeof(TContext).Name);
-                var schemaParam = command.CreateParameter();
-                schemaParam.ParameterName = "schema";
-                schemaParam.Value = schema;
-                command.Parameters.Add(schemaParam);
-                
-                command.CommandText = @"
-                    SELECT table_name 
-                    FROM information_schema.tables 
-                    WHERE table_schema = @schema 
-                    AND table_type = 'BASE TABLE';";
-                
-                using (var reader = await command.ExecuteReaderAsync())
+                while (await reader.ReadAsync(cts.Token))
                 {
-                    while (await reader.ReadAsync())
-                    {
-                        tableNames.Add($"\"{schema}\".\"{reader.GetString(0)}\"");
-                    }
+                    tableNames.Add($"\"{schema}\".\"{reader.GetString(0)}\"");
                 }
             }
-
-            if (tableNames.Count > 0)
-            {
-                var batchSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
-                await context.Database.ExecuteSqlRawAsync(batchSql);
-            }
         }
-        finally
+
+        if (tableNames.Count > 0)
         {
-            if (connection.State == System.Data.ConnectionState.Open)
-            {
-                await connection.CloseAsync();
-            }
+            var batchSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
+            await context.Database.ExecuteSqlRawAsync(batchSql, cts.Token);
         }
     }
-
+    catch (OperationCanceledException)
+    {
+        Console.WriteLine($"⚠️ Cleanup timed out for {typeof(TContext).Name}. Skipping.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ Error during cleanup for {typeof(TContext).Name}: {ex.Message}. Continuing...");
+    }
+    finally
+    {
+        if (connection.State == System.Data.ConnectionState.Open)
+        {
+            await connection.CloseAsync();
+        }
+    }
+}
     public async ValueTask DisposeAsync()
     {
         ApiClient?.Dispose();
