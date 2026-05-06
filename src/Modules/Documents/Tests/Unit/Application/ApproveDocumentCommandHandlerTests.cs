@@ -184,11 +184,27 @@ public class ApproveDocumentCommandHandlerTests
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
         var act = async () => await _handler.HandleAsync(command);
-        
+
         await act.Should().ThrowAsync<ForbiddenAccessException>()
             .WithMessage("Apenas administradores podem aprovar documentos");
 
         mockRepo.Verify(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenHttpContextIsNull_ShouldThrowUnauthorizedAccessException()
+    {
+        var documentId = Guid.NewGuid();
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((Microsoft.AspNetCore.Http.HttpContext?)null);
+
+        var command = new ApproveDocumentCommand(documentId, "Notes");
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+            .WithMessage("Contexto HTTP não disponível");
+
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 

@@ -51,4 +51,18 @@ public class GetAllServiceCategoriesQueryHandlerTests
 
         result.IsSuccess.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Handle_WhenQueryThrows_ShouldReturnFailure()
+    {
+        var query = new GetAllServiceCategoriesQuery(ActiveOnly: false);
+
+        _categoryQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("Erro ao buscar categorias");
+    }
 }

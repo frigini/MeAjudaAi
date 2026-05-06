@@ -104,4 +104,24 @@ public class ServiceCatalogsModuleApiTests
 
         result.Status.Should().Be(Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
     }
+
+    [Fact]
+    public async Task ValidateServices_WhenEmpty_ShouldReturnSuccessWithAllValid()
+    {
+        var result = await _sut.ValidateServicesAsync(new List<Guid>());
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.AllValid.Should().BeTrue();
+        result.Value.InvalidServiceIds.Should().BeEmpty();
+        result.Value.InactiveServiceIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateServices_WhenNull_ShouldReturnSuccessWithAllValid()
+    {
+        var result = await _sut.ValidateServicesAsync(null!);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.AllValid.Should().BeTrue();
+    }
 }

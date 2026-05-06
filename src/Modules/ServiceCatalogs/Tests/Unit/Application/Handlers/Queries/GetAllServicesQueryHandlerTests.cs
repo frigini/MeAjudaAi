@@ -53,4 +53,18 @@ public class GetAllServicesQueryHandlerTests
 
         result.IsSuccess.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Handle_WhenQueryThrows_ShouldReturnFailure()
+    {
+        var query = new GetAllServicesQuery(ActiveOnly: false, Name: null);
+
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("Erro ao buscar serviços");
+    }
 }
