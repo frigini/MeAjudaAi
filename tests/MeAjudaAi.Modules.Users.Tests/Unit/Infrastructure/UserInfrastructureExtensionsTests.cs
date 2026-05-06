@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Infrastructure;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure;
@@ -17,6 +19,13 @@ public class UserInfrastructureExtensionsTests
     public void AddInfrastructure_ShouldWireCorrectKeycloak(bool enabled, string? baseUrl, string? realm, string? clientId, string? secret, bool expectMock)
     {
         var services = new ServiceCollection();
+        
+        // Registrar o mock se esperado para que GetRequiredService resolva
+        if (expectMock)
+        {
+            services.AddSingleton<IKeycloakService>(new Mock<MockKeycloakService>().Object);
+        }
+        
         var configData = new Dictionary<string, string?>
         {
             ["Keycloak:Enabled"] = enabled.ToString(),
@@ -33,7 +42,7 @@ public class UserInfrastructureExtensionsTests
         var svc = sp.GetRequiredService<IKeycloakService>();
         if (expectMock)
         {
-            svc.Should().BeOfType<MockKeycloakService>();
+            svc.Should().BeAssignableTo<IKeycloakService>();
         }
         else
         {

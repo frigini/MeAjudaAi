@@ -77,6 +77,7 @@ public class ServiceCatalogsModuleApiTests
 
         var result = await _sut.IsServiceActiveAsync(serviceId);
 
+        result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
     }
 
@@ -89,6 +90,7 @@ public class ServiceCatalogsModuleApiTests
 
         var result = await _sut.ValidateServicesAsync(ids);
 
+        result.IsSuccess.Should().BeTrue();
         result.Value.AllValid.Should().BeTrue();
     }
 

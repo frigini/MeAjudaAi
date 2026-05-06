@@ -94,6 +94,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(cmd);
 
         result.IsFailure.Should().BeTrue();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
