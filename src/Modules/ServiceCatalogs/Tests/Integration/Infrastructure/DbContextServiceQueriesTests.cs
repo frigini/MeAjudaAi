@@ -25,6 +25,7 @@ public sealed class DbContextServiceQueriesTests : IAsyncLifetime
         await _postgresContainer.StartAsync();
         var options = new DbContextOptionsBuilder<ServiceCatalogsDbContext>()
             .UseNpgsql(_postgresContainer.GetConnectionString())
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _dbContext = new ServiceCatalogsDbContext(options, new Mock<MeAjudaAi.Shared.Events.IDomainEventProcessor>().Object);
