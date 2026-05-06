@@ -1,15 +1,19 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
-using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
+using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
 
 public sealed class CreateReviewCommandHandler(
-    IReviewRepository repository,
+    IUnitOfWork uow,
+    IReviewQueries queries,
     IContentModerator contentModerator,
     ILogger<CreateReviewCommandHandler> logger) : ICommandHandler<CreateReviewCommand, Guid>
 {
@@ -18,7 +22,7 @@ public sealed class CreateReviewCommandHandler(
         logger.LogInformation("Creating review for provider {ProviderId} by customer {CustomerId}", command.ProviderId, command.CustomerId);
 
         // Validar duplicidade (UX check antecipado)
-        var existingReview = await repository.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
+        var existingReview = await queries.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
         if (existingReview != null)
         {
             logger.LogWarning("Customer {CustomerId} already reviewed provider {ProviderId}", command.CustomerId, command.ProviderId);
@@ -54,9 +58,10 @@ public sealed class CreateReviewCommandHandler(
 
         try
         {
-            await repository.AddAsync(review, cancellationToken);
+            uow.GetRepository<Review, ReviewId>().Add(review);
+            await uow.SaveChangesAsync(cancellationToken);
         }
-        catch (DuplicateReviewException ex)
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
         {
             logger.LogWarning(ex, "Duplicate review detected at persistence level for Provider {ProviderId} and Customer {CustomerId}", 
                 command.ProviderId, command.CustomerId);

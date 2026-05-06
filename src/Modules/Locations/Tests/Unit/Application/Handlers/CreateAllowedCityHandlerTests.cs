@@ -1,36 +1,47 @@
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Geolocation;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
 using Xunit;
-
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Contracts.Functional;
+
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
 public class CreateAllowedCityHandlerTests
 {
-    private readonly Mock<IAllowedCityRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<AllowedCity, Guid>> _repositoryMock;
+    private readonly Mock<IAllowedCityQueries> _queriesMock;
     private readonly Mock<IGeocodingService> _geocodingServiceMock;
-
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<ILogger<CreateAllowedCityHandler>> _loggerMock;
     private readonly CreateAllowedCityHandler _handler;
 
     public CreateAllowedCityHandlerTests()
     {
-        _repositoryMock = new Mock<IAllowedCityRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<AllowedCity, Guid>>();
+        _queriesMock = new Mock<IAllowedCityQueries>();
         _geocodingServiceMock = new Mock<IGeocodingService>();
-
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _loggerMock = new Mock<ILogger<CreateAllowedCityHandler>>();
-        _handler = new CreateAllowedCityHandler(_repositoryMock.Object, _geocodingServiceMock.Object, _httpContextAccessorMock.Object, _loggerMock.Object);
+
+        _uowMock.Setup(x => x.GetRepository<AllowedCity, Guid>()).Returns(_repositoryMock.Object);
+
+        _handler = new CreateAllowedCityHandler(
+            _uowMock.Object, 
+            _queriesMock.Object, 
+            _geocodingServiceMock.Object, 
+            _httpContextAccessorMock.Object, 
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -41,7 +52,7 @@ public class CreateAllowedCityHandlerTests
         var userEmail = "admin@test.com";
 
         SetupHttpContext(userEmail);
-        _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         _geocodingServiceMock
             .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -53,7 +64,8 @@ public class CreateAllowedCityHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeEmpty();
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(x => x.Add(It.IsAny<AllowedCity>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -63,7 +75,7 @@ public class CreateAllowedCityHandlerTests
         var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
         SetupHttpContext("admin@test.com");
 
-        _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -82,16 +94,15 @@ public class CreateAllowedCityHandlerTests
         var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
         SetupHttpContext(null);
 
-        _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         _geocodingServiceMock
             .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((GeoPoint?)null);
 
         AllowedCity? capturedCity = null;
-        _repositoryMock.Setup(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()))
-            .Callback<AllowedCity, CancellationToken>((city, _) => capturedCity = city)
-            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(x => x.Add(It.IsAny<AllowedCity>()))
+            .Callback<AllowedCity>((city) => capturedCity = city);
 
         // Act
         await _handler.HandleAsync(command, CancellationToken.None);
@@ -108,16 +119,15 @@ public class CreateAllowedCityHandlerTests
         var command = new CreateAllowedCityCommand("Muriaé", "MG", null, 0, 0, 0, true);
         SetupHttpContext("admin@test.com");
 
-        _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         _geocodingServiceMock
             .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((GeoPoint?)null);
 
         AllowedCity? capturedCity = null;
-        _repositoryMock.Setup(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()))
-            .Callback<AllowedCity, CancellationToken>((city, _) => capturedCity = city)
-            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(x => x.Add(It.IsAny<AllowedCity>()))
+            .Callback<AllowedCity>((city) => capturedCity = city);
 
         // Act
         await _handler.HandleAsync(command, CancellationToken.None);
@@ -134,16 +144,15 @@ public class CreateAllowedCityHandlerTests
         var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, false);
         SetupHttpContext("admin@test.com");
 
-        _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         _geocodingServiceMock
             .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((GeoPoint?)null);
 
         AllowedCity? capturedCity = null;
-        _repositoryMock.Setup(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()))
-            .Callback<AllowedCity, CancellationToken>((city, _) => capturedCity = city)
-            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(x => x.Add(It.IsAny<AllowedCity>()))
+            .Callback<AllowedCity>((city) => capturedCity = city);
 
         // Act
         await _handler.HandleAsync(command, CancellationToken.None);

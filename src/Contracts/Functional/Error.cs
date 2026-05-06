@@ -55,5 +55,13 @@ public record Error(string Message, int StatusCode = 400, string? Code = null)
     /// <param name="code">Código opcional do erro</param>
     /// <returns>Erro com StatusCode 409</returns>
     public static Error Conflict(string message, string? code = null) => new(message, 409, code);
+
+    /// <summary>
+    /// Cria um erro Unprocessable Entity (422).
+    /// </summary>
+    /// <param name="message">Mensagem descritiva do erro</param>
+    /// <param name="code">Código opcional do erro</param>
+    /// <returns>Erro com StatusCode 422</returns>
+    public static Error Unprocessable(string message, string? code = null) => new(message, 422, code);
 }
 

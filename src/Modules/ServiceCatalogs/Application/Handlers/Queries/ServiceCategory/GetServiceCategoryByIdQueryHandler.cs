@@ -1,14 +1,14 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 
-public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepository repository)
+public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryQueries categoryQueries)
     : IQueryHandler<GetServiceCategoryByIdQuery, Result<ServiceCategoryDto?>>
 {
     public async Task<Result<ServiceCategoryDto?>> HandleAsync(
@@ -16,10 +16,9 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepositor
         CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result<ServiceCategoryDto?>.Failure("Service Category ID cannot be empty.");
+            return Result<ServiceCategoryDto?>.Failure("O ID da categoria não pode ser vazio.");
 
-        var categoryId = ServiceCategoryId.From(request.Id);
-        var category = await repository.GetByIdAsync(categoryId, cancellationToken);
+        var category = await categoryQueries.GetByIdAsync(ServiceCategoryId.From(request.Id), cancellationToken);
 
         if (category is null)
             return Result<ServiceCategoryDto?>.Success(null);

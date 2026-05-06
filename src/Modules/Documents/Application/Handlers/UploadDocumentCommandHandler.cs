@@ -1,17 +1,17 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
-using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
-using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -19,25 +19,21 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// <summary>
 /// Manipula comandos de upload de documentos gerando URLs SAS e persistindo metadados do documento.
 /// </summary>
-/// <param name="documentRepository">Repositório de documentos para acesso a dados.</param>
-/// <param name="blobStorageService">Serviço para operações de armazenamento de blobs.</param>
-/// <param name="backgroundJobService">Serviço para enfileirar jobs em segundo plano.</param>
-/// <param name="httpContextAccessor">Acessor para o contexto HTTP.</param>
-/// <param name="uploadOptions">Opções de configuração para upload de documentos.</param>
-/// <param name="logger">Instância do logger.</param>
 public class UploadDocumentCommandHandler(
-    IDocumentRepository documentRepository,
+    IUnitOfWork uow,
     IBlobStorageService blobStorageService,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     IOptions<DocumentUploadOptions> uploadOptions,
+    MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> outboxRepository,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
-    private readonly IDocumentRepository _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly DocumentUploadOptions _uploadOptions = uploadOptions?.Value ?? throw new ArgumentNullException(nameof(uploadOptions));
+    private readonly MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> _outboxRepository = outboxRepository ?? throw new ArgumentNullException(nameof(outboxRepository));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
@@ -106,7 +102,7 @@ public class UploadDocumentCommandHandler(
             var extension = Path.GetExtension(command.FileName);
             var blobName = $"documents/{command.ProviderId}/{Guid.NewGuid()}{extension}";
 
-            // Gera SAS token para upload direto
+            _logger.LogInformation("Generating upload URL for blob {BlobName}", blobName);
             var (uploadUrl, expiresAt) = await _blobStorageService.GenerateUploadUrlAsync(
                 blobName,
                 command.ContentType,
@@ -119,15 +115,20 @@ public class UploadDocumentCommandHandler(
                 command.FileName,
                 blobName); // Armazena o nome do blob, não a URL completa com SAS
 
-            await _documentRepository.AddAsync(document, cancellationToken);
-            await _documentRepository.SaveChangesAsync(cancellationToken);
+            _uow.GetRepository<Document, DocumentId>().Add(document);
 
-            _logger.LogInformation("Document {DocumentId} created for provider {ProviderId}",
+            // Cria mensagem de outbox para o job de verificação
+            var outboxMessage = MeAjudaAi.Shared.Database.Outbox.OutboxMessage.Create(
+                type: MeAjudaAi.Shared.Database.Outbox.OutboxMessageTypes.DocumentVerification,
+                payload: System.Text.Json.JsonSerializer.Serialize(new { DocumentId = document.Id.Value }),
+                priority: MeAjudaAi.Contracts.Shared.ECommunicationPriority.Normal);
+
+            _logger.LogInformation("Saving document and outbox message to database for provider {ProviderId}", command.ProviderId);
+            await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Document {DocumentId} created and job enqueued in outbox for provider {ProviderId}",
                 document.Id, command.ProviderId);
-
-            // Enfileira job de verificação do documento
-            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
 
             return new UploadDocumentResponse(
                 document.Id,

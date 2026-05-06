@@ -1,18 +1,23 @@
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class CreateServiceCommandHandler(
-    IServiceRepository serviceRepository,
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries,
+    IServiceQueries serviceQueries,
+    ILogger<CreateServiceCommandHandler> logger)
     : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
 {
     public async Task<Result<ServiceDto>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
@@ -20,38 +25,34 @@ public sealed class CreateServiceCommandHandler(
         try
         {
             if (request.CategoryId == Guid.Empty)
-                return Result<ServiceDto>.Failure("Category ID cannot be empty.");
+                return Result<ServiceDto>.Failure(ValidationMessages.Required.Id);
 
             var categoryId = ServiceCategoryId.From(request.CategoryId);
+            var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken);
 
-            // Verificar se a categoria existe e está ativa
-            var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
             if (category is null)
-                throw new UnprocessableEntityException(
-                    $"Categoria com ID '{request.CategoryId}' não encontrada.",
-                    "ServiceCategory");
+                return Result<ServiceDto>.Failure(Error.Unprocessable(
+                    string.Format(ValidationMessages.NotFound.CategoryById, request.CategoryId),
+                    "ServiceCategory"));
 
             if (!category.IsActive)
-                throw new UnprocessableEntityException(
-                    "Não é possível criar serviço em categoria inativa.",
-                    "ServiceCategory");
+                return Result<ServiceDto>.Failure(Error.Unprocessable(
+                    ValidationMessages.Catalogs.ServiceCategoryInactive,
+                    "ServiceCategory"));
 
             var normalizedName = request.Name?.Trim();
-
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceDto>.Failure("Service name is required.");
+                return Result<ServiceDto>.Failure(ValidationMessages.Required.ServiceName);
 
-            // Verificar se já existe serviço com o mesmo nome na categoria
-            if (await serviceRepository.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
-                return Result<ServiceDto>.Failure($"A service with name '{normalizedName}' already exists in this category.");
-
-            // Validar DisplayOrder
-            if (request.DisplayOrder < 0)
-                return Result<ServiceDto>.Failure("Display order cannot be negative.");
+            if (await serviceQueries.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
+                return Result<ServiceDto>.Failure(string.Format(ValidationMessages.Catalogs.ServiceNameExists, normalizedName));
 
             var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
-            await serviceRepository.AddAsync(service, cancellationToken);
+            var serviceRepo = uow.GetRepository<Domain.Entities.Service, ServiceId>();
+            serviceRepo.Add(service);
+
+            await uow.SaveChangesAsync(cancellationToken);
 
             var dto = new ServiceDto(
                 service.Id.Value,
@@ -64,11 +65,21 @@ public sealed class CreateServiceCommandHandler(
                 service.CreatedAt,
                 service.UpdatedAt
             );
+
             return Result<ServiceDto>.Success(dto);
         }
         catch (CatalogDomainException ex)
         {
             return Result<ServiceDto>.Failure(ex.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating service.");
+            return Result<ServiceDto>.Failure(ValidationMessages.Catalogs.CreateServiceError);
         }
     }
 }

@@ -1,15 +1,22 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class UpdateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries,
+    ILogger<UpdateServiceCategoryCommandHandler> logger)
     : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -17,31 +24,70 @@ public sealed class UpdateServiceCategoryCommandHandler(
         try
         {
             if (request.Id == Guid.Empty)
+            {
+                logger.LogWarning("UpdateServiceCategoryCommand failed: request Id is empty");
                 return Result.Failure(ValidationMessages.Required.Id);
+            }
 
-            var categoryId = ServiceCategoryId.From(request.Id);
-            var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
+            var categoryRepository = uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>();
+            var category = await categoryRepository.TryFindAsync(ServiceCategoryId.From(request.Id), cancellationToken);
 
             if (category is null)
+            {
+                logger.LogWarning("UpdateServiceCategoryCommand failed: category not found. CategoryId: {CategoryId}", request.Id);
                 return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
+            }
 
             var normalizedName = request.Name?.Trim();
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Result.Failure(ValidationMessages.Required.CategoryName);
 
-            // Check for duplicate name (excluding current category)
-            if (await categoryRepository.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
+            if (await categoryQueries.ExistsWithNameAsync(normalizedName, category.Id, cancellationToken))
+            {
+                logger.LogWarning("UpdateServiceCategoryCommand failed: category name already exists. Name: {Name}", normalizedName);
                 return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+            }
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 
-            await categoryRepository.UpdateAsync(category, cancellationToken);
+            try
+            {
+                await uow.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex)
+            {
+                if (IsUniqueConstraintViolation(ex))
+                {
+                    return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+                }
+                logger.LogError(ex, "Database error updating category {CategoryId}", request.Id);
+                throw;
+            }
 
             return Result.Success();
         }
         catch (CatalogDomainException ex)
         {
+            logger.LogError(ex, "Domain error updating category {CategoryId}", request.Id);
             return Result.Failure(ex.Message);
         }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        if (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+        {
+            return true;
+        }
+        
+        if (ex.InnerException == null)
+        {
+            return false;
+        }
+        
+        var message = ex.InnerException.Message;
+        return message.Contains("unique") ||
+               message.Contains("duplicate key") ||
+               message.Contains("ix_service_categories_name");
     }
 }

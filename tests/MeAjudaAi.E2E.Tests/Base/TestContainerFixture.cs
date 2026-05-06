@@ -377,31 +377,51 @@ public class TestContainerFixture : IAsyncLifetime
         }
     }
 
-    private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
+private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
     {
         var context = services.GetRequiredService<TContext>();
+        
         var tableNames = new List<string>();
-
-        foreach (var entityType in context.Model.GetEntityTypes())
+        var connection = context.Database.GetDbConnection();
+        await connection.OpenAsync();
+        
+        try
         {
-            var tableName = entityType.GetTableName();
-            var schema = entityType.GetSchema();
-
-            if (!string.IsNullOrEmpty(tableName))
+            using (var command = connection.CreateCommand())
             {
-                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
-                    ? $"\"{tableName}\""
-                    : $"\"{schema}\".\"{tableName}\"";
+                var schema = DbContextSchemaHelper.GetSchemaName(typeof(TContext).Name);
+                var schemaParam = command.CreateParameter();
+                schemaParam.ParameterName = "schema";
+                schemaParam.Value = schema;
+                command.Parameters.Add(schemaParam);
                 
-                tableNames.Add(qualifiedTableName);
+                command.CommandText = @"
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_schema = @schema 
+                    AND table_type = 'BASE TABLE';";
+                
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        tableNames.Add($"\"{schema}\".\"{reader.GetString(0)}\"");
+                    }
+                }
+            }
+
+            if (tableNames.Count > 0)
+            {
+                var batchSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
+                await context.Database.ExecuteSqlRawAsync(batchSql);
             }
         }
-
-        if (tableNames.Count > 0)
+        finally
         {
-            var uniqueTables = tableNames.Distinct().ToList();
-            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
-            await context.Database.ExecuteSqlRawAsync(batchSql);
+            if (connection.State == System.Data.ConnectionState.Open)
+            {
+                await connection.CloseAsync();
+            }
         }
     }
 

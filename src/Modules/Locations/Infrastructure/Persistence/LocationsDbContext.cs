@@ -9,9 +9,26 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo Locations.
 /// Gerencia cidades permitidas e dados de validação geográfica.
 /// </summary>
-public class LocationsDbContext : BaseDbContext
+public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<AllowedCity> AllowedCities => Set<AllowedCity>();
+
+    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+        
+        throw new InvalidOperationException(
+            $"LocationsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: AllowedCity(Guid)");
+    }
+
+    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
+    {
+        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
+    }
 
     /// <summary>
     /// Inicializa uma nova instância da classe <see cref="LocationsDbContext"/> para operações design-time (migrações).

@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Contracts.Contracts.Modules.Ratings.Enums;
@@ -70,11 +69,10 @@ public static class RatingsEndpoints
 
     private static async Task<IResult> GetReviewByIdAsync(
         Guid id,
-        [FromServices] IReviewRepository repository,
+        [FromServices] IReviewQueries queries,
         CancellationToken cancellationToken)
     {
-        // Explicitly cast to ReviewId for clarity
-        var review = await repository.GetByIdAsync((ReviewId)id, cancellationToken);
+        var review = await queries.GetByIdAsync(id, cancellationToken);
         
         if (review == null || review.Status != MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Approved) 
             return Results.NotFound();
@@ -88,11 +86,10 @@ public static class RatingsEndpoints
 
     private static async Task<IResult> GetReviewStatusAsync(
         Guid id,
-        [FromServices] IReviewRepository repository,
+        [FromServices] IReviewQueries queries,
         CancellationToken cancellationToken)
     {
-        // Explicitly cast to ReviewId for clarity
-        var review = await repository.GetByIdAsync((ReviewId)id, cancellationToken);
+        var review = await queries.GetByIdAsync(id, cancellationToken);
         
         if (review == null) 
             return Results.NotFound();
@@ -104,7 +101,7 @@ public static class RatingsEndpoints
 
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
-        [FromServices] IReviewRepository repository,
+        [FromServices] IReviewQueries queries,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -113,7 +110,7 @@ public static class RatingsEndpoints
         page = page < 1 ? 1 : page;
         pageSize = pageSize < 1 ? 1 : pageSize > 100 ? 100 : pageSize;
 
-        var reviews = await repository.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
+        var reviews = await queries.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
         
         var result = reviews.Select(r => new ProviderReviewResponse(
             r.Id.Value,

@@ -126,7 +126,7 @@ public partial class Program
             // Para ambiente de Testing, usa logging mínimo no console
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
-            builder.Logging.SetMinimumLevel(LogLevel.Warning);
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
         }
     }
 

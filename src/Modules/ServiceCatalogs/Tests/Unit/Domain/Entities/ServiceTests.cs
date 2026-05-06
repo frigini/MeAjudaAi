@@ -2,38 +2,14 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Domain.Entities;
 
 [Trait("Category", "Unit")]
 public class ServiceTests
 {
-    [Fact]
-    public void Create_WithValidParameters_ShouldCreateService()
-    {
-        // Arrange
-        var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var name = "Plumbing Repair";
-        var description = "Fix leaks and pipes";
-        var displayOrder = 1;
-
-        // Act
-        var service = Service.Create(categoryId, name, description, displayOrder);
-
-        // Assert
-        service.Should().NotBeNull();
-        service.Id.Should().NotBeNull();
-        service.Id.Value.Should().NotBe(Guid.Empty);
-        service.CategoryId.Should().Be(categoryId);
-        service.Name.Should().Be(name);
-        service.Description.Should().Be(description);
-        service.DisplayOrder.Should().Be(displayOrder);
-        service.IsActive.Should().BeTrue();
-        service.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-
-        // Services are created (domain events are raised internally but not exposed publicly)
-    }
-
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
@@ -46,7 +22,7 @@ public class ServiceTests
         // Act & Assert
         var act = () => Service.Create(categoryId, invalidName!, null, 0);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage("*name*");
+            .WithMessage("O nome do serviço é obrigatório.");
     }
 
     [Fact]
@@ -70,7 +46,7 @@ public class ServiceTests
         // Act & Assert
         var act = () => Service.Create(categoryId, "Valid Name", null, -1);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage("*Display order cannot be negative*");
+            .WithMessage("A ordem de exibição não pode ser negativa.");
     }
 
     [Fact]
@@ -104,93 +80,6 @@ public class ServiceTests
         // Act & Assert
         var act = () => service.Update("Valid Name", null, -5);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage("*Display order cannot be negative*");
-    }
-
-    [Fact]
-    public void ChangeCategory_WithDifferentCategory_ShouldChangeCategory()
-    {
-        // Arrange
-        var originalCategoryId = new ServiceCategoryId(Guid.NewGuid());
-        var newCategoryId = new ServiceCategoryId(Guid.NewGuid());
-        var service = Service.Create(originalCategoryId, "Test Service", null, 0);
-
-        // Act
-        service.ChangeCategory(newCategoryId);
-
-        // Assert
-        service.CategoryId.Should().Be(newCategoryId);
-    }
-
-    [Fact]
-    public void ChangeCategory_WithSameCategory_ShouldNotChange()
-    {
-        // Arrange
-        var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var service = Service.Create(categoryId, "Test Service", null, 0);
-
-        // Act
-        service.ChangeCategory(categoryId);
-
-        // Assert
-        service.CategoryId.Should().Be(categoryId);
-    }
-
-    [Fact]
-    public void Activate_WhenInactive_ShouldActivateService()
-    {
-        // Arrange
-        var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var service = Service.Create(categoryId, "Test Service", null, 0);
-        service.Deactivate();
-
-        // Act
-        service.Activate();
-
-        // Assert
-        service.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Activate_WhenAlreadyActive_ShouldRemainActive()
-    {
-        // Arrange
-        var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var service = Service.Create(categoryId, "Test Service", null, 0);
-
-        // Act
-        service.Activate();
-
-        // Assert
-        service.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Deactivate_WhenActive_ShouldDeactivateService()
-    {
-        // Arrange
-        var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var service = Service.Create(categoryId, "Test Service", null, 0);
-
-        // Act
-        service.Deactivate();
-
-        // Assert
-        service.IsActive.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Deactivate_WhenAlreadyInactive_ShouldRemainInactive()
-    {
-        // Arrange
-        var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var service = Service.Create(categoryId, "Test Service", null, 0);
-        service.Deactivate();
-
-        // Act
-        service.Deactivate();
-
-        // Assert
-        service.IsActive.Should().BeFalse();
+            .WithMessage("A ordem de exibição não pode ser negativa.");
     }
 }

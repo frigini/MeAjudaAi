@@ -1,32 +1,33 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class ApproveDocumentCommandHandlerTests
 {
-    private readonly Mock<IDocumentRepository> _mockRepository;
+    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<ApproveDocumentCommandHandler>> _mockLogger;
     private readonly ApproveDocumentCommandHandler _handler;
 
     public ApproveDocumentCommandHandlerTests()
     {
-        _mockRepository = new Mock<IDocumentRepository>();
+        _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<ApproveDocumentCommandHandler>>();
 
         _handler = new ApproveDocumentCommandHandler(
-            _mockRepository.Object,
+            _mockUow.Object,
             _mockHttpContextAccessor.Object,
             _mockLogger.Object);
     }
@@ -55,7 +56,6 @@ public class ApproveDocumentCommandHandlerTests
     [InlineData(RoleConstants.LegacySuperAdmin)]
     public async Task HandleAsync_WithAdminUser_ShouldApproveDocument(string adminRole)
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var verificationNotes = "Documento válido e legível";
@@ -69,70 +69,52 @@ public class ApproveDocumentCommandHandlerTests
 
         SetupAuthenticatedUser(adminRole);
 
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
-        _mockRepository
-            .Setup(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var command = new ApproveDocumentCommand(documentId, verificationNotes);
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
         
-        _mockRepository.Verify(
-            x => x.UpdateAsync(It.Is<Document>(d => d.Status == EDocumentStatus.Verified), It.IsAny<CancellationToken>()),
-            Times.Once);
-
-        _mockRepository.Verify(
-            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Once);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task HandleAsync_WithNonExistentDocument_ShouldThrowNotFoundException()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
         SetupAuthenticatedAdmin();
 
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
-        // Act
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+
         var act = async () => await _handler.HandleAsync(command);
 
-        // Assert
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage($"Document with id {documentId} was not found");
 
-        _mockRepository.Verify(
-            x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task HandleAsync_WithDocumentNotInPendingVerification_ShouldReturnFailure()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
 
-        // Documento em status Uploaded (não PendingVerification)
         var document = Document.Create(
             providerId,
             EDocumentType.IdentityDocument,
@@ -141,28 +123,25 @@ public class ApproveDocumentCommandHandlerTests
 
         SetupAuthenticatedAdmin();
 
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
+
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
 
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.StatusCode.Should().Be(400);
-
-        _mockRepository.Verify(
-            x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task HandleAsync_WithNullVerificationNotes_ShouldStillSucceed()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
 
@@ -175,24 +154,17 @@ public class ApproveDocumentCommandHandlerTests
 
         SetupAuthenticatedAdmin();
 
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        mockRepo.Setup(r => r.TryFindAsync(new DocumentId(documentId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
-        _mockRepository
-            .Setup(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var command = new ApproveDocumentCommand(documentId, null);
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
@@ -202,35 +174,22 @@ public class ApproveDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithNonAdminUser_ShouldThrowForbiddenAccessException()
     {
-        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
 
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "blob-key-123");
-        document.MarkAsPendingVerification();
-
-        // Setup non-admin user
         SetupAuthenticatedUser("provider");
 
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
+        var mockRepo = new Mock<IRepository<Document, DocumentId>>();
 
         var command = new ApproveDocumentCommand(documentId, "Notes");
 
-        // Act
         var act = async () => await _handler.HandleAsync(command);
-
-        // Assert
+        
         await act.Should().ThrowAsync<ForbiddenAccessException>()
             .WithMessage("Apenas administradores podem aprovar documentos");
 
-        _mockRepository.Verify(
-            x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        mockRepo.Verify(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
 }

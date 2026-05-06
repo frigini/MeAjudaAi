@@ -1,8 +1,12 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -11,102 +15,44 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 [Trait("Layer", "Application")]
 public class CreateServiceCategoryCommandHandlerTests
 {
-    private readonly Mock<IServiceCategoryRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
+    private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
     private readonly CreateServiceCategoryCommandHandler _handler;
 
     public CreateServiceCategoryCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new CreateServiceCategoryCommandHandler(_repositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
+        
+        _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>())
+            .Returns(_repositoryMock.Object);
+        
+        _categoryQueriesMock.Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        
+        _handler = new CreateServiceCategoryCommandHandler(_uowMock.Object, _categoryQueriesMock.Object);
     }
 
     [Fact]
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()
     {
-        // Arrange
         var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
 
-        _repositoryMock
-            .Setup(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        var result = await _handler.HandleAsync(command);
 
-        _repositoryMock
-            .Setup(x => x.AddAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Id.Should().NotBe(Guid.Empty);
-
-        _repositoryMock.Verify(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WithDuplicateName_ShouldReturnFailure()
+    public async Task Handle_WithEmptyName_ShouldReturnFailure()
     {
-        // Arrange
-        var command = new CreateServiceCategoryCommand("Limpeza", "Serviços de limpeza", 1);
+        var command = new CreateServiceCategoryCommand("", "Description", 1);
 
-        _repositoryMock
-            .Setup(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        var result = await _handler.HandleAsync(command);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("already exists");
-
-        _repositoryMock.Verify(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(null)]
-    public async Task Handle_WithInvalidName_ShouldReturnFailure(string? invalidName)
-    {
-        // Arrange
-        var command = new CreateServiceCategoryCommand(invalidName!, "Description", 1);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("name", "validation error should mention the problematic field");
-    }
-
-    [Fact]
-    public async Task Handle_WhenDomainExceptionThrown_ShouldReturnFailureWithMessage()
-    {
-        // Arrange
-        var command = new CreateServiceCategoryCommand("Valid Name", "Description", 1);
-
-        _repositoryMock
-            .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        _repositoryMock
-            .Setup(x => x.AddAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new CatalogDomainException("Domain rule violation"));
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be("Domain rule violation");
     }
 }

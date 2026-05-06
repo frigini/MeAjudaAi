@@ -1,11 +1,11 @@
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Geolocation;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,7 +16,9 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
 public class UpdateAllowedCityHandlerTests
 {
-    private readonly Mock<IAllowedCityRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<AllowedCity, Guid>> _repositoryMock;
+    private readonly Mock<IAllowedCityQueries> _queriesMock;
     private readonly Mock<IGeocodingService> _geocodingServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<ILogger<UpdateAllowedCityHandler>> _loggerMock;
@@ -24,16 +26,25 @@ public class UpdateAllowedCityHandlerTests
 
     public UpdateAllowedCityHandlerTests()
     {
-        _repositoryMock = new Mock<IAllowedCityRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<AllowedCity, Guid>>();
+        _queriesMock = new Mock<IAllowedCityQueries>();
         _geocodingServiceMock = new Mock<IGeocodingService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _loggerMock = new Mock<ILogger<UpdateAllowedCityHandler>>();
         
+        _uowMock.Setup(x => x.GetRepository<AllowedCity, Guid>()).Returns(_repositoryMock.Object);
+
         // Comportamento padrão do mock para evitar NREs
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GeoPoint(0, 0));
 
-        _handler = new UpdateAllowedCityHandler(_repositoryMock.Object, _geocodingServiceMock.Object, _loggerMock.Object, _httpContextAccessorMock.Object);
+        _handler = new UpdateAllowedCityHandler(
+            _uowMock.Object, 
+            _queriesMock.Object, 
+            _geocodingServiceMock.Object, 
+            _loggerMock.Object, 
+            _httpContextAccessorMock.Object);
     }
 
     [Fact]
@@ -56,9 +67,9 @@ public class UpdateAllowedCityHandlerTests
         var userEmail = "admin2@test.com";
 
         SetupHttpContext(userEmail);
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         // Act
@@ -71,7 +82,7 @@ public class UpdateAllowedCityHandlerTests
         existingCity.Latitude.Should().Be(10);
         existingCity.Longitude.Should().Be(20);
         existingCity.ServiceRadiusKm.Should().Be(15);
-        _repositoryMock.Verify(x => x.UpdateAsync(existingCity, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -91,7 +102,7 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(command.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         // Act
@@ -109,7 +120,6 @@ public class UpdateAllowedCityHandlerTests
         // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        var differentCityId = Guid.NewGuid();
         var duplicateCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
         var command = new UpdateAllowedCityCommand
         {
@@ -124,9 +134,9 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(duplicateCity);
 
         // Act
@@ -157,9 +167,9 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
         
         var expectedCoords = new GeoPoint(30, 40);
@@ -172,7 +182,9 @@ public class UpdateAllowedCityHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync($"{command.CityName}, {command.StateSigla}, Brasil", It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.Is<AllowedCity>(c => c.Latitude == expectedCoords.Latitude && c.Longitude == expectedCoords.Longitude), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        existingCity.Latitude.Should().Be(expectedCoords.Latitude);
+        existingCity.Longitude.Should().Be(expectedCoords.Longitude);
     }
 
     [Fact]
@@ -194,9 +206,9 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         var expectedCoords = new GeoPoint(30, 40);
@@ -230,7 +242,7 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
         
         var expectedCoords = new GeoPoint(30, 40);
@@ -243,7 +255,9 @@ public class UpdateAllowedCityHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.Is<AllowedCity>(c => c.Latitude == expectedCoords.Latitude && c.Longitude == expectedCoords.Longitude), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        existingCity.Latitude.Should().Be(expectedCoords.Latitude);
+        existingCity.Longitude.Should().Be(expectedCoords.Longitude);
     }
 
     [Fact]
@@ -267,9 +281,9 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -280,7 +294,9 @@ public class UpdateAllowedCityHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue(); // Should handle exception gracefully
-        _repositoryMock.Verify(x => x.UpdateAsync(It.Is<AllowedCity>(c => c.Latitude == existingCoordsLat && c.Longitude == existingCoordsLon), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        existingCity.Latitude.Should().Be(existingCoordsLat);
+        existingCity.Longitude.Should().Be(existingCoordsLon);
     }
 
     [Fact]
@@ -302,16 +318,16 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext("admin@test.com");
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
         // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        _repositoryMock.Verify(x => x.UpdateAsync(existingCity, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -333,9 +349,9 @@ public class UpdateAllowedCityHandlerTests
         };
 
         SetupHttpContext(null);
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         // Act

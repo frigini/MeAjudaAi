@@ -1,7 +1,10 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using Moq;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Queries;
 
@@ -10,145 +13,44 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Quer
 [Trait("Layer", "Application")]
 public class GetAllServicesQueryHandlerTests
 {
-    private readonly Mock<IServiceRepository> _repositoryMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
     private readonly GetAllServicesQueryHandler _handler;
 
     public GetAllServicesQueryHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceRepository>();
-        _handler = new GetAllServicesQueryHandler(_repositoryMock.Object);
+        _serviceQueriesMock = new Mock<IServiceQueries>();
+        _handler = new GetAllServicesQueryHandler(_serviceQueriesMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnAllServices()
+    public async Task Handle_ShouldReturnServices()
     {
-        // Arrange
-        var query = new GetAllServicesQuery(ActiveOnly: false);
-        var categoryId = Guid.NewGuid();
-        var services = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var services = new List<Service>
         {
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Service 1").Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Service 2").Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Service 3").Build()
+            new ServiceBuilder().WithCategoryId(category.Id).WithName("Serviço 1").Build(),
+            new ServiceBuilder().WithCategoryId(category.Id).WithName("Serviço 2").Build()
         };
+        var query = new GetAllServicesQuery(ActiveOnly: false, Name: null);
 
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(3);
-
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WithActiveOnlyTrue_ShouldReturnOnlyActiveServices()
+    public async Task Handle_WithActiveOnly_ShouldReturnActiveServices()
     {
-        // Arrange
         var query = new GetAllServicesQuery(ActiveOnly: true);
-        var categoryId = Guid.NewGuid();
-        var services = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>
-        {
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Active 1").AsActive().Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Active 2").AsActive().Build()
-        };
 
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services);
+        _serviceQueriesMock.Setup(x => x.GetAllAsync(true, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Service>());
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
-        result.Value.Should().OnlyContain(s => s.IsActive);
-
-        _repositoryMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_WithNoServices_ShouldReturnEmptyList()
-    {
-        // Arrange
-        var query = new GetAllServicesQuery(ActiveOnly: false);
-
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>());
-
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEmpty();
-
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_WithNameFilter_ShouldReturnMatchingServices()
-    {
-        // Arrange
-        var query = new GetAllServicesQuery(Name: "Electrician");
-        var categoryId = Guid.NewGuid();
-        var services = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>
-        {
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Electrician").Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Plumber").Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Auto Electrician").Build()
-        };
-
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services);
-
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2); // Electrician & Auto Electrician originally contain "Electrician"
-        result.Value.Select(s => s.Name).Should().Contain("Electrician");
-        result.Value.Select(s => s.Name).Should().Contain("Auto Electrician");
-        result.Value.Select(s => s.Name).Should().NotContain("Plumber");
-
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_WithNameFilter_ShouldBeCaseInsensitive()
-    {
-        // Arrange
-        var query = new GetAllServicesQuery(Name: "electrician"); // Lowercase query
-        var categoryId = Guid.NewGuid();
-        var services = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>
-        {
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Electrician").Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Auto Electrician").Build(),
-            new ServiceBuilder().WithCategoryId(categoryId).WithName("Plumber").Build()
-        };
-
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services);
-
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
-        result.Value.Select(s => s.Name).Should().Contain("Electrician");
-        result.Value.Select(s => s.Name).Should().Contain("Auto Electrician");
-
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

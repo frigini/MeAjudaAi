@@ -1,9 +1,10 @@
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Database;
 
-public abstract class BaseDbContext : DbContext
+public abstract class BaseDbContext : DbContext, IRepository<OutboxMessage, Guid>
 {
     private readonly IDomainEventProcessor? _domainEventProcessor;
 
@@ -16,6 +17,25 @@ public abstract class BaseDbContext : DbContext
     {
         _domainEventProcessor = domainEventProcessor;
     }
+
+    #region IRepository<OutboxMessage, Guid>
+
+    public async Task<OutboxMessage?> TryFindAsync(Guid key, CancellationToken cancellationToken)
+    {
+        return await Set<OutboxMessage>().FirstOrDefaultAsync(x => x.Id == key, cancellationToken);
+    }
+
+    public void Add(OutboxMessage aggregate)
+    {
+        Set<OutboxMessage>().Add(aggregate);
+    }
+
+    public void Delete(OutboxMessage aggregate)
+    {
+        Set<OutboxMessage>().Remove(aggregate);
+    }
+
+    #endregion
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -43,8 +63,29 @@ public abstract class BaseDbContext : DbContext
         return result;
     }
 
-    protected abstract Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default);
-    protected abstract void ClearDomainEvents();
+    protected virtual Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
+    {
+        var domainEvents = ChangeTracker
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Any())
+            .SelectMany(entry => entry.Entity.DomainEvents)
+            .ToList();
+
+        return Task.FromResult(domainEvents);
+    }
+
+    protected virtual void ClearDomainEvents()
+    {
+        var entries = ChangeTracker
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Any())
+            .ToList();
+
+        foreach (var entry in entries)
+        {
+            entry.Entity.ClearDomainEvents();
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -328,6 +328,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         if (!requestVerificationResponse.IsSuccessStatusCode)
         {
             var errorContent = await requestVerificationResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ERROR] Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
             throw new Exception($"Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
         }
 
@@ -386,6 +387,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         if (!requestVerificationResponse.IsSuccessStatusCode)
         {
             var errorContent = await requestVerificationResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ERROR] Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
             throw new Exception($"Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
         }
 

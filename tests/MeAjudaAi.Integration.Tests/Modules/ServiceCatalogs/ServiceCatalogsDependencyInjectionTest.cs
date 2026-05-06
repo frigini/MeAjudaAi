@@ -45,15 +45,15 @@ public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput
     }
 
     [Fact]
-    public void Should_Have_ServiceCategoryRepository_Registered()
+    public void Should_Have_ServiceCategoryQueries_Registered()
     {
         // Arrange & Act
-        var repository = Services.GetService<MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories.IServiceCategoryRepository>();
+        var queries = Services.GetService<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceCategoryQueries>();
 
         // Assert
-        testOutput.WriteLine($"IServiceCategoryRepository registration: {repository != null}");
-        testOutput.WriteLine($"Repository type: {repository?.GetType().FullName}");
-        repository.Should().NotBeNull("IServiceCategoryRepository should be registered");
+        testOutput.WriteLine($"IServiceCategoryQueries registration: {queries != null}");
+        testOutput.WriteLine($"Queries type: {queries?.GetType().FullName}");
+        queries.Should().NotBeNull("IServiceCategoryQueries should be registered");
     }
 
     [Fact]

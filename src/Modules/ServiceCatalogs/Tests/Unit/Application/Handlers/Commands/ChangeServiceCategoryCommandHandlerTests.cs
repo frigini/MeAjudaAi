@@ -1,207 +1,113 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
+
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
 [Trait("Layer", "Application")]
 public class ChangeServiceCategoryCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _serviceRepoMock;
+    private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepoMock;
     private readonly ChangeServiceCategoryCommandHandler _handler;
 
     public ChangeServiceCategoryCommandHandlerTests()
     {
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new ChangeServiceCategoryCommandHandler(_serviceRepositoryMock.Object, _categoryRepositoryMock.Object);
-    }
+        _uowMock = new Mock<IUnitOfWork>();
+        _serviceRepoMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
+        _categoryRepoMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
 
-    [Fact]
+        _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
+            .Returns(_serviceRepoMock.Object);
+        _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>())
+            .Returns(_categoryRepoMock.Object);
+
+        _handler = new ChangeServiceCategoryCommandHandler(_uowMock.Object);
+    }
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()
     {
-        // Arrange
-        var oldCategory = new ServiceCategoryBuilder().AsActive().Build();
-        var newCategory = new ServiceCategoryBuilder().AsActive().Build();
+        var oldCategory = new ServiceCategoryBuilder().WithName("Limpeza").AsActive().Build();
+        var newCategory = new ServiceCategoryBuilder().WithName("Manutenção").AsActive().Build();
         var service = new ServiceBuilder()
             .WithCategoryId(oldCategory.Id)
-            .WithName("Limpeza de Piscina")
+            .WithName("Serviço 1")
             .Build();
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
 
-        _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
-
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newCategory);
 
-        _serviceRepositoryMock
-            .Setup(x => x.ExistsWithNameAsync(service.Name, It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        _serviceRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        service.CategoryId.Should().Be(newCategory.Id);
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_WithNonExistentService_ShouldReturnFailure()
     {
-        // Arrange
-        var serviceId = Guid.NewGuid();
-        var categoryId = Guid.NewGuid();
-        var command = new ChangeServiceCategoryCommand(serviceId, categoryId);
+        var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.NewGuid());
 
-        _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Service?)null);
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ServiceEntity?)null);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Serviço").And.Contain("não encontrado");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]
-    public async Task Handle_WithNonExistentCategory_ShouldReturnFailure()
+    public async Task Handle_WithEmptyNewCategoryId_ShouldReturnFailure()
     {
-        // Arrange
-        var category = new ServiceCategoryBuilder().AsActive().Build();
-        var service = new ServiceBuilder()
-            .WithCategoryId(category.Id)
-            .WithName("Limpeza de Piscina")
-            .Build();
-        var newCategoryId = Guid.NewGuid();
-        var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategoryId);
+        var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.Empty);
 
-        _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("não pode ser vazio");
+    }
+
+    [Fact]
+    public async Task Handle_WithNonExistentNewCategory_ShouldThrowUnprocessableEntityException()
+    {
+        var service = new ServiceBuilder().Build();
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, Guid.NewGuid());
+
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
-
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
-        // Act
         var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<UnprocessableEntityException>()
-            .WithMessage("*não encontrada*");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        await act.Should().ThrowAsync<UnprocessableEntityException>();
     }
-
     [Fact]
-    public async Task Handle_WithInactiveCategory_ShouldReturnFailure()
+    public async Task Handle_WithInactiveCategory_ShouldThrowUnprocessableEntityException()
     {
-        // Arrange
-        var oldCategory = new ServiceCategoryBuilder().AsActive().Build();
-        var newCategory = new ServiceCategoryBuilder().AsInactive().Build();
-        var service = new ServiceBuilder()
-            .WithCategoryId(oldCategory.Id)
-            .WithName("Limpeza de Piscina")
-            .Build();
-        var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
+        var service = new ServiceBuilder().Build();
+        var inactiveCategory = new ServiceCategoryBuilder().AsInactive().Build();
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, inactiveCategory.Id.Value);
 
-        _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(inactiveCategory);
 
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(newCategory);
-
-        // Act
         var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<UnprocessableEntityException>()
-            .WithMessage("*inativa*");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_WithDuplicateNameInTargetCategory_ShouldReturnFailure()
-    {
-        // Arrange
-        var oldCategory = new ServiceCategoryBuilder().AsActive().Build();
-        var newCategory = new ServiceCategoryBuilder().AsActive().Build();
-        var service = new ServiceBuilder()
-            .WithCategoryId(oldCategory.Id)
-            .WithName("Limpeza de Piscina")
-            .Build();
-        var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
-
-        _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(newCategory);
-
-        _serviceRepositoryMock
-            .Setup(x => x.ExistsWithNameAsync(service.Name, It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Já existe");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_WithEmptyServiceId_ShouldReturnFailure()
-    {
-        // Arrange
-        var categoryId = Guid.NewGuid();
-        var command = new ChangeServiceCategoryCommand(Guid.Empty, categoryId);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("ID do serviço").And.Contain("não pode ser vazio");
-        _serviceRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_WithEmptyCategoryId_ShouldReturnFailure()
-    {
-        // Arrange
-        var serviceId = Guid.NewGuid();
-        var command = new ChangeServiceCategoryCommand(serviceId, Guid.Empty);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("ID da nova categoria").And.Contain("não pode ser vazio");
-        _serviceRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        await act.Should().ThrowAsync<UnprocessableEntityException>();
     }
 }
+

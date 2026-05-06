@@ -2,13 +2,12 @@ using System.Reflection;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
-public class RatingsDbContext : BaseDbContext
+public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
 {
     public RatingsDbContext(DbContextOptions<RatingsDbContext> options) 
         : base(options)
@@ -24,34 +23,27 @@ public class RatingsDbContext : BaseDbContext
 
     public DbSet<Review> Reviews { get; set; } = null!;
 
+    public DbSet<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> OutboxMessages => Set<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>();
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+        
+        throw new InvalidOperationException(
+            $"RatingsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: Review(ReviewId)");
+    }
+
+    public MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> GetOutboxRepository()
+    {
+        return new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(this);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("ratings");
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries<AggregateRoot<ReviewId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents)
-            .ToList();
-
-        return Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        var entities = ChangeTracker
-            .Entries<AggregateRoot<ReviewId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .Select(entry => entry.Entity);
-
-        foreach (var entity in entities)
-        {
-            entity.ClearDomainEvents();
-        }
     }
 }

@@ -1,11 +1,11 @@
 using EFCore.NamingConventions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Events;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
@@ -84,8 +84,13 @@ public static class Extensions
             }
         });
 
-        // Repositories
-        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        // Persistence Components
+        services.AddScoped<DocumentsDbContext>(sp => sp.GetRequiredService<DocumentsDbContext>());
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DocumentsDbContext>());
+        services.AddScoped<IDocumentsUnitOfWork>(sp => sp.GetRequiredService<DocumentsDbContext>());
+        services.AddScoped<IDocumentQueries, DbContextDocumentQueries>();
+        services.AddScoped<MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>>(sp => 
+            new MeAjudaAi.Shared.Database.Outbox.OutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage>(sp.GetRequiredService<DocumentsDbContext>()));
 
         return services;
     }

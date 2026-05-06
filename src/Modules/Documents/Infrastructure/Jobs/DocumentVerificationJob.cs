@@ -1,38 +1,33 @@
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 
-/// <summary>
-/// Job para processar verificação de documentos individuais.
-/// Este job é enfileirado quando um documento é enviado.
-/// NOTA: Document.FileUrl é usado como blob name (chave) para operações de storage.
-/// </summary>
 public class DocumentVerificationJob : IDocumentVerificationService
 {
-    private readonly IDocumentRepository _documentRepository;
+    private readonly IDocumentsUnitOfWork _uow;
     private readonly IDocumentIntelligenceService _documentIntelligenceService;
     private readonly IBlobStorageService _blobStorageService;
     private readonly ILogger<DocumentVerificationJob> _logger;
     private readonly float _minimumConfidence;
 
     public DocumentVerificationJob(
-        IDocumentRepository documentRepository,
+        IDocumentsUnitOfWork uow,
         IDocumentIntelligenceService documentIntelligenceService,
         IBlobStorageService blobStorageService,
         IConfiguration configuration,
         ILogger<DocumentVerificationJob> logger)
     {
-        _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
+        _uow = uow ?? throw new ArgumentNullException(nameof(uow));
         _documentIntelligenceService = documentIntelligenceService ?? throw new ArgumentNullException(nameof(documentIntelligenceService));
         _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         
-        // Configuração com fallback para valor padrão (após validações para evitar NullReferenceException em testes)
         _minimumConfidence = configuration?.GetValue<float>("Documents:Verification:MinimumConfidence", 0.7f) ?? 0.7f;
     }
 
@@ -40,52 +35,46 @@ public class DocumentVerificationJob : IDocumentVerificationService
     {
         _logger.LogInformation("Starting document processing for {DocumentId}", documentId);
 
-        var document = await _documentRepository.GetByIdAsync(documentId, cancellationToken);
-        if (document == null)
-        {
-            _logger.LogWarning("Document {DocumentId} not found", documentId);
-            return;
-        }
-
-        // Só processa documentos que estão Uploaded, PendingVerification ou Failed (para retry)
-        if (document.Status != EDocumentStatus.Uploaded &&
-            document.Status != EDocumentStatus.PendingVerification &&
-            document.Status != EDocumentStatus.Failed)
-        {
-            _logger.LogInformation(
-                "Documento {DocumentId} já foi processado (Status: {Status})",
-                documentId,
-                document.Status);
-            return;
-        }
-
         try
         {
-            // Marca como PendingVerification apenas se ainda não estiver
+            var repository = _uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(new DocumentId(documentId), cancellationToken);
+            if (document == null)
+            {
+                _logger.LogWarning("Document {DocumentId} not found", documentId);
+                return;
+            }
+            _logger.LogInformation("Document {DocumentId} found, current status: {Status}", documentId, document.Status);
+
+            if (document.Status != EDocumentStatus.Uploaded &&
+                document.Status != EDocumentStatus.PendingVerification &&
+                document.Status != EDocumentStatus.Failed)
+            {
+                _logger.LogInformation(
+                    "Documento {DocumentId} já foi processado (Status: {Status})",
+                    documentId, document.Status);
+                return;
+            }
+
             if (document.Status == EDocumentStatus.Uploaded || document.Status == EDocumentStatus.Failed)
             {
                 document.MarkAsPendingVerification();
             }
 
-            // Verifica se arquivo existe no blob storage
             var exists = await _blobStorageService.ExistsAsync(document.FileUrl, cancellationToken);
             if (!exists)
             {
                 _logger.LogWarning("File not found in blob storage: {BlobName}", document.FileUrl);
                 document.MarkAsFailed("Arquivo não encontrado no blob storage");
 
-                // Salva status final (Failed) em uma única operação
-                await _documentRepository.UpdateAsync(document, cancellationToken);
-                await _documentRepository.SaveChangesAsync(cancellationToken);
+                await _uow.SaveChangesAsync(cancellationToken);
                 return;
             }
 
-            // Gera URL de download com SAS token
             var (downloadUrl, _) = await _blobStorageService.GenerateDownloadUrlAsync(
                 document.FileUrl,
                 cancellationToken);
 
-            // Executa OCR no documento
             _logger.LogInformation("Executing OCR on document {DocumentId}", documentId);
             var ocrResult = await _documentIntelligenceService.AnalyzeDocumentAsync(
                 downloadUrl,
@@ -112,8 +101,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
                     ocrResult.ErrorMessage ?? $"Low confidence: {ocrResult.Confidence:P0}");
             }
 
-            await _documentRepository.UpdateAsync(document, cancellationToken);
-            await _documentRepository.SaveChangesAsync(cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} processing completed with status {Status}",
@@ -124,13 +112,10 @@ public class DocumentVerificationJob : IDocumentVerificationService
         {
             _logger.LogError(ex, "Error processing document {DocumentId}", documentId);
 
-            // Detectar erros transitórios (network, timeout, OCR indisponível) vs permanentes
             var isTransient = IsTransientException(ex);
 
             if (isTransient)
             {
-                // Para erros transitórios, apenas rethrow sem marcar como Failed
-                // para permitir que Hangfire tente novamente
                 _logger.LogWarning(
                     "Transient error processing document {DocumentId}: {Message}. Hangfire will retry.",
                     documentId,
@@ -138,16 +123,22 @@ public class DocumentVerificationJob : IDocumentVerificationService
                 throw;
             }
 
-            // Para erros permanentes, marcar como Failed para evitar retries desnecessários
+            // Note: document might be null if TryFindAsync fails, handle carefully
+            // In case of non-transient error, document may have been fetched but not updated
+            // Re-fetch if necessary or track status in memory.
             _logger.LogError(
                 "Permanent error processing document {DocumentId}: {Message}. Marking as Failed.",
                 documentId,
                 ex.Message);
-            document.MarkAsFailed($"Erro durante processamento: {ex.Message}");
-            await _documentRepository.UpdateAsync(document, cancellationToken);
-            await _documentRepository.SaveChangesAsync(cancellationToken);
-
-            // Não rethrow para erros permanentes - job concluído com falha documentada
+            
+            // Re-fetch to ensure we have the tracked entity if it was fetched earlier
+            var repository = _uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(new DocumentId(documentId), cancellationToken);
+            if (document != null)
+            {
+                document.MarkAsFailed($"Erro durante processamento: {ex.Message}");
+                await _uow.SaveChangesAsync(cancellationToken);
+            }
         }
     }
 

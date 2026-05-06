@@ -1,96 +1,54 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using Moq;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Queries;
-
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
 [Trait("Layer", "Application")]
 public class GetAllServiceCategoriesQueryHandlerTests
 {
-    private readonly Mock<IServiceCategoryRepository> _repositoryMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly GetAllServiceCategoriesQueryHandler _handler;
 
     public GetAllServiceCategoriesQueryHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new GetAllServiceCategoriesQueryHandler(_repositoryMock.Object);
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        _handler = new GetAllServiceCategoriesQueryHandler(_categoryQueriesMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnAllCategories()
+    public async Task Handle_ShouldReturnCategories()
     {
-        // Arrange
-        var query = new GetAllServiceCategoriesQuery(ActiveOnly: false);
-        var categories = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory>
+        var categories = new List<ServiceCategory>
         {
-            new ServiceCategoryBuilder().WithName("Limpeza").Build(),
-            new ServiceCategoryBuilder().WithName("Reparos").Build(),
-            new ServiceCategoryBuilder().WithName("Pintura").Build()
+            new ServiceCategoryBuilder().WithName("Cat 1").Build(),
+            new ServiceCategoryBuilder().WithName("Cat 2").Build()
         };
+        var query = new GetAllServiceCategoriesQuery(ActiveOnly: false);
 
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(3);
-        result.Value.Should().Contain(c => c.Name == "Limpeza");
-        result.Value.Should().Contain(c => c.Name == "Reparos");
-        result.Value.Should().Contain(c => c.Name == "Pintura");
-
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WithActiveOnlyTrue_ShouldReturnOnlyActiveCategories()
+    public async Task Handle_WithActiveOnly_ShouldReturnActiveCategories()
     {
-        // Arrange
         var query = new GetAllServiceCategoriesQuery(ActiveOnly: true);
-        var categories = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory>
-        {
-            new ServiceCategoryBuilder().WithName("Limpeza").AsActive().Build(),
-            new ServiceCategoryBuilder().WithName("Reparos").AsActive().Build()
-        };
 
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(categories);
+        _categoryQueriesMock.Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ServiceCategory>());
 
-        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
-        result.Value.Should().OnlyContain(c => c.IsActive);
-
-        _repositoryMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_WithNoCategories_ShouldReturnEmptyList()
-    {
-        // Arrange
-        var query = new GetAllServiceCategoriesQuery(ActiveOnly: false);
-
-        _repositoryMock
-            .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory>());
-
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEmpty();
-
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

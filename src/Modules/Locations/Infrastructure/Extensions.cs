@@ -1,16 +1,17 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Filters;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
+using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -77,8 +78,9 @@ public static class Extensions
             return context;
         });
 
-        // Registrar repositórios
-        services.AddScoped<IAllowedCityRepository, AllowedCityRepository>();
+        // Registrar IUnitOfWork e IAllowedCityQueries
+        services.AddScoped<IUnitOfWork, LocationsDbContext>();
+        services.AddScoped<IAllowedCityQueries, DbContextAllowedCityQueries>();
 
         // Registrar ExceptionHandler para exceções de domínio
         services.AddExceptionHandler<LocationsExceptionHandler>();
