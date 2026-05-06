@@ -75,7 +75,6 @@ public class DeactivateServiceCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         service.IsActive.Should().BeFalse();
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

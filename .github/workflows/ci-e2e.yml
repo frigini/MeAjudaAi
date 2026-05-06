@@ -41,9 +41,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Backend
         uses: ./.github/actions/setup-backend
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.slnx
 
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore

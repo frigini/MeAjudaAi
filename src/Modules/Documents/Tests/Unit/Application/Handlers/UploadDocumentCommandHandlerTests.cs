@@ -132,7 +132,9 @@ public class UploadDocumentCommandHandlerTests
             x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
 
-// Verification removed as enqueuing is now handled by outbox
+        _mockOutboxRepository.Verify(
+            x => x.AddAsync(It.Is<OutboxMessage>(m => m.Type == "DocumentVerification")),
+            Times.Once);
     }
 
     [Fact]

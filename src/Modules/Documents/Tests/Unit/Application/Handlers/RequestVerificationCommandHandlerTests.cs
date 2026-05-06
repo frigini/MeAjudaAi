@@ -242,6 +242,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenSaveChangesThrows_ShouldReturnInternal()
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(providerId, EDocumentType.IdentityDocument, "test.pdf", "blob-url");
@@ -252,18 +253,24 @@ public class RequestVerificationCommandHandlerTests
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 
         var mockRepo = new Mock<IRepository<Document, DocumentId>>();
+        var mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
         mockRepo.Setup(r => r.TryFindAsync(It.IsAny<DocumentId>(), It.IsAny<CancellationToken>())).ReturnsAsync(document);
+        
         _mockUow.Setup(x => x.GetRepository<Document, DocumentId>()).Returns(mockRepo.Object);
+        _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(mockOutboxRepo.Object);
         _mockDocumentQueries.Setup(x => x.GetByIdAndProviderAsync(documentId, providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("db error"));
 
         var command = new RequestVerificationCommand(documentId);
 
+        // Act
         var result = await _handler.HandleAsync(command, default);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(500);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
