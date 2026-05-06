@@ -73,6 +73,15 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
+      - name: Debug Infraestrutura
+        run: |
+          echo "Verificando portas em uso:"
+          netstat -tuln
+          echo "Verificando containers rodando:"
+          docker ps
+          echo "Verificando logs dos serviços (Postgres):"
+          docker ps -q --filter "ancestor=postgis/postgis:16-3.4" | xargs -r docker logs
+
       - name: Run Backend E2E Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
