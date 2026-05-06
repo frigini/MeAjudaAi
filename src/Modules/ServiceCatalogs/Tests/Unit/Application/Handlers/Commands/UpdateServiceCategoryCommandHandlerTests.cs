@@ -79,4 +79,40 @@ public class UpdateServiceCategoryCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Handle_WithDuplicateName_ShouldReturnFailure()
+    {
+        var category = new ServiceCategoryBuilder().WithName("A").Build();
+        var cmd = new UpdateServiceCategoryCommand(category.Id.Value, "A", "desc", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+        _categoryQueriesMock.Setup(x => x.ExistsWithNameAsync("A", category.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _handler.HandleAsync(cmd);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenDbUpdateUniqueViolation_ShouldReturnFailureWithDuplicateMessage()
+    {
+        var category = new ServiceCategoryBuilder().WithName("A").Build();
+        var cmd = new UpdateServiceCategoryCommand(category.Id.Value, "B", "desc", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+
+        // Força a exceção no SaveChangesAsync
+        var inner = new Exception("duplicate key value violates unique constraint ix_service_categories_name");
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("err", inner));
+
+        var result = await _handler.HandleAsync(cmd);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("Já existe uma categoria");
+    }
 }

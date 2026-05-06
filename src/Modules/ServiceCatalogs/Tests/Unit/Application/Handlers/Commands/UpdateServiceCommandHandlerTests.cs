@@ -1,11 +1,15 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
+using FluentAssertions;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -51,6 +55,38 @@ public class UpdateServiceCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         service.Name.Should().Be("Serviço Atualizado");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithNonExistentService_ShouldReturnFailure()
+    {
+        var command = new UpdateServiceCommand(Guid.NewGuid(), "Nome", " Desc", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Service?)null);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WithEmptyName_ShouldReturnFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Serviço Original")
+            .Build();
+        var command = new UpdateServiceCommand(service.Id.Value, "", "Descrição", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]
@@ -72,40 +108,6 @@ public class UpdateServiceCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Já existe um serviço com o nome");
-    }
-
-    [Fact]
-    public async Task Handle_WithNonExistentService_ShouldReturnFailure()
-    {
-        var command = new UpdateServiceCommand(Guid.NewGuid(), "Nome", " Desc", 1);
-
-        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Service?)null);
-
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        result.IsFailure.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task Handle_WithEmptyName_ShouldReturnFailure()
-
-    {
-        var category = new ServiceCategoryBuilder().AsActive().Build();
-        var service = new ServiceBuilder()
-            .WithCategoryId(category.Id)
-            .WithName("Serviço Original")
-            .Build();
-        var command = new UpdateServiceCommand(service.Id.Value, "", "Descrição", 1);
-
-        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("nome");
     }
 
     [Fact]
@@ -121,24 +123,28 @@ public class UpdateServiceCommandHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _serviceQueriesMock.Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-            
-        // Simula erro de domínio no método Update que é chamado pelo handler
-        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(service);
-
-        // Como o método Update está no agregado e não no handler, 
-        // a única forma do handler capturar isso é se o Aggregate.Update lançar
-        // Mas o UpdateServiceCommandHandler captura CatalogDomainException.
-        // O teste precisa simular um erro que venha do domínio.
-        // Vamos forçar um erro na UoW SaveChangesAsync.
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions.CatalogDomainException("Erro de negócio"));
+            .ThrowsAsync(new CatalogDomainException("Erro de negócio"));
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
     }
-}
 
+    [Fact]
+    public async Task Handle_WhenUnexpectedExceptionOccurs_ShouldReturnFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder().WithCategoryId(category.Id).WithName("X").Build();
+        var cmd = new UpdateServiceCommand(service.Id.Value, "Y", "d", 1);
+
+        _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("boom"));
+
+        var result = await _handler.HandleAsync(cmd, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+    }
+}

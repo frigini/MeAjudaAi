@@ -26,6 +26,7 @@ public class ApproveDocumentCommandHandler(
     ILogger<ApproveDocumentCommandHandler> logger)
     : ICommandHandler<ApproveDocumentCommand, Result>
 {
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<ApproveDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -57,7 +58,7 @@ public class ApproveDocumentCommandHandler(
             }
 
             // Validar se o documento existe
-            var repository = uow.GetRepository<Document, DocumentId>();
+            var repository = _uow.GetRepository<Document, DocumentId>();
             var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
@@ -83,7 +84,7 @@ public class ApproveDocumentCommandHandler(
             
             document.MarkAsVerified(ocrData);
             
-            await uow.SaveChangesAsync(cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} approved successfully. CorrelationId: {CorrelationId}",

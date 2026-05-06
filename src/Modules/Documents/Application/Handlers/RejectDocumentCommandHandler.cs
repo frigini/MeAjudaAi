@@ -85,8 +85,8 @@ public class RejectDocumentCommandHandler(
             await _uow!.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Document {DocumentId} rejected successfully. Reason: {Reason}. CorrelationId: {CorrelationId}",
-                command.DocumentId, command.RejectionReason, command.CorrelationId);
+                "Document {DocumentId} rejected successfully. CorrelationId: {CorrelationId}",
+                command.DocumentId, command.CorrelationId);
 
             return Result.Success();
         }
@@ -105,7 +105,7 @@ public class RejectDocumentCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, 
-                "Unexpected error approving document {DocumentId}. CorrelationId: {CorrelationId}",
+                "Unexpected error rejecting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
             return Result.Failure(Error.Internal("Falha ao rejeitar o documento. Por favor, tente novamente mais tarde."));
         }

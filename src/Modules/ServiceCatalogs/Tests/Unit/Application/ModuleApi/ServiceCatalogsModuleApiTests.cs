@@ -93,10 +93,13 @@ public class ServiceCatalogsModuleApiTests
     }
 
     [Fact]
-    public async Task CheckHealth_ShouldReturnHealthy()
+    public async Task CheckHealth_WhenQueryFails_ShouldReturnUnhealthy()
     {
+        _categoryQueriesMock.Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Database error"));
+
         var result = await _sut.CheckHealthAsync();
 
-        result.Status.Should().Be(Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy);
+        result.Status.Should().Be(Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
     }
 }

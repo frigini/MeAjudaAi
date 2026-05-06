@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Moq;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration.Infrastructure;
