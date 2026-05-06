@@ -91,9 +91,7 @@ jobs:
           MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
         run: |
           dotnet test tests/MeAjudaAi.E2E.Tests/ \
-            --configuration Release --no-build --verbosity normal \
-            --filter "Category=E2E" \
-            --collect:"XPlat Code Coverage"
+            --configuration Release --no-build --verbosity normal
 
   frontend-e2e:
     name: Frontend E2E
