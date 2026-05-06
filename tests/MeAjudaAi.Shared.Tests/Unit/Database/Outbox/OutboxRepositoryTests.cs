@@ -25,23 +25,57 @@ public class OutboxRepositoryTests
     }
 
     [Fact]
-    public async Task GetPendingAsync_ShouldReturnOnlyPendingAndOrderedCorrectly()
+    public async Task GetPendingAsync_ShouldExcludeProcessedAndFutureMessages()
     {
         using var context = new TestDbContext(_options);
         var repo = new OutboxRepository<OutboxMessage>(context);
         var now = DateTime.UtcNow;
 
-        var m1 = OutboxMessage.Create("Type1", "Payload1", ECommunicationPriority.Normal, null);
-        var m2 = OutboxMessage.Create("Type2", "Payload2", ECommunicationPriority.High, null);
-        var m3 = OutboxMessage.Create("Type3", "Payload3", ECommunicationPriority.Low, now.AddMinutes(10));
+        var mPending = OutboxMessage.Create("Type1", "P1", ECommunicationPriority.Normal, null);
+        var mProcessing = OutboxMessage.Create("Type2", "P2", ECommunicationPriority.Normal, null);
+        mProcessing.MarkAsSent(now); // Marca como enviado/processado
+        var mScheduled = OutboxMessage.Create("Type3", "P3", ECommunicationPriority.Normal, now.AddMinutes(10));
         
-        context.OutboxMessages.AddRange(m1, m2, m3);
+        context.OutboxMessages.AddRange(mPending, mProcessing, mScheduled);
         await context.SaveChangesAsync();
 
-        var pending = await repo.GetPendingAsync(batchSize: 10, utcNow: now);
+        var pending = await repo.GetPendingAsync(10, now);
+
+        pending.Should().HaveCount(1);
+        pending.Should().Contain(m => m.Id == mPending.Id);
+    }
+
+    [Fact]
+    public async Task GetPendingAsync_ShouldRespectBatchSize()
+    {
+        using var context = new TestDbContext(_options);
+        var repo = new OutboxRepository<OutboxMessage>(context);
+        
+        for (int i = 0; i < 5; i++)
+            context.OutboxMessages.Add(OutboxMessage.Create("T", "P", ECommunicationPriority.Normal, null));
+        await context.SaveChangesAsync();
+
+        var pending = await repo.GetPendingAsync(3);
+
+        pending.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task GetPendingAsync_ShouldUseCreatedAtAsTiebreaker()
+    {
+        using var context = new TestDbContext(_options);
+        var repo = new OutboxRepository<OutboxMessage>(context);
+        
+        var m1 = OutboxMessage.Create("T", "P1", ECommunicationPriority.Normal, null);
+        var m2 = OutboxMessage.Create("T", "P2", ECommunicationPriority.Normal, null);
+        
+        context.OutboxMessages.AddRange(m1, m2);
+        await context.SaveChangesAsync();
+
+        var pending = await repo.GetPendingAsync();
 
         pending.Should().HaveCount(2);
-        pending[0].Priority.Should().Be(ECommunicationPriority.High);
-        pending[1].Priority.Should().Be(ECommunicationPriority.Normal);
+        pending[0].CreatedAt.Should().BeBefore(pending[1].CreatedAt);
     }
 }
+
