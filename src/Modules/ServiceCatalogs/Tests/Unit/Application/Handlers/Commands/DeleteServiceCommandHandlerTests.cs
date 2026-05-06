@@ -7,8 +7,12 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Functional;
 using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
+
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -16,23 +20,21 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 public class DeleteServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _repositoryMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly DeleteServiceCommandHandler _handler;
 
     public DeleteServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _repositoryMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
-        
-        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>())
+
+        _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
             .Returns(_repositoryMock.Object);
-        
+
         _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object);
     }
-
-    [Fact]
     public async Task Handle_WithValidCommandAndNoProviders_ShouldReturnSuccess()
     {
         var category = new ServiceCategoryBuilder().AsActive().Build();
@@ -58,7 +60,7 @@ public class DeleteServiceCommandHandlerTests
         var command = new DeleteServiceCommand(Guid.NewGuid());
 
         _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Service?)null);
+            .ReturnsAsync((ServiceEntity?)null);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 

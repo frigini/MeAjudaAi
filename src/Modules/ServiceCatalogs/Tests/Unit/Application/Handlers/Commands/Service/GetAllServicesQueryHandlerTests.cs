@@ -1,11 +1,11 @@
-using FluentAssertions;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands.Service;
 

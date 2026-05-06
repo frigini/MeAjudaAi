@@ -68,6 +68,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -78,6 +79,8 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("identificador");
+        _repositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -114,6 +117,6 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(cmd);
 
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Já existe uma categoria");
+        result.Error!.Message.Should().Be(string.Format(MeAjudaAi.Contracts.Utilities.Constants.ValidationMessages.Catalogs.CategoryNameExists, "B"));
     }
 }

@@ -13,23 +13,27 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
+
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
 [Trait("Layer", "Application")]
 public class UpdateServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _repositoryMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
+    private readonly Mock<ILogger<UpdateServiceCommandHandler>> _loggerMock;
     private readonly UpdateServiceCommandHandler _handler;
 
     public UpdateServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _repositoryMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
+        _loggerMock = new Mock<ILogger<UpdateServiceCommandHandler>>();
         
-        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>())
+        _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
             .Returns(_repositoryMock.Object);
         
         _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object);
@@ -64,7 +68,7 @@ public class UpdateServiceCommandHandlerTests
         var command = new UpdateServiceCommand(Guid.NewGuid(), "Nome", " Desc", 1);
 
         _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Service?)null);
+            .ReturnsAsync((ServiceEntity?)null);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 

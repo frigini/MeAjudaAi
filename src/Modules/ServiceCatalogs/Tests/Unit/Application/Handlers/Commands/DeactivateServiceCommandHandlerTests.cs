@@ -11,23 +11,25 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
+
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
 [Trait("Layer", "Application")]
 public class DeactivateServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _repositoryMock;
     private readonly Mock<ILogger<DeactivateServiceCommandHandler>> _loggerMock;
     private readonly DeactivateServiceCommandHandler _handler;
 
     public DeactivateServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _repositoryMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _loggerMock = new Mock<ILogger<DeactivateServiceCommandHandler>>();
 
-        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>())
+        _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
             .Returns(_repositoryMock.Object);
 
         _handler = new DeactivateServiceCommandHandler(_uowMock.Object, _loggerMock.Object);
@@ -59,7 +61,7 @@ public class DeactivateServiceCommandHandlerTests
         var command = new DeactivateServiceCommand(Guid.NewGuid());
 
         _repositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Service?)null);
+            .ReturnsAsync((ServiceEntity?)null);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 

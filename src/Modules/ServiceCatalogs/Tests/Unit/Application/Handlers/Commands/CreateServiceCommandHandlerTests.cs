@@ -1,12 +1,9 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using Service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
-using ServiceCategory = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
@@ -14,8 +11,11 @@ using Moq;
 using Xunit;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
+
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -25,7 +25,7 @@ public class CreateServiceCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
-    private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _serviceRepositoryMock;
     private readonly Mock<ILogger<CreateServiceCommandHandler>> _loggerMock;
     private readonly CreateServiceCommandHandler _handler;
 
@@ -34,10 +34,10 @@ public class CreateServiceCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
-        _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _serviceRepositoryMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _loggerMock = new Mock<ILogger<CreateServiceCommandHandler>>();
         
-        _uowMock.Setup(u => u.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
+        _uowMock.Setup(u => u.GetRepository<ServiceEntity, ServiceId>()).Returns(_serviceRepositoryMock.Object);
 
         _handler = new CreateServiceCommandHandler(_uowMock.Object, _categoryQueriesMock.Object, _serviceQueriesMock.Object, _loggerMock.Object);
     }
@@ -62,7 +62,7 @@ public class CreateServiceCommandHandlerTests
         result.Value.Id.Should().NotBe(Guid.Empty);
         result.Value.Name.Should().Be(command.Name);
         result.Value.CategoryId.Should().Be(command.CategoryId);
-        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Once);
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Once);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -80,7 +80,7 @@ public class CreateServiceCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("não encontrada");
-        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -98,7 +98,7 @@ public class CreateServiceCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("inativa");
-        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -119,7 +119,7 @@ public class CreateServiceCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("Já existe um serviço com o nome");
-        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -151,7 +151,7 @@ public class CreateServiceCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("O nome do serviço é obrigatório.");
-        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -169,7 +169,7 @@ public class CreateServiceCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("não pode ser negativa");
-        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<ServiceEntity>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -184,7 +184,7 @@ public class CreateServiceCommandHandlerTests
             .ReturnsAsync(category);
 
         _serviceRepositoryMock
-            .Setup(x => x.Add(It.IsAny<Service>()))
+            .Setup(x => x.Add(It.IsAny<ServiceEntity>()))
             .Throws(new CatalogDomainException("Domain rule violation"));
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);

@@ -6,8 +6,12 @@ using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
+
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -15,25 +19,23 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 public class ChangeServiceCategoryCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly Mock<IRepository<Service, ServiceId>> _serviceRepoMock;
+    private readonly Mock<IRepository<ServiceEntity, ServiceId>> _serviceRepoMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepoMock;
     private readonly ChangeServiceCategoryCommandHandler _handler;
 
     public ChangeServiceCategoryCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _serviceRepoMock = new Mock<IRepository<Service, ServiceId>>();
+        _serviceRepoMock = new Mock<IRepository<ServiceEntity, ServiceId>>();
         _categoryRepoMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
-        
-        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>())
+
+        _uowMock.Setup(x => x.GetRepository<ServiceEntity, ServiceId>())
             .Returns(_serviceRepoMock.Object);
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>())
             .Returns(_categoryRepoMock.Object);
-        
+
         _handler = new ChangeServiceCategoryCommandHandler(_uowMock.Object);
     }
-
-    [Fact]
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()
     {
         var oldCategory = new ServiceCategoryBuilder().WithName("Limpeza").AsActive().Build();
@@ -60,7 +62,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.NewGuid());
 
         _serviceRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Service?)null);
+            .ReturnsAsync((ServiceEntity?)null);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
