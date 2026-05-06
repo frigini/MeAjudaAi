@@ -48,17 +48,21 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Dotnet info
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+          dotnet --list-runtimes
+
       - name: Setup Backend
         uses: ./.github/actions/setup-backend
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: '8.0.x'
 
       - name: Docker diagnostics
         run: |
           docker --version
           docker info
-          ls -la /var/run/docker.sock || true
-          id && groups
 
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
@@ -66,7 +70,10 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
-      - name: Run Backend E2E Tests (sequential + filter + diag)
+      - name: Preflight - list tests
+        run: dotnet test tests/MeAjudaAi.E2E.Tests --list-tests -c Release || true
+
+      - name: Run Backend E2E Tests (seq + filter + diag)
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -80,7 +87,8 @@ jobs:
             --settings tests/sequential.runsettings \
             --collect:"XPlat Code Coverage" \
             --logger "trx;LogFileName=e2e.trx" \
-            --diag e2e.vstest.diag.log
+            --diag e2e.vstest.diag.log \
+            --blame-hang --blame-hang-timeout 5m --blame-hang-dump-type full
 
       - name: Upload E2E diagnostics
         uses: actions/upload-artifact@v4
