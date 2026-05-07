@@ -120,6 +120,9 @@ public class TestContainerFixture : IAsyncLifetime
     {
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
+        // Configurar SSL para TestContainers (desabilitar SSL para container local)
+        AppContext.SetSwitch("Npgsql.DisableGoogleNativeSslStream", true);
+
         // Configurar containers com portas dinâmicas e WaitStrategies
         if (_postgresContainer == null)
         {
@@ -128,6 +131,7 @@ public class TestContainerFixture : IAsyncLifetime
                 .WithUsername("postgres")
                 .WithPassword("test123")
                 .WithPortBinding(5432, true)
+                .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust")
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
                 .WithCleanUp(true)
                 .Build();
@@ -158,7 +162,17 @@ public class TestContainerFixture : IAsyncLifetime
         await Task.WhenAll(startTasks);
 
         // Armazenar connection strings dinamicas
-        PostgresConnectionString = _postgresContainer.GetConnectionString();
+        var rawConnectionString = _postgresContainer.GetConnectionString();
+        // Adicionar opções de SSL para TestContainers (Disable SSL mas com fallback)
+        if (!rawConnectionString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase))
+        {
+            var separator = rawConnectionString.EndsWith(";") ? "" : ";";
+            PostgresConnectionString = $"{rawConnectionString}{separator}SSL Mode=Disable;Include Error Detail=true";
+        }
+        else
+        {
+            PostgresConnectionString = rawConnectionString;
+        }
         RedisConnectionString = _redisContainer.GetConnectionString();
         AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
