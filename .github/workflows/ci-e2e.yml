@@ -85,9 +85,6 @@ jobs:
         run: |
           dotnet test tests/MeAjudaAi.E2E.Tests \
             --configuration Release --no-build \
-            --filter "Category=E2E" \
-            --settings tests/sequential.runsettings \
-            --collect:"XPlat Code Coverage" \
             --logger "trx;LogFileName=e2e.trx" \
             --diag e2e.vstest.diag.log \
             --blame-hang --blame-hang-timeout 5m --blame-hang-dump-type full
