@@ -139,7 +139,7 @@ public class TestContainerFixture : IAsyncLifetime
             _redisContainer = new RedisBuilder()
                 .WithImage("redis:7-alpine")
                 .WithPortBinding(6379, true) // Porta aleatória
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6379))
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsListening(6379))
                 .WithCleanUp(true)
                 .Build();
         }

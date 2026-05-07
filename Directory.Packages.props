@@ -138,6 +138,7 @@
     <PackageVersion Include="System.IO.Hashing" Version="10.0.7" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <!-- Framework de Testes (Apenas xUnit v3) -->
+    <PackageVersion Include="Testcontainers" Version="4.11.0" />
     <PackageVersion Include="WireMock.Net" Version="2.4.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
