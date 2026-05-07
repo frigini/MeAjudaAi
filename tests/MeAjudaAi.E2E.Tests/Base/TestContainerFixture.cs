@@ -123,7 +123,9 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Configurar Npgsql para desabilitar SSL via AppContext
         AppContext.SetSwitch("Npgsql.DisableGoogleNativeSslStream", true);
-        Environment.SetEnvironmentVariable("NODE_ENV", "development");
+        
+        // Configurar Npgsql para não usar SSL
+        AppContext.SetSwitch("Npgsql.FailOnSslNegotiationFailure", false);
 
         // Configurar containers com portas dinâmicas e WaitStrategies
         if (_postgresContainer == null)
@@ -135,8 +137,7 @@ public class TestContainerFixture : IAsyncLifetime
                 .WithPortBinding(5432, true)
                 // Configurar PostgreSQL para aceitar conexões sem SSL
                 .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust")
-                // Passar opções de configuração do PostgreSQL para desabilitar SSL
-                .WithCommand(new[] { "-c", "ssl=off", "-c", "ssl_cert_file=", "-c", "ssl_key_file=" })
+                // Wait mais robusto
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
                 .WithCleanUp(true)
                 .Build();
@@ -168,10 +169,16 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Armazenar connection strings dinamicas
         var rawConnectionString = _postgresContainer.GetConnectionString();
-        // Adicionar opção de SSL para TestContainers (forçar modo disable)
-        var connectionBuilder = new NpgsqlConnectionStringBuilder(rawConnectionString)
+        // Forçar SSL mode disable via string
+        var sslDisabled = rawConnectionString.EndsWith(";")
+            ? rawConnectionString + "SSL Mode=Disable"
+            : rawConnectionString + ";SSL Mode=Disable";
+        
+        // Fallback: adicionar parametro de timeout
+        var connectionBuilder = new NpgsqlConnectionStringBuilder(sslDisabled)
         {
-            SslMode = SslMode.Disable
+            SslMode = SslMode.Disable,
+            Timeout = 30
         };
         PostgresConnectionString = connectionBuilder.ToString();
         RedisConnectionString = _redisContainer.GetConnectionString();
