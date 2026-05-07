@@ -22,18 +22,14 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 public class UploadDocumentCommandHandler(
     IUnitOfWork uow,
     IBlobStorageService blobStorageService,
-    IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     IOptions<DocumentUploadOptions> uploadOptions,
-    MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> outboxRepository,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
-    private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly DocumentUploadOptions _uploadOptions = uploadOptions?.Value ?? throw new ArgumentNullException(nameof(uploadOptions));
-    private readonly MeAjudaAi.Shared.Database.Outbox.IOutboxRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage> _outboxRepository = outboxRepository ?? throw new ArgumentNullException(nameof(outboxRepository));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
@@ -124,7 +120,9 @@ public class UploadDocumentCommandHandler(
                 priority: MeAjudaAi.Contracts.Shared.ECommunicationPriority.Normal);
 
             _logger.LogInformation("Saving document and outbox message to database for provider {ProviderId}", command.ProviderId);
-            await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
+            
+            var outboxRepository = _uow.GetRepository<MeAjudaAi.Shared.Database.Outbox.OutboxMessage, Guid>();
+            outboxRepository.Add(outboxMessage);
             await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Document {DocumentId} created and job enqueued in outbox for provider {ProviderId}",

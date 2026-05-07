@@ -8,6 +8,7 @@ on:
       - 'src/Bootstrapper/**'
       - 'src/Modules/**'
       - 'tests/MeAjudaAi.E2E.Tests/**'
+      - 'tests/sequential.runsettings'
       - '.github/workflows/ci-e2e.yml'
       - '.github/actions/**'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - 'src/Bootstrapper/**'
       - 'src/Modules/**'
       - 'tests/MeAjudaAi.E2E.Tests/**'
+      - 'tests/sequential.runsettings'
       - '.github/workflows/ci-e2e.yml'
       - '.github/actions/**'
   workflow_dispatch:
@@ -43,10 +45,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Dotnet info
         run: |
@@ -57,7 +59,7 @@ jobs:
       - name: Setup Backend
         uses: ./.github/actions/setup-backend
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Docker diagnostics
         run: |

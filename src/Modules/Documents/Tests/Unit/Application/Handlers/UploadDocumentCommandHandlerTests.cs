@@ -26,11 +26,10 @@ public class UploadDocumentCommandHandlerTests
     private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IRepository<Document, DocumentId>> _mockRepository;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
-    private readonly Mock<IBackgroundJobService> _mockJobService;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<IOptions<DocumentUploadOptions>> _mockUploadOptions;
     private readonly Mock<ILogger<UploadDocumentCommandHandler>> _mockLogger;
-    private readonly Mock<IOutboxRepository<OutboxMessage>> _mockOutboxRepository;
+    private readonly Mock<IRepository<OutboxMessage, Guid>> _mockOutboxRepository;
     private readonly UploadDocumentCommandHandler _handler;
 
     public UploadDocumentCommandHandlerTests()
@@ -38,13 +37,13 @@ public class UploadDocumentCommandHandlerTests
         _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockRepository = new Mock<IRepository<Document, DocumentId>>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
-        _mockJobService = new Mock<IBackgroundJobService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockUploadOptions = new Mock<IOptions<DocumentUploadOptions>>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
-        _mockOutboxRepository = new Mock<IOutboxRepository<OutboxMessage>>();
+        _mockOutboxRepository = new Mock<IRepository<OutboxMessage, Guid>>();
 
         _mockUow.Setup(u => u.GetRepository<Document, DocumentId>()).Returns(_mockRepository.Object);
+        _mockUow.Setup(u => u.GetRepository<OutboxMessage, Guid>()).Returns(_mockOutboxRepository.Object);
 
         // Configure default upload options
         _mockUploadOptions.Setup(x => x.Value).Returns(new DocumentUploadOptions
@@ -53,20 +52,11 @@ public class UploadDocumentCommandHandlerTests
             AllowedContentTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
         });
 
-        // Configure default behavior for background job service
-        _mockJobService
-            .Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()))
-            .Returns(Task.CompletedTask);
-
         _handler = new UploadDocumentCommandHandler(
             _mockUow.Object,
             _mockBlobStorage.Object,
-            _mockJobService.Object,
             _mockHttpContextAccessor.Object,
             _mockUploadOptions.Object,
-            _mockOutboxRepository.Object,
             _mockLogger.Object);
     }
 
@@ -133,7 +123,7 @@ public class UploadDocumentCommandHandlerTests
             Times.Once);
 
         _mockOutboxRepository.Verify(
-            x => x.AddAsync(It.Is<OutboxMessage>(m => m.Type == "DocumentVerification")),
+            x => x.Add(It.Is<OutboxMessage>(m => m.Type == OutboxMessageTypes.DocumentVerification)),
             Times.Once);
     }
 

@@ -165,7 +165,7 @@ public class TestContainerFixture : IAsyncLifetime
         RedisConnectionString = _redisContainer.GetConnectionString();
         AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
-        Console.WriteLine($"✅ TestContainers initialized: Postgres={PostgresConnectionString}, Redis={RedisConnectionString}");
+        Console.WriteLine($"✅ TestContainers initialized.");
     }
 
     private async Task InitializeFactoryAsync()
