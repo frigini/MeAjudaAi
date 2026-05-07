@@ -75,7 +75,7 @@ jobs:
       - name: Preflight - list tests
         run: dotnet test tests/MeAjudaAi.E2E.Tests --list-tests -c Release || true
 
-      - name: Run Backend E2E Tests (seq + filter + diag)
+      - name: Run Backend E2E Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
