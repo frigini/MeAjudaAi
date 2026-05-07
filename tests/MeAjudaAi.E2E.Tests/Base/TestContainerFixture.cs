@@ -58,10 +58,15 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        Console.WriteLine("🔵 TestContainerFixture.InitializeAsync() - starting");
+        
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        
         // One-time initialization for the entire test run
         if (!_containersInitialized)
         {
-            await _initializationLock.WaitAsync();
+            Console.WriteLine("🔵 Waiting for initialization lock...");
+            await _initializationLock.WaitAsync(cts.Token);
             try
             {
                 if (!_containersInitialized)
@@ -88,9 +93,11 @@ public class TestContainerFixture : IAsyncLifetime
         if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
         if (_azuriteContainer != null) AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
+        Console.WriteLine("🔵 Initializing factory...");
         // Initialize WebApplicationFactory for THIS test class instance
         await InitializeFactoryAsync();
-
+        
+        Console.WriteLine("🔵 Applying migrations...");
         // One-time migration application for the entire test run
         if (!_migrationsApplied)
         {
@@ -160,12 +167,15 @@ public class TestContainerFixture : IAsyncLifetime
         }
 
         // Iniciar containers em paralelo
+        Console.WriteLine("🔵 Starting containers...");
         var startTasks = new List<Task>();
         startTasks.Add(_postgresContainer.StartAsync());
         startTasks.Add(_redisContainer.StartAsync());
         startTasks.Add(_azuriteContainer.StartAsync());
 
+        Console.WriteLine("🔵 Waiting for containers to start...");
         await Task.WhenAll(startTasks);
+        Console.WriteLine("✅ All containers started.");
 
         // Armazenar connection strings dinamicas
         var rawConnectionString = _postgresContainer.GetConnectionString();
@@ -190,6 +200,7 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task InitializeFactoryAsync()
     {
+        Console.WriteLine("🔵 Creating WebApplicationFactory...");
 #pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
 #pragma warning restore CA2000
