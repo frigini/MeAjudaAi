@@ -123,12 +123,11 @@ public class TestContainerFixture : IAsyncLifetime
         // Configurar containers com portas dinâmicas e WaitStrategies
         if (_postgresContainer == null)
         {
-            _postgresContainer = new PostgreSqlBuilder()
-                .WithImage("postgis/postgis:16-3.4")
+            _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("meajudaai_test")
                 .WithUsername("postgres")
                 .WithPassword("test123")
-                .WithPortBinding(5432, true) // Porta aleatória
+                .WithPortBinding(5432, true)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
                 .WithCleanUp(true)
                 .Build();
@@ -136,18 +135,16 @@ public class TestContainerFixture : IAsyncLifetime
 
         if (_redisContainer == null)
         {
-            _redisContainer = new RedisBuilder()
-                .WithImage("redis:7-alpine")
-                .WithPortBinding(6379, true) // Porta aleatória
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsListening(6379))
+            _redisContainer = new RedisBuilder("redis:7-alpine")
+                .WithPortBinding(6379, true)
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping"))
                 .WithCleanUp(true)
                 .Build();
         }
 
         if (_azuriteContainer == null)
         {
-            _azuriteContainer = new AzuriteBuilder()
-                .WithImage("mcr.microsoft.com/azure-storage/azurite:3.30.0")
+            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
                 .WithCleanUp(true)
                 .Build();
         }
