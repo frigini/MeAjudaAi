@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Networks;
 using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
+using DotNet.Testcontainers.Configurations;
 
 namespace MeAjudaAi.E2E.Tests.Base;
 
@@ -118,27 +120,34 @@ public class TestContainerFixture : IAsyncLifetime
     {
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-        // Configurar containers com timeouts aumentados para WSL2/Docker Desktop (Windows)
+        // Configurar containers com portas dinâmicas e WaitStrategies
         if (_postgresContainer == null)
         {
-            _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+            _postgresContainer = new PostgreSqlBuilder()
+                .WithImage("postgis/postgis:16-3.4")
                 .WithDatabase("meajudaai_test")
                 .WithUsername("postgres")
                 .WithPassword("test123")
+                .WithPortBinding(5432, true) // Porta aleatória
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
                 .WithCleanUp(true)
                 .Build();
         }
 
         if (_redisContainer == null)
         {
-            _redisContainer = new RedisBuilder("redis:7-alpine")
+            _redisContainer = new RedisBuilder()
+                .WithImage("redis:7-alpine")
+                .WithPortBinding(6379, true) // Porta aleatória
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6379))
                 .WithCleanUp(true)
                 .Build();
         }
 
         if (_azuriteContainer == null)
         {
-            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
+            _azuriteContainer = new AzuriteBuilder()
+                .WithImage("mcr.microsoft.com/azure-storage/azurite:3.30.0")
                 .WithCleanUp(true)
                 .Build();
         }
@@ -151,12 +160,12 @@ public class TestContainerFixture : IAsyncLifetime
 
         await Task.WhenAll(startTasks);
 
-        // Armazenar connection strings
+        // Armazenar connection strings dinamicas
         PostgresConnectionString = _postgresContainer.GetConnectionString();
         RedisConnectionString = _redisContainer.GetConnectionString();
         AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
-        Console.WriteLine("✅ TestContainers initialized successfully");
+        Console.WriteLine($"✅ TestContainers initialized: Postgres={PostgresConnectionString}, Redis={RedisConnectionString}");
     }
 
     private async Task InitializeFactoryAsync()
