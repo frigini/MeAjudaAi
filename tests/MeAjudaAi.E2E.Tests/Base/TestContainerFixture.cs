@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -120,8 +121,9 @@ public class TestContainerFixture : IAsyncLifetime
     {
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-        // Configurar SSL para TestContainers (desabilitar SSL para container local)
+        // Configurar Npgsql para desabilitar SSL via AppContext
         AppContext.SetSwitch("Npgsql.DisableGoogleNativeSslStream", true);
+        Environment.SetEnvironmentVariable("NODE_ENV", "development");
 
         // Configurar containers com portas dinâmicas e WaitStrategies
         if (_postgresContainer == null)
@@ -132,6 +134,7 @@ public class TestContainerFixture : IAsyncLifetime
                 .WithPassword("test123")
                 .WithPortBinding(5432, true)
                 .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust")
+                .WithEnvironment("POSTGRES_INITDB_ARGS", "--encoding=UTF-8")
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
                 .WithCleanUp(true)
                 .Build();
@@ -163,20 +166,17 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Armazenar connection strings dinamicas
         var rawConnectionString = _postgresContainer.GetConnectionString();
-        // Adicionar opções de SSL para TestContainers (Disable SSL mas com fallback)
-        if (!rawConnectionString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase))
+        // Adicionar opção de SSL para TestContainers (forçar modo disable)
+        var connectionBuilder = new NpgsqlConnectionStringBuilder(rawConnectionString)
         {
-            var separator = rawConnectionString.EndsWith(";") ? "" : ";";
-            PostgresConnectionString = $"{rawConnectionString}{separator}SSL Mode=Disable;Include Error Detail=true";
-        }
-        else
-        {
-            PostgresConnectionString = rawConnectionString;
-        }
+            SslMode = SslMode.Disable
+        };
+        PostgresConnectionString = connectionBuilder.ToString();
         RedisConnectionString = _redisContainer.GetConnectionString();
         AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         Console.WriteLine($"✅ TestContainers initialized.");
+        Console.WriteLine($"   Postgres: {PostgresConnectionString.Substring(0, Math.Min(80, PostgresConnectionString.Length))}...");
     }
 
     private async Task InitializeFactoryAsync()
