@@ -133,8 +133,10 @@ public class TestContainerFixture : IAsyncLifetime
                 .WithUsername("postgres")
                 .WithPassword("test123")
                 .WithPortBinding(5432, true)
+                // Configurar PostgreSQL para aceitar conexões sem SSL
                 .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust")
-                .WithEnvironment("POSTGRES_INITDB_ARGS", "--encoding=UTF-8")
+                // Passar opções de configuração do PostgreSQL para desabilitar SSL
+                .WithCommand(new[] { "-c", "ssl=off", "-c", "ssl_cert_file=", "-c", "ssl_key_file=" })
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
                 .WithCleanUp(true)
                 .Build();
