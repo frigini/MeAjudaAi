@@ -61,37 +61,11 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
-        await AppendLogAsync(diagPath, "InitializeAsync starting...");
-        
-        // One-time initialization for the entire test run
-        await SharedTestContainers.EnsureInitializedAsync();
-        await AppendLogAsync(diagPath, "Shared containers initialized.");
-        
-        // One-time migration application for the entire test run
-        if (!_migrationsApplied)
-        {
-            await AppendLogAsync(diagPath, "Waiting for migration lock...");
-            await _migrationLock.WaitAsync();
-            try
-            {
-                if (!_migrationsApplied)
-                {
-                    await AppendLogAsync(diagPath, "Applying migrations...");
-                    await ApplyMigrationsAsync();
-                    _migrationsApplied = true;
-                    await AppendLogAsync(diagPath, "Migrations applied successfully.");
-                }
-            }
-            finally
-            {
-                _migrationLock.Release();
-            }
-        }
+        // Centralized initialization (Containers + Migrations + Global Cleanup)
+        await E2EStabilityCoordinator.EnsureInitializedAsync();
 
         // Initialize WebApplicationFactory for THIS test class instance
         await InitializeFactoryAsync();
-        await AppendLogAsync(diagPath, "Factory initialized.");
     }
 
     private async Task InitializeFactoryAsync()
@@ -264,67 +238,12 @@ public class TestContainerFixture : IAsyncLifetime
         });
     }
 
-    private async Task ApplyMigrationsAsync()
-    {
-        Console.WriteLine("🔄 [TestContainerFixture] Applying global migrations...");
-        
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
-        await ApplyIndependentMigration<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>();
-
-        Console.WriteLine("✅ [TestContainerFixture] All global migrations applied.");
-    }
-
-    private async Task ApplyIndependentMigration<TContext>() where TContext : DbContext
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<TContext>();
-        var contextName = typeof(TContext).Name;
-        
-        optionsBuilder.UseNpgsql(SharedTestContainers.PostgresConnectionString, npgsqlOptions =>
-        {
-            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
-            npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
-            
-            if (typeof(TContext).Name.Contains("SearchProviders"))
-            {
-                npgsqlOptions.UseNetTopologySuite();
-            }
-        }).UseSnakeCaseNamingConvention()
-        .ConfigureWarnings(warnings => 
-            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-
-        using var context = (TContext)Activator.CreateInstance(typeof(TContext), optionsBuilder.Options)!;
-        await MigrationTestHelper.ApplyMigrationForContext(context);
-    }
-
     public async Task CleanupDatabaseAsync()
     {
-        using var scope = Services.CreateScope();
-        var services = scope.ServiceProvider;
-
-        var tasks = new[]
-        {
-            CleanupContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services),
-            CleanupContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services)
-        };
-
-        await Task.WhenAll(tasks);
+        await E2EStabilityCoordinator.GlobalCleanupAsync();
         await SharedTestContainers.FlushRedisAsync();
     }
+
 
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
     {

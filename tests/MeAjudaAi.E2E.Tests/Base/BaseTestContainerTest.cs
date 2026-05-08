@@ -59,20 +59,16 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     public virtual async ValueTask InitializeAsync()
     {
-        // Ensure containers are initialized only once
-        await SharedTestContainers.EnsureInitializedAsync();
+        // 1. Centralized initialization (Containers + Migrations + Global Cleanup)
+        await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        // Configurar WebApplicationFactory (instância por teste, mas usa containers compartilhados)
+        // 2. Configurar WebApplicationFactory (instância por teste, mas usa containers compartilhados)
         InitializeFactory();
 
-        // Create HTTP client with test context header injection
+        // 3. Create HTTP client with test context header injection
         ApiClient = _factory.CreateDefaultClient(new TestContextHeaderHandler());
 
-        // Para a primeira execução, precisamos aplicar as migrações.
-        // Como todos os testes compartilham o banco, aplicamos de forma idempotente.
-        await ApplyMigrationsAsync();
-
-        // Aguardar API ficar disponível
+        // 4. Aguardar API ficar disponível
         await WaitForApiHealthAsync();
     }
 
@@ -160,6 +156,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
+                    ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
                     var postgresOptionsDescriptors = services.Where(d => d.ServiceType == typeof(PostgresOptions)).ToList();
@@ -290,113 +287,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         throw new InvalidOperationException($"API did not become healthy after {maxAttempts} attempts");
     }
 
-    // Static flag for database migration state
-    private static bool _migrationsApplied = false;
-    private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-
-    private async Task ApplyMigrationsAsync()
-    {
-        if (_migrationsApplied) return;
-
-        await _migrationLock.WaitAsync();
-        try
-        {
-            if (_migrationsApplied) return;
-
-            Console.WriteLine("🔄 [BaseTestContainerTest] Applying global migrations...");
-            
-            // Apply migrations for each module independently to avoid factory dependency
-            await ApplyIndependentMigration<UsersDbContext>();
-            await ApplyIndependentMigration<ServiceCatalogsDbContext>();
-            await ApplyIndependentMigration<ProvidersDbContext>();
-            await ApplyIndependentMigration<RatingsDbContext>();
-            await ApplyIndependentMigration<DocumentsDbContext>();
-            await ApplyIndependentMigration<LocationsDbContext>();
-            await ApplyIndependentMigration<CommunicationsDbContext>();
-            await ApplyIndependentMigration<BookingsDbContext>();
-            await ApplyIndependentMigration<SearchProvidersDbContext>();
-
-            _migrationsApplied = true;
-            Console.WriteLine("✅ [BaseTestContainerTest] All global migrations applied.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ [BaseTestContainerTest] Failed to apply migrations: {ex.Message}");
-            throw;
-        }
-        finally
-        {
-            _migrationLock.Release();
-        }
-    }
-
-    private async Task ApplyIndependentMigration<TContext>() where TContext : DbContext
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<TContext>();
-        var contextName = typeof(TContext).Name;
-        
-        optionsBuilder.UseNpgsql(SharedTestContainers.PostgresConnectionString, npgsqlOptions =>
-        {
-            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
-            npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
-            
-            if (typeof(TContext) == typeof(SearchProvidersDbContext))
-            {
-                npgsqlOptions.UseNetTopologySuite();
-            }
-        }).UseSnakeCaseNamingConvention()
-        .ConfigureWarnings(warnings => 
-            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-
-        using var context = (TContext)Activator.CreateInstance(typeof(TContext), optionsBuilder.Options)!;
-        await MigrationTestHelper.ApplyMigrationForContext(context);
-    }
-
     protected async Task CleanupDatabaseAsync()
     {
-        using var scope = _factory.Services.CreateScope();
-        var services = scope.ServiceProvider;
-
-        await CleanupContext<UsersDbContext>(services);
-        await CleanupContext<ProvidersDbContext>(services);
-        await CleanupContext<DocumentsDbContext>(services);
-        await CleanupContext<ServiceCatalogsDbContext>(services);
-        await CleanupContext<LocationsDbContext>(services);
-        await CleanupContext<CommunicationsDbContext>(services);
-        await CleanupContext<BookingsDbContext>(services);
-        await CleanupContext<SearchProvidersDbContext>(services);
-        await CleanupContext<RatingsDbContext>(services);
-
+        await E2EStabilityCoordinator.GlobalCleanupAsync();
         await SharedTestContainers.FlushRedisAsync();
     }
 
-    private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
-    {
-        var context = services.GetRequiredService<TContext>();
-        var tableNames = new List<string>();
-
-        foreach (var entityType in context.Model.GetEntityTypes())
-        {
-            var tableName = entityType.GetTableName();
-            var schema = entityType.GetSchema();
-
-            if (!string.IsNullOrEmpty(tableName))
-            {
-                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
-                    ? $"\"{tableName}\""
-                    : $"\"{schema}\".\"{tableName}\"";
-                
-                tableNames.Add(qualifiedTableName);
-            }
-        }
-
-        if (tableNames.Count > 0)
-        {
-            var uniqueTables = tableNames.Distinct().ToList();
-            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
-            await context.Database.ExecuteSqlRawAsync(batchSql);
-        }
-    }
 
     // Helper methods usando serialização compartilhada
 #pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient

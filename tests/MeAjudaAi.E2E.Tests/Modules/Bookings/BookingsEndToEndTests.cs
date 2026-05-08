@@ -176,61 +176,61 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
     private async Task<Guid> CreateTestServiceAsync()
     {
-        var categoryName = $"Category_{Guid.NewGuid():N}";
-        var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
-        catResponse.EnsureSuccessStatusCode();
-        Assert.NotNull(catResponse.Headers.Location);
-        var catId = ExtractIdFromLocation(catResponse.Headers.Location.ToString());
+        for (int i = 0; i < 3; i++)
+        {
+            try
+            {
+                var categoryName = $"Category_{Guid.NewGuid():N}";
+                var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
+                catResponse.EnsureSuccessStatusCode();
+                var catId = ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
 
-        var serviceName = $"Service_{Guid.NewGuid():N}";
-        var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
-        svcResponse.EnsureSuccessStatusCode();
-        Assert.NotNull(svcResponse.Headers.Location);
-        var svcId = ExtractIdFromLocation(svcResponse.Headers.Location.ToString());
-
-        return svcId;
+                var serviceName = $"Service_{Guid.NewGuid():N}";
+                var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
+                svcResponse.EnsureSuccessStatusCode();
+                return ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
+            }
+            catch (Exception) when (i < 2)
+            {
+                await Task.Delay(1000);
+            }
+        }
+        throw new Exception("Failed to create test service after retries");
     }
 
     private async Task<Guid> CreateTestProviderAsync()
     {
-        var userId = await CreateTestUserAsync();
-        var name = $"ProviderX_{Guid.NewGuid():N}";
-        var request = new
+        for (int i = 0; i < 3; i++)
         {
-            UserId = userId.ToString(),
-            Name = name,
-            Type = EProviderType.Individual,
-            BusinessProfile = new
+            try
             {
-                LegalName = name,
-                FantasyName = name,
-                Description = $"Test provider {name}",
-                ContactInfo = new
+                var userId = await CreateTestUserAsync();
+                var name = $"ProviderX_{Guid.NewGuid():N}";
+                var request = new
                 {
-                    Email = $"{name}@example.com",
-                    PhoneNumber = "+5511999999999"
-                },
-                PrimaryAddress = new
-                {
-                    Street = "Avenida Paulista",
-                    Number = "1578",
-                    Neighborhood = "Bela Vista",
-                    City = "São Paulo",
-                    State = "SP",
-                    ZipCode = "01310-200",
-                    Country = "Brasil"
-                }
+                    UserId = userId.ToString(),
+                    Name = name,
+                    Type = EProviderType.Individual,
+                    BusinessProfile = new
+                    {
+                        LegalName = name,
+                        FantasyName = name,
+                        Description = $"Test provider {name}",
+                        ContactInfo = new { Email = $"{name}@example.com", PhoneNumber = "+5511999999999" },
+                        PrimaryAddress = new { Street = "Av Paulista", Number = "1578", Neighborhood = "Bela Vista", City = "São Paulo", State = "SP", ZipCode = "01310-200", Country = "Brasil" }
+                    }
+                };
+
+                var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
+                response.EnsureSuccessStatusCode();
+                return ExtractIdFromLocation(response.Headers.Location!.ToString());
             }
-        };
-
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
-        response.EnsureSuccessStatusCode();
-
-        Assert.NotNull(response.Headers.Location);
-        var location = response.Headers.Location.ToString();
-        var providerId = ExtractIdFromLocation(location);
-
-        return providerId;
+            catch (Exception) when (i < 2)
+            {
+                await Task.Delay(1000);
+            }
+        }
+        throw new Exception("Failed to create test provider after retries");
     }
 
     private void AuthenticateAsProvider(Guid providerId)
