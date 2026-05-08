@@ -405,11 +405,13 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Create provider using helper
         var providerId = await CreateTestProviderAsync($"DocProvider_{uniqueId}");
 
-        // Act - Add document (não é upload de arquivo, apenas registro do documento)
+        // Act - Add document
         var documentRequest = new
         {
             Number = "123456789", // RG number
-            DocumentType = 3 // RG (EDocumentType enum value)
+            DocumentType = 3, // RG (EDocumentType enum value)
+            FileName = "rg_test.jpg",
+            FileUrl = "https://mock.url/rg_test.jpg"
         };
 
         var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(

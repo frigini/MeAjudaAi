@@ -21,6 +21,7 @@ using MeAjudaAi.E2E.Tests.Base.Helpers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using System.Net.Http.Json;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+using MeAjudaAi.Shared.Database;
 
 namespace MeAjudaAi.E2E.Tests.Base;
 
@@ -51,28 +52,35 @@ public class TestContainerFixture : IAsyncLifetime
 
     public static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
+    private static async Task AppendLogAsync(string diagPath, string message)
+    {
+        await using var stream = new FileStream(diagPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+        await using var writer = new StreamWriter(stream);
+        await writer.WriteLineAsync($"[{DateTime.UtcNow:O}] {message}");
+    }
+
     public async ValueTask InitializeAsync()
     {
         var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
-        File.WriteAllText(diagPath, $"[{DateTime.Now}] InitializeAsync starting...\n");
+        await AppendLogAsync(diagPath, "InitializeAsync starting...");
         
         // One-time initialization for the entire test run
         await SharedTestContainers.EnsureInitializedAsync();
-        File.AppendAllText(diagPath, $"[{DateTime.Now}] Shared containers initialized.\n");
+        await AppendLogAsync(diagPath, "Shared containers initialized.");
         
         // One-time migration application for the entire test run
         if (!_migrationsApplied)
         {
-            File.AppendAllText(diagPath, $"[{DateTime.Now}] Waiting for migration lock...\n");
+            await AppendLogAsync(diagPath, "Waiting for migration lock...");
             await _migrationLock.WaitAsync();
             try
             {
                 if (!_migrationsApplied)
                 {
-                    File.AppendAllText(diagPath, $"[{DateTime.Now}] Applying migrations...\n");
+                    await AppendLogAsync(diagPath, "Applying migrations...");
                     await ApplyMigrationsAsync();
                     _migrationsApplied = true;
-                    File.AppendAllText(diagPath, $"[{DateTime.Now}] Migrations applied successfully.\n");
+                    await AppendLogAsync(diagPath, "Migrations applied successfully.");
                 }
             }
             finally
@@ -83,7 +91,7 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Initialize WebApplicationFactory for THIS test class instance
         await InitializeFactoryAsync();
-        File.AppendAllText(diagPath, $"[{DateTime.Now}] Factory initialized.\n");
+        await AppendLogAsync(diagPath, "Factory initialized.");
     }
 
     private async Task InitializeFactoryAsync()
@@ -192,24 +200,14 @@ public class TestContainerFixture : IAsyncLifetime
         }
 
         // SearchProviders specific metrics/dapper
-        var metricsType = typeof(MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext).Assembly
-            .GetType("MeAjudaAi.Modules.SearchProviders.Infrastructure.Monitoring.DatabaseMetrics");
-        if (metricsType != null && !services.Any(d => d.ServiceType == metricsType))
+        if (!services.Any(d => d.ServiceType == typeof(DatabaseMetrics)))
         {
-            services.AddSingleton(metricsType);
+            services.AddSingleton<DatabaseMetrics>();
         }
 
-        var dapperInterface = typeof(MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider).Assembly
-            .GetType("MeAjudaAi.Modules.SearchProviders.Domain.Interfaces.IDapperConnection");
-        var dapperImpl = typeof(MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext).Assembly
-            .GetType("MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.DapperConnection");
-            
-        if (dapperInterface != null && dapperImpl != null)
-        {
-            var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == dapperInterface);
-            if (dapperDescriptor != null) services.Remove(dapperDescriptor);
-            services.AddScoped(dapperInterface, dapperImpl);
-        }
+        var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDapperConnection));
+        if (dapperDescriptor != null) services.Remove(dapperDescriptor);
+        services.AddScoped<IDapperConnection, DapperConnection>();
     }
 
     private void ReconfigureDbContexts(IServiceCollection services)
@@ -225,13 +223,13 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
 
-        var postgresOptionsDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Database.PostgresOptions)).ToList();
+        var postgresOptionsDescriptors = services.Where(d => d.ServiceType == typeof(PostgresOptions)).ToList();
         foreach (var descriptor in postgresOptionsDescriptors)
         {
             services.Remove(descriptor);
         }
 
-        services.AddSingleton(new MeAjudaAi.Shared.Database.PostgresOptions
+        services.AddSingleton(new PostgresOptions
         {
             ConnectionString = PostgresConnectionString
         });
@@ -470,7 +468,7 @@ public class TestContainerFixture : IAsyncLifetime
         return ExtractIdFromLocation(locationHeader);
     }
 
-    private void ReplaceService<TService, TImplementation>(IServiceCollection services, ServiceLifetime lifetime)
+    private static void ReplaceService<TService, TImplementation>(IServiceCollection services, ServiceLifetime lifetime)
         where TImplementation : class, TService
     {
         var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();

@@ -45,7 +45,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         
         // 2. Definir agenda para o prestador
         // Usar lógica de timezone para derivar datas
-        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+        var tz = ResolveBrazilTimeZone();
         var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
         int dayOfWeek = (int)localTomorrow.DayOfWeek;
@@ -124,6 +124,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var correlationId = Guid.NewGuid();
         var confirmRequest = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/bookings/{bookingId}/confirm");
         confirmRequest.Headers.Add("X-Correlation-ID", correlationId.ToString());
+        confirmRequest.Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
         
         var confirmResponse = await ApiClient.SendAsync(confirmRequest);
         confirmResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
