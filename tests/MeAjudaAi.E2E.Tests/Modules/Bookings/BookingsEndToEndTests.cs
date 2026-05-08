@@ -131,10 +131,23 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
         // 7. Busca agendamento pelo ID e checa se tá confirmado (Autenticado como cliente pra ver)
         AuthenticateAsUser(customerId.ToString());
-        var getResponse = await ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
+        var isConfirmed = false;
+        BookingDto? updatedBooking = null;
+        for (int i = 0; i < 5; i++)
+        {
+            var getResponse = await ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
+            if (updatedBooking?.Status == Contracts.Bookings.Enums.EBookingStatus.Confirmed)
+            {
+                isConfirmed = true;
+                break;
+            }
+            await Task.Delay(1000); // Aguarda 1 segundo antes de tentar novamente
+        }
+
+        isConfirmed.Should().BeTrue("the booking status should have been updated to Confirmed after processing");
         updatedBooking.Should().NotBeNull();
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
     }
