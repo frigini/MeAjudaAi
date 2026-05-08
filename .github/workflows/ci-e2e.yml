@@ -94,7 +94,8 @@ jobs:
             --configuration Release --no-build \
             --logger "trx;LogFileName=e2e.trx" \
             --diag e2e.vstest.diag.log \
-            --blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full --parallel 1
+            --blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full \
+            -- --parallel 1
 
       - name: Upload E2E diagnostics
         uses: actions/upload-artifact@v4
