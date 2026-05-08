@@ -117,7 +117,9 @@ public static class E2EStabilityCoordinator
                 npgsqlOptions.UseNetTopologySuite();
             }
             npgsqlOptions.CommandTimeout(30);
-        }).UseSnakeCaseNamingConvention();
+        }).UseSnakeCaseNamingConvention()
+        .ConfigureWarnings(warnings => 
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 
         using var context = (TContext)Activator.CreateInstance(typeof(TContext), optionsBuilder.Options)!;
         await MigrationTestHelper.ApplyMigrationForContext(context);
