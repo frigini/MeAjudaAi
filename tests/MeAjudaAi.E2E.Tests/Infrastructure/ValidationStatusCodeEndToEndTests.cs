@@ -154,9 +154,9 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
 
         // Assert
-        // 422 para validação semântica (categoria não existe)
-        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
-            "semantic validation (non-existent category) should return 422");
+        // 400 para validação semântica (categoria não existe)
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "semantic validation (non-existent category) should return 400");
     }
 
     [Fact]

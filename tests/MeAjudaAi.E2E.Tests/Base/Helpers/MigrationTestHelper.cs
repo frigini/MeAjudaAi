@@ -10,27 +10,31 @@ public static class MigrationTestHelper
         var maxRetries = 5;
         var delayMs = 2000;
         
+        Console.WriteLine($"🔄 [MigrationTestHelper] Applying migrations for {contextName}...");
+
         for (var attempt = 0; attempt < maxRetries; attempt++)
         {
             try
             {
-                // Tentar abrir conexão primeiro
-                await context.Database.OpenConnectionAsync();
+                // Tentar abrir conexão primeiro com timeout reduzido
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                await context.Database.OpenConnectionAsync(cts.Token);
                 await context.Database.CloseConnectionAsync();
                 
                 // Garantir que o esquema exista antes da migração
                 var schema = DbContextSchemaHelper.GetSchemaName(contextName);
                 if (schema != "public")
                 {
-                    await context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";");
+                    await context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cts.Token);
                 }
                 
-                await context.Database.MigrateAsync();
+                await context.Database.MigrateAsync(cts.Token);
+                Console.WriteLine($"✅ [MigrationTestHelper] Migrations for {contextName} applied.");
                 return;
             }
             catch (Exception ex) when (attempt < maxRetries - 1)
             {
-                Console.WriteLine($"⚠️ Migration attempt {attempt + 1} failed: {ex.Message}. Retrying in {delayMs}ms...");
+                Console.WriteLine($"⚠️ [MigrationTestHelper] Migration attempt {attempt + 1} for {contextName} failed: {ex.Message}. Retrying in {delayMs}ms...");
                 await Task.Delay(delayMs);
                 delayMs *= 2;
             }

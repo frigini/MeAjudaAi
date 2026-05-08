@@ -62,8 +62,16 @@ public partial class Program
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
-            builder.Services.AddCors();
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.SetIsOriginAllowed(_ => true)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+            });
             builder.Services.AddFeatureManagement();
 
             var app = builder.Build();
@@ -132,15 +140,9 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
-if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
+        if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
         {
-            app.UseCors(policy =>
-            {
-                policy.SetIsOriginAllowed(_ => true)
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            });
+            app.UseCors("AllowAll");
         }
 
         app.MapDefaultEndpoints();

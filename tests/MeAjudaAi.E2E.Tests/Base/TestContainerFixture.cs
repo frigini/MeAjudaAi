@@ -1,51 +1,46 @@
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Networks;
 using Bogus;
 using MeAjudaAi.ApiService;
+using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.E2E.Tests.Base.Helpers;
-using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using DotNet.Testcontainers.Configurations;
+using MeAjudaAi.E2E.Tests.Base.Helpers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using System.Net.Http.Json;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 
 namespace MeAjudaAi.E2E.Tests.Base;
 
 /// <summary>
 /// Fixture compartilhada para testes E2E usando TestContainers.
 /// Implementa IClassFixture para compartilhar containers entre testes da mesma classe.
-/// Reduz overhead de criação de containers de ~6s por teste para ~6s por classe.
+/// Reduz overhead de criação de containers.
 /// </summary>
 public class TestContainerFixture : IAsyncLifetime
 {
-    private static PostgreSqlContainer? _postgresContainer;
-    private static RedisContainer? _redisContainer;
-    private static AzuriteContainer? _azuriteContainer;
-    private static readonly SemaphoreSlim _initializationLock = new(1, 1);
-    private static bool _containersInitialized = false;
+    private static readonly SemaphoreSlim _migrationLock = new(1, 1);
     private static bool _migrationsApplied = false;
 
     private WebApplicationFactory<Program> _factory = null!;
 
     public HttpClient ApiClient { get; private set; } = null!;
     public IServiceProvider Services { get; private set; } = null!;
-    public string PostgresConnectionString { get; private set; } = null!;
-    public string RedisConnectionString { get; private set; } = null!;
-    public string AzuriteConnectionString { get; private set; } = null!;
+    public string PostgresConnectionString => SharedTestContainers.PostgresConnectionString;
+    public string RedisConnectionString => SharedTestContainers.RedisConnectionString;
+    public string AzuriteConnectionString => SharedTestContainers.AzuriteConnectionString;
     public Faker Faker { get; } = new();
 
     /// <summary>
@@ -58,194 +53,72 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        Console.WriteLine("🔵 TestContainerFixture.InitializeAsync() - starting");
-        
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
+        File.WriteAllText(diagPath, $"[{DateTime.Now}] InitializeAsync starting...\n");
         
         // One-time initialization for the entire test run
-        if (!_containersInitialized)
-        {
-            Console.WriteLine("🔵 Waiting for initialization lock...");
-            await _initializationLock.WaitAsync(cts.Token);
-            try
-            {
-                if (!_containersInitialized)
-                {
-                    Console.WriteLine("🚀 Initializing containers...");
-                    await InitializeContainersAsync();
-                    _containersInitialized = true;
-                    Console.WriteLine("✅ Containers initialized.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error initializing containers: {ex.Message}");
-                throw;
-            }
-            finally
-            {
-                _initializationLock.Release();
-            }
-        }
+        await SharedTestContainers.EnsureInitializedAsync();
+        File.AppendAllText(diagPath, $"[{DateTime.Now}] Shared containers initialized.\n");
         
-        // Populate properties for the current instance (legacy support)
-        if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
-        if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
-        if (_azuriteContainer != null) AzuriteConnectionString = _azuriteContainer.GetConnectionString();
-
-        Console.WriteLine("🔵 Initializing factory...");
-        // Initialize WebApplicationFactory for THIS test class instance
-        await InitializeFactoryAsync();
-        
-        Console.WriteLine("🔵 Applying migrations...");
         // One-time migration application for the entire test run
         if (!_migrationsApplied)
         {
-            await _initializationLock.WaitAsync();
+            File.AppendAllText(diagPath, $"[{DateTime.Now}] Waiting for migration lock...\n");
+            await _migrationLock.WaitAsync();
             try
             {
                 if (!_migrationsApplied)
                 {
-                    Console.WriteLine("🔄 Applying migrations...");
+                    File.AppendAllText(diagPath, $"[{DateTime.Now}] Applying migrations...\n");
                     await ApplyMigrationsAsync();
                     _migrationsApplied = true;
-                    Console.WriteLine("✅ Migrations applied.");
+                    File.AppendAllText(diagPath, $"[{DateTime.Now}] Migrations applied successfully.\n");
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error applying migrations: {ex.Message}");
-                throw;
             }
             finally
             {
-                _initializationLock.Release();
+                _migrationLock.Release();
             }
         }
-    }
 
-    private async Task InitializeContainersAsync()
-    {
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
-        // Configurar Npgsql para desabilitar SSL via AppContext
-        AppContext.SetSwitch("Npgsql.DisableGoogleNativeSslStream", true);
-        
-        // Configurar Npgsql para não usar SSL
-        AppContext.SetSwitch("Npgsql.FailOnSslNegotiationFailure", false);
-
-        // Configurar containers com portas dinâmicas e WaitStrategies
-        if (_postgresContainer == null)
-        {
-            _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
-                .WithDatabase("meajudaai_test")
-                .WithUsername("postgres")
-                .WithPassword("test123")
-                .WithPortBinding(5432, true)
-                // Configurar PostgreSQL para aceitar conexões sem SSL
-                .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust")
-                // Wait mais robusto
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("pg_isready"))
-                .WithCleanUp(true)
-                .Build();
-        }
-
-        if (_redisContainer == null)
-        {
-            _redisContainer = new RedisBuilder("redis:7-alpine")
-                .WithPortBinding(6379, true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping"))
-                .WithCleanUp(true)
-                .Build();
-        }
-
-        if (_azuriteContainer == null)
-        {
-            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
-                .WithCleanUp(true)
-                .Build();
-        }
-
-        // Iniciar containers em paralelo
-        Console.WriteLine("🔵 Starting containers...");
-        var startTasks = new List<Task>();
-        startTasks.Add(_postgresContainer.StartAsync());
-        startTasks.Add(_redisContainer.StartAsync());
-        startTasks.Add(_azuriteContainer.StartAsync());
-
-        Console.WriteLine("🔵 Waiting for containers to start...");
-        await Task.WhenAll(startTasks);
-        Console.WriteLine("✅ All containers started.");
-
-        // Armazenar connection strings dinamicas
-        var rawConnectionString = _postgresContainer.GetConnectionString();
-        // Forçar SSL mode disable via string
-        var sslDisabled = rawConnectionString.EndsWith(";")
-            ? rawConnectionString + "SSL Mode=Disable"
-            : rawConnectionString + ";SSL Mode=Disable";
-        
-        // Fallback: adicionar parametro de timeout
-        var connectionBuilder = new NpgsqlConnectionStringBuilder(sslDisabled)
-        {
-            SslMode = SslMode.Disable,
-            Timeout = 30
-        };
-        PostgresConnectionString = connectionBuilder.ToString();
-        RedisConnectionString = _redisContainer.GetConnectionString();
-        AzuriteConnectionString = _azuriteContainer.GetConnectionString();
-
-        Console.WriteLine($"✅ TestContainers initialized.");
-        Console.WriteLine($"   Postgres: {PostgresConnectionString.Substring(0, Math.Min(80, PostgresConnectionString.Length))}...");
+        // Initialize WebApplicationFactory for THIS test class instance
+        await InitializeFactoryAsync();
+        File.AppendAllText(diagPath, $"[{DateTime.Now}] Factory initialized.\n");
     }
 
     private async Task InitializeFactoryAsync()
     {
-        Console.WriteLine("🔵 Creating WebApplicationFactory...");
 #pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
 #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
-                Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
-
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
                         ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
-                        ["ConnectionStrings:Users"] = PostgresConnectionString,
                         ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
+                        ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
-                        ["ConnectionStrings:SearchProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
-                        ["Migrations:Enabled"] = "false",
                         ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
                         ["Hangfire:Enabled"] = "false",
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
-                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
-                        ["Keycloak:ClientSecret"] = "test-secret",
-                        ["Keycloak:AdminUsername"] = "test-admin",
-                        ["Keycloak:AdminPassword"] = "test-password",
-                        ["Cache:Enabled"] = "false", // Sincronizado com BaseTestContainerTest
+                        ["ExternalServices:Keycloak:Enabled"] = "false",
+                        ["ExternalServices:PaymentGateway:Enabled"] = "false",
+                        ["ExternalServices:Geolocation:Enabled"] = "false",
+                        ["Cache:Enabled"] = "false",
                         ["Cache:ConnectionString"] = RedisConnectionString,
                         ["AdvancedRateLimit:General:Enabled"] = "false",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "100000",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "1000000",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerMinute"] = "10000",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerHour"] = "100000",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerDay"] = "1000000",
-                        ["AdvancedRateLimit:General:WindowInSeconds"] = "60",
                         ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
                         ["RateLimit:DefaultRequestsPerMinute"] = "999999",
-                        ["RateLimit:AuthRequestsPerMinute"] = "999999",
-                        ["RateLimit:SearchRequestsPerMinute"] = "999999",
                         ["RateLimit:WindowInSeconds"] = "3600"
                     });
 
@@ -254,11 +127,22 @@ public class TestContainerFixture : IAsyncLifetime
 
                 builder.ConfigureServices(services =>
                 {
+                    // Remover background workers que interferem com migrations e isolamento
+                    var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+                    foreach (var service in hostedServices)
+                    {
+                        services.Remove(service);
+                    }
+
                     services.AddLogging(logging =>
                     {
                         logging.ClearProviders();
                         logging.SetMinimumLevel(LogLevel.Error);
                     });
+
+                    // Registra serviços da API (inclui HealthChecks, Cors, etc.)
+                    // O builder.Configuration e environment já estão configurados no HostBuilder
+                    services.AddApiServices(_factory.Services.GetRequiredService<IConfiguration>(), _factory.Services.GetRequiredService<IWebHostEnvironment>());
 
                     ConfigureMockServices(services);
                     ReconfigureDbContexts(services);
@@ -280,52 +164,51 @@ public class TestContainerFixture : IAsyncLifetime
 
     private void ConfigureMockServices(IServiceCollection services)
     {
-        services.AddAuthentication(MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName)
+        services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
             .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
-                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler>(
-                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName,
+                ConfigurableTestAuthenticationHandler>(
+                ConfigurableTestAuthenticationHandler.SchemeName,
                 _ => { });
         
         if (!services.Any(d => d.ServiceType == typeof(Microsoft.AspNetCore.Authorization.IAuthorizationService)))
         {
             services.AddAuthorization();
         }
-        
-        var keycloakDescriptors = services.Where(d => d.ServiceType == typeof(IKeycloakService)).ToList();
-        foreach (var d in keycloakDescriptors) services.Remove(d);
-        services.AddSingleton<IKeycloakService, MockKeycloakService>();
 
-        var blobDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
-        foreach (var d in blobDescriptors) services.Remove(d);
-        services.AddSingleton<IBlobStorageService, MockBlobStorageService>();
-
-        var ocrDescriptors = services.Where(d => d.ServiceType == typeof(IDocumentIntelligenceService)).ToList();
-        foreach (var d in ocrDescriptors) services.Remove(d);
-        services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
-
-        var gatewayDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway)).ToList();
-        foreach (var d in gatewayDescriptors) services.Remove(d);
-        services.AddScoped<MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway, MockPaymentGateway>();
-
-        // Register dummy Stripe client to satisfy DI validation
-        services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
-
-        // Message Bus Condicional para E2E
-        var busDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
-        foreach (var d in busDescriptors) services.Remove(d);
-
-        var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
-        foreach (var d in domainProcessorDescriptors) services.Remove(d);
+        // Mocks for external dependencies
+        ReplaceService<IKeycloakService, MockKeycloakService>(services, ServiceLifetime.Scoped);
+        ReplaceService<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MockUserDomainService>(services, ServiceLifetime.Scoped);
+        ReplaceService<IBlobStorageService, MockBlobStorageService>(services, ServiceLifetime.Scoped);
 
         if (EnableEventsAndMessageBus)
         {
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
-            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>();
+            ReplaceService<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>(services, ServiceLifetime.Singleton);
+            ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>(services, ServiceLifetime.Scoped);
         }
         else
         {
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
-            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+            ReplaceService<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>(services, ServiceLifetime.Singleton);
+            ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>(services, ServiceLifetime.Scoped);
+        }
+
+        // SearchProviders specific metrics/dapper
+        var metricsType = typeof(MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext).Assembly
+            .GetType("MeAjudaAi.Modules.SearchProviders.Infrastructure.Monitoring.DatabaseMetrics");
+        if (metricsType != null && !services.Any(d => d.ServiceType == metricsType))
+        {
+            services.AddSingleton(metricsType);
+        }
+
+        var dapperInterface = typeof(MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider).Assembly
+            .GetType("MeAjudaAi.Modules.SearchProviders.Domain.Interfaces.IDapperConnection");
+        var dapperImpl = typeof(MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext).Assembly
+            .GetType("MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.DapperConnection");
+            
+        if (dapperInterface != null && dapperImpl != null)
+        {
+            var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == dapperInterface);
+            if (dapperDescriptor != null) services.Remove(dapperDescriptor);
+            services.AddScoped(dapperInterface, dapperImpl);
         }
     }
 
@@ -333,36 +216,30 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
+        ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
+        ReconfigureDbContext<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
 
-        var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
-        if (postgresOptionsDescriptor != null)
-            services.Remove(postgresOptionsDescriptor);
-
-        services.AddSingleton(new PostgresOptions { ConnectionString = PostgresConnectionString });
-
-        if (!services.Any(d => d.ServiceType == typeof(DatabaseMetrics)))
+        var postgresOptionsDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Database.PostgresOptions)).ToList();
+        foreach (var descriptor in postgresOptionsDescriptors)
         {
-            services.AddSingleton<DatabaseMetrics>();
+            services.Remove(descriptor);
         }
 
-        var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDapperConnection));
-        if (dapperDescriptor != null)
-            services.Remove(dapperDescriptor);
-
-        services.AddScoped<IDapperConnection, DapperConnection>();
+        services.AddSingleton(new MeAjudaAi.Shared.Database.PostgresOptions
+        {
+            ConnectionString = PostgresConnectionString
+        });
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
         var contextName = typeof(TContext).Name;
-        // Console.WriteLine($"[DEBUG] Reconfiguring DbContext: {contextName}");
         
         var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
         if (descriptor != null)
@@ -374,11 +251,16 @@ public class TestContainerFixture : IAsyncLifetime
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
-                npgsqlOptions.UseNetTopologySuite();
+                
+                if (typeof(TContext).Name.Contains("SearchProviders"))
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                }
+                
                 npgsqlOptions.CommandTimeout(120);
             });
+            options.UseSnakeCaseNamingConvention();
             options.EnableSensitiveDataLogging(false);
-            options.EnableDetailedErrors(false);
             options.ConfigureWarnings(warnings =>
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
@@ -386,28 +268,42 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task ApplyMigrationsAsync()
     {
-        using var scope = _factory.Services.CreateScope();
-        var services = scope.ServiceProvider;
+        Console.WriteLine("🔄 [TestContainerFixture] Applying global migrations...");
+        
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
+        await ApplyIndependentMigration<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>();
 
-        try
-        {
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>());
+        Console.WriteLine("✅ [TestContainerFixture] All global migrations applied.");
+    }
 
-            Console.WriteLine("✅ Database migrations applied successfully");
-        }
-        catch (Exception ex)
+    private async Task ApplyIndependentMigration<TContext>() where TContext : DbContext
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<TContext>();
+        var contextName = typeof(TContext).Name;
+        
+        optionsBuilder.UseNpgsql(SharedTestContainers.PostgresConnectionString, npgsqlOptions =>
         {
-            Console.WriteLine($"❌ Error applying migrations: {ex.Message}");
-            throw;
-        }
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
+            npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
+            
+            if (typeof(TContext).Name.Contains("SearchProviders"))
+            {
+                npgsqlOptions.UseNetTopologySuite();
+            }
+        }).UseSnakeCaseNamingConvention()
+        .ConfigureWarnings(warnings => 
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+
+        using var context = (TContext)Activator.CreateInstance(typeof(TContext), optionsBuilder.Options)!;
+        await MigrationTestHelper.ApplyMigrationForContext(context);
     }
 
     public async Task CleanupDatabaseAsync()
@@ -425,71 +321,37 @@ public class TestContainerFixture : IAsyncLifetime
         await CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
 
-        if (_redisContainer != null)
-        {
-            await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
-        }
+        await SharedTestContainers.FlushRedisAsync();
     }
 
-private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
-{
-    var context = services.GetRequiredService<TContext>();
-
-    var tableNames = new List<string>();
-    var connection = context.Database.GetDbConnection();
-
-    // Timeout para conexão para evitar espera infinita
-    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-    try
+    private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
     {
-        await connection.OpenAsync(cts.Token);
-        using (var command = connection.CreateCommand())
+        var context = services.GetRequiredService<TContext>();
+        var tableNames = new List<string>();
+
+        foreach (var entityType in context.Model.GetEntityTypes())
         {
-            command.CommandTimeout = 10;
-            var schema = DbContextSchemaHelper.GetSchemaName(typeof(TContext).Name);
-            var schemaParam = command.CreateParameter();
-            schemaParam.ParameterName = "schema";
-            schemaParam.Value = schema;
-            command.Parameters.Add(schemaParam);
+            var tableName = entityType.GetTableName();
+            var schema = entityType.GetSchema();
 
-            command.CommandText = @"
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = @schema 
-                AND table_type = 'BASE TABLE';";
-
-            using (var reader = await command.ExecuteReaderAsync(cts.Token))
+            if (!string.IsNullOrEmpty(tableName))
             {
-                while (await reader.ReadAsync(cts.Token))
-                {
-                    tableNames.Add($"\"{schema}\".\"{reader.GetString(0)}\"");
-                }
+                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
+                    ? $"\"{tableName}\""
+                    : $"\"{schema}\".\"{tableName}\"";
+                
+                tableNames.Add(qualifiedTableName);
             }
         }
 
         if (tableNames.Count > 0)
         {
-            var batchSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
-            await context.Database.ExecuteSqlRawAsync(batchSql, cts.Token);
+            var uniqueTables = tableNames.Distinct().ToList();
+            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
+            await context.Database.ExecuteSqlRawAsync(batchSql);
         }
     }
-    catch (OperationCanceledException)
-    {
-        Console.WriteLine($"⚠️ Cleanup timed out for {typeof(TContext).Name}. Skipping.");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"⚠️ Error during cleanup for {typeof(TContext).Name}: {ex.Message}. Continuing...");
-    }
-    finally
-    {
-        if (connection.State == System.Data.ConnectionState.Open)
-        {
-            await connection.CloseAsync();
-        }
-    }
-}
+
     public async ValueTask DisposeAsync()
     {
         ApiClient?.Dispose();
@@ -521,30 +383,25 @@ private static async Task CleanupContext<TContext>(IServiceProvider services) wh
 
     public static void AuthenticateAsAdmin()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
     }
 
     public static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
     }
 
     public static void AuthenticateAsAnonymous()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
-    /// <summary>
-    /// Configura o contexto de autenticação para um usuário que é simultaneamente administrador do sistema 
-    /// e vinculado a um prestador específico. Usa ConfigureProvider internamente com isSystemAdmin: true.
-    /// </summary>
-    /// <param name="providerId">O identificador do prestador ao qual o usuário será vinculado.</param>
     public static void AuthenticateAsAdminWithProvider(Guid providerId)
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(
             providerId: providerId,
             userId: "admin-provider-id",
             username: "admin-provider",
@@ -554,7 +411,7 @@ private static async Task CleanupContext<TContext>(IServiceProvider services) wh
 
     public static void BeforeEachTest()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
     public async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
@@ -600,7 +457,8 @@ private static async Task CleanupContext<TContext>(IServiceProvider services) wh
         var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
         if (response.StatusCode != System.Net.HttpStatusCode.Created)
         {
-            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}");
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}. Error: {errorContent}");
         }
 
         var locationHeader = response.Headers.Location?.ToString();
@@ -610,5 +468,18 @@ private static async Task CleanupContext<TContext>(IServiceProvider services) wh
         }
 
         return ExtractIdFromLocation(locationHeader);
+    }
+
+    private void ReplaceService<TService, TImplementation>(IServiceCollection services, ServiceLifetime lifetime)
+        where TImplementation : class, TService
+    {
+        var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
+        foreach (var descriptor in descriptors)
+        {
+            services.Remove(descriptor);
+        }
+
+        var newDescriptor = new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime);
+        services.Add(newDescriptor);
     }
 }

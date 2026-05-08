@@ -24,6 +24,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Net.Http.Json;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
@@ -42,20 +44,11 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// </summary>
 public abstract class BaseTestContainerTest : IAsyncLifetime
 {
-    // Static containers shared across all tests
-    private static PostgreSqlContainer? _postgresContainer;
-    private static RedisContainer? _redisContainer;
-    private static AzuriteContainer? _azuriteContainer;
-
     /// <summary>
     /// Sobrescreva em classes derivadas para habilitar o message bus em memória síncrono e eventos de domínio.
     /// Usado para testes que dependem de eventos de integração entre módulos (ex: Ratings -> SearchProviders).
     /// </summary>
     protected virtual bool EnableEventsAndMessageBus => false;
-
-    // Locking for thread-safe initialization
-    private static readonly SemaphoreSlim _initializationLock = new(1, 1);
-    private static bool _initialized = false;
 
     private WebApplicationFactory<Program> _factory = null!;
 
@@ -67,57 +60,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     public virtual async ValueTask InitializeAsync()
     {
         // Ensure containers are initialized only once
-        if (!_initialized)
-        {
-            await _initializationLock.WaitAsync();
-            try
-            {
-                if (!_initialized)
-                {
-                    // Configurar containers com configuração mais robusta
-                    if (_postgresContainer == null)
-                    {
-                        // Enable legacy timestamp behavior immediately
-                        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
-                        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
-                            .WithDatabase("meajudaai_test")
-                            .WithUsername("postgres")
-                            .WithPassword("test123")
-                            .WithCleanUp(true)
-                            .Build();
-                    }
-
-                    if (_redisContainer == null)
-                    {
-                        _redisContainer = new RedisBuilder("redis:7-alpine")
-                            .WithCleanUp(true)
-                            .Build();
-                    }
-
-                    if (_azuriteContainer == null)
-                    {
-                        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
-                            .WithCleanUp(true)
-                            .Build();
-                    }
-
-                    // Start containers in parallel
-                    var tasks = new List<Task>();
-                    tasks.Add(_postgresContainer.StartAsync());
-                    tasks.Add(_redisContainer.StartAsync());
-                    tasks.Add(_azuriteContainer.StartAsync());
-
-                    await Task.WhenAll(tasks);
-
-                    _initialized = true;
-                }
-            }
-            finally
-            {
-                _initializationLock.Release();
-            }
-        }
+        await SharedTestContainers.EnsureInitializedAsync();
 
         // Configurar WebApplicationFactory (instância por teste, mas usa containers compartilhados)
         InitializeFactory();
@@ -148,14 +91,14 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         // Todos os módulos compartilham a mesma instância de banco de dados de teste
-                        ["ConnectionStrings:DefaultConnection"] = _postgresContainer!.GetConnectionString(),
-                        ["ConnectionStrings:meajudaai-db"] = _postgresContainer!.GetConnectionString(),
-                        ["ConnectionStrings:UsersDb"] = _postgresContainer!.GetConnectionString(),
-                        ["ConnectionStrings:ProvidersDb"] = _postgresContainer!.GetConnectionString(),
-                        ["ConnectionStrings:RatingsDb"] = _postgresContainer!.GetConnectionString(),
-                        ["ConnectionStrings:DocumentsDb"] = _postgresContainer!.GetConnectionString(),
-                        ["ConnectionStrings:Redis"] = _redisContainer!.GetConnectionString(),
-                        ["Azure:Storage:ConnectionString"] = _azuriteContainer!.GetConnectionString(),
+                        ["ConnectionStrings:DefaultConnection"] = SharedTestContainers.PostgresConnectionString,
+                        ["ConnectionStrings:meajudaai-db"] = SharedTestContainers.PostgresConnectionString,
+                        ["ConnectionStrings:UsersDb"] = SharedTestContainers.PostgresConnectionString,
+                        ["ConnectionStrings:ProvidersDb"] = SharedTestContainers.PostgresConnectionString,
+                        ["ConnectionStrings:RatingsDb"] = SharedTestContainers.PostgresConnectionString,
+                        ["ConnectionStrings:DocumentsDb"] = SharedTestContainers.PostgresConnectionString,
+                        ["ConnectionStrings:Redis"] = SharedTestContainers.RedisConnectionString,
+                        ["Azure:Storage:ConnectionString"] = SharedTestContainers.AzuriteConnectionString,
                         ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
@@ -167,7 +110,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ExternalServices:PaymentGateway:Enabled"] = "false",
                         ["ExternalServices:Geolocation:Enabled"] = "false",
                         ["Cache:Enabled"] = "false",
-                        ["Cache:ConnectionString"] = _redisContainer!.GetConnectionString(),
+                        ["Cache:ConnectionString"] = SharedTestContainers.RedisConnectionString,
                         // Desabilitar completamente Rate Limiting nos testes E2E
                         ["AdvancedRateLimit:General:Enabled"] = "false",
                          // Valores válidos caso não consiga desabilitar completamente
@@ -192,6 +135,13 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
                 builder.ConfigureServices(services =>
                 {
+                    // Remover background workers que interferem com migrations e isolamento
+                    var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+                    foreach (var service in hostedServices)
+                    {
+                        services.Remove(service);
+                    }
+
                     // Configurar logging mínimo para testes
                     services.AddLogging(logging =>
                     {
@@ -211,13 +161,15 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
-                    var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
-                    if (postgresOptionsDescriptor != null)
-                        services.Remove(postgresOptionsDescriptor);
+                    var postgresOptionsDescriptors = services.Where(d => d.ServiceType == typeof(PostgresOptions)).ToList();
+                    foreach (var descriptor in postgresOptionsDescriptors)
+                    {
+                        services.Remove(descriptor);
+                    }
 
                     services.AddSingleton(new PostgresOptions
                     {
-                        ConnectionString = _postgresContainer!.GetConnectionString()
+                        ConnectionString = SharedTestContainers.PostgresConnectionString
                     });
 
                     // Adicionar DatabaseMetrics se não existir
@@ -350,31 +302,26 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         {
             if (_migrationsApplied) return;
 
-            using var scope = _factory.Services.CreateScope();
-            var services = scope.ServiceProvider;
-
-            // Apply migrations for all DbContexts using helper
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<UsersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ServiceCatalogsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<RatingsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<BookingsDbContext>());
-
-            // 6. SearchProviders (Depends on Providers + PostGIS)
-            var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
-            if (searchContext != null)
-            {
-                await MigrationTestHelper.ApplyMigrationForContext(searchContext);
-            }
+            Console.WriteLine("🔄 [BaseTestContainerTest] Applying global migrations...");
+            
+            // Apply migrations for each module independently to avoid factory dependency
+            await ApplyIndependentMigration<UsersDbContext>();
+            await ApplyIndependentMigration<ServiceCatalogsDbContext>();
+            await ApplyIndependentMigration<ProvidersDbContext>();
+            await ApplyIndependentMigration<RatingsDbContext>();
+            await ApplyIndependentMigration<DocumentsDbContext>();
+            await ApplyIndependentMigration<LocationsDbContext>();
+            await ApplyIndependentMigration<CommunicationsDbContext>();
+            await ApplyIndependentMigration<BookingsDbContext>();
+            await ApplyIndependentMigration<SearchProvidersDbContext>();
 
             _migrationsApplied = true;
+            Console.WriteLine("✅ [BaseTestContainerTest] All global migrations applied.");
         }
         catch (Exception ex)
         {
-            throw new Exception($"Failed to apply migrations: {ex.Message}", ex);
+            Console.WriteLine($"❌ [BaseTestContainerTest] Failed to apply migrations: {ex.Message}");
+            throw;
         }
         finally
         {
@@ -382,21 +329,28 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Limpa todas as tabelas de todos os contextos registrados e o cache do Redis para garantir isolamento entre testes.
-    /// </summary>
-    /// <remarks>
-    /// Este método não é chamado automaticamente pelo <see cref="InitializeAsync"/> ou <see cref="DisposeAsync"/>.
-    /// Deve ser invocado explicitamente por testes derivados quando o isolamento do teste exigir a limpeza do estado 
-    /// do banco de dados e do Redis.
-    /// <para>
-    /// Uso típico: Chamada no início ou no final de um teste ou fixture, por exemplo: <c>await CleanupDatabaseAsync();</c>
-    /// </para>
-    /// <para>
-    /// Efeitos colaterais: Limpa todos os <c>DbContexts</c> registrados via <see cref="CleanupContext{T}"/> 
-    /// e executa um <c>FLUSHALL</c> no Redis se <c>_redisContainer</c> estiver disponível.
-    /// </para>
-    /// </remarks>
+    private async Task ApplyIndependentMigration<TContext>() where TContext : DbContext
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<TContext>();
+        var contextName = typeof(TContext).Name;
+        
+        optionsBuilder.UseNpgsql(SharedTestContainers.PostgresConnectionString, npgsqlOptions =>
+        {
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
+            npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
+            
+            if (typeof(TContext) == typeof(SearchProvidersDbContext))
+            {
+                npgsqlOptions.UseNetTopologySuite();
+            }
+        }).UseSnakeCaseNamingConvention()
+        .ConfigureWarnings(warnings => 
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+
+        using var context = (TContext)Activator.CreateInstance(typeof(TContext), optionsBuilder.Options)!;
+        await MigrationTestHelper.ApplyMigrationForContext(context);
+    }
+
     protected async Task CleanupDatabaseAsync()
     {
         using var scope = _factory.Services.CreateScope();
@@ -412,10 +366,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         await CleanupContext<SearchProvidersDbContext>(services);
         await CleanupContext<RatingsDbContext>(services);
 
-        if (_redisContainer != null)
-        {
-            await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
-        }
+        await Task.CompletedTask; // Redis flush moved to separate check if needed
     }
 
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
@@ -474,6 +425,13 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
         var stringContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
         return await ApiClient.PutAsync(requestUri, stringContent);
+    }
+
+    protected async Task<HttpResponseMessage> PatchJsonAsync<T>(string requestUri, T content)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        return await ApiClient.PatchAsync(requestUri, stringContent);
     }
 #pragma warning restore CA2000
 
@@ -573,9 +531,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
 
-    /// <summary>
-    /// Reconfigura um DbContext para usar a connection string do TestContainer
-    /// </summary>
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
         var contextName = typeof(TContext).Name;
@@ -585,7 +540,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
         services.AddDbContext<TContext>(options =>
         {
-            options.UseNpgsql(_postgresContainer!.GetConnectionString(), npgsqlOptions =>
+            options.UseNpgsql(SharedTestContainers.PostgresConnectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
