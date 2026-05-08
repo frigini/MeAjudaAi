@@ -108,7 +108,11 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
                 }
             });
             if (status == ESubscriptionStatus.Pending) break;
-            await Task.Delay(1000);
+            
+            if (i < 4)
+            {
+                await Task.Delay(1000);
+            }
         }
 
         status.Should().Be(ESubscriptionStatus.Pending, "subscription should have been created with Pending status");

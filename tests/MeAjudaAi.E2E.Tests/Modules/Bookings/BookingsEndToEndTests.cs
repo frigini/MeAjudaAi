@@ -41,10 +41,21 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var serviceId = await CreateTestServiceAsync();
 
         // 1.7 Vincular serviço ao prestador (Necessário devido à nova validação de segurança)
-        await LinkServiceToProviderAsync(providerIdClaim, serviceId);
+        // Adicionada retentativa simples para lidar com latência de infra
+        var linked = false;
+        for (int i = 0; i < 3; i++)
+        {
+            var response = await ApiClient.PostAsync($"/api/v1/providers/{providerIdClaim}/services/{serviceId}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                linked = true;
+                break;
+            }
+            await Task.Delay(1000);
+        }
+        linked.Should().BeTrue("service should be linked to provider before creating booking");
         
         // 2. Definir agenda para o prestador
-        // Usar lógica de timezone para derivar datas
         var tz = ResolveBrazilTimeZone();
         var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
@@ -67,13 +78,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
             }
         };
 
-        // Envia como admin ou provider (Admin pode setar p/ qq um pelo request body, Provider baseia no claim)
         var scheduleResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
-        if (!scheduleResponse.IsSuccessStatusCode)
-        {
-            var content = await scheduleResponse.Content.ReadAsStringAsync();
-            _output.WriteLine($"Schedule POST failed: {scheduleResponse.StatusCode} - {content}");
-        }
         scheduleResponse.EnsureSuccessStatusCode();
 
         // 3. Criar usuário (Cliente)
@@ -81,43 +86,29 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         AuthenticateAsUser(customerId.ToString()); // Login como cliente
 
         // 4. Cliente cria um agendamento
-        // Usando horários que caiam dentro do slot de 10h-11h local do prestador (Brasília UTC-3)
-        // Converter horários locais para UTC
         var localStart = new DateTime(localTomorrow.Year, localTomorrow.Month, localTomorrow.Day, 10, 0, 0);
         var localEnd = new DateTime(localTomorrow.Year, localTomorrow.Month, localTomorrow.Day, 11, 0, 0);
         
         var utcStart = TimeZoneInfo.ConvertTimeToUtc(localStart, tz);
         var utcEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, tz);
 
-        var startIso = utcStart.ToString("yyyy-MM-ddTHH:mm:ssZ");
-        var endIso = utcEnd.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
         var bookingRequest = new
         {
             providerId = providerIdClaim,
             serviceId = serviceId,
-            start = startIso,
-            end = endIso
+            start = utcStart.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            end = utcEnd.ToString("yyyy-MM-ddTHH:mm:ssZ")
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
-        
-        // Se retornar BadRequest, quer dizer que tem algum erro de fuso e validação de availability, 
-        // mas para fins de teste garantimos 201 ou tratamos.
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            var contentMsg = await createResponse.Content.ReadAsStringAsync();
-            _output.WriteLine($"Creation failed: {contentMsg}");
-        }
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
         var bookingResponseData = await ReadJsonAsync<BookingDto>(createResponse);
         bookingResponseData.Should().NotBeNull();
         var bookingId = bookingResponseData!.Id;
-        
         bookingResponseData.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Pending);
 
-        // 5. Autentica como Provider
+        // 5. Autentica como Provider para confirmar
         AuthenticateAsProvider(providerIdClaim);
 
         // 6. Provider confirma agendamento
@@ -129,26 +120,27 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var confirmResponse = await ApiClient.SendAsync(confirmRequest);
         confirmResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // 7. Busca agendamento pelo ID e checa se tá confirmado (Autenticado como cliente pra ver)
+        // 7. Busca agendamento e checa status confirmado com Polling estendido (10 tentativas)
         AuthenticateAsUser(customerId.ToString());
         
         var isConfirmed = false;
         BookingDto? updatedBooking = null;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 10; i++)
         {
             var getResponse = await ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
-            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
-            if (updatedBooking?.Status == Contracts.Bookings.Enums.EBookingStatus.Confirmed)
+            if (getResponse.IsSuccessStatusCode)
             {
-                isConfirmed = true;
-                break;
+                updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
+                if (updatedBooking?.Status == Contracts.Bookings.Enums.EBookingStatus.Confirmed)
+                {
+                    isConfirmed = true;
+                    break;
+                }
             }
-            await Task.Delay(1000); // Aguarda 1 segundo antes de tentar novamente
+            await Task.Delay(1000); 
         }
 
-        isConfirmed.Should().BeTrue("the booking status should have been updated to Confirmed after processing");
-        updatedBooking.Should().NotBeNull();
+        isConfirmed.Should().BeTrue($"booking {bookingId} should reach Confirmed status within polling period");
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
     }
 

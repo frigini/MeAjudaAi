@@ -73,8 +73,8 @@ jobs:
 
       - name: Clean build artifacts
         run: |
-          find . -type d -name "bin" -exec rm -rf {} +
-          find . -type d -name "obj" -exec rm -rf {} +
+          find . -type d -name "bin" -prune -exec rm -rf {} \;
+          find . -type d -name "obj" -prune -exec rm -rf {} \;
 
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
@@ -92,10 +92,10 @@ jobs:
         run: |
           dotnet test tests/MeAjudaAi.E2E.Tests \
             --configuration Release --no-build \
+            --settings tests/sequential.runsettings \
             --logger "trx;LogFileName=e2e.trx" \
             --diag e2e.vstest.diag.log \
-            --blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full \
-            -- --parallel 1
+            --blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full
 
       - name: Upload E2E diagnostics
         uses: actions/upload-artifact@v4
