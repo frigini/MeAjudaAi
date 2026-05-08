@@ -94,15 +94,24 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         content.Should().NotBeNull();
         content!.CheckoutUrl.Should().StartWith("https://checkout.stripe.com/mock_");
 
-        // Verificar estado no banco de dados
-        await _fixture.WithServiceScopeAsync(async services =>
+        // Verificar estado no banco de dados com polling para garantir estabilidade
+        ESubscriptionStatus? status = null;
+        for (int i = 0; i < 5; i++)
         {
-            var dbContext = services.GetRequiredService<PaymentsDbContext>();
-            var subscription = await dbContext.Subscriptions.FirstOrDefaultAsync(s => s.ProviderId == providerId);
-            
-            subscription.Should().NotBeNull();
-            subscription!.Status.Should().Be(ESubscriptionStatus.Pending);
-        });
+            await _fixture.WithServiceScopeAsync(async services =>
+            {
+                var dbContext = services.GetRequiredService<PaymentsDbContext>();
+                var subscription = await dbContext.Subscriptions.FirstOrDefaultAsync(s => s.ProviderId == providerId);
+                if (subscription != null)
+                {
+                    status = subscription.Status;
+                }
+            });
+            if (status == ESubscriptionStatus.Pending) break;
+            await Task.Delay(1000);
+        }
+
+        status.Should().Be(ESubscriptionStatus.Pending, "subscription should have been created with Pending status");
     }
 
     [Fact]
