@@ -125,7 +125,7 @@ public class TestContainerFixture : IAsyncLifetime
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
                 });
 
-                builder.ConfigureServices(services =>
+                builder.ConfigureServices((context, services) =>
                 {
                     // Remover background workers que interferem com migrations e isolamento
                     var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
@@ -140,9 +140,8 @@ public class TestContainerFixture : IAsyncLifetime
                         logging.SetMinimumLevel(LogLevel.Error);
                     });
 
-                    // Registra serviços da API (inclui HealthChecks, Cors, etc.)
-                    // O builder.Configuration e environment já estão configurados no HostBuilder
-                    services.AddApiServices(_factory.Services.GetRequiredService<IConfiguration>(), _factory.Services.GetRequiredService<IWebHostEnvironment>());
+                    var configuration = context.Configuration;
+                    var environment = context.HostingEnvironment;
 
                     ConfigureMockServices(services);
                     ReconfigureDbContexts(services);

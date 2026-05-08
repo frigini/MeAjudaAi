@@ -62,16 +62,19 @@ public partial class Program
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
-            builder.Services.AddCors(options =>
+            if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Integration"))
             {
-                options.AddPolicy("AllowAll", policy =>
+                builder.Services.AddCors(options =>
                 {
-                    policy.SetIsOriginAllowed(_ => true)
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
+                    options.AddPolicy("AllowAll", policy =>
+                    {
+                        policy.SetIsOriginAllowed(_ => true)
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials();
+                    });
                 });
-            });
+            }
             builder.Services.AddFeatureManagement();
 
             var app = builder.Build();

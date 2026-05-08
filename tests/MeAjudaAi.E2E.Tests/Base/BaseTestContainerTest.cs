@@ -366,7 +366,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         await CleanupContext<SearchProvidersDbContext>(services);
         await CleanupContext<RatingsDbContext>(services);
 
-        await Task.CompletedTask; // Redis flush moved to separate check if needed
+        await SharedTestContainers.FlushRedisAsync();
     }
 
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext

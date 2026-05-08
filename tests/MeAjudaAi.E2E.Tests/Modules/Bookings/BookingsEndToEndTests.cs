@@ -121,7 +121,11 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         AuthenticateAsProvider(providerIdClaim);
 
         // 6. Provider confirma agendamento
-        var confirmResponse = await ApiClient.PutAsync($"/api/v1/bookings/{bookingId}/confirm", new System.Net.Http.StringContent("", System.Text.Encoding.UTF8, "application/json"));
+        var correlationId = Guid.NewGuid();
+        var confirmRequest = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/bookings/{bookingId}/confirm");
+        confirmRequest.Headers.Add("X-Correlation-ID", correlationId.ToString());
+        
+        var confirmResponse = await ApiClient.SendAsync(confirmRequest);
         confirmResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 7. Busca agendamento pelo ID e checa se tá confirmado (Autenticado como cliente pra ver)

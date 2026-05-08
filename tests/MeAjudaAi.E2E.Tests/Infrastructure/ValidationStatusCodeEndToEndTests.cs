@@ -126,7 +126,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
 
     #endregion
 
-    #region 422 Unprocessable Entity - Semantic/Business Validation (Future)
+    #region 400 Bad Request - Semantic/Business Validation
 
     /// <summary>
     /// NOTA: 422 Unprocessable Entity não está implementado no MVP.
@@ -137,7 +137,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     /// Exemplo: formato inválido (400) vs. categoria não existe (422).
     /// </summary>
     [Fact]
-    public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
+    public async Task CreateService_WithNonExistentCategory_ShouldReturn400()
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
