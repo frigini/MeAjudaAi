@@ -313,6 +313,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
     public async Task GetAllowedCityById_WithValidId_ShouldReturnCity()
     {
         // Arrange
+        await _fixture.CleanupDatabaseAsync();
         TestContainerFixture.AuthenticateAsAdmin();
 
         Guid cityId = Guid.Empty;

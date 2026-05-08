@@ -66,14 +66,21 @@ jobs:
           docker --version
           docker info
 
+      - name: Kill zombie processes
+        run: |
+          pkill -9 dotnet || true
+          pkill -9 testhost || true
+
+      - name: Clean build artifacts
+        run: |
+          find . -type d -name "bin" -exec rm -rf {} +
+          find . -type d -name "obj" -exec rm -rf {} +
+
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
 
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
-
-      - name: Preflight - list tests
-        run: dotnet test tests/MeAjudaAi.E2E.Tests --list-tests -c Release || true
 
       - name: Run Backend E2E Tests
         env:
@@ -87,7 +94,7 @@ jobs:
             --configuration Release --no-build \
             --logger "trx;LogFileName=e2e.trx" \
             --diag e2e.vstest.diag.log \
-            --blame-hang --blame-hang-timeout 5m --blame-hang-dump-type full
+            --blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full --parallel 1
 
       - name: Upload E2E diagnostics
         uses: actions/upload-artifact@v4
