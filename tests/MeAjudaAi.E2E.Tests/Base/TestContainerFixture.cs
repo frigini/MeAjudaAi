@@ -178,6 +178,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReplaceService<IKeycloakService, MockKeycloakService>(services, ServiceLifetime.Scoped);
         ReplaceService<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MockUserDomainService>(services, ServiceLifetime.Scoped);
         ReplaceService<IBlobStorageService, MockBlobStorageService>(services, ServiceLifetime.Scoped);
+        ReplaceService<MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockPaymentGateway>(services, ServiceLifetime.Singleton);
 
         if (EnableEventsAndMessageBus)
         {

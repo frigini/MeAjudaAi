@@ -142,11 +142,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         services.Remove(service);
                     }
 
-                    // Configurar logging mínimo para testes
+                    // Configurar logging para capturar logs de E2E
                     services.AddLogging(logging =>
                     {
                         logging.ClearProviders();
-                        logging.SetMinimumLevel(LogLevel.Error);
+                        logging.AddConsole();
+                        logging.SetMinimumLevel(LogLevel.Debug);
                     });
 
                     // Reconfigurar todos os DbContexts com TestContainer connection string
