@@ -122,6 +122,9 @@ public class TestContainerFixture : IAsyncLifetime
                         logging.SetMinimumLevel(LogLevel.Error);
                     });
 
+                    // Registra o serviço de geocoding mockado agora que a infraestrutura respeita a config
+                    services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
+
                     var configuration = context.Configuration;
                     var environment = context.HostingEnvironment;
 

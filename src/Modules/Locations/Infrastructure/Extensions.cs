@@ -115,18 +115,27 @@ public static class Extensions
         });
 
         // Registrar HTTP client para Nominatim (geocoding)
-        services.AddHttpClient<NominatimClient>(client =>
+        var geocodingEnabled = configuration.GetValue<bool>("ExternalServices:Geolocation:Enabled", true);
+        if (geocodingEnabled)
         {
-            var baseUrl = configuration["Locations:ExternalApis:Nominatim:BaseUrl"]
-                ?? "https://nominatim.openstreetmap.org/"; // Fallback para testes
-            client.BaseAddress = new Uri(baseUrl);
+            services.AddHttpClient<NominatimClient>(client =>
+            {
+                var baseUrl = configuration["Locations:ExternalApis:Nominatim:BaseUrl"]
+                    ?? "https://nominatim.openstreetmap.org/"; // Fallback para testes
+                client.BaseAddress = new Uri(baseUrl);
 
-            // Configurar User-Agent conforme política de uso do Nominatim
-            var userAgent = configuration["Locations:ExternalApis:Nominatim:UserAgent"]
-                ?? "MeAjudaAi-Tests/1.0 (https://github.com/frigini/MeAjudaAi)"; // Fallback para testes
-            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
-        });
-
+                // Configurar User-Agent conforme política de uso do Nominatim
+                var userAgent = configuration["Locations:ExternalApis:Nominatim:UserAgent"]
+                    ?? "MeAjudaAi-Tests/1.0 (https://github.com/frigini/MeAjudaAi)"; // Fallback para testes
+                client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            });
+            services.AddScoped<IGeocodingService, GeocodingService>();
+        }
+        else
+        {
+            // Opcional: Registrar um Mock/NoOp se necessário, mas deixar como null ou não registrado pode ser melhor.
+            // Para E2E, o ideal é o TestContainerFixture registrar um mock apropriado.
+        }
         // Registrar HTTP client para IBGE Localidades
         services.AddHttpClient<IIbgeClient, IbgeClient>(client =>
         {
@@ -143,7 +152,6 @@ public static class Extensions
 
         // Registrar serviços
         services.AddScoped<ICepLookupService, CepLookupService>();
-        services.AddScoped<IGeocodingService, GeocodingService>();
         services.AddScoped<IIbgeService, IbgeService>();
 
         // Registrar adapter para middleware (Shared → Locations)
