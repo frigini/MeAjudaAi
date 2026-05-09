@@ -87,9 +87,11 @@ public static class E2EStabilityCoordinator
         await LogAsync("Applying all migrations...");
         
         // Ordem fixa de aplicação para evitar deadlocks de metadados
+        // IMPORTANTE: ServiceCatalogs deve vir antes de Providers devido à migração
+        // 20260210193620_AddProviderProfileEnhancements que faz backfill usando SQL de service_catalogs.services
         await ApplyIndependentMigration<UsersDbContext>();
-        await ApplyIndependentMigration<ProvidersDbContext>();
         await ApplyIndependentMigration<ServiceCatalogsDbContext>();
+        await ApplyIndependentMigration<ProvidersDbContext>();
         await ApplyIndependentMigration<RatingsDbContext>();
         await ApplyIndependentMigration<DocumentsDbContext>();
         await ApplyIndependentMigration<LocationsDbContext>();
