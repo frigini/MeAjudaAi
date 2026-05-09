@@ -141,12 +141,14 @@ public static class E2EStabilityCoordinator
         await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
         await connection.OpenAsync();
 
-        // Query para pegar todas as tabelas exceto as de sistema e migração
+        // Query para pegar todas as tabelas base exceto as de sistema, migração e extensões (PostGIS)
         var query = @"
             SELECT '""' || table_schema || '"".""' || table_name || '""'
             FROM information_schema.tables 
-            WHERE table_schema NOT IN ('information_schema', 'pg_catalog') 
-            AND table_name NOT LIKE '__EFMigrationsHistory'";
+            WHERE table_type = 'BASE TABLE'
+            AND table_schema NOT IN ('information_schema', 'pg_catalog') 
+            AND table_name NOT LIKE '__EFMigrationsHistory'
+            AND table_name NOT IN ('spatial_ref_sys')";
 
         var tableNames = new List<string>();
         await using (var cmd = new NpgsqlCommand(query, connection))
