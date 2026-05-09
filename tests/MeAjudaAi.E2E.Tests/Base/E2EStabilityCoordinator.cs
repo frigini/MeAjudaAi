@@ -28,39 +28,57 @@ public static class E2EStabilityCoordinator
 
     public static async Task EnsureInitializedAsync()
     {
-        var lockFilePath = Path.Combine(AppContext.BaseDirectory, "e2e_init.lock");
-        
-        // Usar FileStream com Lock para garantir exclusividade entre processos
-        using var lockStream = new FileStream(lockFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-
         if (_initialized) return;
 
-        await _lock.WaitAsync();
-        try
+        var lockFilePath = Path.Combine(AppContext.BaseDirectory, "e2e_init.lock");
+        const int maxRetries = 120; // 2 minutos de espera total
+        
+        for (int i = 0; i < maxRetries; i++)
         {
-            if (_initialized) return;
+            try
+            {
+                // Usar FileStream com Lock para garantir exclusividade entre processos
+                using var lockStream = new FileStream(lockFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
 
-            await LogAsync("Starting centralized initialization...");
+                if (_initialized) return;
 
-            // 1. Garantir containers ativos
-            await SharedTestContainers.EnsureInitializedAsync();
-            await LogAsync("Shared containers ready.");
+                await _lock.WaitAsync();
+                try
+                {
+                    if (_initialized) return;
 
-            // 2. Aguardar readiness do Postgres
-            await WaitForPostgresAsync();
+                    await LogAsync("Starting centralized initialization...");
 
-            // 3. Aplicar Migrações
-            await ApplyAllMigrationsAsync();
+                    // 1. Garantir containers ativos
+                    await SharedTestContainers.EnsureInitializedAsync();
+                    await LogAsync("Shared containers ready.");
 
-            // 4. Limpeza inicial
-            await GlobalCleanupAsync();
+                    // 2. Aguardar readiness do Postgres
+                    await WaitForPostgresAsync();
 
-            _initialized = true;
-            await LogAsync("Centralized initialization completed successfully.");
-        }
-        finally
-        {
-            _lock.Release();
+                    // 3. Aplicar Migrações
+                    await ApplyAllMigrationsAsync();
+
+                    // 4. Limpeza inicial
+                    await GlobalCleanupAsync();
+
+                    _initialized = true;
+                    await LogAsync("Centralized initialization completed successfully.");
+                    return;
+                }
+                finally
+                {
+                    _lock.Release();
+                }
+            }
+            catch (IOException)
+            {
+                // Arquivo travado por outro processo, aguardar e tentar novamente
+                if (i == maxRetries - 1) 
+                    throw new TimeoutException($"Could not acquire E2E initialization lock after {maxRetries} attempts.");
+                
+                await Task.Delay(1000);
+            }
         }
     }
 
@@ -134,12 +152,27 @@ public static class E2EStabilityCoordinator
 
     public static async Task GlobalCleanupAsync()
     {
-        await LogAsync("Starting global cleanup...");
+        await LogAsync("Starting global cleanup with advisory lock...");
         
-        // Usar um único contexto para listar todas as tabelas de todos os schemas e limpar via SQL puro
-        // Isso é mais rápido que limpar contexto por contexto
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
-        await connection.OpenAsync();
+        await connection.OpenAsync(cts.Token);
+
+        // Lock ID arbitrário para o cleanup (666)
+        const long lockId = 666;
+        
+        // Adquire lock consultivo para evitar TRUNCATE simultâneo que causa deadlocks DDL
+        await using (var lockCmd = new NpgsqlCommand($"SELECT pg_advisory_xact_lock({lockId})", connection))
+        {
+            await lockCmd.ExecuteNonQueryAsync(cts.Token);
+            await LogAsync("Database advisory lock acquired.");
+        }
+
+        // Set short statement timeout for TRUNCATE
+        await using (var timeoutCmd = new NpgsqlCommand("SET statement_timeout = '15s'", connection))
+        {
+            await timeoutCmd.ExecuteNonQueryAsync(cts.Token);
+        }
 
         // Query para pegar todas as tabelas base exceto as de sistema, migração e extensões (PostGIS)
         var query = @"
@@ -152,9 +185,9 @@ public static class E2EStabilityCoordinator
 
         var tableNames = new List<string>();
         await using (var cmd = new NpgsqlCommand(query, connection))
-        await using (var reader = await cmd.ExecuteReaderAsync())
+        await using (var reader = await cmd.ExecuteReaderAsync(cts.Token))
         {
-            while (await reader.ReadAsync())
+            while (await reader.ReadAsync(cts.Token))
             {
                 tableNames.Add(reader.GetString(0));
             }
@@ -164,9 +197,8 @@ public static class E2EStabilityCoordinator
         {
             var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
             await using var truncateCmd = new NpgsqlCommand(truncateSql, connection);
-            truncateCmd.CommandTimeout = 15;
-            await truncateCmd.ExecuteNonQueryAsync();
-            await LogAsync($"Truncated {tableNames.Count} tables.");
+            await truncateCmd.ExecuteNonQueryAsync(cts.Token);
+            await LogAsync($"Truncated {tableNames.Count} tables successfully.");
         }
         else
         {
