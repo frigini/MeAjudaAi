@@ -28,6 +28,11 @@ public static class E2EStabilityCoordinator
 
     public static async Task EnsureInitializedAsync()
     {
+        var lockFilePath = Path.Combine(AppContext.BaseDirectory, "e2e_init.lock");
+        
+        // Usar FileStream com Lock para garantir exclusividade entre processos
+        using var lockStream = new FileStream(lockFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
         if (_initialized) return;
 
         await _lock.WaitAsync();
@@ -47,7 +52,7 @@ public static class E2EStabilityCoordinator
             // 3. Aplicar Migrações
             await ApplyAllMigrationsAsync();
 
-            // 4. Limpeza inicial (Opcional, mas garante banco limpo no início do run)
+            // 4. Limpeza inicial
             await GlobalCleanupAsync();
 
             _initialized = true;
@@ -133,45 +138,37 @@ public static class E2EStabilityCoordinator
         
         // Usar um único contexto para listar todas as tabelas de todos os schemas e limpar via SQL puro
         // Isso é mais rápido que limpar contexto por contexto
-        try
+        await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
+        await connection.OpenAsync();
+
+        // Query para pegar todas as tabelas exceto as de sistema e migração
+        var query = @"
+            SELECT '""' || table_schema || '"".""' || table_name || '""'
+            FROM information_schema.tables 
+            WHERE table_schema NOT IN ('information_schema', 'pg_catalog') 
+            AND table_name NOT LIKE '__EFMigrationsHistory'";
+
+        var tableNames = new List<string>();
+        await using (var cmd = new NpgsqlCommand(query, connection))
+        await using (var reader = await cmd.ExecuteReaderAsync())
         {
-            await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
-            await connection.OpenAsync();
-
-            // Query para pegar todas as tabelas exceto as de sistema e migração
-            var query = @"
-                SELECT '""' || table_schema || '"".""' || table_name || '""'
-                FROM information_schema.tables 
-                WHERE table_schema NOT IN ('information_schema', 'pg_catalog') 
-                AND table_name NOT LIKE '__EFMigrationsHistory'";
-
-            var tableNames = new List<string>();
-            await using (var cmd = new NpgsqlCommand(query, connection))
-            await using (var reader = await cmd.ExecuteReaderAsync())
+            while (await reader.ReadAsync())
             {
-                while (await reader.ReadAsync())
-                {
-                    tableNames.Add(reader.GetString(0));
-                }
-            }
-
-            if (tableNames.Count > 0)
-            {
-                var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
-                await using var truncateCmd = new NpgsqlCommand(truncateSql, connection);
-                truncateCmd.CommandTimeout = 15;
-                await truncateCmd.ExecuteNonQueryAsync();
-                await LogAsync($"Truncated {tableNames.Count} tables.");
-            }
-            else
-            {
-                await LogAsync("No tables found to truncate.");
+                tableNames.Add(reader.GetString(0));
             }
         }
-        catch (Exception ex)
+
+        if (tableNames.Count > 0)
         {
-            await LogAsync($"Cleanup failed: {ex.Message}");
-            // Não relançar para não travar o bootstrap se o cleanup falhar (ex: tabelas ainda não existem)
+            var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
+            await using var truncateCmd = new NpgsqlCommand(truncateSql, connection);
+            truncateCmd.CommandTimeout = 15;
+            await truncateCmd.ExecuteNonQueryAsync();
+            await LogAsync($"Truncated {tableNames.Count} tables.");
+        }
+        else
+        {
+            await LogAsync("No tables found to truncate.");
         }
     }
 

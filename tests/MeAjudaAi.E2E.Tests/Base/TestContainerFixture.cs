@@ -61,10 +61,10 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        // Centralized initialization (Containers + Migrations + Global Cleanup)
+        // Inicialização centralizada (containers + migrações + limpeza global)
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        // Initialize WebApplicationFactory for THIS test class instance
+        // Inicializa WebApplicationFactory para esta instância de teste
         await InitializeFactoryAsync();
     }
 
@@ -156,7 +156,7 @@ public class TestContainerFixture : IAsyncLifetime
             services.AddAuthorization();
         }
 
-        // Mocks for external dependencies
+        // Mocks para dependências externas
         ReplaceService<IKeycloakService, MockKeycloakService>(services, ServiceLifetime.Scoped);
         ReplaceService<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MockUserDomainService>(services, ServiceLifetime.Scoped);
         ReplaceService<IBlobStorageService, MockBlobStorageService>(services, ServiceLifetime.Scoped);
@@ -173,7 +173,7 @@ public class TestContainerFixture : IAsyncLifetime
             ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>(services, ServiceLifetime.Scoped);
         }
 
-        // SearchProviders specific metrics/dapper
+        // Métricas e Dapper específicos do SearchProviders
         if (!services.Any(d => d.ServiceType == typeof(DatabaseMetrics)))
         {
             services.AddSingleton<DatabaseMetrics>();

@@ -59,13 +59,13 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     public virtual async ValueTask InitializeAsync()
     {
-        // 1. Centralized initialization (Containers + Migrations + Global Cleanup)
+        // 1. Inicialização centralizada (Containers + Migrações + Limpeza Global)
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
         // 2. Configurar WebApplicationFactory (instância por teste, mas usa containers compartilhados)
         InitializeFactory();
 
-        // 3. Create HTTP client with test context header injection
+        // 3. Criar cliente HTTP com injeção de header de contexto de teste
         ApiClient = _factory.CreateDefaultClient(new TestContextHeaderHandler());
 
         // 4. Aguardar API ficar disponível
@@ -138,12 +138,19 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         services.Remove(service);
                     }
 
-                    // Configurar logging para capturar logs de E2E
+                    // Configurar logging para capturar logs de E2E apenas se solicitado
                     services.AddLogging(logging =>
                     {
                         logging.ClearProviders();
-                        logging.AddConsole();
-                        logging.SetMinimumLevel(LogLevel.Debug);
+                        if (Environment.GetEnvironmentVariable("TEST_ENABLE_SENSITIVE_LOGS") == "true")
+                        {
+                            logging.AddConsole();
+                            logging.SetMinimumLevel(LogLevel.Debug);
+                        }
+                        else
+                        {
+                            logging.SetMinimumLevel(LogLevel.Warning);
+                        }
                     });
 
                     // Reconfigurar todos os DbContexts com TestContainer connection string
@@ -247,14 +254,14 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     public virtual async ValueTask DisposeAsync()
     {
-        // Clear authentication context to prevent state pollution between tests
+        // Limpar contexto de autenticação para evitar poluição entre testes
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
 
         ApiClient?.Dispose();
-        _factory?.Dispose();
+        if (_factory != null) await _factory.DisposeAsync();
 
-        // DO NOT dispose containers here as they are shared static singletons
-        // They will be cleaned up by Ryuk (Testcontainers) when the process exits
+        // NÃO fazer dispose dos containers aqui pois são singletons estáticos compartilhados
+        // Serão limpos pelo Ryuk (Testcontainers) quando o processo terminar
         await Task.CompletedTask;
     }
 
@@ -275,7 +282,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             }
             catch (Exception) when (attempt < maxAttempts)
             {
-                // Continue to next attempt
+                // Continuar para próxima tentativa
             }
 
             if (attempt < maxAttempts)
@@ -284,7 +291,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             }
         }
 
-        throw new InvalidOperationException($"API did not become healthy after {maxAttempts} attempts");
+        throw new InvalidOperationException($"A API não ficou saudável após {maxAttempts} tentativas");
     }
 
     protected async Task CleanupDatabaseAsync()
@@ -294,8 +301,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
 
-    // Helper methods usando serialização compartilhada
-#pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
+    // Métodos auxiliares usando serialização compartilhada
+#pragma warning disable CA2000 // Dispose StringContent - tratado pelo HttpClient
     /// <summary>
     /// Envia uma requisição POST com conteúdo JSON para o URI especificado.
     /// </summary>
@@ -451,7 +458,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 npgsqlOptions.CommandTimeout(120);
             })
                 .UseSnakeCaseNamingConvention()
-                .EnableSensitiveDataLogging(true)
+                .EnableSensitiveDataLogging(Environment.GetEnvironmentVariable("TEST_ENABLE_SENSITIVE_LOGS") == "true")
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             });

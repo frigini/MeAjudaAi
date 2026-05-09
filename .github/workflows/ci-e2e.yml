@@ -93,6 +93,7 @@ jobs:
           dotnet test tests/MeAjudaAi.E2E.Tests \
             --configuration Release --no-build \
             --settings tests/sequential.runsettings \
+            --logger "console;verbosity=normal" \
             --logger "trx;LogFileName=e2e.trx" \
             --diag e2e.vstest.diag.log \
             --blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full
@@ -106,11 +107,36 @@ jobs:
             **/e2e.trx
             **/e2e.vstest.diag.log
             **/TestResults/**/coverage.cobertura.xml
+            **/*.dmp
+            **/Sequence*.xml
 
   frontend-e2e:
     name: Frontend E2E
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code

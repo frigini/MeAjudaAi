@@ -144,17 +144,6 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
     }
 
-    private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
-    {
-        var response = await ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
-        if (!response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            _output.WriteLine($"Linking service failed: {response.StatusCode} - {content}");
-        }
-        response.EnsureSuccessStatusCode();
-    }
-
     private static TimeZoneInfo ResolveBrazilTimeZone()
     {
         try
@@ -190,8 +179,9 @@ public class BookingsEndToEndTests : BaseTestContainerTest
                 svcResponse.EnsureSuccessStatusCode();
                 return ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
             }
-            catch (Exception) when (i < 2)
+            catch (Exception ex)
             {
+                if (i == 2) throw new Exception("Failed to create test service after retries", ex);
                 await Task.Delay(1000);
             }
         }
@@ -225,8 +215,9 @@ public class BookingsEndToEndTests : BaseTestContainerTest
                 response.EnsureSuccessStatusCode();
                 return ExtractIdFromLocation(response.Headers.Location!.ToString());
             }
-            catch (Exception) when (i < 2)
+            catch (Exception ex)
             {
+                if (i == 2) throw new Exception("Failed to create test provider after retries", ex);
                 await Task.Delay(1000);
             }
         }

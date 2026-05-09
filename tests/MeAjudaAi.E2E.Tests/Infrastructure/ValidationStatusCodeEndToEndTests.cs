@@ -160,7 +160,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
+    public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn400()
     {
         // Arrange - Criar categoria e serviço
         TestContainerFixture.BeforeEachTest();
@@ -179,7 +179,10 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             "/api/v1/service-catalogs/categories", 
             categoryRequest, 
             TestContainerFixture.JsonOptions);
+        
+        categoryResponse.EnsureSuccessStatusCode();
         var categoryLocation = categoryResponse.Headers.Location?.ToString();
+        categoryLocation.Should().NotBeNull("Category creation should return Location header");
         var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryLocation!);
 
         // Criar serviço
@@ -194,7 +197,10 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             "/api/v1/service-catalogs/services",
             serviceRequest,
             TestContainerFixture.JsonOptions);
+        
+        serviceResponse.EnsureSuccessStatusCode();
         var serviceLocation = serviceResponse.Headers.Location?.ToString();
+        serviceLocation.Should().NotBeNull("Service creation should return Location header");
         var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceLocation!);
         
         // Act - Tentar mudar para categoria que não existe
@@ -208,8 +214,9 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             TestContainerFixture.JsonOptions);
         
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
-            "changing to non-existent category should return 422");
+        // NOTA: Conforme comentário acima, 422 não está no MVP, deve retornar 400.
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "changing to non-existent category should return 400 (Bad Request) for semantic validation in MVP");
     }
 
     #endregion
