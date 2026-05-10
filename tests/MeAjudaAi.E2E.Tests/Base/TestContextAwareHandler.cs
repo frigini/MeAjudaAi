@@ -35,8 +35,10 @@ public class TestContextAwareHandler : DelegatingHandler
             requestPath.StartsWith(endpoint + "/", StringComparison.OrdinalIgnoreCase));
 
         // Injetar localização para testes (Muriaé/MG é uma cidade permitida na configuração)
-        request.Headers.TryAddWithoutValidation("X-User-City", "Muriaé");
-        request.Headers.TryAddWithoutValidation("X-User-State", "MG");
+        request.Headers.Remove("X-User-City");
+        request.Headers.Add("X-User-City", "Muriaé");
+        request.Headers.Remove("X-User-State");
+        request.Headers.Add("X-User-State", "MG");
 
         // Obter contexto AsyncLocal IMEDIATAMENTE antes do envio (ainda no contexto do teste)
         var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();

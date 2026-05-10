@@ -529,6 +529,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            // Add geographic headers to all requests to satisfy Geofencing
+            if (!request.Headers.Contains("X-User-City")) request.Headers.Add("X-User-City", "Muriaé");
+            if (!request.Headers.Contains("X-User-State")) request.Headers.Add("X-User-State", "MG");
+
             // Add test context ID header to isolate authentication between parallel tests
             var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();
             if (contextId != null)

@@ -122,6 +122,8 @@ public static class Extensions
             {
                 var baseUrl = configuration["Locations:ExternalApis:Nominatim:BaseUrl"]
                     ?? "https://nominatim.openstreetmap.org/"; // Fallback para testes
+                
+                if (!baseUrl.EndsWith('/')) baseUrl += "/";
                 client.BaseAddress = new Uri(baseUrl);
 
                 // Configurar User-Agent conforme política de uso do Nominatim
@@ -133,8 +135,7 @@ public static class Extensions
         }
         else
         {
-            // Opcional: Registrar um Mock/NoOp se necessário, mas deixar como null ou não registrado pode ser melhor.
-            // Para E2E, o ideal é o TestContainerFixture registrar um mock apropriado.
+            services.AddScoped<IGeocodingService, NoOpGeocodingService>();
         }
         // Registrar HTTP client para IBGE Localidades
         services.AddHttpClient<IIbgeClient, IbgeClient>(client =>
