@@ -70,80 +70,90 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task InitializeFactoryAsync()
     {
-#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
-        _factory = new WebApplicationFactory<Program>()
-#pragma warning restore CA2000
-            .WithWebHostBuilder(builder =>
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
+        await AppendLogAsync(diagPath, "InitializeFactoryAsync starting...");
+
+        try
+        {
+            _factory = new WebApplicationFactory<Program>()
+                .WithWebHostBuilder(builder =>
+                {
+                    builder.UseEnvironment("Testing");
+                    builder.ConfigureAppConfiguration((context, config) =>
+                    {
+                        config.AddInMemoryCollection(new Dictionary<string, string?>
+                        {
+                            ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
+                            ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
+                            ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
+                            ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
+                            ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
+                            ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
+                            ["ConnectionStrings:Redis"] = RedisConnectionString,
+                            ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
+                            ["Hangfire:Enabled"] = "false",
+                            ["Logging:LogLevel:Default"] = "Warning",
+                            ["Logging:LogLevel:Microsoft"] = "Error",
+                            ["RabbitMQ:Enabled"] = "false",
+                            ["Keycloak:Enabled"] = "false",
+                            ["ExternalServices:Keycloak:Enabled"] = "false",
+                            ["ExternalServices:PaymentGateway:Enabled"] = "false",
+                            ["ExternalServices:Geolocation:Enabled"] = "false",
+                            ["Cache:Enabled"] = "false",
+                            ["Cache:ConnectionString"] = RedisConnectionString,
+                            ["AdvancedRateLimit:General:Enabled"] = "false",
+                            ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
+                            ["RateLimit:DefaultRequestsPerMinute"] = "999999",
+                            ["RateLimit:WindowInSeconds"] = "3600"
+                        });
+
+                        config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
+                    });
+
+                    builder.ConfigureServices((context, services) =>
+                    {
+                        // Remover background workers que interferem com migrations e isolamento
+                        var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+                        foreach (var service in hostedServices)
+                        {
+                            services.Remove(service);
+                        }
+
+                        services.AddLogging(logging =>
+                        {
+                            logging.ClearProviders();
+                            logging.SetMinimumLevel(LogLevel.Error);
+                        });
+
+                        // Registra o serviço de geocoding mockado agora que a infraestrutura respeita a config
+                        services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
+
+                        ConfigureMockServices(services);
+                        ReconfigureDbContexts(services);
+                    });
+                });
+
+            await AppendLogAsync(diagPath, "Factory created, accessing Services...");
+            
+            var contextPropagationHandler = new TestContextAwareHandler
             {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureAppConfiguration((context, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
-                        ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
-                        ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
-                        ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
-                        ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
-                        ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
-                        ["ConnectionStrings:Redis"] = RedisConnectionString,
-                        ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
-                        ["Hangfire:Enabled"] = "false",
-                        ["Logging:LogLevel:Default"] = "Warning",
-                        ["Logging:LogLevel:Microsoft"] = "Error",
-                        ["RabbitMQ:Enabled"] = "false",
-                        ["Keycloak:Enabled"] = "false",
-                        ["ExternalServices:Keycloak:Enabled"] = "false",
-                        ["ExternalServices:PaymentGateway:Enabled"] = "false",
-                        ["ExternalServices:Geolocation:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false",
-                        ["Cache:ConnectionString"] = RedisConnectionString,
-                        ["AdvancedRateLimit:General:Enabled"] = "false",
-                        ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
-                        ["RateLimit:DefaultRequestsPerMinute"] = "999999",
-                        ["RateLimit:WindowInSeconds"] = "3600"
-                    });
-
-                    config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
-                });
-
-                builder.ConfigureServices((context, services) =>
-                {
-                    // Remover background workers que interferem com migrations e isolamento
-                    var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
-                    foreach (var service in hostedServices)
-                    {
-                        services.Remove(service);
-                    }
-
-                    services.AddLogging(logging =>
-                    {
-                        logging.ClearProviders();
-                        logging.SetMinimumLevel(LogLevel.Error);
-                    });
-
-                    // Registra o serviço de geocoding mockado agora que a infraestrutura respeita a config
-                    services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
-
-                    var configuration = context.Configuration;
-                    var environment = context.HostingEnvironment;
-
-                    ConfigureMockServices(services);
-                    ReconfigureDbContexts(services);
-                });
-            });
-
-        var contextPropagationHandler = new TestContextAwareHandler
+                InnerHandler = _factory.Server.CreateHandler()
+            };
+            
+            ApiClient = new HttpClient(contextPropagationHandler)
+            {
+                BaseAddress = new Uri("http://localhost")
+            };
+            
+            await AppendLogAsync(diagPath, "Accessing _factory.Services to trigger startup...");
+            Services = _factory.Services;
+            await AppendLogAsync(diagPath, "Factory initialization completed successfully.");
+        }
+        catch (Exception ex)
         {
-            InnerHandler = _factory.Server.CreateHandler()
-        };
-        
-        ApiClient = new HttpClient(contextPropagationHandler)
-        {
-            BaseAddress = new Uri("http://localhost")
-        };
-        
-        Services = _factory.Services;
+            await AppendLogAsync(diagPath, $"Factory initialization FAILED: {ex.Message}\n{ex.StackTrace}");
+            throw;
+        }
     }
 
     private void ConfigureMockServices(IServiceCollection services)

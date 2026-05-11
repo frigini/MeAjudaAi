@@ -95,7 +95,8 @@ public static class SharedTestContainers
             SslMode = SslMode.Disable,
             IncludeErrorDetail = true,
             Timeout = 30,
-            CommandTimeout = 60
+            CommandTimeout = 60,
+            Pooling = false // Desabilita pooling nos testes E2E para evitar locks residuais durante cleanup
         };
         return builder.ToString();
     }

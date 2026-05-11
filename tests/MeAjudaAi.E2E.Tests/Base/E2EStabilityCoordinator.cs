@@ -152,60 +152,58 @@ public static class E2EStabilityCoordinator
 
     public static async Task GlobalCleanupAsync()
     {
-        await LogAsync("Starting global cleanup with advisory lock...");
-        
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await LogAsync("Starting global cleanup...");
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
         await connection.OpenAsync(cts.Token);
 
-        // Lock ID arbitrário para o cleanup (666)
-        const long lockId = 666;
-        
-        // Adquire lock consultivo para evitar TRUNCATE simultâneo que causa deadlocks DDL
-        await using (var lockCmd = new NpgsqlCommand($"SELECT pg_advisory_xact_lock({lockId})", connection))
+        try
         {
-            await lockCmd.ExecuteNonQueryAsync(cts.Token);
-            await LogAsync("Database advisory lock acquired.");
-        }
-
-        // Set short statement timeout for TRUNCATE
-        await using (var timeoutCmd = new NpgsqlCommand("SET statement_timeout = '15s'", connection))
-        {
-            await timeoutCmd.ExecuteNonQueryAsync(cts.Token);
-        }
-
-        // Query para pegar todas as tabelas base exceto as de sistema, migração e extensões (PostGIS)
-        var query = @"
-            SELECT '""' || table_schema || '"".""' || table_name || '""'
-            FROM information_schema.tables 
-            WHERE table_type = 'BASE TABLE'
-            AND table_schema NOT IN ('information_schema', 'pg_catalog') 
-            AND table_name NOT LIKE '__EFMigrationsHistory'
-            AND table_name NOT IN ('spatial_ref_sys')";
-
-        var tableNames = new List<string>();
-        await using (var cmd = new NpgsqlCommand(query, connection))
-        await using (var reader = await cmd.ExecuteReaderAsync(cts.Token))
-        {
-            while (await reader.ReadAsync(cts.Token))
+            // Set short statement timeout for TRUNCATE
+            await using (var timeoutCmd = new NpgsqlCommand("SET statement_timeout = '30s'", connection))
             {
-                tableNames.Add(reader.GetString(0));
+                await timeoutCmd.ExecuteNonQueryAsync(cts.Token);
+            }
+
+            // Query para pegar todas as tabelas base exceto as de sistema, migração e extensões (PostGIS)
+            var query = @"
+                SELECT '""' || table_schema || '"".""' || table_name || '""'
+                FROM information_schema.tables 
+                WHERE table_type = 'BASE TABLE'
+                AND table_schema NOT IN ('information_schema', 'pg_catalog') 
+                AND table_name NOT LIKE '__EFMigrationsHistory'
+                AND table_name NOT IN ('spatial_ref_sys')";
+
+            var tableNames = new List<string>();
+            await using (var cmd = new NpgsqlCommand(query, connection))
+            await using (var reader = await cmd.ExecuteReaderAsync(cts.Token))
+            {
+                while (await reader.ReadAsync(cts.Token))
+                {
+                    tableNames.Add(reader.GetString(0));
+                }
+            }
+
+            if (tableNames.Count > 0)
+            {
+                await LogAsync($"Truncating {tableNames.Count} tables...");
+                var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
+                await using var truncateCmd = new NpgsqlCommand(truncateSql, connection);
+                await truncateCmd.ExecuteNonQueryAsync(cts.Token);
+                await LogAsync("Truncate completed successfully.");
+            }
+            else
+            {
+                await LogAsync("No tables found to truncate.");
             }
         }
-
-        if (tableNames.Count > 0)
+        catch (Exception ex)
         {
-            var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
-            await using var truncateCmd = new NpgsqlCommand(truncateSql, connection);
-            await truncateCmd.ExecuteNonQueryAsync(cts.Token);
-            await LogAsync($"Truncated {tableNames.Count} tables successfully.");
-        }
-        else
-        {
-            await LogAsync("No tables found to truncate.");
+            await LogAsync($"Cleanup FAILED: {ex.Message}");
+            throw;
         }
     }
-
     private static async Task LogAsync(string message)
     {
         var logLine = $"[{DateTime.UtcNow:O}] {message}";
