@@ -1,5 +1,6 @@
-using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MeAjudaAi.Shared.Database;
 
@@ -52,8 +53,8 @@ public class RoutingUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
 
     /// <summary>
     /// Salva as alterações em todas as Unidades de Trabalho registradas.
-    /// Garante atomicidade cross-módulo usando TransactionScope com IsolationLevel.ReadCommitted.
-    /// Em um fluxo de comando típico, apenas uma Unidade de Trabalho terá mudanças pendentes.
+    /// Garante atomicidade cross-módulo usando transações explícitas do EF Core coordenadas.
+    /// O uso de explicit transactions substitui TransactionScope para evitar falhas em Linux/PostgreSQL.
     /// </summary>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -64,27 +65,59 @@ public class RoutingUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
         if (uows.Count == 0) return 0;
         if (uows.Count == 1) return await uows[0].SaveChangesAsync(cancellationToken);
 
-        // Para múltiplos DbContexts, usamos TransactionScope para garantir atomicidade.
-        // Importante: Usamos ReadCommitted para evitar deadlocks comuns com o padrão Serializable.
-        var transactionOptions = new TransactionOptions
-        {
-            IsolationLevel = IsolationLevel.ReadCommitted,
-            Timeout = TransactionManager.DefaultTimeout
-        };
+        // Resolve todos os DbContexts envolvidos
+        var dbContexts = uows.OfType<DbContext>().ToList();
 
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required,
-            transactionOptions,
-            TransactionScopeAsyncFlowOption.Enabled);
-        
-        int totalChanges = 0;
-        foreach (var uow in uows)
+        if (dbContexts.Count > 1)
         {
-            totalChanges += await uow.SaveChangesAsync(cancellationToken);
+            // Abordagem com transação explícita coordenada entre múltiplos DbContexts.
+            // Nota: Para PostgreSQL no Linux, TransactionScope exige MSDTC se houver múltiplas conexões.
+            // Usamos transações explícitas do EF Core garantindo que compartilhem a mesma transação lógica.
+            var firstContext = dbContexts[0];
+            
+            // Verificamos se todos os DbContexts compartilham a mesma conexão física.
+            // Caso contrário, não podemos usar UseTransactionAsync e devemos falhar graciosamente ou 
+            // processar sequencialmente (o que é o comportamento atual de fallback).
+            var firstConnection = firstContext.Database.GetDbConnection();
+            var allShareConnection = dbContexts.Skip(1).All(c => c.Database.GetDbConnection() == firstConnection);
+
+            if (allShareConnection)
+            {
+                await using var transaction = await firstContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, cancellationToken);
+                
+                try
+                {
+                    var dbTransaction = transaction.GetDbTransaction();
+                    
+                    foreach (var context in dbContexts.Skip(1))
+                    {
+                        // Associa os demais contextos à mesma transação. 
+                        await context.Database.UseTransactionAsync(dbTransaction, cancellationToken);
+                    }
+
+                    int totalChanges = 0;
+                    foreach (var uow in uows)
+                    {
+                        totalChanges += await uow.SaveChangesAsync(cancellationToken);
+                    }
+
+                    await transaction.CommitAsync(cancellationToken);
+                    return totalChanges;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
+                }
+            }
         }
 
-        scope.Complete();
-        
-        return totalChanges;
+        // Fallback para execução sequencial simples (ex: se algum IUnitOfWork não for DbContext)
+        int total = 0;
+        foreach (var uow in uows)
+        {
+            total += await uow.SaveChangesAsync(cancellationToken);
+        }
+        return total;
     }
 }

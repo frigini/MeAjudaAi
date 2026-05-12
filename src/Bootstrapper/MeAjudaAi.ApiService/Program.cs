@@ -106,19 +106,10 @@ public partial class Program
             // Aplicar migrations...
             // ...
             
-            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Startup complete. Checking if we should run app...{System.Environment.NewLine}"); } catch { }
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Startup complete. Running app...{System.Environment.NewLine}"); } catch { }
             LogStartupComplete(app);
 
-            if (!app.Environment.IsEnvironment("Testing"))
-            {
-                await app.RunAsync();
-            }
-            else
-            {
-                // Em ambiente de teste, StartAsync inicia sem bloquear, e WaitForShutdownAsync garante que o host permaneça estável.
-                await app.StartAsync();
-                await app.WaitForShutdownAsync();
-            }
+            await app.RunAsync();
         }
         catch (Exception ex)
         {

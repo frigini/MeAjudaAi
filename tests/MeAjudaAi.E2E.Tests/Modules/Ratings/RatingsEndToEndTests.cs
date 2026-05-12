@@ -13,12 +13,12 @@ namespace MeAjudaAi.E2E.Tests.Modules.Ratings;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Ratings")]
-public class RatingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents>, IAsyncLifetime
 {
-    private readonly TestContainerFixture _fixture;
+    private readonly TestContainerFixtureWithEvents _fixture;
     private readonly ITestOutputHelper _output;
 
-    public RatingsEndToEndTests(TestContainerFixture fixture, ITestOutputHelper output)
+    public RatingsEndToEndTests(TestContainerFixtureWithEvents fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _output = output;

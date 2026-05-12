@@ -33,6 +33,7 @@ namespace MeAjudaAi.E2E.Tests.Base;
 public class TestContainerFixture : IAsyncLifetime
 {
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
+    private static readonly SemaphoreSlim _wafLock = new(1, 1);
     private static bool _migrationsApplied = false;
 
     private WebApplicationFactory<Program> _factory = null!;
@@ -81,11 +82,14 @@ public class TestContainerFixture : IAsyncLifetime
     private async Task InitializeFactoryAsync()
     {
         var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync starting...");
-        try { await AppendLogAsync(diagPath, "!!! InitializeFactoryAsync REALLY starting !!!"); } catch { }
-
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync waiting for lock...");
+        
+        await _wafLock.WaitAsync();
         try
         {
+            Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync starting...");
+            try { await AppendLogAsync(diagPath, "!!! InitializeFactoryAsync REALLY starting !!!"); } catch { }
+
             Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building WebApplicationFactory...");
             _factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
@@ -162,19 +166,16 @@ public class TestContainerFixture : IAsyncLifetime
             Services = _factory.Services;
             Console.Error.WriteLine("[DEBUG] TestContainerFixture: Factory services initialized.");
             
-            using (var scope = Services.CreateScope())
-            {
-                var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                var allUows = scope.ServiceProvider.GetServices<IUnitOfWork>().ToList();
-                Console.Error.WriteLine($"[DEBUG] TestContainerFixture: Resolved IUnitOfWork: {uow.GetType().Name}");
-            }
-
             Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync completed successfully.");
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"[FATAL ERROR] TestContainerFixture: Factory initialization FAILED: {ex.Message}\n{ex.StackTrace}");
             throw;
+        }
+        finally
+        {
+            _wafLock.Release();
         }
     }
 

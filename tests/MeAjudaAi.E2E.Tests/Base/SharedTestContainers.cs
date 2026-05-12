@@ -8,7 +8,7 @@ namespace MeAjudaAi.E2E.Tests.Base;
 
 /// <summary>
 /// Singleton centralizado para gerenciar containers de teste compartilhados em todo o assembly.
-/// Evita conflitos entre TestContainerFixture e BaseTestContainerTest.
+/// Garante que todos os testes E2E usem a mesma infraestrutura base.
 /// </summary>
 public static class SharedTestContainers
 {
