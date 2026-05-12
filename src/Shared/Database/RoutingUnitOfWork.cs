@@ -19,20 +19,13 @@ public class RoutingUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
     /// </summary>
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
-        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
-        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] [ROUTING] GetRepository<{typeof(TAggregate).Name}> starting...{System.Environment.NewLine}");
-        
         // Resolve todas as implementações de IUnitOfWork registradas no DI
         var uows = serviceProvider.GetServices<IUnitOfWork>().ToList();
-        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] [ROUTING] Found {uows.Count} IUnitOfWork registrations.{System.Environment.NewLine}");
         
         var matches = uows.Where(u => u is not RoutingUnitOfWork && u is IRepository<TAggregate, TKey>).ToList();
-        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] [ROUTING] Found {matches.Count} matches for {typeof(TAggregate).Name}.{System.Environment.NewLine}");
 
         if (matches.Count == 0)
         {
-            var available = string.Join(", ", uows.Select(u => u.GetType().Name));
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] [ROUTING] ERROR: No match for {typeof(TAggregate).Name}. Available UoWs: {available}{System.Environment.NewLine}");
             throw new InvalidOperationException(
                 $"No Unit of Work (DbContext) found that supports aggregate {typeof(TAggregate).Name}. " +
                 "Ensure the corresponding module is registered and its DbContext implements IRepository for this aggregate.");

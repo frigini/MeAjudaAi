@@ -30,21 +30,26 @@ public static class SharedTestContainers
     {
         if (_initialized) return;
 
+        Console.Error.WriteLine("[DEBUG] SharedTestContainers: EnsureInitializedAsync starting...");
         var diagPath = Path.Combine(AppContext.BaseDirectory, "shared_containers_diag.log");
-        File.WriteAllText(diagPath, $"[{DateTime.Now}] EnsureInitializedAsync starting...\n");
-        await _lock.WaitAsync();
+        try { File.WriteAllText(diagPath, $"[{DateTime.Now}] EnsureInitializedAsync starting...\n"); } catch { }
+        
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        
+        await _lock.WaitAsync(cts.Token);
         try
         {
             if (_initialized) return;
 
-            File.AppendAllText(diagPath, $"[{DateTime.Now}] Lock acquired, starting containers...\n");
-            Console.WriteLine("🚀 [SharedTestContainers] Starting global infrastructure...");
+            Console.Error.WriteLine("[DEBUG] SharedTestContainers: Lock acquired, starting containers...");
+            try { File.AppendAllText(diagPath, $"[{DateTime.Now}] Lock acquired, starting containers...\n"); } catch { }
             
             // Configurar switches globais para Npgsql
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             AppContext.SetSwitch("Npgsql.DisableGoogleNativeSslStream", true);
             AppContext.SetSwitch("Npgsql.FailOnSslNegotiationFailure", false);
 
+            Console.Error.WriteLine("[DEBUG] SharedTestContainers: Building containers...");
             _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("meajudaai_test")
                 .WithUsername("postgres")
@@ -60,14 +65,18 @@ public static class SharedTestContainers
                 .WithCleanUp(true)
                 .Build();
 
+            Console.Error.WriteLine("[DEBUG] SharedTestContainers: Starting containers in parallel (Timeout: 4m)...");
+            
+            using var startupCts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
             // Start in parallel
             await Task.WhenAll(
-                _postgresContainer.StartAsync(),
-                _redisContainer.StartAsync(),
-                _azuriteContainer.StartAsync()
+                _postgresContainer.StartAsync(startupCts.Token),
+                _redisContainer.StartAsync(startupCts.Token),
+                _azuriteContainer.StartAsync(startupCts.Token)
             );
 
-            File.AppendAllText(diagPath, $"[{DateTime.Now}] Containers started successfully.\n");
+            Console.Error.WriteLine("[DEBUG] SharedTestContainers: Containers started successfully.");
+            try { File.AppendAllText(diagPath, $"[{DateTime.Now}] Containers started successfully.\n"); } catch { }
 
             // Gerar connection strings finais com SSL desabilitado explicitamente
             _postgresConnectionString = BuildPostgresConnectionString(_postgresContainer.GetConnectionString());
@@ -75,11 +84,11 @@ public static class SharedTestContainers
             _azuriteConnectionString = _azuriteContainer.GetConnectionString();
 
             _initialized = true;
-            Console.WriteLine("✅ [SharedTestContainers] Global infrastructure ready.");
+            Console.Error.WriteLine("[DEBUG] SharedTestContainers: Global infrastructure ready.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ [SharedTestContainers] Failed to start containers: {ex.Message}");
+            Console.Error.WriteLine($"[FATAL ERROR] SharedTestContainers: Failed to start containers: {ex.Message}\n{ex.StackTrace}");
             throw;
         }
         finally

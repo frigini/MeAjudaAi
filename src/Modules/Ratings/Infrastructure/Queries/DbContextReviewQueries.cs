@@ -29,41 +29,23 @@ public class DbContextReviewQueries(RatingsDbContext dbContext) : IReviewQueries
 
     public async Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default)
     {
-        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
-        await AppendLogAsync(diagPath, $"[QUERY] GetByProviderAndCustomerAsync starting for provider {providerId} and customer {customerId}...");
-        var result = await dbContext.Reviews
+        return await dbContext.Reviews
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.ProviderId == providerId && r.CustomerId == customerId, cancellationToken);
-        await AppendLogAsync(diagPath, $"[QUERY] GetByProviderAndCustomerAsync completed. Found: {result != null}");
-        return result;
     }
 
     public async Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
-        await AppendLogAsync(diagPath, $"[QUERY] GetAverageRatingForProviderAsync starting for provider {providerId}...");
-        
         var query = dbContext.Reviews
             .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved);
  
         var total = await query.CountAsync(cancellationToken);
-        await AppendLogAsync(diagPath, $"[QUERY] Total reviews found: {total}");
  
         if (total == 0)
             return (0, 0);
  
         var average = await query.AverageAsync(r => r.Rating, cancellationToken);
-        await AppendLogAsync(diagPath, $"[QUERY] Average rating: {average}");
         return (Math.Round((decimal)average, 2), total);
-    }
-
-    private async Task AppendLogAsync(string path, string message)
-    {
-        try
-        {
-            await File.AppendAllTextAsync(path, $"[{DateTime.UtcNow:O}] {message}\n");
-        }
-        catch { /* ignored */ }
     }
 }

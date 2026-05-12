@@ -217,8 +217,12 @@ public static class E2EStabilityCoordinator
     }
     private static async Task LogAsync(string message)
     {
-        var logLine = $"[{DateTime.UtcNow:O}] {message}";
-        await File.AppendAllTextAsync(_diagPath, logLine + Environment.NewLine);
+        var logLine = $"[{DateTime.UtcNow:O}] [COORDINATOR] {message}";
+        try 
+        { 
+            await File.AppendAllTextAsync(_diagPath, logLine + Environment.NewLine); 
+        } 
+        catch { /* Ignore log failures */ }
         Console.WriteLine(logLine);
     }
 }

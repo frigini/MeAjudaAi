@@ -61,31 +61,32 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync starting...");
+        
         // Forçamos o ambiente de teste para que extensões que usam Environment.GetEnvironmentVariable detectem corretamente
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
-        // Inicialização centralizada (containers + migrações + limpeza global) DESATIVADA PARA TESTE DE ISOLAMENTO
-        // await E2EStabilityCoordinator.EnsureInitializedAsync();
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: Ensuring containers and migrations are initialized...");
+        // Inicialização centralizada (containers + migrações + limpeza global)
+        await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        // Inicializa os containers manualmente para garantir o mínimo necessário
-        await SharedTestContainers.EnsureInitializedAsync();
-
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: Initializing factory...");
         // Inicializa WebApplicationFactory para esta instância de teste
         await InitializeFactoryAsync();
+        
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync completed successfully.");
     }
     private async Task InitializeFactoryAsync()
     {
         var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
-        await AppendLogAsync(diagPath, "!!! InitializeFactoryAsync REALLY starting !!!");
-        await AppendLogAsync(diagPath, "InitializeFactoryAsync starting...");
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync starting...");
+        try { await AppendLogAsync(diagPath, "!!! InitializeFactoryAsync REALLY starting !!!"); } catch { }
 
         try
         {
-            await AppendLogAsync(diagPath, $"ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
-            await AppendLogAsync(diagPath, $"DOTNET_ENVIRONMENT: {Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")}");
-            await AppendLogAsync(diagPath, $"Instantiating WebApplicationFactory<{typeof(Program).FullName}> from {typeof(Program).Assembly.Location}...");
+            Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building WebApplicationFactory...");
             _factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
@@ -123,7 +124,7 @@ public class TestContainerFixture : IAsyncLifetime
 
                     builder.ConfigureServices((context, services) =>
                     {
-                        File.AppendAllText(diagPath, $"[{DateTime.UtcNow:O}] BaseDbContext Assembly Location: {typeof(MeAjudaAi.Shared.Database.BaseDbContext).Assembly.Location}{Environment.NewLine}");
+                        try { File.AppendAllText(diagPath, $"[{DateTime.UtcNow:O}] BaseDbContext Assembly Location: {typeof(MeAjudaAi.Shared.Database.BaseDbContext).Assembly.Location}{Environment.NewLine}"); } catch { }
 
                         // Remover background workers que interferem com migrations e isolamento
                         var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
@@ -145,7 +146,7 @@ public class TestContainerFixture : IAsyncLifetime
                     });
                 });
 
-            await AppendLogAsync(diagPath, "Factory created, accessing Services...");
+            Console.Error.WriteLine("[DEBUG] TestContainerFixture: WebApplicationFactory built, creating client...");
             
             var contextPropagationHandler = new TestContextAwareHandler
             {
@@ -157,23 +158,22 @@ public class TestContainerFixture : IAsyncLifetime
                 BaseAddress = new Uri("http://localhost")
             };
             
-            await AppendLogAsync(diagPath, "Accessing _factory.Services to trigger startup...");
+            Console.Error.WriteLine("[DEBUG] TestContainerFixture: Accessing factory services...");
             Services = _factory.Services;
-            await AppendLogAsync(diagPath, "Factory services initialized.");
+            Console.Error.WriteLine("[DEBUG] TestContainerFixture: Factory services initialized.");
             
             using (var scope = Services.CreateScope())
             {
                 var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var allUows = scope.ServiceProvider.GetServices<IUnitOfWork>().ToList();
-                await AppendLogAsync(diagPath, $"Resolved IUnitOfWork: {uow.GetType().Name}");
-                await AppendLogAsync(diagPath, $"All IUnitOfWork registrations ({allUows.Count}): {string.Join(", ", allUows.Select(u => u.GetType().Name))}");
+                Console.Error.WriteLine($"[DEBUG] TestContainerFixture: Resolved IUnitOfWork: {uow.GetType().Name}");
             }
 
-            await AppendLogAsync(diagPath, "Factory initialization completed successfully.");
+            Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync completed successfully.");
         }
         catch (Exception ex)
         {
-            await AppendLogAsync(diagPath, $"Factory initialization FAILED: {ex.Message}\n{ex.StackTrace}");
+            Console.Error.WriteLine($"[FATAL ERROR] TestContainerFixture: Factory initialization FAILED: {ex.Message}\n{ex.StackTrace}");
             throw;
         }
     }

@@ -18,10 +18,6 @@ public class ContentModerator : IContentModerator
     {
         if (string.IsNullOrWhiteSpace(content)) return true;
 
-        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
-        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] [MODERATOR] IsClean starting...{System.Environment.NewLine}");
-        var result = !Patterns.Any(regex => regex.IsMatch(content));
-        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] [MODERATOR] IsClean completed. Result: {result}{System.Environment.NewLine}");
-        return result;
+        return !Patterns.Any(regex => regex.IsMatch(content));
     }
 }

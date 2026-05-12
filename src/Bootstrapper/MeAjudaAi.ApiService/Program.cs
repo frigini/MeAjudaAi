@@ -29,7 +29,11 @@ public partial class Program
     static Program()
     {
         var diagPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "program_static_diag.log");
-        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program static constructor called.{System.Environment.NewLine}");
+        try 
+        { 
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program static constructor called.{System.Environment.NewLine}"); 
+        } 
+        catch { /* Best effort, ignore failures to prevent startup abortion */ }
     }
 
     protected Program() { }
@@ -52,7 +56,7 @@ public partial class Program
             builder.Services.AddHttpContextAccessor();
 
             var diagPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "program_diag.log");
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program.Main starting...{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program.Main starting...{System.Environment.NewLine}"); } catch { }
 
             // Registrar módulos ANTES de AddSharedServices
             // (exception handlers específicos devem ser registrados antes do global)
@@ -67,13 +71,13 @@ public partial class Program
             builder.Services.AddPaymentsModule(builder.Configuration, builder.Environment);
             builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
             
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Modules added. Adding SharedServices...{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Modules added. Adding SharedServices...{System.Environment.NewLine}"); } catch { }
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] SharedServices added.{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] SharedServices added.{System.Environment.NewLine}"); } catch { }
 
             if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Integration"))
             {
@@ -88,21 +92,21 @@ public partial class Program
                     });
                 });
             }
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Adding FeatureManagement...{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Adding FeatureManagement...{System.Environment.NewLine}"); } catch { }
             builder.Services.AddFeatureManagement();
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] FeatureManagement added.{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] FeatureManagement added.{System.Environment.NewLine}"); } catch { }
 
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Building app...{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Building app...{System.Environment.NewLine}"); } catch { }
             var app = builder.Build();
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] App built. Configuring middleware...{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] App built. Configuring middleware...{System.Environment.NewLine}"); } catch { }
 
             await ConfigureMiddlewareAsync(app);
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Middleware configured.{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Middleware configured.{System.Environment.NewLine}"); } catch { }
 
             // Aplicar migrations...
             // ...
             
-            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Startup complete. Checking if we should run app...{System.Environment.NewLine}");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Startup complete. Checking if we should run app...{System.Environment.NewLine}"); } catch { }
             LogStartupComplete(app);
 
             if (!app.Environment.IsEnvironment("Testing"))
@@ -111,6 +115,7 @@ public partial class Program
             }
             else
             {
+                // Em ambiente de teste, StartAsync inicia sem bloquear, e WaitForShutdownAsync garante que o host permaneça estável.
                 await app.StartAsync();
                 await app.WaitForShutdownAsync();
             }

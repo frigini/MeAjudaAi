@@ -26,10 +26,7 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncL
 
     public async ValueTask InitializeAsync()
     {
-        var testDiagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\test_run_diag.log";
-        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] RatingsEndToEndTests.InitializeAsync starting...{Environment.NewLine}");
         await _fixture.CleanupDatabaseAsync();
-        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] RatingsEndToEndTests.InitializeAsync completed.{Environment.NewLine}");
     }
 
     public ValueTask DisposeAsync()
@@ -63,13 +60,10 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncL
 
         // Act - Criar a avaliação
         _output.WriteLine("Act: Creating review...");
-        var testDiagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\test_run_diag.log";
-        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] Sending POST /api/v1/ratings...{Environment.NewLine}");
         
         TestContainerFixture.AuthenticateAsUser(customerId.ToString());
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/ratings", reviewRequest);
         
-        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] POST /api/v1/ratings response: {response.StatusCode}{Environment.NewLine}");
         _output.WriteLine($"Review response: {response.StatusCode}");
 
         // Assert
@@ -126,12 +120,9 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncL
         };
 
         _output.WriteLine("Posting to /api/v1/providers...");
-        var testDiagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\test_run_diag.log";
-        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] Sending POST /api/v1/providers...{Environment.NewLine}");
         
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request);
         
-        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] POST /api/v1/providers response: {response.StatusCode}{Environment.NewLine}");
         _output.WriteLine($"Providers response: {response.StatusCode}");
         response.EnsureSuccessStatusCode();
 
