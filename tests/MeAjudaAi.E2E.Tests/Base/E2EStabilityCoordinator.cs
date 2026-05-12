@@ -131,8 +131,21 @@ public static class E2EStabilityCoordinator
         .ConfigureWarnings(warnings => 
             warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 
-        using var context = (TContext)Activator.CreateInstance(typeof(TContext), optionsBuilder.Options)!;
-        await MigrationTestHelper.ApplyMigrationForContext(context);
+        var ctor = typeof(TContext).GetConstructor([typeof(DbContextOptions<TContext>)]);
+        if (ctor == null)
+        {
+            throw new InvalidOperationException($"Context {contextName} requires a constructor accepting DbContextOptions<{contextName}>.");
+        }
+
+        try
+        {
+            using var context = (TContext)ctor.Invoke([optionsBuilder.Options]);
+            await MigrationTestHelper.ApplyMigrationForContext(context);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to instantiate {contextName} with DbContextOptions.", ex);
+        }
     }
 
     public static async Task GlobalCleanupAsync()

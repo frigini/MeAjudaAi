@@ -14,16 +14,14 @@ public sealed class ReviewApprovedDomainEventHandler(
 {
     public async Task HandleAsync(ReviewApprovedDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
-        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
         try
         {
-            await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [EVENT] ReviewApprovedDomainEventHandler starting for provider {domainEvent.ProviderId}...{System.Environment.NewLine}");
             logger.LogInformation("Handling ReviewApprovedDomainEvent for provider {ProviderId}", domainEvent.ProviderId);
 
             // Calcula a nova média
-            await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [EVENT] Calling queries.GetAverageRatingForProviderAsync...{System.Environment.NewLine}");
+            logger.LogDebug("Calculating average rating for provider {ProviderId}...", domainEvent.ProviderId);
             var (average, total) = await queries.GetAverageRatingForProviderAsync(domainEvent.ProviderId, cancellationToken);
-            await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [EVENT] queries.GetAverageRatingForProviderAsync completed. Average: {average}, Total: {total}{System.Environment.NewLine}");
+            logger.LogDebug("Average calculation completed. Average: {Average}, Total: {Total}", average, total);
 
             var integrationEvent = new ReviewApprovedIntegrationEvent(
                 Source: "Ratings",

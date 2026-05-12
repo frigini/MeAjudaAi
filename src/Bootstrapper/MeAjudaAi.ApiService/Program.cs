@@ -111,9 +111,8 @@ public partial class Program
             }
             else
             {
-                System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Starting app via StartAsync() for Testing environment...{System.Environment.NewLine}");
                 await app.StartAsync();
-                System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] app.StartAsync() completed.{System.Environment.NewLine}");
+                await app.WaitForShutdownAsync();
             }
         }
         catch (Exception ex)

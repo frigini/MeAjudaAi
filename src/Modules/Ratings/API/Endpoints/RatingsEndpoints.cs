@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints;
 
@@ -48,6 +50,7 @@ public static class RatingsEndpoints
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
+        var logger = httpContext.RequestServices.GetRequiredService<ILogger<object>>();
         var customerId = ClaimHelpers.GetUserIdGuid(httpContext);
 
         if (customerId == null)
@@ -61,10 +64,9 @@ public static class RatingsEndpoints
             request.Rating,
             request.Comment);
 
-        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
-        await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [API] Dispatching CreateReviewCommand for provider {request.ProviderId}...{System.Environment.NewLine}");
+        logger.LogInformation("Dispatching CreateReviewCommand for provider {ProviderId}...", request.ProviderId);
         var reviewId = await handler.HandleAsync(command, cancellationToken);
-        await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [API] CreateReviewCommand completed. ReviewId: {reviewId}{System.Environment.NewLine}");
+        logger.LogInformation("CreateReviewCommand completed. ReviewId: {ReviewId}", reviewId);
 
         // Location points to the status endpoint as reviews require moderation before being visible publically
         return Results.Created($"/api/v1/ratings/{reviewId}/status", reviewId);
@@ -99,8 +101,17 @@ public static class RatingsEndpoints
 
         return Results.Ok(new ReviewStatusResponse(
             review.Id.Value, 
-            (EReviewStatus)(int)review.Status));
+            MapToContract(review.Status)));
     }
+
+    private static EReviewStatus MapToContract(MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus status) =>
+        status switch
+        {
+            MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Pending => EReviewStatus.Pending,
+            MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Approved => EReviewStatus.Approved,
+            MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Rejected => EReviewStatus.Rejected,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+        };
 
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
