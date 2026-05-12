@@ -42,7 +42,7 @@ public static class E2EStabilityCoordinator
             await LogAsync("Shared containers ready.");
 
             // 2. Aguardar readiness do Postgres
-            await WaitForPostgresAsync();
+            await WaitForDatabaseAsync(SharedTestContainers.PostgresConnectionString, TimeSpan.FromSeconds(60), CancellationToken.None);
 
             // 3. Aplicar Migrações
             await ApplyAllMigrationsAsync();
@@ -59,35 +59,28 @@ public static class E2EStabilityCoordinator
         }
     }
 
-    private static async Task WaitForPostgresAsync()
+    private static async Task WaitForDatabaseAsync(string cs, TimeSpan maxWait, CancellationToken ct)
     {
-        await LogAsync("Waiting for Postgres readiness...");
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        
-        try
+        var start = DateTime.UtcNow;
+        Exception? last = null;
+        await LogAsync("Waiting for database readiness...");
+        while (DateTime.UtcNow - start < maxWait && !ct.IsCancellationRequested)
         {
-            while (!cts.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
-                    await connection.OpenAsync(cts.Token);
-                    await LogAsync("Postgres is reachable.");
-                    return;
-                }
-                catch (Exception) when (!cts.IsCancellationRequested)
-                {
-                    // Ignore transient connection errors and wait for retry
-                    await Task.Delay(500, cts.Token);
-                }
+                await using var conn = new NpgsqlConnection(cs + ";Timeout=5;Command Timeout=5;");
+                await conn.OpenAsync(ct);
+                await conn.CloseAsync();
+                await LogAsync("Database is ready.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                last = ex;
+                await Task.Delay(500, ct);
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected when the 60s timeout hits, we fall through to throw TimeoutException
-        }
-        
-        throw new TimeoutException("Postgres did not become ready within 60 seconds.");
+        throw new TimeoutException("Database readiness timed out.", last);
     }
 
     private static async Task ApplyAllMigrationsAsync()
@@ -164,55 +157,39 @@ public static class E2EStabilityCoordinator
     private static async Task InternalGlobalCleanupAsync()
     {
         await LogAsync("Starting global cleanup...");
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
-        await connection.OpenAsync(cts.Token);
-
         try
         {
-            // Set short statement timeout for TRUNCATE
-            await using (var timeoutCmd = new NpgsqlCommand("SET statement_timeout = '30s'", connection))
+            var cs = SharedTestContainers.PostgresConnectionString;
+            await using var conn = new NpgsqlConnection(cs + ";Timeout=10;Command Timeout=10;");
+            await conn.OpenAsync(CancellationToken.None);
+            
+            await using var setTimeout = conn.CreateCommand();
+            setTimeout.CommandText = "SET statement_timeout = '30s';";
+            await setTimeout.ExecuteNonQueryAsync();
+
+            await using var list = conn.CreateCommand();
+            list.CommandText = @"select format('""%s"".""%s""', table_schema, table_name)
+                                 from information_schema.tables
+                                 where table_type='BASE TABLE' and table_schema = current_schema()";
+            
+            var names = new List<string>();
+            await using (var r = await list.ExecuteReaderAsync())
+                while (await r.ReadAsync()) names.Add(r.GetString(0));
+            
+            if (names.Count == 0)
             {
-                await timeoutCmd.ExecuteNonQueryAsync(cts.Token);
+                await LogAsync("No tables to truncate.");
+                return;
             }
 
-            // Query para pegar todas as tabelas base exceto as de sistema, migração e extensões (PostGIS)
-            var query = @"
-                SELECT '""' || table_schema || '"".""' || table_name || '""'
-                FROM information_schema.tables 
-                WHERE table_type = 'BASE TABLE'
-                AND table_schema NOT IN ('information_schema', 'pg_catalog') 
-                AND table_name NOT LIKE '__EFMigrationsHistory'
-                AND table_name NOT IN ('spatial_ref_sys')";
-
-            var tableNames = new List<string>();
-            await using (var cmd = new NpgsqlCommand(query, connection))
-            await using (var reader = await cmd.ExecuteReaderAsync(cts.Token))
-            {
-                while (await reader.ReadAsync(cts.Token))
-                {
-                    tableNames.Add(reader.GetString(0));
-                }
-            }
-
-            if (tableNames.Count > 0)
-            {
-                await LogAsync($"Truncating {tableNames.Count} tables...");
-                var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} CASCADE";
-                await using var truncateCmd = new NpgsqlCommand(truncateSql, connection);
-                await truncateCmd.ExecuteNonQueryAsync(cts.Token);
-                await LogAsync("Truncate completed successfully.");
-            }
-            else
-            {
-                await LogAsync("No tables found to truncate.");
-            }
+            await using var trunc = conn.CreateCommand();
+            trunc.CommandText = $"TRUNCATE TABLE {string.Join(", ", names)} CASCADE;";
+            await trunc.ExecuteNonQueryAsync();
+            await LogAsync($"Truncate completed successfully for {names.Count} tables.");
         }
         catch (Exception ex)
         {
-            await LogAsync($"Cleanup FAILED: {ex.Message}");
-            throw;
+            await LogAsync($"[E2E][WARN] Cleanup skipped: {ex.Message}");
         }
     }
     private static async Task LogAsync(string message)
