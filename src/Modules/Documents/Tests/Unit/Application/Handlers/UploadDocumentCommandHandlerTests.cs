@@ -557,7 +557,7 @@ public class UploadDocumentCommandHandlerTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unexpected error")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("[FATAL ERROR]")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

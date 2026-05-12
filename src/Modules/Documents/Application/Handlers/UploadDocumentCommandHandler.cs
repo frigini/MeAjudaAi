@@ -135,7 +135,7 @@ public class UploadDocumentCommandHandler(
                 expiresAt);
         }
 
-        catch (Exception ex) when (ex is not UnauthorizedAccessException and not ArgumentException)
+        catch (Exception ex) when (ex is not UnauthorizedAccessException and not ArgumentException and not OperationCanceledException)
         {
             var errorMessage = $"[FATAL ERROR] UploadDocumentCommandHandler: {ex.Message}. StackTrace: {ex.StackTrace}";
             _logger.LogError(ex, errorMessage);
