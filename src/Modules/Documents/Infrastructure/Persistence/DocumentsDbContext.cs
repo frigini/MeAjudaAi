@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo de Documentos.
 /// Gerencia entidades de documentos e sua persistência.
 /// </summary>
-public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
+public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork, IRepository<OutboxMessage, Guid>
 {
     /// <summary>
     /// Obtém a coleção de documentos.
@@ -27,11 +27,6 @@ public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
-        if (typeof(TAggregate) == typeof(OutboxMessage) && typeof(TKey) == typeof(Guid))
-        {
-            return (IRepository<TAggregate, TKey>)this;
-        }
-
         if (this is IRepository<TAggregate, TKey> repository)
             return repository;
 
@@ -44,6 +39,20 @@ public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
         return new OutboxRepository<OutboxMessage>(this);
     }
 
+    async Task<OutboxMessage?> IRepository<OutboxMessage, Guid>.TryFindAsync(Guid key, CancellationToken ct)
+    {
+        return await OutboxMessages.FirstOrDefaultAsync(x => x.Id == key, ct);
+    }
+
+    void IRepository<OutboxMessage, Guid>.Add(OutboxMessage aggregate)
+    {
+        OutboxMessages.Add(aggregate);
+    }
+
+    void IRepository<OutboxMessage, Guid>.Delete(OutboxMessage aggregate)
+    {
+        OutboxMessages.Remove(aggregate);
+    }
 
     /// <summary>
     /// Inicializa uma nova instância da classe <see cref="DocumentsDbContext"/> para operações design-time (migrações).
@@ -72,6 +81,4 @@ public partial class DocumentsDbContext : BaseDbContext, IDocumentsUnitOfWork
 
         base.OnModelCreating(modelBuilder);
     }
-
-
 }

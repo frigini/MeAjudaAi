@@ -137,7 +137,9 @@ public class UploadDocumentCommandHandler(
 
         catch (Exception ex) when (ex is not UnauthorizedAccessException and not ArgumentException)
         {
-            _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
+            var errorMessage = $"[FATAL ERROR] UploadDocumentCommandHandler: {ex.Message}. StackTrace: {ex.StackTrace}";
+            _logger.LogError(ex, errorMessage);
+            Console.Error.WriteLine(errorMessage);
             throw new InvalidOperationException(ValidationMessages.UploadFailed, ex);
         }
     }
