@@ -3,47 +3,49 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Ratings;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Ratings")]
-public class RatingsEndToEndTests : BaseTestContainerTest
+public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents>, IAsyncLifetime
 {
-    protected override bool EnableEventsAndMessageBus => true;
-
+    private readonly TestContainerFixtureWithEvents _fixture;
     private readonly ITestOutputHelper _output;
 
-    public RatingsEndToEndTests(ITestOutputHelper output)
+    public RatingsEndToEndTests(TestContainerFixtureWithEvents fixture, ITestOutputHelper output)
     {
+        _fixture = fixture;
         _output = output;
     }
 
-    public override async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        await base.InitializeAsync();
-        await CleanupDatabaseAsync();
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task CreateReview_WithValidData_ShouldUpdateProviderRatingInSearch()
     {
         // Arrange
-        // Note: BaseTestContainerTest handles initialization and authentication setup
-        
         // 1. Criar um prestador para ser avaliado
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = await CreateTestProviderAsync();
         
         // 2. Autenticar como cliente (diferente do prestador)
-        AuthenticateAsAdmin();
-        var customerId = await CreateTestUserAsync();
-        AuthenticateAsUser(customerId.ToString());
+        TestContainerFixture.AuthenticateAsAdmin();
+        var customerId = await _fixture.CreateTestUserAsync();
+        TestContainerFixture.AuthenticateAsUser(customerId.ToString());
 
         var reviewRequest = new
         {
@@ -53,8 +55,8 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         };
 
         // Act - Criar a avaliação
-        AuthenticateAsUser(customerId.ToString());
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/ratings", reviewRequest);
+        TestContainerFixture.AuthenticateAsUser(customerId.ToString());
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/ratings", reviewRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -63,9 +65,8 @@ public class RatingsEndToEndTests : BaseTestContainerTest
 
         // 3. Verificar se a média foi atualizada no módulo de busca
         // O SynchronousInMemoryMessageBus garante que o processamento ocorreu antes do retorno da API
-        // Usamos term=providerName para garantir que buscamos o prestador correto
-        var searchResponse = await ApiClient.GetAsync($"/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10");
-        searchResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        var searchResponse = await _fixture.ApiClient.GetAsync($"/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10");
+        searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(MeAjudaAi.Shared.Serialization.SerializationDefaults.Default);
         var providerInSearch = searchResult?.Items.FirstOrDefault(p => p.ProviderId == providerId);
@@ -78,9 +79,9 @@ public class RatingsEndToEndTests : BaseTestContainerTest
 
     private async Task<Guid> CreateTestProviderAsync()
     {
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
-        var userId = await CreateTestUserAsync();
+        var userId = await _fixture.CreateTestUserAsync();
         var name = $"Provider_{Guid.NewGuid():N}";
         var request = new
         {
@@ -110,16 +111,14 @@ public class RatingsEndToEndTests : BaseTestContainerTest
             }
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request);
         response.EnsureSuccessStatusCode();
 
         var location = response.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(location!);
+        var providerId = TestContainerFixture.ExtractIdFromLocation(location!);
 
-        // Não tentaremos verificar/ativar via REST API porque as regras de estado (PendingBasicInfo -> etc)
-        // requerem múltiplos endpoints que não são o foco deste teste.
-        // Faremos a inserção direta do provider no SearchProviders (como em SearchProvidersEndToEndTests)
-        // com rating = 0 para testar exclusivamente a integração de Reviews -> Search.
+        // Inserção direta do provider no SearchProviders com rating = 0
+        // para testar exclusivamente a integração de Reviews → Search.
         await InsertSearchableProviderAsync(providerId, name, -23.5505, -46.6333);
 
         return providerId;
@@ -127,7 +126,7 @@ public class RatingsEndToEndTests : BaseTestContainerTest
 
     private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude)
     {
-        await WithServiceScopeAsync(async sp =>
+        await _fixture.WithServiceScopeAsync(async sp =>
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
             

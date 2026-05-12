@@ -11,28 +11,32 @@ namespace MeAjudaAi.E2E.Tests.Modules.Bookings;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Bookings")]
-public class BookingsEndToEndTests : BaseTestContainerTest
+public class BookingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents>, IAsyncLifetime
 {
-    protected override bool EnableEventsAndMessageBus => true;
-
+    private readonly TestContainerFixtureWithEvents _fixture;
     private readonly ITestOutputHelper _output;
 
-    public BookingsEndToEndTests(ITestOutputHelper output)
+    public BookingsEndToEndTests(TestContainerFixtureWithEvents fixture, ITestOutputHelper output)
     {
+        _fixture = fixture;
         _output = output;
     }
 
-    public override async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        await base.InitializeAsync();
-        await CleanupDatabaseAsync();
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task CreateAndConfirmBooking_ShouldSucceed()
     {
         // Centraliza autenticação como admin no início do teste
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // 1. Criar um prestador feito com um providerId gerado
         var providerIdClaim = await CreateTestProviderAsync();
@@ -45,7 +49,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var linked = false;
         for (int i = 0; i < 3; i++)
         {
-            var response = await ApiClient.PostAsync($"/api/v1/providers/{providerIdClaim}/services/{serviceId}", null);
+            var response = await _fixture.ApiClient.PostAsync($"/api/v1/providers/{providerIdClaim}/services/{serviceId}", null);
             if (response.IsSuccessStatusCode)
             {
                 linked = true;
@@ -78,12 +82,12 @@ public class BookingsEndToEndTests : BaseTestContainerTest
             }
         };
 
-        var scheduleResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
+        var scheduleResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
         scheduleResponse.EnsureSuccessStatusCode();
 
         // 3. Criar usuário (Cliente)
-        var customerId = await CreateTestUserAsync();
-        AuthenticateAsUser(customerId.ToString()); // Login como cliente
+        var customerId = await _fixture.CreateTestUserAsync();
+        TestContainerFixture.AuthenticateAsUser(customerId.ToString()); // Login como cliente
 
         // 4. Cliente cria um agendamento
         var localStart = new DateTime(localTomorrow.Year, localTomorrow.Month, localTomorrow.Day, 10, 0, 0);
@@ -100,10 +104,10 @@ public class BookingsEndToEndTests : BaseTestContainerTest
             end = utcEnd.ToString("yyyy-MM-ddTHH:mm:ssZ")
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
-        var bookingResponseData = await ReadJsonAsync<BookingDto>(createResponse);
+        var bookingResponseData = await TestContainerFixture.ReadJsonAsync<BookingDto>(createResponse);
         bookingResponseData.Should().NotBeNull();
         var bookingId = bookingResponseData!.Id;
         bookingResponseData.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Pending);
@@ -117,20 +121,20 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         confirmRequest.Headers.Add("X-Correlation-ID", correlationId.ToString());
         confirmRequest.Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
         
-        var confirmResponse = await ApiClient.SendAsync(confirmRequest);
+        var confirmResponse = await _fixture.ApiClient.SendAsync(confirmRequest);
         confirmResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 7. Busca agendamento e checa status confirmado com Polling estendido (10 tentativas)
-        AuthenticateAsUser(customerId.ToString());
+        TestContainerFixture.AuthenticateAsUser(customerId.ToString());
         
         var isConfirmed = false;
         BookingDto? updatedBooking = null;
         for (int i = 0; i < 10; i++)
         {
-            var getResponse = await ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
             if (getResponse.IsSuccessStatusCode)
             {
-                updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
+                updatedBooking = await TestContainerFixture.ReadJsonAsync<BookingDto>(getResponse);
                 if (updatedBooking?.Status == Contracts.Bookings.Enums.EBookingStatus.Confirmed)
                 {
                     isConfirmed = true;
@@ -170,14 +174,14 @@ public class BookingsEndToEndTests : BaseTestContainerTest
             try
             {
                 var categoryName = $"Category_{Guid.NewGuid():N}";
-                var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
+                var catResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
                 catResponse.EnsureSuccessStatusCode();
-                var catId = ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
+                var catId = TestContainerFixture.ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
 
                 var serviceName = $"Service_{Guid.NewGuid():N}";
-                var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
+                var svcResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
                 svcResponse.EnsureSuccessStatusCode();
-                return ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
+                return TestContainerFixture.ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
             }
             catch (Exception ex)
             {
@@ -194,7 +198,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         {
             try
             {
-                var userId = await CreateTestUserAsync();
+                var userId = await _fixture.CreateTestUserAsync();
                 var name = $"ProviderX_{Guid.NewGuid():N}";
                 var request = new
                 {
@@ -211,9 +215,9 @@ public class BookingsEndToEndTests : BaseTestContainerTest
                     }
                 };
 
-                var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
+                var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request);
                 response.EnsureSuccessStatusCode();
-                return ExtractIdFromLocation(response.Headers.Location!.ToString());
+                return TestContainerFixture.ExtractIdFromLocation(response.Headers.Location!.ToString());
             }
             catch (Exception ex)
             {
@@ -224,7 +228,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         throw new Exception("Failed to create test provider after retries");
     }
 
-    private void AuthenticateAsProvider(Guid providerId)
+    private static void AuthenticateAsProvider(Guid providerId)
     {
         ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureProvider(providerId, Guid.NewGuid().ToString());

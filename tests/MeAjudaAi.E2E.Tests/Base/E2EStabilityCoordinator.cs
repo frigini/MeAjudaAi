@@ -60,7 +60,7 @@ public static class E2EStabilityCoordinator
                     await ApplyAllMigrationsAsync();
 
                     // 4. Limpeza inicial
-                    await GlobalCleanupAsync();
+                    await InternalGlobalCleanupAsync();
 
                     _initialized = true;
                     await LogAsync("Centralized initialization completed successfully.");
@@ -87,19 +87,27 @@ public static class E2EStabilityCoordinator
         await LogAsync("Waiting for Postgres readiness...");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         
-        while (!cts.IsCancellationRequested)
+        try
         {
-            try
+            while (!cts.IsCancellationRequested)
             {
-                await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
-                await connection.OpenAsync(cts.Token);
-                await LogAsync("Postgres is reachable.");
-                return;
+                try
+                {
+                    await using var connection = new NpgsqlConnection(SharedTestContainers.PostgresConnectionString);
+                    await connection.OpenAsync(cts.Token);
+                    await LogAsync("Postgres is reachable.");
+                    return;
+                }
+                catch (Exception) when (!cts.IsCancellationRequested)
+                {
+                    // Ignore transient connection errors and wait for retry
+                    await Task.Delay(500, cts.Token);
+                }
             }
-            catch (Exception)
-            {
-                await Task.Delay(500, cts.Token);
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when the 60s timeout hits, we fall through to throw TimeoutException
         }
         
         throw new TimeoutException("Postgres did not become ready within 60 seconds.");
@@ -151,6 +159,19 @@ public static class E2EStabilityCoordinator
     }
 
     public static async Task GlobalCleanupAsync()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            await InternalGlobalCleanupAsync();
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private static async Task InternalGlobalCleanupAsync()
     {
         await LogAsync("Starting global cleanup...");
 
