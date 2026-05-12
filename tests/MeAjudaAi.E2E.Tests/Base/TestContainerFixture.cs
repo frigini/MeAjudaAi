@@ -66,13 +66,15 @@ public class TestContainerFixture : IAsyncLifetime
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
-        // Inicialização centralizada (containers + migrações + limpeza global)
-        await E2EStabilityCoordinator.EnsureInitializedAsync();
+        // Inicialização centralizada (containers + migrações + limpeza global) DESATIVADA PARA TESTE DE ISOLAMENTO
+        // await E2EStabilityCoordinator.EnsureInitializedAsync();
+
+        // Inicializa os containers manualmente para garantir o mínimo necessário
+        await SharedTestContainers.EnsureInitializedAsync();
 
         // Inicializa WebApplicationFactory para esta instância de teste
         await InitializeFactoryAsync();
     }
-
     private async Task InitializeFactoryAsync()
     {
         var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
