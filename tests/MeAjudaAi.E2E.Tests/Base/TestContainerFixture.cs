@@ -60,124 +60,95 @@ public class TestContainerFixture : IAsyncLifetime
         await writer.WriteLineAsync($"[{DateTime.UtcNow:O}] {message}");
     }
 
+    private static WebApplicationFactory<Program>? _sharedFactory;
+    private static readonly SemaphoreSlim _factoryLock = new(1, 1);
+    private WebApplicationFactory<Program> _factory = null!;
+
     public async ValueTask InitializeAsync()
     {
         Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync starting...");
         
-        // Forçamos o ambiente de teste para que extensões que usam Environment.GetEnvironmentVariable detectem corretamente
+        // Configura ambiente
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: Ensuring containers and migrations are initialized...");
-        // Inicialização centralizada (containers + migrações + limpeza global)
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: Initializing factory...");
-        // Inicializa WebApplicationFactory para esta instância de teste
-        await InitializeFactoryAsync();
-        
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync completed successfully.");
-    }
-    private async Task InitializeFactoryAsync()
-    {
-        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync waiting for lock...");
-        
-        await _wafLock.WaitAsync();
+        await _factoryLock.WaitAsync();
         try
         {
-            Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync starting...");
-            try { await AppendLogAsync(diagPath, "!!! InitializeFactoryAsync REALLY starting !!!"); } catch { }
-
-            Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building WebApplicationFactory...");
-            _factory = new WebApplicationFactory<Program>()
-                .WithWebHostBuilder(builder =>
-                {
-                    builder.UseEnvironment("Testing");
-                    builder.ConfigureAppConfiguration((context, config) =>
+            if (_sharedFactory == null)
+            {
+                Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building Shared WebApplicationFactory...");
+                _sharedFactory = new WebApplicationFactory<Program>()
+                    .WithWebHostBuilder(builder =>
                     {
-                        config.AddInMemoryCollection(new Dictionary<string, string?>
+                        builder.UseEnvironment("Testing");
+                        builder.ConfigureAppConfiguration((context, config) =>
                         {
-                            ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
-                            ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
-                            ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
-                            ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
-                            ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
-                            ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
-                            ["ConnectionStrings:Redis"] = RedisConnectionString,
-                            ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
-                            ["Hangfire:Enabled"] = "false",
-                            ["Logging:LogLevel:Default"] = "Warning",
-                            ["Logging:LogLevel:Microsoft"] = "Error",
-                            ["RabbitMQ:Enabled"] = "false",
-                            ["Keycloak:Enabled"] = "false",
-                            ["ExternalServices:Keycloak:Enabled"] = "false",
-                            ["ExternalServices:PaymentGateway:Enabled"] = "false",
-                            ["ExternalServices:Geolocation:Enabled"] = "false",
-                            ["Cache:Enabled"] = "false",
-                            ["Cache:ConnectionString"] = RedisConnectionString,
-                            ["AdvancedRateLimit:General:Enabled"] = "false",
-                            ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
-                            ["RateLimit:DefaultRequestsPerMinute"] = "999999",
-                            ["RateLimit:WindowInSeconds"] = "3600"
+                            config.AddInMemoryCollection(new Dictionary<string, string?>
+                            {
+                                ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
+                                ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
+                                ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
+                                ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
+                                ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
+                                ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
+                                ["ConnectionStrings:Redis"] = RedisConnectionString,
+                                ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
+                                ["Hangfire:Enabled"] = "false",
+                                ["Logging:LogLevel:Default"] = "Warning",
+                                ["Logging:LogLevel:Microsoft"] = "Error",
+                                ["RabbitMQ:Enabled"] = "false",
+                                ["Keycloak:Enabled"] = "false",
+                                ["ExternalServices:Keycloak:Enabled"] = "false",
+                                ["ExternalServices:PaymentGateway:Enabled"] = "false",
+                                ["ExternalServices:Geolocation:Enabled"] = "false",
+                                ["Cache:Enabled"] = "false",
+                                ["Cache:ConnectionString"] = RedisConnectionString,
+                                ["AdvancedRateLimit:General:Enabled"] = "false",
+                                ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
+                                ["RateLimit:DefaultRequestsPerMinute"] = "999999",
+                                ["RateLimit:WindowInSeconds"] = "3600"
+                            });
+                            config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
                         });
 
-                        config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
-                    });
-
-                    builder.ConfigureServices((context, services) =>
-                    {
-                        try { File.AppendAllText(diagPath, $"[{DateTime.UtcNow:O}] BaseDbContext Assembly Location: {typeof(MeAjudaAi.Shared.Database.BaseDbContext).Assembly.Location}{Environment.NewLine}"); } catch { }
-
-                        // Remover background workers que interferem com migrations e isolamento
-                        var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
-                        foreach (var service in hostedServices)
+                        builder.ConfigureServices((context, services) =>
                         {
-                            services.Remove(service);
-                        }
+                            var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+                            foreach (var service in hostedServices) services.Remove(service);
 
-                        services.AddLogging(logging =>
-                        {
-                            logging.SetMinimumLevel(LogLevel.Information);
+                            services.AddLogging(logging => logging.SetMinimumLevel(LogLevel.Information));
+                            services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
+                            ConfigureMockServices(services);
+                            ReconfigureDbContexts(services);
                         });
-
-                        // Registra o serviço de geocoding mockado agora que a infraestrutura respeita a config
-                        services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
-
-                        ConfigureMockServices(services);
-                        ReconfigureDbContexts(services);
                     });
-                });
-
-            Console.Error.WriteLine("[DEBUG] TestContainerFixture: WebApplicationFactory built, creating client...");
-            
-            var contextPropagationHandler = new TestContextAwareHandler
-            {
-                InnerHandler = _factory.Server.CreateHandler()
-            };
-            
-            ApiClient = new HttpClient(contextPropagationHandler)
-            {
-                BaseAddress = new Uri("http://localhost")
-            };
-            
-            Console.Error.WriteLine("[DEBUG] TestContainerFixture: Accessing factory services...");
-            Services = _factory.Services;
-            Console.Error.WriteLine("[DEBUG] TestContainerFixture: Factory services initialized.");
-            
-            Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeFactoryAsync completed successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"[FATAL ERROR] TestContainerFixture: Factory initialization FAILED: {ex.Message}\n{ex.StackTrace}");
-            throw;
+            }
+            _factory = _sharedFactory;
         }
         finally
         {
-            _wafLock.Release();
+            _factoryLock.Release();
         }
+
+        var contextPropagationHandler = new TestContextAwareHandler
+        {
+            InnerHandler = _factory.Server.CreateHandler()
+        };
+        
+        ApiClient = new HttpClient(contextPropagationHandler)
+        {
+            BaseAddress = new Uri("http://localhost")
+        };
+        
+        Services = _factory.Services;
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync completed successfully.");
     }
+    // Method removed
+
 
     private void ConfigureMockServices(IServiceCollection services)
     {

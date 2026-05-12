@@ -30,9 +30,11 @@ public static class E2EStabilityCoordinator
     {
         if (_initialized) return;
 
+        await LogAsync("Attempting to acquire lock for EnsureInitializedAsync...");
         await _lock.WaitAsync();
         try
         {
+            await LogAsync("Lock acquired for EnsureInitializedAsync.");
             if (_initialized) return;
 
             await LogAsync("Starting centralized initialization...");
@@ -56,6 +58,7 @@ public static class E2EStabilityCoordinator
         finally
         {
             _lock.Release();
+            await LogAsync("Lock released for EnsureInitializedAsync.");
         }
     }
 
@@ -143,14 +146,17 @@ public static class E2EStabilityCoordinator
 
     public static async Task GlobalCleanupAsync()
     {
+        await LogAsync("Attempting to acquire lock for GlobalCleanupAsync...");
         await _lock.WaitAsync();
         try
         {
+            await LogAsync("Lock acquired for GlobalCleanupAsync.");
             await InternalGlobalCleanupAsync();
         }
         finally
         {
             _lock.Release();
+            await LogAsync("Lock released for GlobalCleanupAsync.");
         }
     }
 
