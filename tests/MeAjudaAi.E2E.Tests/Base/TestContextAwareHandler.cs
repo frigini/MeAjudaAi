@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using System.IO;
 
 namespace MeAjudaAi.E2E.Tests.Base;
 
@@ -22,9 +23,13 @@ public class TestContextAwareHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "http_diag.log");
+        var logEntry = $"[{DateTime.UtcNow:O}] {request.Method} {request.RequestUri}\n";
+        
         // Preflight requests (OPTIONS) não requerem autenticação - são parte do protocolo CORS
         if (request.Method == HttpMethod.Options)
         {
+            await File.AppendAllTextAsync(diagPath, logEntry + "  -> OPTIONS (skipping auth)\n");
             return await base.SendAsync(request, cancellationToken);
         }
         
@@ -43,21 +48,27 @@ public class TestContextAwareHandler : DelegatingHandler
         // Obter contexto AsyncLocal IMEDIATAMENTE antes do envio (ainda no contexto do teste)
         var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();
         
+        await File.AppendAllTextAsync(diagPath, logEntry + $"  -> Context: {contextId ?? "NULL"} (IsPublic: {isPublicEndpoint})\n");
+
         // Se for endpoint público E não tiver contexto, permitir (request anônimo)
         if (isPublicEndpoint && string.IsNullOrEmpty(contextId))
         {
-            return await base.SendAsync(request, cancellationToken);
+            var publicResponse = await base.SendAsync(request, cancellationToken);
+            await File.AppendAllTextAsync(diagPath, $"[{DateTime.UtcNow:O}] {request.RequestUri} -> {publicResponse.StatusCode}\n");
+            return publicResponse;
         }
         
         // Se NÃO for endpoint público e não tiver contexto, ERRO
         if (string.IsNullOrEmpty(contextId))
         {
-            throw new InvalidOperationException(
-                $"❌ AUTHENTICATION CONTEXT NOT FOUND!\n" +
+            var errorMsg = $"❌ AUTHENTICATION CONTEXT NOT FOUND!\n" +
                 $"The TestContextAwareHandler was called but GetCurrentTestContextId() returned null/empty.\n" +
                 $"This means AuthenticateAsAdmin() was NOT called before making the HTTP request, OR AsyncLocal context was lost.\n" +
                 $"URL: {request.RequestUri}\n\n" +
-                $"FIX: Ensure you call TestContainerFixture.AuthenticateAsAdmin() BEFORE making HTTP requests in your test.");
+                $"FIX: Ensure you call TestContainerFixture.AuthenticateAsAdmin() BEFORE making HTTP requests in your test.";
+            
+            await File.AppendAllTextAsync(diagPath, logEntry + "  -> ERROR: Auth context missing\n");
+            throw new InvalidOperationException(errorMsg);
         }
         
         // Add header if not already present
@@ -66,6 +77,8 @@ public class TestContextAwareHandler : DelegatingHandler
             request.Headers.Add(ConfigurableTestAuthenticationHandler.TestContextHeader, contextId);
         }
 
-        return await base.SendAsync(request, cancellationToken);
+        var response = await base.SendAsync(request, cancellationToken);
+        await File.AppendAllTextAsync(diagPath, $"[{DateTime.UtcNow:O}] {request.RequestUri} -> {response.StatusCode}\n");
+        return response;
     }
 }

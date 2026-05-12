@@ -92,6 +92,9 @@ public static class ServiceCollectionExtensions
         // para que o roteamento funcione corretamente.
         services.AddScoped<IUnitOfWork, RoutingUnitOfWork>();
 
+        var diagPath = Path.Combine(Path.GetTempPath(), "program_diag.log");
+        File.AppendAllText(diagPath, $"[{DateTime.UtcNow:O}] AddSharedServices finished.{Environment.NewLine}");
+
         return services;
     }
 

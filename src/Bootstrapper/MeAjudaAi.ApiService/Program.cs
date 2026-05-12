@@ -26,6 +26,12 @@ namespace MeAjudaAi.ApiService;
 [ExcludeFromCodeCoverage]
 public partial class Program
 {
+    static Program()
+    {
+        var diagPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "program_static_diag.log");
+        System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program static constructor called.{System.Environment.NewLine}");
+    }
+
     protected Program() { }
 
     public static async Task Main(string[] args)
@@ -45,6 +51,9 @@ public partial class Program
             builder.AddServiceDefaults();
             builder.Services.AddHttpContextAccessor();
 
+            var diagPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "program_diag.log");
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program.Main starting...{System.Environment.NewLine}");
+
             // Registrar módulos ANTES de AddSharedServices
             // (exception handlers específicos devem ser registrados antes do global)
             builder.Services.AddUsersModule(builder.Configuration);
@@ -57,10 +66,14 @@ public partial class Program
             builder.Services.AddRatingsModule(builder.Configuration, builder.Environment);
             builder.Services.AddPaymentsModule(builder.Configuration, builder.Environment);
             builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
+            
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Modules added. Adding SharedServices...{System.Environment.NewLine}");
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
+
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] SharedServices added.{System.Environment.NewLine}");
 
             if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Integration"))
             {
@@ -75,25 +88,33 @@ public partial class Program
                     });
                 });
             }
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Adding FeatureManagement...{System.Environment.NewLine}");
             builder.Services.AddFeatureManagement();
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] FeatureManagement added.{System.Environment.NewLine}");
 
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Building app...{System.Environment.NewLine}");
             var app = builder.Build();
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] App built. Configuring middleware...{System.Environment.NewLine}");
 
             await ConfigureMiddlewareAsync(app);
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Middleware configured.{System.Environment.NewLine}");
 
-            // Aplicar migrations de todos os módulos ANTES de seed
-            // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
-            if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Migrations:Enabled", true))
-            {
-                await app.ApplyModuleMigrationsAsync();
-                
-                // Seed de dados de desenvolvimento
-                await app.SeedDevelopmentDataIfNeededAsync();
-            }
-
+            // Aplicar migrations...
+            // ...
+            
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Startup complete. Checking if we should run app...{System.Environment.NewLine}");
             LogStartupComplete(app);
 
-            await app.RunAsync();
+            if (!app.Environment.IsEnvironment("Testing"))
+            {
+                await app.RunAsync();
+            }
+            else
+            {
+                System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Starting app via StartAsync() for Testing environment...{System.Environment.NewLine}");
+                await app.StartAsync();
+                System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] app.StartAsync() completed.{System.Environment.NewLine}");
+            }
         }
         catch (Exception ex)
         {

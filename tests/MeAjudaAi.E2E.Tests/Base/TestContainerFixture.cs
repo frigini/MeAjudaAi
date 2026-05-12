@@ -61,6 +61,11 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        // Forçamos o ambiente de teste para que extensões que usam Environment.GetEnvironmentVariable detectem corretamente
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
+
         // Inicialização centralizada (containers + migrações + limpeza global)
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
@@ -71,10 +76,14 @@ public class TestContainerFixture : IAsyncLifetime
     private async Task InitializeFactoryAsync()
     {
         var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
+        await AppendLogAsync(diagPath, "!!! InitializeFactoryAsync REALLY starting !!!");
         await AppendLogAsync(diagPath, "InitializeFactoryAsync starting...");
 
         try
         {
+            await AppendLogAsync(diagPath, $"ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
+            await AppendLogAsync(diagPath, $"DOTNET_ENVIRONMENT: {Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")}");
+            await AppendLogAsync(diagPath, $"Instantiating WebApplicationFactory<{typeof(Program).FullName}> from {typeof(Program).Assembly.Location}...");
             _factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
@@ -112,6 +121,8 @@ public class TestContainerFixture : IAsyncLifetime
 
                     builder.ConfigureServices((context, services) =>
                     {
+                        File.AppendAllText(diagPath, $"[{DateTime.UtcNow:O}] BaseDbContext Assembly Location: {typeof(MeAjudaAi.Shared.Database.BaseDbContext).Assembly.Location}{Environment.NewLine}");
+
                         // Remover background workers que interferem com migrations e isolamento
                         var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
                         foreach (var service in hostedServices)
@@ -121,8 +132,7 @@ public class TestContainerFixture : IAsyncLifetime
 
                         services.AddLogging(logging =>
                         {
-                            logging.ClearProviders();
-                            logging.SetMinimumLevel(LogLevel.Error);
+                            logging.SetMinimumLevel(LogLevel.Information);
                         });
 
                         // Registra o serviço de geocoding mockado agora que a infraestrutura respeita a config
@@ -147,6 +157,16 @@ public class TestContainerFixture : IAsyncLifetime
             
             await AppendLogAsync(diagPath, "Accessing _factory.Services to trigger startup...");
             Services = _factory.Services;
+            await AppendLogAsync(diagPath, "Factory services initialized.");
+            
+            using (var scope = Services.CreateScope())
+            {
+                var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var allUows = scope.ServiceProvider.GetServices<IUnitOfWork>().ToList();
+                await AppendLogAsync(diagPath, $"Resolved IUnitOfWork: {uow.GetType().Name}");
+                await AppendLogAsync(diagPath, $"All IUnitOfWork registrations ({allUows.Count}): {string.Join(", ", allUows.Select(u => u.GetType().Name))}");
+            }
+
             await AppendLogAsync(diagPath, "Factory initialization completed successfully.");
         }
         catch (Exception ex)
@@ -253,8 +273,12 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async Task CleanupDatabaseAsync()
     {
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
+        await AppendLogAsync(diagPath, "CleanupDatabaseAsync starting...");
         await E2EStabilityCoordinator.GlobalCleanupAsync();
+        await AppendLogAsync(diagPath, "GlobalCleanupAsync done, flushing Redis...");
         await SharedTestContainers.FlushRedisAsync();
+        await AppendLogAsync(diagPath, "CleanupDatabaseAsync completed.");
     }
 
 
@@ -288,8 +312,29 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        ApiClient?.Dispose();
-        if (_factory != null) await _factory.DisposeAsync();
+        // Limpar contexto de autenticação
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+
+        if (_factory != null)
+        {
+            try 
+            {
+                await _factory.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                // Logar falha de dispose para diagnóstico
+                var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
+                await AppendLogAsync(diagPath, $"DisposeAsync failed: {ex.Message}");
+            }
+            finally
+            {
+                _factory = null!;
+            }
+        }
+        
+        // Pequena pausa para garantir que handles de rede/arquivo sejam liberados pelo SO
+        await Task.Delay(500);
     }
 
     public async Task<T> WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
@@ -388,10 +433,17 @@ public class TestContainerFixture : IAsyncLifetime
             PhoneNumber = "+5511999999999"
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
+        await AppendLogAsync(diagPath, $"CreateTestUserAsync: Posting to /api/v1/users for {createRequest.Username}...");
+        
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions, cts.Token);
+        
+        await AppendLogAsync(diagPath, $"CreateTestUserAsync response: {response.StatusCode}");
         if (response.StatusCode != System.Net.HttpStatusCode.Created)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
+            await AppendLogAsync(diagPath, $"CreateTestUserAsync FAILED: {errorContent}");
             throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}. Error: {errorContent}");
         }
 

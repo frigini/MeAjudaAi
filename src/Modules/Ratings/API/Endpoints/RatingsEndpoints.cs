@@ -61,7 +61,10 @@ public static class RatingsEndpoints
             request.Rating,
             request.Comment);
 
+        var diagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\db_diag.log";
+        await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [API] Dispatching CreateReviewCommand for provider {request.ProviderId}...{System.Environment.NewLine}");
         var reviewId = await handler.HandleAsync(command, cancellationToken);
+        await System.IO.File.AppendAllTextAsync(diagPath, $"[{System.DateTime.UtcNow:O}] [API] CreateReviewCommand completed. ReviewId: {reviewId}{System.Environment.NewLine}");
 
         // Location points to the status endpoint as reviews require moderation before being visible publically
         return Results.Created($"/api/v1/ratings/{reviewId}/status", reviewId);

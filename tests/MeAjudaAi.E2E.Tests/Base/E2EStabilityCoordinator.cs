@@ -30,55 +30,32 @@ public static class E2EStabilityCoordinator
     {
         if (_initialized) return;
 
-        var lockFilePath = Path.Combine(AppContext.BaseDirectory, "e2e_init.lock");
-        const int maxRetries = 120; // 2 minutos de espera total
-        
-        for (int i = 0; i < maxRetries; i++)
+        await _lock.WaitAsync();
+        try
         {
-            try
-            {
-                // Usar FileStream com Lock para garantir exclusividade entre processos
-                using var lockStream = new FileStream(lockFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            if (_initialized) return;
 
-                if (_initialized) return;
+            await LogAsync("Starting centralized initialization...");
 
-                await _lock.WaitAsync();
-                try
-                {
-                    if (_initialized) return;
+            // 1. Garantir containers ativos
+            await SharedTestContainers.EnsureInitializedAsync();
+            await LogAsync("Shared containers ready.");
 
-                    await LogAsync("Starting centralized initialization...");
+            // 2. Aguardar readiness do Postgres
+            await WaitForPostgresAsync();
 
-                    // 1. Garantir containers ativos
-                    await SharedTestContainers.EnsureInitializedAsync();
-                    await LogAsync("Shared containers ready.");
+            // 3. Aplicar Migrações
+            await ApplyAllMigrationsAsync();
 
-                    // 2. Aguardar readiness do Postgres
-                    await WaitForPostgresAsync();
+            // 4. Limpeza inicial
+            await InternalGlobalCleanupAsync();
 
-                    // 3. Aplicar Migrações
-                    await ApplyAllMigrationsAsync();
-
-                    // 4. Limpeza inicial
-                    await InternalGlobalCleanupAsync();
-
-                    _initialized = true;
-                    await LogAsync("Centralized initialization completed successfully.");
-                    return;
-                }
-                finally
-                {
-                    _lock.Release();
-                }
-            }
-            catch (IOException)
-            {
-                // Arquivo travado por outro processo, aguardar e tentar novamente
-                if (i == maxRetries - 1) 
-                    throw new TimeoutException($"Could not acquire E2E initialization lock after {maxRetries} attempts.");
-                
-                await Task.Delay(1000);
-            }
+            _initialized = true;
+            await LogAsync("Centralized initialization completed successfully.");
+        }
+        finally
+        {
+            _lock.Release();
         }
     }
 

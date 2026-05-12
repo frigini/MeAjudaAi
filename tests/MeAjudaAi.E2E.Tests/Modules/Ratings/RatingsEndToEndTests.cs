@@ -13,12 +13,12 @@ namespace MeAjudaAi.E2E.Tests.Modules.Ratings;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Ratings")]
-public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents>, IAsyncLifetime
+public class RatingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
-    private readonly TestContainerFixtureWithEvents _fixture;
+    private readonly TestContainerFixture _fixture;
     private readonly ITestOutputHelper _output;
 
-    public RatingsEndToEndTests(TestContainerFixtureWithEvents fixture, ITestOutputHelper output)
+    public RatingsEndToEndTests(TestContainerFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _output = output;
@@ -26,7 +26,10 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents
 
     public async ValueTask InitializeAsync()
     {
+        var testDiagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\test_run_diag.log";
+        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] RatingsEndToEndTests.InitializeAsync starting...{Environment.NewLine}");
         await _fixture.CleanupDatabaseAsync();
+        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] RatingsEndToEndTests.InitializeAsync completed.{Environment.NewLine}");
     }
 
     public ValueTask DisposeAsync()
@@ -39,12 +42,16 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents
     {
         // Arrange
         // 1. Criar um prestador para ser avaliado
+        _output.WriteLine("Step 1: Creating provider...");
         TestContainerFixture.AuthenticateAsAdmin();
         var providerId = await CreateTestProviderAsync();
+        _output.WriteLine($"Provider created: {providerId}");
         
         // 2. Autenticar como cliente (diferente do prestador)
+        _output.WriteLine("Step 2: Creating customer...");
         TestContainerFixture.AuthenticateAsAdmin();
         var customerId = await _fixture.CreateTestUserAsync();
+        _output.WriteLine($"Customer created: {customerId}");
         TestContainerFixture.AuthenticateAsUser(customerId.ToString());
 
         var reviewRequest = new
@@ -55,8 +62,15 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents
         };
 
         // Act - Criar a avaliação
+        _output.WriteLine("Act: Creating review...");
+        var testDiagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\test_run_diag.log";
+        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] Sending POST /api/v1/ratings...{Environment.NewLine}");
+        
         TestContainerFixture.AuthenticateAsUser(customerId.ToString());
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/ratings", reviewRequest);
+        
+        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] POST /api/v1/ratings response: {response.StatusCode}{Environment.NewLine}");
+        _output.WriteLine($"Review response: {response.StatusCode}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -111,7 +125,14 @@ public class RatingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents
             }
         };
 
+        _output.WriteLine("Posting to /api/v1/providers...");
+        var testDiagPath = @"C:\Code\MeAjudaAi\tests\MeAjudaAi.E2E.Tests\bin\Debug\net10.0\test_run_diag.log";
+        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] Sending POST /api/v1/providers...{Environment.NewLine}");
+        
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request);
+        
+        File.AppendAllText(testDiagPath, $"[{DateTime.UtcNow:O}] POST /api/v1/providers response: {response.StatusCode}{Environment.NewLine}");
+        _output.WriteLine($"Providers response: {response.StatusCode}");
         response.EnsureSuccessStatusCode();
 
         var location = response.Headers.Location?.ToString();
