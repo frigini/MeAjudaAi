@@ -40,7 +40,8 @@ public static class E2EStabilityCoordinator
         }
 
         await LogAsync("Attempting to acquire in-process semaphore for EnsureInitializedAsync...");
-        await _semaphore.WaitAsync();
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        await _semaphore.WaitAsync(cts.Token);
         try
         {
             await LogAsync("Semaphore acquired for EnsureInitializedAsync.");
@@ -85,7 +86,7 @@ public static class E2EStabilityCoordinator
         }
         finally
         {
-            _semaphore.Release();
+            try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
             await LogAsync("Semaphore released for EnsureInitializedAsync.");
         }
     }
@@ -188,7 +189,8 @@ public static class E2EStabilityCoordinator
     public static async Task GlobalCleanupAsync()
     {
         await LogAsync("Attempting to acquire in-process semaphore for GlobalCleanupAsync...");
-        await _semaphore.WaitAsync();
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        await _semaphore.WaitAsync(cts.Token);
         try
         {
             await LogAsync("Semaphore acquired for GlobalCleanupAsync.");
@@ -196,7 +198,7 @@ public static class E2EStabilityCoordinator
         }
         finally
         {
-            _semaphore.Release();
+            try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
             await LogAsync("Semaphore released for GlobalCleanupAsync.");
         }
     }
