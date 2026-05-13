@@ -28,6 +28,8 @@ public static class E2EStabilityCoordinator
     private static readonly string _diagPath = Path.Combine(AppContext.BaseDirectory, "stability_coordinator.log");
     private static readonly string _sentinelPath = Path.Combine(AppContext.BaseDirectory, "stability_coordinator.done");
 
+    private static bool _cleanupInProgress = false;
+
     public static async Task EnsureInitializedAsync()
     {
         if (_initialized) return;
@@ -54,9 +56,10 @@ public static class E2EStabilityCoordinator
             }
 
             await LogAsync("Acquiring cross-process file lock...");
-            var crossProcessLock = new FileStream(_crossProcessLockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
+            FileStream? crossProcessLock = null;
             try
             {
+                crossProcessLock = new FileStream(_crossProcessLockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
                 await LogAsync("Cross-process file lock acquired.");
 
                 await LogAsync("Starting centralized initialization...");
@@ -72,7 +75,7 @@ public static class E2EStabilityCoordinator
                 await ApplyAllMigrationsAsync();
 
                 // 4. Limpeza inicial
-                await InternalGlobalCleanupAsync();
+                await InternalGlobalCleanupAsync(CancellationToken.None);
 
                 await File.WriteAllTextAsync(_sentinelPath, DateTime.UtcNow.ToString("O"));
                 _initialized = true;
@@ -188,33 +191,48 @@ public static class E2EStabilityCoordinator
 
     public static async Task GlobalCleanupAsync()
     {
-        await LogAsync("Attempting to acquire in-process semaphore for GlobalCleanupAsync...");
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        await _semaphore.WaitAsync(cts.Token);
+        if (_cleanupInProgress)
+        {
+            await LogAsync("GlobalCleanupAsync already in progress by another caller, skipping.");
+            return;
+        }
+        _cleanupInProgress = true;
+
         try
         {
-            await LogAsync("Semaphore acquired for GlobalCleanupAsync.");
-            await InternalGlobalCleanupAsync();
+            await LogAsync("Attempting to acquire in-process semaphore for GlobalCleanupAsync...");
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            await _semaphore.WaitAsync(cts.Token);
+            try
+            {
+                await LogAsync("Semaphore acquired for GlobalCleanupAsync.");
+                using var cleanupCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                await InternalGlobalCleanupAsync(cleanupCts.Token);
+            }
+            finally
+            {
+                try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
+                await LogAsync("Semaphore released for GlobalCleanupAsync.");
+            }
         }
         finally
         {
-            try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
-            await LogAsync("Semaphore released for GlobalCleanupAsync.");
+            _cleanupInProgress = false;
         }
     }
 
-    private static async Task InternalGlobalCleanupAsync()
+    private static async Task InternalGlobalCleanupAsync(CancellationToken ct)
     {
         await LogAsync("Starting global cleanup...");
         try
         {
             var cs = SharedTestContainers.PostgresConnectionString;
             await using var conn = new NpgsqlConnection(cs + ";Timeout=10;Command Timeout=10;");
-            await conn.OpenAsync(CancellationToken.None);
+            await conn.OpenAsync(ct);
 
             await using var setTimeout = conn.CreateCommand();
             setTimeout.CommandText = "SET statement_timeout = '30s';";
-            await setTimeout.ExecuteNonQueryAsync();
+            await setTimeout.ExecuteNonQueryAsync(ct);
 
             await using var list = conn.CreateCommand();
             list.CommandText = @"select format('""%s"".""%s""', table_schema, table_name)
@@ -224,8 +242,8 @@ public static class E2EStabilityCoordinator
                                  and table_name <> '__EFMigrationsHistory'";
 
             var names = new List<string>();
-            await using (var r = await list.ExecuteReaderAsync())
-                while (await r.ReadAsync()) names.Add(r.GetString(0));
+            await using (var r = await list.ExecuteReaderAsync(ct))
+                while (await r.ReadAsync(ct)) names.Add(r.GetString(0));
 
             if (names.Count == 0)
             {
@@ -235,8 +253,14 @@ public static class E2EStabilityCoordinator
 
             await using var trunc = conn.CreateCommand();
             trunc.CommandText = $"TRUNCATE TABLE {string.Join(", ", names)} CASCADE;";
-            await trunc.ExecuteNonQueryAsync();
+            trunc.CommandTimeout = 30;
+            await trunc.ExecuteNonQueryAsync(ct);
             await LogAsync($"Truncate completed successfully for {names.Count} tables.");
+        }
+        catch (OperationCanceledException)
+        {
+            await LogAsync("Global cleanup was cancelled due to timeout.");
+            throw;
         }
         catch (Exception ex)
         {
