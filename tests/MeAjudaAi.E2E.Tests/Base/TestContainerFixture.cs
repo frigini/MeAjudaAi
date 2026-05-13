@@ -283,21 +283,11 @@ public class TestContainerFixture : IAsyncLifetime
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        // Limpar contexto de autenticação
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-
-        // NÃO dispomos o _factory (que é o _sharedFactory) aqui 
-        // para permitir o reuso entre diferentes classes de teste no CI/Local.
-        // O TestServer permanecerá ativo até o final do processo do runner.
-        // O HttpClient e o Scoped Services serão limpos pelo xUnit.
-        
         _factory = null!;
-        ApiClient?.Dispose();
-        
-        // Pequena pausa para garantir que handles de rede/arquivo sejam liberados pelo SO
-        await Task.Delay(100);
+        return ValueTask.CompletedTask;
     }
 
     public async Task<T> WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
