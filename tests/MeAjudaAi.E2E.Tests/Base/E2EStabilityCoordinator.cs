@@ -36,13 +36,6 @@ public static class E2EStabilityCoordinator
 
         NpgsqlConnection.ClearAllPools();
 
-        if (File.Exists(_sentinelPath))
-        {
-            await LogAsync("Sentinel file exists, skipping initialization.");
-            _initialized = true;
-            return;
-        }
-
         await LogAsync("Attempting to acquire in-process semaphore for EnsureInitializedAsync...");
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
         await _semaphore.WaitAsync(cts.Token);
@@ -198,28 +191,27 @@ public static class E2EStabilityCoordinator
             await LogAsync("GlobalCleanupAsync already in progress by another caller, skipping.");
             return;
         }
+
+        using var mutexCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        if (!_semaphore.Wait(0, mutexCts.Token))
+        {
+            await LogAsync("GlobalCleanupAsync could not acquire semaphore (another caller holds it), skipping.");
+            return;
+        }
+
         _cleanupInProgress = true;
 
         try
         {
-            await LogAsync("Attempting to acquire in-process semaphore for GlobalCleanupAsync...");
-            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-            await _semaphore.WaitAsync(cts.Token);
-            try
-            {
-                await LogAsync("Semaphore acquired for GlobalCleanupAsync.");
-                using var cleanupCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-                await InternalGlobalCleanupAsync(cleanupCts.Token);
-            }
-            finally
-            {
-                try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
-                await LogAsync("Semaphore released for GlobalCleanupAsync.");
-            }
+            await LogAsync("Semaphore acquired for GlobalCleanupAsync.");
+            using var cleanupCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+            await InternalGlobalCleanupAsync(cleanupCts.Token);
         }
         finally
         {
             _cleanupInProgress = false;
+            try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
+            await LogAsync("Semaphore released for GlobalCleanupAsync.");
         }
     }
 
