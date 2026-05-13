@@ -287,26 +287,16 @@ public class TestContainerFixture : IAsyncLifetime
         // Limpar contexto de autenticação
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
 
-        if (_factory != null)
-        {
-            try 
-            {
-                await _factory.DisposeAsync();
-            }
-            catch (Exception ex)
-            {
-                // Logar falha de dispose para diagnóstico
-                var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
-                await AppendLogAsync(diagPath, $"DisposeAsync failed: {ex.Message}");
-            }
-            finally
-            {
-                _factory = null!;
-            }
-        }
+        // NÃO dispomos o _factory (que é o _sharedFactory) aqui 
+        // para permitir o reuso entre diferentes classes de teste no CI/Local.
+        // O TestServer permanecerá ativo até o final do processo do runner.
+        // O HttpClient e o Scoped Services serão limpos pelo xUnit.
+        
+        _factory = null!;
+        ApiClient?.Dispose();
         
         // Pequena pausa para garantir que handles de rede/arquivo sejam liberados pelo SO
-        await Task.Delay(500);
+        await Task.Delay(100);
     }
 
     public async Task<T> WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)

@@ -176,7 +176,8 @@ public static class E2EStabilityCoordinator
             await using var list = conn.CreateCommand();
             list.CommandText = @"select format('""%s"".""%s""', table_schema, table_name)
                                  from information_schema.tables
-                                 where table_type='BASE TABLE' and table_schema = current_schema()";
+                                 where table_type='BASE TABLE' 
+                                 and table_schema IN ('public', 'users', 'providers', 'documents', 'service_catalogs', 'locations', 'communications', 'search_providers', 'ratings', 'payments')";
             
             var names = new List<string>();
             await using (var r = await list.ExecuteReaderAsync())
