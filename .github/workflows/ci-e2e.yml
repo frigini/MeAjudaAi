@@ -48,7 +48,7 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Dotnet info
         run: |
@@ -59,7 +59,7 @@ jobs:
       - name: Setup Backend
         uses: ./.github/actions/setup-backend
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Docker diagnostics
         run: |
@@ -117,7 +117,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgis/postgis:16-3.4
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
@@ -148,7 +148,7 @@ jobs:
       - name: Setup Backend (for API Generation)
         uses: ./.github/actions/setup-backend
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Setup Frontend
         uses: ./.github/actions/setup-frontend

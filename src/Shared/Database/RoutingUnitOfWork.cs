@@ -11,51 +11,48 @@ namespace MeAjudaAi.Shared.Database;
 /// </summary>
 public class RoutingUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
 {
-    private IUnitOfWork? _activeUow;
+    private IReadOnlyDictionary<Type, IUnitOfWork>? _aggregateToUow;
 
-    /// <summary>
-    /// Obtém o repositório correto procurando entre todas as implementações de IUnitOfWork registradas.
-    /// Caso mais de uma implementação suporte o agregado (ex: OutboxMessage), tenta resolver a ambiguidade
-    /// preferindo a Unidade de Trabalho que já está ativa no escopo atual.
-    /// </summary>
-    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    private IReadOnlyDictionary<Type, IUnitOfWork> GetAggregateMap()
     {
-        // Resolve todas as implementações de IUnitOfWork registradas no DI
-        var uows = serviceProvider.GetServices<IUnitOfWork>().ToList();
-        
-        var matches = uows.Where(u => u is not RoutingUnitOfWork && u is IRepository<TAggregate, TKey>).ToList();
-
-        if (matches.Count == 0)
+        if (_aggregateToUow is null)
         {
-            throw new InvalidOperationException(
-                $"No Unit of Work (DbContext) found that supports aggregate {typeof(TAggregate).Name}. " +
-                "Ensure the corresponding module is registered and its DbContext implements IRepository for this aggregate.");
-        }
-
-        if (matches.Count > 1)
-        {
-            // Tenta resolver ambiguidade preferindo a UoW já ativa no escopo
-            if (_activeUow != null && matches.Contains(_activeUow))
+            var uows = serviceProvider.GetServices<IUnitOfWork>().Where(u => u is not RoutingUnitOfWork).ToList();
+            var map = new Dictionary<Type, IUnitOfWork>();
+            foreach (var uow in uows)
             {
-                return (IRepository<TAggregate, TKey>)_activeUow;
+                foreach (var aggregateType in uow.GetType().GetInterfaces()
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRepository<,>))
+                    .Select(i => i.GetGenericArguments()[0]))
+                {
+                    if (map.TryGetValue(aggregateType, out var existing))
+                    {
+                        throw new InvalidOperationException(
+                            $"Ambiguous Unit of Work routing for aggregate {aggregateType.Name}. " +
+                            $"Both {existing.GetType().Name} and {uow.GetType().Name} implement IRepository for this type. " +
+                            "Ensure only one DbContext implements IRepository for each aggregate.");
+                    }
+                    map[aggregateType] = uow;
+                }
             }
-
-            var types = string.Join(", ", matches.Select(m => m.GetType().Name));
-            throw new InvalidOperationException(
-                $"Ambiguous Unit of Work routing for aggregate {typeof(TAggregate).Name}. " +
-                $"Multiple implementations found: {types}. Please use a module-specific marker interface or ensure only the correct DbContext implements IRepository for this type.");
+            _aggregateToUow = map;
         }
-
-        var match = matches[0];
-        _activeUow = match;
-        return (IRepository<TAggregate, TKey>)match;
+        return _aggregateToUow;
     }
 
-    /// <summary>
-    /// Salva as alterações em todas as Unidades de Trabalho registradas.
-    /// Garante atomicidade cross-módulo usando transações explícitas do EF Core coordenadas.
-    /// O uso de explicit transactions substitui TransactionScope para evitar falhas em Linux/PostgreSQL.
-    /// </summary>
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        var map = GetAggregateMap();
+        if (map.TryGetValue(typeof(TAggregate), out var uow))
+        {
+            return (IRepository<TAggregate, TKey>)uow;
+        }
+
+        throw new InvalidOperationException(
+            $"No Unit of Work (DbContext) found that supports aggregate {typeof(TAggregate).Name}. " +
+            "Ensure the corresponding module is registered and its DbContext implements IRepository for this aggregate.");
+    }
+
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var uows = serviceProvider.GetServices<IUnitOfWork>()
@@ -65,54 +62,6 @@ public class RoutingUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
         if (uows.Count == 0) return 0;
         if (uows.Count == 1) return await uows[0].SaveChangesAsync(cancellationToken);
 
-        // Resolve todos os DbContexts envolvidos
-        var dbContexts = uows.OfType<DbContext>().ToList();
-
-        if (dbContexts.Count > 1)
-        {
-            // Abordagem com transação explícita coordenada entre múltiplos DbContexts.
-            // Nota: Para PostgreSQL no Linux, TransactionScope exige MSDTC se houver múltiplas conexões.
-            // Usamos transações explícitas do EF Core garantindo que compartilhem a mesma transação lógica.
-            var firstContext = dbContexts[0];
-            
-            // Verificamos se todos os DbContexts compartilham a mesma conexão física.
-            // Caso contrário, não podemos usar UseTransactionAsync e devemos falhar graciosamente ou 
-            // processar sequencialmente (o que é o comportamento atual de fallback).
-            var firstConnection = firstContext.Database.GetDbConnection();
-            var allShareConnection = dbContexts.Skip(1).All(c => c.Database.GetDbConnection() == firstConnection);
-
-            if (allShareConnection)
-            {
-                await using var transaction = await firstContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, cancellationToken);
-                
-                try
-                {
-                    var dbTransaction = transaction.GetDbTransaction();
-                    
-                    foreach (var context in dbContexts.Skip(1))
-                    {
-                        // Associa os demais contextos à mesma transação. 
-                        await context.Database.UseTransactionAsync(dbTransaction, cancellationToken);
-                    }
-
-                    int totalChanges = 0;
-                    foreach (var uow in uows)
-                    {
-                        totalChanges += await uow.SaveChangesAsync(cancellationToken);
-                    }
-
-                    await transaction.CommitAsync(cancellationToken);
-                    return totalChanges;
-                }
-                catch
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    throw;
-                }
-            }
-        }
-
-        // Fallback para execução sequencial simples (ex: se algum IUnitOfWork não for DbContext)
         int total = 0;
         foreach (var uow in uows)
         {

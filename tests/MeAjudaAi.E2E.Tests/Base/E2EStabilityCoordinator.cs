@@ -22,19 +22,27 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// </summary>
 public static class E2EStabilityCoordinator
 {
-    private static readonly SemaphoreSlim _lock = new(1, 1);
+    private static readonly Mutex _mutex = new(false, "Global\\E2EStabilityCoordinatorMutex");
     private static bool _initialized = false;
     private static readonly string _diagPath = Path.Combine(AppContext.BaseDirectory, "stability_coordinator.log");
+    private static readonly string _sentinelPath = Path.Combine(AppContext.BaseDirectory, "stability_coordinator.done");
 
     public static async Task EnsureInitializedAsync()
     {
         if (_initialized) return;
 
-        await LogAsync("Attempting to acquire lock for EnsureInitializedAsync...");
-        await _lock.WaitAsync();
+        if (File.Exists(_sentinelPath))
+        {
+            await LogAsync("Sentinel file exists, skipping initialization.");
+            _initialized = true;
+            return;
+        }
+
+        await LogAsync("Attempting to acquire cross-process mutex for EnsureInitializedAsync...");
+        _mutex.WaitOne();
         try
         {
-            await LogAsync("Lock acquired for EnsureInitializedAsync.");
+            await LogAsync("Mutex acquired for EnsureInitializedAsync.");
             if (_initialized) return;
 
             await LogAsync("Starting centralized initialization...");
@@ -52,13 +60,14 @@ public static class E2EStabilityCoordinator
             // 4. Limpeza inicial
             await InternalGlobalCleanupAsync();
 
+            await File.WriteAllTextAsync(_sentinelPath, DateTime.UtcNow.ToString("O"));
             _initialized = true;
             await LogAsync("Centralized initialization completed successfully.");
         }
         finally
         {
-            _lock.Release();
-            await LogAsync("Lock released for EnsureInitializedAsync.");
+            _mutex.ReleaseMutex();
+            await LogAsync("Mutex released for EnsureInitializedAsync.");
         }
     }
 
@@ -133,30 +142,43 @@ public static class E2EStabilityCoordinator
             throw new InvalidOperationException($"Context {contextName} requires a constructor accepting DbContextOptions<{contextName}>.");
         }
 
+        TContext context;
         try
         {
-            using var context = (TContext)ctor.Invoke([optionsBuilder.Options]);
-            await MigrationTestHelper.ApplyMigrationForContext(context);
+            context = (TContext)ctor.Invoke([optionsBuilder.Options]);
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Failed to instantiate {contextName} with DbContextOptions.", ex);
         }
+
+        try
+        {
+            await MigrationTestHelper.ApplyMigrationForContext(context);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to apply migration for {contextName}.", ex);
+        }
+        finally
+        {
+            await context.DisposeAsync();
+        }
     }
 
     public static async Task GlobalCleanupAsync()
     {
-        await LogAsync("Attempting to acquire lock for GlobalCleanupAsync...");
-        await _lock.WaitAsync();
+        await LogAsync("Attempting to acquire cross-process mutex for GlobalCleanupAsync...");
+        _mutex.WaitOne();
         try
         {
-            await LogAsync("Lock acquired for GlobalCleanupAsync.");
+            await LogAsync("Mutex acquired for GlobalCleanupAsync.");
             await InternalGlobalCleanupAsync();
         }
         finally
         {
-            _lock.Release();
-            await LogAsync("Lock released for GlobalCleanupAsync.");
+            _mutex.ReleaseMutex();
+            await LogAsync("Mutex released for GlobalCleanupAsync.");
         }
     }
 
@@ -177,7 +199,8 @@ public static class E2EStabilityCoordinator
             list.CommandText = @"select format('""%s"".""%s""', table_schema, table_name)
                                  from information_schema.tables
                                  where table_type='BASE TABLE' 
-                                 and table_schema IN ('public', 'users', 'providers', 'documents', 'service_catalogs', 'locations', 'communications', 'search_providers', 'ratings', 'payments')";
+                                 and table_schema IN ('public', 'users', 'providers', 'documents', 'service_catalogs', 'locations', 'communications', 'search_providers', 'ratings', 'payments', 'bookings')
+                                 and table_name <> '__EFMigrationsHistory'";
             
             var names = new List<string>();
             await using (var r = await list.ExecuteReaderAsync())
@@ -196,7 +219,8 @@ public static class E2EStabilityCoordinator
         }
         catch (Exception ex)
         {
-            await LogAsync($"[E2E][WARN] Cleanup skipped: {ex.Message}");
+            await LogAsync($"[E2E][ERROR] Cleanup failed: {ex.Message}");
+            throw;
         }
     }
     private static async Task LogAsync(string message)
