@@ -38,6 +38,18 @@ public class TestContainerFixture : IAsyncLifetime
     // Campo de instância para referência local na fixture
     private WebApplicationFactory<Program> _factory = null!;
 
+    public static string PostgresConnectionString => SharedTestContainers.PostgresConnectionString;
+    public static string RedisConnectionString => SharedTestContainers.RedisConnectionString;
+    public static string AzuriteConnectionString => SharedTestContainers.AzuriteConnectionString;
+
+    public HttpClient ApiClient { get; private set; } = null!;
+    public IServiceProvider Services { get; private set; } = null!;
+    public static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Default;
+
+    public Faker Faker { get; } = new("pt_BR");
+
+    public virtual bool EnableEventsAndMessageBus => false;
+
     public async ValueTask InitializeAsync()
     {
         Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync starting...");
@@ -427,5 +439,10 @@ public class TestContainerFixture : IAsyncLifetime
 
         var newDescriptor = new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime);
         services.Add(newDescriptor);
+    }
+
+    private static async Task AppendLogAsync(string path, string message)
+    {
+        try { await File.AppendAllTextAsync(path, $"[{DateTime.Now:O}] {message}{Environment.NewLine}"); } catch { }
     }
 }
