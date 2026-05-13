@@ -53,20 +53,21 @@ public class TestContainerFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync starting...");
-        
-        // Configura ambiente
+
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
+        using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        await _factoryLock.WaitAsync();
+        await _factoryLock.WaitAsync(TimeSpan.FromMinutes(5));
         try
         {
             if (_sharedFactory == null)
             {
                 Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building Shared WebApplicationFactory...");
+                using var buildCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
                 _sharedFactory = new WebApplicationFactory<Program>()
                     .WithWebHostBuilder(builder =>
                     {
@@ -124,20 +125,20 @@ public class TestContainerFixture : IAsyncLifetime
         {
             InnerHandler = _factory.Server.CreateHandler()
         };
-        
+
         ApiClient = new HttpClient(contextPropagationHandler)
         {
             BaseAddress = new Uri("http://localhost")
         };
-        
+
         Services = _factory.Services;
 
-        // Cleanup local condicional para o CI
         if (!"true".Equals(Environment.GetEnvironmentVariable("E2E_SKIP_LOCAL_CLEANUP"), StringComparison.OrdinalIgnoreCase))
         {
+            using var cleanupCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             await CleanupDatabaseAsync();
         }
-        
+
         Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync completed successfully.");
     }
 
