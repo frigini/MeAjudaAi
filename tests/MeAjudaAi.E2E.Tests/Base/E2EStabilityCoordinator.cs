@@ -22,7 +22,8 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// </summary>
 public static class E2EStabilityCoordinator
 {
-    private static readonly Mutex _mutex = new(false, "Global\\E2EStabilityCoordinatorMutex");
+    private static readonly SemaphoreSlim _semaphore = new(1, 1);
+    private static readonly string _crossProcessLockPath = Path.Combine(Path.GetTempPath(), "e2e_stability_coordinator.lock");
     private static bool _initialized = false;
     private static readonly string _diagPath = Path.Combine(AppContext.BaseDirectory, "stability_coordinator.log");
     private static readonly string _sentinelPath = Path.Combine(AppContext.BaseDirectory, "stability_coordinator.done");
@@ -38,36 +39,54 @@ public static class E2EStabilityCoordinator
             return;
         }
 
-        await LogAsync("Attempting to acquire cross-process mutex for EnsureInitializedAsync...");
-        _mutex.WaitOne();
+        await LogAsync("Attempting to acquire in-process semaphore for EnsureInitializedAsync...");
+        await _semaphore.WaitAsync();
         try
         {
-            await LogAsync("Mutex acquired for EnsureInitializedAsync.");
-            if (_initialized) return;
+            await LogAsync("Semaphore acquired for EnsureInitializedAsync.");
 
-            await LogAsync("Starting centralized initialization...");
+            if (File.Exists(_sentinelPath))
+            {
+                await LogAsync("Sentinel file exists (created by another process), skipping initialization.");
+                _initialized = true;
+                return;
+            }
 
-            // 1. Garantir containers ativos
-            await SharedTestContainers.EnsureInitializedAsync();
-            await LogAsync("Shared containers ready.");
+            await LogAsync("Acquiring cross-process file lock...");
+            var crossProcessLock = new FileStream(_crossProcessLockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
+            try
+            {
+                await LogAsync("Cross-process file lock acquired.");
 
-            // 2. Aguardar readiness do Postgres
-            await WaitForDatabaseAsync(SharedTestContainers.PostgresConnectionString, TimeSpan.FromSeconds(60), CancellationToken.None);
+                await LogAsync("Starting centralized initialization...");
 
-            // 3. Aplicar Migrações
-            await ApplyAllMigrationsAsync();
+                // 1. Garantir containers ativos
+                await SharedTestContainers.EnsureInitializedAsync();
+                await LogAsync("Shared containers ready.");
 
-            // 4. Limpeza inicial
-            await InternalGlobalCleanupAsync();
+                // 2. Aguardar readiness do Postgres
+                await WaitForDatabaseAsync(SharedTestContainers.PostgresConnectionString, TimeSpan.FromSeconds(60), CancellationToken.None);
 
-            await File.WriteAllTextAsync(_sentinelPath, DateTime.UtcNow.ToString("O"));
-            _initialized = true;
-            await LogAsync("Centralized initialization completed successfully.");
+                // 3. Aplicar Migrações
+                await ApplyAllMigrationsAsync();
+
+                // 4. Limpeza inicial
+                await InternalGlobalCleanupAsync();
+
+                await File.WriteAllTextAsync(_sentinelPath, DateTime.UtcNow.ToString("O"));
+                _initialized = true;
+                await LogAsync("Centralized initialization completed successfully.");
+            }
+            finally
+            {
+                crossProcessLock.Dispose();
+                await LogAsync("Cross-process file lock released.");
+            }
         }
         finally
         {
-            _mutex.ReleaseMutex();
-            await LogAsync("Mutex released for EnsureInitializedAsync.");
+            _semaphore.Release();
+            await LogAsync("Semaphore released for EnsureInitializedAsync.");
         }
     }
 
@@ -98,7 +117,7 @@ public static class E2EStabilityCoordinator
     private static async Task ApplyAllMigrationsAsync()
     {
         await LogAsync("Applying all migrations...");
-        
+
         // Ordem fixa de aplicação para evitar deadlocks de metadados
         // IMPORTANTE: ServiceCatalogs deve vir antes de Providers devido à migração
         // 20260210193620_AddProviderProfileEnhancements que faz backfill usando SQL de service_catalogs.services
@@ -112,7 +131,7 @@ public static class E2EStabilityCoordinator
         await ApplyIndependentMigration<BookingsDbContext>();
         await ApplyIndependentMigration<SearchProvidersDbContext>();
         await ApplyIndependentMigration<PaymentsDbContext>();
-        
+
         await LogAsync("All migrations applied.");
     }
 
@@ -120,20 +139,20 @@ public static class E2EStabilityCoordinator
     {
         var contextName = typeof(TContext).Name;
         await LogAsync($"Migrating {contextName}...");
-        
+
         var optionsBuilder = new DbContextOptionsBuilder<TContext>();
         optionsBuilder.UseNpgsql(SharedTestContainers.PostgresConnectionString, npgsqlOptions =>
         {
             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
             npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
-            
+
             if (typeof(TContext) == typeof(SearchProvidersDbContext))
             {
                 npgsqlOptions.UseNetTopologySuite();
             }
             npgsqlOptions.CommandTimeout(30);
         }).UseSnakeCaseNamingConvention()
-        .ConfigureWarnings(warnings => 
+        .ConfigureWarnings(warnings =>
             warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 
         var ctor = typeof(TContext).GetConstructor([typeof(DbContextOptions<TContext>)]);
@@ -168,17 +187,17 @@ public static class E2EStabilityCoordinator
 
     public static async Task GlobalCleanupAsync()
     {
-        await LogAsync("Attempting to acquire cross-process mutex for GlobalCleanupAsync...");
-        _mutex.WaitOne();
+        await LogAsync("Attempting to acquire in-process semaphore for GlobalCleanupAsync...");
+        await _semaphore.WaitAsync();
         try
         {
-            await LogAsync("Mutex acquired for GlobalCleanupAsync.");
+            await LogAsync("Semaphore acquired for GlobalCleanupAsync.");
             await InternalGlobalCleanupAsync();
         }
         finally
         {
-            _mutex.ReleaseMutex();
-            await LogAsync("Mutex released for GlobalCleanupAsync.");
+            _semaphore.Release();
+            await LogAsync("Semaphore released for GlobalCleanupAsync.");
         }
     }
 
@@ -190,7 +209,7 @@ public static class E2EStabilityCoordinator
             var cs = SharedTestContainers.PostgresConnectionString;
             await using var conn = new NpgsqlConnection(cs + ";Timeout=10;Command Timeout=10;");
             await conn.OpenAsync(CancellationToken.None);
-            
+
             await using var setTimeout = conn.CreateCommand();
             setTimeout.CommandText = "SET statement_timeout = '30s';";
             await setTimeout.ExecuteNonQueryAsync();
@@ -198,14 +217,14 @@ public static class E2EStabilityCoordinator
             await using var list = conn.CreateCommand();
             list.CommandText = @"select format('""%s"".""%s""', table_schema, table_name)
                                  from information_schema.tables
-                                 where table_type='BASE TABLE' 
+                                 where table_type='BASE TABLE'
                                  and table_schema IN ('public', 'users', 'providers', 'documents', 'service_catalogs', 'locations', 'communications', 'search_providers', 'ratings', 'payments', 'bookings')
                                  and table_name <> '__EFMigrationsHistory'";
-            
+
             var names = new List<string>();
             await using (var r = await list.ExecuteReaderAsync())
                 while (await r.ReadAsync()) names.Add(r.GetString(0));
-            
+
             if (names.Count == 0)
             {
                 await LogAsync("No tables to truncate.");
@@ -226,10 +245,10 @@ public static class E2EStabilityCoordinator
     private static async Task LogAsync(string message)
     {
         var logLine = $"[{DateTime.UtcNow:O}] [COORDINATOR] {message}";
-        try 
-        { 
-            await File.AppendAllTextAsync(_diagPath, logLine + Environment.NewLine); 
-        } 
+        try
+        {
+            await File.AppendAllTextAsync(_diagPath, logLine + Environment.NewLine);
+        }
         catch { /* Ignore log failures */ }
         Console.WriteLine(logLine);
     }
