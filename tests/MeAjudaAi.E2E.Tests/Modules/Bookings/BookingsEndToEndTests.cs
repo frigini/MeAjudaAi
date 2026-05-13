@@ -11,15 +11,13 @@ namespace MeAjudaAi.E2E.Tests.Modules.Bookings;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Bookings")]
-public class BookingsEndToEndTests : IClassFixture<TestContainerFixtureWithEvents>, IAsyncLifetime
+public class BookingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
-    private readonly TestContainerFixtureWithEvents _fixture;
-    private readonly ITestOutputHelper _output;
+    private readonly TestContainerFixture _fixture;
 
-    public BookingsEndToEndTests(TestContainerFixtureWithEvents fixture, ITestOutputHelper output)
+    public BookingsEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
-        _output = output;
     }
 
     public async ValueTask InitializeAsync()
