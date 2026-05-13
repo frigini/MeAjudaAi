@@ -48,81 +48,99 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync starting...");
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_init.log");
+        await AppendLogAsync(diagPath, "TestContainerFixture: InitializeAsync starting...");
 
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-        Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
-        using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
-        await E2EStabilityCoordinator.EnsureInitializedAsync();
+            await AppendLogAsync(diagPath, "Calling E2EStabilityCoordinator.EnsureInitializedAsync...");
+            using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            await E2EStabilityCoordinator.EnsureInitializedAsync();
+            await AppendLogAsync(diagPath, "E2EStabilityCoordinator.EnsureInitializedAsync completed.");
 
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building WebApplicationFactory...");
-        _factory = new WebApplicationFactory<Program>()
-                    .WithWebHostBuilder(builder =>
-                    {
-                        builder.UseEnvironment("Testing");
-                        builder.ConfigureAppConfiguration((context, config) =>
+            await AppendLogAsync(diagPath, "Building WebApplicationFactory...");
+            _factory = new WebApplicationFactory<Program>()
+                        .WithWebHostBuilder(builder =>
                         {
-                            config.AddInMemoryCollection(new Dictionary<string, string?>
+                            builder.UseEnvironment("Testing");
+                            builder.ConfigureAppConfiguration((context, config) =>
                             {
-                                ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
-                                ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
-                                ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
-                                ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
-                                ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
-                                ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
-                                ["ConnectionStrings:Redis"] = RedisConnectionString,
-                                ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
-                                ["Hangfire:Enabled"] = "false",
-                                ["Logging:LogLevel:Default"] = "Warning",
-                                ["Logging:LogLevel:Microsoft"] = "Error",
-                                ["RabbitMQ:Enabled"] = "false",
-                                ["Keycloak:Enabled"] = "false",
-                                ["ExternalServices:Keycloak:Enabled"] = "false",
-                                ["ExternalServices:PaymentGateway:Enabled"] = "false",
-                                ["ExternalServices:Geolocation:Enabled"] = "false",
-                                ["Cache:Enabled"] = "false",
-                                ["Cache:ConnectionString"] = RedisConnectionString,
-                                ["AdvancedRateLimit:General:Enabled"] = "false",
-                                ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
-                                ["RateLimit:DefaultRequestsPerMinute"] = "999999",
-                                ["RateLimit:WindowInSeconds"] = "3600"
+                                config.AddInMemoryCollection(new Dictionary<string, string?>
+                                {
+                                    ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
+                                    ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
+                                    ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
+                                    ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
+                                    ["ConnectionStrings:RatingsDb"] = PostgresConnectionString,
+                                    ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
+                                    ["ConnectionStrings:Redis"] = RedisConnectionString,
+                                    ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
+                                    ["Hangfire:Enabled"] = "false",
+                                    ["Logging:LogLevel:Default"] = "Warning",
+                                    ["Logging:LogLevel:Microsoft"] = "Error",
+                                    ["RabbitMQ:Enabled"] = "false",
+                                    ["Keycloak:Enabled"] = "false",
+                                    ["ExternalServices:Keycloak:Enabled"] = "false",
+                                    ["ExternalServices:PaymentGateway:Enabled"] = "false",
+                                    ["ExternalServices:Geolocation:Enabled"] = "false",
+                                    ["Cache:Enabled"] = "false",
+                                    ["Cache:ConnectionString"] = RedisConnectionString,
+                                    ["AdvancedRateLimit:General:Enabled"] = "false",
+                                    ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
+                                    ["RateLimit:DefaultRequestsPerMinute"] = "999999",
+                                    ["RateLimit:WindowInSeconds"] = "3600"
+                                });
+                                config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
                             });
-                            config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
+
+                            builder.ConfigureServices((context, services) =>
+                            {
+                                var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+                                foreach (var service in hostedServices) services.Remove(service);
+
+                                services.AddLogging(logging => logging.SetMinimumLevel(LogLevel.Information));
+                                services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
+                                ConfigureMockServices(services);
+                                ReconfigureDbContexts(services);
+                            });
                         });
+            await AppendLogAsync(diagPath, "WebApplicationFactory created.");
 
-                        builder.ConfigureServices((context, services) =>
-                        {
-                            var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
-                            foreach (var service in hostedServices) services.Remove(service);
+            var contextPropagationHandler = new TestContextAwareHandler
+            {
+                InnerHandler = _factory.Server.CreateHandler()
+            };
 
-                            services.AddLogging(logging => logging.SetMinimumLevel(LogLevel.Information));
-                            services.AddScoped<MeAjudaAi.Modules.Locations.Application.Services.IGeocodingService, MeAjudaAi.E2E.Tests.Infrastructure.Mocks.MockGeocodingService>();
-                            ConfigureMockServices(services);
-                            ReconfigureDbContexts(services);
-                        });
-                    });
+            ApiClient = new HttpClient(contextPropagationHandler)
+            {
+                BaseAddress = new Uri("http://localhost")
+            };
 
-        var contextPropagationHandler = new TestContextAwareHandler
-        {
-            InnerHandler = _factory.Server.CreateHandler()
-        };
+            Services = _factory.Services;
 
-        ApiClient = new HttpClient(contextPropagationHandler)
-        {
-            BaseAddress = new Uri("http://localhost")
-        };
+            await AppendLogAsync(diagPath, "Checking cleanup flag...");
+            if (!"true".Equals(Environment.GetEnvironmentVariable("E2E_SKIP_LOCAL_CLEANUP"), StringComparison.OrdinalIgnoreCase))
+            {
+                await AppendLogAsync(diagPath, "Calling CleanupDatabaseAsync...");
+                await CleanupDatabaseAsync();
+                await AppendLogAsync(diagPath, "CleanupDatabaseAsync completed.");
+            }
 
-        Services = _factory.Services;
-
-        if (!"true".Equals(Environment.GetEnvironmentVariable("E2E_SKIP_LOCAL_CLEANUP"), StringComparison.OrdinalIgnoreCase))
-        {
-            using var cleanupCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-            await CleanupDatabaseAsync();
+            await AppendLogAsync(diagPath, "TestContainerFixture: InitializeAsync completed successfully.");
         }
+        catch (Exception ex)
+        {
+            var errorMsg = $"[FATAL] TestContainerFixture.InitializeAsync failed: {ex.Message}\n{ex.StackTrace}";
+            await AppendLogAsync(diagPath, errorMsg);
+            Console.Error.WriteLine(errorMsg);
 
-        Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync completed successfully.");
+            _factory?.Dispose();
+            throw;
+        }
     }
 
 

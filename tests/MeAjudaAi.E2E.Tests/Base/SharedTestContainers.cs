@@ -28,28 +28,42 @@ public static class SharedTestContainers
 
     public static async Task EnsureInitializedAsync()
     {
-        if (_initialized) return;
+        var diagPath = Path.Combine(AppContext.BaseDirectory, "shared_containers_diag.log");
+        void AppendDiag(string msg) { try { File.AppendAllText(diagPath, $"[{DateTime.Now:O}] {msg}\n"); } catch { } }
+
+        if (_initialized)
+        {
+            AppendDiag("Already initialized, returning immediately.");
+            return;
+        }
 
         Console.Error.WriteLine("[DEBUG] SharedTestContainers: EnsureInitializedAsync starting...");
-        var diagPath = Path.Combine(AppContext.BaseDirectory, "shared_containers_diag.log");
         try { File.WriteAllText(diagPath, $"[{DateTime.Now}] EnsureInitializedAsync starting...\n"); } catch { }
-        
+
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        
-        await _lock.WaitAsync(cts.Token);
+
+        if (!_lock.Wait(0, cts.Token))
+        {
+            AppendDiag("Could not acquire lock immediately, waiting...");
+            await _lock.WaitAsync(cts.Token);
+        }
         try
         {
-            if (_initialized) return;
+            if (_initialized)
+            {
+                AppendDiag("Double-check: already initialized after acquiring lock.");
+                return;
+            }
 
             Console.Error.WriteLine("[DEBUG] SharedTestContainers: Lock acquired, starting containers...");
             try { File.AppendAllText(diagPath, $"[{DateTime.Now}] Lock acquired, starting containers...\n"); } catch { }
-            
-            // Configurar switches globais para Npgsql
+
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             AppContext.SetSwitch("Npgsql.DisableGoogleNativeSslStream", true);
             AppContext.SetSwitch("Npgsql.FailOnSslNegotiationFailure", false);
 
             Console.Error.WriteLine("[DEBUG] SharedTestContainers: Building containers...");
+            AppendDiag("Building containers...");
             _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("meajudaai_test")
                 .WithUsername("postgres")
@@ -66,9 +80,8 @@ public static class SharedTestContainers
                 .Build();
 
             Console.Error.WriteLine("[DEBUG] SharedTestContainers: Starting containers in parallel (Timeout: 4m)...");
-            
+            AppendDiag("Starting containers...");
             using var startupCts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
-            // Start in parallel
             await Task.WhenAll(
                 _postgresContainer.StartAsync(startupCts.Token),
                 _redisContainer.StartAsync(startupCts.Token),
@@ -78,22 +91,24 @@ public static class SharedTestContainers
             Console.Error.WriteLine("[DEBUG] SharedTestContainers: Containers started successfully.");
             try { File.AppendAllText(diagPath, $"[{DateTime.Now}] Containers started successfully.\n"); } catch { }
 
-            // Gerar connection strings finais com SSL desabilitado explicitamente
             _postgresConnectionString = BuildPostgresConnectionString(_postgresContainer.GetConnectionString());
             _redisConnectionString = _redisContainer.GetConnectionString();
             _azuriteConnectionString = _azuriteContainer.GetConnectionString();
 
             _initialized = true;
+            AppendDiag("Set _initialized = true. Infrastructure ready.");
             Console.Error.WriteLine("[DEBUG] SharedTestContainers: Global infrastructure ready.");
         }
         catch (Exception ex)
         {
+            AppendDiag($"[FATAL ERROR] SharedTestContainers: Failed: {ex.Message}\n{ex.StackTrace}");
             Console.Error.WriteLine($"[FATAL ERROR] SharedTestContainers: Failed to start containers: {ex.Message}\n{ex.StackTrace}");
             throw;
         }
         finally
         {
             _lock.Release();
+            AppendDiag("Lock released.");
         }
     }
 

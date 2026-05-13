@@ -28,8 +28,6 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
 
     public async ValueTask InitializeAsync()
     {
-        // Database is already cleaned up by TestContainerFixture.InitializeAsync
-        // which calls E2EStabilityCoordinator.EnsureInitializedAsync()
         await Task.CompletedTask;
     }
 

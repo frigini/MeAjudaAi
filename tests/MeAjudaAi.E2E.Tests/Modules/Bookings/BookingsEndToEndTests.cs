@@ -22,7 +22,7 @@ public class BookingsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
 
     public async ValueTask InitializeAsync()
     {
-        await _fixture.CleanupDatabaseAsync();
+        await Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync()

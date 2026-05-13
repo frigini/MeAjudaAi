@@ -26,10 +26,9 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         _fixture = fixture;
     }
 
-    public async ValueTask InitializeAsync()
+public async ValueTask InitializeAsync()
     {
-        // Clean up database before each test to ensure isolation and performance
-        await _fixture.CleanupDatabaseAsync();
+        await Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync()
