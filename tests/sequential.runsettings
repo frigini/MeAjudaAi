@@ -2,5 +2,6 @@
 <RunSettings>
   <RunConfiguration>
     <DisableParallelization>true</DisableParallelization>
+    <MaxCpuCount>1</MaxCpuCount>
   </RunConfiguration>
 </RunSettings>

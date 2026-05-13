@@ -32,36 +32,10 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// </summary>
 public class TestContainerFixture : IAsyncLifetime
 {
-    private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-    private static readonly SemaphoreSlim _wafLock = new(1, 1);
-    private static bool _migrationsApplied = false;
-
-    private WebApplicationFactory<Program> _factory = null!;
-
-    public HttpClient ApiClient { get; private set; } = null!;
-    public IServiceProvider Services { get; private set; } = null!;
-    public string PostgresConnectionString => SharedTestContainers.PostgresConnectionString;
-    public string RedisConnectionString => SharedTestContainers.RedisConnectionString;
-    public string AzuriteConnectionString => SharedTestContainers.AzuriteConnectionString;
-    public Faker Faker { get; } = new();
-
-    /// <summary>
-    /// Define se o sistema de mensagens síncrono e processamento de eventos devem estar ativos.
-    /// Por padrão é falso para isolar testes unitários/E2E simples.
-    /// </summary>
-    public virtual bool EnableEventsAndMessageBus => false;
-
-    public static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
-
-    private static async Task AppendLogAsync(string diagPath, string message)
-    {
-        await using var stream = new FileStream(diagPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-        await using var writer = new StreamWriter(stream);
-        await writer.WriteLineAsync($"[{DateTime.UtcNow:O}] {message}");
-    }
-
     private static WebApplicationFactory<Program>? _sharedFactory;
     private static readonly SemaphoreSlim _factoryLock = new(1, 1);
+    
+    // Campo de instância para referência local na fixture
     private WebApplicationFactory<Program> _factory = null!;
 
     public async ValueTask InitializeAsync()
@@ -145,9 +119,16 @@ public class TestContainerFixture : IAsyncLifetime
         };
         
         Services = _factory.Services;
+
+        // Cleanup local condicional para o CI
+        if (!"true".Equals(Environment.GetEnvironmentVariable("E2E_SKIP_LOCAL_CLEANUP"), StringComparison.OrdinalIgnoreCase))
+        {
+            await CleanupDatabaseAsync();
+        }
+        
         Console.Error.WriteLine("[DEBUG] TestContainerFixture: InitializeAsync completed successfully.");
     }
-    // Method removed
+
 
 
     private void ConfigureMockServices(IServiceCollection services)
@@ -247,6 +228,11 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async Task CleanupDatabaseAsync()
     {
+        if ("true".Equals(Environment.GetEnvironmentVariable("E2E_SKIP_LOCAL_CLEANUP"), StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
         var diagPath = Path.Combine(AppContext.BaseDirectory, "fixture_diag.log");
         await AppendLogAsync(diagPath, "CleanupDatabaseAsync starting...");
         await E2EStabilityCoordinator.GlobalCleanupAsync();

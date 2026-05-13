@@ -29,7 +29,7 @@ permissions:
   statuses: write
 
 env:
-  DOTNET_VERSION: "10.0.x"
+  DOTNET_VERSION: "8.0.x"
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
   POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
   POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
@@ -45,10 +45,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET 10
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Dotnet info
         run: |
@@ -59,7 +59,7 @@ jobs:
       - name: Setup Backend
         uses: ./.github/actions/setup-backend
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Docker diagnostics
         run: |
@@ -86,6 +86,7 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
+          E2E_SKIP_LOCAL_CLEANUP: "true"
           MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
           MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
           MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
@@ -146,6 +147,8 @@ jobs:
 
       - name: Setup Backend (for API Generation)
         uses: ./.github/actions/setup-backend
+        with:
+          dotnet-version: '8.0.x'
 
       - name: Setup Frontend
         uses: ./.github/actions/setup-frontend
