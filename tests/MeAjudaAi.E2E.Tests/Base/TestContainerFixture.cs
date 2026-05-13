@@ -32,11 +32,6 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// </summary>
 public class TestContainerFixture : IAsyncLifetime
 {
-    private static WebApplicationFactory<Program>? _sharedFactory;
-    private static readonly SemaphoreSlim _factoryLock = new(1, 1);
-    private static bool _factoryLockAcquired;
-    
-    // Campo de instância para referência local na fixture
     private WebApplicationFactory<Program> _factory = null!;
 
     public static string PostgresConnectionString => SharedTestContainers.PostgresConnectionString;
@@ -62,18 +57,8 @@ public class TestContainerFixture : IAsyncLifetime
         using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        _factoryLockAcquired = false;
-        if (!await _factoryLock.WaitAsync(TimeSpan.FromMinutes(5)))
-        {
-            throw new TimeoutException("Timed out waiting for _factoryLock. A previous WaitAsync timed out without calling Release().");
-        }
-        _factoryLockAcquired = true;
-        try
-        {
-            if (_sharedFactory == null)
-            {
-                Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building Shared WebApplicationFactory...");
-                _sharedFactory = new WebApplicationFactory<Program>()
+        Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building WebApplicationFactory...");
+        _factory = new WebApplicationFactory<Program>()
                     .WithWebHostBuilder(builder =>
                     {
                         builder.UseEnvironment("Testing");
@@ -118,17 +103,6 @@ public class TestContainerFixture : IAsyncLifetime
                             ReconfigureDbContexts(services);
                         });
                     });
-            }
-            _factory = _sharedFactory;
-        }
-        finally
-        {
-            if (_factoryLockAcquired)
-            {
-                _factoryLockAcquired = false;
-                try { _factoryLock.Release(); } catch { }
-            }
-        }
 
         var contextPropagationHandler = new TestContextAwareHandler
         {
@@ -295,7 +269,8 @@ public class TestContainerFixture : IAsyncLifetime
     public ValueTask DisposeAsync()
     {
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        _factory = null!;
+        ApiClient?.Dispose();
+        _factory?.Dispose();
         return ValueTask.CompletedTask;
     }
 
