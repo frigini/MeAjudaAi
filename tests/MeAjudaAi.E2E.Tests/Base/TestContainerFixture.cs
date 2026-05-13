@@ -34,6 +34,7 @@ public class TestContainerFixture : IAsyncLifetime
 {
     private static WebApplicationFactory<Program>? _sharedFactory;
     private static readonly SemaphoreSlim _factoryLock = new(1, 1);
+    private static bool _factoryLockAcquired;
     
     // Campo de instância para referência local na fixture
     private WebApplicationFactory<Program> _factory = null!;
@@ -61,13 +62,17 @@ public class TestContainerFixture : IAsyncLifetime
         using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         await E2EStabilityCoordinator.EnsureInitializedAsync();
 
-        await _factoryLock.WaitAsync(TimeSpan.FromMinutes(5));
+        _factoryLockAcquired = false;
+        if (!await _factoryLock.WaitAsync(TimeSpan.FromMinutes(5)))
+        {
+            throw new TimeoutException("Timed out waiting for _factoryLock. A previous WaitAsync timed out without calling Release().");
+        }
+        _factoryLockAcquired = true;
         try
         {
             if (_sharedFactory == null)
             {
                 Console.Error.WriteLine("[DEBUG] TestContainerFixture: Building Shared WebApplicationFactory...");
-                using var buildCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
                 _sharedFactory = new WebApplicationFactory<Program>()
                     .WithWebHostBuilder(builder =>
                     {
@@ -118,7 +123,11 @@ public class TestContainerFixture : IAsyncLifetime
         }
         finally
         {
-            _factoryLock.Release();
+            if (_factoryLockAcquired)
+            {
+                _factoryLockAcquired = false;
+                try { _factoryLock.Release(); } catch { }
+            }
         }
 
         var contextPropagationHandler = new TestContextAwareHandler
