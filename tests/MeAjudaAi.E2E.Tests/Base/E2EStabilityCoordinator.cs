@@ -34,6 +34,8 @@ public static class E2EStabilityCoordinator
     {
         if (_initialized) return;
 
+        NpgsqlConnection.ClearAllPools();
+
         if (File.Exists(_sentinelPath))
         {
             await LogAsync("Sentinel file exists, skipping initialization.");
