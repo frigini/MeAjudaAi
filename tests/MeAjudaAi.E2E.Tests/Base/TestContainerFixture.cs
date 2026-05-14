@@ -375,6 +375,18 @@ public class TestContainerFixture : IAsyncLifetime
         return await ApiClient.PatchAsync(requestUri, stringContent, cts.Token);
     }
 
+    public async Task<HttpResponseMessage> GetAsync(string requestUri)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        return await ApiClient.GetAsync(requestUri, cts.Token);
+    }
+
+    public async Task<HttpResponseMessage> DeleteAsync(string requestUri)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        return await ApiClient.DeleteAsync(requestUri, cts.Token);
+    }
+
     public static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();

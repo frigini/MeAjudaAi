@@ -56,40 +56,40 @@ public static class E2EStabilityCoordinator
             {
                 await LogAsync("Sentinel file exists, skipping initialization.");
                 _initialized = true;
-                await LogAsync("About to release semaphore (sentinel skip)...");
-                return;
             }
-
-            await LogAsync("Acquiring cross-process file lock...");
-            FileStream? crossProcessLock = null;
-            try
+            else
             {
-                crossProcessLock = new FileStream(_crossProcessLockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
-                await LogAsync("Cross-process file lock acquired.");
+                await LogAsync("Acquiring cross-process file lock...");
+                FileStream? crossProcessLock = null;
+                try
+                {
+                    crossProcessLock = new FileStream(_crossProcessLockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
+                    await LogAsync("Cross-process file lock acquired.");
 
-                await LogAsync("Starting centralized initialization...");
+                    await LogAsync("Starting centralized initialization...");
 
-                // 1. Garantir containers ativos
-                await SharedTestContainers.EnsureInitializedAsync();
-                await LogAsync("Shared containers ready.");
+                    // 1. Garantir containers ativos
+                    await SharedTestContainers.EnsureInitializedAsync();
+                    await LogAsync("Shared containers ready.");
 
-                // 2. Aguardar readiness do Postgres
-                await WaitForDatabaseAsync(SharedTestContainers.PostgresConnectionString, TimeSpan.FromSeconds(60), CancellationToken.None);
+                    // 2. Aguardar readiness do Postgres
+                    await WaitForDatabaseAsync(SharedTestContainers.PostgresConnectionString, TimeSpan.FromSeconds(60), CancellationToken.None);
 
-                // 3. Aplicar Migrações
-                await ApplyAllMigrationsAsync();
+                    // 3. Aplicar Migrações
+                    await ApplyAllMigrationsAsync();
 
-                // 4. Limpeza inicial
-                await InternalGlobalCleanupAsync(CancellationToken.None);
+                    // 4. Limpeza inicial
+                    await InternalGlobalCleanupAsync(CancellationToken.None);
 
-                await File.WriteAllTextAsync(_sentinelPath, DateTime.UtcNow.ToString("O"));
-                _initialized = true;
-                await LogAsync("Centralized initialization completed successfully.");
-            }
-            finally
-            {
-                crossProcessLock?.Dispose();
-                await LogAsync("Cross-process file lock released.");
+                    await File.WriteAllTextAsync(_sentinelPath, DateTime.UtcNow.ToString("O"));
+                    _initialized = true;
+                    await LogAsync("Centralized initialization completed successfully.");
+                }
+                finally
+                {
+                    crossProcessLock?.Dispose();
+                    await LogAsync("Cross-process file lock released.");
+                }
             }
         }
         finally
