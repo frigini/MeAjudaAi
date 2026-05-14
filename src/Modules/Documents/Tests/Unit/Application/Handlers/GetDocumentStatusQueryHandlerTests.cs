@@ -1,0 +1,134 @@
+using FluentAssertions;
+using MeAjudaAi.Modules.Documents.Application.Handlers;
+using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
+using MeAjudaAi.Modules.Documents.Domain.Enums;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers;
+
+public class GetDocumentStatusQueryHandlerTests
+{
+    private readonly Mock<IDocumentQueries> _mockQueries;
+    private readonly Mock<ILogger<GetDocumentStatusQueryHandler>> _mockLogger;
+    private readonly GetDocumentStatusQueryHandler _handler;
+
+    public GetDocumentStatusQueryHandlerTests()
+    {
+        _mockQueries = new Mock<IDocumentQueries>();
+        _mockLogger = new Mock<ILogger<GetDocumentStatusQueryHandler>>();
+        _handler = new GetDocumentStatusQueryHandler(_mockQueries.Object, _mockLogger.Object);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithExistingDocument_ShouldReturnDocumentDto()
+    {
+        var documentId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var document = Document.Create(
+            providerId,
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        var query = new GetDocumentStatusQuery(documentId);
+
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(document.Id);
+        result.ProviderId.Should().Be(document.ProviderId);
+        result.DocumentType.Should().Be(document.DocumentType);
+        result.FileName.Should().Be(document.FileName);
+        result.Status.Should().Be(document.Status);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNonExistentDocument_ShouldReturnNull()
+    {
+        var documentId = Guid.NewGuid();
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Document?)null);
+
+        var query = new GetDocumentStatusQuery(documentId);
+
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldMapAllDocumentProperties()
+    {
+        var documentId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var document = Document.Create(
+            providerId,
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"cpf\":\"98765432100\"}");
+
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        var query = new GetDocumentStatusQuery(documentId);
+
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(document.Id);
+        result.ProviderId.Should().Be(document.ProviderId);
+        result.DocumentType.Should().Be(document.DocumentType);
+        result.FileName.Should().Be(document.FileName);
+        result.FileUrl.Should().Be(document.FileUrl);
+        result.Status.Should().Be(document.Status);
+        result.UploadedAt.Should().Be(document.UploadedAt);
+        result.VerifiedAt.Should().NotBeNull();
+        result.VerifiedAt.Should().Be(document.VerifiedAt);
+        result.RejectionReason.Should().Be(document.RejectionReason);
+        result.OcrData.Should().NotBeNullOrEmpty();
+        result.OcrData.Should().Be(document.OcrData);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenRepositoryThrows_ShouldPropagateException()
+    {
+        var documentId = Guid.NewGuid();
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        var query = new GetDocumentStatusQuery(documentId);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _handler.HandleAsync(query, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNonExistentDocument_ShouldLogWarning()
+    {
+        var documentId = Guid.NewGuid();
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Document?)null);
+
+        var query = new GetDocumentStatusQuery(documentId);
+
+        await _handler.HandleAsync(query, CancellationToken.None);
+
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(documentId.ToString())),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+}

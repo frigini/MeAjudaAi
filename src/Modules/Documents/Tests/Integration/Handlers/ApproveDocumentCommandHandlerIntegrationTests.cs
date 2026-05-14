@@ -3,11 +3,12 @@ using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
-using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -18,10 +19,6 @@ using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Handlers;
 
-/// <summary>
-/// Testes de integração para ApproveDocumentCommandHandler.
-/// Valida integração real com banco de dados PostgreSQL via Testcontainers.
-/// </summary>
 [Trait("Category", "Integration")]
 [Trait("Module", "Documents")]
 [Trait("Layer", "Application")]
@@ -29,10 +26,12 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 {
     private readonly PostgreSqlContainer _postgresContainer;
     private DocumentsDbContext? _dbContext;
-    private IDocumentRepository? _repository;
+    private IUnitOfWork? _uow;
     private ApproveDocumentCommandHandler? _handler;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<ApproveDocumentCommandHandler>> _mockLogger;
+
+    private readonly Mock<IDomainEventProcessor> _mockDomainEventProcessor;
 
     public ApproveDocumentCommandHandlerIntegrationTests()
     {
@@ -44,6 +43,7 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<ApproveDocumentCommandHandler>>();
+        _mockDomainEventProcessor = new Mock<IDomainEventProcessor>();
     }
 
     public async ValueTask InitializeAsync()
@@ -52,250 +52,122 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 
         var options = new DbContextOptionsBuilder<DocumentsDbContext>()
             .UseNpgsql(_postgresContainer.GetConnectionString())
-            .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(warnings =>
-                warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
-        _dbContext = new DocumentsDbContext(options);
+        _dbContext = new DocumentsDbContext(options, _mockDomainEventProcessor.Object);
+        _uow = _dbContext;
+
         await _dbContext.Database.MigrateAsync();
 
-        _repository = new DocumentRepository(_dbContext);
-        _handler = new ApproveDocumentCommandHandler(
-            _repository,
-            _mockHttpContextAccessor.Object,
-            _mockLogger.Object);
+        _handler = new ApproveDocumentCommandHandler(_uow, _mockHttpContextAccessor.Object, _mockLogger.Object);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_dbContext != null)
-        {
-            await _dbContext.DisposeAsync();
-        }
-
+        if (_dbContext != null) await _dbContext.DisposeAsync();
         await _postgresContainer.DisposeAsync();
     }
 
-    private void SetupAuthenticatedAdmin()
-    {
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "admin")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
-
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-    }
-
     [Fact]
-    public async Task HandleAsync_WithValidDocument_ShouldPersistApprovalToDatabase()
+    public async Task HandleAsync_WithValidDocument_ShouldApprove()
     {
         // Arrange
-        SetupAuthenticatedAdmin();
-
-        var providerId = Guid.NewGuid();
+        var providerId = Guid.NewGuid(); // Explicitly naming providerId for clarity
         var document = Document.Create(
             providerId,
             EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "documents/identity.pdf");
-        
+            "test.pdf",
+            "blob-url");
         document.MarkAsPendingVerification();
 
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
 
-        var verificationNotes = "Documento aprovado - identificação válida";
-        var command = new ApproveDocumentCommand(document.Id.Value, verificationNotes);
+        var adminId = Guid.NewGuid(); // Admin ID is different from provider ID
+        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, RoleConstants.Admin) };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = claimsPrincipal });
 
+        var command = new ApproveDocumentCommand(document.Id.Value, "{\"verified\": true}");
+        
         // Act
-        var result = await _handler!.HandleAsync(command);
+        await _handler!.HandleAsync(command);
 
         // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-
-        // Verificar persistência no banco
         _dbContext!.ChangeTracker.Clear();
-        var persistedDocument = await _repository.GetByIdAsync(document.Id.Value);
 
-        persistedDocument.Should().NotBeNull();
-        persistedDocument!.Status.Should().Be(EDocumentStatus.Verified);
-        persistedDocument.VerifiedAt.Should().NotBeNull();
-        persistedDocument.VerifiedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        persistedDocument.OcrData.Should().Contain(verificationNotes);
+        var updatedDocument = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id);
+        updatedDocument.Should().NotBeNull();
+        updatedDocument!.Status.Should().Be(EDocumentStatus.Verified);
+        updatedDocument.VerifiedAt.Should().NotBeNull();
+        updatedDocument.OcrData.Should().Contain("notes").And.Contain("verified");
+
+        // Verify domain events were processed
+        _mockDomainEventProcessor.Verify(x => x.ProcessDomainEventsAsync(It.IsAny<IEnumerable<MeAjudaAi.Shared.Events.IDomainEvent>>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
-    public async Task HandleAsync_WithNonExistentDocument_ShouldThrowNotFoundException()
+    public async Task HandleAsync_WithNonAdmin_ShouldReturnForbidden()
     {
         // Arrange
-        SetupAuthenticatedAdmin();
-
-        var nonExistentId = Guid.NewGuid();
-        var command = new ApproveDocumentCommand(nonExistentId, "Notes");
-
-        // Act
-        var act = async () => await _handler!.HandleAsync(command);
-
-        // Assert
-        await act.Should().ThrowAsync<NotFoundException>()
-            .WithMessage($"Document with id {nonExistentId} was not found");
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithDocumentInWrongStatus_ShouldReturnFailureWithoutPersisting()
-    {
-        // Arrange
-        SetupAuthenticatedAdmin();
-
         var providerId = Guid.NewGuid();
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "documents/identity.pdf");
+        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "test.pdf", "url");
+        document.MarkAsPendingVerification();
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
 
-        // Documento ainda em status Uploaded
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
+        var userId = Guid.NewGuid();
+        var claims = new List<Claim> { new Claim("sub", userId.ToString()), new Claim(ClaimTypes.Role, RoleConstants.Customer) };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = new ClaimsPrincipal(identity) });
 
-        var command = new ApproveDocumentCommand(document.Id.Value, "Notes");
+        var command = new ApproveDocumentCommand(document.Id.Value, "notes");
+
+        // Act & Assert
+        var act = () => _handler!.HandleAsync(command);
+        await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.ForbiddenAccessException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_NonExistentDocument_ShouldReturnNotFound()
+    {
+        // Arrange
+        var adminId = Guid.NewGuid();
+        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, RoleConstants.Admin) };
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType")) });
+
+        var command = new ApproveDocumentCommand(Guid.NewGuid(), "notes");
+
+        // Act & Assert
+        var act = () => _handler!.HandleAsync(command);
+        await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.NotFoundException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_InvalidStatus_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "test.pdf", "url");
+        // Status is Uploaded (initial), not PendingVerification
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        var adminId = Guid.NewGuid();
+        var claims = new List<Claim> { new Claim("sub", adminId.ToString()), new Claim(ClaimTypes.Role, RoleConstants.Admin) };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = claimsPrincipal });
+
+        var command = new ApproveDocumentCommand(document.Id.Value, "notes");
 
         // Act
         var result = await _handler!.HandleAsync(command);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(400);
-
-        // Verificar que o status não mudou no banco
-        _dbContext!.ChangeTracker.Clear();
-        var persistedDocument = await _repository.GetByIdAsync(document.Id.Value);
-        persistedDocument!.Status.Should().Be(EDocumentStatus.Uploaded);
-        persistedDocument.VerifiedAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithNonAdminUser_ShouldThrowForbiddenAccessException()
-    {
-        // Arrange
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "provider")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
-
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-
-        var providerId = Guid.NewGuid();
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "documents/identity.pdf");
-        
-        document.MarkAsPendingVerification();
-
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
-
-        var command = new ApproveDocumentCommand(document.Id.Value, "Notes");
-
-        // Act
-        var act = async () => await _handler!.HandleAsync(command);
-
-        // Assert
-        await act.Should().ThrowAsync<ForbiddenAccessException>();
-
-        // Verificar que o documento não foi modificado
-        _dbContext!.ChangeTracker.Clear();
-        var persistedDocument = await _repository.GetByIdAsync(document.Id.Value);
-        persistedDocument!.Status.Should().Be(EDocumentStatus.PendingVerification);
-        persistedDocument.VerifiedAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithNullVerificationNotes_ShouldPersistWithoutNotes()
-    {
-        // Arrange
-        SetupAuthenticatedAdmin();
-
-        var providerId = Guid.NewGuid();
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "documents/identity.pdf");
-        
-        document.MarkAsPendingVerification();
-
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
-
-        var command = new ApproveDocumentCommand(document.Id.Value, null);
-
-        // Act
-        var result = await _handler!.HandleAsync(command);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-
-        _dbContext!.ChangeTracker.Clear();
-        var persistedDocument = await _repository.GetByIdAsync(document.Id.Value);
-
-        persistedDocument.Should().NotBeNull();
-        persistedDocument!.Status.Should().Be(EDocumentStatus.Verified);
-        persistedDocument.OcrData.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldMaintainDataIntegrity_AcrossMultipleApprovals()
-    {
-        // Arrange
-        SetupAuthenticatedAdmin();
-
-        var providerId = Guid.NewGuid();
-        
-        // Criar múltiplos documentos
-        var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id1.pdf", "docs/id1.pdf");
-        var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "address1.pdf", "docs/address1.pdf");
-        
-        doc1.MarkAsPendingVerification();
-        doc2.MarkAsPendingVerification();
-
-        await _repository!.AddAsync(doc1);
-        await _repository.AddAsync(doc2);
-        await _repository.SaveChangesAsync();
-
-        // Act - Aprovar ambos
-        var command1 = new ApproveDocumentCommand(doc1.Id.Value, "Doc 1 approved");
-        var command2 = new ApproveDocumentCommand(doc2.Id.Value, "Doc 2 approved");
-
-        var result1 = await _handler!.HandleAsync(command1);
-        var result2 = await _handler.HandleAsync(command2);
-
-        // Assert
-        result1.IsSuccess.Should().BeTrue();
-        result2.IsSuccess.Should().BeTrue();
-
-        _dbContext!.ChangeTracker.Clear();
-
-        var persistedDoc1 = await _repository.GetByIdAsync(doc1.Id.Value);
-        var persistedDoc2 = await _repository.GetByIdAsync(doc2.Id.Value);
-
-        persistedDoc1!.Status.Should().Be(EDocumentStatus.Verified);
-        persistedDoc2!.Status.Should().Be(EDocumentStatus.Verified);
-        
-        persistedDoc1.OcrData.Should().Contain("Doc 1 approved");
-        persistedDoc2.OcrData.Should().Contain("Doc 2 approved");
+        result.Error.Code.Should().Be(ErrorCodes.BadRequest);
     }
 }

@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 public sealed class IbgeService(
     IIbgeClient ibgeClient,
     ICacheService cacheService,
-    IAllowedCityRepository allowedCityRepository,
+    IAllowedCityQueries allowedCityQueries,
     ILogger<IbgeService> logger) : IIbgeService
 {
     public async Task<bool> ValidateCityInAllowedRegionsAsync(
@@ -48,7 +48,7 @@ public sealed class IbgeService(
 
         // Validar se a cidade está na lista de permitidas (usando banco de dados)
         // ufSigla never null because GetEstadoSigla returns non-nullable string
-        var isAllowed = await allowedCityRepository.IsCityAllowedAsync(municipio.Nome, ufSigla ?? string.Empty, cancellationToken);
+        var isAllowed = await allowedCityQueries.IsCityAllowedAsync(municipio.Nome, ufSigla ?? string.Empty, cancellationToken);
 
         if (isAllowed)
         {

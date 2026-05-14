@@ -1,15 +1,20 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class CreateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries)
     : ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>
 {
     public async Task<Result<ServiceCategoryDto>> HandleAsync(CreateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -19,15 +24,28 @@ public sealed class CreateServiceCategoryCommandHandler(
             var normalizedName = request.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceCategoryDto>.Failure("Category name is required.");
+                return Result<ServiceCategoryDto>.Failure(ValidationMessages.Required.CategoryName);
 
-            // Verificar se já existe categoria com o mesmo nome
-            if (await categoryRepository.ExistsWithNameAsync(normalizedName, null, cancellationToken))
-                return Result<ServiceCategoryDto>.Failure($"A category with name '{normalizedName}' already exists.");
+            if (await categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
+                return Result<ServiceCategoryDto>.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
 
             var category = ServiceCategoryEntity.Create(normalizedName, request.Description, request.DisplayOrder);
 
-            await categoryRepository.AddAsync(category, cancellationToken);
+            var categoryRepo = uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>();
+            categoryRepo.Add(category);
+
+            try
+            {
+                await uow.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex)
+            {
+                if (IsUniqueConstraintViolation(ex))
+                {
+                    return Result<ServiceCategoryDto>.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+                }
+                throw;
+            }
 
             var dto = new ServiceCategoryDto(
                 category.Id.Value,
@@ -36,8 +54,7 @@ public sealed class CreateServiceCategoryCommandHandler(
                 category.IsActive,
                 category.DisplayOrder,
                 category.CreatedAt,
-                category.UpdatedAt
-            );
+                category.UpdatedAt);
 
             return Result<ServiceCategoryDto>.Success(dto);
         }
@@ -45,5 +62,12 @@ public sealed class CreateServiceCategoryCommandHandler(
         {
             return Result<ServiceCategoryDto>.Failure(ex.Message);
         }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        return ex.InnerException?.Message.Contains("unique") == true ||
+               ex.InnerException?.Message.Contains("duplicate key") == true ||
+               ex.InnerException?.Message.Contains("ix_service_categories_name") == true;
     }
 }

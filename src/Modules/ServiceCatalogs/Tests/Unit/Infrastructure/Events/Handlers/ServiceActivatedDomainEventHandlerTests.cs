@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
@@ -16,19 +16,25 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Events.Han
 [Trait("Category", "Unit")]
 public class ServiceActivatedDomainEventHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock = new();
     private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<ServiceActivatedDomainEventHandler>> _loggerMock = new();
+
+    public ServiceActivatedDomainEventHandlerTests()
+    {
+        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
+    }
 
     [Fact]
     public async Task ServiceActivatedHandler_Should_PublishIntegrationEvent()
     {
         // Arrange
         var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Test Service", null, 0);
-        _serviceRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _loggerMock.Object);
+        var handler = new ServiceActivatedDomainEventHandler(_uowMock.Object, _messageBusMock.Object, _loggerMock.Object);
         var domainEvent = new ServiceActivatedDomainEvent(service.Id);
 
         // Act
@@ -49,10 +55,10 @@ public class ServiceActivatedDomainEventHandlerTests
     {
         // Arrange
         var serviceId = Guid.NewGuid();
-        _serviceRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
-        var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _loggerMock.Object);
+        var handler = new ServiceActivatedDomainEventHandler(_uowMock.Object, _messageBusMock.Object, _loggerMock.Object);
         var domainEvent = new ServiceActivatedDomainEvent(ServiceId.From(serviceId));
 
         // Act
@@ -78,7 +84,7 @@ public class ServiceActivatedDomainEventHandlerTests
     {
         // Arrange
         var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Test Service", null, 0);
-        _serviceRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
         _messageBusMock.Setup(x => x.PublishAsync(
@@ -87,7 +93,7 @@ public class ServiceActivatedDomainEventHandlerTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("publish-failed"));
 
-        var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _loggerMock.Object);
+        var handler = new ServiceActivatedDomainEventHandler(_uowMock.Object, _messageBusMock.Object, _loggerMock.Object);
         var domainEvent = new ServiceActivatedDomainEvent(service.Id);
 
         // Act

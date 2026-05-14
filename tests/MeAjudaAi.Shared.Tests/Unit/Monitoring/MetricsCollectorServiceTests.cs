@@ -150,6 +150,7 @@ public sealed class MetricsCollectorServiceTests : IDisposable
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
+
     }
 
     public void Dispose()

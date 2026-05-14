@@ -1,19 +1,15 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Persistence;
 
-/// <summary>
-/// Testes de integração para DocumentRepository usando Testcontainers PostgreSQL.
-/// Testes validam operações reais de banco de dados e comportamento do EF Core.
-/// </summary>
 [Trait("Category", "Integration")]
 [Trait("Module", "Documents")]
 [Trait("Layer", "Infrastructure")]
@@ -21,7 +17,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgresContainer;
     private DocumentsDbContext? _dbContext;
-    private IDocumentRepository? _repository;
+    private IUnitOfWork? _uow;
 
     public DocumentRepositoryIntegrationTests()
     {
@@ -38,274 +34,399 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
 
         var options = new DbContextOptionsBuilder<DocumentsDbContext>()
             .UseNpgsql(_postgresContainer.GetConnectionString())
-            .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(warnings => 
-                warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.CommandExecuting))
             .Options;
 
         _dbContext = new DocumentsDbContext(options);
-        await _dbContext.Database.MigrateAsync();
+        _uow = _dbContext;
         
-        _repository = new DocumentRepository(_dbContext);
+        await _dbContext.Database.EnsureCreatedAsync();
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_dbContext != null)
-        {
-            await _dbContext.DisposeAsync();
-        }
-        
+        if (_dbContext != null) await _dbContext.DisposeAsync();
         await _postgresContainer.DisposeAsync();
     }
 
     [Fact]
-    public async Task AddAsync_WithValidDocument_ShouldPersistToDatabase()
+    public async Task AddAsync_ShouldPersistDocument()
     {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "test-file.pdf",
-            "documents/test-file.pdf");
-
-        // Act
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var retrieved = await _repository.GetByIdAsync(document.Id.Value);
-        retrieved.Should().NotBeNull();
-        retrieved!.ProviderId.Should().Be(providerId);
-        retrieved.DocumentType.Should().Be(EDocumentType.IdentityDocument);
-        retrieved.FileName.Should().Be("test-file.pdf");
-        retrieved.Status.Should().Be(EDocumentStatus.Uploaded);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_WithNonExistentDocument_ShouldReturnNull()
-    {
-        // Arrange
-        var nonExistentId = Guid.NewGuid();
-
-        // Act
-        var result = await _repository!.GetByIdAsync(nonExistentId);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByProviderIdAsync_WithExistingProvider_ShouldReturnAllDocuments()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "docs/id.pdf");
-        var doc2 = Document.Create(providerId, EDocumentType.CriminalRecord, "cr.pdf", "docs/cr.pdf");
-
-        await _repository!.AddAsync(doc1);
-        await _repository.AddAsync(doc2);
-        await _repository.SaveChangesAsync();
-
-        // Act
-        var documents = await _repository.GetByProviderIdAsync(providerId);
-
-        // Assert
-        documents.Should().HaveCount(2);
-        documents.Should().Contain(d => d.DocumentType == EDocumentType.IdentityDocument);
-        documents.Should().Contain(d => d.DocumentType == EDocumentType.CriminalRecord);
-    }
-
-    [Fact]
-    public async Task GetByProviderIdAsync_WithNonExistentProvider_ShouldReturnEmpty()
-    {
-        // Arrange
-        var nonExistentProviderId = Guid.NewGuid();
-
-        // Act
-        var documents = await _repository!.GetByProviderIdAsync(nonExistentProviderId);
-
-        // Assert
-        documents.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task UpdateAsync_ShouldPersistChanges()
-    {
-        // Arrange
-        var document = Document.Create(
-            Guid.NewGuid(),
-            EDocumentType.ProofOfResidence,
-            "residence.pdf",
-            "docs/residence.pdf");
-
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Act - Mark as pending verification
-        document.MarkAsPendingVerification();
-        await _repository.UpdateAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var updated = await _repository.GetByIdAsync(document.Id.Value);
-        updated.Should().NotBeNull();
-        updated!.Status.Should().Be(EDocumentStatus.PendingVerification);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_WithStatusChange_ShouldReflectInDatabase()
-    {
-        // Arrange
-        var document = Document.Create(
-            Guid.NewGuid(),
-            EDocumentType.IdentityDocument,
-            "id-doc.pdf",
-            "docs/id-doc.pdf");
-
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
-
-        document.MarkAsPendingVerification();
-        await _repository.UpdateAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Act - Verify the document
-        document.MarkAsVerified("{\"name\": \"Test User\"}");
-        await _repository.UpdateAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var verified = await _repository.GetByIdAsync(document.Id.Value);
-        verified.Should().NotBeNull();
-        verified!.Status.Should().Be(EDocumentStatus.Verified);
-        verified.VerifiedAt.Should().NotBeNull();
-        verified.OcrData.Should().Contain("Test User");
-    }
-
-    [Fact]
-    public async Task QueryByStatus_ShouldFilterCorrectly()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "docs/id.pdf");
-        var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "proof.pdf", "docs/proof.pdf");
-        var doc3 = Document.Create(providerId, EDocumentType.CriminalRecord, "cr.pdf", "docs/cr.pdf");
-
-        doc1.MarkAsPendingVerification();
-        doc2.MarkAsPendingVerification();
-        doc2.MarkAsVerified();
-
-        await _repository!.AddAsync(doc1);
-        await _repository.AddAsync(doc2);
-        await _repository.AddAsync(doc3);
-        await _repository.SaveChangesAsync();
-
-        // Act
-        var pendingDocs = await _dbContext!.Documents
-            .Where(d => d.Status == EDocumentStatus.PendingVerification)
-            .ToListAsync();
-
-        var uploadedDocs = await _dbContext.Documents
-            .Where(d => d.Status == EDocumentStatus.Uploaded)
-            .ToListAsync();
-
-        var verifiedDocs = await _dbContext.Documents
-            .Where(d => d.Status == EDocumentStatus.Verified)
-            .ToListAsync();
-
-        // Assert
-        pendingDocs.Should().HaveCount(1);
-        uploadedDocs.Should().HaveCount(1);
-        verifiedDocs.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public async Task AddAsync_WithMultipleDocuments_ShouldMaintainSeparateStates()
-    {
-        // Arrange
-        var provider1 = Guid.NewGuid();
-        var provider2 = Guid.NewGuid();
-
-        var doc1 = Document.Create(provider1, EDocumentType.IdentityDocument, "id1.pdf", "docs/id1.pdf");
-        var doc2 = Document.Create(provider2, EDocumentType.IdentityDocument, "id2.pdf", "docs/id2.pdf");
-
-        // Act
-        await _repository!.AddAsync(doc1);
-        await _repository.AddAsync(doc2);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var provider1Docs = await _repository.GetByProviderIdAsync(provider1);
-        var provider2Docs = await _repository.GetByProviderIdAsync(provider2);
-
-        provider1Docs.Should().HaveCount(1);
-        provider2Docs.Should().HaveCount(1);
-        provider1Docs.First().ProviderId.Should().Be(provider1);
-        provider2Docs.First().ProviderId.Should().Be(provider2);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_WithRejection_ShouldPersistReason()
-    {
-        // Arrange
-        var document = Document.Create(
-            Guid.NewGuid(),
-            EDocumentType.IdentityDocument,
-            "id.pdf",
-            "docs/id.pdf");
-
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
-
-        document.MarkAsPendingVerification();
-        await _repository.UpdateAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Act
-        document.MarkAsRejected("Invalid document format");
-        await _repository.UpdateAsync(document);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var rejected = await _repository.GetByIdAsync(document.Id.Value);
-        rejected.Should().NotBeNull();
-        rejected!.Status.Should().Be(EDocumentStatus.Rejected);
-        rejected.RejectionReason.Should().Be("Invalid document format");
-        rejected.VerifiedAt.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task ExistsAsync_WithExistingDocument_ShouldReturnTrue()
-    {
-        // Arrange
         var document = Document.Create(
             Guid.NewGuid(),
             EDocumentType.IdentityDocument,
             "test.pdf",
-            "docs/test.pdf");
+            "blob-url");
 
-        await _repository!.AddAsync(document);
-        await _repository.SaveChangesAsync();
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        var result = await _uow.SaveChangesAsync();
 
-        // Act
-        var exists = await _repository.ExistsAsync(document.Id.Value);
+        result.Should().BeGreaterThan(0);
 
-        // Assert
-        exists.Should().BeTrue();
+        var persisted = await _dbContext!.Documents.FirstOrDefaultAsync(d => d.Id == document.Id);
+        persisted.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task ExistsAsync_WithNonExistentDocument_ShouldReturnFalse()
+    public async Task TryFindAsync_WithExistingDocument_ShouldReturnDocument()
     {
-        // Arrange
-        var nonExistentId = Guid.NewGuid();
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.ProofOfResidence,
+            "proof.pdf",
+            "blob-url");
 
-        // Act
-        var exists = await _repository!.ExistsAsync(nonExistentId);
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
 
-        // Assert
-        exists.Should().BeFalse();
+        var found = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id, default);
+
+        found.Should().NotBeNull();
+        found!.Id.Should().Be(document.Id);
     }
+
+    [Fact]
+    public async Task TryFindAsync_WithNonExistingDocument_ShouldReturnNull()
+    {
+        var found = await _uow!.GetRepository<Document, DocumentId>().TryFindAsync(new DocumentId(Guid.NewGuid()), default);
+
+        found.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Delete_ExistingDocument_ShouldRemoveFromDatabase()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.ProofOfResidence,
+            "proof.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        var found = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id, default);
+        found.Should().NotBeNull();
+
+        _uow.GetRepository<Document, DocumentId>().Delete(found!);
+        await _uow.SaveChangesAsync();
+
+        var deleted = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(document.Id, default);
+        deleted.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Delete_NonExistingDocument_ShouldNotThrow()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        var act = () => _uow!.GetRepository<Document, DocumentId>().Delete(document);
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task Add_MultipleDocuments_ShouldPersistAll()
+    {
+        var documents = new[]
+        {
+            Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc1.pdf", "blob-1"),
+            Document.Create(Guid.NewGuid(), EDocumentType.ProofOfResidence, "doc2.pdf", "blob-2"),
+            Document.Create(Guid.NewGuid(), EDocumentType.CriminalRecord, "doc3.pdf", "blob-3")
+        };
+
+        var repo = _uow!.GetRepository<Document, DocumentId>();
+        foreach (var doc in documents)
+        {
+            repo.Add(doc);
+        }
+        await _uow.SaveChangesAsync();
+
+        foreach (var doc in documents)
+        {
+            var persisted = await _uow.GetRepository<Document, DocumentId>().TryFindAsync(doc.Id, default);
+            persisted.Should().NotBeNull($"Document {doc.Id} should be persisted");
+        }
+    }
+
+    [Fact]
+    public async Task Add_SameDocumentTwice_ShouldNotDuplicate()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        var repo = _uow!.GetRepository<Document, DocumentId>();
+        repo.Add(document);
+        await _uow.SaveChangesAsync();
+
+        var existingCount = await _dbContext!.Documents.CountAsync(d => d.Id == document.Id);
+        existingCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Update_ExistingDocument_ShouldPersistChanges()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "original.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"verified\": true}");
+        await _uow.SaveChangesAsync();
+
+        var updated = await _dbContext!.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(EDocumentStatus.Verified);
+        updated.OcrData.Should().Be("{\"verified\": true}");
+        updated.VerifiedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_RejectionReason_ShouldPersistCorrectly()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        document.MarkAsPendingVerification();
+        document.MarkAsRejected("Document is blurry");
+        await _uow.SaveChangesAsync();
+
+        var rejected = await _dbContext!.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+
+        rejected.Should().NotBeNull();
+        rejected!.Status.Should().Be(EDocumentStatus.Rejected);
+        rejected.RejectionReason.Should().Be("Document is blurry");
+        rejected.VerifiedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_FailedStatus_ShouldPersistCorrectly()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        document.MarkAsFailed("OCR service timeout");
+        await _uow.SaveChangesAsync();
+
+        var failed = await _dbContext!.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+
+        failed.Should().NotBeNull();
+        failed!.Status.Should().Be(EDocumentStatus.Failed);
+        failed.RejectionReason.Should().Be("OCR service timeout");
+    }
+
+    [Fact]
+    public async Task Update_RetryFromFailed_ShouldClearPreviousReason()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        document.MarkAsFailed("Initial failure");
+        await _uow.SaveChangesAsync();
+
+        document.MarkAsPendingVerification();
+        await _uow.SaveChangesAsync();
+
+        var retried = await _dbContext!.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+
+        retried.Should().NotBeNull();
+        retried!.Status.Should().Be(EDocumentStatus.PendingVerification);
+        retried.RejectionReason.Should().BeNull("Previous failure reason should be cleared on retry");
+    }
+
+    [Fact]
+    public async Task Query_ByProviderId_ShouldReturnOnlyMatchingDocuments()
+    {
+        var targetProviderId = Guid.NewGuid();
+        var otherProviderId = Guid.NewGuid();
+
+        var documents = new[]
+        {
+            Document.Create(targetProviderId, EDocumentType.IdentityDocument, "doc1.pdf", "blob-1"),
+            Document.Create(targetProviderId, EDocumentType.ProofOfResidence, "doc2.pdf", "blob-2"),
+            Document.Create(otherProviderId, EDocumentType.IdentityDocument, "doc3.pdf", "blob-3")
+        };
+
+        _uow!.GetRepository<Document, DocumentId>().Add(documents[0]);
+        _uow.GetRepository<Document, DocumentId>().Add(documents[1]);
+        _uow.GetRepository<Document, DocumentId>().Add(documents[2]);
+        await _uow.SaveChangesAsync();
+
+        var providerDocuments = await _dbContext!.Documents
+            .AsNoTracking()
+            .Where(d => d.ProviderId == targetProviderId)
+            .ToListAsync();
+
+        providerDocuments.Should().HaveCount(2);
+        providerDocuments.All(d => d.ProviderId == targetProviderId).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Query_ByStatus_ShouldReturnOnlyMatchingDocuments()
+    {
+        var doc1 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc1.pdf", "blob-1");
+        var doc2 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc2.pdf", "blob-2");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(doc1);
+        _uow.GetRepository<Document, DocumentId>().Add(doc2);
+        await _uow.SaveChangesAsync();
+
+        doc1.MarkAsPendingVerification();
+        doc1.MarkAsVerified(null);
+        await _uow.SaveChangesAsync();
+
+        var verifiedDocs = await _dbContext!.Documents
+            .AsNoTracking()
+            .Where(d => d.Status == EDocumentStatus.Verified)
+            .ToListAsync();
+
+        verifiedDocs.Should().HaveCount(1);
+        verifiedDocs[0].Id.Should().Be(doc1.Id);
+    }
+
+    [Fact]
+    public async Task Query_OrderByUploadedAt_ShouldReturnInCorrectOrder()
+    {
+        var doc1 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc1.pdf", "blob-1");
+        var doc2 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc2.pdf", "blob-2");
+        var doc3 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc3.pdf", "blob-3");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(doc1);
+        await _uow.SaveChangesAsync();
+        await Task.Delay(10);
+        _uow.GetRepository<Document, DocumentId>().Add(doc2);
+        await _uow.SaveChangesAsync();
+        await Task.Delay(10);
+        _uow.GetRepository<Document, DocumentId>().Add(doc3);
+        await _uow.SaveChangesAsync();
+
+        var ordered = await _dbContext!.Documents
+            .AsNoTracking()
+            .OrderByDescending(d => d.UploadedAt)
+            .ToListAsync();
+
+        ordered[0].Id.Should().Be(doc3.Id);
+        ordered[1].Id.Should().Be(doc2.Id);
+        ordered[2].Id.Should().Be(doc1.Id);
+    }
+
+    [Fact]
+    public async Task Query_ExistsAsync_ShouldReturnCorrectResult()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        var exists = await _dbContext!.Documents
+            .AsNoTracking()
+            .AnyAsync(d => d.Id == document.Id);
+
+        exists.Should().BeTrue();
+
+        var doesNotExist = await _dbContext!.Documents
+            .AsNoTracking()
+            .AnyAsync(d => d.Id == Guid.NewGuid());
+
+        doesNotExist.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetRepository_WithUnsupportedType_ShouldThrowInvalidOperationException()
+    {
+        var act = () => _uow!.GetRepository<SomeOtherAggregate, DocumentId>();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*does not implement IRepository*");
+    }
+
+    [Fact]
+    public async Task SaveChanges_WithNoChanges_ShouldReturnZero()
+    {
+        var result = await _uow!.SaveChangesAsync();
+        result.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Add_WithoutSaveChanges_ShouldNotPersistToDatabase()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+
+        var notPersisted = await _dbContext!.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+
+        notPersisted.Should().BeNull("Document should not be persisted until SaveChangesAsync is called");
+    }
+
+    [Fact]
+    public async Task Delete_WithoutSaveChanges_ShouldNotRemoveFromDatabase()
+    {
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "blob-url");
+
+        _uow!.GetRepository<Document, DocumentId>().Add(document);
+        await _uow.SaveChangesAsync();
+
+        _uow.GetRepository<Document, DocumentId>().Delete(document);
+
+        var stillExists = await _dbContext!.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+
+        stillExists.Should().NotBeNull("Document should not be deleted until SaveChangesAsync is called");
+    }
+
+    private class SomeOtherAggregate : MeAjudaAi.Shared.Domain.AggregateRoot<MeAjudaAi.Modules.Documents.Domain.ValueObjects.DocumentId> { }
 }

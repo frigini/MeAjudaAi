@@ -1,9 +1,11 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Handlers;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
+using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -12,20 +14,29 @@ namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
 
 public class CreateReviewCommandHandlerTests
 {
-    private readonly Mock<IReviewRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Review, ReviewId>> _repositoryMock;
+    private readonly Mock<IReviewQueries> _queriesMock;
     private readonly Mock<IContentModerator> _moderatorMock;
     private readonly Mock<ILogger<CreateReviewCommandHandler>> _loggerMock;
     private readonly CreateReviewCommandHandler _handler;
 
     public CreateReviewCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IReviewRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<Review, ReviewId>>();
+        _queriesMock = new Mock<IReviewQueries>();
         _moderatorMock = new Mock<IContentModerator>();
         _loggerMock = new Mock<ILogger<CreateReviewCommandHandler>>();
         
+        _uowMock.Setup(u => u.GetRepository<Review, ReviewId>()).Returns(_repositoryMock.Object);
         _moderatorMock.Setup(m => m.IsClean(It.IsAny<string>())).Returns(true);
         
-        _handler = new CreateReviewCommandHandler(_repositoryMock.Object, _moderatorMock.Object, _loggerMock.Object);
+        _handler = new CreateReviewCommandHandler(
+            _uowMock.Object, 
+            _queriesMock.Object, 
+            _moderatorMock.Object, 
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -39,7 +50,8 @@ public class CreateReviewCommandHandlerTests
 
         // Assert
         result.Should().NotBeEmpty();
-        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Review>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -52,9 +64,8 @@ public class CreateReviewCommandHandlerTests
         await _handler.HandleAsync(command);
 
         // Assert
-        _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved)), Times.Once);
     }
 
     [Fact]
@@ -67,9 +78,8 @@ public class CreateReviewCommandHandlerTests
         await _handler.HandleAsync(command);
 
         // Assert
-        _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved)), Times.Once);
     }
 
     [Fact]
@@ -83,9 +93,8 @@ public class CreateReviewCommandHandlerTests
         await _handler.HandleAsync(command);
 
         // Assert
-        _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending)), Times.Once);
     }
 
     [Fact]
@@ -98,9 +107,8 @@ public class CreateReviewCommandHandlerTests
         await _handler.HandleAsync(command);
 
         // Assert
-        _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending)), Times.Once);
     }
 
     [Fact]
@@ -113,9 +121,8 @@ public class CreateReviewCommandHandlerTests
         await _handler.HandleAsync(command);
 
         // Assert
-        _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved)), Times.Once);
     }
 
     [Fact]
@@ -129,9 +136,8 @@ public class CreateReviewCommandHandlerTests
         await _handler.HandleAsync(command);
 
         // Assert
-        _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Flagged), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Flagged)), Times.Once);
     }
 
     [Fact]
@@ -142,7 +148,7 @@ public class CreateReviewCommandHandlerTests
         var customerId = Guid.NewGuid();
         var command = new CreateReviewCommand(providerId, customerId, 5, null);
         
-        _repositoryMock.Setup(r => r.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(r => r.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Review.Create(providerId, customerId, 1, "Existing"));
 
         // Act

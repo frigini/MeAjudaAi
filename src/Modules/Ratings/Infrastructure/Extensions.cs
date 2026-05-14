@@ -1,6 +1,7 @@
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,8 @@ public static class Extensions
             }
         });
 
-        services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<IUnitOfWork, RatingsDbContext>();
+        services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 
         return services;
     }

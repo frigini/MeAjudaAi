@@ -1,24 +1,28 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
-using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
+using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
 
 public sealed class CreateReviewCommandHandler(
-    IReviewRepository repository,
+    IUnitOfWork uow,
+    IReviewQueries queries,
     IContentModerator contentModerator,
     ILogger<CreateReviewCommandHandler> logger) : ICommandHandler<CreateReviewCommand, Guid>
 {
     public async Task<Guid> HandleAsync(CreateReviewCommand command, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Creating review for provider {ProviderId} by customer {CustomerId}", command.ProviderId, command.CustomerId);
+        logger.LogInformation("HandleAsync starting for provider {ProviderId}...", command.ProviderId);
 
         // Validar duplicidade (UX check antecipado)
-        var existingReview = await repository.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
+        var existingReview = await queries.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
         if (existingReview != null)
         {
             logger.LogWarning("Customer {CustomerId} already reviewed provider {ProviderId}", command.CustomerId, command.ProviderId);
@@ -43,7 +47,9 @@ public sealed class CreateReviewCommandHandler(
         else
         {
             // Se houver comentário, passar pela moderação
+            logger.LogDebug("Calling contentModerator.IsClean for review {ReviewId}...", review.Id.Value);
             var isClean = contentModerator.IsClean(command.Comment);
+            
             if (!isClean)
             {
                 logger.LogWarning("Review {ReviewId} flagged for moderation due to inappropriate content", review.Id.Value);
@@ -54,13 +60,19 @@ public sealed class CreateReviewCommandHandler(
 
         try
         {
-            await repository.AddAsync(review, cancellationToken);
+            uow.GetRepository<Review, ReviewId>().Add(review);
+            await uow.SaveChangesAsync(cancellationToken);
         }
-        catch (DuplicateReviewException ex)
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
         {
             logger.LogWarning(ex, "Duplicate review detected at persistence level for Provider {ProviderId} and Customer {CustomerId}", 
                 command.ProviderId, command.CustomerId);
             throw new InvalidOperationException("Você já avaliou este prestador.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating review: {Message}", ex.Message);
+            throw;
         }
 
         logger.LogInformation("Review {ReviewId} created with status {Status}", review.Id.Value, review.Status);

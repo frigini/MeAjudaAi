@@ -1,5 +1,5 @@
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 
 public sealed class ReviewApprovedDomainEventHandler(
     IMessageBus messageBus,
-    IReviewRepository repository,
+    IReviewQueries queries,
     ILogger<ReviewApprovedDomainEventHandler> logger) : IEventHandler<ReviewApprovedDomainEvent>
 {
     public async Task HandleAsync(ReviewApprovedDomainEvent domainEvent, CancellationToken cancellationToken = default)
@@ -19,7 +19,9 @@ public sealed class ReviewApprovedDomainEventHandler(
             logger.LogInformation("Handling ReviewApprovedDomainEvent for provider {ProviderId}", domainEvent.ProviderId);
 
             // Calcula a nova média
-            var (average, total) = await repository.GetAverageRatingForProviderAsync(domainEvent.ProviderId, cancellationToken);
+            logger.LogDebug("Calculating average rating for provider {ProviderId}...", domainEvent.ProviderId);
+            var (average, total) = await queries.GetAverageRatingForProviderAsync(domainEvent.ProviderId, cancellationToken);
+            logger.LogDebug("Average calculation completed. Average: {Average}, Total: {Total}", average, total);
 
             var integrationEvent = new ReviewApprovedIntegrationEvent(
                 Source: "Ratings",

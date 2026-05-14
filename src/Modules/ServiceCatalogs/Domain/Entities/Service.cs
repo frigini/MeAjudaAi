@@ -55,7 +55,7 @@ public sealed class Service : AggregateRoot<ServiceId>
     public static Service Create(ServiceCategoryId categoryId, string name, string? description = null, int displayOrder = 0)
     {
         if (categoryId is null)
-            throw new CatalogDomainException("Category ID is required.");
+            throw new CatalogDomainException("O ID da categoria é obrigatório.");
 
         ValidateName(name);
         ValidateDescription(description);
@@ -98,7 +98,7 @@ public sealed class Service : AggregateRoot<ServiceId>
     public void ChangeCategory(ServiceCategoryId newCategoryId)
     {
         if (newCategoryId is null)
-            throw new CatalogDomainException("Category ID is required.");
+            throw new CatalogDomainException("O ID da categoria é obrigatório.");
 
         if (CategoryId.Value == newCategoryId.Value)
             return;
@@ -139,21 +139,21 @@ public sealed class Service : AggregateRoot<ServiceId>
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new CatalogDomainException("Service name is required.");
+            throw new CatalogDomainException("O nome do serviço é obrigatório.");
 
         if (name.Trim().Length > ValidationConstants.CatalogLimits.ServiceNameMaxLength)
-            throw new CatalogDomainException($"Service name cannot exceed {ValidationConstants.CatalogLimits.ServiceNameMaxLength} characters.");
+            throw new CatalogDomainException($"O nome do serviço não pode exceder {ValidationConstants.CatalogLimits.ServiceNameMaxLength} caracteres.");
     }
 
     private static void ValidateDescription(string? description)
     {
         if (description is not null && description.Trim().Length > ValidationConstants.CatalogLimits.ServiceDescriptionMaxLength)
-            throw new CatalogDomainException($"Service description cannot exceed {ValidationConstants.CatalogLimits.ServiceDescriptionMaxLength} characters.");
+            throw new CatalogDomainException($"A descrição do serviço não pode exceder {ValidationConstants.CatalogLimits.ServiceDescriptionMaxLength} caracteres.");
     }
 
     private static void ValidateDisplayOrder(int displayOrder)
     {
         if (displayOrder < 0)
-            throw new CatalogDomainException("Display order cannot be negative.");
+            throw new CatalogDomainException("A ordem de exibição não pode ser negativa.");
     }
 }

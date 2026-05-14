@@ -24,7 +24,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
     public async ValueTask InitializeAsync()
     {
-        await _fixture.CleanupDatabaseAsync();
+        await Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync()
@@ -405,11 +405,13 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Create provider using helper
         var providerId = await CreateTestProviderAsync($"DocProvider_{uniqueId}");
 
-        // Act - Add document (não é upload de arquivo, apenas registro do documento)
+        // Act - Add document
         var documentRequest = new
         {
             Number = "123456789", // RG number
-            DocumentType = 3 // RG (EDocumentType enum value)
+            DocumentType = 3, // RG (EDocumentType enum value)
+            FileName = "rg_test.jpg",
+            FileUrl = "https://mock.url/rg_test.jpg"
         };
 
         var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
@@ -445,7 +447,9 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var documentRequest = new
         {
             Number = "123456789", // RG number
-            DocumentType = 3 // RG (EDocumentType enum value)
+            DocumentType = 3, // RG (EDocumentType enum value)
+            FileName = "rg_test.jpg",
+            FileUrl = "https://mock.url/rg_test.jpg"
         };
 
         var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
@@ -453,7 +457,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             documentRequest,
             TestContainerFixture.JsonOptions);
 
-        // Act - Delete document (usando o DocumentType como identificador)
+        // Act - Delete document
         var deleteResponse = await _fixture.ApiClient.DeleteAsync(
             $"/api/v1/providers/{providerId}/documents/{documentRequest.DocumentType}");
 

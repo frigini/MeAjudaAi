@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Contracts.Contracts.Modules.Ratings.Enums;
@@ -9,6 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints;
 
@@ -49,6 +50,7 @@ public static class RatingsEndpoints
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
+        var logger = httpContext.RequestServices.GetRequiredService<ILogger<object>>();
         var customerId = ClaimHelpers.GetUserIdGuid(httpContext);
 
         if (customerId == null)
@@ -62,7 +64,9 @@ public static class RatingsEndpoints
             request.Rating,
             request.Comment);
 
+        logger.LogInformation("Dispatching CreateReviewCommand for provider {ProviderId}...", request.ProviderId);
         var reviewId = await handler.HandleAsync(command, cancellationToken);
+        logger.LogInformation("CreateReviewCommand completed. ReviewId: {ReviewId}", reviewId);
 
         // Location points to the status endpoint as reviews require moderation before being visible publically
         return Results.Created($"/api/v1/ratings/{reviewId}/status", reviewId);
@@ -70,11 +74,10 @@ public static class RatingsEndpoints
 
     private static async Task<IResult> GetReviewByIdAsync(
         Guid id,
-        [FromServices] IReviewRepository repository,
+        [FromServices] IReviewQueries queries,
         CancellationToken cancellationToken)
     {
-        // Explicitly cast to ReviewId for clarity
-        var review = await repository.GetByIdAsync((ReviewId)id, cancellationToken);
+        var review = await queries.GetByIdAsync(id, cancellationToken);
         
         if (review == null || review.Status != MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Approved) 
             return Results.NotFound();
@@ -88,23 +91,31 @@ public static class RatingsEndpoints
 
     private static async Task<IResult> GetReviewStatusAsync(
         Guid id,
-        [FromServices] IReviewRepository repository,
+        [FromServices] IReviewQueries queries,
         CancellationToken cancellationToken)
     {
-        // Explicitly cast to ReviewId for clarity
-        var review = await repository.GetByIdAsync((ReviewId)id, cancellationToken);
+        var review = await queries.GetByIdAsync(id, cancellationToken);
         
         if (review == null) 
             return Results.NotFound();
 
         return Results.Ok(new ReviewStatusResponse(
             review.Id.Value, 
-            (EReviewStatus)(int)review.Status));
+            MapToContract(review.Status)));
     }
+
+    private static EReviewStatus MapToContract(MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus status) =>
+        status switch
+        {
+            MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Pending => EReviewStatus.Pending,
+            MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Approved => EReviewStatus.Approved,
+            MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Rejected => EReviewStatus.Rejected,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+        };
 
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
-        [FromServices] IReviewRepository repository,
+        [FromServices] IReviewQueries queries,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -113,7 +124,7 @@ public static class RatingsEndpoints
         page = page < 1 ? 1 : page;
         pageSize = pageSize < 1 ? 1 : pageSize > 100 ? 100 : pageSize;
 
-        var reviews = await repository.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
+        var reviews = await queries.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
         
         var result = reviews.Select(r => new ProviderReviewResponse(
             r.Id.Value,

@@ -2,171 +2,177 @@ using Bogus;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service;
+using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
-/// <summary>
-/// Testes de integração para ServiceRepository com banco de dados real (TestContainers).
-/// Testa lógica de persistência, mapeamentos EF e constraints do banco.
-/// </summary>
 public class ServiceRepositoryIntegrationTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
 
     private readonly Faker _faker = new("pt_BR");
 
-    /// <summary>
-    /// Adiciona um Service válido via repositório e verifica que o serviço é persistido e recuperável por Id.
-    /// </summary>
     [Fact]
     public async Task AddAsync_WithValidService_ShouldPersistToDatabase()
     {
-        // Arrange & Act
-        Service service;
-        ServiceCategory category;
+        ServiceEntity service;
+        ServiceCategoryEntity category;
         using (var scope = Services.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
-            var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
             category = CreateValidCategory();
-            await categoryRepository.AddAsync(category);
+            uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
 
-            service = Service.Create(
+            service = ServiceEntity.Create(
                 category.Id,
                 _faker.Commerce.ProductName(),
                 _faker.Lorem.Sentence());
 
-            await repository.AddAsync(service);
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(service);
+            await uow.SaveChangesAsync();
         }
 
-        // Assert - usando scope novo para forçar round-trip ao banco
-        using var verificationScope = Services.CreateScope();
-        var verificationRepository = verificationScope.ServiceProvider.GetRequiredService<IServiceRepository>();
-        var retrieved = await verificationRepository.GetByIdAsync(service.Id);
-        retrieved.Should().NotBeNull();
-        retrieved!.Id.Should().Be(service.Id);
-        retrieved.Name.Should().Be(service.Name);
-        retrieved.CategoryId.Should().Be(category.Id);
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var persisted = await uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>()
+                .TryFindAsync(service.Id);
+
+            persisted.Should().NotBeNull();
+            persisted!.Name.Should().Be(service.Name);
+        }
     }
 
-    /// <summary>
-    /// Recupera um serviço por nome e verifica que o serviço correto é retornado.
-    /// </summary>
     [Fact]
-    public async Task GetByNameAsync_WithExistingName_ShouldReturnService()
+    public async Task TryFindAsync_WithExistingService_ShouldReturnService()
     {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
-        var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
+        ServiceEntity service;
+        ServiceCategoryEntity category;
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var category = CreateValidCategory();
-        await categoryRepository.AddAsync(category);
+            category = CreateValidCategory();
+            uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
+            await uow.SaveChangesAsync();
 
-        var serviceName = _faker.Commerce.ProductName();
-        var service = Service.Create(category.Id, serviceName, _faker.Lorem.Sentence());
-        await repository.AddAsync(service);
+            service = ServiceEntity.Create(category.Id, _faker.Commerce.ProductName());
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(service);
+            await uow.SaveChangesAsync();
+        }
 
-        // Act
-        var result = await repository.GetByNameAsync(serviceName);
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var result = await uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>()
+                .TryFindAsync(service.Id);
 
-        // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(service.Id);
-        result.Name.Should().Be(serviceName);
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(service.Id);
+        }
     }
 
-    /// <summary>
-    /// Retrieves services by category and verifies all services in that category are returned.
-    /// </summary>
     [Fact]
-    public async Task GetByCategoryAsync_WithMatchingCategory_ShouldReturnServices()
+    public async Task GetAllAsync_WithMultipleServices_ShouldReturnAll()
     {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
-        var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
+        ServiceEntity s1, s2;
+        ServiceCategoryEntity category;
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var category = CreateValidCategory();
-        await categoryRepository.AddAsync(category);
+            category = CreateValidCategory();
+            uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
+            await uow.SaveChangesAsync();
 
-        var service1 = Service.Create(category.Id, _faker.Commerce.ProductName(), _faker.Lorem.Sentence());
-        var service2 = Service.Create(category.Id, _faker.Commerce.ProductName(), _faker.Lorem.Sentence());
-        await repository.AddAsync(service1);
-        await repository.AddAsync(service2);
+            s1 = ServiceEntity.Create(category.Id, "Serviço " + Guid.NewGuid());
+            s2 = ServiceEntity.Create(category.Id, "Serviço " + Guid.NewGuid());
 
-        // Act
-        var result = await repository.GetByCategoryAsync(category.Id);
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(s1);
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(s2);
+            await uow.SaveChangesAsync();
+        }
 
-        // Assert
-        result.Should().HaveCountGreaterThanOrEqualTo(2);
-        result.Should().Contain(s => s.Id == service1.Id);
-        result.Should().Contain(s => s.Id == service2.Id);
+        using (var scope = Services.CreateScope())
+        {
+            var queries = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.IServiceQueries>();
+            var services = await queries.GetAllAsync(false);
+
+            services.Should().Contain(s => s.Id == s1.Id);
+            services.Should().Contain(s => s.Id == s2.Id);
+        }
     }
 
-    /// <summary>
-    /// Recupera todos os serviços e verifica que a contagem corresponde ao número esperado.
-    /// </summary>
     [Fact]
-    public async Task GetAllAsync_ShouldReturnAllServices()
+    public async Task UpdateAsync_WithValidChanges_ShouldPersistChanges()
     {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
-        var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
+        ServiceEntity service;
+        ServiceCategoryEntity category;
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var category = CreateValidCategory();
-        await categoryRepository.AddAsync(category);
+            category = CreateValidCategory();
+            uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
+            await uow.SaveChangesAsync();
 
-        var initialCount = (await repository.GetAllAsync()).Count;
-        var service1 = Service.Create(category.Id, _faker.Commerce.ProductName(), _faker.Lorem.Sentence());
-        var service2 = Service.Create(category.Id, _faker.Commerce.ProductName(), _faker.Lorem.Sentence());
-        await repository.AddAsync(service1);
-        await repository.AddAsync(service2);
+            service = ServiceEntity.Create(category.Id, "Nome Original");
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(service);
+            await uow.SaveChangesAsync();
 
-        // Act
-        var result = await repository.GetAllAsync();
+            service.Update("Nome Atualizado", "Descrição Atualizada", 1);
+            await uow.SaveChangesAsync();
+        }
 
-        // Assert - relaxado para lidar com testes concorrentes
-        result.Should().HaveCountGreaterThanOrEqualTo(initialCount + 2);
-        result.Should().Contain(s => s.Id == service1.Id);
-        result.Should().Contain(s => s.Id == service2.Id);
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var persisted = await uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>()
+                .TryFindAsync(service.Id);
+
+            persisted.Should().NotBeNull();
+            persisted!.Name.Should().Be("Nome Atualizado");
+        }
     }
 
-    /// <summary>
-    /// Verifica se um serviço existe por nome e confirma que o resultado está correto.
-    /// </summary>
     [Fact]
-    public async Task ExistsWithNameAsync_WithExistingName_ShouldReturnTrue()
+    public async Task DeleteAsync_WithExistingService_ShouldRemoveFromDatabase()
     {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
-        var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
+        ServiceEntity service;
+        ServiceCategoryEntity category;
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var category = CreateValidCategory();
-        await categoryRepository.AddAsync(category);
+            category = CreateValidCategory();
+            uow.GetRepository<ServiceCategoryEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceCategoryId>().Add(category);
+            await uow.SaveChangesAsync();
 
-        var serviceName = _faker.Commerce.ProductName();
-        var service = Service.Create(category.Id, serviceName, _faker.Lorem.Sentence());
-        await repository.AddAsync(service);
+            service = ServiceEntity.Create(category.Id, "Serviço para Deletar");
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Add(service);
+            await uow.SaveChangesAsync();
 
-        // Act
-        var exists = await repository.ExistsWithNameAsync(serviceName);
+            uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>().Delete(service);
+            await uow.SaveChangesAsync();
+        }
 
-        // Assert
-        exists.Should().BeTrue();
+        using (var scope = Services.CreateScope())
+        {
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var persisted = await uow.GetRepository<ServiceEntity, MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects.ServiceId>()
+                .TryFindAsync(service.Id);
+
+            persisted.Should().BeNull();
+        }
     }
 
-    private ServiceCategory CreateValidCategory()
-    {
-        // ServiceCategory.Create signature: (name, description, displayOrder)
-        return ServiceCategory.Create(
+    private ServiceCategoryEntity CreateValidCategory() =>
+        ServiceCategoryEntity.Create(
             _faker.Commerce.Department(),
             _faker.Lorem.Sentence(),
             _faker.Random.Int(0, 100));
-    }
 }

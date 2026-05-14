@@ -104,6 +104,8 @@ public static class ValidationMessages
         public const string CannotDeleteCategoryWithServices = "Não é possível excluir a categoria com {0} serviço(s). Remova ou reatribua os serviços primeiro.";
         public const string CategoryNameExists = "Já existe uma categoria com o nome '{0}'.";
         public const string ServiceNameExists = "Já existe um serviço com o nome '{0}' nesta categoria.";
+        public const string ServiceCategoryInactive = "Não é possível criar serviço em categoria inativa.";
+        public const string CreateServiceError = "Erro ao criar o serviço.";
     }
 
     /// <summary>

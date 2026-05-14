@@ -91,36 +91,37 @@ public class MessagingExtensionsTests
     public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldThrowException()
     {
         using var envScope = new EnvironmentVariableScope(
-            ("ASPNETCORE_ENVIRONMENT", "Development"),
-            ("DOTNET_ENVIRONMENT", "Development"), 
+            ("ASPNETCORE_ENVIRONMENT", "Production"),
+            ("DOTNET_ENVIRONMENT", "Production"),
             ("INTEGRATION_TESTS", null));
 
         var services = new ServiceCollection();
-        
-        // Registrar IHostEnvironment com ambiente de Desenvolvimento para exercer o branch correto
-        var hostEnvironment = new MockHostEnvironment("Development");
+
+        // Registrar IHostEnvironment como Production explicitamente para não ativar early return
+        var hostEnvironment = new MockHostEnvironment("Production");
         services.AddSingleton<IHostEnvironment>(hostEnvironment);
-        
+
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Messaging:Enabled"] = "true"
             }).Build());
-        
+
         services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
-        // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
+
+        // Registrar logger necessário
+        services.AddLogging();
 
         var serviceProvider = services.BuildServiceProvider();
         var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
         hostMock.Setup(h => h.Services).Returns(serviceProvider);
 
-        // Act & Assert - agora deve lançar exceção para fail-fast
+        // Act & Assert
         var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
-        
+
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*IRabbitMqInfrastructureManager*not registered*");
-    }
-}
+    }}
 
 internal sealed class EnvironmentVariableScope : IDisposable
 {

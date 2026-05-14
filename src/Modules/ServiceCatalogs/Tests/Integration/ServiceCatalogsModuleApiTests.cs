@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Database;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -14,11 +15,13 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
 {
     private IServiceCatalogsModuleApi _moduleApi = null!;
+    private IUnitOfWork _uow = null!;
 
     protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
         await base.OnModuleInitializeAsync(serviceProvider);
         _moduleApi = GetService<IServiceCatalogsModuleApi>();
+        _uow = GetService<IUnitOfWork>();
     }
 
     #region Edge Cases
@@ -114,9 +117,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         service1.Deactivate();
         service2.Deactivate();
 
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(service1);
-        await repository.UpdateAsync(service2);
+        await _uow.SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.ValidateServicesAsync(
@@ -141,8 +142,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var invalidServiceId = UuidGenerator.NewId();
 
         inactiveService.Deactivate();
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(inactiveService);
+        await _uow.SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.ValidateServicesAsync(new[]
@@ -205,8 +205,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
 
         // Act - Deactivate one service
         service2.Deactivate();
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(service2);
+        await _uow.SaveChangesAsync();
 
         // Act - Validate all services
         var validationResult = await _moduleApi.ValidateServicesAsync(new[]

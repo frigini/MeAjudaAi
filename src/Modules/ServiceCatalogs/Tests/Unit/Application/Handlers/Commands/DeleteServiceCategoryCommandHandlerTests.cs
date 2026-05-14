@@ -1,10 +1,13 @@
-using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -13,85 +16,87 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 [Trait("Layer", "Application")]
 public class DeleteServiceCategoryCommandHandlerTests
 {
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
+    private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepoMock;
     private readonly DeleteServiceCategoryCommandHandler _handler;
 
     public DeleteServiceCategoryCommandHandlerTests()
     {
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
-        _handler = new DeleteServiceCategoryCommandHandler(_categoryRepositoryMock.Object, _serviceRepositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
+        _categoryRepoMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
+        
+        _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>())
+            .Returns(_categoryRepoMock.Object);
+        
+        _handler = new DeleteServiceCategoryCommandHandler(_uowMock.Object, _serviceQueriesMock.Object);
     }
-// ...
+
     [Fact]
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()
     {
-        // Arrange
         var category = new ServiceCategoryBuilder().WithName("Limpeza").Build();
         var command = new DeleteServiceCategoryCommand(category.Id.Value);
 
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
-
-        _serviceRepositoryMock
-            .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(x => x.CountByCategoryAsync(category.Id, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 
-        _categoryRepositoryMock
-            .Setup(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
+        
         result.IsSuccess.Should().BeTrue();
-        _categoryRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
+        _categoryRepoMock.Verify(x => x.Delete(It.Is<ServiceCategory>(c => c.Id == category.Id)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_WithNonExistentCategory_ShouldReturnFailure()
     {
-        // Arrange
-        var categoryId = Guid.NewGuid();
-        var command = new DeleteServiceCategoryCommand(categoryId);
+        var command = new DeleteServiceCategoryCommand(Guid.NewGuid());
 
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be(ValidationMessages.NotFound.Category);
-        _categoryRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.IsFailure.Should().BeTrue();
+        
+        _categoryRepoMock.Verify(x => x.Delete(It.IsAny<ServiceCategory>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WithAssociatedServices_ShouldReturnFailure()
+    public async Task Handle_WithEmptyId_ShouldReturnFailure()
     {
-        // Arrange
+        var command = new DeleteServiceCategoryCommand(Guid.Empty);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        
+        _categoryRepoMock.Verify(
+            x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithCategoryHavingServices_ShouldReturnConflictFailure()
+    {
         var category = new ServiceCategoryBuilder().WithName("Limpeza").Build();
         var command = new DeleteServiceCategoryCommand(category.Id.Value);
 
-        _categoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryRepoMock.Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
+        _serviceQueriesMock.Setup(x => x.CountByCategoryAsync(category.Id, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(5);
 
-        _serviceRepositoryMock
-            .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(3);
-
-        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be(string.Format(ValidationMessages.Catalogs.CannotDeleteCategoryWithServices, 3));
-        _categoryRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("serviço");
+        _categoryRepoMock.Verify(x => x.Delete(It.IsAny<ServiceCategory>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

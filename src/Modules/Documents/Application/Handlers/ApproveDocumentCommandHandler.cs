@@ -1,14 +1,19 @@
 using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Helpers;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -16,12 +21,12 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Handler responsável por aprovar documentos após verificação manual.
 /// </summary>
 public class ApproveDocumentCommandHandler(
-    IDocumentRepository repository,
+    IUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor,
     ILogger<ApproveDocumentCommandHandler> logger)
     : ICommandHandler<ApproveDocumentCommand, Result>
 {
-    private readonly IDocumentRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<ApproveDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -33,15 +38,7 @@ public class ApproveDocumentCommandHandler(
                 "Approving document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
 
-            // Validar se o documento existe
-            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
-            if (document == null)
-            {
-                _logger.LogWarning("Document {DocumentId} not found for approval", command.DocumentId);
-                throw new NotFoundException("Document", command.DocumentId.ToString());
-            }
-
-            // Verificar autorização - apenas admins podem aprovar documentos
+            // Verificar autorização primeiro (prevenção de ID enumeration)
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 throw new UnauthorizedAccessException("Contexto HTTP não disponível");
@@ -60,6 +57,15 @@ public class ApproveDocumentCommandHandler(
                 throw new ForbiddenAccessException("Apenas administradores podem aprovar documentos");
             }
 
+            // Validar se o documento existe
+            var repository = _uow.GetRepository<Document, DocumentId>();
+            var document = await repository.TryFindAsync(command.DocumentId, cancellationToken);
+            if (document == null)
+            {
+                _logger.LogWarning("Document {DocumentId} not found for approval", command.DocumentId);
+                throw new NotFoundException("Document", command.DocumentId.ToString());
+            }
+
             // Verificar se o documento está em estado válido para aprovação
             if (document.Status != EDocumentStatus.PendingVerification)
             {
@@ -67,7 +73,8 @@ public class ApproveDocumentCommandHandler(
                     "Document {DocumentId} cannot be approved in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente"));
+                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente",
+                    ErrorCodes.BadRequest));
             }
 
             // Aprovar o documento
@@ -77,8 +84,7 @@ public class ApproveDocumentCommandHandler(
             
             document.MarkAsVerified(ocrData);
             
-            await _repository.UpdateAsync(document, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} approved successfully. CorrelationId: {CorrelationId}",

@@ -28,7 +28,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
 
     public async ValueTask InitializeAsync()
     {
-        await _fixture.CleanupDatabaseAsync();
+        await Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync()
@@ -554,12 +554,10 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
         // Cria serviço na categoria ativa
         var serviceRequest = new
         {
+            CategoryId = activeCategoryId,
             Name = $"TestService_{uniqueId}",
             Description = "Service for category change test",
-            CategoryId = activeCategoryId,
-            IsActive = true,
-            Price = 200.00m,
-            Duration = 120
+            DisplayOrder = 1
         };
 
         var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);

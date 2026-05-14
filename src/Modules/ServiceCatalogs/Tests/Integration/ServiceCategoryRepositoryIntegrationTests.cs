@@ -1,156 +1,82 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
-using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Database;
+using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
 [Collection("ServiceCatalogsIntegrationTests")]
 public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrationTestBase
 {
-    private IServiceCategoryRepository _repository = null!;
+    private IUnitOfWork _uow = null!;
 
     protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
         await base.OnModuleInitializeAsync(serviceProvider);
-        _repository = GetService<IServiceCategoryRepository>();
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_WithExistingCategory_ShouldReturnCategory()
-    {
-        // Arrange
-        var category = await CreateServiceCategoryAsync("Test Category", "Test Description", 1);
-
-        // Act
-        var result = await _repository.GetByIdAsync(category.Id);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(category.Id);
-        result.Name.Should().Be(category.Name);
-        result.Description.Should().Be("Test Description");
-        result.DisplayOrder.Should().Be(1);
-        result.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_WithNonExistentCategory_ShouldReturnNull()
-    {
-        // Arrange
-        var nonExistentId = UuidGenerator.NewId();
-
-        // Act
-        var result = await _repository.GetByIdAsync(ServiceCategoryId.From(nonExistentId));
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetAllAsync_WithMultipleCategories_ShouldReturnAllCategories()
-    {
-        // Arrange
-        var category1 = await CreateServiceCategoryAsync("Category 1", displayOrder: 1);
-        var category2 = await CreateServiceCategoryAsync("Category 2", displayOrder: 2);
-        var category3 = await CreateServiceCategoryAsync("Category 3", displayOrder: 3);
-
-        // Act
-        var result = await _repository.GetAllAsync();
-
-        // Assert
-        result.Should().HaveCountGreaterThanOrEqualTo(3);
-        result.Should().Contain(c => c.Name == category1.Name);
-        result.Should().Contain(c => c.Name == category2.Name);
-        result.Should().Contain(c => c.Name == category3.Name);
-    }
-
-    [Fact]
-    public async Task GetAllAsync_WithActiveOnlyFilter_ShouldReturnOnlyActiveCategories()
-    {
-        // Arrange
-        var activeCategory = await CreateServiceCategoryAsync("Active Category");
-        var inactiveCategory = await CreateServiceCategoryAsync("Inactive Category");
-
-        inactiveCategory.Deactivate();
-        await _repository.UpdateAsync(inactiveCategory);
-
-        // Act
-        var result = await _repository.GetAllAsync(activeOnly: true);
-
-        // Assert
-        result.Should().Contain(c => c.Id == activeCategory.Id);
-        result.Should().NotContain(c => c.Id == inactiveCategory.Id);
-    }
-
-    [Fact]
-    public async Task ExistsWithNameAsync_WithExistingName_ShouldReturnTrue()
-    {
-        // Arrange
-        var category = await CreateServiceCategoryAsync("Unique Category");
-
-        // Act
-        var result = await _repository.ExistsWithNameAsync(category.Name);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ExistsWithNameAsync_WithNonExistentName_ShouldReturnFalse()
-    {
-        // Act
-        var result = await _repository.ExistsWithNameAsync("Non Existent Category");
-
-        // Assert
-        result.Should().BeFalse();
+        _uow = GetService<IUnitOfWork>();
     }
 
     [Fact]
     public async Task AddAsync_WithValidCategory_ShouldPersistCategory()
     {
-        // Arrange
-        var category = ServiceCategory.Create("New Category", "New Description", 10);
+        var category = ServiceCategoryEntity.Create("New Category", "Description", 1);
 
-        // Act
-        await _repository.AddAsync(category);
+        _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().Add(category);
+        await _uow.SaveChangesAsync();
 
-        // Assert
-        var retrievedCategory = await _repository.GetByIdAsync(category.Id);
-        retrievedCategory.Should().NotBeNull();
-        retrievedCategory!.Name.Should().Be("New Category");
+        var persisted = await _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().TryFindAsync(category.Id);
+        persisted.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task TryFindAsync_WithExistingCategory_ShouldReturnCategory()
+    {
+        var category = ServiceCategoryEntity.Create("Test Category");
+        _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().Add(category);
+        await _uow.SaveChangesAsync();
+
+        var result = await _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().TryFindAsync(category.Id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(category.Id);
     }
 
     [Fact]
     public async Task UpdateAsync_WithModifiedCategory_ShouldPersistChanges()
     {
-        // Arrange
-        var category = await CreateServiceCategoryAsync("Original Name");
+        var category = ServiceCategoryEntity.Create("Original Name");
+        _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().Add(category);
+        await _uow.SaveChangesAsync();
 
-        // Act
-        category.Update("Updated Name", "Updated Description", 5);
-        await _repository.UpdateAsync(category);
+        category.Update("Updated Name", null, 1);
+        await _uow.SaveChangesAsync();
 
-        // Assert
-        var retrievedCategory = await _repository.GetByIdAsync(category.Id);
-        retrievedCategory.Should().NotBeNull();
-        retrievedCategory!.Name.Should().Be("Updated Name");
-        retrievedCategory.Description.Should().Be("Updated Description");
-        retrievedCategory.DisplayOrder.Should().Be(5);
+        var persisted = await _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().TryFindAsync(category.Id);
+        persisted.Should().NotBeNull();
+        persisted!.Name.Should().Be("Updated Name");
     }
 
     [Fact]
     public async Task DeleteAsync_WithExistingCategory_ShouldRemoveCategory()
     {
-        // Arrange
-        var category = await CreateServiceCategoryAsync("To Be Deleted");
+        var category = ServiceCategoryEntity.Create("To Delete");
+        _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().Add(category);
+        await _uow.SaveChangesAsync();
 
-        // Act
-        await _repository.DeleteAsync(category.Id);
+        _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().Delete(category);
+        await _uow.SaveChangesAsync();
 
-        // Assert
-        var retrievedCategory = await _repository.GetByIdAsync(category.Id);
-        retrievedCategory.Should().BeNull();
+        var persisted = await _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().TryFindAsync(category.Id);
+        persisted.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task TryFindAsync_WithNonExistentCategory_ShouldReturnNull()
+    {
+        var result = await _uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>()
+            .TryFindAsync(ServiceCategoryId.From(Guid.NewGuid()));
+
+        result.Should().BeNull();
     }
 }

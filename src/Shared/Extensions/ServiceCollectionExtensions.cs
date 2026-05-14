@@ -85,6 +85,16 @@ public static class ServiceCollectionExtensions
         // Streaming services (SSE)
         services.AddStreaming();
 
+        // Registra o RoutingUnitOfWork como implementação principal para suportar múltiplos módulos.
+        // O RoutingUnitOfWork depende de GetServices<IUnitOfWork>() para localizar os DbContexts dos módulos.
+        // IMPORTANTE: Cada módulo deve registrar seu DbContext explicitamente como IUnitOfWork 
+        // (ex: services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<MyModuleDbContext>()))
+        // para que o roteamento funcione corretamente.
+        services.AddScoped<IUnitOfWork, RoutingUnitOfWork>();
+
+        var diagPath = Path.Combine(Path.GetTempPath(), "program_diag.log");
+        File.AppendAllText(diagPath, $"[{DateTime.UtcNow:O}] AddSharedServices finished.{Environment.NewLine}");
+
         return services;
     }
 

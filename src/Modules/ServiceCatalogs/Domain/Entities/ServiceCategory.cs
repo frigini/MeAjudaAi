@@ -107,21 +107,21 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new CatalogDomainException("Category name is required.");
+            throw new CatalogDomainException("O nome da categoria é obrigatório.");
 
         if (name.Trim().Length > ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength)
-            throw new CatalogDomainException($"Category name cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength} characters.");
+            throw new CatalogDomainException($"O nome da categoria não pode exceder {ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength} caracteres.");
     }
 
     private static void ValidateDescription(string? description)
     {
         if (description is not null && description.Trim().Length > ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength)
-            throw new CatalogDomainException($"Category description cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength} characters.");
+            throw new CatalogDomainException($"A descrição da categoria não pode exceder {ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength} caracteres.");
     }
 
     private static void ValidateDisplayOrder(int displayOrder)
     {
         if (displayOrder < 0)
-            throw new CatalogDomainException("Display order cannot be negative.");
+            throw new CatalogDomainException("A ordem de exibição não pode ser negativa.");
     }
 }

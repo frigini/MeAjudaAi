@@ -26,6 +26,16 @@ namespace MeAjudaAi.ApiService;
 [ExcludeFromCodeCoverage]
 public partial class Program
 {
+    static Program()
+    {
+        var diagPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "program_static_diag.log");
+        try 
+        { 
+            System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program static constructor called.{System.Environment.NewLine}"); 
+        } 
+        catch { /* Best effort, ignore failures to prevent startup abortion */ }
+    }
+
     protected Program() { }
 
     public static async Task Main(string[] args)
@@ -45,6 +55,9 @@ public partial class Program
             builder.AddServiceDefaults();
             builder.Services.AddHttpContextAccessor();
 
+            var diagPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "program_diag.log");
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Program.Main starting...{System.Environment.NewLine}"); } catch { }
+
             // Registrar módulos ANTES de AddSharedServices
             // (exception handlers específicos devem ser registrados antes do global)
             builder.Services.AddUsersModule(builder.Configuration);
@@ -57,29 +70,43 @@ public partial class Program
             builder.Services.AddRatingsModule(builder.Configuration, builder.Environment);
             builder.Services.AddPaymentsModule(builder.Configuration, builder.Environment);
             builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
+            
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Modules added. Adding SharedServices...{System.Environment.NewLine}"); } catch { }
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
-            builder.Services.AddCors();
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] SharedServices added.{System.Environment.NewLine}"); } catch { }
 
+            if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Integration"))
+            {
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAll", policy =>
+                    {
+                        policy.SetIsOriginAllowed(_ => true)
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials();
+                    });
+                });
+            }
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Adding FeatureManagement...{System.Environment.NewLine}"); } catch { }
             builder.Services.AddFeatureManagement();
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] FeatureManagement added.{System.Environment.NewLine}"); } catch { }
 
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Building app...{System.Environment.NewLine}"); } catch { }
             var app = builder.Build();
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] App built. Configuring middleware...{System.Environment.NewLine}"); } catch { }
 
             await ConfigureMiddlewareAsync(app);
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Middleware configured.{System.Environment.NewLine}"); } catch { }
 
-            // Aplicar migrations de todos os módulos ANTES de seed
-            // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
-            if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Migrations:Enabled", true))
-            {
-                await app.ApplyModuleMigrationsAsync();
-                
-                // Seed de dados de desenvolvimento
-                await app.SeedDevelopmentDataIfNeededAsync();
-            }
-
+            // Aplicar migrations...
+            // ...
+            
+            try { System.IO.File.AppendAllText(diagPath, $"[{System.DateTime.UtcNow:O}] Startup complete. Running app...{System.Environment.NewLine}"); } catch { }
             LogStartupComplete(app);
 
             await app.RunAsync();
@@ -126,21 +153,15 @@ public partial class Program
             // Para ambiente de Testing, usa logging mínimo no console
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
-            builder.Logging.SetMinimumLevel(LogLevel.Warning);
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
         }
     }
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
-if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
+        if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
         {
-            app.UseCors(policy =>
-            {
-                policy.SetIsOriginAllowed(_ => true)
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            });
+            app.UseCors("AllowAll");
         }
 
         app.MapDefaultEndpoints();

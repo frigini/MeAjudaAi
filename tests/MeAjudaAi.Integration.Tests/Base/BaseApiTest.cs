@@ -19,6 +19,7 @@ using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
@@ -442,10 +443,10 @@ services.AddHttpContextAccessor();
 
     private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
     {
-        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (optionsDescriptor != null) services.Remove(optionsDescriptor);
-        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
-        if (contextDescriptor != null) services.Remove(contextDescriptor);
+        var optionsDescriptors = services.Where(d => d.ServiceType == typeof(DbContextOptions<TContext>)).ToList();
+        foreach (var descriptor in optionsDescriptors) services.Remove(descriptor);
+        var contextDescriptors = services.Where(d => d.ServiceType == typeof(TContext)).ToList();
+        foreach (var descriptor in contextDescriptors) services.Remove(descriptor);
     }
 
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)

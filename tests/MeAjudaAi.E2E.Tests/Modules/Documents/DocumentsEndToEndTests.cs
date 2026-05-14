@@ -26,7 +26,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
     public async ValueTask InitializeAsync()
     {
-        await _fixture.CleanupDatabaseAsync();
+        await Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync()
@@ -328,6 +328,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         if (!requestVerificationResponse.IsSuccessStatusCode)
         {
             var errorContent = await requestVerificationResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ERROR] Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
             throw new Exception($"Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
         }
 
@@ -386,6 +387,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         if (!requestVerificationResponse.IsSuccessStatusCode)
         {
             var errorContent = await requestVerificationResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ERROR] Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
             throw new Exception($"Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
         }
 
@@ -395,7 +397,12 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             IsVerified = false,
             VerificationNotes = "Document is not legible"
         };
-
+        // O endpoint espera VerifyDocumentRequest que mapeia IsVerified/VerificationNotes.
+        // Ao enviar IsVerified = false, a lógica no endpoint usa VerificationNotes como RejectionReason se necessário.
+        // O VerifyDocumentRequest não tem um campo explícito 'RejectionReason'.
+        // Contudo, ao analisar VerifyDocumentEndpoint.cs, se IsVerified for false, ele cria RejectDocumentCommand.
+        // O campo 'RejectionReason' no RejectDocumentCommand é populado com VerificationNotes se ela existir.
+        
         var rejectResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/verify", rejectRequest);
 
         // Debug: Log error if not successful
