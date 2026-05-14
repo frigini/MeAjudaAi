@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using System.Net.Http;
 using System.Security.Claims;
 using Xunit;
 
@@ -160,6 +161,61 @@ public class CreateAllowedCityHandlerTests
         // Assert
         capturedCity.Should().NotBeNull();
         capturedCity!.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenGeocodingReturnsCoordinates_ShouldUseGeocodedCoordinates()
+    {
+        // Arrange
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
+        var geoPoint = new GeoPoint(-21.1311, -42.3708);
+        SetupHttpContext("admin@test.com");
+
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _geocodingServiceMock
+            .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(geoPoint);
+
+        AllowedCity? capturedCity = null;
+        _repositoryMock.Setup(x => x.Add(It.IsAny<AllowedCity>()))
+            .Callback<AllowedCity>(city => capturedCity = city);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capturedCity.Should().NotBeNull();
+        capturedCity!.Latitude.Should().Be(geoPoint.Latitude);
+        capturedCity.Longitude.Should().Be(geoPoint.Longitude);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenGeocodingThrows_ShouldStillCreateCity()
+    {
+        // Arrange
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, -21.1, -42.3, 10, true);
+        SetupHttpContext("admin@test.com");
+
+        _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _geocodingServiceMock
+            .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Geocoding unavailable"));
+
+        AllowedCity? capturedCity = null;
+        _repositoryMock.Setup(x => x.Add(It.IsAny<AllowedCity>()))
+            .Callback<AllowedCity>(city => capturedCity = city);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capturedCity.Should().NotBeNull();
+        capturedCity!.Latitude.Should().Be(command.Latitude);
+        capturedCity.Longitude.Should().Be(command.Longitude);
     }
 
     private void SetupHttpContext(string? userEmail)

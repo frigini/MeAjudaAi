@@ -6,6 +6,14 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ## 🔮 Melhorias Futuras (Backlog)
 
+### 🏗️ Arquitetura & Isolamento
+
+**Severidade**: ALTA  
+**Sprint**: Próxima (Backlog)
+
+- [ ] **Desacoplamento de Schemas nas Migrações**: Identificada quebra de isolamento na migration `20260210193620_AddProviderProfileEnhancements.cs` do módulo **Providers**, que acessava diretamente o schema `service_catalogs`. Embora corrigido para o ambiente de testes, a sincronização real dos nomes de serviços deve ser migrada para uma arquitetura orientada a eventos (Integration Events).
+- [ ] **Sincronização de Dados Desnormalizados via Eventos**: Implementar `ServiceNameUpdatedIntegrationEvent` e seus respectivos assinantes no módulo de **Providers** para garantir a consistência eventual de nomes de serviços sem dependência física de banco de dados.
+
 ### 🧪 Testes & Qualidade
 
 **Severidade**: BAIXA  

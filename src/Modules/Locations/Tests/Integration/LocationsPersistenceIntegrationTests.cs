@@ -283,6 +283,30 @@ public class LocationsPersistenceIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetByCityAndStateAsync_WithNullCityName_ShouldReturnNull()
+    {
+        var result = await _queries.GetByCityAndStateAsync(null!, "MG");
+
+        result.Should().BeNull("normalização de null deve resultar em string vazia e não encontrar registro");
+    }
+
+    [Fact]
+    public async Task IsCityAllowedAsync_WithNullCityName_ShouldReturnFalse()
+    {
+        var result = await _queries.IsCityAllowedAsync(null!, "MG");
+
+        result.Should().BeFalse("normalização de null deve resultar em string vazia");
+    }
+
+    [Fact]
+    public async Task ExistsAsync_WithNullCityName_ShouldReturnFalse()
+    {
+        var result = await _queries.ExistsAsync(null!, "MG");
+
+        result.Should().BeFalse("normalização de null deve resultar em string vazia");
+    }
+
+    [Fact]
     public async Task Add_WithDuplicateCityAndState_ShouldThrowException()
     {
         var repository = _unitOfWork.GetRepository<AllowedCity, Guid>();
