@@ -119,7 +119,8 @@ public class TestContainerFixture : IAsyncLifetime
 
             ApiClient = new HttpClient(contextPropagationHandler)
             {
-                BaseAddress = new Uri("http://localhost")
+                BaseAddress = new Uri("http://localhost"),
+                Timeout = TimeSpan.FromSeconds(30)
             };
 
             Services = _factory.Services;
@@ -354,21 +355,24 @@ public class TestContainerFixture : IAsyncLifetime
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
         var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-        return await ApiClient.PostAsync(requestUri, stringContent);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        return await ApiClient.PostAsync(requestUri, stringContent, cts.Token);
     }
 
     public async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
         var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-        return await ApiClient.PutAsync(requestUri, stringContent);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        return await ApiClient.PutAsync(requestUri, stringContent, cts.Token);
     }
 
     public async Task<HttpResponseMessage> PatchJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
         var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-        return await ApiClient.PatchAsync(requestUri, stringContent);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        return await ApiClient.PatchAsync(requestUri, stringContent, cts.Token);
     }
 
     public static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
