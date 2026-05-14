@@ -1,7 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
-using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
@@ -14,16 +13,19 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 public class PatchAllowedCityHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly Mock<IAllowedCityQueries> _queriesMock;
+    private readonly Mock<IRepository<AllowedCity, Guid>> _repositoryMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly PatchAllowedCityHandler _handler;
 
     public PatchAllowedCityHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _queriesMock = new Mock<IAllowedCityQueries>();
+        _repositoryMock = new Mock<IRepository<AllowedCity, Guid>>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _handler = new PatchAllowedCityHandler(_uowMock.Object, _queriesMock.Object, _httpContextAccessorMock.Object);
+
+        _uowMock.Setup(x => x.GetRepository<AllowedCity, Guid>()).Returns(_repositoryMock.Object);
+
+        _handler = new PatchAllowedCityHandler(_uowMock.Object, _httpContextAccessorMock.Object);
     }
 
     [Fact]
@@ -34,7 +36,7 @@ public class PatchAllowedCityHandlerTests
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: 50, IsActive: null);
 
         SetupHttpContext("admin@test.com");
-        _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -53,7 +55,7 @@ public class PatchAllowedCityHandlerTests
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: null, IsActive: true);
 
         SetupHttpContext("admin@test.com");
-        _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -72,7 +74,7 @@ public class PatchAllowedCityHandlerTests
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: null, IsActive: false);
 
         SetupHttpContext("admin@test.com");
-        _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -89,7 +91,7 @@ public class PatchAllowedCityHandlerTests
         var command = new PatchAllowedCityCommand(Guid.NewGuid(), ServiceRadiusKm: 50, IsActive: null);
 
         SetupHttpContext("admin@test.com");
-        _queriesMock.Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(command.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -106,7 +108,7 @@ public class PatchAllowedCityHandlerTests
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: 50, IsActive: null);
 
         SetupHttpContext(null);
-        _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -114,6 +116,23 @@ public class PatchAllowedCityHandlerTests
         result.IsSuccess.Should().BeTrue();
         existingCity.UpdatedBy.Should().Be("system");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NoChanges_ShouldReturnSuccessWithoutSave()
+    {
+        var cityId = Guid.NewGuid();
+        var existingCity = new AllowedCity("Muriaé", "MG", "test@user.com", 3143906, -21.1, -42.3, 10);
+        var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: null, IsActive: null);
+
+        SetupHttpContext("admin@test.com");
+        _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingCity);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     private void SetupHttpContext(string? userEmail)

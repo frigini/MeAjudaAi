@@ -71,7 +71,7 @@ public sealed class IbgeService(
             cacheKey,
             async ct =>
             {
-                logger.LogInformation("Cache miss para município {CityName}, consultando API IBGE", cityName);
+                logger.LogInformation("Cache miss for city {CityName}, querying IBGE API", cityName);
                 return await ibgeClient.GetMunicipioByNameAsync(cityName, ct);
             },
             expiration: TimeSpan.FromDays(7),
@@ -95,7 +95,7 @@ public sealed class IbgeService(
             cacheKey,
             async ct =>
             {
-                logger.LogInformation("Cache miss para municípios da UF {UF}, consultando API IBGE", ufSigla);
+                logger.LogInformation("Cache miss for municipalities of state {UF}, querying IBGE API", ufSigla);
                 return await ibgeClient.GetMunicipiosByUFAsync(ufSigla, ct);
             },
             expiration: TimeSpan.FromDays(7),

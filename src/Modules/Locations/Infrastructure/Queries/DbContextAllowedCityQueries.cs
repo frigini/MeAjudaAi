@@ -28,24 +28,24 @@ public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancella
 
     public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {
-        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedCity = cityName?.Trim().ToUpperInvariant() ?? string.Empty;
         var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
 
         return await dbContext.AllowedCities
             .FirstOrDefaultAsync(x =>
-                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.CityName.ToUpper() == normalizedCity &&
                 x.StateSigla == normalizedState,
                 cancellationToken);
     }
 
     public async Task<bool> IsCityAllowedAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {
-        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedCity = cityName?.Trim().ToUpperInvariant() ?? string.Empty;
         var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
 
         return await dbContext.AllowedCities
             .AnyAsync(x =>
-                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.CityName.ToUpper() == normalizedCity &&
                 x.StateSigla == normalizedState &&
                 x.IsActive,
                 cancellationToken);
@@ -53,12 +53,12 @@ public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancella
 
     public async Task<bool> ExistsAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {
-        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedCity = cityName?.Trim().ToUpperInvariant() ?? string.Empty;
         var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
 
         return await dbContext.AllowedCities
             .AnyAsync(x =>
-                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.CityName.ToUpper() == normalizedCity &&
                 x.StateSigla == normalizedState,
                 cancellationToken);
     }
