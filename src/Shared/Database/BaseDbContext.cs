@@ -19,23 +19,17 @@ public abstract class BaseDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Se não há domain event processor (design-time), usa comportamento padrão
-        if (_domainEventProcessor == null)
-        {
-            return await base.SaveChangesAsync(cancellationToken);
-        }
-
         // 1. Obter eventos de domínio antes de salvar
         var domainEvents = await GetDomainEventsAsync(cancellationToken);
-
-        // 2. Limpar eventos das entidades ANTES de salvar (para evitar reprocessamento)
-        ClearDomainEvents();
 
         // 3. Salvar mudanças no banco
         var result = await base.SaveChangesAsync(cancellationToken);
 
+        // 2. Limpar eventos das entidades APÓS salvar
+        ClearDomainEvents();
+
         // 4. Processar eventos de domínio APÓS salvar (fora da transação)
-        if (domainEvents.Any())
+        if (_domainEventProcessor != null && domainEvents.Any())
         {
             await _domainEventProcessor.ProcessDomainEventsAsync(domainEvents, cancellationToken);
         }
@@ -43,8 +37,29 @@ public abstract class BaseDbContext : DbContext
         return result;
     }
 
-    protected abstract Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default);
-    protected abstract void ClearDomainEvents();
+    protected virtual Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
+    {
+        var domainEvents = ChangeTracker
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Any())
+            .SelectMany(entry => entry.Entity.DomainEvents)
+            .ToList();
+
+        return Task.FromResult(domainEvents);
+    }
+
+    protected virtual void ClearDomainEvents()
+    {
+        var entries = ChangeTracker
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
+            .Where(entry => entry.Entity.DomainEvents.Any())
+            .ToList();
+
+        foreach (var entry in entries)
+        {
+            entry.Entity.ClearDomainEvents();
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
