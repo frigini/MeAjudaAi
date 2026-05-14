@@ -9,9 +9,19 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo Locations.
 /// Gerencia cidades permitidas e dados de validação geográfica.
 /// </summary>
-public class LocationsDbContext : BaseDbContext
+public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<AllowedCity> AllowedCities => Set<AllowedCity>();
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+
+        throw new InvalidOperationException(
+            $"LocationsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: AllowedCity(Guid)");
+    }
 
     /// <summary>
     /// Inicializa uma nova instância da classe <see cref="LocationsDbContext"/> para operações design-time (migrações).
@@ -45,14 +55,14 @@ public class LocationsDbContext : BaseDbContext
     {
         // Define tamanho máximo de 256 caracteres para todas as propriedades string
         configurationBuilder.Properties<string>().HaveMaxLength(256);
-        
+
         base.ConfigureConventions(configurationBuilder);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
-        
+
         // Usa convenção snake_case para nomes de tabelas e colunas
         optionsBuilder.UseSnakeCaseNamingConvention();
 
