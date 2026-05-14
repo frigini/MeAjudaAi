@@ -24,7 +24,6 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
 
 public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         await dbContext.AllowedCities
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
@@ -38,8 +37,8 @@ public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancella
         return await dbContext.AllowedCities
             .AsNoTracking()
             .FirstOrDefaultAsync(x =>
-                x.CityName.ToUpperInvariant() == normalizedCity &&
-                x.StateSigla.ToUpperInvariant() == normalizedState,
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState,
                 cancellationToken);
     }
 
@@ -52,9 +51,10 @@ public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancella
         var normalizedState = stateSigla.Trim().ToUpperInvariant();
 
         return await dbContext.AllowedCities
+            .AsNoTracking()
             .AnyAsync(x =>
-                x.CityName.ToUpperInvariant() == normalizedCity &&
-                x.StateSigla.ToUpperInvariant() == normalizedState &&
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState &&
                 x.IsActive,
                 cancellationToken);
     }
@@ -68,9 +68,10 @@ public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancella
         var normalizedState = stateSigla.Trim().ToUpperInvariant();
 
         return await dbContext.AllowedCities
+            .AsNoTracking()
             .AnyAsync(x =>
-                x.CityName.ToUpperInvariant() == normalizedCity &&
-                x.StateSigla.ToUpperInvariant() == normalizedState,
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState,
                 cancellationToken);
     }
 }
