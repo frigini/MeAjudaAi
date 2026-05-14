@@ -132,4 +132,22 @@ public static class SharedTestContainers
             await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
         }
     }
+
+    public static void ResetForTesting()
+    {
+        _initialized = false;
+        _postgresConnectionString = string.Empty;
+        _redisConnectionString = string.Empty;
+        _azuriteConnectionString = string.Empty;
+        _postgresContainer = null;
+        _redisContainer = null;
+        _azuriteContainer = null;
+    }
+
+    public static bool IsInitialized => _initialized;
+
+    public static string GetStatus()
+    {
+        return $"[_initialized={_initialized}, postgres={_postgresContainer != null}, redis={_redisContainer != null}, azurite={_azuriteContainer != null}]";
+    }
 }

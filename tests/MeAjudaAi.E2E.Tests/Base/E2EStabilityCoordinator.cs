@@ -30,9 +30,18 @@ public static class E2EStabilityCoordinator
 
     private static bool _cleanupInProgress = false;
 
+    public static string GetStatus() =>
+        $"[_initialized={_initialized}, cleanup={_cleanupInProgress}, sentinel={File.Exists(_sentinelPath)}]";
+
     public static async Task EnsureInitializedAsync()
     {
-        if (_initialized) return;
+        await LogAsync($"EnsureInitializedAsync START. Status: {GetStatus()}");
+
+        if (_initialized)
+        {
+            await LogAsync("Already initialized, returning immediately.");
+            return;
+        }
 
         NpgsqlConnection.ClearAllPools();
 
@@ -45,8 +54,9 @@ public static class E2EStabilityCoordinator
 
             if (File.Exists(_sentinelPath))
             {
-                await LogAsync("Sentinel file exists (created by another process), skipping initialization.");
+                await LogAsync("Sentinel file exists, skipping initialization.");
                 _initialized = true;
+                await LogAsync("Releasing semaphore (sentinel skip)...");
                 return;
             }
 
@@ -78,12 +88,13 @@ public static class E2EStabilityCoordinator
             }
             finally
             {
-                crossProcessLock.Dispose();
+                crossProcessLock?.Dispose();
                 await LogAsync("Cross-process file lock released.");
             }
         }
         finally
         {
+            await LogAsync("Releasing semaphore in finally block...");
             try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
             await LogAsync("Semaphore released for EnsureInitializedAsync.");
         }
