@@ -27,19 +27,11 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 maxLength: 100,
                 nullable: true);
 
-            // Step 2: Backfill service_name from service catalog
-            migrationBuilder.Sql(@"
-                UPDATE providers.provider_services ps
-                SET service_name = s.name
-                FROM service_catalogs.services s
-                WHERE ps.service_id = s.id
-                  AND ps.service_name IS NULL;
-            ");
-
-            // Step 2.5: Fallback for orphaned rows (service not found in catalog)
+            // Step 2: Initialize service_name with a default value
+            // Cross-module name backfill removed to maintain schema isolation (Issue #231)
             migrationBuilder.Sql(@"
                 UPDATE providers.provider_services
-                SET service_name = 'Unknown Service'
+                SET service_name = 'Provider Service'
                 WHERE service_name IS NULL;
             ");
 

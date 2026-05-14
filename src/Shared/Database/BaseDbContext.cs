@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Database;
@@ -23,17 +22,17 @@ public abstract class BaseDbContext : DbContext
         // 1. Obter eventos de domínio antes de salvar
         var domainEvents = await GetDomainEventsAsync(cancellationToken);
 
-        // 2. Salvar mudanças no banco
+        // 3. Salvar mudanças no banco
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        // 3. Processar eventos de domínio APÓS salvar (fora da transação)
+        // 2. Limpar eventos das entidades APÓS salvar
+        ClearDomainEvents();
+
+        // 4. Processar eventos de domínio APÓS salvar (fora da transação)
         if (_domainEventProcessor != null && domainEvents.Any())
         {
             await _domainEventProcessor.ProcessDomainEventsAsync(domainEvents, cancellationToken);
         }
-
-        // 4. Limpar eventos das entidades SOMENTE APÓS processamento bem-sucedido
-        ClearDomainEvents();
 
         return result;
     }
@@ -41,7 +40,7 @@ public abstract class BaseDbContext : DbContext
     protected virtual Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
         var domainEvents = ChangeTracker
-            .Entries<IHasDomainEvents>()
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
             .Where(entry => entry.Entity.DomainEvents.Any())
             .SelectMany(entry => entry.Entity.DomainEvents)
             .ToList();
@@ -52,7 +51,7 @@ public abstract class BaseDbContext : DbContext
     protected virtual void ClearDomainEvents()
     {
         var entries = ChangeTracker
-            .Entries<IHasDomainEvents>()
+            .Entries<MeAjudaAi.Shared.Domain.IHasDomainEvents>()
             .Where(entry => entry.Entity.DomainEvents.Any())
             .ToList();
 
