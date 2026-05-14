@@ -27,7 +27,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
     public async ValueTask InitializeAsync()
     {
-        await Task.CompletedTask;
+        await _fixture.CleanupDatabaseAsync();
     }
 
     public ValueTask DisposeAsync()

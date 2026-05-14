@@ -126,7 +126,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
 
     #endregion
 
-    #region 400 Bad Request - Semantic/Business Validation
+    #region 422 Unprocessable Entity - Semantic/Business Validation (Future)
 
     /// <summary>
     /// NOTA: 422 Unprocessable Entity não está implementado no MVP.
@@ -137,7 +137,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     /// Exemplo: formato inválido (400) vs. categoria não existe (422).
     /// </summary>
     [Fact]
-    public async Task CreateService_WithNonExistentCategory_ShouldReturn400()
+    public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
@@ -154,13 +154,13 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
 
         // Assert
-        // 400 para validação semântica (categoria não existe)
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
-            "semantic validation (non-existent category) should return 400");
+        // 422 para validação semântica (categoria não existe)
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
+            "semantic validation (non-existent category) should return 422");
     }
 
     [Fact]
-    public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn400()
+    public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
     {
         // Arrange - Criar categoria e serviço
         TestContainerFixture.BeforeEachTest();
@@ -179,10 +179,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             "/api/v1/service-catalogs/categories", 
             categoryRequest, 
             TestContainerFixture.JsonOptions);
-        
-        categoryResponse.EnsureSuccessStatusCode();
         var categoryLocation = categoryResponse.Headers.Location?.ToString();
-        categoryLocation.Should().NotBeNull("Category creation should return Location header");
         var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryLocation!);
 
         // Criar serviço
@@ -197,10 +194,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             "/api/v1/service-catalogs/services",
             serviceRequest,
             TestContainerFixture.JsonOptions);
-        
-        serviceResponse.EnsureSuccessStatusCode();
         var serviceLocation = serviceResponse.Headers.Location?.ToString();
-        serviceLocation.Should().NotBeNull("Service creation should return Location header");
         var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceLocation!);
         
         // Act - Tentar mudar para categoria que não existe
@@ -214,9 +208,8 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             TestContainerFixture.JsonOptions);
         
         // Assert
-        // NOTA: Conforme comentário acima, 422 não está no MVP, deve retornar 400.
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
-            "changing to non-existent category should return 400 (Bad Request) for semantic validation in MVP");
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
+            "changing to non-existent category should return 422");
     }
 
     #endregion

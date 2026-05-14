@@ -26,9 +26,10 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         _fixture = fixture;
     }
 
-public async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        await Task.CompletedTask;
+        // Clean up database before each test to ensure isolation and performance
+        await _fixture.CleanupDatabaseAsync();
     }
 
     public ValueTask DisposeAsync()
@@ -39,6 +40,9 @@ public async ValueTask InitializeAsync()
     [Fact]
     public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadius()
     {
+        // Arrange - Garantir que schema e tabela existem
+        await EnsureSearchProvidersSchemaExistsAsync();
+        
         // Arrange - Criar Provider dentro do raio de busca
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
@@ -426,6 +430,21 @@ public async ValueTask InitializeAsync()
         await InsertSearchableProviderAsync(providerId, businessName, latitude, longitude, subscriptionTier: subscriptionTier);
 
         return providerId;
+    }
+
+    /// <summary>
+    /// Garante que o schema e tabela do SearchProviders existem.
+    /// Necessário porque as migrations podem não estar sendo aplicadas corretamente.
+    /// </summary>
+    private async Task EnsureSearchProvidersSchemaExistsAsync()
+    {
+        await _fixture.WithServiceScopeAsync(async sp =>
+        {
+            var searchContext = sp.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
+            
+            // Forçar aplicação de migrations
+            await searchContext.Database.MigrateAsync();
+        });
     }
 
     /// <summary>

@@ -31,7 +31,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
 
     public async ValueTask InitializeAsync()
     {
-        await Task.CompletedTask;
+        await _fixture.CleanupDatabaseAsync();
     }
 
     public ValueTask DisposeAsync()
