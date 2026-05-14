@@ -22,9 +22,8 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-    public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         await dbContext.AllowedCities
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
@@ -33,7 +32,6 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
         var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
 
         return await dbContext.AllowedCities
-            .AsNoTracking()
             .FirstOrDefaultAsync(x =>
                 EF.Functions.ILike(x.CityName, normalizedCity) &&
                 x.StateSigla == normalizedState,
