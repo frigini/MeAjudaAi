@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Queries;
@@ -28,16 +27,41 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-    public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
+    public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
+    {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        return await dbContext.AllowedCities
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.CityName == cityName && x.StateSigla == stateSigla, cancellationToken);
+            .FirstOrDefaultAsync(x =>
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState,
+                cancellationToken);
+    }
 
-    public async Task<bool> IsCityAllowedAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
-            .AnyAsync(x => x.CityName == cityName && x.StateSigla == stateSigla && x.IsActive, cancellationToken);
+    public async Task<bool> IsCityAllowedAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
+    {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
 
-    public async Task<bool> ExistsAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
-            .AnyAsync(x => x.CityName == cityName && x.StateSigla == stateSigla, cancellationToken);
+        return await dbContext.AllowedCities
+            .AnyAsync(x =>
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState &&
+                x.IsActive,
+                cancellationToken);
+    }
+
+    public async Task<bool> ExistsAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
+    {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        return await dbContext.AllowedCities
+            .AnyAsync(x =>
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState,
+                cancellationToken);
+    }
 }

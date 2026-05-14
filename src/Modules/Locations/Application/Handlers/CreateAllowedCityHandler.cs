@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -17,7 +18,8 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// Handler responsável por processar o comando de criação de cidade permitida.
 /// </summary>
 public sealed class CreateAllowedCityHandler(
-    IAllowedCityRepository repository,
+    IUnitOfWork uow,
+    IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,
     ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
@@ -25,7 +27,7 @@ public sealed class CreateAllowedCityHandler(
     public async Task<Result<Guid>> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Validar se já existe cidade com mesmo nome e estado
-        var exists = await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
+        var exists = await queries.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
         if (exists)
         {
             return Result<Guid>.Failure(Error.Conflict($"Cidade '{command.CityName}-{command.StateSigla}' já cadastrada"));
@@ -37,11 +39,11 @@ public sealed class CreateAllowedCityHandler(
 
         if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
         {
-            try 
+            try
             {
                 var address = $"{command.CityName}, {command.StateSigla}, Brasil";
                 var coords = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
-                
+
                 if (coords != null)
                 {
                     lat = coords.Latitude;
@@ -74,7 +76,8 @@ public sealed class CreateAllowedCityHandler(
             command.IsActive);
 
         // Persistir
-        await repository.AddAsync(allowedCity, cancellationToken);
+        uow.GetRepository<AllowedCity, Guid>().Add(allowedCity);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return Result<Guid>.Success(allowedCity.Id);
     }

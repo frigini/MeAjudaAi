@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
@@ -8,18 +10,21 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// <summary>
 /// Handler responsável por processar o comando de exclusão de cidade permitida.
 /// </summary>
-public sealed class DeleteAllowedCityHandler(IAllowedCityRepository repository) : ICommandHandler<DeleteAllowedCityCommand>
+public sealed class DeleteAllowedCityHandler(
+    IUnitOfWork uow,
+    IAllowedCityQueries queries) : ICommandHandler<DeleteAllowedCityCommand>
 {
     public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
             // Buscar entidade existente
-            var city = await repository.GetByIdAsync(command.Id, cancellationToken)
+            var city = await queries.GetByIdAsync(command.Id, cancellationToken)
                 ?? throw new AllowedCityNotFoundException(command.Id);
 
             // Deletar
-            await repository.DeleteAsync(city, cancellationToken);
+            uow.GetRepository<AllowedCity, Guid>().Delete(city);
+            await uow.SaveChangesAsync(cancellationToken);
         }
         catch (AllowedCityNotFoundException)
         {

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -15,12 +16,13 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// Handler para processar atualização parcial de cidade permitida.
 /// </summary>
 public sealed class PatchAllowedCityHandler(
-    IAllowedCityRepository repository,
+    IUnitOfWork uow,
+    IAllowedCityQueries queries,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<PatchAllowedCityCommand, Result>
 {
     public async Task<Result> HandleAsync(PatchAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
-        var allowedCity = await repository.GetByIdAsync(command.Id, cancellationToken);
+        var allowedCity = await queries.GetByIdAsync(command.Id, cancellationToken);
         if (allowedCity == null)
         {
             return Result.Failure(Error.NotFound(ValidationMessages.Locations.AllowedCityNotFound));
@@ -50,7 +52,7 @@ public sealed class PatchAllowedCityHandler(
             }
         }
 
-        await repository.UpdateAsync(allowedCity, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
