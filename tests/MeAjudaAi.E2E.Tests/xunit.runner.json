@@ -2,7 +2,5 @@
   "$schema": "https://xunit.net/schema/v3/xunit.runner.schema.json",
   "parallelizeAssembly": false,
   "parallelizeTestCollections": false,
-  "diagnosticMessages": true,
-  "cancelTestRunOnCommunicationFailure": false,
-  "blameDisableTimeout": true
+  "diagnosticMessages": true
 }

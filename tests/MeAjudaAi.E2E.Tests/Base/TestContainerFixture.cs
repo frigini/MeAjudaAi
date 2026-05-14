@@ -115,6 +115,8 @@ public class TestContainerFixture : IAsyncLifetime
                 InnerHandler = _factory.Server.CreateHandler()
             };
 
+            await AppendLogAsync(diagPath, "HttpClient created.");
+
             ApiClient = new HttpClient(contextPropagationHandler)
             {
                 BaseAddress = new Uri("http://localhost")

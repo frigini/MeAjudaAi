@@ -56,7 +56,7 @@ public static class E2EStabilityCoordinator
             {
                 await LogAsync("Sentinel file exists, skipping initialization.");
                 _initialized = true;
-                await LogAsync("Releasing semaphore (sentinel skip)...");
+                await LogAsync("About to release semaphore (sentinel skip)...");
                 return;
             }
 
@@ -94,7 +94,7 @@ public static class E2EStabilityCoordinator
         }
         finally
         {
-            await LogAsync("Releasing semaphore in finally block...");
+            await LogAsync("In finally, releasing semaphore...");
             try { _semaphore.Release(); } catch (Exception ex) { Console.Error.WriteLine($"[WARN] Semaphore release failed: {ex.Message}"); }
             await LogAsync("Semaphore released for EnsureInitializedAsync.");
         }
