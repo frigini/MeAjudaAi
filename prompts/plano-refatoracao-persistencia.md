@@ -478,8 +478,9 @@ public void GetRepository_WithSupportedType_ShouldReturnRepository()
     var options = new DbContextOptionsBuilder<LocationsDbContext>()
         .UseInMemoryDatabase("GetRepository_HappyPath_" + Guid.NewGuid())
         .Options;
+    var domainEventProcessorMock = new Mock<IDomainEventProcessor>();
 
-    using var context = new LocationsDbContext(options);
+    using var context = new LocationsDbContext(options, domainEventProcessorMock.Object);
 
     var repository = context.GetRepository<AllowedCity, Guid>();
 
@@ -493,8 +494,9 @@ public void GetRepository_WithUnsupportedType_ShouldThrowInvalidOperationExcepti
     var options = new DbContextOptionsBuilder<LocationsDbContext>()
         .UseInMemoryDatabase("GetRepository_Error_" + Guid.NewGuid())
         .Options;
+    var domainEventProcessorMock = new Mock<IDomainEventProcessor>();
 
-    using var context = new LocationsDbContext(options);
+    using var context = new LocationsDbContext(options, domainEventProcessorMock.Object);
 
     var act = () => context.GetRepository<SomeUnsupportedEntity, int>();
 
