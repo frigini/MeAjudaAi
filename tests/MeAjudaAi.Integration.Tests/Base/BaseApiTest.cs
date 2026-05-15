@@ -187,9 +187,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
                     AddTestDbContext<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
-                    AddTestDbContext<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
-                    RemoveIUnitOfWorkForLocations(services);
-                    services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
+                    AddTestDbContextWithUnitOfWork<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
@@ -245,9 +243,9 @@ services.AddHttpContextAccessor();
                 npgsqlOptions.MigrationsAssembly(assembly);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", schema);
             });
-            
+
             options.UseSnakeCaseNamingConvention();
-            
+
             // Suprime aviso de mudanças pendentes no modelo durante testes de integração.
             // Útil para ignorar drifts menores de convenção de nomes (ex: PK_ casing) sem forçar novas migrations em dev.
             options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -257,6 +255,29 @@ services.AddHttpContextAccessor();
                 options.EnableSensitiveDataLogging();
             }
         });
+    }
+
+    private void AddTestDbContextWithUnitOfWork<TContext>(IServiceCollection services, string schema, string assembly)
+        where TContext : DbContext, IUnitOfWork
+    {
+        RemoveDbContextRegistrations<TContext>(services);
+        AddTestDbContext<TContext>(services, schema, assembly);
+        RemoveAllUnitOfWorkRegistrations(services);
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
+    }
+
+    private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
+    {
+        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
+        foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
+    }
+
+    private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
+    {
+        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (optionsDescriptor != null) services.Remove(optionsDescriptor);
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null) services.Remove(contextDescriptor);
     }
 
     private async Task ApplyRequiredModuleMigrationsAsync(IServiceProvider serviceProvider, ILogger? logger)
@@ -441,23 +462,6 @@ services.AddHttpContextAccessor();
         _factory?.Dispose();
         if (_databaseFixture != null && _databaseName != null) await _databaseFixture.DropDatabaseAsync(_databaseName);
         if (_wireMockFixture != null) await _wireMockFixture.DisposeAsync();
-    }
-
-    private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
-    {
-        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (optionsDescriptor != null) services.Remove(optionsDescriptor);
-        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
-        if (contextDescriptor != null) services.Remove(contextDescriptor);
-    }
-
-    private static void RemoveIUnitOfWorkForLocations(IServiceCollection services)
-    {
-        var descriptorsToRemove = services
-            .Where(d => d.ServiceType == typeof(IUnitOfWork))
-            .ToList();
-        foreach (var descriptor in descriptorsToRemove)
-            services.Remove(descriptor);
     }
 
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)

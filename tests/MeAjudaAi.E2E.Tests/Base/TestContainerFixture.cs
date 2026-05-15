@@ -282,7 +282,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
@@ -304,6 +304,27 @@ public class TestContainerFixture : IAsyncLifetime
             services.Remove(dapperDescriptor);
 
         services.AddScoped<IDapperConnection, DapperConnection>();
+    }
+
+    private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services)
+        where TContext : DbContext, IUnitOfWork
+    {
+        ReconfigureDbContext<TContext>(services);
+
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null)
+            services.Remove(contextDescriptor);
+        services.AddScoped<TContext>();
+
+        RemoveAllUnitOfWorkRegistrations(services);
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
+    }
+
+    private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
+    {
+        var uowDescriptors = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
+        foreach (var descriptor in uowDescriptors)
+            services.Remove(descriptor);
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext

@@ -206,6 +206,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
                     ReconfigureDbContext<LocationsDbContext>(services);
+                    ReconfigureDbContextWithUnitOfWork<LocationsDbContext>(services);
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
@@ -600,10 +601,31 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             })
                 .UseSnakeCaseNamingConvention()
                 .EnableSensitiveDataLogging(true)
-                .ConfigureWarnings(warnings =>
+.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             });
-            }
+    }
+
+    private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services)
+        where TContext : DbContext, IUnitOfWork
+    {
+        ReconfigureDbContext<TContext>(services);
+
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null)
+            services.Remove(contextDescriptor);
+        services.AddScoped<TContext>();
+
+        RemoveAllUnitOfWorkRegistrations(services);
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
+    }
+
+    private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
+    {
+        var uowDescriptors = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
+        foreach (var descriptor in uowDescriptors)
+            services.Remove(descriptor);
+    }
 
     /// <summary>
     /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.
