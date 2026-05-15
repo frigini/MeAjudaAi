@@ -10,6 +10,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -187,6 +188,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
                     AddTestDbContext<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
                     AddTestDbContext<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
+                    RemoveIUnitOfWorkForLocations(services);
+                    services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
@@ -446,6 +449,17 @@ services.AddHttpContextAccessor();
         if (optionsDescriptor != null) services.Remove(optionsDescriptor);
         var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
         if (contextDescriptor != null) services.Remove(contextDescriptor);
+    }
+
+    private static void RemoveIUnitOfWorkForLocations(IServiceCollection services)
+    {
+        var descriptorsToRemove = services
+            .Where(d => d.ServiceType == typeof(IUnitOfWork))
+            .Where(d => d.ImplementationInstance is LocationsDbContext ||
+                       (d.ImplementationFactory != null && d.ImplementationFactory.Method?.GetGenericArguments().Any(g => g == typeof(LocationsDbContext)) == true))
+            .ToList();
+        foreach (var descriptor in descriptorsToRemove)
+            services.Remove(descriptor);
     }
 
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)

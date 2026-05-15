@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Ratings.Application.Queries;
-using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
@@ -36,7 +35,6 @@ public static class Extensions
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
-        services.AddScoped<IReviewRepository, ReviewRepository>();
 
         return services;
     }
