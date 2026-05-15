@@ -147,9 +147,7 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task InitializeFactoryAsync()
     {
-#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
-#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -193,7 +191,9 @@ public class TestContainerFixture : IAsyncLifetime
                         ["RateLimit:AuthRequestsPerMinute"] = "999999",
                         ["RateLimit:SearchRequestsPerMinute"] = "999999",
                         ["RateLimit:WindowInSeconds"] = "3600",
-                        ["GeographicRestriction:Enabled"] = "false"
+                        ["GeographicRestriction:Enabled"] = "false",
+                        ["GeographicRestriction:FailOpen"] = "true",
+                        ["FeatureManagement:GeographicRestriction"] = "false"
                     });
 
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");

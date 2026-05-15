@@ -36,6 +36,10 @@ public static class Extensions
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 
+        // Registrar Command Handlers manualmente injetando o DbContext correto como IUnitOfWork
+        services.AddScoped<MeAjudaAi.Shared.Commands.ICommandHandler<MeAjudaAi.Modules.Ratings.Application.Commands.CreateReviewCommand, Guid>>(sp => 
+            ActivatorUtilities.CreateInstance<MeAjudaAi.Modules.Ratings.Application.Handlers.CreateReviewCommandHandler>(sp, sp.GetRequiredService<RatingsDbContext>()));
+
         return services;
     }
 }

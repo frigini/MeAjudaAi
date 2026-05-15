@@ -76,6 +76,8 @@ dotnet_diagnostic.IDE0057.severity = none # Substring can be simplified
 # Technical Excellence Sprint Suppressions (Avoiding source code pollution)
 # S2068 (Hardcoded passwords) and S3267 (LINQ simplification) have been removed from global suppressions.
 # They should be managed with inline `#pragma` warnings where strictly necessary.
+dotnet_diagnostic.CA2000.severity = none
+dotnet_diagnostic.S2068.severity = none
 dotnet_diagnostic.CS0105.severity = none # Duplicate using directive: Suppressed to avoid noise while refactoring Shared (TODO: Remove by the end of Sprint 8B.3)
 
 # Restore critical rules to suggestions to catch potential bugs

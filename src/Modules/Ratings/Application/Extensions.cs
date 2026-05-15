@@ -12,7 +12,6 @@ public static class Extensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IContentModerator, ContentModerator>();
-        services.AddScoped<ICommandHandler<CreateReviewCommand, Guid>, CreateReviewCommandHandler>();
         
         return services;
     }

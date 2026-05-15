@@ -135,9 +135,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     private void InitializeFactory()
     {
-#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
-#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -183,7 +181,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["RateLimit:DefaultRequestsPerMinute"] = "999999",
                         ["RateLimit:AuthRequestsPerMinute"] = "999999",
                         ["RateLimit:SearchRequestsPerMinute"] = "999999",
-                        ["RateLimit:WindowInSeconds"] = "3600"
+                        ["RateLimit:WindowInSeconds"] = "3600",
+                        ["GeographicRestriction:Enabled"] = "false",
+                        ["GeographicRestriction:FailOpen"] = "true",
+                        ["FeatureManagement:GeographicRestriction"] = "false"
                     });
 
                     // Adicionar ambiente de teste
@@ -447,7 +448,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
     // Helper methods usando serialização compartilhada
-#pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
     /// <summary>
     /// Envia uma requisição POST com conteúdo JSON para o URI especificado.
     /// </summary>

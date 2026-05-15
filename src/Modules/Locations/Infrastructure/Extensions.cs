@@ -40,9 +40,7 @@ public static class Extensions
                 if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
                     connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
                 }
                 else
                 {
@@ -169,7 +167,8 @@ public static class Extensions
 
         foreach (var handler in commandHandlerTypes)
         {
-            services.AddScoped(handler.Interface, handler.Implementation);
+            services.AddScoped(handler.Interface, sp => 
+                ActivatorUtilities.CreateInstance(sp, handler.Implementation, sp.GetRequiredService<LocationsDbContext>()));
         }
 
         // Registrar todos os IQueryHandler<T, TResult>
