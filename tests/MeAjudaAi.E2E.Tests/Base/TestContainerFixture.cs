@@ -178,7 +178,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["Keycloak:ClientSecret"] = "test-secret",
                         ["Keycloak:AdminUsername"] = "test-admin",
                         ["Keycloak:AdminPassword"] = "test-password",
-                        ["Cache:Enabled"] = "false", // Sincronizado com BaseTestContainerTest
+                        ["Cache:Enabled"] = "false",
                         ["Cache:ConnectionString"] = RedisConnectionString,
                         ["AdvancedRateLimit:General:Enabled"] = "false",
                         ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
@@ -192,7 +192,8 @@ public class TestContainerFixture : IAsyncLifetime
                         ["RateLimit:DefaultRequestsPerMinute"] = "999999",
                         ["RateLimit:AuthRequestsPerMinute"] = "999999",
                         ["RateLimit:SearchRequestsPerMinute"] = "999999",
-                        ["RateLimit:WindowInSeconds"] = "3600"
+                        ["RateLimit:WindowInSeconds"] = "3600",
+                        ["GeographicRestriction:Enabled"] = "false"
                     });
 
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
@@ -220,7 +221,7 @@ public class TestContainerFixture : IAsyncLifetime
         {
             BaseAddress = new Uri("http://localhost")
         };
-        
+
         Services = _factory.Services;
     }
 

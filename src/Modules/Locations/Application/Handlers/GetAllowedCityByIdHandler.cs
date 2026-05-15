@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
@@ -8,12 +7,12 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// <summary>
 /// Handler responsável por processar a query de busca de cidade permitida por ID.
 /// </summary>
-public sealed class GetAllowedCityByIdHandler(IAllowedCityRepository repository)
+public sealed class GetAllowedCityByIdHandler(IAllowedCityQueries queries)
     : IQueryHandler<GetAllowedCityByIdQuery, AllowedCityDto?>
 {
     public async Task<AllowedCityDto?> HandleAsync(GetAllowedCityByIdQuery query, CancellationToken cancellationToken = default)
     {
-        var city = await repository.GetByIdAsync(query.Id, cancellationToken);
+        var city = await queries.GetByIdAsync(query.Id, cancellationToken);
 
         if (city is null)
         {

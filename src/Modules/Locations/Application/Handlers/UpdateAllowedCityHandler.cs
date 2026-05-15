@@ -1,7 +1,8 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,8 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// Handler responsável por processar o comando de atualização de cidade permitida.
 /// </summary>
 public sealed class UpdateAllowedCityHandler(
-    IAllowedCityRepository repository,
+    IUnitOfWork uow,
+    IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     ILogger<UpdateAllowedCityHandler> logger,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand, Result>
@@ -29,14 +31,14 @@ public sealed class UpdateAllowedCityHandler(
     public async Task<Result> HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Obter cidade existente
-        var allowedCity = await repository.GetByIdAsync(command.Id, cancellationToken);
+        var allowedCity = await queries.GetByIdAsync(command.Id, cancellationToken);
         if (allowedCity == null)
         {
             return Result.Failure(Error.NotFound(ValidationMessages.Locations.AllowedCityNotFound));
         }
 
         // Verificar se novo nome/estado já existe (exceto para esta cidade)
-        var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
+        var existing = await queries.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
         if (existing is not null && existing.Id != command.Id)
         {
             return Result.Failure(Error.Conflict(ValidationMessages.Locations.DuplicateCity));
@@ -52,7 +54,7 @@ public sealed class UpdateAllowedCityHandler(
         // 3. E se o comando não trouxe novas coordenadas válidas (estão zeradas)
         var cityOrStateChanged = !string.Equals(allowedCity.CityName, command.CityName, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(allowedCity.StateSigla, command.StateSigla, StringComparison.OrdinalIgnoreCase);
-        
+
         var existingCoordsMissing = Math.Abs(allowedCity.Latitude) < CoordinateZeroThreshold && Math.Abs(allowedCity.Longitude) < CoordinateZeroThreshold;
         var commandCoordsMissing = Math.Abs(lat) < CoordinateZeroThreshold && Math.Abs(lon) < CoordinateZeroThreshold;
 
@@ -65,11 +67,11 @@ public sealed class UpdateAllowedCityHandler(
             // Só tenta geocoding se realmente necessário
             if (cityOrStateChanged || existingCoordsMissing)
             {
-                try 
+                try
                 {
                     var address = $"{command.CityName}, {command.StateSigla}, Brasil";
                     var coords = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
-                    
+
                     if (coords != null)
                     {
                         lat = coords.Latitude;
@@ -102,8 +104,8 @@ public sealed class UpdateAllowedCityHandler(
             command.IsActive,
             currentUser);
 
-        // Persistir
-        await repository.UpdateAsync(allowedCity, cancellationToken);
+        // Persistir - entidade está no tracking do EF via queries
+        await uow.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

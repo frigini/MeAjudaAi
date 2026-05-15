@@ -17,6 +17,46 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 - ✅ **i18n Test Mocks**: Implementação de mocks de i18next para testes em Admin, Provider e Customer apps com suporte a `defaultValue` (incluindo strings vazias).
 - ✅ **UI/UX Admin Portal**: Aplicação de cores da marca (laranja #D96704, brand #E0702B, cream #FDFBF7) no CSS, variáveis CSS para cores secundárias, `data-testid` únicos em CardTitle.
 - ✅ **Testes Unitários**: Cobertura superior a 90%, testes de `MessagingExtensions` e `RabbitMqInfrastructureManager` atualizados e passando.
+- ✅ **Sprint 13.1**: Performance Zero-Allocation, API Client Collections com SSE, extração de constantes SSE, Regex pré-compilado.
+- ✅ **Sprint 13.2**: Edge Infrastructure & API Gateway - planejado mas adiado para fase de refatoração.
+- ✅ **Sprint 13.3**: Refatoração de Persistência - Fase 0 concluída (interfaces `IRepository`, `IUnitOfWork` criadas, Scrutor marcado como obsoleto).
+
+---
+
+## ✅ Sprint 13.1: Otimizações e Refinamentos (Concluída em 02 Mai 2026)
+
+**Objetivo**: Redução de alocações, otimização de hot paths e melhorias em API client.
+
+### Entregas:
+- ✅ **Performance Zero-Allocation**: Redução drástica de pressão no Garbage Collector em _Hot Paths_ (Middlewares, logging, métricas) via `Span<T>` e `ReadOnlySpan<char>`.
+- ✅ **API Client Collections**: Endpoints SSE para streaming de eventos (`/bookings/{id}/events`, `/providers/{id}/verification-events`), correções de paths.
+- ✅ **Código e Testes**: Extração de constantes de mensagens SSE em BookingRealtimeEventsHandler, pré-compilação de Regex em BusinessMetricsMiddleware.
+- ✅ **Remoção de AllowedCityRepository**: Interface `IAllowedCityRepository` e implementação `AllowedCityRepository` removidas por não serem utilizadas.
+
+---
+
+## ✅ Sprint 13.2: Edge Infrastructure & API Gateway (Adiada)
+
+**Objetivo**: Criação do YARP Gateway como ponto único de entrada.
+
+### Status: Adiada para após refatoração de persistência
+
+O gateway será implementado após a conclusão das fases de refatoração de persistência, quando o padrão `IUnitOfWork` estiver consolidado.
+
+---
+
+## ✅ Sprint 13.3: Refatoração de Persistência — Fase 0 (Concluída em 05 Mai 2026)
+
+**Objetivo**: Preparar a camada compartilhada para o novo modelo de persistência com EF Core como UoW e Repository.
+
+### Entregas:
+- ✅ **Preparação da Camada Compartilhada**: Interfaces base `IRepository<TAggregate, TKey>` e `IUnitOfWork` criadas sob `src/Shared/Database/`.
+- ✅ **Criação de `IRepository<TAggregate, TKey>`**: Interface genérica com métodos `TryFindAsync`, `Add`, `Delete` e implementação default de `DeleteAsync`.
+- ✅ **Criação de `IUnitOfWork`**: Interface com `GetRepository<TAggregate, TKey>()` e `SaveChangesAsync`.
+- ✅ **Verificação do `BaseDbContext`**: Confirmação de que o dispatch de domain events funciona corretamente.
+- ✅ **Remoção do Scrutor Scan**: `AddModuleRepositories` marcado como `[Obsolete]`.
+
+> **Exceções**: `IOutboxRepository<TMessage>` permanece (mensageria, não DDD). `AddIfNoOverlapAsync` de Bookings será movido para `IBookingCommandService`.
 
 ---
 
