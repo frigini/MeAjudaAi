@@ -319,10 +319,14 @@ public class TestContainerFixture : IAsyncLifetime
     {
         var contextName = typeof(TContext).Name;
         // Console.WriteLine($"[DEBUG] Reconfiguring DbContext: {contextName}");
-        
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (descriptor != null)
-            services.Remove(descriptor);
+
+        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (optionsDescriptor != null)
+            services.Remove(optionsDescriptor);
+
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null)
+            services.Remove(contextDescriptor);
 
         services.AddDbContext<TContext>(options =>
         {
