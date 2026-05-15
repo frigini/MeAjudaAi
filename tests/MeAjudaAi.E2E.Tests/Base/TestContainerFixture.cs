@@ -316,15 +316,8 @@ public class TestContainerFixture : IAsyncLifetime
             services.Remove(contextDescriptor);
         services.AddScoped<TContext>();
 
-        RemoveAllUnitOfWorkRegistrations(services);
+        TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
-    }
-
-    private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
-    {
-        var uowDescriptors = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
-        foreach (var descriptor in uowDescriptors)
-            services.Remove(descriptor);
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext

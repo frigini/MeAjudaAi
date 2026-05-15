@@ -260,6 +260,7 @@ services.AddHttpContextAccessor();
     private void AddTestDbContextWithUnitOfWork<TContext>(IServiceCollection services, string schema, string assembly)
         where TContext : DbContext, IUnitOfWork
     {
+        // Remove first (defensive - may already be removed by bulk cleanup at startup)
         RemoveDbContextRegistrations<TContext>(services);
         AddTestDbContext<TContext>(services, schema, assembly);
         RemoveAllUnitOfWorkRegistrations(services);

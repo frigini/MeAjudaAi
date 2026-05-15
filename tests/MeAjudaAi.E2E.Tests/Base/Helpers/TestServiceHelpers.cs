@@ -1,0 +1,14 @@
+using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.E2E.Tests.Base.Helpers;
+
+public static class TestServiceHelpers
+{
+    public static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
+    {
+        var uowDescriptors = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
+        foreach (var descriptor in uowDescriptors)
+            services.Remove(descriptor);
+    }
+}
