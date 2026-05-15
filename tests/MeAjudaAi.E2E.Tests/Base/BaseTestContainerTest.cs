@@ -14,6 +14,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Modules.Ratings.Application.Common;
+using MeAjudaAi.Modules.Locations.Application.Common;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
@@ -203,10 +205,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Reconfigurar todos os DbContexts com TestContainer connection string
                     ReconfigureDbContext<UsersDbContext>(services);
                     ReconfigureDbContext<ProvidersDbContext>(services);
-                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext, IRatingsUnitOfWork>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
-                    ReconfigureDbContextWithUnitOfWork<LocationsDbContext>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext, ILocationsUnitOfWork>(services);
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
@@ -604,17 +606,18 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             })
                 .UseSnakeCaseNamingConvention()
                 .EnableSensitiveDataLogging(true)
-.ConfigureWarnings(warnings =>
+                .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             });
     }
 
-    private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services)
-        where TContext : DbContext, IUnitOfWork
+    private void ReconfigureDbContextWithUnitOfWork<TContext, TUnitOfWork>(IServiceCollection services)
+        where TContext : DbContext, TUnitOfWork
+        where TUnitOfWork : class, IUnitOfWork
     {
         ReconfigureDbContext<TContext>(services);
 
-        TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
+        services.AddScoped<TUnitOfWork>(sp => sp.GetRequiredService<TContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
     }
 

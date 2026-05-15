@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Locations.Application.Common;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
@@ -9,7 +10,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo Locations.
 /// Gerencia cidades permitidas e dados de validação geográfica.
 /// </summary>
-public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
+public partial class LocationsDbContext : BaseDbContext, ILocationsUnitOfWork
 {
     public DbSet<AllowedCity> AllowedCities => Set<AllowedCity>();
 

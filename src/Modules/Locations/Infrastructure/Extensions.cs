@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Locations.Application.Common;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
@@ -76,7 +77,8 @@ public static class Extensions
             return context;
         });
 
-        // Registrar IUnitOfWork para resolver a mesma instância do DbContext
+        // Registrar ILocationsUnitOfWork para resolver a mesma instância do DbContext
+        services.AddScoped<ILocationsUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
 
         // Registrar queries
@@ -167,8 +169,7 @@ public static class Extensions
 
         foreach (var handler in commandHandlerTypes)
         {
-            services.AddScoped(handler.Interface, sp => 
-                ActivatorUtilities.CreateInstance(sp, handler.Implementation, sp.GetRequiredService<LocationsDbContext>()));
+            services.AddScoped(handler.Interface, handler.Implementation);
         }
 
         // Registrar todos os IQueryHandler<T, TResult>

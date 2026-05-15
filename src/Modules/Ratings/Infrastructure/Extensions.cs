@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Ratings.Application.Common;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
@@ -33,6 +34,7 @@ public static class Extensions
             }
         });
 
+        services.AddScoped<IRatingsUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 

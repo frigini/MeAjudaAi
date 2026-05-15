@@ -9,10 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
+using MeAjudaAi.Modules.Ratings.Application.Common;
+
 namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
 
 public sealed class CreateReviewCommandHandler(
-    IUnitOfWork uow,
+    IRatingsUnitOfWork uow,
     IReviewQueries queries,
     IContentModerator contentModerator,
     ILogger<CreateReviewCommandHandler> logger) : ICommandHandler<CreateReviewCommand, Guid>

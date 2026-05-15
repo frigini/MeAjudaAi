@@ -10,10 +10,12 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 
+using MeAjudaAi.Modules.Locations.Application.Common;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 public sealed class PatchAllowedCityHandler(
-    IUnitOfWork uow,
+    ILocationsUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<PatchAllowedCityCommand, Result>
 {
     public async Task<Result> HandleAsync(PatchAllowedCityCommand command, CancellationToken cancellationToken = default)

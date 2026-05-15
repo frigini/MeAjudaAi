@@ -14,13 +14,15 @@ using MeAjudaAi.Shared.Extensions;
 
 using MeAjudaAi.Modules.Locations.Domain;
 
+using MeAjudaAi.Modules.Locations.Application.Common;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
 /// Handler responsável por processar o comando de atualização de cidade permitida.
 /// </summary>
 public sealed class UpdateAllowedCityHandler(
-    IUnitOfWork uow,
+    ILocationsUnitOfWork uow,
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     ILogger<UpdateAllowedCityHandler> logger,
