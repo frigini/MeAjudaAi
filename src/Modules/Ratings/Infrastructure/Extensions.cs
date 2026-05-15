@@ -1,8 +1,11 @@
+using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Handlers;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,8 +42,8 @@ public static class Extensions
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 
         // Registrar Command Handlers manualmente injetando o DbContext correto como IUnitOfWork
-        services.AddScoped<MeAjudaAi.Shared.Commands.ICommandHandler<MeAjudaAi.Modules.Ratings.Application.Commands.CreateReviewCommand, Guid>>(sp => 
-            ActivatorUtilities.CreateInstance<MeAjudaAi.Modules.Ratings.Application.Handlers.CreateReviewCommandHandler>(sp, sp.GetRequiredService<RatingsDbContext>()));
+        services.AddScoped<ICommandHandler<CreateReviewCommand, Guid>>(sp => 
+            ActivatorUtilities.CreateInstance<CreateReviewCommandHandler>(sp, sp.GetRequiredService<RatingsDbContext>()));
 
         return services;
     }

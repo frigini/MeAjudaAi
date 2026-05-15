@@ -64,6 +64,33 @@ src/
     └── MeAjudaAi.ServiceDefaults/ # Configurações padrão
 ```
 
+### 🔌 Dependency Injection: Keyed Services (Unit of Work)
+
+**Propósito**: Resolver conflitos de injeção de dependência em uma estrutura de monólito modular onde múltiplos módulos podem registrar implementações distintas de `IUnitOfWork` (cada um seu próprio `DbContext`).
+
+**Problema**: O uso de um registro genérico `services.AddScoped<IUnitOfWork>(...)` causa o conflito "last-registration-wins", onde o último módulo registrado sobrescreve os demais, fazendo com que handlers recebam o contexto de banco de dados incorreto.
+
+**Implementação**: 
+Utilizamos **Keyed Services** (disponível no .NET 8+) para garantir que cada Handler receba exatamente o `DbContext` (como `IUnitOfWork`) do seu módulo.
+
+```csharp
+// Registro na Infraestrutura de cada Módulo (ex: Locations)
+services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Locations, (sp, key) => sp.GetRequiredService<LocationsDbContext>());
+services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
+
+// Uso no Handler via Atributo
+public sealed class CreateAllowedCityHandler(
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
+    IAllowedCityQueries queries) 
+{ ... }
+```
+
+**Benefícios**:
+- ✅ **Isolamento**: Cada módulo interage apenas com seu próprio contexto de banco.
+- ✅ **Sem interfaces duplicadas**: Evita criar `ILocationsUnitOfWork` e `IRatingsUnitOfWork` desnecessários.
+- ✅ **Testabilidade**: Facilita a substituição de implementações em testes de integração (usando `ReconfigureDbContextWithUnitOfWork`).
+```
+
 ---
 
 ## 🎨 Design Patterns Implementados

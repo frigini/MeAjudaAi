@@ -169,8 +169,11 @@ public static class Extensions
 
         foreach (var handler in commandHandlerTypes)
         {
-            services.AddScoped(handler.Interface, sp => 
-                ActivatorUtilities.CreateInstance(sp, handler.Implementation, sp.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations)));
+            services.AddScoped(handler.Interface, sp =>
+            {
+                var uow = sp.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations);
+                return ActivatorUtilities.CreateInstance(sp, handler.Implementation, uow);
+            });
         }
 
         // Registrar todos os IQueryHandler<T, TResult>
