@@ -1,6 +1,8 @@
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +17,7 @@ public static class Extensions
         services.AddDbContext<RatingsDbContext>((serviceProvider, options) =>
         {
             var resolvedConfig = serviceProvider.GetRequiredService<IConfiguration>();
-            var connStr = resolvedConfig.GetConnectionString("DefaultConnection") ?? 
+            var connStr = resolvedConfig.GetConnectionString("DefaultConnection") ??
                           resolvedConfig.GetConnectionString("Ratings") ??
                           resolvedConfig.GetConnectionString("meajudaai-db");
 
@@ -32,6 +34,8 @@ public static class Extensions
             }
         });
 
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
+        services.AddScoped<IReviewQueries, DbContextReviewQueries>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
 
         return services;

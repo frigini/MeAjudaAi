@@ -8,21 +8,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
-public class RatingsDbContext : BaseDbContext
+public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
 {
-    public RatingsDbContext(DbContextOptions<RatingsDbContext> options) 
+    public RatingsDbContext(DbContextOptions<RatingsDbContext> options)
         : base(options)
     {
     }
 
     public RatingsDbContext(
-        DbContextOptions<RatingsDbContext> options, 
-        IDomainEventProcessor domainEventProcessor) 
+        DbContextOptions<RatingsDbContext> options,
+        IDomainEventProcessor domainEventProcessor)
         : base(options, domainEventProcessor)
     {
     }
 
     public DbSet<Review> Reviews { get; set; } = null!;
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+
+        throw new InvalidOperationException(
+            $"RatingsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: Review(ReviewId)");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
