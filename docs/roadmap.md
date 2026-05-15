@@ -4,11 +4,11 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 📊 Status Atual (Abril 2026)
+## 📊 Status Atual (Maio 2026)
 
-**Sprint Atual**: 13.1 (Otimizações e Refinamentos)
+**Sprint Atual**: Sprint 14 (Planejada)
 
-**Status**: 🚧 Em Andamento
+**Status**: 📋 Planejamento
 
 **Meta MVP**: 12 a 16 de maio de 2026
 
@@ -16,46 +16,49 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 🏃 Sprint 13.1: Otimizações e Refinamentos (Em Andamento)
+## 🎯 Fases da Refatoração de Persistência
 
-*   **Performance Zero-Allocation**: Redução drástica de pressão no Garbage Collector em *Hot Paths* (Middlewares de requisições, logging e métricas) e *Application Layer* via `Span<T>` e `ReadOnlySpan<char>`. Eliminação de alocações desnecessárias envolvendo strings e expressões regulares.
-*   **API Client Collections**: Adição de endpoints SSE para streaming de eventos (`/bookings/{id}/events`, `/providers/{id}/verification-events`), correções de paths em AllowedCitiesAdmin, padronização de variáveis (`{{bookingId}}`), remoção de tools/api-collections e referências a Postman nos docs.
-*   **Código e Testes**: Extração de constantes de mensagens SSE em BookingRealtimeEventsHandler, pré-compilação de Regex em BusinessMetricsMiddleware, expansão de casos de teste para headers de localização malformados.
+> **Plano completo**: consulte [prompts/plano-refatoracao-persistencia.md](../prompts/plano-refatoracao-persistencia.md)
 
-## 🚀 Sprint 13.2: Edge Infrastructure & API Gateway (Planejado)
-
-*   **Implementação do YARP Gateway**: Criação do projeto `MeAjudaAi.Gateway` como ponto único de entrada para todos os frontends (Admin, Mobile, Web).
-*   **BFF (Backend for Frontend)**: Configuração de rotas segregadas e políticas de CORS/Rate Limiting específicas para cada perfil de acesso.
-*   **Security Hardening**: Centralização de validação de tokens JWT/Keycloak e sanitização de headers globais no Gateway.
-*   **Service Discovery**: Integração com .NET Aspire para roteamento dinâmico para o ApiService.
-*   **Resiliência**: Configuração de retentativas (Retries) e Circuit Breaker para endpoints críticos de integração.
+| Fase | Escopo | Status |
+|------|--------|--------|
+| **0** | Shared — `IRepository`, `IUnitOfWork` | ✅ Concluída |
+| **1** | Locations (módulo piloto) | 📋 Planejada |
+| **2** | Ratings, Documents, ServiceCatalogs | 📋 Planejada |
+| **3** | Providers, Users, SearchProviders | 📋 Planejada |
+| **4** | Bookings, Communications, Payments | 📋 Planejada |
+| **5** | Limpeza e consolidação global | 📋 Planejada |
 
 ---
 
 ## 🔮 Roadmaps Futuros (MVP Launch & Além)
 
 ### Fase 3: Escala e Provedores Reais
-*   **Provedores de Comunicação (Próximo)**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
-*   **Verificação Automatizada (Próximo)**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
+
+- **Provedores de Comunicação (Próximo)**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
+- **Verificação Automatizada (Próximo)**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
 
 ### Fase 4: Experiência e Engajamento
-*   **Sistema de Disputas**: Mediação administrativa para conflitos.
-*   **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
+
+- **Sistema de Disputas**: Mediação administrativa para conflitos.
+- **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
 
 ### 🚀 Arquitetura Evolutiva e Mensageria (Objetivos)
-*   **Desempenho do Service Bus (Planejado)**: Implementar ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` e otimizações no `RabbitMqInfrastructureManager`.
-*   **Resiliência Crítica (Planejado)**: Garantir persistência via Quorum Queues para eventos marcados com `[CriticalEvent]`.
-*   **Roteamento por Atributo (Em Andamento)**: Evolução do `AttributeTopicNameConvention` para suporte total a tópicos dedicados.
+
+- **Desempenho do Service Bus (Planejado)**: Implementar ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` e otimizações no `RabbitMqInfrastructureManager`.
+- **Resiliência Crítica (Planejado)**: Garantir persistência via Quorum Queues para eventos marcados com `[CriticalEvent]`.
+- **Roteamento por Atributo (Em Andamento)**: Evolução do `AttributeTopicNameConvention` para suporte total a tópicos dedicados.
 
 ---
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 13**: RabbitMQ Excellence (infraestrutura real com RabbitMqInfrastructureManager, deadlocks corrigidos, dispose seguro), i18n mocks para testes (Provider/Admin/Customer), fail-fast em DI de Messaging.
-*   **Sprint 12**: Bookings Module completo, Command Handlers (Reject/Complete), queries de listagem, automação com Domain Events, integração frontend de agenda.
-*   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente.
+- **Sprint 13**: RabbitMQ Excellence (infraestrutura real com RabbitMqInfrastructureManager, deadlocks corrigidos, dispose seguro), i18n mocks para testes (Provider/Admin/Customer), fail-fast em DI de Messaging.
+- **Sprint 12**: Bookings Module completo, Command Handlers (Reject/Complete), queries de listagem, automação com Domain Events, integração frontend de agenda.
+- **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente.
 
 ---
 
 ## 📜 Histórico Completo
+
 Para detalhes das sprints anteriores, consulte o [Histórico do Roadmap](./roadmap-history.md).
