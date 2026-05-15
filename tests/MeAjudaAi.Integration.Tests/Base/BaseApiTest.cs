@@ -455,8 +455,6 @@ services.AddHttpContextAccessor();
     {
         var descriptorsToRemove = services
             .Where(d => d.ServiceType == typeof(IUnitOfWork))
-            .Where(d => d.ImplementationInstance is LocationsDbContext ||
-                       (d.ImplementationFactory != null && d.ImplementationFactory.Method?.GetGenericArguments().Any(g => g == typeof(LocationsDbContext)) == true))
             .ToList();
         foreach (var descriptor in descriptorsToRemove)
             services.Remove(descriptor);

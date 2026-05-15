@@ -12,14 +12,15 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
 {
     private readonly RatingsDbContext _context;
     private readonly DbContextReviewQueries _queries;
+    private readonly Microsoft.Data.Sqlite.SqliteConnection _connection;
 
     public DbContextReviewQueriesTests()
     {
-        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
-        connection.Open();
+        _connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        _connection.Open();
 
         var options = new DbContextOptionsBuilder<RatingsDbContext>()
-            .UseSqlite(connection)
+            .UseSqlite(_connection)
             .Options;
 
         _context = new RatingsDbContext(options);
@@ -30,6 +31,7 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _context.DisposeAsync();
+        await _connection.DisposeAsync();
     }
 
     [Fact]

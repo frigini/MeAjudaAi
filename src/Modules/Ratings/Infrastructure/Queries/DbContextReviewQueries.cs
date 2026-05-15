@@ -14,14 +14,19 @@ public class DbContextReviewQueries(RatingsDbContext dbContext) : IReviewQueries
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-    public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default) =>
-        await dbContext.Reviews
+    public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize > 100 ? 100 : pageSize;
+
+        return await dbContext.Reviews
             .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)
             .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+    }
 
     public async Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default) =>
         await dbContext.Reviews

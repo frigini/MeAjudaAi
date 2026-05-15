@@ -17,6 +17,15 @@ namespace MeAjudaAi.Modules.Ratings.API.Endpoints;
 
 public static class RatingsEndpoints
 {
+    private static ContractsEnumEReviewStatus MapReviewStatus(DomainEnumEReviewStatus status) => status switch
+    {
+        DomainEnumEReviewStatus.Pending => ContractsEnumEReviewStatus.Pending,
+        DomainEnumEReviewStatus.Approved => ContractsEnumEReviewStatus.Approved,
+        DomainEnumEReviewStatus.Rejected => ContractsEnumEReviewStatus.Rejected,
+        DomainEnumEReviewStatus.Flagged => ContractsEnumEReviewStatus.Flagged,
+        _ => throw new ArgumentOutOfRangeException(nameof(status))
+    };
+
     public static void Map(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/v1/ratings")
@@ -99,7 +108,7 @@ public static class RatingsEndpoints
 
         return Results.Ok(new ReviewStatusResponse(
             review.Id.Value,
-            (ContractsEnumEReviewStatus)(int)review.Status));
+            MapReviewStatus(review.Status)));
     }
 
     private static async Task<IResult> GetProviderReviewsAsync(
