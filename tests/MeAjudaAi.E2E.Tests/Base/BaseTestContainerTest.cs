@@ -14,8 +14,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
-using MeAjudaAi.Modules.Ratings.Application.Common;
-using MeAjudaAi.Modules.Locations.Application.Common;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
@@ -205,10 +203,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Reconfigurar todos os DbContexts com TestContainer connection string
                     ReconfigureDbContext<UsersDbContext>(services);
                     ReconfigureDbContext<ProvidersDbContext>(services);
-                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext, IRatingsUnitOfWork>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
-                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext, ILocationsUnitOfWork>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
@@ -611,13 +609,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             });
     }
 
-    private void ReconfigureDbContextWithUnitOfWork<TContext, TUnitOfWork>(IServiceCollection services)
-        where TContext : DbContext, TUnitOfWork
-        where TUnitOfWork : class, IUnitOfWork
+    private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services)
+        where TContext : DbContext, IUnitOfWork
     {
         ReconfigureDbContext<TContext>(services);
 
-        services.AddScoped<TUnitOfWork>(sp => sp.GetRequiredService<TContext>());
+        TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
     }
 

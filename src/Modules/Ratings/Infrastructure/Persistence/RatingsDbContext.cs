@@ -1,5 +1,4 @@
 using System.Reflection;
-using MeAjudaAi.Modules.Ratings.Application.Common;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
@@ -9,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
-public partial class RatingsDbContext : BaseDbContext, IRatingsUnitOfWork
+public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
 {
     public RatingsDbContext(DbContextOptions<RatingsDbContext> options)
         : base(options)

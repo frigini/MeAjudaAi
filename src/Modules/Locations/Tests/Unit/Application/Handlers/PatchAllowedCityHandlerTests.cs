@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
+using MeAjudaAi.Modules.Locations.Application.Common;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;

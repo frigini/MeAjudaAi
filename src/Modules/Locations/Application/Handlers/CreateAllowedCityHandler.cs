@@ -12,7 +12,9 @@ using MeAjudaAi.Contracts.Functional;
 
 using MeAjudaAi.Shared.Extensions;
 
-using MeAjudaAi.Modules.Locations.Application.Common;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -20,7 +22,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// Handler responsável por processar o comando de criação de cidade permitida.
 /// </summary>
 public sealed class CreateAllowedCityHandler(
-    ILocationsUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,

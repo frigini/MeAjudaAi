@@ -3,12 +3,13 @@ using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
-
-using MeAjudaAi.Modules.Locations.Application.Common;
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
-public sealed class DeleteAllowedCityHandler(ILocationsUnitOfWork uow) : ICommandHandler<DeleteAllowedCityCommand>
+public sealed class DeleteAllowedCityHandler(
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow) : ICommandHandler<DeleteAllowedCityCommand>
 {
     public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken = default)
     {

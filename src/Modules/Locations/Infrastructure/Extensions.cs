@@ -1,4 +1,3 @@
-using MeAjudaAi.Modules.Locations.Application.Common;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
@@ -10,6 +9,7 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
@@ -77,8 +77,8 @@ public static class Extensions
             return context;
         });
 
-        // Registrar ILocationsUnitOfWork para resolver a mesma instância do DbContext
-        services.AddScoped<ILocationsUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
+        // Registrar DbContext com Keyed Service
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Locations, (sp, key) => sp.GetRequiredService<LocationsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
 
         // Registrar queries
@@ -169,7 +169,8 @@ public static class Extensions
 
         foreach (var handler in commandHandlerTypes)
         {
-            services.AddScoped(handler.Interface, handler.Implementation);
+            services.AddScoped(handler.Interface, sp => 
+                ActivatorUtilities.CreateInstance(sp, handler.Implementation, sp.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations)));
         }
 
         // Registrar todos os IQueryHandler<T, TResult>

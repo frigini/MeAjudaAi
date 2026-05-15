@@ -1,8 +1,8 @@
-using MeAjudaAi.Modules.Ratings.Application.Common;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,8 +34,8 @@ public static class Extensions
             }
         });
 
-        services.AddScoped<IRatingsUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Ratings, (sp, key) => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 
         // Registrar Command Handlers manualmente injetando o DbContext correto como IUnitOfWork
