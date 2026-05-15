@@ -202,7 +202,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Reconfigurar todos os DbContexts com TestContainer connection string
                     ReconfigureDbContext<UsersDbContext>(services);
                     ReconfigureDbContext<ProvidersDbContext>(services);
-                    ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
                     ReconfigureDbContextWithUnitOfWork<LocationsDbContext>(services);
@@ -609,11 +609,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         where TContext : DbContext, IUnitOfWork
     {
         ReconfigureDbContext<TContext>(services);
-
-        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
-        if (contextDescriptor != null)
-            services.Remove(contextDescriptor);
-        services.AddScoped<TContext>();
 
         TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());

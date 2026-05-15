@@ -285,7 +285,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
 
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -310,11 +310,6 @@ public class TestContainerFixture : IAsyncLifetime
         where TContext : DbContext, IUnitOfWork
     {
         ReconfigureDbContext<TContext>(services);
-
-        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
-        if (contextDescriptor != null)
-            services.Remove(contextDescriptor);
-        services.AddScoped<TContext>();
 
         TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
