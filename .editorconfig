@@ -94,8 +94,8 @@ dotnet_diagnostic.CA1822.severity = none # Mark members as static
 dotnet_analyzer_diagnostic.severity = suggestion
 
 # Scoped Suppressions for Justified Warnings
-[src/Shared/**]
-dotnet_diagnostic.CA2000.severity = none
+# [src/Shared/**]
+# dotnet_diagnostic.CA2000.severity = none
 
 [src/Shared/Monitoring/BusinessMetrics.cs]
 dotnet_diagnostic.CA1063.severity = none

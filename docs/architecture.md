@@ -76,7 +76,6 @@ Utilizamos **Keyed Services** (disponível no .NET 8+) para garantir que cada Ha
 ```csharp
 // Registro na Infraestrutura de cada Módulo (ex: Locations)
 services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Locations, (sp, key) => sp.GetRequiredService<LocationsDbContext>());
-services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
 
 // Uso no Handler via Atributo
 public sealed class CreateAllowedCityHandler(

@@ -12,7 +12,6 @@ using MeAjudaAi.Contracts.Functional;
 
 using MeAjudaAi.Shared.Extensions;
 
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
 

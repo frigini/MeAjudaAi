@@ -1,13 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Commands;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
-
-using MeAjudaAi.Contracts.Utilities.Constants;
-
-using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
@@ -15,6 +7,10 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
+
+using MeAjudaAi.Contracts.Utilities.Constants;
+
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 

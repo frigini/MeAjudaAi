@@ -216,8 +216,6 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
         var dbContextOptions = new DbContextOptionsBuilder<LocationsDbContext>()
             .UseNpgsql(_postgresContainer.GetConnectionString())
             .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(warnings =>
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _context = new LocationsDbContext(dbContextOptions);
