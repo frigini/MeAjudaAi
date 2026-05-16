@@ -2,14 +2,15 @@ using System.Text.Json;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Integration.Tests.Mocks;
-using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -19,6 +20,7 @@ using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
@@ -186,12 +188,12 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
                     AddTestDbContext<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
-                    AddTestDbContext<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
+                    AddTestDbContextWithUnitOfWork<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure", ModuleKeys.Locations);
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
                     AddTestDbContext<BookingsDbContext>(services, "bookings", "MeAjudaAi.Modules.Bookings.Infrastructure");
-                    AddTestDbContext<RatingsDbContext>(services, "ratings", "MeAjudaAi.Modules.Ratings.Infrastructure");
+                    AddTestDbContextWithUnitOfWork<RatingsDbContext>(services, "ratings", "MeAjudaAi.Modules.Ratings.Infrastructure", ModuleKeys.Ratings);
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
@@ -242,9 +244,9 @@ services.AddHttpContextAccessor();
                 npgsqlOptions.MigrationsAssembly(assembly);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", schema);
             });
-            
+
             options.UseSnakeCaseNamingConvention();
-            
+
             // Suprime aviso de mudanças pendentes no modelo durante testes de integração.
             // Útil para ignorar drifts menores de convenção de nomes (ex: PK_ casing) sem forçar novas migrations em dev.
             options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -254,6 +256,35 @@ services.AddHttpContextAccessor();
                 options.EnableSensitiveDataLogging();
             }
         });
+    }
+
+    private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
+    {
+        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
+        foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
+    }
+
+    private void AddTestDbContextWithUnitOfWork<TContext>(IServiceCollection services, string schema, string assembly, string moduleKey)
+        where TContext : DbContext
+    {
+        // Remove first (defensive)
+        RemoveDbContextRegistrations<TContext>(services);
+        AddTestDbContext<TContext>(services, schema, assembly);
+        
+        // Remove apenas IUnitOfWork genérico não chaveado para este contexto específico, se existir
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService);
+        if (descriptor != null) services.Remove(descriptor);
+
+        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
+    }
+
+    private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
+    {
+        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (optionsDescriptor != null) services.Remove(optionsDescriptor);
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null) services.Remove(contextDescriptor);
     }
 
     private async Task ApplyRequiredModuleMigrationsAsync(IServiceProvider serviceProvider, ILogger? logger)
@@ -438,14 +469,6 @@ services.AddHttpContextAccessor();
         _factory?.Dispose();
         if (_databaseFixture != null && _databaseName != null) await _databaseFixture.DropDatabaseAsync(_databaseName);
         if (_wireMockFixture != null) await _wireMockFixture.DisposeAsync();
-    }
-
-    private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
-    {
-        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (optionsDescriptor != null) services.Remove(optionsDescriptor);
-        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
-        if (contextDescriptor != null) services.Remove(contextDescriptor);
     }
 
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)

@@ -12,13 +12,16 @@ using MeAjudaAi.Contracts.Functional;
 
 using MeAjudaAi.Shared.Extensions;
 
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
 /// Handler responsável por processar o comando de criação de cidade permitida.
 /// </summary>
 public sealed class CreateAllowedCityHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,

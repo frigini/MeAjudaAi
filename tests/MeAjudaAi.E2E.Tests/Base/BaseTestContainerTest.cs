@@ -135,9 +135,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     private void InitializeFactory()
     {
-#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
-#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -183,7 +181,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["RateLimit:DefaultRequestsPerMinute"] = "999999",
                         ["RateLimit:AuthRequestsPerMinute"] = "999999",
                         ["RateLimit:SearchRequestsPerMinute"] = "999999",
-                        ["RateLimit:WindowInSeconds"] = "3600"
+                        ["RateLimit:WindowInSeconds"] = "3600",
+                        ["GeographicRestriction:Enabled"] = "false",
+                        ["GeographicRestriction:FailOpen"] = "true",
+                        ["FeatureManagement:GeographicRestriction"] = "false"
                     });
 
                     // Adicionar ambiente de teste
@@ -202,10 +203,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Reconfigurar todos os DbContexts com TestContainer connection string
                     ReconfigureDbContext<UsersDbContext>(services);
                     ReconfigureDbContext<ProvidersDbContext>(services);
-                    ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
-                    ReconfigureDbContext<LocationsDbContext>(services);
+                    ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
@@ -447,7 +448,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
     // Helper methods usando serialização compartilhada
-#pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
     /// <summary>
     /// Envia uma requisição POST com conteúdo JSON para o URI especificado.
     /// </summary>
@@ -579,9 +579,13 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
         var contextName = typeof(TContext).Name;
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (descriptor != null)
-            services.Remove(descriptor);
+        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (optionsDescriptor != null)
+            services.Remove(optionsDescriptor);
+
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null)
+            services.Remove(contextDescriptor);
 
         services.AddDbContext<TContext>(options =>
         {
@@ -603,7 +607,16 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             });
-            }
+    }
+
+    private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services)
+        where TContext : DbContext, IUnitOfWork
+    {
+        ReconfigureDbContext<TContext>(services);
+
+        TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
+    }
 
     /// <summary>
     /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.

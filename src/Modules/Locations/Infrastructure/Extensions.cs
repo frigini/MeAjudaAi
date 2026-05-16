@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
@@ -40,9 +41,7 @@ public static class Extensions
                 if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
                     connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
                 }
                 else
                 {
@@ -78,7 +77,8 @@ public static class Extensions
             return context;
         });
 
-        // Registrar IUnitOfWork para resolver a mesma instância do DbContext
+        // Registrar DbContext com Keyed Service
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Locations, (sp, key) => sp.GetRequiredService<LocationsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
 
         // Registrar queries
@@ -169,7 +169,11 @@ public static class Extensions
 
         foreach (var handler in commandHandlerTypes)
         {
-            services.AddScoped(handler.Interface, handler.Implementation);
+            services.AddScoped(handler.Interface, sp =>
+            {
+                var uow = sp.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations);
+                return ActivatorUtilities.CreateInstance(sp, handler.Implementation, uow);
+            });
         }
 
         // Registrar todos os IQueryHandler<T, TResult>

@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
 using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
@@ -147,9 +148,7 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task InitializeFactoryAsync()
     {
-#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
-#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -193,7 +192,9 @@ public class TestContainerFixture : IAsyncLifetime
                         ["RateLimit:AuthRequestsPerMinute"] = "999999",
                         ["RateLimit:SearchRequestsPerMinute"] = "999999",
                         ["RateLimit:WindowInSeconds"] = "3600",
-                        ["GeographicRestriction:Enabled"] = "false"
+                        ["GeographicRestriction:Enabled"] = "false",
+                        ["GeographicRestriction:FailOpen"] = "true",
+                        ["FeatureManagement:GeographicRestriction"] = "false"
                     });
 
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
@@ -282,10 +283,10 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services, ModuleKeys.Ratings);
         ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
 
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -305,15 +306,30 @@ public class TestContainerFixture : IAsyncLifetime
 
         services.AddScoped<IDapperConnection, DapperConnection>();
     }
+    private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services, string moduleKey)
+        where TContext : DbContext
+    {
+        ReconfigureDbContext<TContext>(services);
+
+        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
+        foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
+
+        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
+    }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
         var contextName = typeof(TContext).Name;
         // Console.WriteLine($"[DEBUG] Reconfiguring DbContext: {contextName}");
-        
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (descriptor != null)
-            services.Remove(descriptor);
+
+        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (optionsDescriptor != null)
+            services.Remove(optionsDescriptor);
+
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null)
+            services.Remove(contextDescriptor);
 
         services.AddDbContext<TContext>(options =>
         {

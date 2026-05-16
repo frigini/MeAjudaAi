@@ -76,7 +76,6 @@ dotnet_diagnostic.IDE0057.severity = none # Substring can be simplified
 # Technical Excellence Sprint Suppressions (Avoiding source code pollution)
 # S2068 (Hardcoded passwords) and S3267 (LINQ simplification) have been removed from global suppressions.
 # They should be managed with inline `#pragma` warnings where strictly necessary.
-dotnet_diagnostic.CS0105.severity = none # Duplicate using directive: Suppressed to avoid noise while refactoring Shared (TODO: Remove by the end of Sprint 8B.3)
 
 # Restore critical rules to suggestions to catch potential bugs
 dotnet_diagnostic.CS8602.severity = suggestion # Dereference of a possibly null reference
@@ -94,18 +93,10 @@ dotnet_diagnostic.CA1822.severity = none # Mark members as static
 # Default severity for all analyzers (Global fallback)
 dotnet_analyzer_diagnostic.severity = suggestion
 
-# Seeding-specific rules
-[src/Shared/Seeding/**.cs]
-# CS8601: Possible null reference assignment
-# Justification: EF Core ExecuteSqlRawAsync correctly handles null values and converts them to SQL NULL
-dotnet_diagnostic.CS8601.severity = none
-
-# Migrations specific rules
-[**/*Migrations/*.cs]
-# S1186: Methods should not be empty
-dotnet_diagnostic.S1186.severity = none
-
 # Scoped Suppressions for Justified Warnings
+# [src/Shared/**]
+# dotnet_diagnostic.CA2000.severity = none
+
 [src/Shared/Monitoring/BusinessMetrics.cs]
 dotnet_diagnostic.CA1063.severity = none
 
@@ -135,7 +126,6 @@ dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1031.severity = none
 
 [src/Shared/Seeding/DevelopmentDataSeeder.cs]
-# CA5394: Random is an insecure random number generator (acceptable for seeding)
 dotnet_diagnostic.CA5394.severity = none
 
 [src/Shared/Utilities/Constants/**]
@@ -143,13 +133,6 @@ dotnet_diagnostic.CA1034.severity = none
 
 [src/Shared/Messaging/**]
 dotnet_diagnostic.CA1819.severity = none
-
-[src/Shared/Caching/**]
-dotnet_diagnostic.CA2000.severity = none
-dotnet_diagnostic.CA1508.severity = none
-
-[src/Shared/Database/**]
-dotnet_diagnostic.CA2000.severity = none
 
 [src/Shared/Functional/**]
 dotnet_diagnostic.CA1805.severity = none
@@ -160,7 +143,6 @@ dotnet_diagnostic.S2094.severity = none
 [src/Modules/Providers/Application/Handlers/**]
 dotnet_diagnostic.S1006.severity = none
 
-# Global Enum zero exceptions
 [src/Modules/Providers/Domain/Enums/{EDocumentType,EProviderType,EVerificationStatus}.cs]
 dotnet_diagnostic.CA1008.severity = none
 

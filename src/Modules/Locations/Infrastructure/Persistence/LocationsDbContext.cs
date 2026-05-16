@@ -7,7 +7,6 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 
 /// <summary>
 /// Contexto de banco de dados para o módulo Locations.
-/// Gerencia cidades permitidas e dados de validação geográfica.
 /// </summary>
 public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
 {

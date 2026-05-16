@@ -1,19 +1,21 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 
 using MeAjudaAi.Contracts.Utilities.Constants;
 
-using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Modules.Locations.Domain.Entities;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 public sealed class PatchAllowedCityHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<PatchAllowedCityCommand, Result>
 {
     public async Task<Result> HandleAsync(PatchAllowedCityCommand command, CancellationToken cancellationToken = default)

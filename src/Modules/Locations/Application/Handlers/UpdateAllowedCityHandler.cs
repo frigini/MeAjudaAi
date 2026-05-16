@@ -7,12 +7,12 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-
 using Microsoft.Extensions.Logging;
-
 using MeAjudaAi.Shared.Extensions;
-
 using MeAjudaAi.Modules.Locations.Domain;
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -20,7 +20,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// Handler responsável por processar o comando de atualização de cidade permitida.
 /// </summary>
 public sealed class UpdateAllowedCityHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     ILogger<UpdateAllowedCityHandler> logger,
