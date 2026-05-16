@@ -20,6 +20,8 @@ using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
@@ -187,12 +189,12 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
                     AddTestDbContext<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
-                    AddTestDbContextWithUnitOfWork<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
+                    AddTestDbContextWithUnitOfWork<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure", ModuleKeys.Locations);
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
                     AddTestDbContext<BookingsDbContext>(services, "bookings", "MeAjudaAi.Modules.Bookings.Infrastructure");
-                    AddTestDbContext<RatingsDbContext>(services, "ratings", "MeAjudaAi.Modules.Ratings.Infrastructure");
+                    AddTestDbContextWithUnitOfWork<RatingsDbContext>(services, "ratings", "MeAjudaAi.Modules.Ratings.Infrastructure", ModuleKeys.Ratings);
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
@@ -257,20 +259,25 @@ services.AddHttpContextAccessor();
         });
     }
 
-    private void AddTestDbContextWithUnitOfWork<TContext>(IServiceCollection services, string schema, string assembly)
-        where TContext : DbContext, IUnitOfWork
-    {
-        // Remove first (defensive - may already be removed by bulk cleanup at startup)
-        RemoveDbContextRegistrations<TContext>(services);
-        AddTestDbContext<TContext>(services, schema, assembly);
-        RemoveAllUnitOfWorkRegistrations(services);
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
-    }
-
     private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
     {
-        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
+        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
         foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
+    }
+
+    private void AddTestDbContextWithUnitOfWork<TContext>(IServiceCollection services, string schema, string assembly, string moduleKey)
+        where TContext : DbContext
+    {
+        // Remove first (defensive)
+        RemoveDbContextRegistrations<TContext>(services);
+        AddTestDbContext<TContext>(services, schema, assembly);
+        
+        // Remove apenas IUnitOfWork genérico não chaveado para este contexto específico, se existir
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService);
+        if (descriptor != null) services.Remove(descriptor);
+
+        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
     }
 
     private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
