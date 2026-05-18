@@ -1,18 +1,18 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Shared.Database.Constants;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -80,10 +80,7 @@ public class RequestVerificationCommandHandler(
             document.MarkAsPendingVerification();
 
             var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
-            var payload = JsonSerializer.Serialize(new { documentId = command.DocumentId }, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var payload = JsonSerializer.Serialize(new { documentId = command.DocumentId }, SerializationDefaults.Default);
 
             var outboxMessage = OutboxMessage.Create(
                 type: OutboxMessageTypes.DocumentVerification,

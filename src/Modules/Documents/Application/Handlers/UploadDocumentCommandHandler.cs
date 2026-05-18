@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
@@ -9,15 +10,15 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Shared.Database.Constants;
-using System.Text.Json;
+
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -109,10 +110,7 @@ public class UploadDocumentCommandHandler(
             _uow.GetRepository<Document, Guid>().Add(document);
 
             var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
-            var payload = JsonSerializer.Serialize(new { documentId = document.Id }, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var payload = JsonSerializer.Serialize(new { documentId = document.Id }, SerializationDefaults.Default);
 
             var outboxMessage = OutboxMessage.Create(
                 type: OutboxMessageTypes.DocumentVerification,

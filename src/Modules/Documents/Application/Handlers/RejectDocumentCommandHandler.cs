@@ -7,11 +7,11 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
