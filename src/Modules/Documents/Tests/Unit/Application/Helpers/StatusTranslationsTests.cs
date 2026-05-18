@@ -24,3 +24,4 @@ public class StatusTranslationsTests
         status.ToPortuguese().Should().Be("999");
     }
 }
+

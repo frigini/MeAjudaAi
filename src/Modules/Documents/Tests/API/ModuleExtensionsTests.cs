@@ -154,3 +154,4 @@ public class ModuleExtensionsTests
         endpointDataSources.Should().NotBeNull();
     }
 }
+

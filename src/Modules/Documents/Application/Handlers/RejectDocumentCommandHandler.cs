@@ -1,8 +1,10 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Helpers;
+using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
@@ -11,16 +13,15 @@ using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
-/// <summary>
-/// Handler responsável por rejeitar documentos após verificação manual.
-/// </summary>
 public class RejectDocumentCommandHandler(
-    IDocumentRepository repository,
+    IUnitOfWork uow,
+    IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RejectDocumentCommandHandler> logger)
     : ICommandHandler<RejectDocumentCommand, Result>
 {
-    private readonly IDocumentRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RejectDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -32,15 +33,13 @@ public class RejectDocumentCommandHandler(
                 "Rejecting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
 
-            // Validar se o documento existe
-            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
+            var document = await _documentQueries.GetByIdAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for rejection", command.DocumentId);
                 throw new NotFoundException("Document", command.DocumentId.ToString());
             }
 
-            // Verificar autorização - apenas admins podem rejeitar documentos
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 throw new UnauthorizedAccessException("HTTP context not available");
@@ -59,7 +58,6 @@ public class RejectDocumentCommandHandler(
                 throw new ForbiddenAccessException("Only administrators can reject documents");
             }
 
-            // Verificar se o documento está em estado válido para rejeição
             if (document.Status != EDocumentStatus.PendingVerification)
             {
                 _logger.LogWarning(
@@ -72,17 +70,14 @@ public class RejectDocumentCommandHandler(
                     $"O documento está com status {statusDescricao} e só pode ser recusado quando estiver em Verificação Pendente"));
             }
 
-            // Validar motivo de rejeição
             if (string.IsNullOrWhiteSpace(command.RejectionReason))
             {
                 return Result.Failure(Error.BadRequest("Motivo de recusa é obrigatório"));
             }
 
-            // Rejeitar o documento
             document.MarkAsRejected(command.RejectionReason);
             
-            await _repository.UpdateAsync(document, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Document {DocumentId} rejected successfully. Reason: {Reason}. CorrelationId: {CorrelationId}",
@@ -90,18 +85,9 @@ public class RejectDocumentCommandHandler(
 
             return Result.Success();
         }
-        catch (NotFoundException)
-        {
-            throw; // Re-throw para GlobalExceptionHandler tratar
-        }
-        catch (UnauthorizedAccessException)
-        {
-            throw; // Re-throw para GlobalExceptionHandler tratar
-        }
-        catch (ForbiddenAccessException)
-        {
-            throw; // Re-throw para GlobalExceptionHandler tratar
-        }
+        catch (NotFoundException) { throw; }
+        catch (UnauthorizedAccessException) { throw; }
+        catch (ForbiddenAccessException) { throw; }
         catch (Exception ex)
         {
             _logger.LogError(ex, 

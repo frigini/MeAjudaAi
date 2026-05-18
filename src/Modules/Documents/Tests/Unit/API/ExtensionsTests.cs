@@ -287,3 +287,4 @@ public sealed class ExtensionsTests
         Assert.Contains(services, s => s.ServiceType == typeof(DocumentsDbContext));
     }
 }
+

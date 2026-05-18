@@ -21,3 +21,4 @@ public class DocumentsDbContextModelTests
         ctx.Model.GetEntityTypes().Should().NotBeEmpty();
     }
 }
+

@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
@@ -11,21 +12,16 @@ using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
-/// <summary>
-/// Manipula solicitações para iniciar a verificação de documentos.
-/// </summary>
-/// <param name="repository">Repositório de documentos para acesso a dados.</param>
-/// <param name="backgroundJobService">Serviço para enfileirar jobs em segundo plano.</param>
-/// <param name="httpContextAccessor">Acessor para o contexto HTTP.</param>
-/// <param name="logger">Instância do logger.</param>
 public class RequestVerificationCommandHandler(
-    IDocumentRepository repository,
+    IUnitOfWork uow,
+    IDocumentQueries documentQueries,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RequestVerificationCommandHandler> logger)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
-    private readonly IDocumentRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RequestVerificationCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -34,15 +30,13 @@ public class RequestVerificationCommandHandler(
     {
         try
         {
-            // Validar se o documento existe
-            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
+            var document = await _documentQueries.GetByIdAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
                 return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
             }
 
-            // Autorização no nível do recurso: o usuário deve corresponder ao ProviderId ou possuir permissões de administrador
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 return Result.Failure(Error.Unauthorized("HTTP context not available"));
@@ -55,10 +49,8 @@ public class RequestVerificationCommandHandler(
             if (string.IsNullOrEmpty(userId))
                 return Result.Failure(Error.Unauthorized("User ID not found in token"));
 
-            // Verificar se o usuário corresponde ao ID do provedor
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
             {
-                // Verificar se o usuário possui o papel de administrador
                 var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
                 if (!isAdmin)
                 {
@@ -70,7 +62,6 @@ public class RequestVerificationCommandHandler(
                 }
             }
 
-            // Verificar se o documento está em um estado válido para solicitação de verificação
             if (document.Status != EDocumentStatus.Uploaded &&
                 document.Status != EDocumentStatus.Failed)
             {
@@ -81,12 +72,9 @@ public class RequestVerificationCommandHandler(
                     $"Document is in {document.Status} status and cannot be marked for verification"));
             }
 
-            // Atualizar status do documento para PendingVerification
             document.MarkAsPendingVerification();
-            await _repository.UpdateAsync(document, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
-            // Enfileirar job de verificação
             await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
                 service => service.ProcessDocumentAsync(command.DocumentId, CancellationToken.None));
 

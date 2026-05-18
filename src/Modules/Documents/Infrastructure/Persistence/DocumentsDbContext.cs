@@ -10,7 +10,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 /// Database context for the Documents module.
 /// Manages document entities and their persistence.
 /// </summary>
-public class DocumentsDbContext : BaseDbContext
+public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 {
     /// <summary>
     /// Gets the collection of documents.

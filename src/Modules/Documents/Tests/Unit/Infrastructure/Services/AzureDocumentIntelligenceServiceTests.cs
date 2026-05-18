@@ -213,3 +213,4 @@ public class AzureDocumentIntelligenceServiceTests
         exception.Should().BeNull("the service should not throw synchronously when a canceled token is provided");
     }
 }
+

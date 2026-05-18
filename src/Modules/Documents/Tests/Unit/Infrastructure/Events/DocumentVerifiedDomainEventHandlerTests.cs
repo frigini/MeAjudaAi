@@ -195,3 +195,4 @@ public class DocumentVerifiedDomainEventHandlerTests
         capturedToken.Should().Be(token);
     }
 }
+

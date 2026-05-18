@@ -1,15 +1,15 @@
 using EFCore.NamingConventions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Events;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Jobs;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,8 +84,9 @@ public static class Extensions
             }
         });
 
-        // Repositories
-        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        // Unit of Work & Queries
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DocumentsDbContext>());
+        services.AddScoped<IDocumentQueries, DbContextDocumentQueries>();
 
         return services;
     }
