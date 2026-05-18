@@ -1,6 +1,7 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,11 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     /// Gets the collection of documents.
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
+
+    /// <summary>
+    /// Gets the collection of outbox messages.
+    /// </summary>
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for design-time (migrations).

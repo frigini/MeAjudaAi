@@ -5,27 +5,26 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Jobs;
+using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Contracts.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Database.Constants;
-
+using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class RequestVerificationCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
-    IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RequestVerificationCommandHandler> logger)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
-    private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RequestVerificationCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -77,12 +76,23 @@ public class RequestVerificationCommandHandler(
 
             document.MarkAsPendingVerification();
 
-            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(command.DocumentId, cancellationToken));
+            var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
+            var payload = JsonSerializer.Serialize(new { documentId = command.DocumentId }, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var outboxMessage = OutboxMessage.Create(
+                type: OutboxMessageTypes.DocumentVerification,
+                payload: payload,
+                priority: ECommunicationPriority.Normal
+            );
+
+            outboxRepository.Add(outboxMessage);
 
             await _uow.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Document {DocumentId} marked for verification and job enqueued", command.DocumentId);
+            _logger.LogInformation("Document {DocumentId} marked for verification and outbox message created", command.DocumentId);
 
             return Result.Success();
         }

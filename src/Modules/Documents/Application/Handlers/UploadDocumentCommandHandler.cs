@@ -9,14 +9,15 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Jobs;
+using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Contracts.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Database.Constants;
-
+using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -24,7 +25,6 @@ public class UploadDocumentCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IBlobStorageService blobStorageService,
-    IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
     IOptions<DocumentUploadOptions> uploadOptions,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
@@ -32,7 +32,6 @@ public class UploadDocumentCommandHandler(
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
-    private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly DocumentUploadOptions _uploadOptions = uploadOptions?.Value ?? throw new ArgumentNullException(nameof(uploadOptions));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -109,12 +108,23 @@ public class UploadDocumentCommandHandler(
 
             _uow.GetRepository<Document, Guid>().Add(document);
 
-            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(document.Id, cancellationToken));
+            var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
+            var payload = JsonSerializer.Serialize(new { documentId = document.Id }, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var outboxMessage = OutboxMessage.Create(
+                type: OutboxMessageTypes.DocumentVerification,
+                payload: payload,
+                priority: ECommunicationPriority.Normal
+            );
+
+            outboxRepository.Add(outboxMessage);
 
             await _uow.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Document {DocumentId} created for provider {ProviderId}",
+            _logger.LogInformation("Document {DocumentId} created for provider {ProviderId} and outbox message created",
                 document.Id, command.ProviderId);
 
             return new UploadDocumentResponse(
