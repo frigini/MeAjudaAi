@@ -315,7 +315,6 @@ public class TestContainerFixture : IAsyncLifetime
         var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
         foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
 
-        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
     }
 

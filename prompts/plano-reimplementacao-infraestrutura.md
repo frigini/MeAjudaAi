@@ -65,7 +65,7 @@ A branch `feature/sprint-13.3-refatoracao-persistencia-phase0` contém MUITO mai
 |---------|------------|
 | `src/Modules/Locations/Infrastructure/Services/NoOpGeocodingService.cs` | Média |
 
-## O que FAZER PARTE da refatoração (NÃO mexer)
+## O que faz parte da refatoração (NÃO mexer)
 
 ### Phase 0 - Shared
 
