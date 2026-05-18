@@ -19,7 +19,7 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
     public DbSet<Document> Documents => Set<Document>();
 
     /// <summary>
-    /// Gets the collection of outbox messages.
+    /// Obtém a coleção de mensagens de outbox.
     /// </summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

@@ -16,6 +16,9 @@ using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
+/// <summary>
+/// Manipula solicitações para iniciar a verificação de documentos.
+/// </summary>
 public class RequestVerificationCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
@@ -36,20 +39,20 @@ public class RequestVerificationCommandHandler(
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
-                return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found", "NotFound"));
+                return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado", "NotFound"));
             }
 
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                return Result.Failure(Error.Unauthorized("HTTP context not available", "Unauthorized"));
+                return Result.Failure(Error.Unauthorized("Contexto HTTP não disponível", "Unauthorized"));
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                return Result.Failure(Error.Unauthorized("User is not authenticated", "Unauthorized"));
+                return Result.Failure(Error.Unauthorized("Usuário não autenticado", "Unauthorized"));
 
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return Result.Failure(Error.Unauthorized("User ID not found in token", "Unauthorized"));
+                return Result.Failure(Error.Unauthorized("ID do usuário não encontrado no token", "Unauthorized"));
 
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
             {
@@ -60,7 +63,7 @@ public class RequestVerificationCommandHandler(
                         "User {UserId} attempted to request verification for document {DocumentId} owned by provider {ProviderId}",
                         userId, command.DocumentId, document.ProviderId);
                     return Result.Failure(Error.Unauthorized(
-                        "You are not authorized to request verification for this document", "Unauthorized"));
+                        "Você não tem autorização para solicitar a verificação deste documento", "Unauthorized"));
                 }
             }
 
@@ -71,7 +74,7 @@ public class RequestVerificationCommandHandler(
                     "Document {DocumentId} cannot be marked for verification in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"Document is in {document.Status} status and cannot be marked for verification", "BadRequest"));
+                    $"Documento está com status {document.Status} e não pode ser marcado para verificação", "BadRequest"));
             }
 
             document.MarkAsPendingVerification();
@@ -99,7 +102,7 @@ public class RequestVerificationCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Failed to request verification. Please try again later.", "InternalError"));
+            return Result.Failure(Error.Internal("Falha ao solicitar a verificação. Por favor, tente novamente mais tarde.", "InternalError"));
         }
     }
 }
