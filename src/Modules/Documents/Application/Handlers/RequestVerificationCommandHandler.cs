@@ -9,11 +9,14 @@ using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
+
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class RequestVerificationCommandHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
@@ -34,20 +37,20 @@ public class RequestVerificationCommandHandler(
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
-                return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
+                return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found", "NotFound"));
             }
 
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                return Result.Failure(Error.Unauthorized("HTTP context not available"));
+                return Result.Failure(Error.Unauthorized("HTTP context not available", "Unauthorized"));
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                return Result.Failure(Error.Unauthorized("User is not authenticated"));
+                return Result.Failure(Error.Unauthorized("User is not authenticated", "Unauthorized"));
 
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return Result.Failure(Error.Unauthorized("User ID not found in token"));
+                return Result.Failure(Error.Unauthorized("User ID not found in token", "Unauthorized"));
 
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
             {
@@ -58,7 +61,7 @@ public class RequestVerificationCommandHandler(
                         "User {UserId} attempted to request verification for document {DocumentId} owned by provider {ProviderId}",
                         userId, command.DocumentId, document.ProviderId);
                     return Result.Failure(Error.Unauthorized(
-                        "You are not authorized to request verification for this document"));
+                        "You are not authorized to request verification for this document", "Unauthorized"));
                 }
             }
 
@@ -69,14 +72,15 @@ public class RequestVerificationCommandHandler(
                     "Document {DocumentId} cannot be marked for verification in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"Document is in {document.Status} status and cannot be marked for verification"));
+                    $"Document is in {document.Status} status and cannot be marked for verification", "BadRequest"));
             }
 
             document.MarkAsPendingVerification();
-            await _uow.SaveChangesAsync(cancellationToken);
 
             await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(command.DocumentId, CancellationToken.None));
+                service => service.ProcessDocumentAsync(command.DocumentId, cancellationToken));
+
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Document {DocumentId} marked for verification and job enqueued", command.DocumentId);
 
@@ -85,7 +89,7 @@ public class RequestVerificationCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Failed to request verification. Please try again later."));
+            return Result.Failure(Error.Internal("Failed to request verification. Please try again later.", "InternalError"));
         }
     }
 }

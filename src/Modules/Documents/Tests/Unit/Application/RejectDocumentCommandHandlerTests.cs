@@ -75,4 +75,76 @@ public class RejectDocumentCommandHandlerTests
         document.Status.Should().Be(EDocumentStatus.Rejected);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Theory]
+    [InlineData(RoleConstants.Customer)]
+    [InlineData(RoleConstants.Provider)]
+    public async Task HandleAsync_WithNonAdminUser_ShouldReturnFailure(string nonAdminRole)
+    {
+        var documentId = Guid.NewGuid();
+        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        document.MarkAsPendingVerification();
+
+        SetupAuthenticatedUser(nonAdminRole);
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
+
+        var command = new RejectDocumentCommand(documentId, "Reason");
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<ForbiddenAccessException>();
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDocumentNotFound_ShouldThrowNotFoundException()
+    {
+        var documentId = Guid.NewGuid();
+        SetupAuthenticatedUser(RoleConstants.Admin);
+        
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync((Document)null!);
+
+        var command = new RejectDocumentCommand(documentId, "Reason");
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<NotFoundException>();
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenStatusIsNotPendingVerification_ShouldReturnFailure()
+    {
+        var documentId = Guid.NewGuid();
+        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        // Status defaults to Uploaded
+
+        SetupAuthenticatedUser(RoleConstants.Admin);
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
+
+        var command = new RejectDocumentCommand(documentId, "Reason");
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("BadRequest");
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenReasonIsMissing_ShouldReturnFailure()
+    {
+        var documentId = Guid.NewGuid();
+        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        document.MarkAsPendingVerification();
+
+        SetupAuthenticatedUser(RoleConstants.Admin);
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
+
+        var command = new RejectDocumentCommand(documentId, "");
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("BadRequest");
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

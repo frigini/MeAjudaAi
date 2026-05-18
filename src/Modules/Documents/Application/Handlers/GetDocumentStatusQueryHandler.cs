@@ -18,7 +18,7 @@ public class GetDocumentStatusQueryHandler(
 
         if (document == null)
         {
-            _logger.LogWarning("Documento {DocumentId} não encontrado", query.DocumentId);
+            _logger.LogWarning("Document {DocumentId} not found", query.DocumentId);
             return null;
         }
 

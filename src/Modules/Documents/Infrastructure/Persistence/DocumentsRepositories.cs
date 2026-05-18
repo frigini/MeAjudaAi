@@ -10,6 +10,10 @@ public partial class DocumentsDbContext : IRepository<Document, Guid>
     {
         if (typeof(TAggregate) == typeof(Document))
         {
+            if (typeof(TKey) != typeof(Guid))
+            {
+                throw new NotSupportedException($"Repository for Document requires key of type Guid, but {typeof(TKey).Name} was provided.");
+            }
             return (IRepository<TAggregate, TKey>)(object)this;
         }
         throw new NotSupportedException($"Repository for {typeof(TAggregate).Name} is not supported.");

@@ -11,11 +11,14 @@ using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
+
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class ApproveDocumentCommandHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
     ILogger<ApproveDocumentCommandHandler> logger)
@@ -65,7 +68,7 @@ public class ApproveDocumentCommandHandler(
                     "Document {DocumentId} cannot be approved in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente"));
+                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente", "BadRequest"));
             }
 
             var ocrData = command.VerificationNotes != null 
@@ -90,7 +93,7 @@ public class ApproveDocumentCommandHandler(
             _logger.LogError(ex, 
                 "Unexpected error approving document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Falha ao aprovar o documento. Por favor, tente novamente mais tarde."));
+            return Result.Failure(Error.Internal("Falha ao aprovar o documento. Por favor, tente novamente mais tarde.", "InternalError"));
         }
     }
 }

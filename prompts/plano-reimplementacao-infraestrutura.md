@@ -94,6 +94,27 @@ A branch `feature/sprint-13.3-refatoracao-persistencia-phase0` contém MUITO mai
 - Todos os Handlers refatorados
 - Todos os testes de Handlers
 
+### Phase 3 - Payments, SearchProviders
+
+- Todos os `IXxxQueries` e `DbContextXxxQueries`
+- Todos os DbContext partials
+- Todos os Handlers refatorados
+- Todos os testes de Handlers
+
+### Phase 4 - Users, Admin
+
+- Todos os `IXxxQueries` e `DbContextXxxQueries`
+- Todos os DbContext partials
+- Todos os Handlers refatorados
+- Todos os testes de Handlers
+
+### Phase 5 - Bookings
+
+- Todos os `IXxxQueries` e `DbContextXxxQueries`
+- Todos os DbContext partials
+- Todos os Handlers refatorados
+- Todos os testes de Handlers
+
 ---
 
 ## Ordem de Reimplementação Sugerida
@@ -133,7 +154,7 @@ A branch `feature/sprint-13.3-refatoracao-persistencia-phase0` contém MUITO mai
 ## Problema Principal Identificado
 
 Os testes E2E crashavam com:
-```
+```text
 The active test run was aborted. Reason: Test host process crashed
 Data collector 'Blame' message: The specified inactivity time of 10 minutes has elapsed
 ```

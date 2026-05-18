@@ -10,11 +10,14 @@ using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
+
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class RejectDocumentCommandHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RejectDocumentCommandHandler> logger)
@@ -67,12 +70,12 @@ public class RejectDocumentCommandHandler(
                 var statusDescricao = document.Status.ToPortuguese();
                 
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com status {statusDescricao} e só pode ser recusado quando estiver em Verificação Pendente"));
+                    $"O documento está com status {statusDescricao} e só pode ser recusado quando estiver em Verificação Pendente", "BadRequest"));
             }
 
             if (string.IsNullOrWhiteSpace(command.RejectionReason))
             {
-                return Result.Failure(Error.BadRequest("Motivo de recusa é obrigatório"));
+                return Result.Failure(Error.BadRequest("Motivo de recusa é obrigatório", "BadRequest"));
             }
 
             document.MarkAsRejected(command.RejectionReason);
@@ -93,7 +96,7 @@ public class RejectDocumentCommandHandler(
             _logger.LogError(ex, 
                 "Unexpected error rejecting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Falha ao rejeitar o documento. Por favor, tente novamente mais tarde."));
+            return Result.Failure(Error.Internal("Falha ao rejeitar o documento. Por favor, tente novamente mais tarde.", "InternalError"));
         }
     }
 }

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;

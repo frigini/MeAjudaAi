@@ -37,5 +37,9 @@ public class GetProviderDocumentsQueryHandlerTests
 
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
+        result.Should().Contain(d => d.Id == documents[0].Id);
+        result.Should().Contain(d => d.Id == documents[1].Id);
+
+        _mockQueries.Verify(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -25,8 +25,8 @@ public class GetDocumentStatusQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WithExistingDocument_ShouldReturnDocumentDto()
     {
-        var documentId = Guid.NewGuid();
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "blob-url");
+        var documentId = document.Id;
 
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
 

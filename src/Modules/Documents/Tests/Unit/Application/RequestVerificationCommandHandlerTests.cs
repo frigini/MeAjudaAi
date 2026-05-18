@@ -79,4 +79,49 @@ public class RequestVerificationCommandHandlerTests
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         _mockJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(), It.IsAny<TimeSpan?>()), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_WithDifferentProviderId_ShouldReturnFailure()
+    {
+        var documentId = Guid.NewGuid();
+        var documentProviderId = Guid.NewGuid();
+        var loggedUserId = Guid.NewGuid(); // different provider
+
+        var document = Document.Create(documentProviderId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        
+        SetupAuthenticatedUser(loggedUserId);
+
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
+
+        var command = new RequestVerificationCommand(documentId);
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("Unauthorized");
+        
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(), It.IsAny<TimeSpan?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenStatusIsNotEligible_ShouldReturnFailure()
+    {
+        var documentId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        document.MarkAsPendingVerification(); // Status is now PendingVerification
+
+        SetupAuthenticatedUser(providerId);
+
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
+
+        var command = new RequestVerificationCommand(documentId);
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("BadRequest");
+        
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(It.IsAny<System.Linq.Expressions.Expression<Func<IDocumentVerificationService, Task>>>(), It.IsAny<TimeSpan?>()), Times.Never);
+    }
 }

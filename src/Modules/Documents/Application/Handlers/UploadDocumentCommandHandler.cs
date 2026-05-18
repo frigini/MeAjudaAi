@@ -14,11 +14,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
+
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class UploadDocumentCommandHandler(
-    IUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IBlobStorageService blobStorageService,
     IBackgroundJobService backgroundJobService,
@@ -105,13 +108,14 @@ public class UploadDocumentCommandHandler(
                 blobName);
 
             _uow.GetRepository<Document, Guid>().Add(document);
+
+            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
+                service => service.ProcessDocumentAsync(document.Id, cancellationToken));
+
             await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Document {DocumentId} created for provider {ProviderId}",
                 document.Id, command.ProviderId);
-
-            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-                service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
 
             return new UploadDocumentResponse(
                 document.Id,

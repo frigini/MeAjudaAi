@@ -67,6 +67,73 @@ public class UploadDocumentCommandHandlerTests
             _mockLogger.Object);
     }
     
-    // Test methods omitted for brevity, but I will ensure they are manually updated to use _mockUow and _mockRepo
+    private void SetupAuthenticatedUser(Guid userId, string role = "provider")
+    {
+        var claims = new List<Claim>
+        {
+            new(AuthConstants.Claims.Subject, userId.ToString()),
+            new(ClaimTypes.Role, role)
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithValidCommand_ShouldUploadAndEnqueue()
+    {
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
+
+        _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("upload-url", DateTime.UtcNow.AddMinutes(15)));
+
+        var result = await _handler.HandleAsync(command);
+
+        result.Should().NotBeNull();
+        result.UploadUrl.Should().Be("upload-url");
+
+        _mockRepo.Verify(x => x.Add(It.IsAny<Document>()), Times.Once);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(), It.IsAny<TimeSpan?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithInvalidContentType_ShouldThrowException()
+    {
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.exe", "application/x-msdownload", 1024);
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+
+        _mockRepo.Verify(x => x.Add(It.IsAny<Document>()), Times.Never);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(), It.IsAny<TimeSpan?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithFileTooLarge_ShouldThrowException()
+    {
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 20 * 1024 * 1024);
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+
+        _mockRepo.Verify(x => x.Add(It.IsAny<Document>()), Times.Never);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockJobService.Verify(x => x.EnqueueAsync<IDocumentVerificationService>(It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(), It.IsAny<TimeSpan?>()), Times.Never);
+    }
 }
 

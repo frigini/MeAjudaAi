@@ -5,6 +5,9 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
+
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 
@@ -18,7 +21,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
     private readonly float _minimumConfidence;
 
     public DocumentVerificationJob(
-        IUnitOfWork uow,
+        [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
         IDocumentQueries documentQueries,
         IDocumentIntelligenceService documentIntelligenceService,
         IBlobStorageService blobStorageService,
@@ -49,7 +52,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
             document.Status != EDocumentStatus.PendingVerification &&
             document.Status != EDocumentStatus.Failed)
         {
-            _logger.LogInformation("Documento {DocumentId} já foi processado (Status: {Status})", documentId, document.Status);
+            _logger.LogInformation("Document {DocumentId} has already been processed (Status: {Status})", documentId, document.Status);
             return;
         }
 
@@ -104,7 +107,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
         if (depth > MaxDepth) return false;
         if (ex is Azure.RequestFailedException rfe) return rfe.Status == 408 || rfe.Status == 429 || rfe.Status >= 500;
         if (ex is HttpRequestException || ex is TimeoutException) return true;
-        if (ex is OperationCanceledException oce && !oce.CancellationToken.IsCancellationRequested) return true;
+        if (ex is OperationCanceledException oce) return true;
         if (ex.InnerException != null && IsTransientException(ex.InnerException, depth + 1)) return true;
         return ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase);
     }
