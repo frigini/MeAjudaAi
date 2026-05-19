@@ -3,6 +3,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Queries;
 
@@ -39,21 +42,15 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
-        _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(category1.Id, false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(5);
+        var counts = new Dictionary<ServiceCategoryId, (int Total, int Active)>
+        {
+            [category1.Id] = (5, 3),
+            [category2.Id] = (8, 6)
+        };
 
         _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(category1.Id, true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(3);
-
-        _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(category2.Id, false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(8);
-
-        _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(category2.Id, true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(6);
+            .Setup(x => x.CountByCategoriesAsync(It.IsAny<IEnumerable<ServiceCategoryId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(counts);
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -71,8 +68,7 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         reparos.ActiveServicesCount.Should().Be(6);
 
         _categoryQueriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-        _serviceQueriesMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()), Times.Exactly(2));
-        _serviceQueriesMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _serviceQueriesMock.Verify(x => x.CountByCategoriesAsync(It.IsAny<IEnumerable<ServiceCategoryId>>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -92,13 +88,15 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
-        _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(5);
+        var counts = new Dictionary<ServiceCategoryId, (int Total, int Active)>
+        {
+            [category1.Id] = (5, 3),
+            [category2.Id] = (8, 6)
+        };
 
         _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(3);
+            .Setup(x => x.CountByCategoriesAsync(It.IsAny<IEnumerable<ServiceCategoryId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(counts);
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -129,7 +127,7 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         result.Value.Should().BeEmpty();
 
         _categoryQueriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-        _serviceQueriesMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        _serviceQueriesMock.Verify(x => x.CountByCategoriesAsync(It.IsAny<IEnumerable<ServiceCategoryId>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -145,12 +143,8 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
             .ReturnsAsync(categories);
 
         _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(category.Id, false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(0);
-
-        _serviceQueriesMock
-            .Setup(x => x.CountByCategoryAsync(category.Id, true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(0);
+            .Setup(x => x.CountByCategoriesAsync(It.IsAny<IEnumerable<ServiceCategoryId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<ServiceCategoryId, (int Total, int Active)>());
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);

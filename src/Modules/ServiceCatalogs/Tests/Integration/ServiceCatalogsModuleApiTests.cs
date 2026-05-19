@@ -4,6 +4,8 @@ using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -112,6 +114,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var category = await CreateServiceCategoryAsync("Category");
         var service1 = await CreateServiceAsync(category.Id, "Service 1");
         var service2 = await CreateServiceAsync(category.Id, "Service 2");
+        var dbContext = GetService<ServiceCatalogsDbContext>();
 
         service1.Deactivate();
         service2.Deactivate();
@@ -119,7 +122,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service1);
         await repository.UpdateAsync(service2);
-        await GetService<IUnitOfWork>().SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.ValidateServicesAsync(
@@ -142,11 +145,12 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var activeService = await CreateServiceAsync(category.Id, "Active");
         var inactiveService = await CreateServiceAsync(category.Id, "Inactive");
         var invalidServiceId = UuidGenerator.NewId();
+        var dbContext = GetService<ServiceCatalogsDbContext>();
 
         inactiveService.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(inactiveService);
-        await GetService<IUnitOfWork>().SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.ValidateServicesAsync(new[]
@@ -206,12 +210,13 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var service1 = await CreateServiceAsync(category.Id, "Residential Wiring");
         var service2 = await CreateServiceAsync(category.Id, "Circuit Installation");
         var service3 = await CreateServiceAsync(category.Id, "Panel Upgrade");
+        var dbContext = GetService<ServiceCatalogsDbContext>();
 
         // Act - Deactivate one service
         service2.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service2);
-        await GetService<IUnitOfWork>().SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
 
         // Act - Validate all services
         var validationResult = await _moduleApi.ValidateServicesAsync(new[]

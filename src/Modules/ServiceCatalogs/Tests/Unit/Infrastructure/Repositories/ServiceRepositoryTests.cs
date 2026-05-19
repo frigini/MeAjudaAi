@@ -217,7 +217,7 @@ public class ServiceRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Assert
-        var saved = await _context.Services.FindAsync(service.Id);
+        var saved = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         saved.Should().NotBeNull();
         saved!.Name.Should().Be("New Service");
     }
@@ -230,17 +230,16 @@ public class ServiceRepositoryTests : IDisposable
         await _context.Services.AddAsync(service);
         await _context.SaveChangesAsync();
 
-        // Act - load without tracking to test that UpdateAsync properly marks the entity
-        var updatedService = await _context.Services
-            .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == service.Id);
-        updatedService!.GetType().GetProperty("Name")!.SetValue(updatedService, "New Name");
-
-        await _repository.UpdateAsync(updatedService);
+        // Act
+        // Detach to test repository Update method which will re-attach
+        _context.Entry(service).State = EntityState.Detached;
+        service.GetType().GetProperty("Name")!.SetValue(service, "New Name");
+        
+        await _repository.UpdateAsync(service);
         await _context.SaveChangesAsync();
 
         // Assert
-        var saved = await _context.Services.FindAsync(service.Id);
+        var saved = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         saved!.Name.Should().Be("New Name");
     }
 
@@ -257,7 +256,7 @@ public class ServiceRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Assert
-        var deleted = await _context.Services.FindAsync(service.Id);
+        var deleted = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         deleted.Should().BeNull();
     }
 
@@ -284,7 +283,7 @@ public class ServiceRepositoryTests : IDisposable
         await _repository.UpdateAsync(service);
         await _context.SaveChangesAsync();
 
-        var deactivated = await _context.Services.FindAsync(service.Id);
+        var deactivated = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         deactivated!.IsActive.Should().BeFalse();
 
         // Activate
@@ -293,7 +292,7 @@ public class ServiceRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Assert
-        var activated = await _context.Services.FindAsync(service.Id);
+        var activated = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         activated!.IsActive.Should().BeTrue();
     }
 
