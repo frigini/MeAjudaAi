@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
