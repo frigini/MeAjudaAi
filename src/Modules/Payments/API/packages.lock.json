@@ -119,14 +119,14 @@
       },
       "Microsoft.Extensions.Caching.Memory": {
         "type": "Transitive",
-        "resolved": "10.0.7",
-        "contentHash": "6eULH/sc97yfCEV31g7AgUzHc7dIm0DGBcofoE8GgBaXbdAPPhathN8rYcgi1TSiG1QucCdqKiVNaDEPAEXL5Q==",
+        "resolved": "10.0.8",
+        "contentHash": "sYMYQjNprfqPTryuLNnr0/AOtnhlfuZ0ZxyOV0d3AXOEL8j9KV0EbelpZYyIatT2hJiaSGO9XGr5YDRsh22OfQ==",
         "dependencies": {
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.7",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.7",
-          "Microsoft.Extensions.Options": "10.0.7",
-          "Microsoft.Extensions.Primitives": "10.0.7"
+          "Microsoft.Extensions.Caching.Abstractions": "10.0.8",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Options": "10.0.8",
+          "Microsoft.Extensions.Primitives": "10.0.8"
         }
       },
       "Microsoft.Extensions.Diagnostics.HealthChecks": {
@@ -155,8 +155,8 @@
       },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
-        "resolved": "10.0.7",
-        "contentHash": "D5M0Jr551iTgwkZMN9rm0pSkgNLj5quUWQUmQPMZh7k/bnvZTnXRGfE2KuvXf1EEjt/ofD9yw9IumpgdP9QCnw=="
+        "resolved": "10.0.8",
+        "contentHash": "OBPo4nYhMyIbtueoC10CBm6AGAbo/A9IV8QQ/6ryZS7VvmqpGT7hunazeHLxFawRzn3oLOq4jhqhpBX4tfswWQ=="
       },
       "Microsoft.FeatureManagement": {
         "type": "Transitive",
@@ -364,8 +364,8 @@
           "Microsoft.AspNetCore.OpenApi": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.7, )",
-          "Microsoft.Extensions.Caching.Hybrid": "[10.5.0, )",
-          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.7, )",
+          "Microsoft.Extensions.Caching.Hybrid": "[10.6.0, )",
+          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.8, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
@@ -564,25 +564,25 @@
       },
       "Microsoft.Extensions.Caching.Hybrid": {
         "type": "CentralTransitive",
-        "requested": "[10.5.0, )",
-        "resolved": "10.5.0",
-        "contentHash": "INkOmE/6q6txxCS45A9HfY8dCqqjTMJfGzr3cNoMwuZpHVSr0JhMfgr/QNm9BvtvyzsyiK+q7yhCn57fBmoy9Q==",
+        "requested": "[10.6.0, )",
+        "resolved": "10.6.0",
+        "contentHash": "OSiffOH19rIk+elwjgDvUm7x2ZXl2+SnJAlEMPwDNc3zBRWbB8pJn4X9QX6UFXsGlRltVjkHBTUtVI5P8YLA9g==",
         "dependencies": {
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.6",
-          "Microsoft.Extensions.Caching.Memory": "10.0.6",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.6",
-          "Microsoft.Extensions.Options": "10.0.6"
+          "Microsoft.Extensions.Caching.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Caching.Memory": "10.0.8",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Options": "10.0.8"
         }
       },
       "Microsoft.Extensions.Caching.StackExchangeRedis": {
         "type": "CentralTransitive",
-        "requested": "[10.0.7, )",
-        "resolved": "10.0.7",
-        "contentHash": "TvD0totA8qeyrZ2YeY/qRNgYBy4BvO6dG59ziJDLVnLH4s2jeLUFEFcgA3xzqPhCMMbuz9bJTRwHxkZ/7c87jQ==",
+        "requested": "[10.0.8, )",
+        "resolved": "10.0.8",
+        "contentHash": "fle9ns3q2kk63vt/wHFtLw1U9kiEbM42vTk2Sar8VBjiGJFkXAgm0QEKFx15YMHkJIPRVdknWaovpvgGEgn10g==",
         "dependencies": {
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.7",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.7",
-          "Microsoft.Extensions.Options": "10.0.7",
+          "Microsoft.Extensions.Caching.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Options": "10.0.8",
           "StackExchange.Redis": "2.7.27"
         }
       },
