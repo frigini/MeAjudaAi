@@ -205,7 +205,8 @@ public class TestContainerFixture : IAsyncLifetime
                     services.AddLogging(logging =>
                     {
                         logging.ClearProviders();
-                        logging.SetMinimumLevel(LogLevel.Error);
+                        logging.AddConsole();
+                        logging.SetMinimumLevel(LogLevel.Information);
                     });
 
                     ConfigureMockServices(services);
@@ -281,7 +282,7 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
@@ -314,7 +315,6 @@ public class TestContainerFixture : IAsyncLifetime
         var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
         foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
 
-        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
     }
 

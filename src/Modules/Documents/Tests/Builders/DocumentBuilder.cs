@@ -65,3 +65,4 @@ public class DocumentBuilder
 
     public static DocumentBuilder ADocument() => new();
 }
+

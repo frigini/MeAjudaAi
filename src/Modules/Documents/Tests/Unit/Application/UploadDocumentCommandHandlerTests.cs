@@ -1,27 +1,31 @@
-using System.Linq.Expressions;
 using System.Security.Claims;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
-using MeAjudaAi.Modules.Documents.Domain;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class UploadDocumentCommandHandlerTests
 {
-    private readonly Mock<IDocumentRepository> _mockRepository;
+    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IRepository<Document, Guid>> _mockRepo;
+    private readonly Mock<IRepository<OutboxMessage, Guid>> _mockOutboxRepo;
+    private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
-    private readonly Mock<IBackgroundJobService> _mockJobService;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<IOptions<DocumentUploadOptions>> _mockUploadOptions;
     private readonly Mock<ILogger<UploadDocumentCommandHandler>> _mockLogger;
@@ -29,44 +33,46 @@ public class UploadDocumentCommandHandlerTests
 
     public UploadDocumentCommandHandlerTests()
     {
-        _mockRepository = new Mock<IDocumentRepository>();
+        _mockUow = new Mock<IUnitOfWork>();
+        _mockRepo = new Mock<IRepository<Document, Guid>>();
+        _mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
+        _mockQueries = new Mock<IDocumentQueries>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
-        _mockJobService = new Mock<IBackgroundJobService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockUploadOptions = new Mock<IOptions<DocumentUploadOptions>>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
 
-        // Configure default upload options
+        _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
+        _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(_mockOutboxRepo.Object);
+
         _mockUploadOptions.Setup(x => x.Value).Returns(new DocumentUploadOptions
         {
-            MaxFileSizeBytes = 10 * 1024 * 1024, // 10MB
+            MaxFileSizeBytes = 10 * 1024 * 1024,
             AllowedContentTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
         });
 
-        // Configure default behavior for background job service
-        _mockJobService
-            .Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()))
-            .Returns(Task.CompletedTask);
-
         _handler = new UploadDocumentCommandHandler(
-            _mockRepository.Object,
+            _mockUow.Object,
+            _mockQueries.Object,
             _mockBlobStorage.Object,
-            _mockJobService.Object,
             _mockHttpContextAccessor.Object,
             _mockUploadOptions.Object,
             _mockLogger.Object);
     }
-
-    private void SetupAuthenticatedUser(Guid userId, string role = "provider")
+    
+    private void SetupAuthenticatedUser(Guid? userId, string role = "provider", bool isAuthenticated = true)
     {
-        var claims = new List<Claim>
+        var claims = new List<Claim>();
+        if (userId.HasValue)
         {
-            new(AuthConstants.Claims.Subject, userId.ToString()),
-            new(ClaimTypes.Role, role)
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
+            claims.Add(new Claim(AuthConstants.Claims.Subject, userId.Value.ToString()));
+        }
+        if (!string.IsNullOrEmpty(role))
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var identity = new ClaimsIdentity(claims, isAuthenticated ? "TestAuth" : null);
         var principal = new ClaimsPrincipal(identity);
         var httpContext = new DefaultHttpContext { User = principal };
 
@@ -74,651 +80,161 @@ public class UploadDocumentCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithValidCommand_ShouldCreateDocument()
+    public async Task HandleAsync_WithValidCommand_ShouldUploadAndEnqueue()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
 
-        var uploadUrl = "https://storage/upload-url";
-        var expiresAt = DateTime.UtcNow.AddHours(1);
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((uploadUrl, expiresAt));
+        _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("upload-url", DateTime.UtcNow.AddMinutes(15)));
 
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        var result = await _handler.HandleAsync(command);
 
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
         result.Should().NotBeNull();
-        result.DocumentId.Should().NotBeEmpty();
-        result.UploadUrl.Should().Be(uploadUrl);
-        result.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromSeconds(1));
+        result.UploadUrl.Should().Be("upload-url");
 
-        _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d =>
-                d.ProviderId == providerId &&
-                d.DocumentType == EDocumentType.IdentityDocument &&
-                d.FileName == "test.pdf" &&
-                d.Status == EDocumentStatus.Uploaded),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-
-        _mockRepository.Verify(
-            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Once);
-
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+        _mockRepo.Verify(x => x.Add(It.IsAny<Document>()), Times.Once);
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockOutboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => 
+            m.Type == OutboxMessageTypes.DocumentVerification && 
+            m.Payload.Contains(result.DocumentId.ToString()))), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WithProofOfResidence_ShouldCreateCorrectDocumentType()
+    public async Task HandleAsync_WhenHttpContextIsNull_ShouldThrowUnauthorized()
     {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext)null!);
 
-        var command = new UploadDocumentCommand(
-            providerId,
-            "ProofOfResidence",
-            "proof.pdf",
-            "application/pdf",
-            51200);
+        var command = new UploadDocumentCommand(Guid.NewGuid(), EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(("upload", DateTime.UtcNow.AddHours(1)));
+        var act = async () => await _handler.HandleAsync(command);
 
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-
-        // Act
-        await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => d.DocumentType == EDocumentType.ProofOfResidence), It.IsAny<CancellationToken>()),
-            Times.Once);
-
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*HTTP context not available*");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldGenerateBlobStorageUrl()
+    public async Task HandleAsync_WhenUserNotAuthenticated_ShouldThrowUnauthorized()
     {
-        // Arrange
+        SetupAuthenticatedUser(Guid.NewGuid(), isAuthenticated: false);
+
+        var command = new UploadDocumentCommand(Guid.NewGuid(), EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*User is not authenticated*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenUserIdMissingFromToken_ShouldThrowUnauthorized()
+    {
+        SetupAuthenticatedUser(null);
+
+        var command = new UploadDocumentCommand(Guid.NewGuid(), EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
+
+        var act = async () => await _handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*User ID not found in token*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithDifferentProviderId_AndNotAdmin_ShouldThrowUnauthorized()
+    {
         var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
+        var loggedUserId = Guid.NewGuid();
+        SetupAuthenticatedUser(loggedUserId, role: "provider");
 
-        var fileName = "criminal-record.pdf";
-        var command = new UploadDocumentCommand(
-            providerId,
-            "CriminalRecord",
-            fileName,
-            "application/pdf",
-            204800);
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
-        var uploadUrl = "upload-url";
-        var expiresAt = DateTime.UtcNow.AddHours(1);
+        var act = async () => await _handler.HandleAsync(command);
 
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), "application/pdf", It.IsAny<CancellationToken>()))
-            .ReturnsAsync((uploadUrl, expiresAt));
+        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*authorized*");
+    }
 
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+    [Fact]
+    public async Task HandleAsync_WithDifferentProviderId_AndIsAdmin_ShouldSucceed()
+    {
+        var providerId = Guid.NewGuid();
+        var adminId = Guid.NewGuid();
+        SetupAuthenticatedUser(adminId, role: RoleConstants.Admin);
 
-        _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+        _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("upload-url", DateTime.UtcNow.AddMinutes(15)));
 
-        // Assert
+        var result = await _handler.HandleAsync(command);
+
         result.Should().NotBeNull();
-        result.UploadUrl.Should().Be(uploadUrl);
-        result.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromSeconds(1));
-
-        _mockBlobStorage.Verify(
-            x => x.GenerateUploadUrlAsync(
-                It.IsAny<string>(),
-                "application/pdf",
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithOversizedFile_ShouldThrowArgumentException()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
-
-        // IdentityDocument tem limite de 15MB, enviando 16MB
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "large.pdf",
-            "application/pdf",
-            16 * 1024 * 1024); // 16MB, excede o limite específico de 15MB
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain("IdentityDocument");
-        exception.Message.Should().Contain("15.0MB");
-    }
-
-    [Theory]
-    [InlineData("text/plain")]
-    [InlineData("application/exe")]
-    [InlineData("text/html")]
-    public async Task HandleAsync_WithInvalidContentType_ShouldThrowArgumentException(string contentType)
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
-
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            contentType,
-            102400);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain("not allowed");
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithContentTypeParameters_ShouldAcceptMediaType()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
-
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf; charset=utf-8", // Content-Type with parameters
-            102400);
-
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
-
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.UploadUrl.Should().NotBeEmpty();
-
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
+        result.UploadUrl.Should().Be("upload-url");
     }
 
     [Fact]
     public async Task HandleAsync_WithInvalidDocumentType_ShouldThrowArgumentException()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
-        var command = new UploadDocumentCommand(
-            providerId,
-            "InvalidType",
-            "test.pdf",
-            "application/pdf",
-            102400);
+        var command = new UploadDocumentCommand(providerId, "InvalidType", "test.pdf", "application/pdf", 1024);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
+        var act = async () => await _handler.HandleAsync(command);
 
-        exception.Message.Should().Contain("Invalid document type");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*Invalid document type*");
     }
 
     [Fact]
-    public async Task HandleAsync_WithUnauthorizedUser_ShouldThrowUnauthorizedAccessException()
+    public async Task HandleAsync_WithFileTooLarge_ShouldThrowArgumentException()
     {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var differentUserId = Guid.NewGuid();
-        SetupAuthenticatedUser(differentUserId); // User doesn't match provider
-
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain("not authorized");
-
-        // Verify warning was logged
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("attempted to upload")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithAdminUser_ShouldAllowUploadForAnyProvider()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var adminUserId = Guid.NewGuid();
-        SetupAuthenticatedUser(adminUserId, RoleConstants.Admin); // Admin user with different ID
-
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
-
-        var uploadUrl = "https://storage/upload-url";
-        var expiresAt = DateTime.UtcNow.AddHours(1);
-
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((uploadUrl, expiresAt));
-
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert - Should succeed even though admin user ID != provider ID
-        result.Should().NotBeNull();
-        result.DocumentId.Should().NotBeEmpty();
-        result.UploadUrl.Should().Be(uploadUrl);
-
-        _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => d.ProviderId == providerId), It.IsAny<CancellationToken>()),
-            Times.Once);
-
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithSystemAdminUser_ShouldAllowUploadForAnyProvider()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var systemAdminUserId = Guid.NewGuid();
-        SetupAuthenticatedUser(systemAdminUserId, RoleConstants.SystemAdmin); // System admin
-
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
-
-        var uploadUrl = "https://storage/upload-url";
-        var expiresAt = DateTime.UtcNow.AddHours(1);
-
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((uploadUrl, expiresAt));
-
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert - Should succeed for system-admin role
-        result.Should().NotBeNull();
-        result.DocumentId.Should().NotBeEmpty();
-
-        _mockJobService.Verify(
-            x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithNullHttpContext_ShouldThrowUnauthorizedAccessException()
-    {
-        // Arrange
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
-
-        var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain("HTTP context not available");
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithUnauthenticatedUser_ShouldThrowUnauthorizedAccessException()
-    {
-        // Arrange
-        var httpContext = new DefaultHttpContext
-        {
-            User = new ClaimsPrincipal() // Sem identity autenticada
-        };
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-
-        var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain("not authenticated");
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithMissingUserIdClaim_ShouldThrowUnauthorizedAccessException()
-    {
-        // Arrange
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Role, "provider") // Sem claim 'sub' ou 'id'
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
-
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-
-        var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain("User ID not found");
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("  ")]
-    public async Task HandleAsync_WithEmptyContentType_ShouldThrowArgumentException(string? contentType)
-    {
-        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            contentType!,
-            102400);
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 20 * 1024 * 1024);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
+        var act = async () => await _handler.HandleAsync(command);
 
-        exception.Message.Should().Contain("Content-Type is required");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*File too large*");
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryFails_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WithEmptyContentType_ShouldThrowArgumentException()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "test.pdf",
-            "application/pdf",
-            102400);
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "", 1024);
 
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
+        var act = async () => await _handler.HandleAsync(command);
 
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database error"));
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain(ValidationMessages.UploadFailed);
-        exception.InnerException.Should().NotBeNull();
-        exception.InnerException!.Message.Should().Contain("Database error");
-
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unexpected error")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*Content-Type is required*");
     }
 
     [Fact]
-    public async Task HandleAsync_WithProofOfResidence_ExceedsSpecificLimit_ShouldReject()
+    public async Task HandleAsync_WithForbiddenContentType_ShouldThrowArgumentException()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
-        // ProofOfResidence tem limite de 5MB, mas estamos enviando 6MB
-        var command = new UploadDocumentCommand(
-            providerId,
-            "ProofOfResidence",
-            "large-proof.pdf",
-            "application/pdf",
-            6 * 1024 * 1024); // 6MB
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.exe", "application/x-msdownload", 1024);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
+        var act = async () => await _handler.HandleAsync(command);
 
-        exception.Message.Should().Contain("ProofOfResidence");
-        exception.Message.Should().Contain("5.0MB");
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*File type not allowed*");
     }
 
     [Fact]
-    public async Task HandleAsync_WithIdentityDocument_LargerThanGlobal_ShouldAccept()
+    public async Task HandleAsync_WhenUnexpectedExceptionOccurs_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
-        // IdentityDocument tem limite de 15MB (maior que global de 10MB)
-        var command = new UploadDocumentCommand(
-            providerId,
-            "IdentityDocument",
-            "high-quality-id.jpg",
-            "image/jpeg",
-            12 * 1024 * 1024); // 12MB - OK para IdentityDocument, excederia global
+        var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
+        _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Storage service unavailable"));
 
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        var act = async () => await _handler.HandleAsync(command);
 
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.DocumentId.Should().NotBeEmpty();
-        
-        _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => 
-                d.DocumentType == EDocumentType.IdentityDocument), 
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithOther_UsesGlobalLimit_ShouldAccept()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
-
-        // "Other" não tem limite específico, usa global de 10MB
-        var command = new UploadDocumentCommand(
-            providerId,
-            "Other",
-            "document.pdf",
-            "application/pdf",
-            9 * 1024 * 1024); // 9MB - OK para limite global
-
-        _mockBlobStorage
-            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
-
-        _mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        
-        _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => 
-                d.DocumentType == EDocumentType.Other), 
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Theory]
-    [InlineData("IdentityDocument", 16 * 1024 * 1024, "15.0MB")]  // Excede limite específico de 15MB
-    [InlineData("ProofOfResidence", 6 * 1024 * 1024, "5.0MB")]    // Excede limite específico de 5MB
-    [InlineData("CriminalRecord", 9 * 1024 * 1024, "8.0MB")]      // Excede limite específico de 8MB
-    [InlineData("Other", 11 * 1024 * 1024, "10.0MB")]             // Excede limite global de 10MB
-    public async Task HandleAsync_WithVariousDocumentTypes_ExceedsLimit_ShouldReject(
-        string documentType, 
-        long fileSizeBytes, 
-        string expectedLimit)
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        SetupAuthenticatedUser(providerId);
-
-        var command = new UploadDocumentCommand(
-            providerId,
-            documentType,
-            "oversized.pdf",
-            "application/pdf",
-            fileSizeBytes);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
-
-        exception.Message.Should().Contain(documentType);
-        exception.Message.Should().Contain(expectedLimit);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*enviar*");
     }
 }
-

@@ -1,6 +1,7 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,12 +11,17 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 /// Database context for the Documents module.
 /// Manages document entities and their persistence.
 /// </summary>
-public class DocumentsDbContext : BaseDbContext
+public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 {
     /// <summary>
     /// Gets the collection of documents.
     /// </summary>
     public DbSet<Document> Documents => Set<Document>();
+
+    /// <summary>
+    /// Obtém a coleção de mensagens de outbox.
+    /// </summary>
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for design-time (migrations).
