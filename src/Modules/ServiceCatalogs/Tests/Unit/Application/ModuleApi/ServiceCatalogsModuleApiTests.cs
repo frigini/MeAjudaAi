@@ -1,11 +1,14 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
+using Moq;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.ModuleApi;
 
@@ -14,20 +17,20 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.ModuleApi;
 [Trait("Layer", "Application")]
 public class ServiceCatalogsModuleApiTests
 {
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
     private readonly Mock<ILogger<ServiceCatalogsModuleApi>> _loggerMock;
     private readonly ServiceCatalogsModuleApi _sut;
 
     public ServiceCatalogsModuleApiTests()
     {
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
         _loggerMock = new Mock<ILogger<ServiceCatalogsModuleApi>>();
 
         _sut = new ServiceCatalogsModuleApi(
-            _categoryRepositoryMock.Object,
-            _serviceRepositoryMock.Object,
+            _categoryQueriesMock.Object,
+            _serviceQueriesMock.Object,
             _loggerMock.Object);
     }
 
@@ -62,7 +65,7 @@ public class ServiceCatalogsModuleApiTests
             new ServiceCategoryBuilder().Build()
         };
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
@@ -71,14 +74,14 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.Should().BeTrue();
-        _categoryRepositoryMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenRepositoryThrows_ShouldReturnFalse()
     {
         // Arrange
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
@@ -96,7 +99,7 @@ public class ServiceCatalogsModuleApiTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
@@ -119,7 +122,7 @@ public class ServiceCatalogsModuleApiTests
             .WithDisplayOrder(1)
             .Build();
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
@@ -150,7 +153,7 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetServiceCategoryByIdAsync_WhenNotFound_ShouldReturnNull()
     {
         // Arrange
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
@@ -166,7 +169,7 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetServiceCategoryByIdAsync_WhenRepositoryThrows_ShouldReturnFailure()
     {
         // Arrange
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -200,7 +203,7 @@ public class ServiceCatalogsModuleApiTests
 
         var categories = new List<ServiceCategory> { category1, category2 };
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
@@ -238,7 +241,7 @@ public class ServiceCatalogsModuleApiTests
             new ServiceCategoryBuilder().WithName("Inactive").AsInactive().Build()
         };
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
@@ -248,14 +251,14 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        _categoryRepositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task GetAllServiceCategoriesAsync_WhenRepositoryThrows_ShouldReturnFailure()
     {
         // Arrange
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -285,7 +288,7 @@ public class ServiceCatalogsModuleApiTests
         var categoryProperty = typeof(Service).GetProperty("Category");
         categoryProperty!.SetValue(service, category);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
@@ -315,7 +318,7 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetServiceByIdAsync_WhenNotFound_ShouldReturnNull()
     {
         // Arrange
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
@@ -334,7 +337,7 @@ public class ServiceCatalogsModuleApiTests
         var service = new ServiceBuilder().WithName("Service").Build();
 
         // Force Category to null using reflection or by not setting it
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
@@ -368,7 +371,7 @@ public class ServiceCatalogsModuleApiTests
 
         var services = new List<Service> { service1, service2 };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -398,7 +401,7 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetAllServicesAsync_WhenRepositoryThrows_ShouldReturnFailure()
     {
         // Arrange
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetAllAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -442,7 +445,7 @@ public class ServiceCatalogsModuleApiTests
             categoryProperty!.SetValue(service, category);
         }
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -487,7 +490,7 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetServicesByCategoryAsync_WhenRepositoryThrows_ShouldReturnFailure()
     {
         // Arrange
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
@@ -509,7 +512,7 @@ public class ServiceCatalogsModuleApiTests
         // Arrange
         var service = new ServiceBuilder().Build(); // Active by default
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
@@ -527,7 +530,7 @@ public class ServiceCatalogsModuleApiTests
         // Arrange
         var service = new ServiceBuilder().AsInactive().Build();
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
@@ -543,7 +546,7 @@ public class ServiceCatalogsModuleApiTests
     public async Task IsServiceActiveAsync_WhenServiceNotFound_ShouldReturnFalse()
     {
         // Arrange
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
@@ -579,7 +582,7 @@ public class ServiceCatalogsModuleApiTests
         var serviceIds = new[] { service1.Id.Value, service2.Id.Value };
         var services = new List<Service> { service1, service2 };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<ServiceId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -604,7 +607,7 @@ public class ServiceCatalogsModuleApiTests
 
         var services = new List<Service> { validService };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<ServiceId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -630,7 +633,7 @@ public class ServiceCatalogsModuleApiTests
 
         var services = new List<Service> { activeService, inactiveService };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<ServiceId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -653,7 +656,7 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.AllValid.Should().BeTrue();
-        result.Value.InvalidServiceIds.Should().BeEmpty();
+        result.Value.InvalidServiceIds.Should().BeBeEmpty();
         result.Value.InactiveServiceIds.Should().BeEmpty();
     }
 
@@ -679,7 +682,7 @@ public class ServiceCatalogsModuleApiTests
         // so the method catches it and marks Empty as invalid
         var services = new List<Service> { validService };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<ServiceId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -702,7 +705,7 @@ public class ServiceCatalogsModuleApiTests
 
         var services = new List<Service> { service };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<ServiceId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
@@ -714,7 +717,7 @@ public class ServiceCatalogsModuleApiTests
         result.Value.AllValid.Should().BeTrue();
 
         // Verify repository was called only once per unique ID
-        _serviceRepositoryMock.Verify(
+        _serviceQueriesMock.Verify(
             x => x.GetByIdsAsync(
                 It.Is<IEnumerable<ServiceId>>(ids => ids.Count() == 1),
                 It.IsAny<CancellationToken>()),
@@ -727,7 +730,7 @@ public class ServiceCatalogsModuleApiTests
         // Arrange
         var serviceIds = new[] { Guid.NewGuid() };
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<ServiceId>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 

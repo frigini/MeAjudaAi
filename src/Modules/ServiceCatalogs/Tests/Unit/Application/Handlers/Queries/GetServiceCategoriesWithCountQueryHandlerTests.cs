@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 
@@ -11,15 +11,15 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Quer
 [Trait("Layer", "Application")]
 public class GetServiceCategoriesWithCountQueryHandlerTests
 {
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
     private readonly GetServiceCategoriesWithCountQueryHandler _handler;
 
     public GetServiceCategoriesWithCountQueryHandlerTests()
     {
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
-        _handler = new GetServiceCategoriesWithCountQueryHandler(_categoryRepositoryMock.Object, _serviceRepositoryMock.Object);
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
+        _handler = new GetServiceCategoriesWithCountQueryHandler(_categoryQueriesMock.Object, _serviceQueriesMock.Object);
     }
 
     [Fact]
@@ -35,23 +35,23 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
             category2
         };
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(category1.Id, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(5);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(category1.Id, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(3);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(category2.Id, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(8);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(category2.Id, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(6);
 
@@ -70,9 +70,9 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         reparos.TotalServicesCount.Should().Be(8);
         reparos.ActiveServicesCount.Should().Be(6);
 
-        _categoryRepositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-        _serviceRepositoryMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()), Times.Exactly(2));
-        _serviceRepositoryMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
+        _serviceQueriesMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _serviceQueriesMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -88,15 +88,15 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
             category2
         };
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(5);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(3);
 
@@ -108,7 +108,7 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         result.Value.Should().HaveCount(2);
         result.Value.Should().OnlyContain(c => c.IsActive);
 
-        _categoryRepositoryMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         // Arrange
         var query = new GetServiceCategoriesWithCountQuery(ActiveOnly: false);
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory>());
 
@@ -128,8 +128,8 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _categoryRepositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-        _serviceRepositoryMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        _categoryQueriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
+        _serviceQueriesMock.Verify(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -140,15 +140,15 @@ public class GetServiceCategoriesWithCountQueryHandlerTests
         var category = new ServiceCategoryBuilder().WithName("Limpeza").AsActive().Build();
         var categories = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory> { category };
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(category.Id, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.CountByCategoryAsync(category.Id, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 

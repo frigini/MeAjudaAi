@@ -1,15 +1,15 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class DeleteServiceCommandHandler(
-    IServiceRepository serviceRepository,
+    IUnitOfWork uow,
     IProvidersModuleApi providersModuleApi)
     : ICommandHandler<DeleteServiceCommand, Result>
 {
@@ -19,7 +19,8 @@ public sealed class DeleteServiceCommandHandler(
             return Result.Failure(ValidationMessages.Required.Id);
 
         var serviceId = ServiceId.From(request.Id);
-        var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
+        var repository = uow.GetRepository<Domain.Entities.Service, ServiceId>();
+        var service = await repository.TryFindAsync(serviceId, cancellationToken);
 
         if (service is null)
             return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service));
@@ -33,7 +34,8 @@ public sealed class DeleteServiceCommandHandler(
         if (hasProvidersResult.Value)
             return Result.Failure(string.Format(ValidationMessages.Catalogs.CannotDeleteServiceOffered, service.Name));
 
-        await serviceRepository.DeleteAsync(serviceId, cancellationToken);
+        repository.Delete(service);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

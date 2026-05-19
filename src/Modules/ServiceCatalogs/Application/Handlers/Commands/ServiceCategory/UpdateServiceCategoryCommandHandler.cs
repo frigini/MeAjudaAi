@@ -1,15 +1,17 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
 public sealed class UpdateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries)
     : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -20,7 +22,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
                 return Result.Failure(ValidationMessages.Required.Id);
 
             var categoryId = ServiceCategoryId.From(request.Id);
-            var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
+            var category = await uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().TryFindAsync(categoryId, cancellationToken);
 
             if (category is null)
                 return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
@@ -30,12 +32,12 @@ public sealed class UpdateServiceCategoryCommandHandler(
                 return Result.Failure(ValidationMessages.Required.CategoryName);
 
             // Check for duplicate name (excluding current category)
-            if (await categoryRepository.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
+            if (await categoryQueries.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
                 return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 
-            await categoryRepository.UpdateAsync(category, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }

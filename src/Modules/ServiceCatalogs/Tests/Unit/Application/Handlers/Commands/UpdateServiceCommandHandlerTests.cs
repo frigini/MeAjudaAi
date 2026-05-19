@@ -1,11 +1,12 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -14,13 +15,20 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 [Trait("Layer", "Application")]
 public class UpdateServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
     private readonly UpdateServiceCommandHandler _handler;
 
     public UpdateServiceCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceRepository>();
-        _handler = new UpdateServiceCommandHandler(_repositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
+
+        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
+
+        _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object);
     }
 
     [Fact]
@@ -30,8 +38,8 @@ public class UpdateServiceCommandHandlerTests
         var serviceId = Guid.NewGuid();
         var command = new UpdateServiceCommand(serviceId, "Updated Name", "Updated Description", 2);
 
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
         // Act
@@ -40,7 +48,7 @@ public class UpdateServiceCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be(ValidationMessages.NotFound.Service);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -55,8 +63,8 @@ public class UpdateServiceCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be(ValidationMessages.Required.Id);
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -70,11 +78,11 @@ public class UpdateServiceCommandHandlerTests
             .Build();
         var command = new UpdateServiceCommand(service.Id.Value, "Duplicate Name", "Description", 2);
 
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _repositoryMock
+        _serviceQueriesMock
             .Setup(x => x.ExistsWithNameAsync(command.Name, It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -85,7 +93,7 @@ public class UpdateServiceCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         // Usando mensagem de validação genérica conforme observado nas falhas
         result.Error!.Message.Should().Be(string.Format(ValidationMessages.Catalogs.ServiceNameExists, command.Name));
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
@@ -102,8 +110,8 @@ public class UpdateServiceCommandHandlerTests
             .Build();
         var command = new UpdateServiceCommand(service.Id.Value, invalidName!, "Description", 1);
 
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
         // Act
@@ -112,7 +120,7 @@ public class UpdateServiceCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -122,16 +130,16 @@ public class UpdateServiceCommandHandlerTests
         var service = new ServiceBuilder().Build();
         var command = new UpdateServiceCommand(service.Id.Value, "Valid Name", "Description", 1);
 
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _repositoryMock
+        _serviceQueriesMock
             .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        _repositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()))
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new CatalogDomainException("Domain rule violation"));
 
         // Act

@@ -1,20 +1,20 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 
-public sealed class GetAllServicesQueryHandler(IServiceRepository repository)
+public sealed class GetAllServicesQueryHandler(IServiceQueries queries)
     : IQueryHandler<GetAllServicesQuery, Result<IReadOnlyList<ServiceListDto>>>
 {
     public async Task<Result<IReadOnlyList<ServiceListDto>>> HandleAsync(
         GetAllServicesQuery request,
         CancellationToken cancellationToken = default)
     {
-        var services = await repository.GetAllAsync(request.ActiveOnly, cancellationToken);
+        var services = await queries.GetAllAsync(request.ActiveOnly, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(request.Name))
         {

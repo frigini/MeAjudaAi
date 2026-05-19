@@ -1,9 +1,10 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -13,15 +14,22 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 [Trait("Layer", "Application")]
 public class ChangeServiceCategoryCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly ChangeServiceCategoryCommandHandler _handler;
 
     public ChangeServiceCategoryCommandHandlerTests()
     {
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new ChangeServiceCategoryCommandHandler(_serviceRepositoryMock.Object, _categoryRepositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+
+        _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
+
+        _handler = new ChangeServiceCategoryCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, _categoryQueriesMock.Object);
     }
 
     [Fact]
@@ -37,20 +45,20 @@ public class ChangeServiceCategoryCommandHandlerTests
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
 
         _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newCategory);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.ExistsWithNameAsync(service.Name, It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        _serviceRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -58,7 +66,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         service.CategoryId.Should().Be(newCategory.Id);
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -70,7 +78,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         var command = new ChangeServiceCategoryCommand(serviceId, categoryId);
 
         _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
         // Act
@@ -79,7 +87,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("Serviço").And.Contain("não encontrado");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -95,10 +103,10 @@ public class ChangeServiceCategoryCommandHandlerTests
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategoryId);
 
         _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
@@ -108,7 +116,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         await act.Should().ThrowAsync<UnprocessableEntityException>()
             .WithMessage("*não encontrada*");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -124,10 +132,10 @@ public class ChangeServiceCategoryCommandHandlerTests
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
 
         _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newCategory);
 
@@ -137,7 +145,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         await act.Should().ThrowAsync<UnprocessableEntityException>()
             .WithMessage("*inativa*");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -153,14 +161,14 @@ public class ChangeServiceCategoryCommandHandlerTests
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
 
         _serviceRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
-        _categoryRepositoryMock
+        _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newCategory);
 
-        _serviceRepositoryMock
+        _serviceQueriesMock
             .Setup(x => x.ExistsWithNameAsync(service.Name, It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -170,7 +178,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("Já existe");
-        _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -186,7 +194,7 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("ID do serviço").And.Contain("não pode ser vazio");
-        _serviceRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -202,6 +210,6 @@ public class ChangeServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("ID da nova categoria").And.Contain("não pode ser vazio");
-        _serviceRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _serviceRepositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

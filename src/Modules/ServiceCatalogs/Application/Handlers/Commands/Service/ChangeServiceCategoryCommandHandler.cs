@@ -1,16 +1,18 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class ChangeServiceCategoryCommandHandler(
-    IServiceRepository serviceRepository,
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow,
+    IServiceQueries serviceQueries,
+    IServiceCategoryQueries categoryQueries)
     : ICommandHandler<ChangeServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(ChangeServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -24,13 +26,13 @@ public sealed class ChangeServiceCategoryCommandHandler(
                 return Result.Failure("O ID da nova categoria não pode ser vazio.");
 
             var serviceId = ServiceId.From(request.ServiceId);
-            var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
+            var service = await uow.GetRepository<Domain.Entities.Service, ServiceId>().TryFindAsync(serviceId, cancellationToken);
 
             if (service is null)
                 return Result.Failure(Error.NotFound($"Serviço com ID '{request.ServiceId}' não encontrado."));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
-            var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
+            var newCategory = await categoryQueries.GetByIdAsync(newCategoryId, cancellationToken);
 
             if (newCategory is null)
                 throw new UnprocessableEntityException(
@@ -43,7 +45,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
                     "ServiceCategory");
 
             // Garantir que o nome ainda é único na categoria de destino
-            if (await serviceRepository.ExistsWithNameAsync(
+            if (await serviceQueries.ExistsWithNameAsync(
                     service.Name,
                     service.Id,
                     newCategoryId,
@@ -55,7 +57,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
 
             service.ChangeCategory(newCategoryId);
 
-            await serviceRepository.UpdateAsync(service, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }

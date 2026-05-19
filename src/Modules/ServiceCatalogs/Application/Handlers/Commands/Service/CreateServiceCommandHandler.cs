@@ -1,18 +1,20 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
 public sealed class CreateServiceCommandHandler(
-    IServiceRepository serviceRepository,
-    IServiceCategoryRepository categoryRepository)
+    IUnitOfWork uow,
+    IServiceQueries serviceQueries,
+    IServiceCategoryQueries categoryQueries)
     : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
 {
     public async Task<Result<ServiceDto>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
@@ -25,7 +27,7 @@ public sealed class CreateServiceCommandHandler(
             var categoryId = ServiceCategoryId.From(request.CategoryId);
 
             // Verificar se a categoria existe e está ativa
-            var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
+            var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken);
             if (category is null)
                 throw new UnprocessableEntityException(
                     $"Categoria com ID '{request.CategoryId}' não encontrada.",
@@ -42,7 +44,7 @@ public sealed class CreateServiceCommandHandler(
                 return Result<ServiceDto>.Failure("Service name is required.");
 
             // Verificar se já existe serviço com o mesmo nome na categoria
-            if (await serviceRepository.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
+            if (await serviceQueries.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
                 return Result<ServiceDto>.Failure($"A service with name '{normalizedName}' already exists in this category.");
 
             // Validar DisplayOrder
@@ -51,7 +53,8 @@ public sealed class CreateServiceCommandHandler(
 
             var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
-            await serviceRepository.AddAsync(service, cancellationToken);
+            uow.GetRepository<Domain.Entities.Service, ServiceId>().Add(service);
+            await uow.SaveChangesAsync(cancellationToken);
 
             var dto = new ServiceDto(
                 service.Id.Value,

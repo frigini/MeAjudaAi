@@ -1,14 +1,14 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 
-public sealed class GetServiceByIdQueryHandler(IServiceRepository repository)
+public sealed class GetServiceByIdQueryHandler(IServiceQueries queries)
     : IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>
 {
     public async Task<Result<ServiceDto?>> HandleAsync(
@@ -20,7 +20,7 @@ public sealed class GetServiceByIdQueryHandler(IServiceRepository repository)
             return Result<ServiceDto?>.Failure("Service ID cannot be empty.");
 
         var serviceId = ServiceId.From(request.Id);
-        var service = await repository.GetByIdAsync(serviceId, cancellationToken);
+        var service = await queries.GetByIdAsync(serviceId, cancellationToken);
 
         if (service is null)
             return Result<ServiceDto?>.Success(null);
