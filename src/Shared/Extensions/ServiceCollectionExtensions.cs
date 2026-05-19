@@ -31,7 +31,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddSingleton(TimeProvider.System);
         services.AddCustomSerialization();
@@ -42,27 +43,14 @@ public static class ServiceCollectionExtensions
         services.AddCaching(configuration);
 
         // Só adiciona messaging se não estiver em ambiente de teste
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                     Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
-                     EnvironmentNames.Development;
-        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-
-        var isTestingEnvironment = envName == EnvironmentNames.Testing ||
-                                 envName.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
-                                 integrationTests == "true" ||
-                                 integrationTests == "1";
-
-        if (!isTestingEnvironment)
+        if (!environment.IsEnvironment(EnvironmentNames.Testing))
         {
-            // Cria um mock environment baseado na variável de ambiente
-            var mockEnvironment = new SimpleHostEnvironment(envName);
-            services.AddMessaging(configuration, mockEnvironment);
+            services.AddMessaging(configuration, environment);
         }
         else
         {
             // Registra messaging no-op para testes
             services.AddSingleton<IMessageBus, NoOpMessageBus>();
-
         }
 
         services.AddValidation();

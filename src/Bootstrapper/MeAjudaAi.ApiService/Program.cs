@@ -36,6 +36,7 @@ public partial class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+            Console.WriteLine($"[DEBUG] Startup Environment: {builder.Environment.EnvironmentName}");
 
             builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
 
@@ -59,7 +60,7 @@ public partial class Program
             builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
-            builder.Services.AddSharedServices(builder.Configuration);
+            builder.Services.AddSharedServices(builder.Configuration, builder.Environment);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
             builder.Services.AddCors();
