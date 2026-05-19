@@ -54,6 +54,7 @@ public class DbContextServiceQueries(ServiceCatalogsDbContext dbContext) : IServ
             .AsNoTracking()
             .Include(s => s.Category)
             .Where(s => idList.Contains(s.Id))
+            .OrderBy(s => s.Id)
             .ToListAsync(cancellationToken);
     }
 
@@ -79,5 +80,30 @@ public class DbContextServiceQueries(ServiceCatalogsDbContext dbContext) : IServ
             query = query.Where(s => s.IsActive);
 
         return await query.CountAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<ServiceCategoryId, (int Total, int Active)>> CountByCategoriesAsync(
+        IEnumerable<ServiceCategoryId> categoryIds,
+        CancellationToken cancellationToken = default)
+    {
+        var idList = categoryIds.ToList();
+        if (idList.Count == 0)
+            return new Dictionary<ServiceCategoryId, (int Total, int Active)>();
+
+        var counts = await dbContext.Services
+            .AsNoTracking()
+            .Where(s => idList.Contains(s.CategoryId))
+            .GroupBy(s => s.CategoryId)
+            .Select(g => new
+            {
+                CategoryId = g.Key,
+                Total = g.Count(),
+                Active = g.Count(s => s.IsActive)
+            })
+            .ToListAsync(cancellationToken);
+
+        return counts.ToDictionary(
+            c => c.CategoryId,
+            c => (c.Total, c.Active));
     }
 }

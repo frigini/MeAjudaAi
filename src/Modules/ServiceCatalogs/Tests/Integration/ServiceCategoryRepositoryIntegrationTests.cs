@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Shared.Utilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -120,7 +121,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
         await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedCategory = await dbContext.ServiceCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
+        var retrievedCategory = await dbContext.ServiceCategories.FirstOrDefaultAsync(c => c.Id == category.Id);
         retrievedCategory.Should().NotBeNull();
         retrievedCategory!.Name.Should().Be("New Category");
     }
@@ -138,7 +139,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
         await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedCategory = await dbContext.ServiceCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
+        var retrievedCategory = await dbContext.ServiceCategories.FirstOrDefaultAsync(c => c.Id == category.Id);
         retrievedCategory.Should().NotBeNull();
         retrievedCategory!.Name.Should().Be("Updated Name");
         retrievedCategory.Description.Should().Be("Updated Description");
@@ -157,7 +158,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
         await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedCategory = await dbContext.ServiceCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
+        var retrievedCategory = await dbContext.ServiceCategories.FirstOrDefaultAsync(c => c.Id == category.Id);
         retrievedCategory.Should().BeNull();
     }
 }

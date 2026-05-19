@@ -52,7 +52,11 @@ public class CreateServiceCategoryCommandHandlerTests
         result.Value.Id.Should().NotBe(Guid.Empty);
 
         _queriesMock.Verify(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.Add(It.IsAny<ServiceCategory>()), Times.Once);
+        _repositoryMock.Verify(x => x.Add(It.Is<ServiceCategory>(sc =>
+            sc.Name == command.Name &&
+            sc.Description == command.Description &&
+            sc.DisplayOrder == command.DisplayOrder &&
+            sc.IsActive == true)), Times.Once);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

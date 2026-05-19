@@ -17,21 +17,16 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
     {
         var categories = await categoryQueries.GetAllAsync(request.ActiveOnly, cancellationToken);
 
-        var dtos = new List<ServiceCategoryWithCountDto>();
+        if (categories.Count == 0)
+            return Result<IReadOnlyList<ServiceCategoryWithCountDto>>.Success(Array.Empty<ServiceCategoryWithCountDto>());
 
-        foreach (var category in categories)
+        var categoryIds = categories.Select(c => c.Id).ToList();
+        var counts = await serviceQueries.CountByCategoriesAsync(categoryIds, cancellationToken);
+
+        var dtos = categories.Select(category =>
         {
-            var totalCount = await serviceQueries.CountByCategoryAsync(
-                category.Id,
-                activeOnly: false,
-                cancellationToken);
-
-            var activeCount = await serviceQueries.CountByCategoryAsync(
-                category.Id,
-                activeOnly: true,
-                cancellationToken);
-
-            dtos.Add(new ServiceCategoryWithCountDto(
+            var (totalCount, activeCount) = counts.GetValueOrDefault(category.Id, (0, 0));
+            return new ServiceCategoryWithCountDto(
                 category.Id.Value,
                 category.Name,
                 category.Description,
@@ -39,8 +34,8 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
                 category.DisplayOrder,
                 activeCount,
                 totalCount
-            ));
-        }
+            );
+        }).ToList();
 
         return Result<IReadOnlyList<ServiceCategoryWithCountDto>>.Success(dtos);
     }

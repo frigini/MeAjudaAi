@@ -25,6 +25,7 @@ public class GetServicesByCategoryQueryHandlerTests
     {
         // Arrange
         var categoryId = Guid.NewGuid();
+        var serviceCategoryId = ServiceCategoryId.From(categoryId);
         var query = new GetServicesByCategoryQuery(categoryId, ActiveOnly: false);
         var services = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>
         {
@@ -33,7 +34,7 @@ public class GetServicesByCategoryQueryHandlerTests
         };
 
         _queriesMock
-            .Setup(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByCategoryAsync(serviceCategoryId, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
         // Act
@@ -44,7 +45,7 @@ public class GetServicesByCategoryQueryHandlerTests
         result.Value.Should().HaveCount(2);
         result.Value.Should().AllSatisfy(s => s.CategoryId.Should().Be(categoryId));
 
-        _queriesMock.Verify(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByCategoryAsync(serviceCategoryId, false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -52,6 +53,7 @@ public class GetServicesByCategoryQueryHandlerTests
     {
         // Arrange
         var categoryId = Guid.NewGuid();
+        var serviceCategoryId = ServiceCategoryId.From(categoryId);
         var query = new GetServicesByCategoryQuery(categoryId, ActiveOnly: true);
         var services = new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>
         {
@@ -59,7 +61,7 @@ public class GetServicesByCategoryQueryHandlerTests
         };
 
         _queriesMock
-            .Setup(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByCategoryAsync(serviceCategoryId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(services);
 
         // Act
@@ -70,7 +72,7 @@ public class GetServicesByCategoryQueryHandlerTests
         result.Value.Should().HaveCount(1);
         result.Value.Should().OnlyContain(s => s.IsActive);
 
-        _queriesMock.Verify(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), true, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByCategoryAsync(serviceCategoryId, true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -78,10 +80,11 @@ public class GetServicesByCategoryQueryHandlerTests
     {
         // Arrange
         var categoryId = Guid.NewGuid();
+        var serviceCategoryId = ServiceCategoryId.From(categoryId);
         var query = new GetServicesByCategoryQuery(categoryId, ActiveOnly: false);
 
         _queriesMock
-            .Setup(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByCategoryAsync(serviceCategoryId, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>());
 
         // Act
@@ -91,6 +94,6 @@ public class GetServicesByCategoryQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _queriesMock.Verify(x => x.GetByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByCategoryAsync(serviceCategoryId, false, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

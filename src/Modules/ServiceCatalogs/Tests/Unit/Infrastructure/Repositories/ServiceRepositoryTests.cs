@@ -230,10 +230,12 @@ public class ServiceRepositoryTests : IDisposable
         await _context.Services.AddAsync(service);
         await _context.SaveChangesAsync();
 
-        // Act
-        var updatedService = await _context.Services.FindAsync(service.Id);
+        // Act - load without tracking to test that UpdateAsync properly marks the entity
+        var updatedService = await _context.Services
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == service.Id);
         updatedService!.GetType().GetProperty("Name")!.SetValue(updatedService, "New Name");
-        
+
         await _repository.UpdateAsync(updatedService);
         await _context.SaveChangesAsync();
 

@@ -10,4 +10,7 @@ public interface IServiceQueries
     Task<IReadOnlyList<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default);
     Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId, ServiceCategoryId? categoryId, CancellationToken cancellationToken = default);
     Task<int> CountByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<ServiceCategoryId, (int Total, int Active)>> CountByCategoriesAsync(
+        IEnumerable<ServiceCategoryId> categoryIds,
+        CancellationToken cancellationToken = default);
 }
