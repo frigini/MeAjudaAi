@@ -76,6 +76,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
 
         inactiveService.Deactivate();
         await _repository.UpdateAsync(inactiveService);
+        await GetService<MeAjudaAi.Shared.Database.IUnitOfWork>().SaveChangesAsync();
 
         // Act
         var result = await _repository.GetAllAsync(activeOnly: true);
@@ -139,6 +140,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
 
         // Act
         await _repository.AddAsync(service);
+        await GetService<MeAjudaAi.Shared.Database.IUnitOfWork>().SaveChangesAsync();
 
         // Assert
         var retrievedService = await _repository.GetByIdAsync(service.Id);
@@ -156,6 +158,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         // Act
         service.Update("Updated Name", "Updated Description", 5);
         await _repository.UpdateAsync(service);
+        await GetService<MeAjudaAi.Shared.Database.IUnitOfWork>().SaveChangesAsync();
 
         // Assert
         var retrievedService = await _repository.GetByIdAsync(service.Id);
@@ -174,6 +177,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
 
         // Act
         await _repository.DeleteAsync(service.Id);
+        await GetService<MeAjudaAi.Shared.Database.IUnitOfWork>().SaveChangesAsync();
 
         // Assert
         var retrievedService = await _repository.GetByIdAsync(service.Id);
@@ -191,6 +195,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         // Act
         service.ChangeCategory(category2.Id);
         await _repository.UpdateAsync(service);
+        await GetService<MeAjudaAi.Shared.Database.IUnitOfWork>().SaveChangesAsync();
 
         // Assert
         var retrievedService = await _repository.GetByIdAsync(service.Id);

@@ -2,6 +2,8 @@ using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -117,6 +119,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service1);
         await repository.UpdateAsync(service2);
+        await GetService<IUnitOfWork>().SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.ValidateServicesAsync(
@@ -143,6 +146,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         inactiveService.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(inactiveService);
+        await GetService<IUnitOfWork>().SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.ValidateServicesAsync(new[]
@@ -207,6 +211,7 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         service2.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service2);
+        await GetService<IUnitOfWork>().SaveChangesAsync();
 
         // Act - Validate all services
         var validationResult = await _moduleApi.ValidateServicesAsync(new[]

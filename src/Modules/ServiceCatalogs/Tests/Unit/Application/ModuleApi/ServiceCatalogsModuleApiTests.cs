@@ -656,7 +656,7 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.AllValid.Should().BeTrue();
-        result.Value.InvalidServiceIds.Should().BeBeEmpty();
+        result.Value.InvalidServiceIds.Should().BeEmpty();
         result.Value.InactiveServiceIds.Should().BeEmpty();
     }
 

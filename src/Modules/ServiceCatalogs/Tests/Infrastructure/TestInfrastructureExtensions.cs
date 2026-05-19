@@ -1,7 +1,10 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
@@ -70,6 +73,11 @@ public static class TestInfrastructureExtensions
         {
             services.AddTestMessageBus();
         }
+
+        // Configuração do Unit of Work e Queries
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+        services.AddScoped<IServiceQueries, DbContextServiceQueries>();
 
         // Adicionar repositórios específicos do ServiceCatalogs
         services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();

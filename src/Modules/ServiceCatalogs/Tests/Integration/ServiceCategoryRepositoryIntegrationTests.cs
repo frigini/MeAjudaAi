@@ -75,6 +75,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
 
         inactiveCategory.Deactivate();
         await _repository.UpdateAsync(inactiveCategory);
+        await GetService<MeAjudaAi.Shared.Database.IUnitOfWork>().SaveChangesAsync();
 
         // Act
         var result = await _repository.GetAllAsync(activeOnly: true);
@@ -112,12 +113,14 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
     {
         // Arrange
         var category = ServiceCategory.Create("New Category", "New Description", 10);
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         await _repository.AddAsync(category);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedCategory = await _repository.GetByIdAsync(category.Id);
+        var retrievedCategory = await dbContext.ServiceCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
         retrievedCategory.Should().NotBeNull();
         retrievedCategory!.Name.Should().Be("New Category");
     }
@@ -127,13 +130,15 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
     {
         // Arrange
         var category = await CreateServiceCategoryAsync("Original Name");
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         category.Update("Updated Name", "Updated Description", 5);
         await _repository.UpdateAsync(category);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedCategory = await _repository.GetByIdAsync(category.Id);
+        var retrievedCategory = await dbContext.ServiceCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
         retrievedCategory.Should().NotBeNull();
         retrievedCategory!.Name.Should().Be("Updated Name");
         retrievedCategory.Description.Should().Be("Updated Description");
@@ -145,12 +150,14 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
     {
         // Arrange
         var category = await CreateServiceCategoryAsync("To Be Deleted");
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         await _repository.DeleteAsync(category.Id);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedCategory = await _repository.GetByIdAsync(category.Id);
+        var retrievedCategory = await dbContext.ServiceCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
         retrievedCategory.Should().BeNull();
     }
 }

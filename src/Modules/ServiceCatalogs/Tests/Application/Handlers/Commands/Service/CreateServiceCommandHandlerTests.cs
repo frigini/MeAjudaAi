@@ -2,9 +2,10 @@ using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database;
 using Moq;
 using Xunit;
 
@@ -12,15 +13,23 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.
 
 public class CreateServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
-    private readonly Mock<IServiceCategoryRepository> _categoryRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>> _serviceRepositoryMock;
+    private readonly Mock<IServiceQueries> _serviceQueriesMock;
+    private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
     private readonly CreateServiceCommandHandler _handler;
 
     public CreateServiceCommandHandlerTests()
     {
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
-        _categoryRepositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new CreateServiceCommandHandler(_serviceRepositoryMock.Object, _categoryRepositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _serviceRepositoryMock = new Mock<IRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>>();
+        _serviceQueriesMock = new Mock<IServiceQueries>();
+        _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        
+        _uowMock.Setup(u => u.GetRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>())
+            .Returns(_serviceRepositoryMock.Object);
+            
+        _handler = new CreateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, _categoryQueriesMock.Object);
     }
 
     [Fact]
@@ -44,7 +53,7 @@ public class CreateServiceCommandHandlerTests
         var categoryId = Guid.NewGuid();
         var command = new CreateServiceCommand(categoryId, "Service Name", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
 
         // Act
@@ -64,7 +73,7 @@ public class CreateServiceCommandHandlerTests
 
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", 1);
         
-        _categoryRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
         // Act
@@ -82,7 +91,7 @@ public class CreateServiceCommandHandlerTests
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
         // Act
@@ -100,10 +109,10 @@ public class CreateServiceCommandHandlerTests
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        _serviceRepositoryMock.Setup(r => r.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(r => r.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -121,7 +130,7 @@ public class CreateServiceCommandHandlerTests
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", -1);
 
-        _categoryRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
         // Act
@@ -139,10 +148,10 @@ public class CreateServiceCommandHandlerTests
         var category = ServiceCategory.Create("Category", "Desc");
         var command = new CreateServiceCommand(category.Id.Value, "Service Name", "Description", 1);
 
-        _categoryRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
-        _serviceRepositoryMock.Setup(r => r.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+        _serviceQueriesMock.Setup(r => r.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
@@ -153,6 +162,7 @@ public class CreateServiceCommandHandlerTests
         result.Value.Name.Should().Be("Service Name");
         result.Value.CategoryName.Should().Be("Category");
         
-        _serviceRepositoryMock.Verify(r => r.AddAsync(It.IsAny<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>(), It.IsAny<CancellationToken>()), Times.Once);
+        _serviceRepositoryMock.Verify(r => r.Add(It.IsAny<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
