@@ -6,8 +6,10 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -16,13 +18,16 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
 {
     private readonly IUnitOfWork _uow;
     private readonly IServiceCategoryQueries _categoryQueries;
+    private readonly ILogger<CreateServiceCategoryCommandHandler> _logger;
 
     public CreateServiceCategoryCommandHandler(
         [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceCategoryQueries categoryQueries)
+        IServiceCategoryQueries categoryQueries,
+        ILogger<CreateServiceCategoryCommandHandler> logger)
     {
         _uow = uow;
         _categoryQueries = categoryQueries;
+        _logger = logger;
     }
 
     public async Task<Result<ServiceCategoryDto>> HandleAsync(CreateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -32,7 +37,6 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         try
         {
             var normalizedName = request.Name?.Trim();
-
 
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Result<ServiceCategoryDto>.Failure("Category name is required.");
@@ -58,9 +62,22 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
 
             return Result<ServiceCategoryDto>.Success(dto);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (CatalogDomainException)
+        {
+            throw;
+        }
+        catch (ValidationException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            return Result<ServiceCategoryDto>.Failure($"UNEXPECTED: {ex.Message} | Stack: {ex.StackTrace}");
+            _logger.LogError(ex, "Ocorreu um erro inesperado ao processar a solicitação.");
+            return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao processar a solicitação.");
         }
     }
 }

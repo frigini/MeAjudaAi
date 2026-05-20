@@ -10,6 +10,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
@@ -18,15 +19,18 @@ public sealed class CreateServiceCommandHandler : ICommandHandler<CreateServiceC
     private readonly IUnitOfWork _uow;
     private readonly IServiceQueries _serviceQueries;
     private readonly IServiceCategoryQueries _categoryQueries;
+    private readonly ILogger<CreateServiceCommandHandler> _logger;
 
     public CreateServiceCommandHandler(
         [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
         IServiceQueries serviceQueries,
-        IServiceCategoryQueries categoryQueries)
+        IServiceCategoryQueries categoryQueries,
+        ILogger<CreateServiceCommandHandler> logger)
     {
         _uow = uow;
         _serviceQueries = serviceQueries;
         _categoryQueries = categoryQueries;
+        _logger = logger;
     }
 
     public async Task<Result<ServiceDto>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
@@ -37,6 +41,7 @@ public sealed class CreateServiceCommandHandler : ICommandHandler<CreateServiceC
 
         try
         {
+            // ... (rest of logic) ...
             if (request.CategoryId == Guid.Empty)
                 return Result<ServiceDto>.Failure("Category ID cannot be empty.");
 
@@ -91,7 +96,8 @@ public sealed class CreateServiceCommandHandler : ICommandHandler<CreateServiceC
         }
         catch (Exception ex)
         {
-            return Result<ServiceDto>.Failure($"UNEXPECTED: {ex.Message}");
+            _logger.LogError(ex, "Ocorreu um erro inesperado ao criar o serviço.");
+            return Result<ServiceDto>.Failure("An unexpected error occurred.");
         }
     }
 }

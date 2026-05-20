@@ -22,8 +22,21 @@ public class ServiceCatalogsDebugTests : BaseApiTest
         if (response.StatusCode != System.Net.HttpStatusCode.Created)
         {
             var content = await response.Content.ReadAsStringAsync();
-            var problem = JsonSerializer.Deserialize<Dictionary<string, object>>(content);
-            var detail = problem?.ContainsKey("detail") == true ? problem["detail"].ToString() : "No detail provided";
+            string detail = "No detail provided";
+            try
+            {
+                using var doc = JsonDocument.Parse(content);
+                if (doc.RootElement.TryGetProperty("detail", out var detailElement))
+                {
+                    detail = detailElement.GetString() ?? detail;
+                }
+            }
+            catch (JsonException)
+            {
+                // If not JSON, use raw content
+                detail = content;
+            }
+
             throw new Exception($"DEBUG: Request failed with {response.StatusCode}. Detail: {detail}. Full Content: {content}");
         }
         

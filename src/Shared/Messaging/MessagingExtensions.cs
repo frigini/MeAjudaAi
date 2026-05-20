@@ -92,9 +92,6 @@ public static class MessagingExtensions
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
         // Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
-        var logger = services.BuildServiceProvider().GetRequiredService<ILogger<object>>();
-        logger.LogDebug("EnvironmentName: {EnvironmentName}", environment.EnvironmentName);
-
         if (environment.IsEnvironment(EnvironmentNames.Testing))
         {
             services.TryAddSingleton<NoOp.NoOpMessageBus>();

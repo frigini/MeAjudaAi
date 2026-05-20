@@ -10,6 +10,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
@@ -17,13 +18,16 @@ public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceC
 {
     private readonly IUnitOfWork _uow;
     private readonly IServiceQueries _serviceQueries;
+    private readonly ILogger<UpdateServiceCommandHandler> _logger;
 
     public UpdateServiceCommandHandler(
         [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceQueries serviceQueries)
+        IServiceQueries serviceQueries,
+        ILogger<UpdateServiceCommandHandler> logger)
     {
         _uow = uow;
         _serviceQueries = serviceQueries;
+        _logger = logger;
     }
 
     public async Task<Result> HandleAsync(UpdateServiceCommand request, CancellationToken cancellationToken = default)
@@ -62,7 +66,8 @@ public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceC
         }
         catch (Exception ex)
         {
-            return Result.Failure($"UNEXPECTED: {ex.Message}");
+            _logger.LogError(ex, "Unexpected error in UpdateServiceCommandHandler");
+            return Result.Failure("An unexpected error occurred.");
         }
     }
 }

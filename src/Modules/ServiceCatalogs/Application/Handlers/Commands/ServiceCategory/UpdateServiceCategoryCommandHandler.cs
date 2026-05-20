@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
@@ -15,13 +16,16 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
 {
     private readonly IUnitOfWork _uow;
     private readonly IServiceCategoryQueries _categoryQueries;
+    private readonly ILogger<UpdateServiceCategoryCommandHandler> _logger;
 
     public UpdateServiceCategoryCommandHandler(
         [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceCategoryQueries categoryQueries)
+        IServiceCategoryQueries categoryQueries,
+        ILogger<UpdateServiceCategoryCommandHandler> logger)
     {
         _uow = uow;
         _categoryQueries = categoryQueries;
+        _logger = logger;
     }
 
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -53,13 +57,18 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
 
             return Result.Success();
         }
-        catch (CatalogDomainException ex)
+        catch (OperationCanceledException)
         {
-            return Result.Failure(ex.Message);
+            throw;
+        }
+        catch (CatalogDomainException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            return Result.Failure($"UNEXPECTED: {ex.Message}");
+            _logger.LogError(ex, "Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
+            return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
         }
     }
 }
