@@ -9,6 +9,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
@@ -17,15 +18,18 @@ public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<Change
     private readonly IUnitOfWork _uow;
     private readonly IServiceQueries _serviceQueries;
     private readonly IServiceCategoryQueries _categoryQueries;
+    private readonly ILogger<ChangeServiceCategoryCommandHandler> _logger;
 
     public ChangeServiceCategoryCommandHandler(
         [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
         IServiceQueries serviceQueries,
-        IServiceCategoryQueries categoryQueries)
+        IServiceCategoryQueries categoryQueries,
+        ILogger<ChangeServiceCategoryCommandHandler> logger)
     {
         _uow = uow;
         _serviceQueries = serviceQueries;
         _categoryQueries = categoryQueries;
+        _logger = logger;
     }
 
     public async Task<Result> HandleAsync(ChangeServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -36,10 +40,10 @@ public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<Change
         try
         {
             if (request.ServiceId == Guid.Empty)
-                return Result.Failure("O ID do serviço não pode ser vazio.");
+                throw new UnprocessableEntityException("O ID do serviço não pode ser vazio.", "ServiceId");
 
             if (request.NewCategoryId == Guid.Empty)
-                return Result.Failure("O ID da nova categoria não pode ser vazio.");
+                throw new UnprocessableEntityException("O ID da nova categoria não pode ser vazio.", "NewCategoryId");
 
             var serviceId = ServiceId.From(request.ServiceId);
             var service = await uow.GetRepository<Domain.Entities.Service, ServiceId>().TryFindAsync(serviceId, cancellationToken);
@@ -77,13 +81,22 @@ public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<Change
 
             return Result.Success();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (CatalogDomainException ex)
         {
             return Result.Failure(ex.Message);
         }
+        catch (UnprocessableEntityException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            return Result.Failure($"UNEXPECTED: {ex.Message}");
+            _logger.LogError(ex, "Ocorreu um erro inesperado ao alterar a categoria do serviço.");
+            return Result.Failure("Ocorreu um erro inesperado ao alterar a categoria do serviço.");
         }
     }
 }

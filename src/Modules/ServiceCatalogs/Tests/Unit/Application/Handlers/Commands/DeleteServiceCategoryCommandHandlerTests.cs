@@ -1,3 +1,5 @@
+using FluentAssertions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -6,6 +8,12 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -26,7 +34,7 @@ public class DeleteServiceCategoryCommandHandlerTests
         _serviceQueriesMock = new Mock<IServiceQueries>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_categoryRepositoryMock.Object);
-        _handler = new DeleteServiceCategoryCommandHandler(_uowMock.Object, _serviceQueriesMock.Object);
+        _handler = new DeleteServiceCategoryCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, NullLogger<DeleteServiceCategoryCommandHandler>.Instance);
     }
 
     [Fact]
