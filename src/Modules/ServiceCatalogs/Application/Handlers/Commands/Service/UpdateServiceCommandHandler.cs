@@ -43,7 +43,7 @@ public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceC
             var service = await uow.GetRepository<Domain.Entities.Service, ServiceId>().TryFindAsync(serviceId, cancellationToken);
 
             if (service is null)
-                return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service));
+                return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service, "NotFound"));
 
             var normalizedName = request.Name?.Trim();
 
