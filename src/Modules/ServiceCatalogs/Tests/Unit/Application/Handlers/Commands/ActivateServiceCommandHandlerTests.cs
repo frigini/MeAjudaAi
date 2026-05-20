@@ -4,6 +4,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -21,7 +24,7 @@ public class ActivateServiceCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_repositoryMock.Object);
-        _handler = new ActivateServiceCommandHandler(_uowMock.Object);
+        _handler = new ActivateServiceCommandHandler(_uowMock.Object, NullLogger<ActivateServiceCommandHandler>.Instance);
     }
 
     [Fact]
@@ -70,7 +73,7 @@ public class ActivateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Contain("não encontrado");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -85,7 +88,7 @@ public class ActivateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be empty");
+        result.Error!.Message.Should().Contain("não pode ser vazio");
         _repositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using FluentAssertions;
 using Xunit;
@@ -28,7 +29,7 @@ public class DeactivateServiceCommandHandlerTests
         _uowMock.Setup(u => u.GetRepository<Service, ServiceId>())
             .Returns(_repositoryMock.Object);
             
-        _handler = new DeactivateServiceCommandHandler(_uowMock.Object);
+        _handler = new DeactivateServiceCommandHandler(_uowMock.Object, NullLogger<DeactivateServiceCommandHandler>.Instance);
     }
 
     [Fact]

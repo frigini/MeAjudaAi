@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -27,7 +28,10 @@ public class DeleteServiceCommandHandlerTests
         _uowMock.Setup(u => u.GetRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>())
             .Returns(_repositoryMock.Object);
             
-        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object);
+        _handler = new DeleteServiceCommandHandler(
+            _uowMock.Object, 
+            _providersModuleApiMock.Object,
+            NullLogger<DeleteServiceCommandHandler>.Instance);
     }
 
     [Fact]

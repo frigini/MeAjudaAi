@@ -66,9 +66,9 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         {
             throw;
         }
-        catch (CatalogDomainException)
+        catch (CatalogDomainException ex)
         {
-            throw;
+            return Result<ServiceCategoryDto>.Failure(ex.Message);
         }
         catch (ValidationException)
         {

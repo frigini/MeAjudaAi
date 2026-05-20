@@ -38,7 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddCustomSerialization();
         // Serilog configurado no Program.cs do ApiService
 
-        services.AddPostgres(configuration);
+        services.AddPostgres(configuration, environment);
         services.AddDapper();
         services.AddCaching(configuration);
 

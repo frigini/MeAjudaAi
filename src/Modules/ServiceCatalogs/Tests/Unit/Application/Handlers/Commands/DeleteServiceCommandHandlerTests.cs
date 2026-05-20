@@ -7,6 +7,13 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using FluentAssertions;
+using Xunit;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -28,7 +35,7 @@ public class DeleteServiceCommandHandlerTests
 
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
 
-        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object);
+        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object, NullLogger<DeleteServiceCommandHandler>.Instance);
     }
 
     [Fact]
@@ -156,7 +163,7 @@ public class DeleteServiceCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithRepositoryException_ShouldPropagateException()
+    public async Task Handle_WithRepositoryException_ShouldReturnFailure()
     {
         // Arrange
         var category = new ServiceCategoryBuilder().AsActive().Build();
@@ -178,8 +185,11 @@ public class DeleteServiceCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await _handler.HandleAsync(command, CancellationToken.None));
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao excluir o serviço.");
     }
 }

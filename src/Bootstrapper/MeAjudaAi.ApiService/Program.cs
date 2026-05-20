@@ -36,10 +36,8 @@ public partial class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Logging.Services.AddLogging(l => l.AddSerilog()); // Assuming logging is set up
-            var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
-            logger.LogDebug("Startup Environment: {EnvironmentName}", builder.Environment.EnvironmentName);
-
+            // builder.Logging.Services.AddLogging(l => l.AddSerilog()); // Serilog set up via builder.Host
+            
             builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
 
             ConfigureLogging(builder);
