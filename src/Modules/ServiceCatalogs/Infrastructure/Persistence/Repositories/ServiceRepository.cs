@@ -1,32 +1,34 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 
-public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServiceRepository
+public sealed class ServiceRepository : IServiceRepository
 {
+    private readonly ServiceCatalogsDbContext _context;
+
+    public ServiceRepository(ServiceCatalogsDbContext context)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
+
     public async Task<Service?> GetByIdAsync(ServiceId id, CancellationToken cancellationToken = default)
     {
-        return await context.Services
-            .AsNoTracking()
+        return await _context.Services
             .Include(s => s.Category)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Service>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default)
     {
-        // Guard against null or empty to prevent NullReferenceException
-        if (ids == null)
+        var idList = ids?.ToList();
+        if (idList is null || idList.Count == 0)
             return Array.Empty<Service>();
 
-        var idList = ids.ToList();
-        if (idList.Count == 0)
-            return Array.Empty<Service>();
-
-        return await context.Services
-            .AsNoTracking()
+        return await _context.Services
             .Include(s => s.Category)
             .Where(s => idList.Contains(s.Id))
             .ToListAsync(cancellationToken);
@@ -34,32 +36,31 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
 
     public async Task<Service?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        var normalized = name?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
 
-        return await context.Services
-            .AsNoTracking()
+        var normalizedName = name.Trim().ToLower();
+        return await _context.Services
             .Include(s => s.Category)
-            .FirstOrDefaultAsync(s => s.Name == normalized, cancellationToken);
+            .FirstOrDefaultAsync(s => s.Name.ToLower() == normalizedName, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        IQueryable<Service> query = context.Services
-            .AsNoTracking()
-            .Include(s => s.Category);
+        var query = _context.Services.Include(s => s.Category).AsQueryable();
 
         if (activeOnly)
             query = query.Where(s => s.IsActive);
 
         return await query
-            .OrderBy(s => s.Name)
+            .OrderBy(s => s.DisplayOrder)
+            .ThenBy(s => s.Name)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<Service>> GetByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        var query = context.Services
-            .AsNoTracking()
+        var query = _context.Services
             .Include(s => s.Category)
             .Where(s => s.CategoryId == categoryId);
 
@@ -72,57 +73,37 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId = null, ServiceCategoryId? categoryId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId = null, CancellationToken cancellationToken = default)
     {
-        var normalized = name?.Trim() ?? string.Empty;
-        var query = context.Services.Where(s => s.Name == normalized);
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        var normalizedName = name.Trim().ToLower();
+        var query = _context.Services.Where(s => s.Name.ToLower() == normalizedName);
 
         if (excludeId is not null)
             query = query.Where(s => s.Id != excludeId);
 
-        if (categoryId is not null)
-            query = query.Where(s => s.CategoryId == categoryId);
-
         return await query.AnyAsync(cancellationToken);
     }
 
-    public async Task<int> CountByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default)
-    {
-        var query = context.Services.Where(s => s.CategoryId == categoryId);
-
-        if (activeOnly)
-            query = query.Where(s => s.IsActive);
-
-        return await query.CountAsync(cancellationToken);
-    }
-
-    // NOTA: Métodos de escrita chamam SaveChangesAsync diretamente, tratando cada operação como uma unidade de trabalho.
-    // Isso é apropriado para comandos de agregado único. Se transações multi-agregado forem necessárias
-    // no futuro, considere introduzir uma abstração compartilhada de unit-of-work.
-
     public async Task AddAsync(Service service, CancellationToken cancellationToken = default)
     {
-        await context.Services.AddAsync(service, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await _context.Services.AddAsync(service, cancellationToken);
     }
 
     public async Task UpdateAsync(Service service, CancellationToken cancellationToken = default)
     {
-        context.Services.Update(service);
-        await context.SaveChangesAsync(cancellationToken);
+        _context.Services.Update(service);
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(ServiceId id, CancellationToken cancellationToken = default)
     {
-        // Usa lookup leve sem includes para deleção
-        var service = await context.Services
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-
+        var service = await GetByIdAsync(id, cancellationToken);
         if (service is not null)
         {
-            context.Services.Remove(service);
-            await context.SaveChangesAsync(cancellationToken);
+            _context.Services.Remove(service);
         }
-        // Delete é idempotente - no-op se o serviço não existe
     }
 }

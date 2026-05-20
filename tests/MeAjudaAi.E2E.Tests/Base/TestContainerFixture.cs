@@ -165,6 +165,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
                         ["ConnectionStrings:SearchProvidersDb"] = PostgresConnectionString,
+                        ["Postgres:ConnectionString"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
                         ["Migrations:Enabled"] = "false",
                         ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
@@ -283,7 +284,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
-        ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
@@ -312,9 +313,12 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<TContext>(services);
 
-        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
-        foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
+        // Remove apenas o IUnitOfWork padrão, se houver, e registra o novo para este contexto.
+        // Isso ainda pode ser agressivo, mas menos que antes.
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService);
+        if (descriptor != null) services.Remove(descriptor);
 
+        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
     }
 

@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -73,6 +75,7 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
         inactiveCategory.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceCategoryRepository>();
         await repository.UpdateAsync(inactiveCategory);
+        await GetService<IUnitOfWork>().SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.GetAllServiceCategoriesAsync(activeOnly: true);
@@ -177,6 +180,7 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
         service.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service);
+        await GetService<IUnitOfWork>().SaveChangesAsync();
 
         // Act
         var result = await _moduleApi.IsServiceActiveAsync(service.Id.Value);

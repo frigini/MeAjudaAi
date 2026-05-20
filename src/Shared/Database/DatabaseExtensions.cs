@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace MeAjudaAi.Shared.Database;
@@ -15,33 +17,47 @@ public static class DatabaseExtensions
     /// </summary>
     public static IServiceCollection AddPostgres(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment? environment = null)
     {
         services.AddOptions<PostgresOptions>()
             .Configure(opts =>
             {
                 // Tenta múltiplas fontes de string de conexão em ordem de preferência
-                opts.ConnectionString =
-                    configuration.GetConnectionString("DefaultConnection") ??  // Sobrescrita para testes
-                    configuration.GetConnectionString("meajudaai-db-local") ??  // Aspire para testes
-                    configuration.GetConnectionString("meajudaai-db") ??        // Aspire para desenvolvimento
-                    configuration["Postgres:ConnectionString"] ??              // Configuração manual
-                    string.Empty;
+                var conn = configuration.GetConnectionString("DefaultConnection") ?? 
+                           configuration.GetConnectionString("meajudaai-db-local") ??
+                           configuration.GetConnectionString("meajudaai-db") ??
+                           configuration["Postgres:ConnectionString"];
+
+                if (string.IsNullOrEmpty(conn))
+                {
+                    var envName = environment?.EnvironmentName ?? 
+                                  Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
+                                  Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                    
+                    if (envName == EnvironmentNames.Testing)
+                    {
+                        conn = "Host=localhost;Database=dummy;Username=postgres;Password=postgres";
+                    }
+                }
+                opts.ConnectionString = conn ?? string.Empty;
+                Console.WriteLine($"[DEBUG] Postgres ConnectionString resolved: {opts.ConnectionString}");
             });
 
         // Só valida a connection string em ambientes que não sejam Testing
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var environmentName = environment?.EnvironmentName ?? 
+                               Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
+                               Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
 
-        var isTestingEnvironment = environment == "Testing" ||
-                                 environment?.Equals("Testing", StringComparison.OrdinalIgnoreCase) == true ||
+        var isTestingEnvironment = environmentName == EnvironmentNames.Testing ||
+                                 environmentName?.Equals("Testing", StringComparison.OrdinalIgnoreCase) == true ||
                                  integrationTests == "true" ||
                                  integrationTests == "1";
 
         if (!isTestingEnvironment)
         {
-            services.Configure<PostgresOptions>(opts =>
+            services.PostConfigure<PostgresOptions>(opts =>
             {
                 if (string.IsNullOrEmpty(opts.ConnectionString))
                 {

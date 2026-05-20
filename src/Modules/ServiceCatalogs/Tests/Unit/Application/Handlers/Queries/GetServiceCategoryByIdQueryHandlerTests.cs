@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 
@@ -11,13 +11,13 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Quer
 [Trait("Layer", "Application")]
 public class GetServiceCategoryByIdQueryHandlerTests
 {
-    private readonly Mock<IServiceCategoryRepository> _repositoryMock;
+    private readonly Mock<IServiceCategoryQueries> _queriesMock;
     private readonly GetServiceCategoryByIdQueryHandler _handler;
 
     public GetServiceCategoryByIdQueryHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new GetServiceCategoryByIdQueryHandler(_repositoryMock.Object);
+        _queriesMock = new Mock<IServiceCategoryQueries>();
+        _handler = new GetServiceCategoryByIdQueryHandler(_queriesMock.Object);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class GetServiceCategoryByIdQueryHandlerTests
             .Build();
         var query = new GetServiceCategoryByIdQuery(category.Id.Value);
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
 
@@ -44,7 +44,7 @@ public class GetServiceCategoryByIdQueryHandlerTests
         result.Value.Name.Should().Be("Limpeza");
         result.Value.Description.Should().Be("Serviços de limpeza");
 
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class GetServiceCategoryByIdQueryHandlerTests
         var categoryId = Guid.NewGuid();
         var query = new GetServiceCategoryByIdQuery(categoryId);
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory?)null);
 
@@ -65,6 +65,6 @@ public class GetServiceCategoryByIdQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
 
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

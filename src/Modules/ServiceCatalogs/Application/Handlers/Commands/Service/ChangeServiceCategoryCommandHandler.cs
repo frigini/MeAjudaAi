@@ -1,36 +1,58 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class ChangeServiceCategoryCommandHandler(
-    IServiceRepository serviceRepository,
-    IServiceCategoryRepository categoryRepository)
-    : ICommandHandler<ChangeServiceCategoryCommand, Result>
+public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<ChangeServiceCategoryCommand, Result>
 {
+    private readonly IUnitOfWork _uow;
+    private readonly IServiceQueries _serviceQueries;
+    private readonly IServiceCategoryQueries _categoryQueries;
+    private readonly ILogger<ChangeServiceCategoryCommandHandler> _logger;
+
+    public ChangeServiceCategoryCommandHandler(
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceQueries serviceQueries,
+        IServiceCategoryQueries categoryQueries,
+        ILogger<ChangeServiceCategoryCommandHandler> logger)
+    {
+        _uow = uow;
+        _serviceQueries = serviceQueries;
+        _categoryQueries = categoryQueries;
+        _logger = logger;
+    }
+
     public async Task<Result> HandleAsync(ChangeServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
+        var uow = _uow;
+        var serviceQueries = _serviceQueries;
+        var categoryQueries = _categoryQueries;
         try
         {
             if (request.ServiceId == Guid.Empty)
-                return Result.Failure("O ID do serviço não pode ser vazio.");
+                throw new UnprocessableEntityException("O ID do serviço não pode ser vazio.", "ServiceId");
 
             if (request.NewCategoryId == Guid.Empty)
-                return Result.Failure("O ID da nova categoria não pode ser vazio.");
+                throw new UnprocessableEntityException("O ID da nova categoria não pode ser vazio.", "NewCategoryId");
 
             var serviceId = ServiceId.From(request.ServiceId);
-            var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
+            var service = await uow.GetRepository<Domain.Entities.Service, ServiceId>().TryFindAsync(serviceId, cancellationToken);
 
             if (service is null)
                 return Result.Failure(Error.NotFound($"Serviço com ID '{request.ServiceId}' não encontrado."));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
-            var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
+            var newCategory = await categoryQueries.GetByIdAsync(newCategoryId, cancellationToken);
 
             if (newCategory is null)
                 throw new UnprocessableEntityException(
@@ -43,7 +65,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
                     "ServiceCategory");
 
             // Garantir que o nome ainda é único na categoria de destino
-            if (await serviceRepository.ExistsWithNameAsync(
+            if (await serviceQueries.ExistsWithNameAsync(
                     service.Name,
                     service.Id,
                     newCategoryId,
@@ -55,13 +77,26 @@ public sealed class ChangeServiceCategoryCommandHandler(
 
             service.ChangeCategory(newCategoryId);
 
-            await serviceRepository.UpdateAsync(service, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (CatalogDomainException ex)
         {
             return Result.Failure(ex.Message);
+        }
+        catch (UnprocessableEntityException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ocorreu um erro inesperado ao alterar a categoria do serviço.");
+            return Result.Failure("Ocorreu um erro inesperado ao alterar a categoria do serviço.");
         }
     }
 }

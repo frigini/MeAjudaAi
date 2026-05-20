@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 
@@ -12,13 +12,13 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Quer
 [Trait("Layer", "Application")]
 public class GetServiceByIdQueryHandlerTests
 {
-    private readonly Mock<IServiceRepository> _repositoryMock;
+    private readonly Mock<IServiceQueries> _queriesMock;
     private readonly GetServiceByIdQueryHandler _handler;
 
     public GetServiceByIdQueryHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceRepository>();
-        _handler = new GetServiceByIdQueryHandler(_repositoryMock.Object);
+        _queriesMock = new Mock<IServiceQueries>();
+        _handler = new GetServiceByIdQueryHandler(_queriesMock.Object);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class GetServiceByIdQueryHandlerTests
             .Build();
         var query = new GetServiceByIdQuery(service.Id.Value);
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
@@ -48,7 +48,7 @@ public class GetServiceByIdQueryHandlerTests
         result.Value.Name.Should().Be("Limpeza de Piscina");
         result.Value.Description.Should().Be("Limpeza profunda de piscina");
 
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class GetServiceByIdQueryHandlerTests
         var serviceId = Guid.NewGuid();
         var query = new GetServiceByIdQuery(serviceId);
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
@@ -69,6 +69,6 @@ public class GetServiceByIdQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
 
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

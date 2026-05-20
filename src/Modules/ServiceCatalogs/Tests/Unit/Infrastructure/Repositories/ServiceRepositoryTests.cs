@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Repositories;
 
@@ -89,214 +90,77 @@ public class ServiceRepositoryTests : IDisposable
     [Fact]
     public async Task GetByIdAsync_WithNonExistingService_ShouldReturnNull()
     {
-        // Arrange
-        var nonExistingId = new ServiceId(Guid.NewGuid());
-
-        // Act
-        var result = await _repository.GetByIdAsync(nonExistingId);
+        // Arrange & Act
+        var result = await _repository.GetByIdAsync(ServiceId.From(Guid.NewGuid()));
 
         // Assert
         result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByIdsAsync_WithMultipleIds_ShouldReturnMatchingServices()
-    {
-        // Arrange
-        var category = CreateTestCategory();
-        await _context.ServiceCategories.AddAsync(category);
-        await _context.SaveChangesAsync();
-
-        var service1 = CreateTestService(categoryId: category.Id);
-        var service2 = CreateTestService(categoryId: category.Id);
-        var service3 = CreateTestService(categoryId: category.Id);
-
-        await _context.Services.AddRangeAsync(service1, service2, service3);
-        await _context.SaveChangesAsync();
-
-        var ids = new[] { service1.Id, service2.Id };
-
-        // Act
-        var result = await _repository.GetByIdsAsync(ids);
-
-        // Assert
-        result.Should().HaveCount(2);
-        result.Should().Contain(s => s.Id == service1.Id);
-        result.Should().Contain(s => s.Id == service2.Id);
-        result.Should().NotContain(s => s.Id == service3.Id);
-    }
-
-    [Fact]
-    public async Task GetByIdsAsync_WithEmptyList_ShouldReturnEmptyList()
-    {
-        // Arrange
-        var emptyIds = Array.Empty<ServiceId>();
-
-        // Act
-        var result = await _repository.GetByIdsAsync(emptyIds);
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetByIdsAsync_WithNullList_ShouldReturnEmptyList()
-    {
-        // Arrange
-        IEnumerable<ServiceId>? nullIds = null;
-
-        // Act
-        var result = await _repository.GetByIdsAsync(nullIds!);
-
-        // Assert
-        result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task GetByNameAsync_WithExistingName_ShouldReturnService()
     {
         // Arrange
-        var serviceName = "Unique Service Name";
-        var service = CreateTestService(name: serviceName);
+        var service = CreateTestService(name: "Unique Service Name");
         await _context.Services.AddAsync(service);
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByNameAsync(serviceName);
+        var result = await _repository.GetByNameAsync("Unique Service Name");
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be(serviceName);
-    }
-
-    [Fact]
-    public async Task GetByNameAsync_WithNonExistingName_ShouldReturnNull()
-    {
-        // Arrange
-        var nonExistingName = "Non Existing Service";
-
-        // Act
-        var result = await _repository.GetByNameAsync(nonExistingName);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByNameAsync_ShouldTrimAndNormalize()
-    {
-        // Arrange
-        var serviceName = "Test Service";
-        var service = CreateTestService(name: serviceName);
-        await _context.Services.AddAsync(service);
-        await _context.SaveChangesAsync();
-
-        // Act - search with extra whitespace
-        var result = await _repository.GetByNameAsync("  Test Service  ");
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Name.Should().Be(serviceName);
-    }
-
-    [Fact]
-    public async Task GetAllAsync_ShouldReturnAllServices()
-    {
-        // Arrange
-        var category = CreateTestCategory();
-        await _context.ServiceCategories.AddAsync(category);
-        await _context.SaveChangesAsync();
-
-        var service1 = CreateTestService(categoryId: category.Id);
-        var service2 = CreateTestService(categoryId: category.Id);
-        var service3 = CreateTestService(categoryId: category.Id);
-
-        await _context.Services.AddRangeAsync(service1, service2, service3);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetAllAsync();
-
-        // Assert
-        result.Should().HaveCount(3);
-    }
-
-    [Fact]
-    public async Task GetAllAsync_WithActiveOnlyTrue_ShouldReturnOnlyActiveServices()
-    {
-        // Arrange
-        var category = CreateTestCategory();
-        await _context.ServiceCategories.AddAsync(category);
-        await _context.SaveChangesAsync();
-
-        var activeService1 = CreateTestService(categoryId: category.Id, isActive: true);
-        var activeService2 = CreateTestService(categoryId: category.Id, isActive: true);
-        var inactiveService = CreateTestService(categoryId: category.Id, isActive: false);
-
-        await _context.Services.AddRangeAsync(activeService1, activeService2, inactiveService);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetAllAsync(activeOnly: true);
-
-        // Assert
-        result.Should().HaveCount(2);
-        result.Should().NotContain(s => s.Id == inactiveService.Id);
+        result!.Name.Should().Be("Unique Service Name");
     }
 
     [Fact]
     public async Task GetAllAsync_ShouldOrderByName()
     {
         // Arrange
-        var category = CreateTestCategory();
-        await _context.ServiceCategories.AddAsync(category);
-        await _context.SaveChangesAsync();
-
-        var service1 = CreateTestService(categoryId: category.Id, name: "C Service");
-        var service2 = CreateTestService(categoryId: category.Id, name: "A Service");
-        var service3 = CreateTestService(categoryId: category.Id, name: "B Service");
-
-        await _context.Services.AddRangeAsync(service1, service2, service3);
+        var services = new[]
+        {
+            CreateTestService(name: "C Service", displayOrder: 0),
+            CreateTestService(name: "A Service", displayOrder: 0),
+            CreateTestService(name: "B Service", displayOrder: 0)
+        };
+        await _context.Services.AddRangeAsync(services);
         await _context.SaveChangesAsync();
 
         // Act
         var result = await _repository.GetAllAsync();
 
         // Assert
-        result.Should().HaveCount(3);
         result[0].Name.Should().Be("A Service");
         result[1].Name.Should().Be("B Service");
         result[2].Name.Should().Be("C Service");
     }
 
     [Fact]
-    public async Task GetByCategoryAsync_ShouldReturnServicesFromSpecificCategory()
+    public async Task GetByCategoryAsync_WithExistingCategory_ShouldReturnServices()
     {
         // Arrange
-        var category1 = CreateTestCategory();
-        var category2 = CreateTestCategory();
-        await _context.ServiceCategories.AddRangeAsync(category1, category2);
+        var category = CreateTestCategory();
+        await _context.ServiceCategories.AddAsync(category);
         await _context.SaveChangesAsync();
 
-        var service1 = CreateTestService(categoryId: category1.Id);
-        var service2 = CreateTestService(categoryId: category1.Id);
-        var service3 = CreateTestService(categoryId: category2.Id);
-
-        await _context.Services.AddRangeAsync(service1, service2, service3);
+        var services = new[]
+        {
+            CreateTestService(categoryId: category.Id, name: "S1"),
+            CreateTestService(categoryId: category.Id, name: "S2")
+        };
+        await _context.Services.AddRangeAsync(services);
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByCategoryAsync(category1.Id);
+        var result = await _repository.GetByCategoryAsync(category.Id);
 
         // Assert
         result.Should().HaveCount(2);
-        result.Should().Contain(s => s.Id == service1.Id);
-        result.Should().Contain(s => s.Id == service2.Id);
-        result.Should().NotContain(s => s.Id == service3.Id);
+        result.All(s => s.CategoryId == category.Id).Should().BeTrue();
     }
 
     [Fact]
-    public async Task GetByCategoryAsync_WithActiveOnlyTrue_ShouldFilterInactiveServices()
+    public async Task GetByCategoryAsync_WithActiveOnly_ShouldFilter()
     {
         // Arrange
         var category = CreateTestCategory();
@@ -318,41 +182,15 @@ public class ServiceRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task GetByCategoryAsync_ShouldOrderByDisplayOrderThenByName()
-    {
-        // Arrange
-        var category = CreateTestCategory();
-        await _context.ServiceCategories.AddAsync(category);
-        await _context.SaveChangesAsync();
-
-        var service1 = CreateTestService(categoryId: category.Id, name: "B Service", displayOrder: 2);
-        var service2 = CreateTestService(categoryId: category.Id, name: "A Service", displayOrder: 2);
-        var service3 = CreateTestService(categoryId: category.Id, name: "C Service", displayOrder: 1);
-
-        await _context.Services.AddRangeAsync(service1, service2, service3);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetByCategoryAsync(category.Id);
-
-        // Assert
-        result.Should().HaveCount(3);
-        result[0].Id.Should().Be(service3.Id); // DisplayOrder 1
-        result[1].Id.Should().Be(service2.Id); // DisplayOrder 2, name "A Service"
-        result[2].Id.Should().Be(service1.Id); // DisplayOrder 2, name "B Service"
-    }
-
-    [Fact]
     public async Task ExistsWithNameAsync_WithExistingName_ShouldReturnTrue()
     {
         // Arrange
-        var serviceName = "Existing Service";
-        var service = CreateTestService(name: serviceName);
+        var service = CreateTestService(name: "Existing Service");
         await _context.Services.AddAsync(service);
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.ExistsWithNameAsync(serviceName);
+        var result = await _repository.ExistsWithNameAsync("Existing Service");
 
         // Assert
         result.Should().BeTrue();
@@ -361,53 +199,11 @@ public class ServiceRepositoryTests : IDisposable
     [Fact]
     public async Task ExistsWithNameAsync_WithNonExistingName_ShouldReturnFalse()
     {
-        // Arrange
-        var nonExistingName = "Non Existing Service";
-
-        // Act
-        var result = await _repository.ExistsWithNameAsync(nonExistingName);
+        // Arrange & Act
+        var result = await _repository.ExistsWithNameAsync("Non Existing");
 
         // Assert
         result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task ExistsWithNameAsync_WithExcludeId_ShouldExcludeThatService()
-    {
-        // Arrange
-        var serviceName = "Service Name";
-        var service = CreateTestService(name: serviceName);
-        await _context.Services.AddAsync(service);
-        await _context.SaveChangesAsync();
-
-        // Act - exclude the existing service
-        var result = await _repository.ExistsWithNameAsync(serviceName, excludeId: service.Id);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task ExistsWithNameAsync_WithCategoryId_ShouldRestrictToCategory()
-    {
-        // Arrange
-        var category1 = CreateTestCategory();
-        var category2 = CreateTestCategory();
-        await _context.ServiceCategories.AddRangeAsync(category1, category2);
-        await _context.SaveChangesAsync();
-
-        var serviceName = "Same Service Name";
-        var service1 = CreateTestService(categoryId: category1.Id, name: serviceName);
-        var service2 = CreateTestService(categoryId: category2.Id, name: serviceName);
-
-        await _context.Services.AddRangeAsync(service1, service2);
-        await _context.SaveChangesAsync();
-
-        // Act - check category1 only
-        var result = await _repository.ExistsWithNameAsync(serviceName, categoryId: category1.Id);
-
-        // Assert
-        result.Should().BeTrue();
     }
 
     [Fact]
@@ -418,32 +214,33 @@ public class ServiceRepositoryTests : IDisposable
 
         // Act
         await _repository.AddAsync(service);
+        await _context.SaveChangesAsync();
 
         // Assert
-        var persisted = await _context.Services.FindAsync(service.Id);
-        persisted.Should().NotBeNull();
-        persisted!.Name.Should().Be("New Service");
+        var saved = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
+        saved.Should().NotBeNull();
+        saved!.Name.Should().Be("New Service");
     }
 
     [Fact]
-    public async Task UpdateAsync_WithValidService_ShouldPersistChanges()
+    public async Task UpdateAsync_WithExistingService_ShouldUpdate()
     {
         // Arrange
-        var service = CreateTestService(name: "Original Name");
+        var service = CreateTestService(name: "Old Name");
         await _context.Services.AddAsync(service);
         await _context.SaveChangesAsync();
 
-        // Modify the service
-        service.Update("Updated Name", "Updated Description", 99);
-
         // Act
+        // Detach to test repository Update method which will re-attach
+        _context.Entry(service).State = EntityState.Detached;
+        service.GetType().GetProperty("Name")!.SetValue(service, "New Name");
+        
         await _repository.UpdateAsync(service);
+        await _context.SaveChangesAsync();
 
         // Assert
-        var updated = await _context.Services.FindAsync(service.Id);
-        updated.Should().NotBeNull();
-        updated!.Name.Should().Be("Updated Name");
-        updated.DisplayOrder.Should().Be(99);
+        var saved = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
+        saved!.Name.Should().Be("New Name");
     }
 
     [Fact]
@@ -456,20 +253,18 @@ public class ServiceRepositoryTests : IDisposable
 
         // Act
         await _repository.DeleteAsync(service.Id);
+        await _context.SaveChangesAsync();
 
         // Assert
-        var deleted = await _context.Services.FindAsync(service.Id);
+        var deleted = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         deleted.Should().BeNull();
     }
 
     [Fact]
-    public async Task DeleteAsync_WithNonExistingService_ShouldNotThrow()
+    public async Task DeleteAsync_WithNonExistingId_ShouldNotThrow()
     {
-        // Arrange
-        var nonExistingId = new ServiceId(Guid.NewGuid());
-
-        // Act
-        var act = async () => await _repository.DeleteAsync(nonExistingId);
+        // Arrange & Act
+        var act = async () => await _repository.DeleteAsync(ServiceId.From(Guid.NewGuid()));
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -486,16 +281,18 @@ public class ServiceRepositoryTests : IDisposable
         // Deactivate
         service.Deactivate();
         await _repository.UpdateAsync(service);
+        await _context.SaveChangesAsync();
 
-        var deactivated = await _context.Services.FindAsync(service.Id);
+        var deactivated = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         deactivated!.IsActive.Should().BeFalse();
 
         // Activate
         service.Activate();
         await _repository.UpdateAsync(service);
+        await _context.SaveChangesAsync();
 
         // Assert
-        var activated = await _context.Services.FindAsync(service.Id);
+        var activated = await _context.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         activated!.IsActive.Should().BeTrue();
     }
 

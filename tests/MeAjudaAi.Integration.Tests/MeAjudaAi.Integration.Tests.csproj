@@ -56,6 +56,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
+    <ProjectReference Include="..\MeAjudaAi.E2E.Tests\MeAjudaAi.E2E.Tests.csproj" />
     <ProjectReference Include="..\..\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
     <ProjectReference Include="..\..\src\Modules\Bookings\API\MeAjudaAi.Modules.Bookings.API.csproj" />

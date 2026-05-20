@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Shared.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Domain = MeAjudaAi.Modules.ServiceCatalogs.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
@@ -73,9 +74,11 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         var category = await CreateServiceCategoryAsync("Category");
         var activeService = await CreateServiceAsync(category.Id, "Active Service");
         var inactiveService = await CreateServiceAsync(category.Id, "Inactive Service");
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         inactiveService.Deactivate();
         await _repository.UpdateAsync(inactiveService);
+        await dbContext.SaveChangesAsync();
 
         // Act
         var result = await _repository.GetAllAsync(activeOnly: true);
@@ -136,12 +139,14 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         // Arrange
         var category = await CreateServiceCategoryAsync("Category");
         var service = Domain.Entities.Service.Create(category.Id, "New Service", "New Description", 10);
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         await _repository.AddAsync(service);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedService = await _repository.GetByIdAsync(service.Id);
+        var retrievedService = await dbContext.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         retrievedService.Should().NotBeNull();
         retrievedService!.Name.Should().Be("New Service");
     }
@@ -152,13 +157,15 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         // Arrange
         var category = await CreateServiceCategoryAsync("Category");
         var service = await CreateServiceAsync(category.Id, "Original Name");
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         service.Update("Updated Name", "Updated Description", 5);
         await _repository.UpdateAsync(service);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedService = await _repository.GetByIdAsync(service.Id);
+        var retrievedService = await dbContext.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         retrievedService.Should().NotBeNull();
         retrievedService!.Name.Should().Be("Updated Name");
         retrievedService.Description.Should().Be("Updated Description");
@@ -171,12 +178,14 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         // Arrange
         var category = await CreateServiceCategoryAsync("Category");
         var service = await CreateServiceAsync(category.Id, "To Be Deleted");
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         await _repository.DeleteAsync(service.Id);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedService = await _repository.GetByIdAsync(service.Id);
+        var retrievedService = await dbContext.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         retrievedService.Should().BeNull();
     }
 
@@ -187,13 +196,15 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         var category1 = await CreateServiceCategoryAsync("Category 1");
         var category2 = await CreateServiceCategoryAsync("Category 2");
         var service = await CreateServiceAsync(category1.Id, "Test Service");
+        var dbContext = GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Act
         service.ChangeCategory(category2.Id);
         await _repository.UpdateAsync(service);
+        await dbContext.SaveChangesAsync();
 
         // Assert
-        var retrievedService = await _repository.GetByIdAsync(service.Id);
+        var retrievedService = await dbContext.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == service.Id);
         retrievedService.Should().NotBeNull();
         retrievedService!.CategoryId.Should().Be(category2.Id);
     }

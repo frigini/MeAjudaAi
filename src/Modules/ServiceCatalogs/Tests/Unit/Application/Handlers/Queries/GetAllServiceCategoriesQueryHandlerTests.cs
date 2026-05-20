@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Queries;
@@ -10,13 +10,13 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Quer
 [Trait("Layer", "Application")]
 public class GetAllServiceCategoriesQueryHandlerTests
 {
-    private readonly Mock<IServiceCategoryRepository> _repositoryMock;
+    private readonly Mock<IServiceCategoryQueries> _queriesMock;
     private readonly GetAllServiceCategoriesQueryHandler _handler;
 
     public GetAllServiceCategoriesQueryHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceCategoryRepository>();
-        _handler = new GetAllServiceCategoriesQueryHandler(_repositoryMock.Object);
+        _queriesMock = new Mock<IServiceCategoryQueries>();
+        _handler = new GetAllServiceCategoriesQueryHandler(_queriesMock.Object);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class GetAllServiceCategoriesQueryHandlerTests
             new ServiceCategoryBuilder().WithName("Pintura").Build()
         };
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
@@ -45,7 +45,7 @@ public class GetAllServiceCategoriesQueryHandlerTests
         result.Value.Should().Contain(c => c.Name == "Reparos");
         result.Value.Should().Contain(c => c.Name == "Pintura");
 
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class GetAllServiceCategoriesQueryHandlerTests
             new ServiceCategoryBuilder().WithName("Reparos").AsActive().Build()
         };
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categories);
 
@@ -71,7 +71,7 @@ public class GetAllServiceCategoriesQueryHandlerTests
         result.Value.Should().HaveCount(2);
         result.Value.Should().OnlyContain(c => c.IsActive);
 
-        _repositoryMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class GetAllServiceCategoriesQueryHandlerTests
         // Arrange
         var query = new GetAllServiceCategoriesQuery(ActiveOnly: false);
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory>());
 
@@ -91,6 +91,6 @@ public class GetAllServiceCategoriesQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _repositoryMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.GetAllAsync(false, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -1,30 +1,39 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 
-public sealed class ServiceCategoryRepository(ServiceCatalogsDbContext context) : IServiceCategoryRepository
+public sealed class ServiceCategoryRepository : IServiceCategoryRepository
 {
+    private readonly ServiceCatalogsDbContext _context;
+
+    public ServiceCategoryRepository(ServiceCatalogsDbContext context)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
+
     public async Task<ServiceCategory?> GetByIdAsync(ServiceCategoryId id, CancellationToken cancellationToken = default)
     {
-        return await context.ServiceCategories
-            .AsNoTracking()
+        return await _context.ServiceCategories
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<ServiceCategory?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        var normalized = name?.Trim() ?? string.Empty;
-        return await context.ServiceCategories
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Name == normalized, cancellationToken);
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        var normalizedName = name.Trim().ToLower();
+        return await _context.ServiceCategories
+            .FirstOrDefaultAsync(c => c.Name.ToLower() == normalizedName, cancellationToken);
     }
 
     public async Task<IReadOnlyList<ServiceCategory>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        var query = context.ServiceCategories.AsQueryable();
+        var query = _context.ServiceCategories.AsQueryable();
 
         if (activeOnly)
             query = query.Where(c => c.IsActive);
@@ -37,8 +46,11 @@ public sealed class ServiceCategoryRepository(ServiceCatalogsDbContext context) 
 
     public async Task<bool> ExistsWithNameAsync(string name, ServiceCategoryId? excludeId = null, CancellationToken cancellationToken = default)
     {
-        var normalized = name?.Trim() ?? string.Empty;
-        var query = context.ServiceCategories.Where(c => c.Name == normalized);
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        var normalizedName = name.Trim().ToLower();
+        var query = _context.ServiceCategories.Where(c => c.Name.ToLower() == normalizedName);
 
         if (excludeId is not null)
             query = query.Where(c => c.Id != excludeId);
@@ -48,26 +60,21 @@ public sealed class ServiceCategoryRepository(ServiceCatalogsDbContext context) 
 
     public async Task AddAsync(ServiceCategory category, CancellationToken cancellationToken = default)
     {
-        await context.ServiceCategories.AddAsync(category, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await _context.ServiceCategories.AddAsync(category, cancellationToken);
     }
 
     public async Task UpdateAsync(ServiceCategory category, CancellationToken cancellationToken = default)
     {
-        context.ServiceCategories.Update(category);
-        await context.SaveChangesAsync(cancellationToken);
+        _context.ServiceCategories.Update(category);
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(ServiceCategoryId id, CancellationToken cancellationToken = default)
     {
-        // For delete, we need to track the entity, so don't use AsNoTracking
-        var category = await context.ServiceCategories
-            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-
+        var category = await GetByIdAsync(id, cancellationToken);
         if (category is not null)
         {
-            context.ServiceCategories.Remove(category);
-            await context.SaveChangesAsync(cancellationToken);
+            _context.ServiceCategories.Remove(category);
         }
     }
 }

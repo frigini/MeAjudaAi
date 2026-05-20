@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Repositories;
 
@@ -252,6 +253,7 @@ public class ServiceCategoryRepositoryTests : IDisposable
 
         // Act
         await _repository.AddAsync(category);
+        await _context.SaveChangesAsync();
 
         // Assert
         var persisted = await _context.ServiceCategories.FindAsync(category.Id);
@@ -272,6 +274,7 @@ public class ServiceCategoryRepositoryTests : IDisposable
 
         // Act
         await _repository.UpdateAsync(category);
+        await _context.SaveChangesAsync();
 
         // Assert
         var updated = await _context.ServiceCategories.FindAsync(category.Id);
@@ -290,6 +293,7 @@ public class ServiceCategoryRepositoryTests : IDisposable
 
         // Act
         await _repository.DeleteAsync(category.Id);
+        await _context.SaveChangesAsync();
 
         // Assert
         var deleted = await _context.ServiceCategories.FindAsync(category.Id);
@@ -320,6 +324,7 @@ public class ServiceCategoryRepositoryTests : IDisposable
         // Deactivate
         category.Deactivate();
         await _repository.UpdateAsync(category);
+        await _context.SaveChangesAsync();
 
         var deactivated = await _context.ServiceCategories.FindAsync(category.Id);
         deactivated!.IsActive.Should().BeFalse();
@@ -327,6 +332,7 @@ public class ServiceCategoryRepositoryTests : IDisposable
         // Activate
         category.Activate();
         await _repository.UpdateAsync(category);
+        await _context.SaveChangesAsync();
 
         // Assert
         var activated = await _context.ServiceCategories.FindAsync(category.Id);
