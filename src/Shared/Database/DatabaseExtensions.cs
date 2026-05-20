@@ -24,12 +24,24 @@ public static class DatabaseExtensions
             .Configure(opts =>
             {
                 // Tenta múltiplas fontes de string de conexão em ordem de preferência
-                opts.ConnectionString =
-                    configuration.GetConnectionString("DefaultConnection") ??  // Sobrescrita para testes
-                    configuration.GetConnectionString("meajudaai-db-local") ??  // Aspire para testes
-                    configuration.GetConnectionString("meajudaai-db") ??        // Aspire para desenvolvimento
-                    configuration["Postgres:ConnectionString"] ??              // Configuração manual
-                    string.Empty;
+                var conn = configuration.GetConnectionString("DefaultConnection") ?? 
+                           configuration.GetConnectionString("meajudaai-db-local") ??
+                           configuration.GetConnectionString("meajudaai-db") ??
+                           configuration["Postgres:ConnectionString"];
+
+                if (string.IsNullOrEmpty(conn))
+                {
+                    var envName = environment?.EnvironmentName ?? 
+                                  Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
+                                  Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                    
+                    if (envName == EnvironmentNames.Testing)
+                    {
+                        conn = "Host=localhost;Database=dummy;Username=postgres;Password=postgres";
+                    }
+                }
+                opts.ConnectionString = conn ?? string.Empty;
+                Console.WriteLine($"[DEBUG] Postgres ConnectionString resolved: {opts.ConnectionString}");
             });
 
         // Só valida a connection string em ambientes que não sejam Testing
@@ -45,23 +57,12 @@ public static class DatabaseExtensions
 
         if (!isTestingEnvironment)
         {
-            services.Configure<PostgresOptions>(opts =>
+            services.PostConfigure<PostgresOptions>(opts =>
             {
                 if (string.IsNullOrEmpty(opts.ConnectionString))
                 {
                     throw new InvalidOperationException(
                         "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
-                }
-            });
-        }
-        else
-        {
-            // Em testes, se não houver conexão, provê um connection string dummy para evitar falha no DI
-            services.Configure<PostgresOptions>(opts =>
-            {
-                if (string.IsNullOrEmpty(opts.ConnectionString))
-                {
-                    opts.ConnectionString = "Host=localhost;Database=dummy;Username=postgres;Password=postgres";
                 }
             });
         }
