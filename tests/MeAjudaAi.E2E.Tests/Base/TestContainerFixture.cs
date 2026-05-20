@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
@@ -313,13 +314,19 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<TContext>(services);
 
-        // Remove apenas o IUnitOfWork padrão, se houver, e registra o novo para este contexto.
-        // Isso ainda pode ser agressivo, mas menos que antes.
-        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService);
-        if (descriptor != null) services.Remove(descriptor);
+        // Remove apenas o IUnitOfWork caso ele seja registrado anteriormente sem key (global)
+        // Usamos uma estratégia que preserva os keyed services existentes.
+        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
+        foreach (var descriptor in descriptorsToRemove)
+        {
+            services.Remove(descriptor);
+        }
 
-        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        // Registra o keyed service que será injetado nos handlers
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        
+        // Registra como IUnitOfWork padrão apenas se não houver um ainda (para manter compatibilidade)
+        services.TryAddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
