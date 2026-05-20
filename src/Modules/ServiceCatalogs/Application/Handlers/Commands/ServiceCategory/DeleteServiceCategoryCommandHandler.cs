@@ -53,9 +53,13 @@ public sealed class DeleteServiceCategoryCommandHandler : ICommandHandler<Delete
 
             return Result.Success();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ocorreu um erro inesperado ao excluir a categoria de serviço.");
+            _logger.LogError(ex, "An unexpected error occurred while deleting the service category.");
             return Result.Failure("Ocorreu um erro inesperado ao excluir a categoria de serviço.");
         }
     }

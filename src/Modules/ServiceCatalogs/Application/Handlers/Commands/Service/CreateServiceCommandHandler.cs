@@ -94,10 +94,23 @@ public sealed class CreateServiceCommandHandler : ICommandHandler<CreateServiceC
         {
             return Result<ServiceDto>.Failure(ex.Message);
         }
+        catch (UnprocessableEntityException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (ValidationException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ocorreu um erro inesperado ao criar o serviço.");
-            return Result<ServiceDto>.Failure("An unexpected error occurred.");
+            _logger.LogError(ex, "An unexpected error occurred while creating the service.");
+            return Result<ServiceDto>.Failure("Ocorreu um erro inesperado ao criar o serviço.");
         }
+
     }
 }

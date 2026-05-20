@@ -43,9 +43,13 @@ public sealed class DeactivateServiceCategoryCommandHandler : ICommandHandler<De
 
             return Result.Success();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ocorreu um erro inesperado ao desativar a categoria de serviço.");
+            _logger.LogError(ex, "Unexpected error while deactivating service category.");
             return Result.Failure("Ocorreu um erro inesperado ao desativar a categoria de serviço.");
         }
     }

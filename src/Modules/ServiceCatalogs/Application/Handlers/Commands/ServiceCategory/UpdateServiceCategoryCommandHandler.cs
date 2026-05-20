@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -61,13 +62,17 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         {
             throw;
         }
-        catch (CatalogDomainException)
+        catch (CatalogDomainException ex)
+        {
+            return Result.Failure(ex.Message);
+        }
+        catch (ValidationException)
         {
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
+            _logger.LogError(ex, "An unexpected error occurred while updating the service category.");
             return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
         }
     }

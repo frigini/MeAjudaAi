@@ -60,14 +60,22 @@ public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceC
 
             return Result.Success();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (CatalogDomainException ex)
         {
             return Result.Failure(ex.Message);
         }
+        catch (ValidationException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error in UpdateServiceCommandHandler");
-            return Result.Failure("An unexpected error occurred.");
+            _logger.LogError(ex, "An unexpected error occurred while updating the service.");
+            return Result.Failure("Ocorreu um erro inesperado.");
         }
     }
 }
