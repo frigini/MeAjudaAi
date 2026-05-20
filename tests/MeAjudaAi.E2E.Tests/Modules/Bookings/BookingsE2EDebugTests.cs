@@ -14,16 +14,18 @@ public class BookingsE2EDebugTests : BaseTestContainerTest
         AuthenticateAsAdmin();
         var client = ApiClient;
         
-        // 1. Create a category to deactivate
+        // 1. Create a category
         var categoryRequest = new { Name = $"Cat_{Guid.NewGuid():N}", Description = "Desc", DisplayOrder = 1 };
         var catResponse = await client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest);
-        if (catResponse.Headers.Location == null)
+        
+        if (catResponse.StatusCode != System.Net.HttpStatusCode.Created)
         {
             var content = await catResponse.Content.ReadAsStringAsync();
             throw new Exception($"DEBUG: Category creation failed. Status: {catResponse.StatusCode}. Content: {content}");
         }
-        var catId = TestContainerFixture.ExtractIdFromLocation(catResponse.Headers.Location.ToString());
+        var catId = TestContainerFixture.ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
         
+        // 2. Create a service
         var svcResponse = await client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = $"Svc_{Guid.NewGuid():N}", categoryId = catId });
         if (svcResponse.Headers.Location == null)
         {
@@ -32,19 +34,19 @@ public class BookingsE2EDebugTests : BaseTestContainerTest
         }
         var serviceId = TestContainerFixture.ExtractIdFromLocation(svcResponse.Headers.Location.ToString());
 
-        // 2. Criar uma reserva
+        // 3. Criar uma reserva
         var startTime = DateTime.UtcNow.AddDays(2).Date.AddHours(10);
         var endTime = startTime.AddHours(1); // 1 hora de duração
         var bookingRequest = new { ServiceId = serviceId, ClientId = Guid.NewGuid(), StartTime = startTime, EndTime = endTime };
         
-        var response = await client.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
+        var bookingResponse = await client.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
         
-        if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        if (bookingResponse.StatusCode != System.Net.HttpStatusCode.Created)
         {
-            var content = await response.Content.ReadAsStringAsync();
-            throw new Exception($"DEBUG: Booking creation failed with {response.StatusCode}. Content: {content}");
+            var content = await bookingResponse.Content.ReadAsStringAsync();
+            throw new Exception($"DEBUG: Booking creation failed with {bookingResponse.StatusCode}. Content: {content}");
         }
         
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
+        bookingResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
     }
 }

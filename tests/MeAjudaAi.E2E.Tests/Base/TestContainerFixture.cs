@@ -344,6 +344,7 @@ public class TestContainerFixture : IAsyncLifetime
 
         services.AddDbContext<TContext>(options =>
         {
+            Console.WriteLine($"[DEBUG] Configuring DbContext {contextName} with ConnectionString: {PostgresConnectionString}");
             options.UseNpgsql(PostgresConnectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));

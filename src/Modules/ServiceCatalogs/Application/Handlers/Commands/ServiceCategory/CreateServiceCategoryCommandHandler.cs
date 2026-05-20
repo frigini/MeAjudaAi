@@ -76,7 +76,7 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while processing the request.");
+            _logger.LogError(ex, "An unexpected error occurred while processing the request: {Message}", ex.Message);
             return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao processar a solicitação.");
         }
     }

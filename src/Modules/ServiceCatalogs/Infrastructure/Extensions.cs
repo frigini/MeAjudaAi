@@ -82,6 +82,7 @@ public static class Extensions
         });
 
         // Configuração do Unit of Work e Queries
+        services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => sp.GetRequiredService<ServiceCatalogsDbContext>());
         

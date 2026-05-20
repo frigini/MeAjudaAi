@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,10 @@ public static class Extensions
                 m.MigrationsAssembly(typeof(BookingsDbContext).Assembly.FullName);
             });
         });
+
+        // Configuração do Unit of Work
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Bookings, (sp, key) => sp.GetRequiredService<BookingsDbContext>());
 
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IProviderScheduleRepository, ProviderScheduleRepository>();
