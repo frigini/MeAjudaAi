@@ -34,7 +34,10 @@ public static class Extensions
         services.AddScoped<IEventHandler<DocumentRejectedIntegrationEvent>, DocumentRejectedIntegrationEventHandler>();
 
         // Background Workers
-        services.AddHostedService<CommunicationsOutboxWorker>();
+        if (!Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.Equals("Testing", StringComparison.OrdinalIgnoreCase) ?? true)
+        {
+            services.AddHostedService<CommunicationsOutboxWorker>();
+        }
 
         return services;
     }
