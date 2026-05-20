@@ -15,6 +15,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,8 @@ public static class Extensions
 
         // Configuração do Unit of Work e Queries
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
 
