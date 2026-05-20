@@ -82,21 +82,16 @@ public static class ServiceCollectionExtensions
         return app;
     }
 
-    public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
+    public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app, IHostEnvironment environment)
     {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
-                         "Development";
-        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-
-        var isTestingEnvironment = environment == "Testing" ||
-                                 environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
-                                 integrationTests == "true" ||
-                                 integrationTests == "1";
-
         if (app is WebApplication webApp)
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
+            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+
+            var isTestingEnvironment = environment.IsEnvironment(EnvironmentNames.Testing) ||
+                                     integrationTests == "true" ||
+                                     integrationTests == "1";
 
             // Configure shared middleware (error handling, monitoring, Hangfire)
             ConfigureSharedMiddleware(app, configuration);

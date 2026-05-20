@@ -4,17 +4,30 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Functional;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
-public sealed class DeleteServiceCategoryCommandHandler(
-    IUnitOfWork uow,
-    IServiceQueries serviceQueries)
-    : ICommandHandler<DeleteServiceCategoryCommand, Result>
+public sealed class DeleteServiceCategoryCommandHandler : ICommandHandler<DeleteServiceCategoryCommand, Result>
 {
+    private readonly IUnitOfWork _uow;
+    private readonly IServiceQueries _serviceQueries;
+
+    public DeleteServiceCategoryCommandHandler(
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceQueries serviceQueries)
+    {
+        _uow = uow;
+        _serviceQueries = serviceQueries;
+    }
+
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
+        var uow = _uow;
+        var serviceQueries = _serviceQueries;
+        
         if (request.Id == Guid.Empty)
             return Result.Failure(ValidationMessages.Required.Id);
 

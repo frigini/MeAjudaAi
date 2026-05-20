@@ -5,17 +5,29 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Functional;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
-public sealed class UpdateServiceCategoryCommandHandler(
-    IUnitOfWork uow,
-    IServiceCategoryQueries categoryQueries)
-    : ICommandHandler<UpdateServiceCategoryCommand, Result>
+public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
+    private readonly IUnitOfWork _uow;
+    private readonly IServiceCategoryQueries _categoryQueries;
+
+    public UpdateServiceCategoryCommandHandler(
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceCategoryQueries categoryQueries)
+    {
+        _uow = uow;
+        _categoryQueries = categoryQueries;
+    }
+
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
+        var uow = _uow;
+        var categoryQueries = _categoryQueries;
         try
         {
             if (request.Id == Guid.Empty)
@@ -44,6 +56,10 @@ public sealed class UpdateServiceCategoryCommandHandler(
         catch (CatalogDomainException ex)
         {
             return Result.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure($"UNEXPECTED: {ex.Message}");
         }
     }
 }

@@ -1,21 +1,35 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class UpdateServiceCommandHandler(
-    IUnitOfWork uow,
-    IServiceQueries serviceQueries)
-    : ICommandHandler<UpdateServiceCommand, Result>
+public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceCommand, Result>
 {
+    private readonly IUnitOfWork _uow;
+    private readonly IServiceQueries _serviceQueries;
+
+    public UpdateServiceCommandHandler(
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceQueries serviceQueries)
+    {
+        _uow = uow;
+        _serviceQueries = serviceQueries;
+    }
+
     public async Task<Result> HandleAsync(UpdateServiceCommand request, CancellationToken cancellationToken = default)
     {
+        var uow = _uow;
+        var serviceQueries = _serviceQueries;
         try
         {
             if (request.Id == Guid.Empty)
@@ -45,6 +59,10 @@ public sealed class UpdateServiceCommandHandler(
         catch (CatalogDomainException ex)
         {
             return Result.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure($"UNEXPECTED: {ex.Message}");
         }
     }
 }

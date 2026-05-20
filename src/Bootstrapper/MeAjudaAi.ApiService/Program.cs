@@ -36,7 +36,9 @@ public partial class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
-            Console.WriteLine($"[DEBUG] Startup Environment: {builder.Environment.EnvironmentName}");
+            builder.Logging.Services.AddLogging(l => l.AddSerilog()); // Assuming logging is set up
+            var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+            logger.LogDebug("Startup Environment: {EnvironmentName}", builder.Environment.EnvironmentName);
 
             builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
 
@@ -146,7 +148,7 @@ if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("I
 
         app.MapDefaultEndpoints();
         // Configurar serviços e módulos
-        await app.UseSharedServicesAsync();
+        await app.UseSharedServicesAsync(app.Environment);
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
         app.UseProvidersModule();
