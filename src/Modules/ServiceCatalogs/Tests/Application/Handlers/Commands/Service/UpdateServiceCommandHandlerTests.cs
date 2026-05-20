@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -32,7 +33,7 @@ public class UpdateServiceCommandHandlerTests
         _uowMock.Setup(u => u.GetRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>())
             .Returns(_serviceRepositoryMock.Object);
             
-        _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object);
+        _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, NullLogger<UpdateServiceCommandHandler>.Instance);
     }
 
     [Fact]

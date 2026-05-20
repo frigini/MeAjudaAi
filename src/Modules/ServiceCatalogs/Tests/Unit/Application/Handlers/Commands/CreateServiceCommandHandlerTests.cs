@@ -7,8 +7,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
-
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using Xunit;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -33,7 +34,8 @@ public class CreateServiceCommandHandlerTests
         _handler = new CreateServiceCommandHandler(
             _uowMock.Object,
             _serviceQueriesMock.Object,
-            _categoryQueriesMock.Object);
+            _categoryQueriesMock.Object,
+            NullLogger<CreateServiceCommandHandler>.Instance);
     }
 
     [Fact]

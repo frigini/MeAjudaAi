@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -25,7 +26,7 @@ public class CreateServiceCategoryCommandHandlerTests
         _queriesMock = new Mock<IServiceCategoryQueries>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_repositoryMock.Object);
-        _handler = new CreateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object);
+        _handler = new CreateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object, NullLogger<CreateServiceCategoryCommandHandler>.Instance);
     }
 
     [Fact]
