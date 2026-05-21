@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database.Exceptions;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -143,8 +144,8 @@ public class GlobalExceptionHandler(
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "Erro Interno do Servidor",
-                env.IsDevelopment() 
-                    ? $"[{exception.GetType().Name}] {exception.Message} {(exception.InnerException != null ? exception.InnerException.Message : "")}"
+                (env.IsEnvironment(EnvironmentNames.Testing) || env.IsDevelopment())
+                    ? $"[{exception.GetType().Name}] {exception.Message} {exception.StackTrace}"
                     : "Ocorreu um erro inesperado",
                 null,
                 new Dictionary<string, object?>

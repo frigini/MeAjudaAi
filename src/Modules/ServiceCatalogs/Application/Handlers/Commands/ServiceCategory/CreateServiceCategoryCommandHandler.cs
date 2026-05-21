@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -10,7 +11,6 @@ using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ServiceCategoryEntity = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
@@ -30,6 +30,7 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         _logger = logger;
     }
 
+
     public async Task<Result<ServiceCategoryDto>> HandleAsync(CreateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         var uow = _uow;
@@ -41,13 +42,12 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Result<ServiceCategoryDto>.Failure("Category name is required.");
 
-            // Verificar se já existe categoria com o mesmo nome
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
                 return Result<ServiceCategoryDto>.Failure($"A category with name '{normalizedName}' already exists.");
 
-            var category = ServiceCategoryEntity.Create(normalizedName, request.Description, request.DisplayOrder);
+            var category = Domain.Entities.ServiceCategory.Create(normalizedName, request.Description, request.DisplayOrder);
 
-            uow.GetRepository<ServiceCategoryEntity, ServiceCategoryId>().Add(category);
+            uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().Add(category);
             await uow.SaveChangesAsync(cancellationToken);
 
             var dto = new ServiceCategoryDto(
@@ -61,7 +61,8 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
             );
 
             return Result<ServiceCategoryDto>.Success(dto);
-        }
+            }
+
         catch (OperationCanceledException)
         {
             throw;
@@ -76,7 +77,7 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while processing the request: {Message}", ex.Message);
+            _logger.LogError(ex, "An unexpected error occurred while processing the request.");
             return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao processar a solicitação.");
         }
     }

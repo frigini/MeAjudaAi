@@ -213,6 +213,10 @@ public class TestContainerFixture : IAsyncLifetime
 
                     ConfigureMockServices(services);
                     ReconfigureDbContexts(services);
+                    
+                    // Final, forceful registration: always ensure IUnitOfWork is registered for the modules
+                    services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
+                    services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => (IUnitOfWork)sp.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
                 });
             });
 
@@ -284,6 +288,7 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
@@ -312,21 +317,23 @@ public class TestContainerFixture : IAsyncLifetime
     private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services, string moduleKey)
         where TContext : DbContext
     {
+        Console.WriteLine($"[DEBUG] Reconfiguring DbContext for {typeof(TContext).Name} in collection: {services.GetHashCode()}");
+        
         ReconfigureDbContext<TContext>(services);
 
-        // Remove apenas o IUnitOfWork caso ele seja registrado anteriormente sem key (global)
-        // Usamos uma estratégia que preserva os keyed services existentes.
-        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
+        // Remove any existing IUnitOfWork registrations to avoid conflicts
+        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
         foreach (var descriptor in descriptorsToRemove)
         {
             services.Remove(descriptor);
         }
 
-        // Registra o keyed service que será injetado nos handlers
+        // Register both global (as default) and keyed IUnitOfWork
+        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
         
-        // Registra como IUnitOfWork padrão apenas se não houver um ainda (para manter compatibilidade)
-        services.TryAddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        // Final attempt: Singleton registration as fallback
+        services.AddSingleton<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
@@ -375,6 +382,7 @@ public class TestContainerFixture : IAsyncLifetime
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>());
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -399,6 +407,7 @@ public class TestContainerFixture : IAsyncLifetime
         await CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
+        await CleanupContext<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services);
 
         if (_redisContainer != null)
         {
