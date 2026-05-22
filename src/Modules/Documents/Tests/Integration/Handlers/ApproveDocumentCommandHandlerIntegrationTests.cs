@@ -27,7 +27,7 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
 {
     private readonly PostgreSqlContainer _postgresContainer;
     private DocumentsDbContext? _dbContext;
-    private IUnitOfWork? _uow;
+    private IDocumentsUnitOfWork? _uow;
     private IDocumentQueries? _queries;
     private ApproveDocumentCommandHandler? _handler;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;

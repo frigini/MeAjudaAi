@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class RequestVerificationCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IRepository<Document, Guid>> _mockRepo;
     private readonly Mock<IRepository<OutboxMessage, Guid>> _mockOutboxRepo;
     private readonly Mock<IDocumentQueries> _mockQueries;
@@ -28,7 +28,7 @@ public class RequestVerificationCommandHandlerTests
 
     public RequestVerificationCommandHandlerTests()
     {
-        _mockUow = new Mock<IUnitOfWork>();
+        _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockRepo = new Mock<IRepository<Document, Guid>>();
         _mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
         _mockQueries = new Mock<IDocumentQueries>();

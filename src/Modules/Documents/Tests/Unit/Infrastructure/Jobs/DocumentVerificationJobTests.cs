@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Jobs;
 
 public class DocumentVerificationJobTests
 {
-    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IRepository<Document, Guid>> _mockRepo;
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IDocumentIntelligenceService> _mockIntelligenceService;
@@ -23,7 +23,7 @@ public class DocumentVerificationJobTests
 
     public DocumentVerificationJobTests()
     {
-        _mockUow = new Mock<IUnitOfWork>();
+        _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockRepo = new Mock<IRepository<Document, Guid>>();
         _mockQueries = new Mock<IDocumentQueries>();
         _mockIntelligenceService = new Mock<IDocumentIntelligenceService>();

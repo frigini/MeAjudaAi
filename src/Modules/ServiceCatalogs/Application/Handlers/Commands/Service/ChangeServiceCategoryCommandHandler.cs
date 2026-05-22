@@ -15,13 +15,13 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 
 public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<ChangeServiceCategoryCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IServiceCatalogsUnitOfWork _uow;
     private readonly IServiceQueries _serviceQueries;
     private readonly IServiceCategoryQueries _categoryQueries;
     private readonly ILogger<ChangeServiceCategoryCommandHandler> _logger;
 
     public ChangeServiceCategoryCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceCatalogsUnitOfWork uow,
         IServiceQueries serviceQueries,
         IServiceCategoryQueries categoryQueries,
         ILogger<ChangeServiceCategoryCommandHandler> logger)

@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 
 public class DocumentVerificationJob : IDocumentVerificationService
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IDocumentsUnitOfWork _uow;
     private readonly IDocumentQueries _documentQueries;
     private readonly IDocumentIntelligenceService _documentIntelligenceService;
     private readonly IBlobStorageService _blobStorageService;
@@ -21,7 +21,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
     private readonly float _minimumConfidence;
 
     public DocumentVerificationJob(
-        [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
+        IDocumentsUnitOfWork uow,
         IDocumentQueries documentQueries,
         IDocumentIntelligenceService documentIntelligenceService,
         IBlobStorageService blobStorageService,

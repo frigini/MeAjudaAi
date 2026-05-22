@@ -16,12 +16,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 
 public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IServiceCatalogsUnitOfWork _uow;
     private readonly IServiceQueries _serviceQueries;
     private readonly ILogger<UpdateServiceCommandHandler> _logger;
 
     public UpdateServiceCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceCatalogsUnitOfWork uow,
         IServiceQueries serviceQueries,
         ILogger<UpdateServiceCommandHandler> logger)
     {

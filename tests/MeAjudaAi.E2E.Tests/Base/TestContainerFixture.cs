@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
 using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -202,7 +203,8 @@ public class TestContainerFixture : IAsyncLifetime
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
                 });
 
-                builder.ConfigureServices(services =>
+                // Use ConfigureTestServices for reliable overrides
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddLogging(logging =>
                     {
@@ -213,10 +215,19 @@ public class TestContainerFixture : IAsyncLifetime
 
                     ConfigureMockServices(services);
                     ReconfigureDbContexts(services);
-                    
-                    // Final, forceful registration: always ensure IUnitOfWork is registered for the modules
-                    services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
-                    services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => (IUnitOfWork)sp.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
+
+                    // Ultimate Fix: Manual registration using ServiceDescriptor with types directly
+                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "ServiceCatalogs", typeof(MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext)));
+                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Bookings", typeof(MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext)));
+                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Documents", typeof(MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext)));
+                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Locations", typeof(MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext)));
+                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Ratings", typeof(MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext)));
+
+                    // Diagnostic: Print all IUnitOfWork registrations
+                    foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IUnitOfWork)))
+                    {
+                        Console.WriteLine($"[DI-DIAGNOSTIC] Registered IUnitOfWork: Keyed={descriptor.IsKeyedService}, Key={descriptor.ServiceKey ?? "null"}, Implementation={descriptor.ImplementationType?.Name ?? "Factory"}");
+                    }
                 });
             });
 
@@ -317,23 +328,15 @@ public class TestContainerFixture : IAsyncLifetime
     private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services, string moduleKey)
         where TContext : DbContext
     {
-        Console.WriteLine($"[DEBUG] Reconfiguring DbContext for {typeof(TContext).Name} in collection: {services.GetHashCode()}");
-        
         ReconfigureDbContext<TContext>(services);
 
-        // Remove any existing IUnitOfWork registrations to avoid conflicts
-        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
-        foreach (var descriptor in descriptorsToRemove)
-        {
-            services.Remove(descriptor);
-        }
-
-        // Register both global (as default) and keyed IUnitOfWork
-        services.AddScoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        // Register keyed service for the module using the context type directly
+        // We use the lambda but we cast it to IUnitOfWork to ensure it's registered as the interface
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
         
-        // Final attempt: Singleton registration as fallback
-        services.AddSingleton<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        // Also ensure a global one exists (use Replace to ensure the last one registered wins, 
+        // which is better than TryAdd because it's predictable)
+        services.Replace(ServiceDescriptor.Scoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>()));
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext

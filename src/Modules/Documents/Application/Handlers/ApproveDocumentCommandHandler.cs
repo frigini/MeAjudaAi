@@ -19,13 +19,13 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class ApproveDocumentCommandHandler(
-    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
+    IDocumentsUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
     ILogger<ApproveDocumentCommandHandler> logger)
     : ICommandHandler<ApproveDocumentCommand, Result>
 {
-    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IDocumentsUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<ApproveDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));

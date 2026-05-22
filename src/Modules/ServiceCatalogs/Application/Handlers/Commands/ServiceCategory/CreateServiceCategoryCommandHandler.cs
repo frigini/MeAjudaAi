@@ -16,12 +16,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 
 public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IServiceCatalogsUnitOfWork _uow;
     private readonly IServiceCategoryQueries _categoryQueries;
     private readonly ILogger<CreateServiceCategoryCommandHandler> _logger;
 
     public CreateServiceCategoryCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceCatalogsUnitOfWork uow,
         IServiceCategoryQueries categoryQueries,
         ILogger<CreateServiceCategoryCommandHandler> logger)
     {
@@ -30,11 +30,8 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         _logger = logger;
     }
 
-
     public async Task<Result<ServiceCategoryDto>> HandleAsync(CreateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var categoryQueries = _categoryQueries;
         try
         {
             var normalizedName = request.Name?.Trim();
@@ -42,13 +39,13 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Result<ServiceCategoryDto>.Failure("Category name is required.");
 
-            if (await categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
+            if (await _categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
                 return Result<ServiceCategoryDto>.Failure($"A category with name '{normalizedName}' already exists.");
 
             var category = Domain.Entities.ServiceCategory.Create(normalizedName, request.Description, request.DisplayOrder);
 
-            uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().Add(category);
-            await uow.SaveChangesAsync(cancellationToken);
+            _uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().Add(category);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             var dto = new ServiceCategoryDto(
                 category.Id.Value,
@@ -61,8 +58,7 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
             );
 
             return Result<ServiceCategoryDto>.Success(dto);
-            }
-
+        }
         catch (OperationCanceledException)
         {
             throw;
@@ -82,3 +78,4 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
         }
     }
 }
+

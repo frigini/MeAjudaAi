@@ -84,10 +84,10 @@ public static class Extensions
 
         // Configuração do Unit of Work e Queries
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
-        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<IServiceCatalogsUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
 
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
         services.AddScoped<IServiceRepository>(sp => (IServiceRepository)sp.GetRequiredService<ServiceCatalogsDbContext>());
         services.AddScoped<IServiceCategoryRepository>(sp => (IServiceCategoryRepository)sp.GetRequiredService<ServiceCatalogsDbContext>());
@@ -96,7 +96,7 @@ public static class Extensions
         // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateServiceCommand, Result<ServiceDto>>, CreateServiceCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateServiceCategoryCommand, Result>, UpdateServiceCategoryCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>, UpdateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateServiceCommand, Result>, UpdateServiceCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteServiceCategoryCommand, Result>, DeleteServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteServiceCommand, Result>, DeleteServiceCommandHandler>();

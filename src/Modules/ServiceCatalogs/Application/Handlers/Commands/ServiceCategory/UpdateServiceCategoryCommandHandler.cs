@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -13,14 +14,14 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
-public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result>
+public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IServiceCatalogsUnitOfWork _uow;
     private readonly IServiceCategoryQueries _categoryQueries;
     private readonly ILogger<UpdateServiceCategoryCommandHandler> _logger;
 
     public UpdateServiceCategoryCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+        IServiceCatalogsUnitOfWork uow,
         IServiceCategoryQueries categoryQueries,
         ILogger<UpdateServiceCategoryCommandHandler> logger)
     {
@@ -29,34 +30,45 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         _logger = logger;
     }
 
-    public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
+
+    public async Task<Result<ServiceCategoryDto>> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         var uow = _uow;
         var categoryQueries = _categoryQueries;
         try
         {
             if (request.Id == Guid.Empty)
-                return Result.Failure(ValidationMessages.Required.Id);
+                return Result<ServiceCategoryDto>.Failure(ValidationMessages.Required.Id);
 
             var categoryId = ServiceCategoryId.From(request.Id);
             var category = await uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().TryFindAsync(categoryId, cancellationToken);
 
             if (category is null)
-                return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
+                return Result<ServiceCategoryDto>.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
 
             var normalizedName = request.Name?.Trim();
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result.Failure(ValidationMessages.Required.CategoryName);
+                return Result<ServiceCategoryDto>.Failure(ValidationMessages.Required.CategoryName);
 
             // Check for duplicate name (excluding current category)
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
-                return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+                return Result<ServiceCategoryDto>.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 
             await uow.SaveChangesAsync(cancellationToken);
 
-            return Result.Success();
+            var dto = new ServiceCategoryDto(
+                category.Id.Value,
+                category.Name,
+                category.Description,
+                category.IsActive,
+                category.DisplayOrder,
+                category.CreatedAt,
+                category.UpdatedAt
+            );
+
+            return Result<ServiceCategoryDto>.Success(dto);
         }
         catch (OperationCanceledException)
         {
@@ -64,7 +76,7 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         }
         catch (CatalogDomainException ex)
         {
-            return Result.Failure(ex.Message);
+            return Result<ServiceCategoryDto>.Failure(ex.Message);
         }
         catch (ValidationException)
         {
@@ -73,7 +85,7 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred while updating the service category.");
-            return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
+            return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
         }
     }
 }

@@ -27,7 +27,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
 {
     private readonly PostgreSqlContainer _postgresContainer;
     private DocumentsDbContext? _dbContext;
-    private IUnitOfWork? _uow;
+    private IDocumentsUnitOfWork? _uow;
     private IDocumentQueries? _queries;
     private RejectDocumentCommandHandler? _handler;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;

@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class RejectDocumentCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _mockUow;
+    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
     private readonly Mock<IRepository<Document, Guid>> _mockRepo;
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
@@ -26,7 +26,7 @@ public class RejectDocumentCommandHandlerTests
 
     public RejectDocumentCommandHandlerTests()
     {
-        _mockUow = new Mock<IUnitOfWork>();
+        _mockUow = new Mock<IDocumentsUnitOfWork>();
         _mockRepo = new Mock<IRepository<Document, Guid>>();
         _mockQueries = new Mock<IDocumentQueries>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();

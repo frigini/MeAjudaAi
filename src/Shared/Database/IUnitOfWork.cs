@@ -20,3 +20,14 @@ public interface IUnitOfWork
     /// <returns>Uma tarefa representando a operação, contendo a contagem de entidades persistidas.</returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
+
+// Module-specific interfaces to allow unambiguous DI without keyed services
+public interface IServiceCatalogsUnitOfWork : IUnitOfWork { }
+public interface IBookingsUnitOfWork : IUnitOfWork { }
+public interface IDocumentsUnitOfWork : IUnitOfWork { }
+public interface ILocationsUnitOfWork : IUnitOfWork { }
+public interface IUsersUnitOfWork : IUnitOfWork { }
+public interface IRatingsUnitOfWork : IUnitOfWork { }
+public interface IPaymentsUnitOfWork : IUnitOfWork { }
+public interface ISearchProvidersUnitOfWork : IUnitOfWork { }
+public interface ICommunicationsUnitOfWork : IUnitOfWork { }

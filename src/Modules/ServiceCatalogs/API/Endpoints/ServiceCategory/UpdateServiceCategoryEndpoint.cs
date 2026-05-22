@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
@@ -33,7 +34,7 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
                 
                 **Permissões:** Requer privilégios de administrador
                 """)
-            .Produces(StatusCodes.Status204NoContent)
+            .Produces<Result<ServiceCategoryDto>>(StatusCodes.Status200OK)
             .RequireAdmin();
 
     private static async Task<IResult> UpdateAsync(
@@ -43,7 +44,7 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = new UpdateServiceCategoryCommand(id, request.Name, request.Description, request.DisplayOrder);
-        var result = await commandDispatcher.SendAsync<UpdateServiceCategoryCommand, Result>(command, cancellationToken);
-        return HandleNoContent(result);
+        var result = await commandDispatcher.SendAsync<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>(command, cancellationToken);
+        return Handle(result);
     }
 }
