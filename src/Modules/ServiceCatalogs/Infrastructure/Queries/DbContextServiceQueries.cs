@@ -54,7 +54,6 @@ public class DbContextServiceQueries(ServiceCatalogsDbContext dbContext) : IServ
             .AsNoTracking()
             .Include(s => s.Category)
             .Where(s => idList.Contains(s.Id))
-            .OrderBy(s => s.Id)
             .ToListAsync(cancellationToken);
     }
 

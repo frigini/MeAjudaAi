@@ -53,4 +53,56 @@ public class UpdateServiceCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Code.Should().Be("NotFound");
     }
+
+    [Fact]
+    public async Task Handle_WithValidCommand_ShouldReturnSuccess()
+    {
+        var categoryId = ServiceCategoryId.From(Guid.NewGuid());
+        var service = Service.Create(categoryId, "Original", "Desc", 1);
+        var command = new UpdateServiceCommand(service.Id.Value, "Updated Name", "Updated Desc", 2);
+
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _serviceQueriesMock
+            .Setup(x => x.ExistsWithNameAsync("Updated Name", service.Id, service.CategoryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeTrue();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithDuplicateName_ShouldReturnFailure()
+    {
+        var categoryId = ServiceCategoryId.From(Guid.NewGuid());
+        var service = Service.Create(categoryId, "Original", "Desc", 1);
+        var command = new UpdateServiceCommand(service.Id.Value, "Duplicate Name", "Desc", 1);
+
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _serviceQueriesMock
+            .Setup(x => x.ExistsWithNameAsync("Duplicate Name", service.Id, service.CategoryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithEmptyId_ShouldReturnFailure()
+    {
+        var command = new UpdateServiceCommand(Guid.Empty, "Name", "Desc", 1);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        _serviceRepositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

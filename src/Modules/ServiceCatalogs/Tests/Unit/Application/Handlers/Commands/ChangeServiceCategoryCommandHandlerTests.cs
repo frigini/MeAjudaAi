@@ -72,4 +72,100 @@ public class ChangeServiceCategoryCommandHandlerTests
         service.CategoryId.Should().Be(newCategory.Id);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_WithEmptyServiceId_ShouldThrow()
+    {
+        var command = new ChangeServiceCategoryCommand(Guid.Empty, Guid.NewGuid());
+
+        var act = () => _handler.HandleAsync(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
+            .WithMessage("*serviço*não pode ser vazio*");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithEmptyCategoryId_ShouldThrow()
+    {
+        var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.Empty);
+
+        var act = () => _handler.HandleAsync(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
+            .WithMessage("*categoria*não pode ser vazio*");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithNonExistentService_ShouldReturnFailure()
+    {
+        var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.NewGuid());
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithNonExistentCategory_ShouldThrow()
+    {
+        var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service", "Desc", 1);
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, Guid.NewGuid());
+
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        var act = () => _handler.HandleAsync(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
+            .WithMessage("*Categoria*não encontrada*");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithInactiveCategory_ShouldThrow()
+    {
+        var inactiveCategory = new ServiceCategoryBuilder().AsInactive().Build();
+        var service = Service.Create(inactiveCategory.Id, "Service", "Desc", 1);
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, inactiveCategory.Id.Value);
+
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _categoryQueriesMock
+            .Setup(x => x.GetByIdAsync(inactiveCategory.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(inactiveCategory);
+
+        var act = () => _handler.HandleAsync(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
+            .WithMessage("*categoria inativa*");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithDuplicateNameInTargetCategory_ShouldReturnFailure()
+    {
+        var newCategory = new ServiceCategoryBuilder().AsActive().Build();
+        var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service", "Desc", 1);
+        var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
+
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _categoryQueriesMock
+            .Setup(x => x.GetByIdAsync(newCategory.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(newCategory);
+        _serviceQueriesMock
+            .Setup(x => x.ExistsWithNameAsync(service.Name, service.Id, newCategory.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
