@@ -130,6 +130,8 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
         targetCatResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
         var targetCatId = GetResponseData(await ReadJsonAsync<JsonElement>(targetCatResponse.Content)).GetProperty("id").GetGuid();
 
+        await Client.PostAsync($"/api/v1/service-catalogs/categories/{targetCatId}/activate", null);
+
         var svcName = $"Service_{Guid.NewGuid():N}";
         var svcResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = svcName, categoryId = catId });
         svcResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
