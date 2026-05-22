@@ -15,5 +15,5 @@ public sealed record UpdateServiceCategoryCommand(
     string Name,
     string? Description,
     int DisplayOrder = 0
-) : Command<Result<ServiceCategoryDto>>;
+) : Command<Result>;
 

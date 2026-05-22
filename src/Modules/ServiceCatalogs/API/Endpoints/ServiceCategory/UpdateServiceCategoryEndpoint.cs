@@ -34,7 +34,7 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
                 
                 **Permissões:** Requer privilégios de administrador
                 """)
-            .Produces<Result<ServiceCategoryDto>>(StatusCodes.Status200OK)
+            .Produces<Result>(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
     private static async Task<IResult> UpdateAsync(
@@ -44,7 +44,7 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = new UpdateServiceCategoryCommand(id, request.Name, request.Description, request.DisplayOrder);
-        var result = await commandDispatcher.SendAsync<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>(command, cancellationToken);
+        var result = await commandDispatcher.SendAsync<UpdateServiceCategoryCommand, Result>(command, cancellationToken);
         return Handle(result);
     }
 }

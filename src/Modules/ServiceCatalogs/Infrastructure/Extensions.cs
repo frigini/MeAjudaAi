@@ -92,7 +92,7 @@ public static class Extensions
         // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateServiceCommand, Result<ServiceDto>>, CreateServiceCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>, UpdateServiceCategoryCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateServiceCategoryCommand, Result>, UpdateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateServiceCommand, Result>, UpdateServiceCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteServiceCategoryCommand, Result>, DeleteServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteServiceCommand, Result>, DeleteServiceCommandHandler>();

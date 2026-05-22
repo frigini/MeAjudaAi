@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
-public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>
+public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
     private readonly IUnitOfWork _uow;
     private readonly IServiceCategoryQueries _categoryQueries;
@@ -31,44 +30,33 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
     }
 
 
-    public async Task<Result<ServiceCategoryDto>> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
+    public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         var uow = _uow;
         var categoryQueries = _categoryQueries;
         try
         {
             if (request.Id == Guid.Empty)
-                return Result<ServiceCategoryDto>.Failure(ValidationMessages.Required.Id);
+                return Result.Failure(ValidationMessages.Required.Id);
 
             var categoryId = ServiceCategoryId.From(request.Id);
             var category = await uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().TryFindAsync(categoryId, cancellationToken);
 
             if (category is null)
-                return Result<ServiceCategoryDto>.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
+                return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
 
             var normalizedName = request.Name?.Trim();
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceCategoryDto>.Failure(ValidationMessages.Required.CategoryName);
+                return Result.Failure(ValidationMessages.Required.CategoryName);
 
-            // Check for duplicate name (excluding current category)
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
-                return Result<ServiceCategoryDto>.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+                return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 
             await uow.SaveChangesAsync(cancellationToken);
 
-            var dto = new ServiceCategoryDto(
-                category.Id.Value,
-                category.Name,
-                category.Description,
-                category.IsActive,
-                category.DisplayOrder,
-                category.CreatedAt,
-                category.UpdatedAt
-            );
-
-            return Result<ServiceCategoryDto>.Success(dto);
+            return Result.Success();
         }
         catch (OperationCanceledException)
         {
@@ -76,7 +64,7 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         }
         catch (CatalogDomainException ex)
         {
-            return Result<ServiceCategoryDto>.Failure(ex.Message);
+            return Result.Failure(ex.Message);
         }
         catch (ValidationException)
         {
@@ -85,7 +73,7 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred while updating the service category.");
-            return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
+            return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
         }
     }
 }
