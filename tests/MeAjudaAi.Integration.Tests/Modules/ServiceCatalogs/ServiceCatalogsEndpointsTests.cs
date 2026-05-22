@@ -138,7 +138,7 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
         var svcId = GetResponseData(await ReadJsonAsync<JsonElement>(svcResponse.Content)).GetProperty("id").GetGuid();
 
         // Act
-        var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/change-category", new { categoryId = targetCatId });
+        var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/change-category", new { newCategoryId = targetCatId });
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
