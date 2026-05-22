@@ -1,6 +1,4 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -20,8 +18,8 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class ServiceCatalogsModuleApi(
-    IServiceCategoryRepository categoryRepository,
-    IServiceRepository serviceRepository,
+    IServiceCategoryQueries categoryQueries,
+    IServiceQueries serviceQueries,
     ILogger<ServiceCatalogsModuleApi> logger) : IServiceCatalogsModuleApi
 {
     private static class ModuleMetadata
@@ -40,7 +38,7 @@ public sealed class ServiceCatalogsModuleApi(
             logger.LogDebug("Checking ServiceCatalogs module availability");
 
             // Simple database connectivity test
-            _ = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
+            _ = await categoryQueries.GetAllAsync(activeOnly: true, cancellationToken);
 
             logger.LogDebug("ServiceCatalogs module is available and healthy");
             return true;
@@ -67,7 +65,7 @@ public sealed class ServiceCatalogsModuleApi(
                 return Result<ModuleServiceCategoryDto?>.Failure("Category id must be provided");
 
             var id = ServiceCategoryId.From(categoryId);
-            var category = await categoryRepository.GetByIdAsync(id, cancellationToken);
+            var category = await categoryQueries.GetByIdAsync(id, cancellationToken);
 
             if (category is null)
                 return Result<ModuleServiceCategoryDto?>.Success(null);
@@ -95,7 +93,7 @@ public sealed class ServiceCatalogsModuleApi(
     {
         try
         {
-            var categories = await categoryRepository.GetAllAsync(activeOnly, cancellationToken);
+            var categories = await categoryQueries.GetAllAsync(activeOnly, cancellationToken);
 
             var dtos = categories.Select(c => new ModuleServiceCategoryDto(
                 c.Id.Value,
@@ -124,7 +122,7 @@ public sealed class ServiceCatalogsModuleApi(
                 return Result<ModuleServiceDto?>.Failure("Service id must be provided");
 
             var id = ServiceId.From(serviceId);
-            var service = await serviceRepository.GetByIdAsync(id, cancellationToken);
+            var service = await serviceQueries.GetByIdAsync(id, cancellationToken);
 
             if (service is null)
                 return Result<ModuleServiceDto?>.Success(null);
@@ -156,7 +154,7 @@ public sealed class ServiceCatalogsModuleApi(
     {
         try
         {
-            var services = await serviceRepository.GetAllAsync(activeOnly, cancellationToken);
+            var services = await serviceQueries.GetAllAsync(activeOnly, cancellationToken);
 
             var dtos = services.Select(s => new ModuleServiceListDto(
                 s.Id.Value,
@@ -187,7 +185,7 @@ public sealed class ServiceCatalogsModuleApi(
                 return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Category id must be provided");
 
             var id = ServiceCategoryId.From(categoryId);
-            var services = await serviceRepository.GetByCategoryAsync(id, activeOnly, cancellationToken);
+            var services = await serviceQueries.GetByCategoryAsync(id, activeOnly, cancellationToken);
 
             var dtos = services.Select(s => new ModuleServiceDto(
                 Id: s.Id.Value,
@@ -218,7 +216,7 @@ public sealed class ServiceCatalogsModuleApi(
                 return Result<bool>.Failure("Service id must be provided");
 
             var serviceIdValue = ServiceId.From(serviceId);
-            var service = await serviceRepository.GetByIdAsync(serviceIdValue, cancellationToken);
+            var service = await serviceQueries.GetByIdAsync(serviceIdValue, cancellationToken);
 
             // Return false for not-found to align with query semantics (vs Failure)
             if (service is null)
@@ -280,7 +278,7 @@ public sealed class ServiceCatalogsModuleApi(
                 var serviceIdValues = validGuids.Select(ServiceId.From).ToList();
 
                 // Batch query to avoid N+1 problem
-                var services = await serviceRepository.GetByIdsAsync(serviceIdValues, cancellationToken);
+                var services = await serviceQueries.GetByIdsAsync(serviceIdValues, cancellationToken);
                 var serviceLookup = services.ToDictionary(s => s.Id.Value);
 
                 foreach (var serviceId in validGuids)

@@ -29,4 +29,19 @@ public class RatingsDbContextModelTests
         // Check if entities are registered
         model.FindEntityType(typeof(MeAjudaAi.Modules.Ratings.Domain.Entities.Review)).Should().NotBeNull();
     }
+
+    [Fact]
+    public void GetRepository_WithUnsupportedType_ShouldThrowInvalidOperationException()
+    {
+        var options = new DbContextOptionsBuilder<RatingsDbContext>()
+            .UseInMemoryDatabase("RatingsTest_" + Guid.NewGuid())
+            .Options;
+        var domainEventProcessorMock = new Mock<IDomainEventProcessor>();
+        using var context = new RatingsDbContext(options, domainEventProcessorMock.Object);
+
+        var act = () => context.GetRepository<object, Guid>();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*RatingsDbContext does not implement*");
+    }
 }

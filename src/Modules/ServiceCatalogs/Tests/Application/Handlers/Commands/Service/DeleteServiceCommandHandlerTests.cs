@@ -4,9 +4,9 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -14,15 +14,24 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.
 
 public class DeleteServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _serviceRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>> _repositoryMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly DeleteServiceCommandHandler _handler;
 
     public DeleteServiceCommandHandlerTests()
     {
-        _serviceRepositoryMock = new Mock<IServiceRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
-        _handler = new DeleteServiceCommandHandler(_serviceRepositoryMock.Object, _providersModuleApiMock.Object);
+        
+        _uowMock.Setup(u => u.GetRepository<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service, ServiceId>())
+            .Returns(_repositoryMock.Object);
+            
+        _handler = new DeleteServiceCommandHandler(
+            _uowMock.Object, 
+            _providersModuleApiMock.Object,
+            NullLogger<DeleteServiceCommandHandler>.Instance);
     }
 
     [Fact]
@@ -33,7 +42,7 @@ public class DeleteServiceCommandHandlerTests
         var serviceId = service.Id.Value;
         var command = new DeleteServiceCommand(serviceId);
 
-        _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
         _providersModuleApiMock.Setup(a => a.HasProvidersOfferingServiceAsync(serviceId, It.IsAny<CancellationToken>()))
@@ -44,7 +53,8 @@ public class DeleteServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _serviceRepositoryMock.Verify(r => r.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Delete(It.IsAny<MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -53,7 +63,7 @@ public class DeleteServiceCommandHandlerTests
         // Arrange
         var command = new DeleteServiceCommand(Guid.NewGuid());
 
-        _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service?)null);
 
         // Act
@@ -72,7 +82,7 @@ public class DeleteServiceCommandHandlerTests
         var command = new DeleteServiceCommand(serviceId);
         var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service Name", "Description");
 
-        _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
         _providersModuleApiMock.Setup(a => a.HasProvidersOfferingServiceAsync(serviceId, It.IsAny<CancellationToken>()))
@@ -83,7 +93,6 @@ public class DeleteServiceCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Não é possível excluir o serviço");
-        result.Error.Message.Should().Contain("pois ele é oferecido por prestadores");
+        result.Error.Message.Should().Contain(string.Format(ValidationMessages.Catalogs.CannotDeleteServiceOffered, service.Name));
     }
 }

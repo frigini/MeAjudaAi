@@ -36,7 +36,8 @@ public partial class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            // builder.Logging.Services.AddLogging(l => l.AddSerilog()); // Serilog set up via builder.Host
+            
             builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
 
             ConfigureLogging(builder);
@@ -59,7 +60,7 @@ public partial class Program
             builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
-            builder.Services.AddSharedServices(builder.Configuration);
+            builder.Services.AddSharedServices(builder.Configuration, builder.Environment);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
             builder.Services.AddCors();
@@ -145,7 +146,7 @@ if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("I
 
         app.MapDefaultEndpoints();
         // Configurar serviços e módulos
-        await app.UseSharedServicesAsync();
+        await app.UseSharedServicesAsync(app.Environment);
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
         app.UseProvidersModule();

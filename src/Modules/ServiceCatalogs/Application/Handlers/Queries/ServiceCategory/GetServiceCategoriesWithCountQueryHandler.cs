@@ -1,44 +1,32 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 
 public sealed class GetServiceCategoriesWithCountQueryHandler(
-    IServiceCategoryRepository categoryRepository,
-    IServiceRepository serviceRepository)
+    IServiceCategoryQueries categoryQueries,
+    IServiceQueries serviceQueries)
     : IQueryHandler<GetServiceCategoriesWithCountQuery, Result<IReadOnlyList<ServiceCategoryWithCountDto>>>
 {
     public async Task<Result<IReadOnlyList<ServiceCategoryWithCountDto>>> HandleAsync(
         GetServiceCategoriesWithCountQuery request,
         CancellationToken cancellationToken = default)
     {
-        var categories = await categoryRepository.GetAllAsync(request.ActiveOnly, cancellationToken);
+        var categories = await categoryQueries.GetAllAsync(request.ActiveOnly, cancellationToken);
 
-        var dtos = new List<ServiceCategoryWithCountDto>();
+        if (categories.Count == 0)
+            return Result<IReadOnlyList<ServiceCategoryWithCountDto>>.Success(Array.Empty<ServiceCategoryWithCountDto>());
 
-        // NOTA: Isso executa 2 * N consultas de contagem (uma para total, uma para ativo por categoria).
-        // Para catálogos pequenos a médios isso é aceitável. Se isso se tornar um gargalo de performance
-        // com muitas categorias, considere otimizar com uma consulta em lote ou agrupamento no repositório.
-        //
-        // DECISÃO (item #4 cleanup): Manter padrão atual.
-        // Otimização prematura seria desnecessária sem evidência de problema de performance.
-        // Implementação futura deve usar GroupBy em consulta única caso número de categorias cresça significativamente.
-        foreach (var category in categories)
+        var categoryIds = categories.Select(c => c.Id).ToList();
+        var counts = await serviceQueries.CountByCategoriesAsync(categoryIds, cancellationToken);
+
+        var dtos = categories.Select(category =>
         {
-            var totalCount = await serviceRepository.CountByCategoryAsync(
-                category.Id,
-                activeOnly: false,
-                cancellationToken);
-
-            var activeCount = await serviceRepository.CountByCategoryAsync(
-                category.Id,
-                activeOnly: true,
-                cancellationToken);
-
-            dtos.Add(new ServiceCategoryWithCountDto(
+            var (totalCount, activeCount) = counts.GetValueOrDefault(category.Id, (0, 0));
+            return new ServiceCategoryWithCountDto(
                 category.Id.Value,
                 category.Name,
                 category.Description,
@@ -46,8 +34,8 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
                 category.DisplayOrder,
                 activeCount,
                 totalCount
-            ));
-        }
+            );
+        }).ToList();
 
         return Result<IReadOnlyList<ServiceCategoryWithCountDto>>.Success(dtos);
     }

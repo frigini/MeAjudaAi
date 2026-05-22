@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 
-public class BookingsDbContext : BaseDbContext
+public class BookingsDbContext : BaseDbContext, IUnitOfWork
 {
     public BookingsDbContext(DbContextOptions<BookingsDbContext> options) 
         : base(options)
@@ -23,6 +23,16 @@ public class BookingsDbContext : BaseDbContext
 
     public DbSet<Booking> Bookings { get; set; } = null!;
     public DbSet<ProviderSchedule> ProviderSchedules { get; set; } = null!;
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+
+        throw new InvalidOperationException(
+            $"BookingsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context supports: Booking(BookingId), ProviderSchedule(ProviderScheduleId).");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

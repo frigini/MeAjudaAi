@@ -2,9 +2,13 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -13,15 +17,21 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Comm
 [Trait("Layer", "Application")]
 public class DeactivateServiceCommandHandlerTests
 {
-    private readonly Mock<IServiceRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
     private readonly DeactivateServiceCommandHandler _handler;
 
     public DeactivateServiceCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IServiceRepository>();
-        _handler = new DeactivateServiceCommandHandler(_repositoryMock.Object);
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        
+        _uowMock.Setup(u => u.GetRepository<Service, ServiceId>())
+            .Returns(_repositoryMock.Object);
+            
+        _handler = new DeactivateServiceCommandHandler(_uowMock.Object, NullLogger<DeactivateServiceCommandHandler>.Instance);
     }
-// ...
+
     [Fact]
     public async Task Handle_WithNonExistentService_ShouldReturnFailure()
     {
@@ -30,7 +40,7 @@ public class DeactivateServiceCommandHandlerTests
         var command = new DeactivateServiceCommand(serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
         // Act
@@ -39,7 +49,7 @@ public class DeactivateServiceCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be(string.Format(ValidationMessages.NotFound.ServiceById, serviceId));
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -54,8 +64,8 @@ public class DeactivateServiceCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be(ValidationMessages.Required.Id);
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -71,12 +81,8 @@ public class DeactivateServiceCommandHandlerTests
         var command = new DeactivateServiceCommand(service.Id.Value);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
-
-        _repositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -84,6 +90,29 @@ public class DeactivateServiceCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         service.IsActive.Should().BeFalse();
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .AsActive()
+            .Build();
+        var command = new DeactivateServiceCommand(service.Id.Value);
+
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao desativar o serviço.");
     }
 }

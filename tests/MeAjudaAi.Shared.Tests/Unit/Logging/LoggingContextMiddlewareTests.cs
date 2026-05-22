@@ -78,10 +78,10 @@ public class LoggingContextMiddlewareTests
         // Act
         var act = async () => await _middleware.InvokeAsync(_context);
 
-        // Assert - middleware wraps exception with context
+        // Assert - middleware rethrows raw exception
         var exception = await act.Should().ThrowAsync<InvalidOperationException>();
-        exception.Which.Message.Should().Contain("Request failed: GET /api/test");
-        exception.Which.InnerException.Should().Be(expectedException);
+        exception.Which.Message.Should().Be("Test error");
+        exception.Which.Should().Be(expectedException);
     }
 
     [Fact]

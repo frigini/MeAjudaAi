@@ -18,7 +18,9 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Jobs;
@@ -34,6 +36,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Moq;
@@ -187,7 +190,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
-                    AddTestDbContext<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
+                    AddTestDbContextWithUnitOfWork<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure", ModuleKeys.ServiceCatalogs);
+                    services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+                    services.AddScoped<IServiceQueries, DbContextServiceQueries>();
                     AddTestDbContextWithUnitOfWork<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure", ModuleKeys.Locations);
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
@@ -271,7 +276,7 @@ services.AddHttpContextAccessor();
         RemoveDbContextRegistrations<TContext>(services);
         AddTestDbContext<TContext>(services, schema, assembly);
         
-        // Remove apenas IUnitOfWork genérico não chaveado para este contexto específico, se existir
+        // Remove generic IUnitOfWork to ensure we register the correct one for this context
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService);
         if (descriptor != null) services.Remove(descriptor);
 

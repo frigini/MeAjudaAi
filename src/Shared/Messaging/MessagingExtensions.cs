@@ -189,6 +189,9 @@ public static class MessagingExtensions
                                  integrationTests == "true" ||
                                  integrationTests == "1";
 
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
+        logger.LogInformation("Checking messaging infrastructure. EnvName: {EnvName}, IntegrationTests: {IntegrationTests}, IsTesting: {IsTesting}", envName, integrationTests, isTestingEnvironment);
+
         if (isTestingEnvironment)
         {
             return;
@@ -214,8 +217,6 @@ public static class MessagingExtensions
         {
             return;
         }
-
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
         var useNewtonsoftJson = ResolveUseNewtonsoftJson(configuration);
         if (useNewtonsoftJson)

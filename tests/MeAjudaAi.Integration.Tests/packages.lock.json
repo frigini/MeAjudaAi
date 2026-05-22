@@ -2580,6 +2580,50 @@
           "FluentValidation": "[12.1.1, )"
         }
       },
+      "meajudaai.e2e.tests": {
+        "type": "Project",
+        "dependencies": {
+          "Aspire.Hosting.Testing": "[13.2.4, )",
+          "Bogus": "[35.6.5, )",
+          "Dapper": "[2.1.72, )",
+          "FluentAssertions": "[8.9.0, )",
+          "MeAjudaAi.ApiService": "[1.0.0, )",
+          "MeAjudaAi.AppHost": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.API": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Tests": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Tests": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.API": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Ratings.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Users.Tests": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "MeAjudaAi.Shared.Tests": "[1.0.0, )",
+          "Microsoft.AspNetCore.Mvc.Testing": "[10.0.7, )",
+          "Microsoft.NET.Test.Sdk": "[18.4.0, )",
+          "System.IdentityModel.Tokens.Jwt": "[8.17.0, )",
+          "Testcontainers.Azurite": "[4.11.0, )",
+          "Testcontainers.PostgreSql": "[4.11.0, )",
+          "Testcontainers.Redis": "[4.11.0, )",
+          "xunit.v3": "[3.2.2, )"
+        }
+      },
       "meajudaai.modules.bookings.api": {
         "type": "Project",
         "dependencies": {
@@ -4254,6 +4298,15 @@
         "requested": "[4.11.0, )",
         "resolved": "4.11.0",
         "contentHash": "fDML8KiS9alTzmXD8gZziRZWNQDeElejBWr+Wg5vpg6IsK2PhM94coQDNmPyabTpuDQ8XopqxJIw2hyv7YdGqw==",
+        "dependencies": {
+          "Testcontainers": "4.11.0"
+        }
+      },
+      "Testcontainers.Redis": {
+        "type": "CentralTransitive",
+        "requested": "[4.11.0, )",
+        "resolved": "4.11.0",
+        "contentHash": "nw7no/3yfjRZFdYju9Wa5TMWlbnXNUVq5qfePrLjaWMYbcXGkT88ZPw82v4HLGSQPGPug24OlC1IT6Kf+4j//Q==",
         "dependencies": {
           "Testcontainers": "4.11.0"
         }

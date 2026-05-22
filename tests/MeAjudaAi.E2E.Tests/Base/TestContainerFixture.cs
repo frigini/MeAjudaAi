@@ -3,6 +3,8 @@ using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
@@ -11,11 +13,13 @@ using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
 using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
@@ -165,6 +169,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
                         ["ConnectionStrings:SearchProvidersDb"] = PostgresConnectionString,
+                        ["Postgres:ConnectionString"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
                         ["Migrations:Enabled"] = "false",
                         ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
@@ -200,7 +205,8 @@ public class TestContainerFixture : IAsyncLifetime
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
                 });
 
-                builder.ConfigureServices(services =>
+                // Use ConfigureTestServices for reliable overrides
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddLogging(logging =>
                     {
@@ -282,8 +288,11 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
-        ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
+        services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+        services.AddScoped<IServiceQueries, DbContextServiceQueries>();
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
@@ -312,10 +321,13 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<TContext>(services);
 
-        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
-        foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
-
+        // Register keyed service for the module using the context type directly
+        // We use the lambda but we cast it to IUnitOfWork to ensure it's registered as the interface
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
+        
+        // Also ensure a global one exists (use Replace to ensure the last one registered wins, 
+        // which is better than TryAdd because it's predictable)
+        services.Replace(ServiceDescriptor.Scoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>()));
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
@@ -333,6 +345,7 @@ public class TestContainerFixture : IAsyncLifetime
 
         services.AddDbContext<TContext>(options =>
         {
+            Console.WriteLine($"[DEBUG] Configuring DbContext {contextName} with ConnectionString: {PostgresConnectionString}");
             options.UseNpgsql(PostgresConnectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
@@ -363,6 +376,7 @@ public class TestContainerFixture : IAsyncLifetime
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>());
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -387,6 +401,7 @@ public class TestContainerFixture : IAsyncLifetime
         await CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
+        await CleanupContext<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services);
 
         if (_redisContainer != null)
         {

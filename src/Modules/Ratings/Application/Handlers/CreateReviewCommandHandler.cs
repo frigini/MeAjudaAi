@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
 

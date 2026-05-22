@@ -31,38 +31,26 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddSingleton(TimeProvider.System);
         services.AddCustomSerialization();
         // Serilog configurado no Program.cs do ApiService
 
-        services.AddPostgres(configuration);
+        services.AddPostgres(configuration, environment);
         services.AddDapper();
         services.AddCaching(configuration);
 
         // Só adiciona messaging se não estiver em ambiente de teste
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                     Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
-                     EnvironmentNames.Development;
-        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-
-        var isTestingEnvironment = envName == EnvironmentNames.Testing ||
-                                 envName.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
-                                 integrationTests == "true" ||
-                                 integrationTests == "1";
-
-        if (!isTestingEnvironment)
+        if (!environment.IsEnvironment(EnvironmentNames.Testing))
         {
-            // Cria um mock environment baseado na variável de ambiente
-            var mockEnvironment = new SimpleHostEnvironment(envName);
-            services.AddMessaging(configuration, mockEnvironment);
+            services.AddMessaging(configuration, environment);
         }
         else
         {
             // Registra messaging no-op para testes
             services.AddSingleton<IMessageBus, NoOpMessageBus>();
-
         }
 
         services.AddValidation();
@@ -94,21 +82,16 @@ public static class ServiceCollectionExtensions
         return app;
     }
 
-    public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
+    public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app, IHostEnvironment environment)
     {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
-                         "Development";
-        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-
-        var isTestingEnvironment = environment == "Testing" ||
-                                 environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
-                                 integrationTests == "true" ||
-                                 integrationTests == "1";
-
         if (app is WebApplication webApp)
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
+            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+
+            var isTestingEnvironment = environment.IsEnvironment(EnvironmentNames.Testing) ||
+                                     integrationTests == "true" ||
+                                     integrationTests == "1";
 
             // Configure shared middleware (error handling, monitoring, Hangfire)
             ConfigureSharedMiddleware(app, configuration);

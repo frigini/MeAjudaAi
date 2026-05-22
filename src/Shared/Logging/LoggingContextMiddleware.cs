@@ -58,9 +58,7 @@ internal class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingCon
                     context.Response.StatusCode,
                     stopwatch.ElapsedMilliseconds);
 
-                throw new InvalidOperationException(
-                    $"Request failed: {context.Request.Method} {context.Request.Path} (Status: {context.Response.StatusCode}) after {stopwatch.ElapsedMilliseconds}ms",
-                    ex);
+                throw;
             }
         }
     }

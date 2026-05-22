@@ -1,5 +1,5 @@
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 
 public sealed class ServiceActivatedDomainEventHandler(
-    IServiceRepository serviceRepository,
+    IServiceQueries serviceQueries,
     IMessageBus messageBus,
     ILogger<ServiceActivatedDomainEventHandler> logger) : IEventHandler<ServiceActivatedDomainEvent>
 {
@@ -17,7 +17,7 @@ public sealed class ServiceActivatedDomainEventHandler(
     {
         try
         {
-            var service = await serviceRepository.GetByIdAsync(domainEvent.ServiceId, cancellationToken);
+            var service = await serviceQueries.GetByIdAsync(domainEvent.ServiceId, cancellationToken);
             if (service == null)
             {
                 throw new InvalidOperationException($"Service {domainEvent.ServiceId} not found when handling activation event.");

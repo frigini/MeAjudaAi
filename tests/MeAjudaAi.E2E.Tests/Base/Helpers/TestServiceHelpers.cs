@@ -7,7 +7,7 @@ public static class TestServiceHelpers
 {
     public static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
     {
-        var uowDescriptors = services.Where(d => d.ServiceType == typeof(IUnitOfWork)).ToList();
+        var uowDescriptors = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
         foreach (var descriptor in uowDescriptors)
             services.Remove(descriptor);
     }

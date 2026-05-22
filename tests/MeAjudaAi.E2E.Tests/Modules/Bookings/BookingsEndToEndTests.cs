@@ -168,13 +168,21 @@ public class BookingsEndToEndTests : BaseTestContainerTest
     {
         var categoryName = $"Category_{Guid.NewGuid():N}";
         var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
-        catResponse.EnsureSuccessStatusCode();
+        if (!catResponse.IsSuccessStatusCode)
+        {
+            var content = await catResponse.Content.ReadAsStringAsync();
+            throw new Exception($"DEBUG: Category creation failed: {catResponse.StatusCode}. Content: {content}");
+        }
         Assert.NotNull(catResponse.Headers.Location);
         var catId = ExtractIdFromLocation(catResponse.Headers.Location.ToString());
 
         var serviceName = $"Service_{Guid.NewGuid():N}";
         var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
-        svcResponse.EnsureSuccessStatusCode();
+        if (!svcResponse.IsSuccessStatusCode)
+        {
+            var content = await svcResponse.Content.ReadAsStringAsync();
+            throw new Exception($"DEBUG: Service creation failed: {svcResponse.StatusCode}. Content: {content}");
+        }
         Assert.NotNull(svcResponse.Headers.Location);
         var svcId = ExtractIdFromLocation(svcResponse.Headers.Location.ToString());
 

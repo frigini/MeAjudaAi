@@ -207,8 +207,8 @@ public class DatabaseExtensionsTests
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<IOptions<PostgresOptions>>();
             
-            // In Testing environment, empty connection string is allowed
-            options.Value.ConnectionString.Should().BeEmpty();
+            // In Testing environment, a dummy connection string is expected
+            options.Value.ConnectionString.Should().Be("Host=localhost;Database=dummy;Username=postgres;Password=postgres");
         }
         finally
         {

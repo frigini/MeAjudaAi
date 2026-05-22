@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
