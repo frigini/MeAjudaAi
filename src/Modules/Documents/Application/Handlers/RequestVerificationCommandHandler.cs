@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -21,13 +22,13 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// Manipula solicitações para iniciar a verificação de documentos.
 /// </summary>
 public class RequestVerificationCommandHandler(
-    IDocumentsUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RequestVerificationCommandHandler> logger)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
-    private readonly IDocumentsUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RequestVerificationCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));

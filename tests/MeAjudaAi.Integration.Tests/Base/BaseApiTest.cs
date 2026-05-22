@@ -18,7 +18,9 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Jobs;
@@ -189,6 +191,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
                     AddTestDbContextWithUnitOfWork<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure", ModuleKeys.ServiceCatalogs);
+                    services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+                    services.AddScoped<IServiceQueries, DbContextServiceQueries>();
                     AddTestDbContextWithUnitOfWork<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure", ModuleKeys.Locations);
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");

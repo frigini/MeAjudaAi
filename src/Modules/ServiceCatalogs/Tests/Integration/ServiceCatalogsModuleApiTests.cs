@@ -6,6 +6,7 @@ using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using Domain = MeAjudaAi.Modules.ServiceCatalogs.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -118,10 +119,6 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
 
         service1.Deactivate();
         service2.Deactivate();
-
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(service1);
-        await repository.UpdateAsync(service2);
         await dbContext.SaveChangesAsync();
 
         // Act
@@ -148,8 +145,6 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
         var dbContext = GetService<ServiceCatalogsDbContext>();
 
         inactiveService.Deactivate();
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(inactiveService);
         await dbContext.SaveChangesAsync();
 
         // Act
@@ -214,8 +209,6 @@ public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
 
         // Act - Deactivate one service
         service2.Deactivate();
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(service2);
         await dbContext.SaveChangesAsync();
 
         // Act - Validate all services

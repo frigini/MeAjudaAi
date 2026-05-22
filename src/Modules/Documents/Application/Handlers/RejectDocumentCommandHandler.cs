@@ -17,13 +17,13 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class RejectDocumentCommandHandler(
-    IDocumentsUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
     ILogger<RejectDocumentCommandHandler> logger)
     : ICommandHandler<RejectDocumentCommand, Result>
 {
-    private readonly IDocumentsUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+    private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RejectDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));

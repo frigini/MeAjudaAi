@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo ServiceCatalogs.
 /// Implementa IUnitOfWork e gerencia os agregados Service e ServiceCategory.
 /// </summary>
-public partial class ServiceCatalogsDbContext : BaseDbContext, IServiceCatalogsUnitOfWork
+public partial class ServiceCatalogsDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<Service> Services { get; set; } = null!;
     public DbSet<ServiceCategory> ServiceCategories { get; set; } = null!;

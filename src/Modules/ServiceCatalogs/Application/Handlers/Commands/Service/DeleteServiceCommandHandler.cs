@@ -13,12 +13,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 
 public sealed class DeleteServiceCommandHandler : ICommandHandler<DeleteServiceCommand, Result>
 {
-    private readonly IServiceCatalogsUnitOfWork _uow;
+    private readonly IUnitOfWork _uow;
     private readonly IProvidersModuleApi _providersModuleApi;
     private readonly ILogger<DeleteServiceCommandHandler> _logger;
 
     public DeleteServiceCommandHandler(
-        IServiceCatalogsUnitOfWork uow,
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
         IProvidersModuleApi providersModuleApi,
         ILogger<DeleteServiceCommandHandler> logger)
     {

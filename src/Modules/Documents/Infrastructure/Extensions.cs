@@ -88,7 +88,8 @@ public static class Extensions
         });
 
         // Unit of Work e Consultas
-        services.AddScoped<IDocumentsUnitOfWork>(sp => sp.GetRequiredService<DocumentsDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Documents, (sp, key) => sp.GetRequiredService<DocumentsDbContext>());
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DocumentsDbContext>());
         services.AddScoped<IDocumentQueries, DbContextDocumentQueries>();
 
         return services;

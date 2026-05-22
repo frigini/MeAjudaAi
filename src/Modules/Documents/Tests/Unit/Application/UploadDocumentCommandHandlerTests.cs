@@ -21,7 +21,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
 public class UploadDocumentCommandHandlerTests
 {
-    private readonly Mock<IDocumentsUnitOfWork> _mockUow;
+    private readonly Mock<IUnitOfWork> _mockUow;
     private readonly Mock<IRepository<Document, Guid>> _mockRepo;
     private readonly Mock<IRepository<OutboxMessage, Guid>> _mockOutboxRepo;
     private readonly Mock<IDocumentQueries> _mockQueries;
@@ -33,7 +33,7 @@ public class UploadDocumentCommandHandlerTests
 
     public UploadDocumentCommandHandlerTests()
     {
-        _mockUow = new Mock<IDocumentsUnitOfWork>();
+        _mockUow = new Mock<IUnitOfWork>();
         _mockRepo = new Mock<IRepository<Document, Guid>>();
         _mockOutboxRepo = new Mock<IRepository<OutboxMessage, Guid>>();
         _mockQueries = new Mock<IDocumentQueries>();

@@ -16,12 +16,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 
 public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result<ServiceCategoryDto>>
 {
-    private readonly IServiceCatalogsUnitOfWork _uow;
+    private readonly IUnitOfWork _uow;
     private readonly IServiceCategoryQueries _categoryQueries;
     private readonly ILogger<UpdateServiceCategoryCommandHandler> _logger;
 
     public UpdateServiceCategoryCommandHandler(
-        IServiceCatalogsUnitOfWork uow,
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
         IServiceCategoryQueries categoryQueries,
         ILogger<UpdateServiceCategoryCommandHandler> logger)
     {

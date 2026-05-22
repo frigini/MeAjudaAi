@@ -215,19 +215,6 @@ public class TestContainerFixture : IAsyncLifetime
 
                     ConfigureMockServices(services);
                     ReconfigureDbContexts(services);
-
-                    // Ultimate Fix: Manual registration using ServiceDescriptor with types directly
-                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "ServiceCatalogs", typeof(MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext)));
-                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Bookings", typeof(MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext)));
-                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Documents", typeof(MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext)));
-                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Locations", typeof(MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext)));
-                    services.Add(ServiceDescriptor.KeyedScoped(typeof(IUnitOfWork), "Ratings", typeof(MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext)));
-
-                    // Diagnostic: Print all IUnitOfWork registrations
-                    foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IUnitOfWork)))
-                    {
-                        Console.WriteLine($"[DI-DIAGNOSTIC] Registered IUnitOfWork: Keyed={descriptor.IsKeyedService}, Key={descriptor.ServiceKey ?? "null"}, Implementation={descriptor.ImplementationType?.Name ?? "Factory"}");
-                    }
                 });
             });
 

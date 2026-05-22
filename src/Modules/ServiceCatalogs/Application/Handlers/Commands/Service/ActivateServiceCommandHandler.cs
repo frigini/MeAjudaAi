@@ -13,11 +13,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 
 public sealed class ActivateServiceCommandHandler : ICommandHandler<ActivateServiceCommand, Result>
 {
-    private readonly IServiceCatalogsUnitOfWork _uow;
+    private readonly IUnitOfWork _uow;
     private readonly ILogger<ActivateServiceCommandHandler> _logger;
 
     public ActivateServiceCommandHandler(
-        IServiceCatalogsUnitOfWork uow,
+        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
         ILogger<ActivateServiceCommandHandler> logger)
     {
         _uow = uow;
