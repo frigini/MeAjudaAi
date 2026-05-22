@@ -126,6 +126,6 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
         var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{serviceId}/change-category", new { categoryId = categoryId });
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound, HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
     }
 }

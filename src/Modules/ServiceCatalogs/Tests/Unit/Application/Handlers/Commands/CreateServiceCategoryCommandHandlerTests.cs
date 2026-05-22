@@ -78,7 +78,7 @@ public class CreateServiceCategoryCommandHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("already exists");
+        result.Error!.Message.Should().Contain("Já existe uma categoria com o nome");
 
         _queriesMock.Verify(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(x => x.Add(It.IsAny<ServiceCategory>()), Times.Never);
@@ -100,7 +100,7 @@ public class CreateServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("name", "validation error should mention the problematic field");
+        result.Error!.Message.Should().Contain("O nome da categoria é obrigatório.", "validation error should mention the problematic field");
     }
 
     [Fact]

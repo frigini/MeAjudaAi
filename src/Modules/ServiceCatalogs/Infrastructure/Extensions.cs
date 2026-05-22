@@ -85,6 +85,9 @@ public static class Extensions
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => sp.GetRequiredService<ServiceCatalogsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
 
+        services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+        services.AddScoped<IServiceQueries, DbContextServiceQueries>();
+
 
         // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();

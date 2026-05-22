@@ -3,6 +3,8 @@ using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
@@ -289,6 +291,8 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
+        services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
+        services.AddScoped<IServiceQueries, DbContextServiceQueries>();
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
         ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);

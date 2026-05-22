@@ -37,10 +37,10 @@ public sealed class CreateServiceCategoryCommandHandler : ICommandHandler<Create
             var normalizedName = request.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceCategoryDto>.Failure("Category name is required.");
+                return Result<ServiceCategoryDto>.Failure("O nome da categoria é obrigatório.");
 
             if (await _categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
-                return Result<ServiceCategoryDto>.Failure($"A category with name '{normalizedName}' already exists.");
+                return Result<ServiceCategoryDto>.Failure($"Já existe uma categoria com o nome '{normalizedName}'.");
 
             var category = Domain.Entities.ServiceCategory.Create(normalizedName, request.Description, request.DisplayOrder);
 
