@@ -92,4 +92,27 @@ public class DeactivateServiceCommandHandlerTests
         service.IsActive.Should().BeFalse();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .AsActive()
+            .Build();
+        var command = new DeactivateServiceCommand(service.Id.Value);
+
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao desativar o serviço.");
+    }
 }

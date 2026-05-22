@@ -105,4 +105,45 @@ public class UpdateServiceCommandHandlerTests
         _serviceRepositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task Handle_WithEmptyName_ShouldReturnFailure()
+    {
+        var categoryId = ServiceCategoryId.From(Guid.NewGuid());
+        var service = Service.Create(categoryId, "Original", "Desc", 1);
+        var command = new UpdateServiceCommand(service.Id.Value, "   ", "Desc", 1);
+
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        _serviceQueriesMock.Verify(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
+    {
+        var categoryId = ServiceCategoryId.From(Guid.NewGuid());
+        var service = Service.Create(categoryId, "Original", "Desc", 1);
+        var command = new UpdateServiceCommand(service.Id.Value, "New Name", "Desc", 1);
+
+        _serviceRepositoryMock
+            .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _serviceQueriesMock
+            .Setup(x => x.ExistsWithNameAsync("New Name", service.Id, service.CategoryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado.");
+    }
 }

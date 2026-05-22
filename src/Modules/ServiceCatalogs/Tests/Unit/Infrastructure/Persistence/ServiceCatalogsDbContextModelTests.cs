@@ -23,7 +23,7 @@ public class ServiceCatalogsDbContextModelTests
         // Assert
         model.Should().NotBeNull();
         model.GetDefaultSchema().Should().Be("service_catalogs");
-        
+
         // Check if entities are registered
         var categoryType = model.FindEntityType(typeof(ServiceCategory));
         categoryType.Should().NotBeNull();
@@ -32,5 +32,20 @@ public class ServiceCatalogsDbContextModelTests
         var serviceType = model.FindEntityType(typeof(Service));
         serviceType.Should().NotBeNull();
         serviceType!.GetSchema().Should().Be("service_catalogs");
+    }
+
+    [Fact]
+    public void GetRepository_WithUnsupportedType_ShouldThrowInvalidOperationException()
+    {
+        var options = new DbContextOptionsBuilder<ServiceCatalogsDbContext>()
+            .UseInMemoryDatabase(databaseName: "ServiceCatalogsTestDb_" + Guid.NewGuid())
+            .Options;
+
+        using var context = new ServiceCatalogsDbContext(options);
+
+        var act = () => context.GetRepository<object, Guid>();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ServiceCatalogsDbContext does not implement*");
     }
 }

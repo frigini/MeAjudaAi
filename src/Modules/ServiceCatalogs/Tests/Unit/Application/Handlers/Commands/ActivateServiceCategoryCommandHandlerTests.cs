@@ -121,4 +121,23 @@ public class ActivateServiceCategoryCommandHandlerTests
         category.IsActive.Should().BeTrue();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsInactive().Build();
+        var command = new ActivateServiceCategoryCommand(category.Id.Value);
+
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao ativar a categoria de serviço.");
+    }
 }

@@ -119,11 +119,24 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
-        var serviceId = Guid.NewGuid();
-        var categoryId = Guid.NewGuid();
+
+        var catName = $"Category_{Guid.NewGuid():N}";
+        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = catName, displayOrder = 1 });
+        catResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
+        var catId = GetResponseData(await ReadJsonAsync<JsonElement>(catResponse.Content)).GetProperty("id").GetGuid();
+
+        var targetCatName = $"TargetCategory_{Guid.NewGuid():N}";
+        var targetCatResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = targetCatName, displayOrder = 2 });
+        targetCatResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
+        var targetCatId = GetResponseData(await ReadJsonAsync<JsonElement>(targetCatResponse.Content)).GetProperty("id").GetGuid();
+
+        var svcName = $"Service_{Guid.NewGuid():N}";
+        var svcResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = svcName, categoryId = catId });
+        svcResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
+        var svcId = GetResponseData(await ReadJsonAsync<JsonElement>(svcResponse.Content)).GetProperty("id").GetGuid();
 
         // Act
-        var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{serviceId}/change-category", new { categoryId = categoryId });
+        var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/change-category", new { categoryId = targetCatId });
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);

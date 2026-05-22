@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
@@ -61,15 +62,18 @@ public class UpdateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithNonExistentCategory_ShouldReturnFailure()
     {
+        var categoryId = ServiceCategoryId.From(Guid.NewGuid());
         _repositoryMock
-            .Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(categoryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
-        var command = new UpdateServiceCategoryCommand(Guid.NewGuid(), "Name", "Desc", 1);
+        var command = new UpdateServiceCategoryCommand(categoryId.Value, "Name", "Desc", 1);
 
         var result = await _handler.HandleAsync(command);
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
+        result.Error.Message.Should().Contain("não encontrada");
+        _repositoryMock.Verify(x => x.TryFindAsync(categoryId, It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -88,6 +92,9 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command);
 
         result.IsSuccess.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error.Message.Should().Contain("Duplicate");
+        _queriesMock.Verify(x => x.ExistsWithNameAsync("Duplicate", category.Id, It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -99,6 +106,8 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command);
 
         result.IsSuccess.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error.Message.Should().Be(ValidationMessages.Required.Id);
         _repositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -115,7 +124,32 @@ public class UpdateServiceCategoryCommandHandlerTests
         var result = await _handler.HandleAsync(command);
 
         result.IsSuccess.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error.Message.Should().Contain("nome");
+        _repositoryMock.Verify(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _queriesMock.Verify(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
+    {
+        var category = new ServiceCategoryBuilder().WithName("Original").Build();
+        _repositoryMock
+            .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+        _queriesMock
+            .Setup(x => x.ExistsWithNameAsync("New Name", category.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        var command = new UpdateServiceCategoryCommand(category.Id.Value, "New Name", "Desc", 1);
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
     }
 }
 
