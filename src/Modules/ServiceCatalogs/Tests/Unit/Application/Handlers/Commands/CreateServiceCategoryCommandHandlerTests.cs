@@ -124,4 +124,22 @@ public class CreateServiceCategoryCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be("Domain rule violation");
     }
+
+    [Fact]
+    public async Task Handle_WhenGenericExceptionThrown_ShouldReturnGenericFailure()
+    {
+        var command = new CreateServiceCategoryCommand("Valid Name", "Description", 1);
+
+        _queriesMock
+            .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Unexpected DB error"));
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao processar a solicitação.");
+    }
 }

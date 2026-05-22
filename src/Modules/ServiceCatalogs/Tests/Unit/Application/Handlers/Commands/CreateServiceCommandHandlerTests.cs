@@ -218,4 +218,26 @@ public class CreateServiceCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be("Domain rule violation");
     }
+
+    [Fact]
+    public async Task Handle_WhenGenericExceptionThrown_ShouldReturnGenericFailure()
+    {
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var command = new CreateServiceCommand(category.Id.Value, "Valid Name", "Description", 1);
+
+        _categoryQueriesMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+        _serviceQueriesMock
+            .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Unexpected DB error"));
+
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao criar o serviço.");
+    }
 }
