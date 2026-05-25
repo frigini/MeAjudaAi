@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
+using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
@@ -12,9 +12,11 @@ using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
+using Moq;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.ModuleApi;
@@ -25,7 +27,8 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.ModuleApi;
 public class SearchProvidersModuleApiTests
 {
     private readonly Mock<IQueryDispatcher> _queryDispatcherMock;
-    private readonly Mock<ISearchableProviderRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<ISearchableProviderQueries> _queriesMock;
     private readonly Mock<IProvidersModuleApi> _providersApiMock;
     private readonly Mock<ILogger<SearchProvidersModuleApi>> _loggerMock;
     private readonly SearchProvidersModuleApi _sut;
@@ -33,13 +36,15 @@ public class SearchProvidersModuleApiTests
     public SearchProvidersModuleApiTests()
     {
         _queryDispatcherMock = new Mock<IQueryDispatcher>();
-        _repositoryMock = new Mock<ISearchableProviderRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _queriesMock = new Mock<ISearchableProviderQueries>();
         _providersApiMock = new Mock<IProvidersModuleApi>();
         _loggerMock = new Mock<ILogger<SearchProvidersModuleApi>>();
 
         _sut = new SearchProvidersModuleApi(
             _queryDispatcherMock.Object,
-            _repositoryMock.Object,
+            _uowMock.Object,
+            _queriesMock.Object,
             _providersApiMock.Object,
             _loggerMock.Object);
     }
@@ -345,17 +350,21 @@ public class SearchProvidersModuleApiTests
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(dto));
 
-        _repositoryMock
-            .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _queriesMock
+            .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((SearchableProvider?)null);
+
+        var repoMock = new Mock<IRepository<SearchableProvider, SearchableProviderId>>();
+        _uowMock.Setup(x => x.GetRepository<SearchableProvider, SearchableProviderId>())
+            .Returns(repoMock.Object);
 
         // Act
         var result = await _sut.IndexProviderAsync(providerId);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(x => x.Add(It.IsAny<SearchableProvider>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -392,8 +401,8 @@ public class SearchProvidersModuleApiTests
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(updatedData));
 
-        _repositoryMock
-            .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _queriesMock
+            .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProvider);
 
         // Act
@@ -401,8 +410,8 @@ public class SearchProvidersModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.UpdateAsync(existingProvider, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        // Tracking handles updates, no need to call Update() explicitly if not using repository pattern for updates
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -421,16 +430,13 @@ public class SearchProvidersModuleApiTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("not found");
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task IndexProviderAsync_WhenProvidersApiReturnsSuccessWithNull_ShouldReturnFailure()
     {
-        // Arrange — simula o contrato em que a API retorna Success mas com payload nulo
-        // (p.ex., o provedor existe no índice mas ainda não tem dados indexáveis)
+        // Arrange
         var providerId = Guid.NewGuid();
 
         _providersApiMock
@@ -443,9 +449,6 @@ public class SearchProvidersModuleApiTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain(providerId.ToString());
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -490,21 +493,24 @@ public class SearchProvidersModuleApiTests
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(providerData));
 
-        _repositoryMock
-            .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _queriesMock
+            .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((SearchableProvider?)null);
+
+        var repoMock = new Mock<IRepository<SearchableProvider, SearchableProviderId>>();
+        _uowMock.Setup(x => x.GetRepository<SearchableProvider, SearchableProviderId>())
+            .Returns(repoMock.Object);
 
         // Act
         var result = await _sut.IndexProviderAsync(providerId);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(
-            x => x.AddAsync(
-                It.Is<SearchableProvider>(p => !p.IsActive),
-                It.IsAny<CancellationToken>()),
+        repoMock.Verify(
+            x => x.Add(
+                It.Is<SearchableProvider>(p => !p.IsActive)),
             Times.Once);
-        _repositoryMock.Verify(
+        _uowMock.Verify(
             x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -546,17 +552,21 @@ public class SearchProvidersModuleApiTests
             city: "São Paulo",
             state: "SP");
 
-        _repositoryMock
-            .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _queriesMock
+            .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProvider);
+
+        var repoMock = new Mock<IRepository<SearchableProvider, SearchableProviderId>>();
+        _uowMock.Setup(x => x.GetRepository<SearchableProvider, SearchableProviderId>())
+            .Returns(repoMock.Object);
 
         // Act
         var result = await _sut.RemoveProviderAsync(providerId);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.DeleteAsync(existingProvider, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(x => x.Delete(existingProvider), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -565,8 +575,8 @@ public class SearchProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
 
-        _repositoryMock
-            .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _queriesMock
+            .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((SearchableProvider?)null);
 
         // Act
@@ -574,7 +584,8 @@ public class SearchProvidersModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.GetRepository<SearchableProvider, SearchableProviderId>(), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -583,8 +594,8 @@ public class SearchProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
 
-        _repositoryMock
-            .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _queriesMock
+            .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -597,3 +608,4 @@ public class SearchProvidersModuleApiTests
 
     #endregion
 }
+

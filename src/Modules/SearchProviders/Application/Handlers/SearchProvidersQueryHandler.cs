@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
@@ -15,7 +14,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 /// Handler para buscar prestadores com base em localização e critérios.
 /// </summary>
 public sealed class SearchProvidersQueryHandler(
-    ISearchableProviderRepository repository,
+    ISearchableProviderQueries queries,
     ILogger<SearchProvidersQueryHandler> logger)
     : IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>
 {
@@ -48,7 +47,7 @@ public sealed class SearchProvidersQueryHandler(
         var skip = Math.Max(0, (query.Page - 1) * query.PageSize);
 
         // Executa busca
-        var searchResult = await repository.SearchAsync(
+        var searchResult = await queries.SearchAsync(
             location,
             query.RadiusInKm,
             query.Term,

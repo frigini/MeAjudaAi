@@ -1,65 +1,38 @@
+using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.DTOs;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Geometries;
 
-namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories;
+namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
 
 /// <summary>
-/// Implementação de repositório para SearchableProvider.
-/// 
-/// ARQUITETURA HÍBRIDA (EF Core + Dapper):
-/// Este repositório usa o melhor de cada ORM para diferentes tipos de operações:
-/// 
-/// EF CORE (Operações CRUD):
-/// - GetByIdAsync, GetByProviderIdAsync → type-safe, navegação simples
-/// - AddAsync, UpdateAsync, DeleteAsync → change tracking, validações automáticas
-/// - SaveChangesAsync → transações gerenciadas, unit of work pattern
-/// - Mantém encapsulamento do domínio (GeoPoint value object, validações)
-/// 
-/// DAPPER + POSTGIS NATIVO (Queries Espaciais):
-/// - SearchAsync → raw SQL com ST_DWithin e ST_Distance do PostGIS
-/// - Aproveita índices GIST espaciais para máxima performance
-/// - Filtragem/ordenação/paginação executadas no banco de dados
-/// - Resolve limitação do EF Core que não traduz HasConversion para funções espaciais
-/// 
-/// POR QUE HÍBRIDO?
-/// - EF Core não consegue traduzir Location (HasConversion GeoPoint to NTS.Point) para SQL espacial
-/// - Remover HasConversion quebraria encapsulamento do domínio
-/// - Dapper para tudo seria overhead desnecessário (sem change tracking, mapeamento manual)
-/// - Solução: use cada ferramenta onde ela brilha
-/// 
-/// PERFORMANCE:
-/// - Queries espaciais executam ST_DWithin/ST_Distance diretamente no PostGIS
-/// - Índices GIST são utilizados (ix_searchable_providers_location)
-/// - Paginação acontece no banco (OFFSET/LIMIT), não em memória
-/// - Distâncias calculadas uma única vez no SQL, retornadas com os resultados
-/// 
-/// MAPEAMENTO:
-/// - ProviderSearchResultDto (interno) to SearchableProvider (domínio)
-/// - Usa IDapperConnection do Shared (já configurado com métricas e logging)
-/// - Mantém todas as invariantes e validações do domínio
+/// Implementação de ISearchableProviderQueries na camada de infraestrutura utilizando EF Core e Dapper.
 /// </summary>
-public sealed class SearchableProviderRepository(
+public sealed class DbContextSearchableProviderQueries(
     SearchProvidersDbContext context,
-    IDapperConnection dapper) : ISearchableProviderRepository
+    IDapperConnection dapper) : ISearchableProviderQueries
 {
     public async Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default)
     {
         return await context.SearchableProviders
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
-    public async Task<SearchableProvider?> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<SearchableProvider?> GetByProviderIdAsync(Guid providerId, bool track = false, CancellationToken cancellationToken = default)
     {
-        return await context.SearchableProviders
-            .FirstOrDefaultAsync(p => p.ProviderId == providerId, cancellationToken);
+        var query = context.SearchableProviders.AsQueryable();
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query.FirstOrDefaultAsync(p => p.ProviderId == providerId, cancellationToken);
     }
 
     public async Task<SearchResult> SearchAsync(
@@ -86,8 +59,6 @@ public sealed class SearchableProviderRepository(
         string? searchPattern = ToILikePattern(term);
 
         // Usar Dapper com PostGIS nativo para máxima performance espacial
-        // ST_DWithin filtra por raio usando índice GIST
-        // ST_Distance calcula distância exata em metros
         var whereClause = BuildWhereClauses(searchPattern, serviceIds, minRating, subscriptionTiers);
         
         var sql = $"""
@@ -201,11 +172,6 @@ public sealed class SearchableProviderRepository(
             """;
     }
 
-    /// <summary>
-    /// Sanitiza entrada do usuário para uso seguro com cláusulas ILIKE/LIKE.
-    /// Retorna string nula se a entrada for vazia.
-    /// Escapa caracteres especiais de wildcard (%, _, \) com backslash.
-    /// </summary>
     private static string? ToILikePattern(string? term)
     {
         if (string.IsNullOrWhiteSpace(term))
@@ -221,8 +187,7 @@ public sealed class SearchableProviderRepository(
 
     private static SearchableProvider MapToEntity(ProviderSearchResultDto dto)
     {
-        // Usar método Reconstitute do domínio para reconstruir entidade existente do banco
-        // (em vez de Create que geraria novo ID)
+        // Reconstituir entidade existente do banco de dados (Dapper query)
         return SearchableProvider.Reconstitute(
             id: dto.Id,
             providerId: dto.ProviderId,
@@ -239,32 +204,15 @@ public sealed class SearchableProviderRepository(
             state: dto.State);
     }
 
-    public async Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, bool track = false, CancellationToken cancellationToken = default)
     {
-        return await context.SearchableProviders
+        var query = context.SearchableProviders.AsQueryable();
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query
             .Where(p => p.ServiceIds.Contains(serviceId))
             .ToListAsync(cancellationToken);
-    }
-
-    public async Task AddAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
-    {
-        await context.SearchableProviders.AddAsync(provider, cancellationToken);
-    }
-
-    public Task UpdateAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
-    {
-        context.SearchableProviders.Update(provider);
-        return Task.CompletedTask;
-    }
-
-    public Task DeleteAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
-    {
-        context.SearchableProviders.Remove(provider);
-        return Task.CompletedTask;
-    }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -12,9 +12,19 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 /// Contexto de banco de dados para o módulo SearchProviders.
 /// Usa a extensão PostGIS para consultas geoespaciais.
 /// </summary>
-public class SearchProvidersDbContext : BaseDbContext
+public partial class SearchProvidersDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<SearchableProvider> SearchableProviders => Set<SearchableProvider>();
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+
+        throw new InvalidOperationException(
+            $"SearchProvidersDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context only supports: SearchableProvider(SearchableProviderId)");
+    }
 
     // Construtor para design-time (migrations)
     public SearchProvidersDbContext(DbContextOptions<SearchProvidersDbContext> options) : base(options)

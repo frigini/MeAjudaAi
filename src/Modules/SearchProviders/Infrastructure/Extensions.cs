@@ -1,7 +1,8 @@
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
-using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -64,8 +65,11 @@ public static class Extensions
             }
         });
 
-        // Repositórios
-        services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
+        // Unit of Work
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.SearchProviders, (sp, key) => sp.GetRequiredService<SearchProvidersDbContext>());
+
+        // Queries
+        services.AddScoped<ISearchableProviderQueries, DbContextSearchableProviderQueries>();
 
         return services;
     }
