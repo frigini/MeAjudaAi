@@ -81,12 +81,11 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         // Registrar DatabaseMetrics + Interceptor (via AddDatabaseMonitoring do Shared)
         services.AddDatabaseMonitoring();
 
-        // Registrar Dapper connection (necessário para SearchableProviderRepository)
+        // Registrar Dapper connection (necessário para as queries geoespaciais em DbContextSearchableProviderQueries)
         services.AddScoped<IDapperConnection, DapperConnection>();
 
         // Registrar Unit of Work
         services.AddKeyedScoped<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders, (sp, key) => sp.GetRequiredService<SearchProvidersDbContext>());
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<SearchProvidersDbContext>());
 
         // Registrar Queries
         services.AddScoped<MeAjudaAi.Modules.SearchProviders.Application.Queries.ISearchableProviderQueries,
@@ -244,7 +243,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
     /// <summary>
     /// Limpeza executada após cada classe de teste
     /// </summary>
-    public async ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         if (_serviceProvider != null)
         {

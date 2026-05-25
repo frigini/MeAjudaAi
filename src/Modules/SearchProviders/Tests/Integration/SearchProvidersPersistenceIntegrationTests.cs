@@ -18,8 +18,17 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 [Trait("Layer", "Infrastructure")]
 public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegrationTestBase
 {
-    private IUnitOfWork Uow => GetService<IUnitOfWork>();
-    private ISearchableProviderQueries Queries => GetService<ISearchableProviderQueries>();
+    private IServiceScope? _scope;
+    private IServiceProvider ScopedProvider => (_scope ??= CreateScope()).ServiceProvider;
+
+    private IUnitOfWork Uow => ScopedProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.SearchProviders);
+    private ISearchableProviderQueries Queries => ScopedProvider.GetRequiredService<ISearchableProviderQueries>();
+
+    public override async ValueTask DisposeAsync()
+    {
+        _scope?.Dispose();
+        await base.DisposeAsync();
+    }
 
     [Fact]
     public async Task UnitOfWork_AddAndSave_ShouldPersistEntity()
@@ -75,7 +84,7 @@ public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegra
 
         // Assert
         result.Should().NotBeNull();
-        var dbContext = GetService<SearchProvidersDbContext>();
+        var dbContext = ScopedProvider.GetRequiredService<SearchProvidersDbContext>();
         dbContext.Entry(result!).State.Should().Be(EntityState.Unchanged);
 
         // Update tracking test
@@ -102,7 +111,7 @@ public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegra
 
         // Assert
         result.Should().HaveCount(1);
-        var dbContext = GetService<SearchProvidersDbContext>();
+        var dbContext = ScopedProvider.GetRequiredService<SearchProvidersDbContext>();
         dbContext.Entry(result[0]).State.Should().Be(EntityState.Unchanged);
     }
 

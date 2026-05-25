@@ -67,7 +67,6 @@ public static class Extensions
 
         // Unit of Work
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.SearchProviders, (sp, key) => sp.GetRequiredService<SearchProvidersDbContext>());
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<SearchProvidersDbContext>());
 
         // Queries
         services.AddScoped<ISearchableProviderQueries, DbContextSearchableProviderQueries>();

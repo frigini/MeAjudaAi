@@ -51,7 +51,7 @@ src/Modules/SearchProviders/
 ```
 
 ### **Padrão Híbrido (EF Core + Dapper)**
-O módulo utiliza uma abordagem híbrida para máxima performance:
+O módulo utiliza uma abordagem híbrida para máximo desempenho:
 - **Escrita e CRUD Simples**: Utiliza `IUnitOfWork` (implementado pelo `SearchProvidersDbContext`) e `IRepository<SearchableProvider, SearchableProviderId>` (via EF Core).
 - **Consultas Complexas e Geoespaciais**: Utiliza `ISearchableProviderQueries` (implementado por `DbContextSearchableProviderQueries`) que utiliza **Dapper** para queries SQL raw otimizadas com PostGIS.
 
