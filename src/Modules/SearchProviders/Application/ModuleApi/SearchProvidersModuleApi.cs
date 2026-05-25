@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Modules;
@@ -11,8 +10,11 @@ using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
@@ -24,7 +26,8 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class SearchProvidersModuleApi(
     IQueryDispatcher queryDispatcher,
-    ISearchableProviderRepository repository,
+    [FromKeyedServices(ModuleKeys.SearchProviders)] IUnitOfWork uow,
+    ISearchableProviderQueries queries,
     IProvidersModuleApi providersApi,
     ILogger<SearchProvidersModuleApi> logger) : ISearchProvidersModuleApi
 {
@@ -158,7 +161,7 @@ public sealed class SearchProvidersModuleApi(
             }
 
             // 2. Verificar se provider já existe no índice
-            var existing = await repository.GetByProviderIdAsync(providerId, cancellationToken);
+            var existing = await queries.GetByProviderIdAsync(providerId, track: true, cancellationToken);
 
             if (existing != null)
             {
@@ -176,8 +179,6 @@ public sealed class SearchProvidersModuleApi(
                     existing.Activate();
                 else
                     existing.Deactivate();
-
-                await repository.UpdateAsync(existing, cancellationToken);
             }
             else
             {
@@ -202,10 +203,10 @@ public sealed class SearchProvidersModuleApi(
                 if (!providerData.IsActive)
                     searchableProvider.Deactivate();
 
-                await repository.AddAsync(searchableProvider, cancellationToken);
+                uow.GetRepository<SearchableProvider, SearchableProviderId>().Add(searchableProvider);
             }
 
-            await repository.SaveChangesAsync(cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} indexed successfully in search", providerId);
             return Result.Success();
@@ -223,7 +224,7 @@ public sealed class SearchProvidersModuleApi(
         {
             logger.LogInformation("Removing provider {ProviderId} from search index", providerId);
 
-            var existing = await repository.GetByProviderIdAsync(providerId, cancellationToken);
+            var existing = await queries.GetByProviderIdAsync(providerId, track: true, cancellationToken);
 
             if (existing == null)
             {
@@ -231,8 +232,8 @@ public sealed class SearchProvidersModuleApi(
                 return Result.Success(); // Idempotent: já removido ou nunca indexado
             }
 
-            await repository.DeleteAsync(existing, cancellationToken);
-            await repository.SaveChangesAsync(cancellationToken);
+            uow.GetRepository<SearchableProvider, SearchableProviderId>().Delete(existing);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} removed from search index successfully", providerId);
             return Result.Success();

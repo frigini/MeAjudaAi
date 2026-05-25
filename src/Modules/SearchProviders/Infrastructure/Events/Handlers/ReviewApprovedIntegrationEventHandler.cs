@@ -1,6 +1,9 @@
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
@@ -10,7 +13,8 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// Atualiza a média de avaliação do provedor no módulo de busca.
 /// </summary>
 public sealed class ReviewApprovedIntegrationEventHandler(
-    ISearchableProviderRepository repository,
+    [FromKeyedServices(ModuleKeys.SearchProviders)] IUnitOfWork uow,
+    ISearchableProviderQueries queries,
     ILogger<ReviewApprovedIntegrationEventHandler> logger) : IEventHandler<ReviewApprovedIntegrationEvent>
 {
     public async Task HandleAsync(ReviewApprovedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
@@ -23,7 +27,7 @@ public sealed class ReviewApprovedIntegrationEventHandler(
                 integrationEvent.NewAverageRating,
                 integrationEvent.TotalReviews);
 
-            var provider = await repository.GetByProviderIdAsync(integrationEvent.ProviderId, cancellationToken);
+            var provider = await queries.GetByProviderIdAsync(integrationEvent.ProviderId, track: true, cancellationToken);
 
             if (provider == null)
             {
@@ -33,8 +37,7 @@ public sealed class ReviewApprovedIntegrationEventHandler(
 
             provider.UpdateRating(integrationEvent.NewAverageRating, integrationEvent.TotalReviews);
 
-            await repository.UpdateAsync(provider, cancellationToken);
-            await repository.SaveChangesAsync(cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Successfully updated rating for provider {ProviderId} in search module", integrationEvent.ProviderId);
         }

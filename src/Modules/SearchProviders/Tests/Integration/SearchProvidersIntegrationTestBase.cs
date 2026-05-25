@@ -84,9 +84,13 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         // Registrar Dapper connection (necessário para SearchableProviderRepository)
         services.AddScoped<IDapperConnection, DapperConnection>();
 
-        // Registrar repositório
-        services.AddScoped<MeAjudaAi.Modules.SearchProviders.Domain.Repositories.ISearchableProviderRepository,
-            MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories.SearchableProviderRepository>();
+        // Registrar Unit of Work
+        services.AddKeyedScoped<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders, (sp, key) => sp.GetRequiredService<SearchProvidersDbContext>());
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<SearchProvidersDbContext>());
+
+        // Registrar Queries
+        services.AddScoped<MeAjudaAi.Modules.SearchProviders.Application.Queries.ISearchableProviderQueries,
+            MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries.DbContextSearchableProviderQueries>();
 
         _serviceProvider = services.BuildServiceProvider();
 

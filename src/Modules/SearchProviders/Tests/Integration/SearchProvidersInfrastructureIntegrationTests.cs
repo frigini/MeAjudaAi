@@ -1,15 +1,17 @@
 using FluentAssertions;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 /// <summary>
-/// Testes de integração para a infraestrutura de SearchProviders - casos extremos e condições de contorno
+/// Testes de integração para a infraestrutura de SearchProviders - casos extremos e condições de contorno.
+/// Agora utiliza IUnitOfWork e ISearchableProviderQueries seguindo a refatoração da Fase 3.
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Module", "SearchProviders")]
@@ -22,11 +24,11 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -48,7 +50,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider = CreateTestSearchableProvider("Provider SP", -23.5505, -46.6333);
         await PersistSearchableProviderAsync(provider);
@@ -56,7 +58,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // Exact same location
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 0,
             term: null,
@@ -76,7 +78,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider1 = CreateTestSearchableProvider("Provider SP", -23.5505, -46.6333);
         var provider2 = CreateTestSearchableProvider("Provider RJ", -22.9068, -43.1729);
@@ -89,7 +91,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - 1000km radius should include all Brazilian cities
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 1000,
             term: null,
@@ -109,7 +111,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         // Create 15 providers in the same location
         for (int i = 0; i < 15; i++)
@@ -121,7 +123,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Get page 1 (skip 0, take 10)
-        var page1 = await repository.SearchAsync(
+        var page1 = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -132,7 +134,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             take: 10);
 
         // Act - Get page 2 (skip 10, take 10)
-        var page2 = await repository.SearchAsync(
+        var page2 = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -161,7 +163,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var standardProvider = CreateTestSearchableProvider(
             "Standard Provider",
@@ -181,7 +183,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -203,7 +205,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var nearProvider = CreateTestSearchableProvider(
             "Near Provider",
@@ -223,7 +225,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // Search from Centro
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -245,7 +247,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider = CreateTestSearchableProvider("Provider SP", -23.5505, -46.6333);
         provider.UpdateServices(new[] { Guid.NewGuid(), Guid.NewGuid() });
@@ -255,7 +257,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var nonExistentServiceIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -277,7 +279,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var standardProvider = CreateTestSearchableProvider(
             "Standard",
@@ -297,7 +299,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: null,
@@ -318,33 +320,34 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
         var nonExistentId = new SearchableProviderId(Guid.NewGuid());
 
         // Act
-        var result = await repository.GetByIdAsync(nonExistentId);
+        var result = await queries.GetByIdAsync(nonExistentId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public async Task AddAsync_ThenGetById_ShouldRetrieveSameProvider()
+    public async Task Add_ThenGetById_ShouldRetrieveSameProvider()
     {
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders);
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider = CreateTestSearchableProvider("Test Provider", -23.5505, -46.6333);
         var serviceIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
         provider.UpdateServices(serviceIds);
 
         // Act
-        await repository.AddAsync(provider);
-        await repository.SaveChangesAsync();
+        uow.GetRepository<SearchableProvider, SearchableProviderId>().Add(provider);
+        await uow.SaveChangesAsync();
 
-        var retrieved = await repository.GetByIdAsync(provider.Id);
+        var retrieved = await queries.GetByIdAsync(provider.Id);
 
         // Assert
         retrieved.Should().NotBeNull();
@@ -354,47 +357,52 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
     }
 
     [Fact]
-    public async Task UpdateAsync_ShouldPersistChanges()
+    public async Task Update_ShouldPersistChangesViaTracking()
     {
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders);
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider = CreateTestSearchableProvider("Original Name", -23.5505, -46.6333);
-        await repository.AddAsync(provider);
-        await repository.SaveChangesAsync();
+        await PersistSearchableProviderAsync(provider);
 
-        // Act - Update services
+        // Act - Fetch with tracking, then update
+        var tracked = await queries.GetByProviderIdAsync(provider.ProviderId, track: true);
+        tracked.Should().NotBeNull();
+        
         var newServiceIds = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        provider.UpdateServices(newServiceIds);
-        await repository.UpdateAsync(provider);
-        await repository.SaveChangesAsync();
+        tracked!.UpdateServices(newServiceIds);
+        await uow.SaveChangesAsync();
 
         // Assert
-        var retrieved = await repository.GetByIdAsync(provider.Id);
+        var retrieved = await queries.GetByIdAsync(provider.Id);
         retrieved.Should().NotBeNull();
         retrieved!.ServiceIds.Should().Equal(newServiceIds);
     }
 
     [Fact]
-    public async Task DeleteAsync_ShouldRemoveProvider()
+    public async Task Delete_ShouldRemoveProvider()
     {
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders);
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider = CreateTestSearchableProvider("To Delete", -23.5505, -46.6333);
-        await repository.AddAsync(provider);
-        await repository.SaveChangesAsync();
+        await PersistSearchableProviderAsync(provider);
 
         // Act
-        await repository.DeleteAsync(provider);
-        await repository.SaveChangesAsync();
+        var repo = uow.GetRepository<SearchableProvider, SearchableProviderId>();
+        var tracked = await repo.TryFindAsync(provider.Id);
+        tracked.Should().NotBeNull();
+        repo.Delete(tracked!);
+        await uow.SaveChangesAsync();
 
         // Assert
-        var retrieved = await repository.GetByIdAsync(provider.Id);
+        var retrieved = await queries.GetByIdAsync(provider.Id);
         retrieved.Should().BeNull();
     }
 
@@ -417,8 +425,8 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             .Select(_ => Task.Run(async () =>
             {
                 using var innerScope = CreateScope();
-                var innerRepo = innerScope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
-                return await innerRepo.SearchAsync(
+                var innerQueries = innerScope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
+                return await innerQueries.SearchAsync(
                     searchLocation,
                     radiusInKm: 50,
                     term: null,
@@ -445,7 +453,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
 
         var provider1 = CreateTestSearchableProvider("João Silva", -23.5505, -46.6333);
         var provider2 = CreateTestSearchableProvider("Maria Santos", -23.5505, -46.6333);
@@ -456,7 +464,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(
+        var result = await queries.SearchAsync(
             searchLocation,
             radiusInKm: 50,
             term: "silva", // Lowercase search
@@ -471,3 +479,4 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         result.Providers.First().Name.Should().Be("João Silva");
     }
 }
+

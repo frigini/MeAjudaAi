@@ -23,34 +23,37 @@ src/Modules/SearchProviders/
 │   └── Endpoints/                 # Minimal APIs
 │       └── SearchProvidersEndpoint.cs
 ├── Application/                   # Camada de aplicação (CQRS)
-│   ├── Queries/                   # SearchProvidersQuery
+│   ├── Queries/                   # SearchProvidersQuery e ISearchableProviderQueries
 │   ├── Handlers/                  # SearchProvidersQueryHandler
 │   ├── Validators/                # FluentValidation
-│   └── DTOs/                      # Data Transfer Objects
+│   ├── DTOs/                      # Data Transfer Objects
+│   └── ModuleApi/                 # SearchProvidersModuleApi
 ├── Domain/                        # Camada de domínio
 │   ├── Entities/                  # SearchableProvider (aggregate)
 │   ├── ValueObjects/              # SearchProvidersProvidersResult, SearchableProviderId
-│   ├── Enums/                     # ESubscriptionTier
-│   └── Repositories/              # ISearchableProviderRepository
+│   └── Enums/                     # ESubscriptionTier
 ├── Infrastructure/                # Camada de infraestrutura
-│   ├── Persistence/               # Entity Framework + PostGIS
+│   ├── Persistence/               # Entity Framework + IUnitOfWork
 │   │   ├── Configurations/        # EF Core entity configurations
 │   │   ├── Migrations/            # Database migrations
-│   │   └── Repositories/          # SearchableProviderRepository
+│   │   ├── SearchProvidersDbContext.cs # Implementação do IUnitOfWork
+│   │   └── SearchProvidersRepositories.cs # Repositórios parciais
+│   ├── Queries/                   # DbContextSearchableProviderQueries (Dapper + PostGIS)
 │   └── Extensions.cs              # DI registration
 └── Tests/                         # Testes do módulo
     ├── Unit/                      # Testes unitários
     │   ├── Domain/                # Entidades e value objects
     │   ├── Application/           # Handlers e validators
+    │   └── Infrastructure/        # Queries e DbContext
     └── Integration/               # Testes com Testcontainers + PostGIS
-        └── SearchableProviderRepositoryIntegrationTests.cs
+        ├── SearchProvidersPersistenceIntegrationTests.cs
+        └── SearchProvidersInfrastructureIntegrationTests.cs
 ```
 
-### **Padrão CQRS para Leitura**
-O módulo implementa apenas o lado de **Query** do CQRS, pois é um read model:
-- **Query**: `SearchProvidersQuery` com validação de parâmetros
-- **Handler**: `SearchProvidersQueryHandler` executa busca geoespacial
-- **Repository**: `SearchableProviderRepository` com PostGIS
+### **Padrão Híbrido (EF Core + Dapper)**
+O módulo utiliza uma abordagem híbrida para máxima performance:
+- **Escrita e CRUD Simples**: Utiliza `IUnitOfWork` (implementado pelo `SearchProvidersDbContext`) e `IRepository<SearchableProvider, SearchableProviderId>` (via EF Core).
+- **Consultas Complexas e Geoespaciais**: Utiliza `ISearchableProviderQueries` (implementado por `DbContextSearchableProviderQueries`) que utiliza **Dapper** para queries SQL raw otimizadas com PostGIS.
 
 ### **Agregado Principal**
 
@@ -402,16 +405,14 @@ Tests/
 ### **Executar Testes**
 
 ```powershell
-```powershell
 # Todos os testes do módulo SearchProviders
-dotnet test src\Modules\SearchProviders\Tests\
-dotnet test src\Modules\SearchProviders\Tests\
+dotnet test src/Modules/SearchProviders/Tests/
 
 # Apenas testes unitários
-dotnet test src\Modules\SearchProviders\Tests\ --filter "Category=Unit"
+dotnet test src/Modules/SearchProviders/Tests/ --filter "Category=Unit"
 
 # Apenas testes de integração (requer Docker)
-dotnet test src\Modules\SearchProviders\Tests\ --filter "Category=Integration"
+dotnet test src/Modules/SearchProviders/Tests/ --filter "Category=Integration"
 ```
 
 ### **Testes de Integração com Testcontainers**

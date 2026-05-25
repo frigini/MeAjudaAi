@@ -5,7 +5,6 @@ using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
-using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Utilities;
@@ -22,15 +21,15 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Handlers;
 [Trait("Component", "QueryHandler")]
 public class SearchProvidersQueryHandlerTests
 {
-    private readonly Mock<ISearchableProviderRepository> _repositoryMock;
+    private readonly Mock<ISearchableProviderQueries> _queriesMock;
     private readonly Mock<ILogger<SearchProvidersQueryHandler>> _loggerMock;
     private readonly SearchProvidersQueryHandler _sut;
 
     public SearchProvidersQueryHandlerTests()
     {
-        _repositoryMock = new Mock<ISearchableProviderRepository>();
+        _queriesMock = new Mock<ISearchableProviderQueries>();
         _loggerMock = new Mock<ILogger<SearchProvidersQueryHandler>>();
-        _sut = new SearchProvidersQueryHandler(_repositoryMock.Object, _loggerMock.Object);
+        _sut = new SearchProvidersQueryHandler(_queriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -47,7 +46,7 @@ public class SearchProvidersQueryHandlerTests
         var providers = CreateTestProviders(3);
         var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
         var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 query.RadiusInKm,
@@ -107,7 +106,7 @@ public class SearchProvidersQueryHandlerTests
         var providers = CreateTestProviders(1);
         var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
         var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 query.RadiusInKm,
@@ -128,7 +127,7 @@ public class SearchProvidersQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.SearchAsync(
+        _queriesMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
             "Eletricista",
@@ -155,7 +154,7 @@ public class SearchProvidersQueryHandlerTests
         var providers = CreateTestProviders(2);
         var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
         var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
@@ -176,7 +175,7 @@ public class SearchProvidersQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.SearchAsync(
+        _queriesMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
             It.IsAny<string?>(),
@@ -201,7 +200,7 @@ public class SearchProvidersQueryHandlerTests
         var providers = CreateTestProviders(1);
         var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
         var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
@@ -222,7 +221,7 @@ public class SearchProvidersQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.SearchAsync(
+        _queriesMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
             It.IsAny<string?>(),
@@ -247,7 +246,7 @@ public class SearchProvidersQueryHandlerTests
         var providers = CreateTestProviders(2);
         var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
         var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
@@ -284,7 +283,7 @@ public class SearchProvidersQueryHandlerTests
         var providers = CreateTestProviders(10);
         var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
         var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
@@ -320,7 +319,7 @@ public class SearchProvidersQueryHandlerTests
             Longitude: -46.6333,
             RadiusInKm: 1);
 
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
@@ -363,7 +362,7 @@ public class SearchProvidersQueryHandlerTests
             subscriptionTier: ESubscriptionTier.Free);
 
         var distance = provider.CalculateDistanceToInKm(searchLocation);
-        _repositoryMock
+        _queriesMock
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
@@ -408,3 +407,4 @@ public class SearchProvidersQueryHandlerTests
         return providers;
     }
 }
+
