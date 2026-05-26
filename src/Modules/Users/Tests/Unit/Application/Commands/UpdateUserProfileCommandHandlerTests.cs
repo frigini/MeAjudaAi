@@ -2,9 +2,9 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -14,18 +14,25 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class UpdateUserProfileCommandHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly Mock<ILogger<UpdateUserProfileCommandHandler>> _loggerMock;
     private readonly UpdateUserProfileCommandHandler _handler;
 
     public UpdateUserProfileCommandHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _loggerMock = new Mock<ILogger<UpdateUserProfileCommandHandler>>();
+
+        _unitOfWorkMock
+            .Setup(x => x.GetRepository<User, UserId>())
+            .Returns(_userRepositoryMock.Object);
+
         _handler = new UpdateUserProfileCommandHandler(
-            _userRepositoryMock.Object,
+            _unitOfWorkMock.Object,
             _usersCacheServiceMock.Object,
             _loggerMock.Object);
     }
@@ -48,12 +55,12 @@ public class UpdateUserProfileCommandHandlerTests
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         _usersCacheServiceMock
             .Setup(x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -69,11 +76,11 @@ public class UpdateUserProfileCommandHandlerTests
         result.Value.LastName.Should().Be("Updated Last");
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _userRepositoryMock.Verify(
-            x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
 
         _usersCacheServiceMock.Verify(
@@ -92,7 +99,7 @@ public class UpdateUserProfileCommandHandlerTests
             "Updated Last");
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         // Act
@@ -103,11 +110,11 @@ public class UpdateUserProfileCommandHandlerTests
         result.Error.Should().NotBeNull();
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _userRepositoryMock.Verify(
-            x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
 
         _usersCacheServiceMock.Verify(
@@ -126,7 +133,7 @@ public class UpdateUserProfileCommandHandlerTests
             "Updated Last");
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -137,7 +144,7 @@ public class UpdateUserProfileCommandHandlerTests
         result.Error.Should().NotBeNull();
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -159,12 +166,12 @@ public class UpdateUserProfileCommandHandlerTests
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         _usersCacheServiceMock
             .Setup(x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -177,8 +184,8 @@ public class UpdateUserProfileCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
 
-        _userRepositoryMock.Verify(
-            x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -200,22 +207,21 @@ public class UpdateUserProfileCommandHandlerTests
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        // O dom�nio n�o valida mais campos vazios - isso � responsabilidade do FluentValidation
         result.IsSuccess.Should().BeTrue();
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 }

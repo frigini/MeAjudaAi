@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
@@ -22,7 +21,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// - Ordena resultados por data de criação (mais recentes primeiro)
 /// </remarks>
 public class GetProvidersQueryHandler(
-    IProviderQueryService providerQueryService,
+    IProviderQueries providerQueries,
     ILogger<GetProvidersQueryHandler> logger) : IQueryHandler<GetProvidersQuery, Result<PagedResult<ProviderDto>>>
 {
 
@@ -43,7 +42,7 @@ public class GetProvidersQueryHandler(
                 query.Page, query.PageSize, query.Name, query.Type, query.VerificationStatus);
 
             // Aplica filtros na busca
-            var providers = await providerQueryService.GetProvidersAsync(
+            var providers = await providerQueries.GetPagedAsync(
                 page: query.Page,
                 pageSize: query.PageSize,
                 nameFilter: query.Name,

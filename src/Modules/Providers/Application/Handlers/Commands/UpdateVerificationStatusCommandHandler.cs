@@ -1,9 +1,10 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -12,10 +13,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <summary>
 /// Handler responsável por processar comandos de atualização do status de verificação de prestadores de serviços.
 /// </summary>
-/// <param name="providerRepository">Repositório para acesso aos dados</param>
+/// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado</param>
 public sealed class UpdateVerificationStatusCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     ILogger<UpdateVerificationStatusCommandHandler> logger
 ) : ICommandHandler<UpdateVerificationStatusCommand, Result<ProviderDto>>
 {
@@ -30,7 +31,7 @@ public sealed class UpdateVerificationStatusCommandHandler(
                 command.ProviderId, command.Status);
 
             var providerId = new ProviderId(command.ProviderId);
-            var provider = await providerRepository.GetByIdAsync(providerId, cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
 
             if (provider == null)
             {
@@ -40,7 +41,7 @@ public sealed class UpdateVerificationStatusCommandHandler(
 
             provider.UpdateVerificationStatus(command.Status, command.UpdatedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Verification status updated successfully for provider {ProviderId}", command.ProviderId);
             return Result<ProviderDto>.Success(provider.ToDto());

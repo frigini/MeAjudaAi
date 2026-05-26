@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Queries;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 public sealed class GetProvidersByStateQueryHandler(
-    IProviderRepository providerRepository,
+    IProviderQueries providerQueries,
     ILogger<GetProvidersByStateQueryHandler> logger
 ) : IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>
 {
@@ -25,7 +24,7 @@ public sealed class GetProvidersByStateQueryHandler(
             }
 
             logger.LogInformation("Getting providers by state {State}", query.State);
-            var providers = await providerRepository.GetByStateAsync(query.State, cancellationToken);
+            var providers = await providerQueries.GetByStateAsync(query.State, cancellationToken);
             logger.LogInformation("Found {Count} providers in state {State}", providers.Count, query.State);
             return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
         }

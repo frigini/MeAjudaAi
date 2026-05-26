@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Users.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 using MeAjudaAi.Shared.Database;
@@ -127,8 +127,11 @@ public static class Extensions
         // Registra processador de eventos de domínio (abordagem de injeção de dependência direta)
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
-        // Repositories
-        services.AddScoped<IUserRepository, UserRepository>();
+        // Registra o DbContext como IUnitOfWork
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
+
+        // Queries
+        services.AddScoped<IUserQueries, DbContextUserQueries>();
 
         return services;
     }

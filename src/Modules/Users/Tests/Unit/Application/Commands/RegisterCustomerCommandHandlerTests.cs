@@ -1,13 +1,14 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -18,18 +19,28 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 public class RegisterCustomerCommandHandlerTests
 {
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<RegisterCustomerCommandHandler>> _loggerMock;
     private readonly RegisterCustomerCommandHandler _handler;
 
     public RegisterCustomerCommandHandlerTests()
     {
         _userDomainServiceMock = new Mock<IUserDomainService>();
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _userRepositoryMock = new Mock<IRepository<User, UserId>>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<RegisterCustomerCommandHandler>>();
+
+        _unitOfWorkMock
+            .Setup(x => x.GetRepository<User, UserId>())
+            .Returns(_userRepositoryMock.Object);
+
         _handler = new RegisterCustomerCommandHandler(
             _userDomainServiceMock.Object,
-            _userRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            _userQueriesMock.Object,
             _loggerMock.Object);
     }
 
@@ -46,7 +57,7 @@ public class RegisterCustomerCommandHandlerTests
             AcceptedPrivacyPolicy: true
         );
 
-        _userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+        _userQueriesMock.Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         var user = User.Create(new Username("test_user_slug"), new Email(command.Email), "Test", "Customer", Guid.NewGuid().ToString(), command.PhoneNumber).Value!;
@@ -61,8 +72,11 @@ public class RegisterCustomerCommandHandlerTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Success(user));
 
-        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _userRepositoryMock.Setup(x => x.Add(It.IsAny<User>()))
+            .Verifiable();
+
+        _unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -78,7 +92,8 @@ public class RegisterCustomerCommandHandlerTests
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userRepositoryMock.Verify(x => x.Add(It.IsAny<User>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -108,7 +123,7 @@ public class RegisterCustomerCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be(RegisterCustomerCommandHandler.PrivacyPolicyNotAcceptedError);
         _userDomainServiceMock.Verify(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+        _userRepositoryMock.Verify(x => x.Add(It.IsAny<User>()), Times.Never);
     }
 
     [Fact]
@@ -132,7 +147,7 @@ public class RegisterCustomerCommandHandlerTests
         var command = new RegisterCustomerCommand("John Doe", "existing@test.com", "Password123!", "11999999999", true, true);
         var existingUser = User.Create(new Username("existing"), new Email(command.Email), "Existing", "User", Guid.NewGuid().ToString(), null).Value!;
 
-        _userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+        _userQueriesMock.Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
         // Act
@@ -205,7 +220,7 @@ public class RegisterCustomerCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldReturnFailure_AndTriggerCompensation_WhenAddAsyncThrowsExceptionAndUserNotFound()
+    public async Task HandleAsync_ShouldReturnFailure_AndTriggerCompensation_WhenSaveChangesAsyncThrowsExceptionAndUserNotFound()
     {
         // Arrange
         var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
@@ -214,10 +229,10 @@ public class RegisterCustomerCommandHandlerTests
         _userDomainServiceMock.Setup(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Success(user));
 
-        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+        _unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("DB Error"));
 
-        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+        _userQueriesMock.Setup(x => x.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         _userDomainServiceMock.Setup(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()))
@@ -233,7 +248,7 @@ public class RegisterCustomerCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldReturnFailure_AndNotTriggerCompensation_WhenAddAsyncThrowsExceptionAndUserFound()
+    public async Task HandleAsync_ShouldReturnFailure_AndNotTriggerCompensation_WhenSaveChangesAsyncThrowsExceptionAndUserFound()
     {
         // Arrange
         var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
@@ -242,10 +257,10 @@ public class RegisterCustomerCommandHandlerTests
         _userDomainServiceMock.Setup(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Success(user));
 
-        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+        _unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("DB Error"));
 
-        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+        _userQueriesMock.Setup(x => x.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         // Act
@@ -269,10 +284,10 @@ public class RegisterCustomerCommandHandlerTests
             It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Success(user));
 
-        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+        _unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("DB Error"));
 
-        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+        _userQueriesMock.Setup(x => x.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         _userDomainServiceMock.Setup(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()))

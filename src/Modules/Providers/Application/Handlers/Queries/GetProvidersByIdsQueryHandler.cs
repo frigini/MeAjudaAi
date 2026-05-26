@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Queries;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 public sealed class GetProvidersByIdsQueryHandler(
-    IProviderRepository providerRepository,
+    IProviderQueries providerQueries,
     ILogger<GetProvidersByIdsQueryHandler> logger
 ) : IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>>
 {
@@ -23,7 +22,7 @@ public sealed class GetProvidersByIdsQueryHandler(
             logger.LogDebug("Retrieving providers by IDs: {ProviderIds}",
                 string.Join(", ", query.ProviderIds));
 
-            var providers = await providerRepository.GetByIdsAsync(query.ProviderIds, cancellationToken);
+            var providers = await providerQueries.GetByIdsAsync(query.ProviderIds, cancellationToken);
 
             var result = providers.ToDto();
 

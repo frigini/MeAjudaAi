@@ -1,11 +1,10 @@
-using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Events;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.EntityFrameworkCore;
@@ -88,11 +87,14 @@ public static class Extensions
             return context;
         });
 
-        // Registro do repositório
-        services.AddScoped<IProviderRepository, ProviderRepository>();
+        // Registro do processador de eventos de domínio
+        services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
-        // Registro do serviço de consultas
-        services.AddScoped<IProviderQueryService, ProviderQueryService>();
+        // Registro do DbContext como IUnitOfWork
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
+
+        // Registro das Queries otimizadas
+        services.AddScoped<IProviderQueries, DbContextProviderQueries>();
 
         // Registro dos Event Handlers
         services.AddEventHandlers();

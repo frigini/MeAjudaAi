@@ -1,5 +1,7 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -11,19 +13,33 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 /// Implementa o padrão DbContext do Entity Framework Core para persistência
 /// das entidades do domínio de prestadores de serviços.
 /// </remarks>
-public class ProvidersDbContext : DbContext
+public partial class ProvidersDbContext : BaseDbContext, IUnitOfWork
 {
     /// <summary>
-    /// Inicializa uma nova instância do contexto.
+    /// Inicializa uma nova instância do contexto para design-time (migrations).
     /// </summary>
-    /// <param name="options">Opções de configuração do contexto</param>
     public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options) : base(options)
     {
     }
+
+    /// <summary>
+    /// Inicializa uma nova instância do contexto com suporte a eventos de domínio.
+    /// </summary>
+    public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options, IDomainEventProcessor domainEventProcessor) 
+        : base(options, domainEventProcessor)
+    {
+    }
+
     /// <summary>
     /// Conjunto de dados para prestadores de serviços.
     /// </summary>
-    public DbSet<Provider> Providers { get; set; } = null!;
+    public DbSet<Provider> Providers => Set<Provider>();
+
+    /// <summary>
+    /// Obtém o repositório tipado para um agregado do domínio.
+    /// </summary>
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>() =>
+        (IRepository<TAggregate, TKey>)this;
 
     /// <summary>
     /// Configura o modelo de dados durante a criação do contexto.
@@ -37,5 +53,29 @@ public class ProvidersDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(modelBuilder);
+    }
+
+    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
+    {
+        var domainEvents = ChangeTracker
+            .Entries<Provider>()
+            .Where(entry => entry.Entity.DomainEvents.Count > 0)
+            .SelectMany(entry => entry.Entity.DomainEvents)
+            .ToList();
+
+        return Task.FromResult(domainEvents);
+    }
+
+    protected override void ClearDomainEvents()
+    {
+        var entries = ChangeTracker
+            .Entries<Provider>()
+            .Where(entry => entry.Entity.DomainEvents.Count > 0)
+            .Select(entry => entry.Entity);
+
+        foreach (var entity in entries)
+        {
+            entity.ClearDomainEvents();
+        }
     }
 }

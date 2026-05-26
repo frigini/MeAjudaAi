@@ -5,17 +5,19 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 
 public sealed partial class RegisterCustomerCommandHandler(
     IUserDomainService userDomainService,
-    IUserRepository userRepository,
+    IUnitOfWork uow,
+    IUserQueries userQueries,
     ILogger<RegisterCustomerCommandHandler> logger
 ) : ICommandHandler<RegisterCustomerCommand, Result<UserDto>>
 {
@@ -81,7 +83,7 @@ public sealed partial class RegisterCustomerCommandHandler(
         var maskedEmail = PiiMaskingHelper.MaskEmail(command.Email);
 
         // Valida unicidade primeiro
-        var existingEmail = await userRepository.GetByEmailAsync(emailAsValueObject, cancellationToken);
+        var existingEmail = await userQueries.GetByEmailAsync(emailAsValueObject, cancellationToken);
         if (existingEmail is not null)
         {
             return Result<UserDto>.Failure(Error.Conflict("Este email já está em uso."));
@@ -135,7 +137,8 @@ public sealed partial class RegisterCustomerCommandHandler(
 
         try
         {
-            await userRepository.AddAsync(user, cancellationToken);
+            uow.GetRepository<Domain.Entities.User, UserId>().Add(user);
+            await uow.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -151,7 +154,7 @@ public sealed partial class RegisterCustomerCommandHandler(
 
             // Verifica se o usuário realmente não foi salvo no repositório antes da compensação
             // Usamos CancellationToken.None para garantir que a compensação ocorra mesmo se o request original foi cancelado
-            var persistenceCheck = await userRepository.GetByIdNoTrackingAsync(user.Id, CancellationToken.None);
+            var persistenceCheck = await userQueries.GetByIdAsync(user.Id, CancellationToken.None);
             if (persistenceCheck == null)
             {
                 // Compensação: desativar o usuário criado no Keycloak para evitar usuário órfão "fantasma" que pode logar mas não tem dados locais

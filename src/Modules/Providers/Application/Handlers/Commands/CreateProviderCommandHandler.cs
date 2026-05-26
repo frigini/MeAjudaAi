@@ -2,8 +2,9 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
@@ -17,10 +18,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Implementa o padrão CQRS para criação de prestadores de serviços, incluindo validações de negócio,
 /// verificação de duplicidade de usuário e integração com serviços de domínio.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência de prestadores de serviços</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class CreateProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     ILogger<CreateProviderCommandHandler> logger
 ) : ICommandHandler<CreateProviderCommand, Result<ProviderDto>>
 {
@@ -37,7 +38,7 @@ public sealed class CreateProviderCommandHandler(
             logger.LogInformation("Creating provider for user {UserId}", command.UserId);
 
             // Verifica se já existe um prestador de serviços para este usuário
-            var existingProvider = await providerRepository.GetByUserIdAsync(command.UserId, cancellationToken);
+            var existingProvider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.UserId), cancellationToken);
             if (existingProvider != null)
             {
                 logger.LogWarning("Provider already exists for user {UserId}", command.UserId);
@@ -56,7 +57,8 @@ public sealed class CreateProviderCommandHandler(
             );
 
             // Persiste no repositório
-            await providerRepository.AddAsync(provider, cancellationToken);
+            uow.GetRepository<Provider, ProviderId>().Add(provider);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} created successfully for user {UserId}",
                 provider.Id.Value, command.UserId);

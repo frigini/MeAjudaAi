@@ -1,8 +1,10 @@
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Messaging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration;
@@ -13,16 +15,14 @@ namespace MeAjudaAi.Modules.Users.Tests.Integration;
 [Collection("UsersIntegrationTests")]
 public class UserModuleIntegrationTests : UsersIntegrationTestBase
 {
-    // Remove override para usar a configuração padrão do SharedTestContainers
-    // protected override TestInfrastructureOptions GetTestOptions() - using inherited default
-
     [Fact]
     public async Task CreateUser_WithValidData_ShouldPersistToDatabase()
     {
         // Arrange
         using var scope = CreateScope();
         var userDomainService = GetScopedService<IUserDomainService>(scope);
-        var userRepository = GetScopedService<IUserRepository>(scope);
+        var uow = GetScopedService<IUnitOfWork>(scope);
+        var userQueries = GetScopedService<IUserQueries>(scope);
         var dbContext = GetScopedService<UsersDbContext>(scope);
         var messageBus = GetScopedService<IMessageBus>(scope);
 
@@ -40,11 +40,11 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
         Assert.True(createResult.IsSuccess);
 
         var createdUser = createResult.Value;
-        await userRepository.AddAsync(createdUser);
-        await dbContext.SaveChangesAsync(); // SaveChanges é do DbContext
+        uow.GetRepository<User, UserId>().Add(createdUser);
+        await uow.SaveChangesAsync();
 
         // Assert - Verificar se foi persistido no banco
-        var retrievedUser = await userRepository.GetByIdAsync(createdUser.Id);
+        var retrievedUser = await userQueries.GetByIdAsync(createdUser.Id);
         Assert.NotNull(retrievedUser);
         Assert.Equal(username.Value, retrievedUser.Username.Value);
         Assert.Equal(email.Value, retrievedUser.Email.Value);
@@ -53,7 +53,6 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
 
         // Assert - Verificar se o message bus está configurado (mock)
         Assert.NotNull(messageBus);
-        // Note: No teste real, eventos de domínio são publicados automaticamente pelo EF
     }
 
     [Fact]

@@ -4,7 +4,6 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -21,12 +20,12 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// </summary>
 public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>
 {
-    private readonly IProviderRepository _providerRepository;
+    private readonly IProviderQueries _providerQueries;
     private readonly IFeatureManager _featureManager;
 
-    public GetPublicProviderByIdOrSlugQueryHandler(IProviderRepository providerRepository, IFeatureManager featureManager)
+    public GetPublicProviderByIdOrSlugQueryHandler(IProviderQueries providerQueries, IFeatureManager featureManager)
     {
-        _providerRepository = providerRepository;
+        _providerQueries = providerQueries;
         _featureManager = featureManager;
     }
 
@@ -41,12 +40,12 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
         Domain.Entities.Provider? provider;
         if (Guid.TryParse(normalizedSlug, out var id))
         {
-            provider = await _providerRepository.GetByIdAsync(new ProviderId(id), cancellationToken)
-                       ?? await _providerRepository.GetBySlugAsync(normalizedSlug, cancellationToken);
+            provider = await _providerQueries.GetByIdAsync(new ProviderId(id), cancellationToken)
+                       ?? await _providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken);
         }
         else
         {
-            provider = await _providerRepository.GetBySlugAsync(normalizedSlug, cancellationToken);
+            provider = await _providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken);
         }
 
         if (provider is null)

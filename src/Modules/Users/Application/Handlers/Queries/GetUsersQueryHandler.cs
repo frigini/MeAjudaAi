@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -18,10 +17,10 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// à paginação. Retorna uma lista paginada de usuários convertidos para DTOs,
 /// otimizando performance e experiência do usuário em grandes volumes de dados.
 /// </remarks>
-/// <param name="userRepository">Repositório para consultas de usuários</param>
+/// <param name="userQueries">Serviço de queries de leitura de usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
 internal sealed class GetUsersQueryHandler(
-    IUserRepository userRepository,
+    IUserQueries userQueries,
     ILogger<GetUsersQueryHandler> logger
 ) : IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>
 {
@@ -119,7 +118,7 @@ internal sealed class GetUsersQueryHandler(
         logger.LogDebug("Executing repository query for users");
 
         var repositoryStart = stopwatch.ElapsedMilliseconds;
-        var (users, totalCount) = await userRepository.GetPagedAsync(
+        var (users, totalCount) = await userQueries.GetPagedAsync(
             query.Page, query.PageSize, cancellationToken);
 
         logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users",

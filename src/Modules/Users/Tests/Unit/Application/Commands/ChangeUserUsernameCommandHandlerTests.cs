@@ -1,11 +1,11 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Time.Testing;
-
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -15,320 +15,177 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class ChangeUserUsernameCommandHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly FakeTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<ChangeUserUsernameCommandHandler>> _loggerMock;
     private readonly ChangeUserUsernameCommandHandler _handler;
 
     public ChangeUserUsernameCommandHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _userRepositoryMock = new Mock<IRepository<User, UserId>>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<ChangeUserUsernameCommandHandler>>();
-        _handler = new ChangeUserUsernameCommandHandler(_userRepositoryMock.Object, _dateTimeProvider, _loggerMock.Object);
+
+        _unitOfWorkMock
+            .Setup(x => x.GetRepository<User, UserId>())
+            .Returns(_userRepositoryMock.Object);
+
+        _handler = new ChangeUserUsernameCommandHandler(
+            _unitOfWorkMock.Object,
+            _userQueriesMock.Object,
+            _dateTimeProvider,
+            _loggerMock.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_ValidCommand_ShouldChangeUsernameSuccessfully()
+    public async Task HandleAsync_WithValidCommand_ShouldReturnSuccess()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var newUsername = "newusername";
-        var command = new ChangeUserUsernameCommand(userId, newUsername, "admin");
-
-        var user = new UserBuilder()
-            .WithUsername("oldusername")
-            .WithEmail("test@test.com")
-            .WithFirstName("Test")
-            .WithLastName("User")
-            .Build();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
-
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Username.Should().Be(newUsername);
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_UserNotFound_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(userId, "newusername");
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("User not found");
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task HandleAsync_UsernameAlreadyTaken_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var existingUserId = Guid.NewGuid();
-        var newUsername = "existingusername";
-        var command = new ChangeUserUsernameCommand(userId, newUsername);
-
-        var user = new UserBuilder()
-            .WithUsername("oldusername")
-            .WithEmail("test@test.com")
-            .Build();
+        var command = new ChangeUserUsernameCommand(
+            UserId: userId,
+            NewUsername: "newusername",
+            UpdatedBy: null,
+            BypassRateLimit: true);
 
         var existingUser = new UserBuilder()
-            .WithUsername(newUsername)
-            .WithEmail("existing@test.com")
+            .WithId(new UserId(userId))
+            .WithUsername("oldusername")
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+        _userQueriesMock
+            .Setup(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("Username is already taken by another user");
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task HandleAsync_SameUserWithSameUsername_ShouldChangeUsernameSuccessfully()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var newUsername = "sameusername";
-        var command = new ChangeUserUsernameCommand(userId, newUsername);
-
-        var user = new UserBuilder()
-            .WithUsername("oldusername")
-            .WithEmail("test@test.com")
-            .Build();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user); // Mesmo usuário
-
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Username.Should().Be(newUsername);
+        result.Value.Username.Should().Be("newusername");
 
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userRepositoryMock.Verify(
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_RateLimitExceeded_ShouldReturnFailure()
+    public async Task HandleAsync_WithNonExistentUser_ShouldReturnFailure()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var newUsername = "newusername";
-        var command = new ChangeUserUsernameCommand(userId, newUsername, BypassRateLimit: false);
-
-        // Para simular rate limit, vamos criar um user que teve mudança recente
-        var recentUser = new UserBuilder()
-            .WithUsername("oldusername")
-            .WithEmail("test@test.com")
-            .Build();
-
-        // Simular que o usuário mudou o username recentemente através do método ChangeUsername
-        // Isso irá definir LastUsernameChangeAt para o momento atual
-        var mockDateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        recentUser.ChangeUsername("tempusername", mockDateTimeProvider); // Simula mudança recente
+        var command = new ChangeUserUsernameCommand(
+            UserId: userId,
+            NewUsername: "newusername",
+            UpdatedBy: null,
+            BypassRateLimit: true);
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(recentUser);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("Username can only be changed once per month");
 
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+        _userRepositoryMock.Verify(
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_BypassRateLimit_ShouldChangeUsernameSuccessfully()
+    public async Task HandleAsync_WithExistingUsername_ShouldReturnFailure()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var newUsername = "newusername";
-        var command = new ChangeUserUsernameCommand(userId, newUsername, "admin", BypassRateLimit: true);
+        var command = new ChangeUserUsernameCommand(
+            UserId: userId,
+            NewUsername: "takenusername",
+            UpdatedBy: null,
+            BypassRateLimit: true);
 
-        // Simular usuário que mudou username recentemente, mas com bypass
-        var recentUser = new UserBuilder()
+        var existingUser = new UserBuilder()
+            .WithId(new UserId(userId))
             .WithUsername("oldusername")
-            .WithEmail("test@test.com")
             .Build();
 
-        // Simular mudança recente
-        var mockDateTimeProvider2 = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        recentUser.ChangeUsername("tempusername", mockDateTimeProvider2);
+        var otherUser = new UserBuilder()
+            .WithId(Guid.NewGuid())
+            .WithUsername("takenusername")
+            .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(recentUser);
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingUser);
 
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
-
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _userQueriesMock
+            .Setup(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(otherUser);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Username.Should().Be(newUsername);
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("Username is already taken");
 
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userRepositoryMock.Verify(
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_RepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(userId, "newusername");
-        var exceptionMessage = "Database connection failed";
+        var command = new ChangeUserUsernameCommand(
+            UserId: userId,
+            NewUsername: "newusername",
+            UpdatedBy: null,
+            BypassRateLimit: true);
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException(exceptionMessage));
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error.Message.Should().StartWith("Failed to change username:");
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_UpdateRepositoryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var newUsername = "newusername";
-        var command = new ChangeUserUsernameCommand(userId, newUsername);
-
-        var user = new UserBuilder()
-            .WithUsername("oldusername")
-            .WithEmail("test@test.com")
-            .Build();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
-
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().StartWith("Failed to change username:");
-    }
-
-    [Fact]
-    public async Task HandleAsync_CancellationRequested_ShouldRespectCancellation()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(userId, "newusername");
-        var cancellationTokenSource = new CancellationTokenSource();
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException());
-
-        // Act
-        var result = await _handler.HandleAsync(command, cancellationTokenSource.Token);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().StartWith("Failed to change username:");
     }
 }

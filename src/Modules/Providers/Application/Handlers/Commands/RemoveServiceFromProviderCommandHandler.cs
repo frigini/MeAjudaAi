@@ -1,7 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de remoção de serviços de providers.
 /// </summary>
 public sealed class RemoveServiceFromProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     ILogger<RemoveServiceFromProviderCommandHandler> logger
 ) : ICommandHandler<RemoveServiceFromProviderCommand, Result>
 {
@@ -31,7 +32,7 @@ public sealed class RemoveServiceFromProviderCommandHandler(
                 command.ProviderId);
 
             // 1. Buscar o provider
-            var provider = await providerRepository.GetByIdAsync(
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(
                 new ProviderId(command.ProviderId),
                 cancellationToken);
 
@@ -45,7 +46,7 @@ public sealed class RemoveServiceFromProviderCommandHandler(
             provider.RemoveService(command.ServiceId);
 
             // 3. Persistir mudanças
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
                 "Service {ServiceId} successfully removed from provider {ProviderId}",

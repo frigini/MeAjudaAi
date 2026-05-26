@@ -2,10 +2,12 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -16,15 +18,19 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Category", "Unit")]
 public class CreateProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<CreateProviderCommandHandler>> _loggerMock;
     private readonly CreateProviderCommandHandler _handler;
 
     public CreateProviderCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<CreateProviderCommandHandler>>();
-        _handler = new CreateProviderCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new CreateProviderCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     private static BusinessProfileDto CreateTestBusinessProfile() =>
@@ -47,8 +53,8 @@ public class CreateProviderCommandHandlerTests
             BusinessProfile: CreateTestBusinessProfile());
 
         _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
+            .Setup(x => x.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -59,7 +65,10 @@ public class CreateProviderCommandHandlerTests
         result.Value.Id.Should().NotBe(Guid.Empty);
 
         _providerRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.Add(It.IsAny<Provider>()),
+            Times.Once);
+        _uowMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -81,7 +90,7 @@ public class CreateProviderCommandHandlerTests
             .Build();
 
         _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProvider);
 
         // Act
@@ -93,7 +102,7 @@ public class CreateProviderCommandHandlerTests
         result.Error!.Message.Should().Be(ValidationMessages.Providers.AlreadyExists);
 
         _providerRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.Add(It.IsAny<Provider>()),
             Times.Never);
     }
 
@@ -109,7 +118,7 @@ public class CreateProviderCommandHandlerTests
             BusinessProfile: CreateTestBusinessProfile());
 
         _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act

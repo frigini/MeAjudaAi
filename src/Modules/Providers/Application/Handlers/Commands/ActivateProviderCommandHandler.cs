@@ -1,7 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
@@ -18,11 +19,11 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// permitindo que ele comece a oferecer serviços na plataforma.
 /// Integra com Documents module para validar que prestador possui documentos verificados.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência de prestadores de serviços</param>
 /// <param name="documentsModuleApi">API do módulo Documents para validação de documentos</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class ActivateProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     IDocumentsModuleApi documentsModuleApi,
     ILogger<ActivateProviderCommandHandler> logger
 ) : ICommandHandler<ActivateProviderCommand, Result>
@@ -39,7 +40,7 @@ public sealed class ActivateProviderCommandHandler(
         {
             logger.LogInformation("Activating provider {ProviderId}", command.ProviderId);
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
@@ -61,7 +62,7 @@ public sealed class ActivateProviderCommandHandler(
 
             provider.Activate(command.ActivatedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} activated successfully", command.ProviderId);
             return Result.Success();

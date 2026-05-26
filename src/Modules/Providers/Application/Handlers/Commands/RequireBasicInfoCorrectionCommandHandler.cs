@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -16,10 +17,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// permitindo que o prestador corrija informações identificadas como incorretas ou incompletas
 /// durante o processo de verificação de documentos.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class RequireBasicInfoCorrectionCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     ILogger<RequireBasicInfoCorrectionCommandHandler> logger
 ) : ICommandHandler<RequireBasicInfoCorrectionCommand, Result>
 {
@@ -49,7 +50,7 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
                 return Result.Failure("RequestedBy is required");
             }
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
@@ -58,7 +59,7 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
 
             provider.RequireBasicInfoCorrection(command.Reason, command.RequestedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
                 "Basic info correction required for provider {ProviderId}. Provider returned to PendingBasicInfo status",

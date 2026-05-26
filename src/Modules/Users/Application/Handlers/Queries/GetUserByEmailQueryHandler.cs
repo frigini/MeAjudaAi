@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -17,10 +16,10 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// o endereço de email como critério de busca. Útil para operações de login,
 /// verificação de existência e recuperação de senha.
 /// </remarks>
-/// <param name="userRepository">Repositório para consultas de usuários</param>
+/// <param name="userQueries">Serviço de queries de leitura de usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
 internal sealed class GetUserByEmailQueryHandler(
-    IUserRepository userRepository,
+    IUserQueries userQueries,
     ILogger<GetUserByEmailQueryHandler> logger
 ) : IQueryHandler<GetUserByEmailQuery, Result<UserDto>>
 {
@@ -69,7 +68,7 @@ internal sealed class GetUserByEmailQueryHandler(
             }
 
             // Busca o usuário pelo email utilizando value object
-            var user = await userRepository.GetByEmailAsync(
+            var user = await userQueries.GetByEmailAsync(
                 email, cancellationToken);
 
             if (user == null)

@@ -1,9 +1,10 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de atualização de perfil do prestador de serviços.
 /// </summary>
 public sealed class UpdateProviderProfileCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     ILogger<UpdateProviderProfileCommandHandler> logger
 ) : ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>
 {
@@ -24,7 +25,7 @@ public sealed class UpdateProviderProfileCommandHandler(
             logger.LogInformation("Updating provider profile {ProviderId}", command.ProviderId);
 
             var providerId = new ProviderId(command.ProviderId);
-            var provider = await providerRepository.GetByIdAsync(providerId, cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
 
             if (provider == null)
             {
@@ -40,7 +41,7 @@ public sealed class UpdateProviderProfileCommandHandler(
                 provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
             }
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);
             return Result<ProviderDto>.Success(provider.ToDto());

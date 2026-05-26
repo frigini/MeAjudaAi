@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
@@ -11,22 +11,18 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
 
-/// <summary>
-/// Unit tests for <see cref="DocumentVerifiedIntegrationEventHandler"/>.
-/// Validates document verification event handling and provider status logging.
-/// </summary>
 public class DocumentVerifiedIntegrationEventHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<DocumentVerifiedIntegrationEventHandler>> _loggerMock;
     private readonly DocumentVerifiedIntegrationEventHandler _handler;
 
     public DocumentVerifiedIntegrationEventHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<DocumentVerifiedIntegrationEventHandler>>();
         _handler = new DocumentVerifiedIntegrationEventHandler(
-            _providerRepositoryMock.Object,
+            _providerQueriesMock.Object,
             _loggerMock.Object
         );
     }
@@ -50,7 +46,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .WithId(providerId)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((true, provider.VerificationStatus));
 
@@ -58,7 +54,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
             Times.Once
         );
@@ -91,7 +87,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             DateTime.UtcNow
         );
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((false, null));
 
@@ -99,7 +95,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
             Times.Once
         );
@@ -131,7 +127,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .WithId(providerId)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((true, provider.VerificationStatus));
 
@@ -174,7 +170,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             DateTime.UtcNow
         );
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
@@ -218,7 +214,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .WithId(providerId)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((true, provider.VerificationStatus));
 
@@ -226,7 +222,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
             Times.Once
         );

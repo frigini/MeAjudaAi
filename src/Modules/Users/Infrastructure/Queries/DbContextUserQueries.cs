@@ -1,62 +1,64 @@
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
+namespace MeAjudaAi.Modules.Users.Infrastructure.Queries;
 
-internal sealed class UserRepository(UsersDbContext context, TimeProvider timeProvider) : IUserRepository
+/// <summary>
+/// Implementação de IUserQueries usando Entity Framework Core com AsNoTracking.
+/// </summary>
+public sealed class DbContextUserQueries(UsersDbContext context) : IUserQueries
 {
     private readonly UsersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-    private readonly TimeProvider _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
+    /// <inheritdoc />
     public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
-    }
-
-    public async Task<User?> GetByIdNoTrackingAsync(UserId id, CancellationToken cancellationToken = default)
     {
         return await _context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<User?> GetByUsernameAsync(Username username, CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<User>> GetUsersByIdsAsync(IReadOnlyList<UserId> userIds, CancellationToken cancellationToken = default)
     {
         if (userIds == null || userIds.Count == 0)
             return Array.Empty<User>();
 
-        // Para listas muito grandes, considerar chunking para respeitar limites do SQL Server (~2100 parâmetros)
         const int maxBatchSize = 2000;
 
         if (userIds.Count <= maxBatchSize)
         {
-            // Caso simples: uma única query batch
             return await _context.Users
+                .AsNoTracking()
                 .Where(u => userIds.Contains(u.Id))
                 .ToListAsync(cancellationToken);
         }
 
-        // Caso complexo: dividir em chunks para listas muito grandes
         var allUsers = new List<User>();
         for (int i = 0; i < userIds.Count; i += maxBatchSize)
         {
             var chunk = userIds.Skip(i).Take(maxBatchSize).ToList();
             var chunkUsers = await _context.Users
+                .AsNoTracking()
                 .Where(u => chunk.Contains(u.Id))
                 .ToListAsync(cancellationToken);
             allUsers.AddRange(chunkUsers);
@@ -65,19 +67,21 @@ internal sealed class UserRepository(UsersDbContext context, TimeProvider timePr
         return allUsers;
     }
 
+    /// <inheritdoc />
     public async Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var skip = (pageNumber - 1) * pageSize;
-        var query = _context.Users.AsQueryable();
+        var query = _context.Users.AsNoTracking().AsQueryable();
         var totalCount = await query.CountAsync(cancellationToken);
         var users = await query.Skip(skip).Take(pageSize).ToListAsync(cancellationToken);
         return (users, totalCount);
     }
 
+    /// <inheritdoc />
     public async Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedWithSearchAsync(int pageNumber, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default)
     {
         var skip = (pageNumber - 1) * pageSize;
-        var query = _context.Users.AsQueryable();
+        var query = _context.Users.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -97,40 +101,17 @@ internal sealed class UserRepository(UsersDbContext context, TimeProvider timePr
         return (users, totalCount);
     }
 
+    /// <inheritdoc />
     public async Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
         return string.IsNullOrWhiteSpace(keycloakId)
             ? null
-            : await _context.Users.FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
+            : await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
     }
 
-    public async Task AddAsync(User user, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(user);
-        await _context.Users.AddAsync(user, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(user);
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task DeleteAsync(UserId id, CancellationToken cancellationToken = default)
-    {
-        var user = await GetByIdAsync(id, cancellationToken);
-        if (user != null)
-        {
-            user.MarkAsDeleted(_timeProvider);
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
+    /// <inheritdoc />
     public async Task<bool> ExistsAsync(UserId id, CancellationToken cancellationToken = default)
     {
-        return await _context.Users.AnyAsync(u => u.Id == id, cancellationToken);
+        return await _context.Users.AsNoTracking().AnyAsync(u => u.Id == id, cancellationToken);
     }
 }

@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,15 +13,15 @@ namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetProvidersByIdsQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProvidersByIdsQueryHandler>> _loggerMock;
     private readonly GetProvidersByIdsQueryHandler _handler;
 
     public GetProvidersByIdsQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProvidersByIdsQueryHandler>>();
-        _handler = new GetProvidersByIdsQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProvidersByIdsQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class GetProvidersByIdsQueryHandlerTests
         var provider2 = new ProviderBuilder().Build();
         var providerIds = new[] { provider1.Id.Value, provider2.Id.Value };
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.Is<IReadOnlyList<Guid>>(ids => ids.SequenceEqual(providerIds)), It.IsAny<CancellationToken>()))
             .ReturnsAsync([provider1, provider2]);
 
@@ -47,7 +47,7 @@ public class GetProvidersByIdsQueryHandlerTests
         result.Value.Select(p => p.Id).Should().Contain(provider1.Id.Value);
         result.Value.Select(p => p.Id).Should().Contain(provider2.Id.Value);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -58,7 +58,7 @@ public class GetProvidersByIdsQueryHandlerTests
         // Arrange
         var providerIds = Array.Empty<Guid>();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -71,7 +71,7 @@ public class GetProvidersByIdsQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -84,7 +84,7 @@ public class GetProvidersByIdsQueryHandlerTests
         var nonExistentId = Guid.NewGuid();
         var providerIds = new[] { provider1.Id.Value, nonExistentId };
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([provider1]); // Only one found
 
@@ -98,7 +98,7 @@ public class GetProvidersByIdsQueryHandlerTests
         result.Value.Should().HaveCount(1);
         result.Value.First().Id.Should().Be(provider1.Id.Value);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -109,7 +109,7 @@ public class GetProvidersByIdsQueryHandlerTests
         // Arrange
         var providerIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -122,7 +122,7 @@ public class GetProvidersByIdsQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -134,7 +134,7 @@ public class GetProvidersByIdsQueryHandlerTests
         var providerIds = new[] { Guid.NewGuid() };
         var exception = new Exception("Database error");
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
@@ -148,7 +148,7 @@ public class GetProvidersByIdsQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -161,7 +161,7 @@ public class GetProvidersByIdsQueryHandlerTests
         using var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), cancellationToken))
             .ReturnsAsync([]);
 
@@ -171,7 +171,7 @@ public class GetProvidersByIdsQueryHandlerTests
         await _handler.HandleAsync(query, cancellationToken);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), cancellationToken),
             Times.Once);
     }
@@ -183,7 +183,7 @@ public class GetProvidersByIdsQueryHandlerTests
         var provider = new ProviderBuilder().Build();
         var providerIds = new[] { provider.Id.Value, provider.Id.Value }; // Duplicate ID
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([provider]);
 
@@ -196,7 +196,7 @@ public class GetProvidersByIdsQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(1);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }

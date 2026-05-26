@@ -2,22 +2,22 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Time.Testing;
-
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
 public class DeleteUserCommandHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly FakeTimeProvider _dateTimeProvider;
@@ -26,13 +26,19 @@ public class DeleteUserCommandHandlerTests
 
     public DeleteUserCommandHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userDomainServiceMock = new Mock<IUserDomainService>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<DeleteUserCommandHandler>>();
+
+        _unitOfWorkMock
+            .Setup(x => x.GetRepository<User, UserId>())
+            .Returns(_userRepositoryMock.Object);
+
         _handler = new DeleteUserCommandHandler(
-            _userRepositoryMock.Object,
+            _unitOfWorkMock.Object,
             _userDomainServiceMock.Object,
             _usersCacheServiceMock.Object,
             _dateTimeProvider,
@@ -51,16 +57,16 @@ public class DeleteUserCommandHandlerTests
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
         _userDomainServiceMock
             .Setup(x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -70,15 +76,15 @@ public class DeleteUserCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
         _userDomainServiceMock.Verify(
             x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _userRepositoryMock.Verify(
-            x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
 
         _usersCacheServiceMock.Verify(
@@ -94,7 +100,7 @@ public class DeleteUserCommandHandlerTests
         var command = new DeleteUserCommand(UserId: userId);
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         // Act
@@ -106,15 +112,15 @@ public class DeleteUserCommandHandlerTests
         result.Error.Message.Should().Be(ValidationMessages.NotFound.User);
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
         _userDomainServiceMock.Verify(
             x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
-        _userRepositoryMock.Verify(
-            x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
 
         _usersCacheServiceMock.Verify(
@@ -134,7 +140,7 @@ public class DeleteUserCommandHandlerTests
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
         _userDomainServiceMock
@@ -150,15 +156,15 @@ public class DeleteUserCommandHandlerTests
         result.Error.Message.Should().Be("Keycloak sync failed");
 
         _userRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
+            x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
         _userDomainServiceMock.Verify(
             x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _userRepositoryMock.Verify(
-            x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
 
         _usersCacheServiceMock.Verify(
@@ -178,15 +184,15 @@ public class DeleteUserCommandHandlerTests
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
         _userDomainServiceMock
             .Setup(x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -195,10 +201,10 @@ public class DeleteUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be($"Failed to delete user: Database error");
+        result.Error.Message.Should().Be("Failed to delete user: Database error");
 
-        _userRepositoryMock.Verify(
-            x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
 
         _usersCacheServiceMock.Verify(

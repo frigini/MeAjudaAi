@@ -1,7 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de exclusão de perfil pelo próprio prestador de serviços.
 /// </summary>
 public sealed class DeleteMyProviderProfileCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     TimeProvider dateTimeProvider,
     ILogger<DeleteMyProviderProfileCommandHandler> logger
 ) : ICommandHandler<DeleteMyProviderProfileCommand, Result>
@@ -23,7 +24,7 @@ public sealed class DeleteMyProviderProfileCommandHandler(
             logger.LogInformation("Provider self-deleting profile {ProviderId}", command.ProviderId);
 
             var providerId = new ProviderId(command.ProviderId);
-            var provider = await providerRepository.GetByIdAsync(providerId, cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
 
             if (provider == null)
             {
@@ -32,7 +33,7 @@ public sealed class DeleteMyProviderProfileCommandHandler(
             }
 
             provider.Delete(dateTimeProvider, command.DeletedBy);
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider profile {ProviderId} self-deleted successfully", command.ProviderId);
             return Result.Success();

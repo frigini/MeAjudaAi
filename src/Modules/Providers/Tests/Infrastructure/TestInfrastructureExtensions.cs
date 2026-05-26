@@ -3,10 +3,10 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -101,11 +101,9 @@ public static class ProvidersTestInfrastructureExtensions
             }
         }, ServiceLifetime.Scoped);
 
-        // Adicionar repositórios específicos do Providers
-        services.AddScoped<IProviderRepository, ProviderRepository>();
-
-        // Adicionar serviços de aplicação específicos do Providers
-        services.AddScoped<IProviderQueryService, ProviderQueryService>();
+        // Adicionar IUnitOfWork e IProviderQueries
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
+        services.AddScoped<IProviderQueries, DbContextProviderQueries>();
 
         // Adicionar Dispatcher de Queries e Commands
         services.AddScoped<IQueryDispatcher, QueryDispatcher>();
@@ -121,3 +119,4 @@ public static class ProvidersTestInfrastructureExtensions
         return services;
     }
 }
+

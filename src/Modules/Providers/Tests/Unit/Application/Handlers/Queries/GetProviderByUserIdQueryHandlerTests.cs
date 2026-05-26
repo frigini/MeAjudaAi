@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,15 +12,15 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetProviderByUserIdQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProviderByUserIdQueryHandler>> _loggerMock;
     private readonly GetProviderByUserIdQueryHandler _handler;
 
     public GetProviderByUserIdQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProviderByUserIdQueryHandler>>();
-        _handler = new GetProviderByUserIdQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProviderByUserIdQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class GetProviderByUserIdQueryHandlerTests
             .WithUserId(userId)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -46,7 +46,7 @@ public class GetProviderByUserIdQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.UserId.Should().Be(userId);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -57,7 +57,7 @@ public class GetProviderByUserIdQueryHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
 
@@ -70,7 +70,7 @@ public class GetProviderByUserIdQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -81,7 +81,7 @@ public class GetProviderByUserIdQueryHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 

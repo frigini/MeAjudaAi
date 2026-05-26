@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -9,15 +8,15 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 
 public class GetUsersQueryHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<GetUsersQueryHandler>> _loggerMock;
     private readonly GetUsersQueryHandler _handler;
 
     public GetUsersQueryHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<GetUsersQueryHandler>>();
-        _handler = new GetUsersQueryHandler(_userRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetUsersQueryHandler(_userQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -28,7 +27,7 @@ public class GetUsersQueryHandlerTests
         var users = CreateTestUsers(5);
         var totalCount = 25;
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync((users, totalCount));
 
@@ -47,7 +46,7 @@ public class GetUsersQueryHandlerTests
         pagedResult.PageSize.Should().Be(query.PageSize);
         pagedResult.TotalPages.Should().Be(3); // 25 / 10 = 3 páginas
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -60,7 +59,7 @@ public class GetUsersQueryHandlerTests
         var users = new List<User>();
         var totalCount = 0;
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync((users, totalCount));
 
@@ -99,7 +98,7 @@ public class GetUsersQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Message.Should().Be("Invalid pagination parameters");
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetPagedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -111,7 +110,7 @@ public class GetUsersQueryHandlerTests
         var query = new GetUsersQuery(Page: 1, PageSize: 10, SearchTerm: null);
         var exceptionMessage = "Database connection failed";
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException(exceptionMessage));
 
@@ -132,7 +131,7 @@ public class GetUsersQueryHandlerTests
         var users = CreateTestUsers(50);
         var totalCount = 150;
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync((users, totalCount));
 
@@ -158,7 +157,7 @@ public class GetUsersQueryHandlerTests
         var users = CreateTestUsers(3);
         var totalCount = 3;
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync((users, totalCount));
 
@@ -169,7 +168,7 @@ public class GetUsersQueryHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -181,7 +180,7 @@ public class GetUsersQueryHandlerTests
         var query = new GetUsersQuery(Page: 1, PageSize: 10, SearchTerm: null);
         var cancellationToken = new CancellationToken(true);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, cancellationToken))
             .ThrowsAsync(new OperationCanceledException(cancellationToken));
 
@@ -203,7 +202,7 @@ public class GetUsersQueryHandlerTests
         var users = new List<User> { user };
         var totalCount = 1;
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync((users, totalCount));
 

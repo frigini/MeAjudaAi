@@ -10,12 +10,18 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 /// Contexto de banco de dados Entity Framework Core para o módulo Users.
 /// Gerencia entidades de usuário e aplica configurações específicas do módulo.
 /// </summary>
-public class UsersDbContext : BaseDbContext
+public partial class UsersDbContext : BaseDbContext, IUnitOfWork
 {
     /// <summary>
     /// Obtém o conjunto de entidades Users para consulta e persistência de entidades User.
     /// </summary>
     public DbSet<User> Users => Set<User>();
+
+    /// <summary>
+    /// Obtém o repositório tipado para um agregado do domínio.
+    /// </summary>
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>() =>
+        (IRepository<TAggregate, TKey>)this;
 
     /// <summary>
     /// Inicializa uma nova instância da classe <see cref="UsersDbContext"/> para operações de design-time (migrations).
@@ -57,12 +63,12 @@ public class UsersDbContext : BaseDbContext
 
     protected override void ClearDomainEvents()
     {
-        var entities = ChangeTracker
+        var entries = ChangeTracker
             .Entries<User>()
             .Where(entry => entry.Entity.DomainEvents.Count > 0)
             .Select(entry => entry.Entity);
 
-        foreach (var entity in entities)
+        foreach (var entity in entries)
         {
             entity.ClearDomainEvents();
         }

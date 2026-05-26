@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -19,10 +18,10 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// o username como critério de busca. Útil para operações de login,
 /// verificação de existência e busca por nome de usuário único.
 /// </remarks>
-/// <param name="userRepository">Repositório para consultas de usuários</param>
+/// <param name="userQueries">Serviço de queries de leitura de usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
 public sealed class GetUserByUsernameQueryHandler(
-    IUserRepository userRepository,
+    IUserQueries userQueries,
     ILogger<GetUserByUsernameQueryHandler> logger
 ) : IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>
 {
@@ -57,7 +56,7 @@ public sealed class GetUserByUsernameQueryHandler(
         try
         {
             // Busca o usuário pelo username utilizando value object
-            var user = await userRepository.GetByUsernameAsync(
+            var user = await userQueries.GetByUsernameAsync(
                 new Username(query.Username), cancellationToken);
 
             if (user == null)

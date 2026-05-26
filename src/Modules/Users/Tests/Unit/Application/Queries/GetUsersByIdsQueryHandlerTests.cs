@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using Microsoft.Extensions.Logging;
@@ -15,18 +14,18 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 [Trait("Layer", "Application")]
 public class GetUsersByIdsQueryHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly Mock<ILogger<GetUsersByIdsQueryHandler>> _loggerMock;
     private readonly GetUsersByIdsQueryHandler _handler;
 
     public GetUsersByIdsQueryHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _loggerMock = new Mock<ILogger<GetUsersByIdsQueryHandler>>();
         _handler = new GetUsersByIdsQueryHandler(
-            _userRepositoryMock.Object,
+            _userQueriesMock.Object,
             _usersCacheServiceMock.Object,
             _loggerMock.Object);
     }
@@ -45,7 +44,7 @@ public class GetUsersByIdsQueryHandlerTests
 
         var query = new GetUsersByIdsQuery(userIds);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
@@ -65,7 +64,7 @@ public class GetUsersByIdsQueryHandlerTests
         result.Value!.Should().HaveCount(3);
         result.Value.Select(u => u.Id).Should().Contain(userIds);
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -84,7 +83,7 @@ public class GetUsersByIdsQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Should().BeEmpty();
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -101,7 +100,7 @@ public class GetUsersByIdsQueryHandlerTests
 
         var query = new GetUsersByIdsQuery(requestedIds);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(foundUsers);
 
@@ -128,7 +127,7 @@ public class GetUsersByIdsQueryHandlerTests
         var userIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         var query = new GetUsersByIdsQuery(userIds);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<User>());
 
@@ -148,7 +147,7 @@ public class GetUsersByIdsQueryHandlerTests
         var userIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         var query = new GetUsersByIdsQuery(userIds);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database connection failed"));
 
@@ -171,7 +170,7 @@ public class GetUsersByIdsQueryHandlerTests
 
         var query = new GetUsersByIdsQuery(userIds);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
@@ -204,7 +203,7 @@ public class GetUsersByIdsQueryHandlerTests
 
         var query = new GetUsersByIdsQuery(userIds);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 

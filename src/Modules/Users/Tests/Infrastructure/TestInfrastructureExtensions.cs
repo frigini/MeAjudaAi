@@ -1,9 +1,7 @@
 using MeAjudaAi.Modules.Users.Application;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
@@ -77,8 +75,9 @@ public static class UsersTestInfrastructureExtensions
         // Configurar mocks específicos do módulo Users
         services.AddUsersTestMocks(options.ExternalServices);
 
-        // Adicionar repositórios específicos do Users
-        services.AddScoped<IUserRepository, UserRepository>();
+        // Adicionar IUnitOfWork e IUserQueries específicos do Users
+        services.AddScoped<MeAjudaAi.Shared.Database.IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
+        services.AddScoped<MeAjudaAi.Modules.Users.Application.Queries.IUserQueries, MeAjudaAi.Modules.Users.Infrastructure.Queries.DbContextUserQueries>();
 
         // Adicionar serviços de aplicação (incluindo IUsersModuleApi)
         services.AddApplication();

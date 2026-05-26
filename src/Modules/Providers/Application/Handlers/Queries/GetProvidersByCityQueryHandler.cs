@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Queries;
@@ -12,10 +11,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// <summary>
 /// Handler responsável por processar queries de busca de prestadores de serviços por cidade.
 /// </summary>
-/// <param name="providerRepository">Repositório para acesso aos dados</param>
+/// <param name="providerQueries">Serviço de queries para acesso aos dados</param>
 /// <param name="logger">Logger estruturado</param>
 public sealed class GetProvidersByCityQueryHandler(
-    IProviderRepository providerRepository,
+    IProviderQueries providerQueries,
     ILogger<GetProvidersByCityQueryHandler> logger
 ) : IQueryHandler<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>
 {
@@ -28,7 +27,7 @@ public sealed class GetProvidersByCityQueryHandler(
         {
             logger.LogInformation("Getting providers by city {City}", query.City);
 
-            var providers = await providerRepository.GetByCityAsync(query.City, cancellationToken);
+            var providers = await providerQueries.GetByCityAsync(query.City, cancellationToken);
 
             logger.LogInformation("Found {Count} providers in city {City}", providers.Count, query.City);
             return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());

@@ -1,9 +1,9 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
-using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
@@ -19,13 +19,13 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// com Keycloak para desativação do usuário no sistema de autenticação externo.
 /// Utiliza soft delete para manter histórico e integridade referencial.
 /// </remarks>
-/// <param name="userRepository">Repositório para persistência de usuários</param>
+/// <param name="uow">Unit of Work para operações de escrita</param>
 /// <param name="userDomainService">Serviço de domínio para operações complexas de usuário</param>
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 internal sealed class DeleteUserCommandHandler(
-    IUserRepository userRepository,
+    IUnitOfWork uow,
     IUserDomainService userDomainService,
     IUsersCacheService usersCacheService,
     TimeProvider dateTimeProvider,
@@ -47,10 +47,9 @@ internal sealed class DeleteUserCommandHandler(
     /// 1. Busca do usuário por ID
     /// 2. Validação da existência do usuário
     /// 3. Sincronização com Keycloak para desativação
-    /// 4. Soft delete ou hard delete no repositório local
+    /// 4. Soft delete no repositório local
     /// 
-    /// Nota: Implementação atual usa hard delete, mas recomenda-se
-    /// implementar soft delete para ambientes de produção.
+    /// Nota: Implementação atual usa soft delete.
     /// </remarks>
     public async Task<Result> HandleAsync(
         DeleteUserCommand command,
@@ -113,7 +112,7 @@ internal sealed class DeleteUserCommandHandler(
     {
         logger.LogDebug("Fetching user {UserId} for deletion", command.UserId);
 
-        var user = await userRepository.GetByIdAsync(
+        var user = await uow.GetRepository<Domain.Entities.User, UserId>().TryFindAsync(
             new UserId(command.UserId), cancellationToken);
 
         if (user == null)
@@ -158,7 +157,7 @@ internal sealed class DeleteUserCommandHandler(
         logger.LogDebug("Applying logical deletion for user {UserId}", user.Id);
 
         user.MarkAsDeleted(dateTimeProvider);
-        await userRepository.UpdateAsync(user, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         logger.LogDebug("User {UserId} deletion persisted successfully", user.Id);
     }

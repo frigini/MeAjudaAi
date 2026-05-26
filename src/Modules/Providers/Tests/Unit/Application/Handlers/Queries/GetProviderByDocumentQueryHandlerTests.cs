@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
@@ -15,15 +15,15 @@ namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetProviderByDocumentQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProviderByDocumentQueryHandler>> _loggerMock;
     private readonly GetProviderByDocumentQueryHandler _handler;
 
     public GetProviderByDocumentQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProviderByDocumentQueryHandler>>();
-        _handler = new GetProviderByDocumentQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProviderByDocumentQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class GetProviderByDocumentQueryHandlerTests
             .WithDocument(document, EDocumentType.CPF)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -49,7 +49,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(provider.Id.Value);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -60,7 +60,7 @@ public class GetProviderByDocumentQueryHandlerTests
         // Arrange
         var document = "99999999999";
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
@@ -73,7 +73,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -93,7 +93,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.Error!.StatusCode.Should().Be(400);
         result.Error.Message.Should().Contain("cannot be empty");
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -113,7 +113,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.Error!.StatusCode.Should().Be(400);
         result.Error.Message.Should().Contain("cannot be empty");
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -133,7 +133,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.Error!.StatusCode.Should().Be(400);
         result.Error.Message.Should().Contain("cannot be empty");
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -148,7 +148,7 @@ public class GetProviderByDocumentQueryHandlerTests
             .WithDocument(trimmedDocument, EDocumentType.CPF)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByDocumentAsync(trimmedDocument, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -161,7 +161,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(trimmedDocument, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -173,7 +173,7 @@ public class GetProviderByDocumentQueryHandlerTests
         var document = "12345678901";
         var exception = new Exception("Database connection failed");
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
@@ -188,7 +188,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.Error!.StatusCode.Should().Be(500);
         result.Error.Message.Should().Contain("error occurred");
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -201,7 +201,7 @@ public class GetProviderByDocumentQueryHandlerTests
         using var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByDocumentAsync(document, cancellationToken))
             .ReturnsAsync((Provider?)null);
 
@@ -211,7 +211,7 @@ public class GetProviderByDocumentQueryHandlerTests
         await _handler.HandleAsync(query, cancellationToken);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(document, cancellationToken),
             Times.Once);
     }
@@ -226,7 +226,7 @@ public class GetProviderByDocumentQueryHandlerTests
             .WithQualification("Engineering Degree", "Description", "UnivX", DateTime.Now.AddYears(-2), DateTime.Now.AddYears(5), "12345678901")
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 

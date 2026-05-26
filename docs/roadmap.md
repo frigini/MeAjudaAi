@@ -23,9 +23,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 | Fase | Escopo | Status |
 |------|--------|--------|
 | **0** | Shared — `IRepository`, `IUnitOfWork` | ✅ Concluída |
-| **1** | Locations (módulo piloto) | 📋 Planejada |
-| **2** | Ratings, Documents, ServiceCatalogs | 📋 Planejada |
-| **3** | Providers, Users, SearchProviders | 📋 Planejada |
+| **1** | Locations (módulo piloto) | ✅ Concluída |
+| **2** | Ratings, Documents, ServiceCatalogs | ✅ Concluída |
+| **3** | Providers, Users, SearchProviders | ✅ Concluída |
 | **4** | Bookings, Communications, Payments | 📋 Planejada |
 | **5** | Limpeza e consolidação global | 📋 Planejada |
 

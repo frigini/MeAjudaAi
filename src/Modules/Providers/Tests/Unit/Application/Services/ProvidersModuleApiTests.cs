@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using DomainValueObjects = MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Contracts.Modules.Locations;
@@ -41,7 +41,7 @@ public class ProvidersModuleApiTests
     private readonly Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByTypeHandlerMock = new();
     private readonly Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByVerificationStatusHandlerMock = new();
     private readonly Mock<ILocationsModuleApi> _locationApiMock = new();
-    private readonly Mock<IProviderRepository> _providerRepositoryMock = new();
+    private readonly Mock<IProviderQueries> _providerQueriesMock = new();
     private readonly Mock<IServiceProvider> _serviceProviderMock = new();
     private readonly Mock<ILogger<ProvidersModuleApi>> _loggerMock = new();
     private readonly ProvidersModuleApi _sut;
@@ -58,7 +58,7 @@ public class ProvidersModuleApiTests
             _getProvidersByTypeHandlerMock.Object,
             _getProvidersByVerificationStatusHandlerMock.Object,
             _locationApiMock.Object,
-            _providerRepositoryMock.Object,
+            _providerQueriesMock.Object,
             _serviceProviderMock.Object,
             _loggerMock.Object);
     }
@@ -155,7 +155,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = CreateTestProvider(providerId);
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         var coordinates = new ModuleCoordinatesDto(10.0, 20.0);
@@ -169,8 +169,8 @@ public class ProvidersModuleApiTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.ProviderId.Should().Be(providerId);
-        result.Value!.Latitude.Should().Be(10.0);
-        result.Value!.Longitude.Should().Be(20.0);
+        result.Value.Latitude.Should().Be(10.0);
+        result.Value.Longitude.Should().Be(20.0);
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -195,7 +195,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = CreateTestProvider(providerId);
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         _locationApiMock.Setup(x => x.GetCoordinatesFromAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -213,7 +213,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act
@@ -229,7 +229,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var serviceId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -245,7 +245,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var serviceId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act
@@ -265,7 +265,7 @@ public class ProvidersModuleApiTests
         var provider = CreateTestProvider(providerId);
         provider.AddService(serviceId, "Service");
 
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -282,7 +282,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -299,7 +299,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.GetByIdAsync(new DomainValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act
@@ -360,7 +360,7 @@ public class ProvidersModuleApiTests
         var address = new DomainValueObjects.Address("Street", "123", "Neighborhood", "City", "ST", "12345678");
         var contactInfo = new DomainValueObjects.ContactInfo("test@test.com");
         var profile = new DomainValueObjects.BusinessProfile("Test Provider", contactInfo, address);
-        
+
         var provider = new Provider(
             new DomainValueObjects.ProviderId(id),
             Guid.NewGuid(),
@@ -380,10 +380,10 @@ public class ProvidersModuleApiTests
             "test-provider",
             EProviderType.Individual,
             new BusinessProfileDto(
-                LegalName: "Test Provider", 
-                FantasyName: null, 
-                Description: "Description", 
-                ContactInfo: new ContactInfoDto("test@test.com", null, null, null), 
+                LegalName: "Test Provider",
+                FantasyName: null,
+                Description: "Description",
+                ContactInfo: new ContactInfoDto("test@test.com", null, null, null),
                 PrimaryAddress: null),
             EProviderStatus.Active,
             EVerificationStatus.Verified,

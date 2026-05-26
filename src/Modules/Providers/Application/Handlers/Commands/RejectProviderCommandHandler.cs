@@ -1,7 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -14,10 +15,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Este handler rejeita o registro de um prestador após falha na verificação,
 /// impedindo que ele seja ativado na plataforma.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class RejectProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IUnitOfWork uow,
     ILogger<RejectProviderCommandHandler> logger
 ) : ICommandHandler<RejectProviderCommand, Result>
 {
@@ -46,7 +47,7 @@ public sealed class RejectProviderCommandHandler(
                 return Result.Failure("RejectedBy is required");
             }
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
@@ -55,7 +56,7 @@ public sealed class RejectProviderCommandHandler(
 
             provider.Reject(command.Reason, command.RejectedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} rejected successfully", command.ProviderId);
             return Result.Success();

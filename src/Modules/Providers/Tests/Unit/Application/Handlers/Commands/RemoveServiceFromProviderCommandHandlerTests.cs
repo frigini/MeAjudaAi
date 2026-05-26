@@ -2,11 +2,13 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
@@ -15,17 +17,20 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Component", "CommandHandler")]
 public class RemoveServiceFromProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _repositoryMock;
     private readonly Mock<ILogger<RemoveServiceFromProviderCommandHandler>> _loggerMock;
     private readonly RemoveServiceFromProviderCommandHandler _sut;
 
     public RemoveServiceFromProviderCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveServiceFromProviderCommandHandler>>();
 
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_repositoryMock.Object);
         _sut = new RemoveServiceFromProviderCommandHandler(
-            _repositoryMock.Object,
+            _uowMock.Object,
             _loggerMock.Object);
     }
 
@@ -39,7 +44,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -48,7 +53,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         provider.Services.Should().NotContain(s => s.ServiceId == serviceId);
-        _repositoryMock.Verify(x => x.UpdateAsync(provider, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -58,7 +63,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         var command = new RemoveServiceFromProviderCommand(Guid.NewGuid(), Guid.NewGuid());
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -67,7 +72,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Prestador não encontrado");
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -79,7 +84,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -88,7 +93,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Ocorreu um erro ao remover serviço do prestador");
-        _repositoryMock.Verify(x => x.UpdateAsync(provider, It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -101,11 +106,11 @@ public class RemoveServiceFromProviderCommandHandlerTests
         var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        _repositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
+        _uowMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
