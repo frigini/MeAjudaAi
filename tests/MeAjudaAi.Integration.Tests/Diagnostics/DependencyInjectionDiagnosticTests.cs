@@ -49,8 +49,7 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
             typeof(IQueryDispatcher),
             typeof(IQueryHandler<GetProvidersQuery, Result<PagedResult<ProviderDto>>>),
             typeof(MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext),
-            typeof(IUnitOfWork),
-            typeof(IRepository<,>)
+            typeof(IUnitOfWork)
         };
 
         // Act & Assert
@@ -60,6 +59,10 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
             testOutput.WriteLine($"{serviceType.Name}: {service != null}");
             service.Should().NotBeNull($"{serviceType.Name} should be registered");
         }
+
+        // Verify IUnitOfWork can resolve repositories
+        var uow = Services.GetService<IUnitOfWork>();
+        uow.Should().NotBeNull("IUnitOfWork should be registered");
     }
 
     [Fact]

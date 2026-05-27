@@ -82,6 +82,8 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Be("Provider not found");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -109,6 +111,8 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Be("An error occurred while adding the qualification");
     }
 
     [Fact]
@@ -136,6 +140,8 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Be("An error occurred while adding the qualification");
     }
 
     [Fact]
@@ -163,5 +169,7 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Be("An error occurred while adding the qualification");
     }
 }

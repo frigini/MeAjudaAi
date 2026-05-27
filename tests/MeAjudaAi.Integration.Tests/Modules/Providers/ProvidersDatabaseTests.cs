@@ -43,8 +43,8 @@ public class ProvidersDatabaseTests : BaseApiTest
         var providerEntity = entityTypes.FirstOrDefault(e => e.Name == "Providers" || e.ClrType == typeof(MeAjudaAi.Modules.Providers.Domain.Entities.Provider));
         providerEntity.Should().NotBeNull("Providers entity should be mapped");
 
-        var canQuery = await dbContext.Providers.AnyAsync(cancellationToken: CancellationToken.None);
-        canQuery.Should().BeTrue("Should be able to query Providers table");
+        var canQuery = await dbContext.Providers.Take(0).ToListAsync(CancellationToken.None);
+        canQuery.Should().NotBeNull("Should be able to query Providers table");
     }
 
     [Fact]

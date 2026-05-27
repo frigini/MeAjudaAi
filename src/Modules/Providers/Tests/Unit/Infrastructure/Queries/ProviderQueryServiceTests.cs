@@ -22,6 +22,7 @@ public class ProviderQueryServiceTests : IDisposable
             .Options;
 
         var context = new ProvidersDbContext(options, null!);
+        _context = context;
         _service = new ProviderQueryService(_context);
     }
 
