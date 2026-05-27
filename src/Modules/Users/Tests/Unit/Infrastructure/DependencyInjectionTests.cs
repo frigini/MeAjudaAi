@@ -67,6 +67,7 @@ public class DependencyInjectionTests
             scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
             scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
             
+            services.Single(d => d.ServiceType == typeof(IUnitOfWork)).Lifetime.Should().Be(ServiceLifetime.Scoped);
             services.Single(d => d.ServiceType == typeof(IUserQueries)).Lifetime.Should().Be(ServiceLifetime.Scoped);
             services.Single(d => d.ServiceType == typeof(IUserDomainService)).Lifetime.Should().Be(ServiceLifetime.Scoped);
         }
@@ -101,6 +102,7 @@ public class DependencyInjectionTests
             scopedProvider.GetRequiredService<IUserQueries>().Should().NotBeNull();
             scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
 
+            services.Single(d => d.ServiceType == typeof(IUnitOfWork)).Lifetime.Should().Be(ServiceLifetime.Scoped);
             services.Single(d => d.ServiceType == typeof(IUserQueries)).Lifetime.Should().Be(ServiceLifetime.Scoped);
         }
     }

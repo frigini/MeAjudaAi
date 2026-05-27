@@ -34,7 +34,7 @@ public class AddQualificationCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var provider = ProviderBuilder.Create().WithId(providerId);
+        var provider = ProviderBuilder.Create().WithId(providerId).Build();
         var command = new AddQualificationCommand(
             ProviderId: providerId,
             Name: "Certificação AWS",
@@ -54,6 +54,7 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        provider.Qualifications.Should().ContainSingle(q => q.Name == command.Name);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -128,6 +128,7 @@ public static class Extensions
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
         // Registra o DbContext como IUnitOfWork
+        services.AddScoped<IUserUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
 
         // Queries

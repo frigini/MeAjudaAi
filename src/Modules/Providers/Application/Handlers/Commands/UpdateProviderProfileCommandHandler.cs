@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -30,7 +31,7 @@ public sealed class UpdateProviderProfileCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(Error.NotFound("Provider not found"));
+                return Result<ProviderDto>.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
             }
 
             var businessProfile = command.BusinessProfile.ToDomain();
@@ -53,4 +54,3 @@ public sealed class UpdateProviderProfileCommandHandler(
         }
     }
 }
-

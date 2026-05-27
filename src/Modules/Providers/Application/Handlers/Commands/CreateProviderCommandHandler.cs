@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -12,16 +13,18 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
 /// <summary>
-/// Handler responsável por processar comandos de criação de prestadores de serviços.
+/// Handler responsável por processar o comando de criação de um novo prestador de serviços.
 /// </summary>
 /// <remarks>
-/// Implementa o padrão CQRS para criação de prestadores de serviços, incluindo validações de negócio,
-/// verificação de duplicidade de usuário e integração com serviços de domínio.
+/// Este handler gerencia o fluxo de criação inicial, validando a unicidade por usuário
+/// e persistindo os dados básicos do perfil profissional.
 /// </remarks>
 /// <param name="uow">Unit of Work para persistência de prestadores de serviços</param>
+/// <param name="providerQueries">Serviço de consulta de prestadores</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class CreateProviderCommandHandler(
-    IUnitOfWork uow,
+    IProviderUnitOfWork uow,
+    IProviderQueries providerQueries,
     ILogger<CreateProviderCommandHandler> logger
 ) : ICommandHandler<CreateProviderCommand, Result<ProviderDto>>
 {
@@ -38,8 +41,7 @@ public sealed class CreateProviderCommandHandler(
             logger.LogInformation("Creating provider for user {UserId}", command.UserId);
 
             // Verifica se já existe um prestador de serviços para este usuário
-            var existingProvider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.UserId), cancellationToken);
-            if (existingProvider != null)
+            if (await providerQueries.ExistsByUserIdAsync(command.UserId, cancellationToken))
             {
                 logger.LogWarning("Provider already exists for user {UserId}", command.UserId);
                 return Result<ProviderDto>.Failure(ValidationMessages.Providers.AlreadyExists);

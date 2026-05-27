@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -97,7 +98,7 @@ public class UpdateProviderProfileCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(404);
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
     }
 
     [Fact]

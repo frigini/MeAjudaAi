@@ -71,6 +71,7 @@ public sealed class CompleteBasicInfoCommandHandlerTests
         result.Error.Message.Should().Be("Provider not found");
 
         _mockRepository.Verify(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

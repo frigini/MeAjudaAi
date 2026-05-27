@@ -119,5 +119,6 @@ public class RemoveServiceFromProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Ocorreu um erro ao remover serviço do prestador");
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

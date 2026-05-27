@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Domain.Services;
@@ -25,7 +26,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 internal sealed class DeleteUserCommandHandler(
-    IUnitOfWork uow,
+    IUserUnitOfWork uow,
     IUserDomainService userDomainService,
     IUsersCacheService usersCacheService,
     TimeProvider dateTimeProvider,
@@ -99,7 +100,7 @@ internal sealed class DeleteUserCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error deleting user {UserId}", command.UserId);
-            return Result.Failure($"Failed to delete user: {ex.Message}");
+            return Result.Failure("Falha ao excluir usuário.");
         }
     }
 

@@ -19,7 +19,7 @@ public class UsersDbContextModelTests
         var domainEventProcessorMock = new Mock<IDomainEventProcessor>();
 
         // Act
-        using var context = new UsersDbContext(options, domainEventProcessorMock.Object);
+        using var context = new UsersDbContext(options, null!);
         var model = context.Model;
 
         // Assert

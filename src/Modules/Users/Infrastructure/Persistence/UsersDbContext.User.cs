@@ -10,12 +10,12 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 /// </summary>
 public partial class UsersDbContext : IRepository<User, UserId>
 {
-    async Task<User?> IRepository<User, UserId>.TryFindAsync(UserId key, CancellationToken cancellationToken) =>
+    public async Task<User?> TryFindAsync(UserId key, CancellationToken cancellationToken) =>
         await Users.FirstOrDefaultAsync(u => u.Id == key, cancellationToken);
 
-    void IRepository<User, UserId>.Add(User aggregate) =>
+    public void Add(User aggregate) =>
         Users.Add(aggregate);
 
-    void IRepository<User, UserId>.Delete(User aggregate) =>
+    public void Delete(User aggregate) =>
         Users.Remove(aggregate);
 }

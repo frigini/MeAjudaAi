@@ -161,7 +161,7 @@ public class GetUserByUsernameQueryHandlerTests
         await cancellationTokenSource.CancelAsync();
 
         _userQueriesMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.Is<CancellationToken>(t => t == cancellationTokenSource.Token)))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act

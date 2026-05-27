@@ -5,7 +5,11 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Contracts.Functional;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 
@@ -45,7 +49,7 @@ public class GetUsersByIdsQueryHandlerTests
         var query = new GetUsersByIdsQuery(userIds);
 
         _userQueriesMock
-            .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetUsersByIdsAsync(It.Is<IReadOnlyList<UserId>>(ids => ids.SequenceEqual(userIdVOs)), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
         _usersCacheServiceMock
@@ -166,12 +170,13 @@ public class GetUsersByIdsQueryHandlerTests
         // Arrange
         var user = new UserBuilder().WithUsername("singleuser").WithEmail("single@test.com").Build();
         var userIds = new List<Guid> { user.Id.Value };
+        var userIdVOs = userIds.Select(id => new UserId(id)).ToList();
         var users = new List<User> { user };
 
         var query = new GetUsersByIdsQuery(userIds);
 
         _userQueriesMock
-            .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetUsersByIdsAsync(It.Is<IReadOnlyList<UserId>>(ids => ids.SequenceEqual(userIdVOs)), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
         _usersCacheServiceMock
@@ -199,12 +204,13 @@ public class GetUsersByIdsQueryHandlerTests
         var user2 = new UserBuilder().WithUsername("user2").WithEmail("user2@test.com").Build();
 
         var userIds = new List<Guid> { user1.Id.Value, user2.Id.Value, user1.Id.Value };
+        var userIdVOs = userIds.Distinct().Select(id => new UserId(id)).ToList();
         var users = new List<User> { user1, user2 };
 
         var query = new GetUsersByIdsQuery(userIds);
 
         _userQueriesMock
-            .Setup(x => x.GetUsersByIdsAsync(It.IsAny<IReadOnlyList<UserId>>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetUsersByIdsAsync(It.Is<IReadOnlyList<UserId>>(ids => ids.All(id => userIdVOs.Contains(id))), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
         _usersCacheServiceMock

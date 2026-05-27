@@ -70,6 +70,8 @@ public sealed class DbContextUserQueries(UsersDbContext context) : IUserQueries
     /// <inheritdoc />
     public async Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Max(1, pageSize);
         var skip = (pageNumber - 1) * pageSize;
         var query = _context.Users.AsNoTracking().AsQueryable();
         var totalCount = await query.CountAsync(cancellationToken);
@@ -80,6 +82,8 @@ public sealed class DbContextUserQueries(UsersDbContext context) : IUserQueries
     /// <inheritdoc />
     public async Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedWithSearchAsync(int pageNumber, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default)
     {
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Max(1, pageSize);
         var skip = (pageNumber - 1) * pageSize;
         var query = _context.Users.AsNoTracking().AsQueryable();
 

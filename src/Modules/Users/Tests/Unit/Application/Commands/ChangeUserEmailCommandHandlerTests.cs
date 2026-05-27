@@ -49,7 +49,7 @@ public class ChangeUserEmailCommandHandlerTests
 
         var existingUser = new UserBuilder()
             .WithId(new UserId(userId))
-            .WithEmail("oldexample.com")
+            .WithEmail("old@example.com")
             .Build();
 
         _userRepositoryMock
@@ -127,7 +127,7 @@ public class ChangeUserEmailCommandHandlerTests
 
         var existingUser = new UserBuilder()
             .WithId(new UserId(userId))
-            .WithEmail("oldexample.com")
+            .WithEmail("old@example.com")
             .Build();
 
         var otherUser = new UserBuilder()

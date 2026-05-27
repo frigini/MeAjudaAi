@@ -206,7 +206,7 @@ public sealed class ProvidersModuleApi(
                 Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
                 ProviderType: p.Type.ToString(),
                 VerificationStatus: p.VerificationStatus.ToString(),
-                IsActive: !p.IsDeleted));
+                IsActive: p.IsActive));
         }
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
@@ -226,7 +226,7 @@ public sealed class ProvidersModuleApi(
                 Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
                 ProviderType: p.Type.ToString(),
                 VerificationStatus: p.VerificationStatus.ToString(),
-                IsActive: !p.IsDeleted));
+                IsActive: p.IsActive));
         }
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
@@ -249,7 +249,7 @@ public sealed class ProvidersModuleApi(
                 Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
                 ProviderType: p.Type.ToString(),
                 VerificationStatus: p.VerificationStatus.ToString(),
-                IsActive: !p.IsDeleted));
+                IsActive: p.IsActive));
         }
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
@@ -272,7 +272,7 @@ public sealed class ProvidersModuleApi(
                 Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
                 ProviderType: p.Type.ToString(),
                 VerificationStatus: p.VerificationStatus.ToString(),
-                IsActive: !p.IsDeleted));
+                IsActive: p.IsActive));
         }
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }

@@ -1,10 +1,12 @@
-using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 /// <summary>
-/// Testes de integração para ProviderQueryService.
+/// Testes de integração para IProviderQueries.
 /// Valida consultas complexas e paginação com dados reais no banco.
 /// </summary>
 public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationTestBase
@@ -14,7 +16,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     {
         // Arrange
         await CleanupDatabase(); // Garantir isolamento
-        var queryService = GetService<IProviderQueryService>();
+        var queryService = GetService<IProviderQueries>();
 
         // Criar dados de teste
         var businessProfile1 = CreateTestBusinessProfile("provider1@test.com");
@@ -33,7 +35,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
             businessProfile2);
 
         // Act
-        var result = await queryService.GetProvidersAsync(
+        var result = await queryService.GetPagedAsync(
             page: 1,
             pageSize: 10,
             nameFilter: "Test Provider");
@@ -52,7 +54,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Arrange
         await CleanupDatabase();
 
-        var queryService = GetService<IProviderQueryService>();
+        var queryService = GetService<IProviderQueries>();
 
         var businessProfile = CreateTestBusinessProfile("individual@test.com");
         await CreateProviderAsync(
@@ -62,7 +64,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
             businessProfile);
 
         // Act
-        var result = await queryService.GetProvidersAsync(
+        var result = await queryService.GetPagedAsync(
             page: 1,
             pageSize: 10,
             typeFilter: EProviderType.Individual);
@@ -78,7 +80,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     {
         // Arrange
         await CleanupDatabase(); // Garantir isolamento
-        var queryService = GetService<IProviderQueryService>();
+        var queryService = GetService<IProviderQueries>();
 
         // Criar múltiplos providers
         for (int i = 1; i <= 5; i++)
@@ -92,7 +94,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         }
 
         // Act
-        var result = await queryService.GetProvidersAsync(page: 2, pageSize: 2);
+        var result = await queryService.GetPagedAsync(page: 2, pageSize: 2);
 
         // Assert
         result.Should().NotBeNull();
@@ -109,10 +111,10 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Arrange
         await ForceCleanDatabase();
 
-        var queryService = GetService<IProviderQueryService>();
+        var queryService = GetService<IProviderQueries>();
 
         // Act - teste com banco vazio usando container-backed services
-        var resultWithoutFilter = await queryService.GetProvidersAsync(page: 1, pageSize: 10);
+        var resultWithoutFilter = await queryService.GetPagedAsync(page: 1, pageSize: 10);
 
         // Assert - o banco deve estar vazio
         resultWithoutFilter.Should().NotBeNull();
@@ -122,7 +124,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
 
         // Act - Agora com filtro único que não existe
         var uniqueFilter = $"VERY_UNIQUE_TEST_FILTER__{Guid.NewGuid():N}";
-        var result = await queryService.GetProvidersAsync(
+        var result = await queryService.GetPagedAsync(
             page: 1,
             pageSize: 10,
             nameFilter: uniqueFilter);

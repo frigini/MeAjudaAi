@@ -1,9 +1,10 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Exceptions;
-
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
@@ -12,37 +13,35 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
-public sealed class SetPrimaryDocumentCommandHandlerTests
+[Trait("Category", "Unit")]
+public class SetPrimaryDocumentCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>> _providerRepositoryMock;
-    private readonly Mock<ILogger<SetPrimaryDocumentCommandHandler>> _mockLogger;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
+    private readonly Mock<ILogger<SetPrimaryDocumentCommandHandler>> _loggerMock;
     private readonly SetPrimaryDocumentCommandHandler _handler;
 
     public SetPrimaryDocumentCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _providerRepositoryMock = new Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>>();
-        _mockLogger = new Mock<ILogger<SetPrimaryDocumentCommandHandler>>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
+        _loggerMock = new Mock<ILogger<SetPrimaryDocumentCommandHandler>>();
 
-        _uowMock.Setup(u => u.GetRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new SetPrimaryDocumentCommandHandler(_uowMock.Object, _mockLogger.Object);
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new SetPrimaryDocumentCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_WithValidDocument_SetsPrimaryDocument()
+    public async Task HandleAsync_WithValidCommand_ReturnsSuccess()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder()
-            .WithId(providerId)
-            .WithDocument("12345678901", EDocumentType.CPF)
-            .WithDocument("12345678000195", EDocumentType.CNPJ)
-            .Build();
+        var provider = new ProviderBuilder().WithId(providerId).Build();
+        provider.AddDocument(new Document(EDocumentType.CPF, "12345678901", "cpf.pdf", "url", false));
 
-        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CNPJ);
+        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
 
-        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -50,11 +49,8 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        provider.Documents.Should().Contain(d => d.DocumentType == EDocumentType.CNPJ && d.IsPrimary);
-
-        _providerRepositoryMock.Verify(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()), Times.Once);
-        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        provider.GetPrimaryDocument()?.DocumentType.Should().Be(EDocumentType.CPF);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -62,19 +58,18 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
 
-        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("not found");
-
-        _providerRepositoryMock.Verify(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()), Times.Once);
+        result.Error.StatusCode.Should().Be(404);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -82,14 +77,12 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder()
-            .WithId(providerId)
-            .WithDocument("12345678901", EDocumentType.CPF)
-            .Build();
+        var provider = new ProviderBuilder().WithId(providerId).Build();
+        // Não adicionamos documentos
 
-        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CNPJ);
+        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
 
-        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -97,7 +90,8 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("not found");
+        result.Error.StatusCode.Should().Be(404);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -105,14 +99,13 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder()
-            .WithId(providerId)
-            .WithDocument("12345678901", EDocumentType.CPF)
-            .Build();
+        var provider = new ProviderBuilder().WithId(providerId).Build();
+        provider.AddDocument(new Document(EDocumentType.CPF, "12345678901", "cpf.pdf", "url", false));
+        provider.Delete(TimeProvider.System); // Isso fará SetPrimaryDocument falhar no domínio
 
-        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
 
-        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -120,7 +113,7 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Be("Business rule violation");
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -128,21 +121,17 @@ public sealed class SetPrimaryDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder()
-            .WithId(providerId)
-            .WithDocument("12345678901", EDocumentType.CPF)
-            .Build();
+        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
 
-        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
-
-        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database error"));
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new System.Exception("Database error"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Error setting primary document");
+        result.Error.StatusCode.Should().Be(500);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

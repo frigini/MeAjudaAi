@@ -186,15 +186,12 @@ public class GetUserByIdQueryHandlerTests
             .ReturnsAsync(userDto);
 
         // Act
-        await _handler.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
-        _usersCacheServiceMock.Verify(
-            x => x.GetOrCacheUserByIdAsync(
-                userId,
-                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(userDto);
+        _userQueriesMock.Verify(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

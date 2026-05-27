@@ -1,76 +1,51 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
 /// <summary>
 /// Contexto de banco de dados Entity Framework Core para o módulo Users.
-/// Gerencia entidades de usuário e aplica configurações específicas do módulo.
 /// </summary>
-public partial class UsersDbContext : BaseDbContext, IUnitOfWork
+/// <remarks>
+/// Implementa IUnitOfWork e IRepository diretamente para permitir uma arquitetura
+/// mais simples sem camadas intermediárias de repositório, conforme Phase 3 do projeto.
+/// </remarks>
+public partial class UsersDbContext(
+    DbContextOptions<UsersDbContext> options,
+    IServiceProvider serviceProvider) : BaseDbContext(options), IUserUnitOfWork
 {
-    /// <summary>
-    /// Obtém o conjunto de entidades Users para consulta e persistência de entidades User.
-    /// </summary>
     public DbSet<User> Users => Set<User>();
 
     /// <summary>
     /// Obtém o repositório tipado para um agregado do domínio.
     /// </summary>
-    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>() =>
-        (IRepository<TAggregate, TKey>)this;
-
-    /// <summary>
-    /// Inicializa uma nova instância da classe <see cref="UsersDbContext"/> para operações de design-time (migrations).
-    /// </summary>
-    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
-    public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options)
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
-    }
+        if (this is IRepository<TAggregate, TKey> repository)
+        {
+            return repository;
+        }
 
-    /// <summary>
-    /// Inicializa uma nova instância da classe <see cref="UsersDbContext"/> para runtime com injeção de dependência.
-    /// </summary>
-    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
-    /// <param name="domainEventProcessor">O processador de eventos de domínio para manipulação de eventos de domínio.</param>
-    public UsersDbContext(DbContextOptions<UsersDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
-    {
+        // Delegação inteligente: se este DbContext não suporta o agregado, 
+        // tenta resolver o repositório a partir do container de DI.
+        var externalRepository = serviceProvider.GetService<IRepository<TAggregate, TKey>>();
+        if (externalRepository != null)
+        {
+            return externalRepository;
+        }
+
+        throw new NotSupportedException($"Repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name} is not supported by {nameof(UsersDbContext)} or any other registered module.");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("users");
-
-        // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries<User>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents)
-            .ToList();
-
-        return Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        var entries = ChangeTracker
-            .Entries<User>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .Select(entry => entry.Entity);
-
-        foreach (var entity in entries)
-        {
-            entity.ClearDomainEvents();
-        }
     }
 }

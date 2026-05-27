@@ -35,7 +35,7 @@ public class AddDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var provider = ProviderBuilder.Create().WithId(providerId);
+        var provider = ProviderBuilder.Create().WithId(providerId).Build();
         var command = new AddDocumentCommand(providerId, "11144477735", EDocumentType.CPF, "doc.pdf", "https://storage/doc.pdf");
 
         _providerRepositoryMock
@@ -47,6 +47,7 @@ public class AddDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        provider.Documents.Should().ContainSingle(d => d.Number == command.DocumentNumber);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

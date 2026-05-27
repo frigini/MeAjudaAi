@@ -10,7 +10,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 /// </summary>
 public partial class ProvidersDbContext : IRepository<Provider, ProviderId>
 {
-    async Task<Provider?> IRepository<Provider, ProviderId>.TryFindAsync(ProviderId key, CancellationToken ct) =>
+    public async Task<Provider?> TryFindAsync(ProviderId key, CancellationToken ct) =>
         await Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
@@ -18,9 +18,9 @@ public partial class ProvidersDbContext : IRepository<Provider, ProviderId>
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == key && !p.IsDeleted, ct);
 
-    void IRepository<Provider, ProviderId>.Add(Provider aggregate) =>
+    public void Add(Provider aggregate) =>
         Providers.Add(aggregate);
 
-    void IRepository<Provider, ProviderId>.Delete(Provider aggregate) =>
+    public void Delete(Provider aggregate) =>
         Providers.Remove(aggregate);
 }

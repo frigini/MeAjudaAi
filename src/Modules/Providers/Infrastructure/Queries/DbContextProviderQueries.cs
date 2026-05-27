@@ -152,6 +152,9 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         EVerificationStatus? verificationStatusFilter = null,
         CancellationToken cancellationToken = default)
     {
+        if (page <= 0) throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than zero.");
+        if (pageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than zero.");
+
         var query = _context.Providers
             .AsNoTracking()
             .Include(p => p.Documents)

@@ -37,7 +37,7 @@ public class GetUserByEmailQueryHandlerTests
             .Build();
 
         _userQueriesMock
-            .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == email), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         // Act

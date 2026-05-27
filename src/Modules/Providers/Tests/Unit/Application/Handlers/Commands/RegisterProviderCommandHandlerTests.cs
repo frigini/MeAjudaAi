@@ -95,5 +95,7 @@ public class RegisterProviderCommandHandlerTests
         _providerRepositoryMock.Verify(
             x => x.Add(It.Is<Provider>(p => p.UserId == userId && p.Name == "New Provider")),
             Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+

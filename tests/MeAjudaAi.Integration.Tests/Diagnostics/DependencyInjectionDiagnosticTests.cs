@@ -47,8 +47,7 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
         {
             typeof(IQueryDispatcher),
             typeof(IQueryHandler<GetProvidersQuery, Result<PagedResult<ProviderDto>>>),
-            typeof(MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext),
-            typeof(MeAjudaAi.Modules.Providers.Domain.Repositories.IProviderRepository)
+            typeof(MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext)
         };
 
         // Act & Assert
