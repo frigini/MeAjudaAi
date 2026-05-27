@@ -250,6 +250,10 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in keycloakDescriptors) services.Remove(d);
         services.AddSingleton<IKeycloakService, MockKeycloakService>();
 
+        var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
+        foreach (var d in userDomainDescriptors) services.Remove(d);
+        services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
+
         var blobDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
         foreach (var d in blobDescriptors) services.Remove(d);
         services.AddSingleton<IBlobStorageService, MockBlobStorageService>();

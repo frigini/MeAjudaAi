@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -137,7 +138,7 @@ public class UpdateProviderProfileCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider not found");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
