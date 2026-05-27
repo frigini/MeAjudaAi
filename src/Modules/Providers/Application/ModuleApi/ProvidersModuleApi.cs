@@ -142,7 +142,7 @@ public sealed class ProvidersModuleApi(
         var dtos = new List<ModuleProviderBasicDto>();
         foreach (var dto in result.Value)
         {
-            dtos.Add(MapToModuleBasicDto(dto));
+            dtos.Add(MapDtoToBasicDto(dto));
         }
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
@@ -170,7 +170,7 @@ public sealed class ProvidersModuleApi(
         var dtos = new List<ModuleProviderBasicDto>();
         foreach (var dto in result.Value)
         {
-            dtos.Add(MapToModuleBasicDto(dto));
+            dtos.Add(MapDtoToBasicDto(dto));
         }
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
@@ -333,11 +333,11 @@ public sealed class ProvidersModuleApi(
             VerificationStatus: providerDto.VerificationStatus.ToString(),
             CreatedAt: providerDto.CreatedAt,
             UpdatedAt: providerDto.UpdatedAt ?? providerDto.CreatedAt,
-            IsActive: !providerDto.IsDeleted,
+            IsActive: providerDto.IsActive,
             Phone: providerDto.BusinessProfile?.ContactInfo?.PhoneNumber);
     }
 
-    private static ModuleProviderBasicDto MapToModuleBasicDto(ProviderDto providerDto)
+    private static ModuleProviderBasicDto MapDtoToBasicDto(ProviderDto providerDto)
     {
         return new ModuleProviderBasicDto(
             Id: providerDto.Id,
@@ -346,7 +346,7 @@ public sealed class ProvidersModuleApi(
             Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
             ProviderType: providerDto.Type.ToString(),
             VerificationStatus: providerDto.VerificationStatus.ToString(),
-            IsActive: !providerDto.IsDeleted);
+            IsActive: providerDto.IsActive);
     }
 
     public async Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)

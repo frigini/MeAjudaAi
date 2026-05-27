@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,7 +48,9 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
         {
             typeof(IQueryDispatcher),
             typeof(IQueryHandler<GetProvidersQuery, Result<PagedResult<ProviderDto>>>),
-            typeof(MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext)
+            typeof(MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext),
+            typeof(IUnitOfWork),
+            typeof(IRepository<,>)
         };
 
         // Act & Assert

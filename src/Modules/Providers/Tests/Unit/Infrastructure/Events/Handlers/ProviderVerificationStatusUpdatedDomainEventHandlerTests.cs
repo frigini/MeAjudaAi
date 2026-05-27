@@ -34,7 +34,7 @@ public class ProviderVerificationStatusUpdatedDomainEventHandlerTests : IDisposa
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        _context = new ProvidersDbContext(options);
+        _context = new ProvidersDbContext(options, null!);
 
         _handler = new ProviderVerificationStatusUpdatedDomainEventHandler(
             _mockMessageBus.Object,

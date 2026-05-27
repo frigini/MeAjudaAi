@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -22,6 +23,10 @@ public class ProvidersDatabaseTests : BaseApiTest
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
 
         // Act & Assert
+        var entityTypes = dbContext.Model.GetEntityTypes();
+        var providerEntity = entityTypes.FirstOrDefault(e => e.ClrType == typeof(MeAjudaAi.Modules.Providers.Domain.Entities.Provider));
+        providerEntity.Should().NotBeNull("Provider entity should be present in the EF model");
+
         var canConnect = await dbContext.Database.CanConnectAsync();
         canConnect.Should().BeTrue();
     }
@@ -34,8 +39,12 @@ public class ProvidersDatabaseTests : BaseApiTest
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
 
         // Act & Assert
-        var tableExists = await dbContext.Database.CanConnectAsync();
-        tableExists.Should().BeTrue();
+        var entityTypes = dbContext.Model.GetEntityTypes();
+        var providerEntity = entityTypes.FirstOrDefault(e => e.Name == "Providers" || e.ClrType == typeof(MeAjudaAi.Modules.Providers.Domain.Entities.Provider));
+        providerEntity.Should().NotBeNull("Providers entity should be mapped");
+
+        var canQuery = await dbContext.Providers.AnyAsync(cancellationToken: CancellationToken.None);
+        canQuery.Should().BeTrue("Should be able to query Providers table");
     }
 
     [Fact]
@@ -61,5 +70,9 @@ public class ProvidersDatabaseTests : BaseApiTest
 
         // Assert
         result.Should().NotBeNull();
+        result.Items.Should().NotBeNull();
+        result.TotalItems.Should().BeGreaterThanOrEqualTo(0);
+        result.PageNumber.Should().Be(1);
+        result.PageSize.Should().Be(10);
     }
 }

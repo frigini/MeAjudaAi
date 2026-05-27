@@ -50,34 +50,10 @@ public class ProvidersApiTests : BaseApiTest
         var dbContext = scope.ServiceProvider.GetService<ProvidersDbContext>();
         dbContext.Should().NotBeNull("ProvidersDbContext should be registered");
 
-        var uow = scope.ServiceProvider.GetService<ProvidersDbContext>();
-        uow.Should().NotBeNull("ProvidersDbContext should be registered as IUnitOfWork");
+        var uow = scope.ServiceProvider.GetService<IUnitOfWork>();
+        uow.Should().NotBeNull("IUnitOfWork should be registered");
 
         var queries = scope.ServiceProvider.GetService<IProviderQueries>();
         queries.Should().NotBeNull("IProviderQueries should be registered");
-    }
-
-    private T GetResponseData<T>(JsonElement element)
-    {
-        if (element.TryGetProperty("data", out var data))
-            return data.Deserialize<T>()!;
-        if (element.TryGetProperty("value", out var value))
-            return value.Deserialize<T>()!;
-        return element.Deserialize<T>()!;
-    }
-
-    private JsonElement GetResponseData(JsonElement element)
-    {
-        if (element.TryGetProperty("data", out var data))
-            return data;
-        if (element.TryGetProperty("value", out var value))
-            return value;
-        return element;
-    }
-
-    private async Task<T> ReadJsonAsync<T>(HttpContent content)
-    {
-        var text = await content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<T>(text, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
     }
 }

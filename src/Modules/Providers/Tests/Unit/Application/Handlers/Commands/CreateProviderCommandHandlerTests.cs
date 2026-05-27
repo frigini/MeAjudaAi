@@ -11,6 +11,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using DTOs = MeAjudaAi.Modules.Providers.Application.DTOs;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
@@ -126,17 +127,17 @@ public class CreateProviderCommandHandlerTests
             Times.Never);
     }
 
-    private static MeAjudaAi.Modules.Providers.Application.DTOs.BusinessProfileDto CreateTestBusinessProfile()
+    private static DTOs.BusinessProfileDto CreateTestBusinessProfile()
     {
-        return new MeAjudaAi.Modules.Providers.Application.DTOs.BusinessProfileDto(
+        return new DTOs.BusinessProfileDto(
             LegalName: "Test Legal Name",
             FantasyName: "Test Fantasy Name",
             Description: "Test Description",
-            ContactInfo: new MeAjudaAi.Modules.Providers.Application.DTOs.ContactInfoDto(
+            ContactInfo: new DTOs.ContactInfoDto(
                 Email: "test@provider.com",
                 PhoneNumber: "+5511999999999",
                 Website: "https://test.com"),
-            PrimaryAddress: new MeAjudaAi.Modules.Providers.Application.DTOs.AddressDto(
+            PrimaryAddress: new DTOs.AddressDto(
                 Street: "Test Street",
                 Number: "123",
                 Complement: null,

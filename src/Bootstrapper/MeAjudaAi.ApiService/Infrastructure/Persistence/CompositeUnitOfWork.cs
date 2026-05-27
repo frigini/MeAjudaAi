@@ -19,10 +19,6 @@ public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider) : IUni
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Em um ambiente monolítico com múltiplos DbContexts, precisamos salvar todos.
-        // Resolvemos todos os contextos que herdam de BaseDbContext (ou DbContext).
-        // Nota: No MeAjudaAi, cada módulo tem seu próprio DbContext.
-        
         var usersDb = serviceProvider.GetService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>();
         var providersDb = serviceProvider.GetService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
         var docsDb = serviceProvider.GetService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>();
@@ -34,18 +30,32 @@ public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider) : IUni
         var commsDb = serviceProvider.GetService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>();
         var searchDb = serviceProvider.GetService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
 
-        int total = 0;
-        if (usersDb != null) total += await usersDb.SaveChangesAsync(cancellationToken);
-        if (providersDb != null) total += await providersDb.SaveChangesAsync(cancellationToken);
-        if (docsDb != null) total += await docsDb.SaveChangesAsync(cancellationToken);
-        if (serviceDb != null) total += await serviceDb.SaveChangesAsync(cancellationToken);
-        if (locationsDb != null) total += await locationsDb.SaveChangesAsync(cancellationToken);
-        if (ratingsDb != null) total += await ratingsDb.SaveChangesAsync(cancellationToken);
-        if (paymentsDb != null) total += await paymentsDb.SaveChangesAsync(cancellationToken);
-        if (bookingsDb != null) total += await bookingsDb.SaveChangesAsync(cancellationToken);
-        if (commsDb != null) total += await commsDb.SaveChangesAsync(cancellationToken);
-        if (searchDb != null) total += await searchDb.SaveChangesAsync(cancellationToken);
+        var dbContexts = new List<Microsoft.EntityFrameworkCore.DbContext>();
+        if (usersDb != null) dbContexts.Add(usersDb);
+        if (providersDb != null) dbContexts.Add(providersDb);
+        if (docsDb != null) dbContexts.Add(docsDb);
+        if (serviceDb != null) dbContexts.Add(serviceDb);
+        if (locationsDb != null) dbContexts.Add(locationsDb);
+        if (ratingsDb != null) dbContexts.Add(ratingsDb);
+        if (paymentsDb != null) dbContexts.Add(paymentsDb);
+        if (bookingsDb != null) dbContexts.Add(bookingsDb);
+        if (commsDb != null) dbContexts.Add(commsDb);
+        if (searchDb != null) dbContexts.Add(searchDb);
 
-        return total;
+        int total = 0;
+        using var transaction = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled);
+        try
+        {
+            foreach (var db in dbContexts)
+            {
+                total += await db.SaveChangesAsync(cancellationToken);
+            }
+            transaction.Complete();
+            return total;
+        }
+        catch
+        {
+            throw;
+        }
     }
 }

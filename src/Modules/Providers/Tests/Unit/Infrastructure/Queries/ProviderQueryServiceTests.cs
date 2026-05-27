@@ -21,7 +21,7 @@ public class ProviderQueryServiceTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new ProvidersDbContext(options);
+        var context = new ProvidersDbContext(options, null!);
         _service = new ProviderQueryService(_context);
     }
 

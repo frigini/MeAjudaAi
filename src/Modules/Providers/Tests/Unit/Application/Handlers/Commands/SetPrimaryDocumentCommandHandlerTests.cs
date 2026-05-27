@@ -37,9 +37,9 @@ public class SetPrimaryDocumentCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = new ProviderBuilder().WithId(providerId).Build();
-        provider.AddDocument(new Document(EDocumentType.CPF, "12345678901", "cpf.pdf", "url", false));
+        provider.AddDocument(new Document("12345678901", EDocumentType.CPF, "cpf.pdf", "url", false));
 
-        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
 
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
@@ -58,7 +58,7 @@ public class SetPrimaryDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
 
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
@@ -80,7 +80,7 @@ public class SetPrimaryDocumentCommandHandlerTests
         var provider = new ProviderBuilder().WithId(providerId).Build();
         // Não adicionamos documentos
 
-        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
 
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
@@ -100,10 +100,10 @@ public class SetPrimaryDocumentCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = new ProviderBuilder().WithId(providerId).Build();
-        provider.AddDocument(new Document(EDocumentType.CPF, "12345678901", "cpf.pdf", "url", false));
-        provider.Delete(TimeProvider.System); // Isso fará SetPrimaryDocument falhar no domínio
+        provider.AddDocument(new Document("12345678901", EDocumentType.CPF, "cpf.pdf", "url", false));
+        provider.Delete(TimeProvider.System); 
 
-        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
 
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
@@ -121,7 +121,7 @@ public class SetPrimaryDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var command = new SetPrimaryDocumentCommand(new ProviderId(providerId), EDocumentType.CPF);
+        var command = new SetPrimaryDocumentCommand(providerId, EDocumentType.CPF);
 
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new System.Exception("Database error"));

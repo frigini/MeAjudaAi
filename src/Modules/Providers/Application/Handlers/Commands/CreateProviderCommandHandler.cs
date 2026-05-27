@@ -60,7 +60,15 @@ public sealed class CreateProviderCommandHandler(
 
             // Persiste no repositório
             uow.GetRepository<Provider, ProviderId>().Add(provider);
-            await uow.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await uow.SaveChangesAsync(cancellationToken);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException postgresEx && postgresEx.SqlState == "23505")
+            {
+                logger.LogWarning("Provider already exists for user {UserId} (DB Constraint)", command.UserId);
+                return Result<ProviderDto>.Failure(ValidationMessages.Providers.AlreadyExists);
+            }
 
             logger.LogInformation("Provider {ProviderId} created successfully for user {UserId}",
                 provider.Id.Value, command.UserId);

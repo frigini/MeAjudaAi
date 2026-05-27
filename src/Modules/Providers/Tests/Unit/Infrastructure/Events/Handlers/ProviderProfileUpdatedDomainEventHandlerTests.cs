@@ -35,7 +35,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
             .UseInMemoryDatabase(databaseName: UuidGenerator.NewId().ToString())
             .Options;
-        _context = new ProvidersDbContext(options);
+        _context = new ProvidersDbContext(options, null!);
 
         _handler = new ProviderProfileUpdatedDomainEventHandler(_mockMessageBus.Object, _context, _mockLogger.Object);
     }

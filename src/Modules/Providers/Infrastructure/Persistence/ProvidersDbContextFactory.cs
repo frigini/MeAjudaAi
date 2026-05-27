@@ -39,6 +39,6 @@ public class ProvidersDbContextFactory : IDesignTimeDbContextFactory<ProvidersDb
         })
         .UseSnakeCaseNamingConvention();
 
-        return new ProvidersDbContext(optionsBuilder.Options, null!);
+        return new ProvidersDbContext(optionsBuilder.Options);
     }
 }
