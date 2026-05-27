@@ -112,6 +112,7 @@ public class AddDocumentCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar o documento");
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
