@@ -149,6 +149,25 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         result!.Qualifications.Should().HaveCount(1);
     }
 
+    [Fact]
+    public async Task TryFindAsync_ShouldIncludeServices()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var provider = new ProviderBuilder().Build();
+        provider.UpdateServices(new[] { (serviceId, "Test Service") });
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Services.Should().HaveCount(1);
+        result.Services.First().ServiceId.Should().Be(serviceId);
+    }
+
     public void Dispose()
     {
         _context.Dispose();

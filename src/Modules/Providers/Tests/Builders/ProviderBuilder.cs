@@ -19,6 +19,8 @@ public class ProviderBuilder : BaseBuilder<Provider>
     private EProviderStatus? _status;
     private readonly List<Document> _documents = new();
     private readonly List<Qualification> _qualifications = new();
+    private string? _city;
+    private string? _state;
 
     public static ProviderBuilder Create() => new();
 
@@ -30,6 +32,9 @@ public class ProviderBuilder : BaseBuilder<Provider>
             {
                 Provider provider;
 
+                // Cria o BusinessProfile com city/state customizados se definidos
+                var businessProfile = _businessProfile ?? CreateDefaultBusinessProfile(f, _city, _state);
+
                 // Se um ID específico foi fornecido, usa o construtor interno para testes
                 if (_providerId != null)
                 {
@@ -38,7 +43,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
                         _userId ?? f.Random.Guid(),
                         _name ?? f.Company.CompanyName(),
                         _type ?? f.PickRandom<EProviderType>(),
-                        _businessProfile ?? CreateDefaultBusinessProfile(f)
+                        businessProfile
                     );
                 }
                 else
@@ -48,7 +53,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
                         _userId ?? f.Random.Guid(),
                         _name ?? f.Company.CompanyName(),
                         _type ?? f.PickRandom<EProviderType>(),
-                        _businessProfile ?? CreateDefaultBusinessProfile(f)
+                        businessProfile
                     );
                 }
 
@@ -190,6 +195,18 @@ public class ProviderBuilder : BaseBuilder<Provider>
         return this;
     }
 
+    public ProviderBuilder WithCity(string city)
+    {
+        _city = city;
+        return this;
+    }
+
+    public ProviderBuilder WithState(string state)
+    {
+        _state = state;
+        return this;
+    }
+
     private bool _shouldDelete = false;
     private string? _deletedBy;
 
@@ -223,14 +240,14 @@ public class ProviderBuilder : BaseBuilder<Provider>
         return provider;
     }
 
-    private static BusinessProfile CreateDefaultBusinessProfile(Faker faker)
+    private static BusinessProfile CreateDefaultBusinessProfile(Faker faker, string? city = null, string? state = null)
     {
         var address = new Address(
             street: faker.Address.StreetAddress(),
             number: faker.Address.BuildingNumber(),
             neighborhood: "Centro", // faker.Address.SecondaryAddress() sometimes is long
-            city: faker.Address.City(),
-            state: faker.Address.StateAbbr(),
+            city: city ?? faker.Address.City(),
+            state: state ?? faker.Address.StateAbbr(),
             zipCode: "12345-678", // Safe length
             country: "Brasil");
 
