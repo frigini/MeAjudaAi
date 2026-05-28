@@ -577,6 +577,72 @@ public class DbContextProviderQueriesTests : IDisposable
         result.Items.Should().NotBeEmpty();
     }
 
+    [Fact]
+    public async Task GetByCityAsync_WithMatchingCity_ShouldReturnProviders()
+    {
+        // Arrange
+        var provider1 = new ProviderBuilder().WithCity("São Paulo").Build();
+        var provider2 = new ProviderBuilder().WithCity("São Paulo").Build();
+        var provider3 = new ProviderBuilder().WithCity("Rio de Janeiro").Build();
+        _context.Providers.AddRange(provider1, provider2, provider3);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByCityAsync("São Paulo");
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().OnlyContain(p => p.BusinessProfile.PrimaryAddress.City == "São Paulo");
+    }
+
+    [Fact]
+    public async Task GetByCityAsync_WithNoMatchingCity_ShouldReturnEmpty()
+    {
+        // Arrange
+        var provider = new ProviderBuilder().WithCity("São Paulo").Build();
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByCityAsync("Curitiba");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByStateAsync_WithMatchingState_ShouldReturnProviders()
+    {
+        // Arrange
+        var provider1 = new ProviderBuilder().WithState("SP").Build();
+        var provider2 = new ProviderBuilder().WithState("SP").Build();
+        var provider3 = new ProviderBuilder().WithState("RJ").Build();
+        _context.Providers.AddRange(provider1, provider2, provider3);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByStateAsync("SP");
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().OnlyContain(p => p.BusinessProfile.PrimaryAddress.State == "SP");
+    }
+
+    [Fact]
+    public async Task GetByStateAsync_WithNoMatchingState_ShouldReturnEmpty()
+    {
+        // Arrange
+        var provider = new ProviderBuilder().WithState("SP").Build();
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByStateAsync("RJ");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
     public void Dispose()
     {
         _context.Dispose();

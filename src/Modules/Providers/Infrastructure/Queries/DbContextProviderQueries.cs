@@ -75,23 +75,41 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        var escapedCity = EscapeLikePattern(city);
-        return await GetProvidersQuery()
-            .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, $"%{escapedCity}%", "\\"))
-            .OrderBy(p => p.Id)
-            .ToListAsync(cancellationToken);
+        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
+        
+        var providerName = _context.Database.ProviderName;
+        if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            var lowerCity = city.ToLower();
+            query = query.Where(p => p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
+        }
+        else
+        {
+            var escapedCity = EscapeLikePattern(city);
+            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, $"%{escapedCity}%", "\\"));
+        }
+        
+        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        var escapedState = EscapeLikePattern(state);
-        return await GetProvidersQuery()
-            .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, $"%{escapedState}%", "\\"))
-            .OrderBy(p => p.Id)
-            .ToListAsync(cancellationToken);
+        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
+        
+        var providerName = _context.Database.ProviderName;
+        if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            var lowerState = state.ToLower();
+            query = query.Where(p => p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
+        }
+        else
+        {
+            var escapedState = EscapeLikePattern(state);
+            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, $"%{escapedState}%", "\\"));
+        }
+        
+        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
