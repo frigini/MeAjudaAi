@@ -103,6 +103,7 @@ public static class ProvidersTestInfrastructureExtensions
 
         // Adicionar IUnitOfWork e IProviderQueries
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
+        services.AddScoped<IProviderUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
         services.AddScoped<IProviderQueries, DbContextProviderQueries>();
 
         // Adicionar Dispatcher de Queries e Commands
