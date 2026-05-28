@@ -13,10 +13,10 @@ using Xunit;
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
 /// <summary>
-/// Integration tests for UserRepository with real database (TestContainers).
+/// Integration tests for User persistence with real database (TestContainers).
 /// Tests actual persistence logic, EF mappings, and database constraints.
 /// </summary>
-public class UserRepositoryIntegrationTests : BaseApiTest
+public class UserPersistenceIntegrationTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Users;
 

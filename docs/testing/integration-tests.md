@@ -25,24 +25,37 @@ Estes testes validam **componentes de infraestrutura individuais** dentro de um 
 - **Isolamento**: Cada módulo gerencia sua própria infraestrutura de teste
 
 **Casos de Uso de Exemplo**:
-- Testar `UserRepository.GetByIdAsync()` com um banco de dados PostgreSQL real
+- Testar `IUserQueries.GetByIdAsync()` com um banco de dados PostgreSQL real
 - Validar que consultas complexas retornam dados corretos
 - Testar migrações de banco de dados e compatibilidade de schema
-- Verificar tratamento de transações de repositório
+- Verificar tratamento de transações via UnitOfWork
 
 **Estrutura de Exemplo**:
 ```csharp
-// Localização: src/Modules/Users/Tests/Integration/UserRepositoryIntegrationTests.cs
-public class UserRepositoryTests : DatabaseTestBase
+// Localização: src/Modules/Users/Tests/Integration/UserPersistenceIntegrationTests.cs
+public class UserPersistenceIntegrationTests : DatabaseTestBase
 {
-    private UserRepository _repository;
     private UsersDbContext _context;
+    private IUserQueries _userQueries;
 
     [Fact]
-    public async Task AddAsync_WithValidUser_ShouldPersistUser()
+    public async Task Add_WithValidUser_ShouldPersistUser()
     {
-        // Usa PostgreSQL real via TestContainers
-        // Testa apenas interação repositório + banco de dados
+        // Arrange
+        using var scope = Services.CreateScope();
+        var uow = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var userQueries = scope.ServiceProvider.GetRequiredService<IUserQueries>();
+        var repository = uow.GetRepository<User, UserId>();
+        var user = CreateValidUser();
+
+        // Act - seed via repository
+        repository.Add(user);
+        await uow.SaveChangesAsync();
+
+        // Assert - leitura via queries (AsNoTracking)
+        var retrieved = await userQueries.GetByIdAsync(user.Id);
+        retrieved.Should().NotBeNull();
+        retrieved!.Id.Should().Be(user.Id);
     }
 }
 ```

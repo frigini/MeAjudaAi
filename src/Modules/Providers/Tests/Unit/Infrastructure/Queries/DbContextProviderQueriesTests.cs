@@ -1,5 +1,6 @@
 using System;
 using FluentAssertions;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
@@ -440,6 +441,93 @@ public class DbContextProviderQueriesTests : IDisposable
 
         // Assert
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByDocumentAsync_WithExistingDocument_ShouldReturnProvider()
+    {
+        // Arrange
+        var documentNumber = "12345678900";
+        var provider = new ProviderBuilder()
+            .WithDocument(documentNumber, MeAjudaAi.Modules.Providers.Domain.Enums.EDocumentType.CPF)
+            .Build();
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByDocumentAsync(documentNumber);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(provider.Id);
+    }
+
+    [Fact]
+    public async Task GetByDocumentAsync_WithNonExistingDocument_ShouldReturnNull()
+    {
+        // Arrange
+        var documentNumber = "99999999999";
+
+        // Act
+        var result = await _queries.GetByDocumentAsync(documentNumber);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByIdsAsync_WithNullList_ShouldReturnEmpty()
+    {
+        // Arrange
+        List<Guid>? ids = null;
+
+        // Act
+        var result = await _queries.GetByIdsAsync(ids!);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetBySlugAsync_WithNonExistingSlug_ShouldReturnNull()
+    {
+        // Arrange
+        var slug = "non-existing-slug";
+
+        // Act
+        var result = await _queries.GetBySlugAsync(slug);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetBySlugAsync_WithDeletedProvider_ShouldReturnNull()
+    {
+        // Arrange
+        var provider = new ProviderBuilder().WithDeleted().Build();
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetBySlugAsync(provider.Slug);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetPagedAsync_WithNoResults_ShouldReturnEmptyPagedResult()
+    {
+        // Arrange - empty database
+
+        // Act
+        var result = await _queries.GetPagedAsync(1, 10);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().BeEmpty();
+        result.TotalItems.Should().Be(0);
     }
 
     public void Dispose()

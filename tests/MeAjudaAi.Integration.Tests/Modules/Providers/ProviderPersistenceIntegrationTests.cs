@@ -14,9 +14,9 @@ using Xunit;
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
 /// <summary>
-/// Integration tests for ProviderRepository with real database (TestContainers).
+/// Integration tests for Provider persistence with real database (TestContainers).
 /// </summary>
-public class ProviderRepositoryIntegrationTests : BaseApiTest
+public class ProviderPersistenceIntegrationTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Providers;
 

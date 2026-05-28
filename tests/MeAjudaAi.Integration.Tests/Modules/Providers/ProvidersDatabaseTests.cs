@@ -48,7 +48,7 @@ public class ProvidersDatabaseTests : BaseApiTest
     }
 
     [Fact]
-    public async Task ProviderQueryService_ShouldBeRegistered()
+    public async Task ProviderQueries_ShouldBeRegistered()
     {
         // Arrange
         using var scope = Services.CreateScope();
@@ -59,7 +59,7 @@ public class ProvidersDatabaseTests : BaseApiTest
     }
 
     [Fact]
-    public async Task ProviderQueryService_ShouldBeAbleToQuery()
+    public async Task ProviderQueries_ShouldBeAbleToQuery()
     {
         // Arrange
         using var scope = Services.CreateScope();

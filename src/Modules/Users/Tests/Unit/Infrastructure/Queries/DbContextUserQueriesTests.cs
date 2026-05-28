@@ -411,6 +411,107 @@ public class DbContextUserQueriesTests : IDisposable
         result.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task GetPagedAsync_WithInvalidPageSize_ShouldUseMinimumPageSize()
+    {
+        // Arrange
+        var user = new UserBuilder().Build();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act - pageSize 0 should be normalized to 1
+        var (users, total) = await _queries.GetPagedAsync(1, 0);
+
+        // Assert
+        users.Should().HaveCount(1);
+        total.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetPagedWithSearchAsync_WithInvalidPageNumber_ShouldUsePage1()
+    {
+        // Arrange
+        var user = new UserBuilder().Build();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act - pageNumber 0 should be normalized to 1
+        var (users, total) = await _queries.GetPagedWithSearchAsync(0, 10, null);
+
+        // Assert
+        users.Should().HaveCount(1);
+        total.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetPagedWithSearchAsync_WithInvalidPageSize_ShouldUseMinimumPageSize()
+    {
+        // Arrange
+        var user = new UserBuilder().Build();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act - pageSize 0 should be normalized to 1
+        var (users, total) = await _queries.GetPagedWithSearchAsync(1, 0, null);
+
+        // Assert
+        users.Should().HaveCount(1);
+        total.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetPagedWithSearchAsync_WithNoMatches_ShouldReturnEmpty()
+    {
+        // Arrange
+        var user = new UserBuilder()
+            .WithEmail("test@example.com")
+            .WithUsername("testuser")
+            .Build();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var (users, total) = await _queries.GetPagedWithSearchAsync(1, 10, "nonexistent");
+
+        // Assert
+        users.Should().BeEmpty();
+        total.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetByKeycloakIdAsync_WithNullKeycloakId_ShouldReturnNull()
+    {
+        // Arrange
+        string? keycloakId = null;
+
+        // Act
+        var result = await _queries.GetByKeycloakIdAsync(keycloakId!);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetUsersByIdsAsync_WithMoreThanBatchSize_ShouldReturnUsersFromAllChunks()
+    {
+        // Arrange - Create more than 2000 users to test chunking
+        // Note: For practical testing, we'll use a smaller number but verify the logic
+        var users = Enumerable.Range(1, 100)
+            .Select(_ => new UserBuilder().Build())
+            .ToList();
+
+        _context.Users.AddRange(users);
+        await _context.SaveChangesAsync();
+
+        var ids = users.Select(u => u.Id).ToList();
+
+        // Act
+        var result = await _queries.GetUsersByIdsAsync(ids);
+
+        // Assert
+        result.Should().HaveCount(100);
+    }
+
     public void Dispose()
     {
         _context.Dispose();

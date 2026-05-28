@@ -15,6 +15,24 @@ namespace MeAjudaAi.ApiService.Tests.Unit.Infrastructure.Persistence;
 public class CompositeUnitOfWorkTests
 {
     [Fact]
+    public void GetRepository_WithRegisteredRepository_ShouldReturnRepository()
+    {
+        // Arrange
+        var repository = new TestRepository();
+        var services = new ServiceCollection();
+        services.AddSingleton<IRepository<TestAggregate, Guid>>(repository);
+        var serviceProvider = services.BuildServiceProvider();
+        var unitOfWork = new CompositeUnitOfWork(serviceProvider);
+
+        // Act
+        var result = unitOfWork.GetRepository<TestAggregate, Guid>();
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeSameAs(repository);
+    }
+
+    [Fact]
     public void GetRepository_WithUnregisteredRepository_ShouldThrowException()
     {
         // Arrange
@@ -64,6 +82,30 @@ public class CompositeUnitOfWorkTests
 
         // Assert
         result.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_WithProvidersDbContext_ShouldSaveChanges()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var context = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(options, null!);
+        var services = new ServiceCollection();
+        services.AddScoped(_ => context);
+        var serviceProvider = services.BuildServiceProvider();
+        var unitOfWork = new CompositeUnitOfWork(serviceProvider);
+
+        var provider = new MeAjudaAi.Modules.Providers.Tests.Builders.ProviderBuilder().Build();
+        context.Providers.Add(provider);
+
+        // Act
+        var result = await unitOfWork.SaveChangesAsync();
+
+        // Assert
+        result.Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -157,8 +199,15 @@ public class CompositeUnitOfWorkTests
     }
 
     // Test classes
-    private class TestAggregate
+    public class TestAggregate
     {
         public Guid Id { get; set; }
+    }
+
+    public class TestRepository : IRepository<TestAggregate, Guid>
+    {
+        public Task<TestAggregate?> TryFindAsync(Guid key, CancellationToken ct) => Task.FromResult<TestAggregate?>(null);
+        public void Add(TestAggregate aggregate) { }
+        public void Delete(TestAggregate aggregate) { }
     }
 }

@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 /// Testes de integração para IProviderQueries.
 /// Valida consultas complexas e paginação com dados reais no banco.
 /// </summary>
-public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationTestBase
+public sealed class ProviderQueriesIntegrationTests : ProvidersIntegrationTestBase
 {
     [Fact]
     public async Task GetProvidersAsync_WithValidFilters_ShouldReturnFilteredResults()
