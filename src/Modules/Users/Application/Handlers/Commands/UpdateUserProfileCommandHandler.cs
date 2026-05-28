@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
@@ -25,7 +25,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class UpdateUserProfileCommandHandler(
-    IUnitOfWork uow,
+    IUserUnitOfWork uow,
     IUsersCacheService usersCacheService,
     ILogger<UpdateUserProfileCommandHandler> logger
 ) : ICommandHandler<UpdateUserProfileCommand, Result<UserDto>>

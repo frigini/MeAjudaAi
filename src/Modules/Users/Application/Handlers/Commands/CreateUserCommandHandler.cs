@@ -5,7 +5,6 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -26,7 +25,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 internal sealed class CreateUserCommandHandler(
     IUserDomainService userDomainService,
-    IUnitOfWork uow,
+    IUserUnitOfWork uow,
     IUserQueries userQueries,
     ILogger<CreateUserCommandHandler> logger
 ) : ICommandHandler<CreateUserCommand, Result<UserDto>>
@@ -104,7 +103,7 @@ internal sealed class CreateUserCommandHandler(
         catch (Exception ex)
         {
             // Capturar erros de infraestrutura (database, cache, etc.) e logar com detalhes completos
-            logger.LogError(ex, "Unexpected error creating user with email {Email}. ExceptionType: {ExceptionType}, Message: {Message}", 
+            logger.LogError(ex, "Unexpected error creating user with email {Email}. ExceptionType: {ExceptionType}, Message: {Message}",
                 command.Email, ex.GetType().Name, ex.Message);
             return Result<UserDto>.Failure("Falha ao criar usuário. Tente novamente mais tarde.");
         }

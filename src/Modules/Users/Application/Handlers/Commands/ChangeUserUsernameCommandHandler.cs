@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -37,7 +36,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
 public sealed class ChangeUserUsernameCommandHandler(
-    IUnitOfWork uow,
+    IUserUnitOfWork uow,
     IUserQueries userQueries,
     TimeProvider dateTimeProvider,
     ILogger<ChangeUserUsernameCommandHandler> logger

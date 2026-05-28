@@ -208,7 +208,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     foreach (var descriptor in paymentGatewayDescriptors) services.Remove(descriptor);
                     services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 
-                    // Always mock IUserDomainService to avoid Keycloak calls in tests
+                    // Sempre simular IUserDomainService para evitar chamadas ao Keycloak nos testes
                     var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
                     foreach (var descriptor in userDomainDescriptors) services.Remove(descriptor);
                     services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();

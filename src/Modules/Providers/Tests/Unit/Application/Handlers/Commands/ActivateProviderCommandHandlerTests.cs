@@ -1,24 +1,25 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 public class ActivateProviderCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<IDocumentsModuleApi> _documentsModuleApiMock;
     private readonly Mock<ILogger<ActivateProviderCommandHandler>> _loggerMock;
@@ -26,7 +27,7 @@ public class ActivateProviderCommandHandlerTests
 
     public ActivateProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IUnitOfWork>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _documentsModuleApiMock = new Mock<IDocumentsModuleApi>();
         _loggerMock = new Mock<ILogger<ActivateProviderCommandHandler>>();

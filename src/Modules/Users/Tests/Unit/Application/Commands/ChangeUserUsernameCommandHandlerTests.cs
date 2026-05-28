@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class ChangeUserUsernameCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUserUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly FakeTimeProvider _dateTimeProvider;
@@ -24,7 +24,7 @@ public class ChangeUserUsernameCommandHandlerTests
 
     public ChangeUserUsernameCommandHandlerTests()
     {
-        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _unitOfWorkMock = new Mock<IUserUnitOfWork>();
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userQueriesMock = new Mock<IUserQueries>();
         _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);

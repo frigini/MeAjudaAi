@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de atualização de perfil do prestador de serviços.
 /// </summary>
 public sealed class UpdateProviderProfileCommandHandler(
-    IUnitOfWork uow,
+    IProviderUnitOfWork uow,
     ILogger<UpdateProviderProfileCommandHandler> logger
 ) : ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>
 {

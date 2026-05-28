@@ -1,8 +1,8 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
@@ -17,14 +17,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Component", "CommandHandler")]
 public class RemoveServiceFromProviderCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _repositoryMock;
     private readonly Mock<ILogger<RemoveServiceFromProviderCommandHandler>> _loggerMock;
     private readonly RemoveServiceFromProviderCommandHandler _sut;
 
     public RemoveServiceFromProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IUnitOfWork>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
         _repositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveServiceFromProviderCommandHandler>>();
 

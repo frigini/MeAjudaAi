@@ -8,14 +8,13 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
 public sealed class RegisterProviderCommandHandler(
-    IUnitOfWork uow,
+    IProviderUnitOfWork uow,
     IProviderQueries providerQueries,
     ILogger<RegisterProviderCommandHandler> logger
 ) : ICommandHandler<RegisterProviderCommand, Result<ProviderDto>>

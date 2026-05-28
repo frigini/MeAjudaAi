@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar o comando de desativação de perfil de prestador de serviços.
 /// </summary>
 public sealed class DeactivateProviderProfileCommandHandler(
-    IUnitOfWork uow,
+    IProviderUnitOfWork uow,
     ILogger<DeactivateProviderProfileCommandHandler> logger
 ) : ICommandHandler<DeactivateProviderProfileCommand, Result>
 {

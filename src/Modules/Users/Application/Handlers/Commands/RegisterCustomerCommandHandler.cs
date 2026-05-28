@@ -9,14 +9,13 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 
 public sealed partial class RegisterCustomerCommandHandler(
     IUserDomainService userDomainService,
-    IUnitOfWork uow,
+    IUserUnitOfWork uow,
     IUserQueries userQueries,
     ILogger<RegisterCustomerCommandHandler> logger
 ) : ICommandHandler<RegisterCustomerCommand, Result<UserDto>>

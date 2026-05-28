@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
@@ -23,7 +23,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="documentsModuleApi">API do módulo Documents para validação de documentos</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class ActivateProviderCommandHandler(
-    IUnitOfWork uow,
+    IProviderUnitOfWork uow,
     IDocumentsModuleApi documentsModuleApi,
     ILogger<ActivateProviderCommandHandler> logger
 ) : ICommandHandler<ActivateProviderCommand, Result>

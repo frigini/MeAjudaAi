@@ -1,8 +1,8 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
@@ -13,14 +13,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 public sealed class CompleteBasicInfoCommandHandlerTests
 {
-    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
     private readonly Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>> _mockRepository;
     private readonly Mock<ILogger<CompleteBasicInfoCommandHandler>> _mockLogger;
     private readonly CompleteBasicInfoCommandHandler _handler;
 
     public CompleteBasicInfoCommandHandlerTests()
     {
-        _uowMock = new Mock<IUnitOfWork>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
         _mockRepository = new Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>>();
         _mockLogger = new Mock<ILogger<CompleteBasicInfoCommandHandler>>();
 

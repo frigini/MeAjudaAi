@@ -1,21 +1,15 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
-/// <summary>
-/// Handler responsável por processar comandos de exclusão de prestadores de serviços.
-/// </summary>
-/// <param name="uow">Unit of Work para persistência</param>
-/// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
-/// <param name="logger">Logger estruturado</param>
 public sealed class DeleteProviderCommandHandler(
-    IUnitOfWork uow,
+    IProviderUnitOfWork uow,
     TimeProvider dateTimeProvider,
     ILogger<DeleteProviderCommandHandler> logger
 ) : ICommandHandler<DeleteProviderCommand, Result>

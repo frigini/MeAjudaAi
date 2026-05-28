@@ -290,8 +290,8 @@ public class TestContainerFixture : IAsyncLifetime
 
     private void ReconfigureDbContexts(IServiceCollection services)
     {
-        ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services, "users");
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services, "providers");
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
@@ -320,18 +320,23 @@ public class TestContainerFixture : IAsyncLifetime
 
         services.AddScoped<IDapperConnection, DapperConnection>();
     }
+
     private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services, string moduleKey)
         where TContext : DbContext
     {
         ReconfigureDbContext<TContext>(services);
 
         // Register keyed service for the module using the context type directly
-        // We use the lambda but we cast it to IUnitOfWork to ensure it's registered as the interface
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
-        
-        // Also ensure a global one exists (use Replace to ensure the last one registered wins, 
-        // which is better than TryAdd because it's predictable)
-        services.Replace(ServiceDescriptor.Scoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>()));
+
+        // Only Users module should set IUserUnitOfWork (which extends IUnitOfWork)
+        // All other modules use keyed IUnitOfWork registration only
+        // User handlers now use IUserUnitOfWork directly, so no global IUnitOfWork replacement needed
+        if (typeof(TContext).Name == "UsersDbContext")
+        {
+            services.Replace(ServiceDescriptor.Scoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(
+                sp => (MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork)sp.GetRequiredService<TContext>()));
+        }
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext

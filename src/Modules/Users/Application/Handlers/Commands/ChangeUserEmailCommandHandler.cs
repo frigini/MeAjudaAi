@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -34,7 +33,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="userQueries">Queries de leitura de usuário</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
 public sealed class ChangeUserEmailCommandHandler(
-    IUnitOfWork uow,
+    IUserUnitOfWork uow,
     IUserQueries userQueries,
     ILogger<ChangeUserEmailCommandHandler> logger
 ) : ICommandHandler<ChangeUserEmailCommand, Result<UserDto>>
