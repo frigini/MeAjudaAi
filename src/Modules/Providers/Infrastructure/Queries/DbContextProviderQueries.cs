@@ -46,7 +46,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         var providerIds = ids.Select(id => new ProviderId(id)).ToList();
         return await GetProvidersQuery()
             .Where(p => providerIds.Contains(p.Id) && !p.IsDeleted)
-            .OrderBy(p => p.Id)
+            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
 
