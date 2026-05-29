@@ -15,13 +15,20 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 {
     private readonly ProvidersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    private IQueryable<Provider> GetProvidersQuery() =>
-        _context.Providers
+    private bool IsPostgres => _context.Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL";
+
+    private IQueryable<Provider> GetProvidersQuery()
+    {
+        var query = _context.Providers
             .AsNoTracking()
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Include(p => p.Services)
-            .AsSplitQuery();
+            .Include(p => p.Services);
+
+        return _context.Database.IsRelational() 
+            ? query.AsSplitQuery() 
+            : query;
+    }
 
     /// <inheritdoc />
     public async Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken cancellationToken = default)
@@ -43,11 +50,10 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (ids == null || ids.Count == 0)
             return Array.Empty<Provider>();
 
-        // Usar uma lista concreta de Guid para garantir a tradução
-        var guidIds = ids.ToList();
+        var providerIds = ids.Select(id => new ProviderId(id)).ToList();
 
         return await GetProvidersQuery()
-            .Where(p => guidIds.Contains(p.Id.Value) && !p.IsDeleted)
+            .Where(p => providerIds.Contains(p.Id) && !p.IsDeleted)
             .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
@@ -79,18 +85,24 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     {
         var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
-        var providerName = _context.Database.ProviderName;
-        var escapedCity = EscapeLikePattern(city);
-        var pattern = $"%{escapedCity}%";
-
-        if (providerName == "Microsoft.EntityFrameworkCore.Sqlite" || providerName == "Microsoft.EntityFrameworkCore.InMemory")
+        if (!_context.Database.IsRelational())
         {
-            // SQLite LIKE é case-insensitive para ASCII por padrão
-            query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, pattern, "\\"));
+            var lowerCity = city.ToLower();
+            query = query.Where(p => p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
         }
         else
         {
-            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, pattern, "\\"));
+            var escapedCity = EscapeLikePattern(city);
+            var likePattern = $"%{escapedCity}%";
+
+            if (IsPostgres)
+            {
+                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, likePattern, "\\"));
+            }
+            else
+            {
+                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, likePattern, "\\"));
+            }
         }
         
         return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
@@ -101,17 +113,24 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     {
         var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
-        var providerName = _context.Database.ProviderName;
-        var escapedState = EscapeLikePattern(state);
-        var pattern = $"%{escapedState}%";
-
-        if (providerName == "Microsoft.EntityFrameworkCore.Sqlite" || providerName == "Microsoft.EntityFrameworkCore.InMemory")
+        if (!_context.Database.IsRelational())
         {
-            query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, pattern, "\\"));
+            var lowerState = state.ToLower();
+            query = query.Where(p => p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
         }
         else
         {
-            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, pattern, "\\"));
+            var escapedState = EscapeLikePattern(state);
+            var likePattern = $"%{escapedState}%";
+
+            if (IsPostgres)
+            {
+                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, likePattern, "\\"));
+            }
+            else
+            {
+                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, likePattern, "\\"));
+            }
         }
         
         return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
@@ -178,27 +197,28 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (page <= 0) throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than zero.");
         if (pageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than zero.");
 
-        var query = _context.Providers
-            .AsNoTracking()
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
-            .Include(p => p.Services)
-            .AsSplitQuery()
-            .Where(p => !p.IsDeleted);
+        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            var providerName = _context.Database.ProviderName;
-            var escapedFilter = EscapeLikePattern(nameFilter);
-            var pattern = $"%{escapedFilter}%";
-            
-            if (providerName == "Microsoft.EntityFrameworkCore.Sqlite" || providerName == "Microsoft.EntityFrameworkCore.InMemory")
+            if (!_context.Database.IsRelational())
             {
-                query = query.Where(p => EF.Functions.Like(p.Name, pattern, "\\"));
+                var lowerNameFilter = nameFilter.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
             }
             else
             {
-                query = query.Where(p => EF.Functions.ILike(p.Name, pattern, "\\"));
+                var escapedFilter = EscapeLikePattern(nameFilter);
+                var likePattern = $"%{escapedFilter}%";
+                
+                if (IsPostgres)
+                {
+                    query = query.Where(p => EF.Functions.ILike(p.Name, likePattern, "\\"));
+                }
+                else
+                {
+                    query = query.Where(p => EF.Functions.Like(p.Name, likePattern, "\\"));
+                }
             }
         }
 
