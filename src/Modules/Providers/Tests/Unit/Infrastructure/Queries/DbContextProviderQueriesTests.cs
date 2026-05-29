@@ -15,15 +15,19 @@ public class DbContextProviderQueriesTests : IDisposable
 {
     private readonly ProvidersDbContext _context;
     private readonly DbContextProviderQueries _queries;
+    private readonly Microsoft.Data.Sqlite.SqliteConnection _connection;
 
     public DbContextProviderQueriesTests()
     {
+        _connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseSqlite(_connection)
             .Options;
 
-        var context = new ProvidersDbContext(options, null!);
-        _context = context;
+        _context = new ProvidersDbContext(options, null!);
+        _context.Database.EnsureCreated();
         _queries = new DbContextProviderQueries(_context);
     }
 
@@ -571,10 +575,10 @@ public class DbContextProviderQueriesTests : IDisposable
         // Act - filter for "A_" should match only literal "A_"
         var result = await _queries.GetPagedAsync(1, 10, nameFilter: "A_");
 
-        // Assert - InMemory database uses Contains, so "A_" matches both "A_B" and "A%B" and "AB"
-        // This test verifies the method executes without error with special characters
-        result.Should().NotBeNull();
-        result.Items.Should().NotBeEmpty();
+        // Assert - With SQLite/Relational, "A_" would match "AB" if not escaped
+        // This verifies that it matches only the literal "A_B Provider"
+        result.Items.Should().HaveCount(1);
+        result.Items.First().Name.Should().Be("A_B Provider");
     }
 
     [Fact]
@@ -646,5 +650,6 @@ public class DbContextProviderQueriesTests : IDisposable
     public void Dispose()
     {
         _context.Dispose();
+        _connection.Dispose();
     }
 }

@@ -6,6 +6,8 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -21,6 +23,7 @@ public class UpdateVerificationStatusCommandHandlerTests
     private readonly Mock<IProviderUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<UpdateVerificationStatusCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly UpdateVerificationStatusCommandHandler _handler;
 
     public UpdateVerificationStatusCommandHandlerTests()
@@ -28,9 +31,14 @@ public class UpdateVerificationStatusCommandHandlerTests
         _uowMock = new Mock<IProviderUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<UpdateVerificationStatusCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new UpdateVerificationStatusCommandHandler(_uowMock.Object, _loggerMock.Object);
+        
+        // Setup localizer to return the key name
+        _localizerMock.Setup(l => l[It.IsAny<string>()]).Returns((string name) => new LocalizedString(name, name));
+
+        _handler = new UpdateVerificationStatusCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Theory]
@@ -89,7 +97,7 @@ public class UpdateVerificationStatusCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider not found");
+        result.Error.Message.Should().Contain("ProviderNotFound");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -119,7 +127,7 @@ public class UpdateVerificationStatusCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while updating the verification status");
+        result.Error.Message.Should().Contain("VerificationStatusUpdateError");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),

@@ -290,8 +290,8 @@ public class TestContainerFixture : IAsyncLifetime
 
     private void ReconfigureDbContexts(IServiceCollection services)
     {
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services, "users");
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services, "providers");
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services, ModuleKeys.Users);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services, ModuleKeys.Providers);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
@@ -326,12 +326,12 @@ public class TestContainerFixture : IAsyncLifetime
     {
         ReconfigureDbContext<TContext>(services);
 
-        // Register keyed service for the module using the context type directly
+        // Registra o serviço por chave para o módulo usando o tipo do contexto diretamente
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
 
-        // Only Users module should set IUserUnitOfWork (which extends IUnitOfWork)
-        // All other modules use keyed IUnitOfWork registration only
-        // User handlers now use IUserUnitOfWork directly, so no global IUnitOfWork replacement needed
+        // Somente o módulo de Usuários deve definir IUserUnitOfWork (que estende IUnitOfWork)
+        // Todos os outros módulos usam apenas o registro por chave de IUnitOfWork
+        // Os handlers de usuário agora usam IUserUnitOfWork diretamente, então não é necessária a substituição global de IUnitOfWork
         if (typeof(TContext).Name == "UsersDbContext")
         {
             services.Replace(ServiceDescriptor.Scoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(

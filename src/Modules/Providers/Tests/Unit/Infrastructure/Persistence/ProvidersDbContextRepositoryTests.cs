@@ -43,6 +43,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         var provider = new ProviderBuilder().Build();
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
@@ -72,6 +73,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         var provider = new ProviderBuilder().WithDeleted().Build();
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
@@ -122,6 +124,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
             .Build();
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
@@ -140,6 +143,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
             .Build();
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
@@ -158,6 +162,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         provider.UpdateServices(new[] { (serviceId, "Test Service") });
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);

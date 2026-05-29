@@ -112,11 +112,14 @@ public class CompositeUnitOfWorkTests
     public async Task SaveChangesAsync_WithMultipleDbContexts_ShouldSaveAllChanges()
     {
         // Arrange
+        var usersDbName = Guid.NewGuid().ToString();
+        var providersDbName = Guid.NewGuid().ToString();
+        
         var usersOptions = new DbContextOptionsBuilder<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName: usersDbName)
             .Options;
         var providersOptions = new DbContextOptionsBuilder<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName: providersDbName)
             .Options;
 
         var usersContext = new MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext(usersOptions, null!);
@@ -135,21 +138,21 @@ public class CompositeUnitOfWorkTests
         providersContext.Providers.Add(provider);
 
         // Act
-        // Nota: TransactionScope não funciona com InMemory database, então esperamos que o método
-        // ainda salve as alterações mesmo que a transação não seja suportada
         try
         {
-            var result = await unitOfWork.SaveChangesAsync();
-            // O resultado pode variar dependendo de quantas entidades são criadas pelos builders
-            result.Should().BeGreaterThan(0);
+            await unitOfWork.SaveChangesAsync();
         }
         catch (InvalidOperationException)
         {
-            // InMemory database não suporta transações distribuídas
-            // Verificamos se as entidades foram salvas diretamente
-            usersContext.Users.Should().HaveCount(1);
-            providersContext.Providers.Should().HaveCount(1);
+            // InMemory database não suporta transações distribuídas, mas deve ter salvo individualmente
         }
+
+        // Assert - Verify persistence using fresh context instances
+        using var freshUsersContext = new MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext(usersOptions, null!);
+        using var freshProvidersContext = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(providersOptions, null!);
+        
+        (await freshUsersContext.Users.CountAsync()).Should().Be(1);
+        (await freshProvidersContext.Providers.CountAsync()).Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -178,13 +181,15 @@ public class CompositeUnitOfWorkTests
     public async Task SaveChangesAsync_WithCancellationToken_ShouldPassToken()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
+        var mockContext = new Mock<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(
+            new DbContextOptions<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(),
+            null!
+        );
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
-        var context = new MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext(options, null!);
         var services = new ServiceCollection();
-        services.AddScoped(_ => context);
+        services.AddScoped(_ => mockContext.Object);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
 
@@ -194,8 +199,8 @@ public class CompositeUnitOfWorkTests
         // Act
         await unitOfWork.SaveChangesAsync(token);
 
-        // Assert - Se não lançar exceção, o token foi passado corretamente
-        true.Should().BeTrue();
+        // Assert
+        mockContext.Verify(c => c.SaveChangesAsync(token), Times.Once);
     }
 
     // Test classes

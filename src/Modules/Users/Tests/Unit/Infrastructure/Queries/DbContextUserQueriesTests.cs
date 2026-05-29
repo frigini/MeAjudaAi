@@ -193,16 +193,19 @@ public class DbContextUserQueriesTests : IDisposable
     public async Task GetPagedAsync_WithInvalidPageNumber_ShouldUsePage1()
     {
         // Arrange
-        var user = new UserBuilder().Build();
-        _context.Users.Add(user);
+        var users = Enumerable.Range(1, 15)
+            .Select(_ => new UserBuilder().Build())
+            .ToList();
+        _context.Users.AddRange(users);
         await _context.SaveChangesAsync();
 
         // Act
-        var (users, total) = await _queries.GetPagedAsync(0, 10);
+        var (result, total) = await _queries.GetPagedAsync(0, 10);
 
         // Assert
-        users.Should().HaveCount(1);
-        total.Should().Be(1);
+        result.Should().HaveCount(10);
+        total.Should().Be(15);
+        result.Should().BeEquivalentTo(users.Take(10));
     }
 
     [Fact]
@@ -415,48 +418,57 @@ public class DbContextUserQueriesTests : IDisposable
     public async Task GetPagedAsync_WithInvalidPageSize_ShouldUseMinimumPageSize()
     {
         // Arrange
-        var user = new UserBuilder().Build();
-        _context.Users.Add(user);
+        var users = Enumerable.Range(1, 5)
+            .Select(_ => new UserBuilder().Build())
+            .ToList();
+        _context.Users.AddRange(users);
         await _context.SaveChangesAsync();
 
         // Act - pageSize 0 should be normalized to 1
-        var (users, total) = await _queries.GetPagedAsync(1, 0);
+        var (result, total) = await _queries.GetPagedAsync(1, 0);
 
         // Assert
-        users.Should().HaveCount(1);
-        total.Should().Be(1);
+        result.Should().HaveCount(1);
+        total.Should().Be(5);
+        result.Should().ContainEquivalentOf(users[0]);
     }
 
     [Fact]
     public async Task GetPagedWithSearchAsync_WithInvalidPageNumber_ShouldUsePage1()
     {
         // Arrange
-        var user = new UserBuilder().Build();
-        _context.Users.Add(user);
+        var users = Enumerable.Range(1, 15)
+            .Select(_ => new UserBuilder().Build())
+            .ToList();
+        _context.Users.AddRange(users);
         await _context.SaveChangesAsync();
 
         // Act - pageNumber 0 should be normalized to 1
-        var (users, total) = await _queries.GetPagedWithSearchAsync(0, 10, null);
+        var (result, total) = await _queries.GetPagedWithSearchAsync(0, 10, null);
 
         // Assert
-        users.Should().HaveCount(1);
-        total.Should().Be(1);
+        result.Should().HaveCount(10);
+        total.Should().Be(15);
+        result.Should().BeEquivalentTo(users.Take(10));
     }
 
     [Fact]
     public async Task GetPagedWithSearchAsync_WithInvalidPageSize_ShouldUseMinimumPageSize()
     {
         // Arrange
-        var user = new UserBuilder().Build();
-        _context.Users.Add(user);
+        var users = Enumerable.Range(1, 5)
+            .Select(_ => new UserBuilder().Build())
+            .ToList();
+        _context.Users.AddRange(users);
         await _context.SaveChangesAsync();
 
         // Act - pageSize 0 should be normalized to 1
-        var (users, total) = await _queries.GetPagedWithSearchAsync(1, 0, null);
+        var (result, total) = await _queries.GetPagedWithSearchAsync(1, 0, null);
 
         // Assert
-        users.Should().HaveCount(1);
-        total.Should().Be(1);
+        result.Should().HaveCount(1);
+        total.Should().Be(5);
+        result.Should().ContainEquivalentOf(users[0]);
     }
 
     [Fact]
@@ -494,9 +506,8 @@ public class DbContextUserQueriesTests : IDisposable
     [Fact]
     public async Task GetUsersByIdsAsync_WithMoreThanBatchSize_ShouldReturnUsersFromAllChunks()
     {
-        // Arrange - Create more than 2000 users to test chunking
-        // Note: For practical testing, we'll use a smaller number but verify the logic
-        var users = Enumerable.Range(1, 100)
+        // Arrange - Create more than 2000 users to test chunking (batchSize is 2000)
+        var users = Enumerable.Range(1, 2100)
             .Select(_ => new UserBuilder().Build())
             .ToList();
 
@@ -509,7 +520,7 @@ public class DbContextUserQueriesTests : IDisposable
         var result = await _queries.GetUsersByIdsAsync(ids);
 
         // Assert
-        result.Should().HaveCount(100);
+        result.Should().HaveCount(2100);
     }
 
     public void Dispose()

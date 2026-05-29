@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -69,6 +70,19 @@ public sealed class RegisterProviderCommandHandler(
                 provider.Id.Value, command.UserId);
 
             return Result<ProviderDto>.Success(provider.ToDto());
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogWarning(ex, "Database update error in RegisterProvider for user {UserId}. Checking if provider already exists.", command.UserId);
+            
+            // Recalcula se o prestador já existe (race condition entre a verificação inicial e o save)
+            var duplicateProvider = await providerQueries.GetByUserIdAsync(command.UserId, cancellationToken);
+            if (duplicateProvider is not null)
+            {
+                return Result<ProviderDto>.Success(duplicateProvider.ToDto());
+            }
+
+            return Result<ProviderDto>.Failure(new Error("Erro ao salvar os dados. Verifique se as informações já estão cadastradas.", 409));
         }
         catch (Exception ex) when (ex is DomainException || ex is ArgumentException)
         {

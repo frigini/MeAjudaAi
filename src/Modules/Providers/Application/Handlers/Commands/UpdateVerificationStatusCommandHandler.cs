@@ -6,6 +6,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -15,9 +17,11 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </summary>
 /// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado</param>
+/// <param name="localizer">Localizador de strings</param>
 public sealed class UpdateVerificationStatusCommandHandler(
     IProviderUnitOfWork uow,
-    ILogger<UpdateVerificationStatusCommandHandler> logger
+    ILogger<UpdateVerificationStatusCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<UpdateVerificationStatusCommand, Result<ProviderDto>>
 {
     /// <summary>
@@ -36,7 +40,7 @@ public sealed class UpdateVerificationStatusCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Provider not found");
+                return Result<ProviderDto>.Failure(localizer["ProviderNotFound"]);
             }
 
             provider.UpdateVerificationStatus(command.Status, command.UpdatedBy);
@@ -49,7 +53,7 @@ public sealed class UpdateVerificationStatusCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error updating verification status for provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("An error occurred while updating the verification status");
+            return Result<ProviderDto>.Failure(localizer["VerificationStatusUpdateError"]);
         }
     }
 }

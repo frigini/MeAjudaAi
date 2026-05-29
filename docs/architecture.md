@@ -320,10 +320,12 @@ public class Provider : AggregateRoot<Guid>
 
 **Propósito**: Coordenar mudanças em múltiplos repositórios com transações.
 
+**Padrão Único**: O projeto utiliza **Keyed Services** para injetar a instância correta de `IUnitOfWork` para cada módulo, evitando a criação de interfaces duplicadas (ex: `IProviderUnitOfWork`). A única exceção é quando um módulo necessita estender o contrato base (ex: `IUserUnitOfWork` para operações específicas de identidade).
+
 **Implementação Real**:
 
 ```csharp
-// Interface (Shared Layer)
+// Interface Base (Shared Layer)
 public interface IUnitOfWork
 {
     IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>();
@@ -331,15 +333,18 @@ public interface IUnitOfWork
 }
 
 // Implementação EF Core - DbContext como Unit of Work (Infrastructure Layer)
-public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
+public partial class ProvidersDbContext : BaseDbContext, IUnitOfWork
 {
     // GetRepository<T,K>() implementado no partial ProvidersDbContext.Provider.cs
     // SaveChangesAsync() herdado de DbContext
 }
 
+// Registro no DI (Infrastructure Layer - Extensions.cs)
+services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Providers, (sp, key) => sp.GetRequiredService<ProvidersDbContext>());
+
 // Uso em Handler
 public sealed class UpdateProviderProfileCommandHandler(
-    IProviderUnitOfWork uow,
+    [FromKeyedServices(ModuleKeys.Providers)] IUnitOfWork uow,
     ILogger<UpdateProviderProfileCommandHandler> logger)
     : ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>
 {
@@ -358,6 +363,9 @@ public sealed class UpdateProviderProfileCommandHandler(
         await uow.SaveChangesAsync(ct);
 
         return Result<ProviderDto>.Success(provider.ToDto());
+    }
+}
+```
     }
 }
 ```

@@ -6,6 +6,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -18,6 +20,7 @@ public class AddQualificationCommandHandlerTests
     private readonly Mock<IProviderUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<AddQualificationCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly AddQualificationCommandHandler _handler;
 
     public AddQualificationCommandHandlerTests()
@@ -25,9 +28,14 @@ public class AddQualificationCommandHandlerTests
         _uowMock = new Mock<IProviderUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<AddQualificationCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new AddQualificationCommandHandler(_uowMock.Object, _loggerMock.Object);
+        
+        // Setup localizer to return the key name
+        _localizerMock.Setup(l => l[It.IsAny<string>()]).Returns((string name) => new LocalizedString(name, name));
+
+        _handler = new AddQualificationCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
@@ -84,7 +92,7 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("Provider not found");
+        result.Error!.Message.Should().Be("ProviderNotFound");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -113,7 +121,7 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("An error occurred while adding the qualification");
+        result.Error!.Message.Should().Be("QualificationAddError");
     }
 
     [Fact]
@@ -142,7 +150,7 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("An error occurred while adding the qualification");
+        result.Error!.Message.Should().Be("QualificationAddError");
     }
 
     [Fact]
@@ -171,6 +179,6 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("An error occurred while adding the qualification");
+        result.Error!.Message.Should().Be("QualificationAddError");
     }
 }

@@ -14,7 +14,6 @@
     <Project Path="src/Aspire/MeAjudaAi.ServiceDefaults/MeAjudaAi.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/src/Bootstrapper/">
-    <Project Path="src/Bootstrapper/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj" />
     <Project Path="src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj" />
     <Project Path="src/Bootstrapper/MeAjudaAi.Gateway/MeAjudaAi.Gateway.csproj" />
   </Folder>
