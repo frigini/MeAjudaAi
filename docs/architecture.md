@@ -366,9 +366,6 @@ public sealed class UpdateProviderProfileCommandHandler(
     }
 }
 ```
-    }
-}
-```
 
 **Benefícios**:
 - ✅ Transações atômicas

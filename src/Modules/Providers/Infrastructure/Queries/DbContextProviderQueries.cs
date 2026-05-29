@@ -43,9 +43,8 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (ids == null || ids.Count == 0)
             return Array.Empty<Provider>();
 
-        var providerIds = ids.Select(id => new ProviderId(id)).ToList();
         return await GetProvidersQuery()
-            .Where(p => providerIds.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => ids.Contains(p.Id.Value) && !p.IsDeleted)
             .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
@@ -78,7 +77,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
         var providerName = _context.Database.ProviderName;
-        if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
+        if (providerName == "Microsoft.EntityFrameworkCore.InMemory" || providerName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             var lowerCity = city.ToLower();
             query = query.Where(p => p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
@@ -98,7 +97,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
         var providerName = _context.Database.ProviderName;
-        if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
+        if (providerName == "Microsoft.EntityFrameworkCore.InMemory" || providerName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             var lowerState = state.ToLower();
             query = query.Where(p => p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
@@ -186,7 +185,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         {
             var providerName = _context.Database.ProviderName;
             
-            if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
+            if (providerName == "Microsoft.EntityFrameworkCore.InMemory" || providerName == "Microsoft.EntityFrameworkCore.Sqlite")
             {
                 var lowerNameFilter = nameFilter.ToLower();
                 query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));

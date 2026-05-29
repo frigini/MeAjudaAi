@@ -32,8 +32,9 @@ public class AddQualificationCommandHandlerTests
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         
-        // Setup localizer to return the key name
-        _localizerMock.Setup(l => l[It.IsAny<string>()]).Returns((string name) => new LocalizedString(name, name));
+        // Setup localizer to return specific Portuguese messages
+        _localizerMock.Setup(l => l["ProviderNotFound"]).Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
+        _localizerMock.Setup(l => l["QualificationAddError"]).Returns(new LocalizedString("QualificationAddError", "Ocorreu um erro ao adicionar a qualificação."));
 
         _handler = new AddQualificationCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
@@ -92,7 +93,7 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("ProviderNotFound");
+        result.Error!.Message.Should().Be("Prestador não encontrado.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -121,7 +122,7 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("QualificationAddError");
+        result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar a qualificação.");
     }
 
     [Fact]
@@ -150,7 +151,7 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("QualificationAddError");
+        result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar a qualificação.");
     }
 
     [Fact]
@@ -179,6 +180,6 @@ public class AddQualificationCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("QualificationAddError");
+        result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar a qualificação.");
     }
 }

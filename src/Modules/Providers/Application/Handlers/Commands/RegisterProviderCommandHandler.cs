@@ -73,16 +73,20 @@ public sealed class RegisterProviderCommandHandler(
         }
         catch (DbUpdateException ex)
         {
-            logger.LogWarning(ex, "Database update error in RegisterProvider for user {UserId}. Checking if provider already exists.", command.UserId);
-            
-            // Recalcula se o prestador já existe (race condition entre a verificação inicial e o save)
-            var duplicateProvider = await providerQueries.GetByUserIdAsync(command.UserId, cancellationToken);
-            if (duplicateProvider is not null)
+            if (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
             {
-                return Result<ProviderDto>.Success(duplicateProvider.ToDto());
+                logger.LogWarning(ex, "Uniqueness violation in RegisterProvider for user {UserId}. Checking if provider already exists.", command.UserId);
+                
+                // Recalcula se o prestador já existe (race condition entre a verificação inicial e o save)
+                var duplicateProvider = await providerQueries.GetByUserIdAsync(command.UserId, cancellationToken);
+                if (duplicateProvider is not null)
+                {
+                    return Result<ProviderDto>.Success(duplicateProvider.ToDto());
+                }
             }
 
-            return Result<ProviderDto>.Failure(new Error("Erro ao salvar os dados. Verifique se as informações já estão cadastradas.", 409));
+            logger.LogError(ex, "Database update error in RegisterProvider for user {UserId}", command.UserId);
+            return Result<ProviderDto>.Failure(new Error("Erro ao salvar os dados. Verifique se as informações já estão cadastradas ou tente novamente.", 500));
         }
         catch (Exception ex) when (ex is DomainException || ex is ArgumentException)
         {
