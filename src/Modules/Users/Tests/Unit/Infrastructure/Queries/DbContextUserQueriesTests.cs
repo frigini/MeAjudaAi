@@ -279,8 +279,8 @@ public class DbContextUserQueriesTests : IDisposable
     public async Task GetPagedWithSearchAsync_WithLastNameSearch_ShouldReturnMatchingUsers()
     {
         // Arrange
-        var user1 = new UserBuilder().WithLastName("Smith").Build();
-        var user2 = new UserBuilder().WithLastName("Johnson").Build();
+        var user1 = new UserBuilder().WithLastName("Smith").WithEmail("user1@example.com").WithUsername("user1").Build();
+        var user2 = new UserBuilder().WithLastName("Johnson").WithEmail("user2@example.com").WithUsername("user2").Build();
 
         _context.Users.AddRange(user1, user2);
         await _context.SaveChangesAsync();

@@ -15,7 +15,10 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 {
     private readonly ProvidersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    private bool IsPostgres => _context.Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL";
+    private const string PostgresProviderName = "Npgsql.EntityFrameworkCore.PostgreSQL";
+    private const string LikeEscapeChar = "\\";
+
+    private bool IsPostgres => _context.Database.ProviderName == PostgresProviderName;
 
     private IQueryable<Provider> GetProvidersQuery()
     {
@@ -97,11 +100,11 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 
             if (IsPostgres)
             {
-                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, likePattern, "\\"));
+                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, likePattern, LikeEscapeChar));
             }
             else
             {
-                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, likePattern, "\\"));
+                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, likePattern, LikeEscapeChar));
             }
         }
         
@@ -125,11 +128,11 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 
             if (IsPostgres)
             {
-                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, likePattern, "\\"));
+                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, likePattern, LikeEscapeChar));
             }
             else
             {
-                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, likePattern, "\\"));
+                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, likePattern, LikeEscapeChar));
             }
         }
         
@@ -213,11 +216,11 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
                 
                 if (IsPostgres)
                 {
-                    query = query.Where(p => EF.Functions.ILike(p.Name, likePattern, "\\"));
+                    query = query.Where(p => EF.Functions.ILike(p.Name, likePattern, LikeEscapeChar));
                 }
                 else
                 {
-                    query = query.Where(p => EF.Functions.Like(p.Name, likePattern, "\\"));
+                    query = query.Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar));
                 }
             }
         }
