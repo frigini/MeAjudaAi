@@ -53,10 +53,8 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (ids == null || ids.Count == 0)
             return Array.Empty<Provider>();
 
-        var providerIds = ids.Select(id => new ProviderId(id)).ToList();
-
         return await GetProvidersQuery()
-            .Where(p => providerIds.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => ids.Contains(p.Id.Value) && !p.IsDeleted)
             .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
@@ -91,7 +89,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (!_context.Database.IsRelational())
         {
             var lowerCity = city.ToLower();
-            query = query.Where(p => p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
+            query = query.AsEnumerable().Where(p => p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity)).AsQueryable();
         }
         else
         {
@@ -104,7 +102,8 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             }
             else
             {
-                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, likePattern, LikeEscapeChar));
+                // SQLite translation issue with complex navigations; use client-side evaluation
+                query = query.AsEnumerable().Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, likePattern, LikeEscapeChar)).AsQueryable();
             }
         }
         
@@ -119,7 +118,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (!_context.Database.IsRelational())
         {
             var lowerState = state.ToLower();
-            query = query.Where(p => p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
+            query = query.AsEnumerable().Where(p => p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState)).AsQueryable();
         }
         else
         {
@@ -132,7 +131,8 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             }
             else
             {
-                query = query.Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, likePattern, LikeEscapeChar));
+                // SQLite translation issue with complex navigations; use client-side evaluation
+                query = query.AsEnumerable().Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, likePattern, LikeEscapeChar)).AsQueryable();
             }
         }
         
@@ -207,7 +207,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             if (!_context.Database.IsRelational())
             {
                 var lowerNameFilter = nameFilter.ToLower();
-                query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
+                query = query.AsEnumerable().Where(p => p.Name.ToLower().Contains(lowerNameFilter)).AsQueryable();
             }
             else
             {
@@ -220,7 +220,8 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
                 }
                 else
                 {
-                    query = query.Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar));
+                    // SQLite translation issue with complex navigations; use client-side evaluation
+                    query = query.AsEnumerable().Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar)).AsQueryable();
                 }
             }
         }
