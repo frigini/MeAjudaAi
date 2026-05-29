@@ -15,7 +15,6 @@ public class DbContextProviderQueriesTests : IDisposable
 {
     private readonly ProvidersDbContext _context;
     private readonly DbContextProviderQueries _queries;
-    private readonly Microsoft.Data.Sqlite.SqliteConnection _connection;
 
     public DbContextProviderQueriesTests()
     {

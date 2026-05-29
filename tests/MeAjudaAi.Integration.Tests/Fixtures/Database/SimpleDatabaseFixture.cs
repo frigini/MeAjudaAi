@@ -139,13 +139,9 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
                     .Build();
             }
 
-            // Inicia containers em paralelo para performance
-            var tasks = new List<Task>();
-            
-            tasks.Add(_postgresContainer.StartAsync());
-            tasks.Add(_azuriteContainer.StartAsync());
-
-            await Task.WhenAll(tasks);
+            // Inicia containers sequencialmente para evitar colisões de recursos em ambientes CI
+            await _postgresContainer.StartAsync();
+            await _azuriteContainer.StartAsync();
 
             // Garante que PostGIS está habilitado (necessário para SearchProviders)
             // Chamado após startup para permitir conexão válida ao banco

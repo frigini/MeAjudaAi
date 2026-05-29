@@ -27,6 +27,11 @@ public sealed class GetProvidersByCityQueryHandler(
         {
             logger.LogInformation("Getting providers by city {City}", query.City);
 
+            if (string.IsNullOrWhiteSpace(query.City)) {
+                logger.LogWarning("Query city is null or empty");
+                return Result<IReadOnlyList<ProviderDto>>.Failure(Error.BadRequest("City parameter is required"));
+            }
+
             var providers = await providerQueries.GetByCityAsync(query.City, cancellationToken);
 
             logger.LogInformation("Found {Count} providers in city {City}", providers.Count, query.City);
@@ -34,8 +39,8 @@ public sealed class GetProvidersByCityQueryHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting providers by city {City}", query.City);
-            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
+            logger.LogError(ex, "Error getting providers by city {City}. Message: {Message}", query.City, ex.Message);
+            return Result<IReadOnlyList<ProviderDto>>.Failure(Error.Internal(ValidationMessages.Providers.ErrorRetrievingProviders));
         }
     }
 }

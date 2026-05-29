@@ -145,9 +145,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["Logging:LogLevel:Default"] = "Warning",
+                        ["Logging:LogLevel:Default"] = "Information",
                         ["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
-                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Information",
+                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
                         ["Postgres:ConnectionString"] = connectionString,
                         ["ConnectionStrings:DefaultConnection"] = connectionString,
                         ["RabbitMQ:Enabled"] = "false",

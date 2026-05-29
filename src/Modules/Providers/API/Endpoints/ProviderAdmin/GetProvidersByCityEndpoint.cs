@@ -6,6 +6,8 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -69,6 +71,7 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// <param name="city">Nome da cidade para busca</param>
     /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <param name="logger">Logger para rastreamento de requisições</param>
     /// <returns>Resultado HTTP com lista de prestadores ou erro apropriado</returns>
     /// <remarks>
     /// Processo da consulta:
@@ -78,14 +81,34 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// 4. Retorna resposta HTTP com lista de prestadores
     /// </remarks>
     private static async Task<IResult> GetProvidersByCityAsync(
-        string city,
+        [FromRoute] string city,
         IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ILogger<GetProvidersByCityEndpoint> logger)
     {
-        var query = city.ToCityQuery();
-        var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
-            query, cancellationToken);
+        logger.LogInformation("Receiving request for city: '{City}'", city);
+        
+        try
+        {
+            var query = city.ToCityQuery();
+            var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
+                query, cancellationToken);
+            
+            if (result.IsFailure)
+            {
+                logger.LogWarning("Query result failure for city '{City}': {Error}. Status: {StatusCode}", city, result.Error.Message, result.Error.StatusCode);
+            }
+            else
+            {
+                logger.LogInformation("Successfully retrieved {Count} providers for city {City}", result.Value?.Count, city);
+            }
 
-        return Handle(result);
+            return Handle(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error processing city {City}: {Message}", city, ex.Message);
+            return Results.InternalServerError("Unexpected error");
+        }
     }
 }

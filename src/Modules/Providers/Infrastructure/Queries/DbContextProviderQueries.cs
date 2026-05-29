@@ -19,6 +19,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     private const string LikeEscapeChar = "\\";
 
     private bool IsPostgres => _context.Database.ProviderName == PostgresProviderName;
+    private bool IsRelational => _context.Database.IsRelational() && _context.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
 
     private IQueryable<Provider> GetProvidersQuery()
     {
@@ -28,7 +29,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             .Include(p => p.Qualifications)
             .Include(p => p.Services);
 
-        return _context.Database.IsRelational() 
+        return IsRelational 
             ? query.AsSplitQuery() 
             : query;
     }
@@ -85,17 +86,9 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
+        // Fetch to memory for both relational and non-relational to ensure stable LINQ translation for complex owned types
+        var providers = await GetProvidersQuery().Where(p => !p.IsDeleted).ToListAsync(cancellationToken);
         
-        if (IsPostgres)
-        {
-            var escapedCity = EscapeLikePattern(city);
-            var likePattern = $"%{escapedCity}%";
-            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar));
-            return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
-        }
-
-        var providers = await query.ToListAsync(cancellationToken);
         var lowerCity = city.ToLower();
         return providers
             .Where(p => p.BusinessProfile?.PrimaryAddress?.City?.ToLower().Contains(lowerCity) == true)
@@ -106,17 +99,8 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
+        var providers = await GetProvidersQuery().Where(p => !p.IsDeleted).ToListAsync(cancellationToken);
         
-        if (IsPostgres)
-        {
-            var escapedState = EscapeLikePattern(state);
-            var likePattern = $"%{escapedState}%";
-            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar));
-            return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
-        }
-
-        var providers = await query.ToListAsync(cancellationToken);
         var lowerState = state.ToLower();
         return providers
             .Where(p => p.BusinessProfile?.PrimaryAddress?.State?.ToLower().Contains(lowerState) == true)
