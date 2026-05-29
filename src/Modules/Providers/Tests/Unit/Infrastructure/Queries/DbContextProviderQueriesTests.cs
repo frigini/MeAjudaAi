@@ -19,15 +19,11 @@ public class DbContextProviderQueriesTests : IDisposable
 
     public DbContextProviderQueriesTests()
     {
-        _connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
-        _connection.Open();
-
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseSqlite(_connection)
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         _context = new ProvidersDbContext(options, null!);
-        _context.Database.EnsureCreated();
         _queries = new DbContextProviderQueries(_context);
     }
 
@@ -649,7 +645,7 @@ public class DbContextProviderQueriesTests : IDisposable
 
     public void Dispose()
     {
+        _context.Database.EnsureDeleted();
         _context.Dispose();
-        _connection.Dispose();
     }
 }

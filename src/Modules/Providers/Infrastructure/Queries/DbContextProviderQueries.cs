@@ -53,8 +53,9 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (ids == null || ids.Count == 0)
             return Array.Empty<Provider>();
 
+        var idList = ids.ToList();
         return await GetProvidersQuery()
-            .Where(p => ids.Contains(p.Id.Value) && !p.IsDeleted)
+            .Where(p => idList.Contains(p.Id.Value) && !p.IsDeleted)
             .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
@@ -86,28 +87,20 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     {
         var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
-        if (!_context.Database.IsRelational())
-        {
-            var lowerCity = city.ToLower();
-            query = query.AsEnumerable().Where(p => p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity)).AsQueryable();
-        }
-        else
+        if (IsPostgres)
         {
             var escapedCity = EscapeLikePattern(city);
             var likePattern = $"%{escapedCity}%";
-
-            if (IsPostgres)
-            {
-                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, likePattern, LikeEscapeChar));
-            }
-            else
-            {
-                // SQLite translation issue with complex navigations; use client-side evaluation
-                query = query.AsEnumerable().Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.City, likePattern, LikeEscapeChar)).AsQueryable();
-            }
+            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar));
+            return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
         }
-        
-        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
+
+        var providers = await query.ToListAsync(cancellationToken);
+        var lowerCity = city.ToLower();
+        return providers
+            .Where(p => p.BusinessProfile?.PrimaryAddress?.City?.ToLower().Contains(lowerCity) == true)
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -115,28 +108,20 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     {
         var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
-        if (!_context.Database.IsRelational())
-        {
-            var lowerState = state.ToLower();
-            query = query.AsEnumerable().Where(p => p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState)).AsQueryable();
-        }
-        else
+        if (IsPostgres)
         {
             var escapedState = EscapeLikePattern(state);
             var likePattern = $"%{escapedState}%";
-
-            if (IsPostgres)
-            {
-                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, likePattern, LikeEscapeChar));
-            }
-            else
-            {
-                // SQLite translation issue with complex navigations; use client-side evaluation
-                query = query.AsEnumerable().Where(p => EF.Functions.Like(p.BusinessProfile.PrimaryAddress.State, likePattern, LikeEscapeChar)).AsQueryable();
-            }
+            query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar));
+            return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
         }
-        
-        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
+
+        var providers = await query.ToListAsync(cancellationToken);
+        var lowerState = state.ToLower();
+        return providers
+            .Where(p => p.BusinessProfile?.PrimaryAddress?.State?.ToLower().Contains(lowerState) == true)
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -206,23 +191,39 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         {
             if (!_context.Database.IsRelational())
             {
+                // Filtro client-side após ToListAsync para evitar erros de tradução
+                var allProviders = await query.ToListAsync(cancellationToken);
+                
+                if (typeFilter.HasValue) allProviders = allProviders.Where(p => p.Type == typeFilter.Value).ToList();
+                if (verificationStatusFilter.HasValue) allProviders = allProviders.Where(p => p.VerificationStatus == verificationStatusFilter.Value).ToList();
+                
                 var lowerNameFilter = nameFilter.ToLower();
-                query = query.AsEnumerable().Where(p => p.Name.ToLower().Contains(lowerNameFilter)).AsQueryable();
+                var filtered = allProviders.Where(p => p.Name.ToLower().Contains(lowerNameFilter)).ToList();
+                
+                var filteredCount = filtered.Count;
+                var pagedItems = filtered
+                    .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
+                    .Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                
+                return new PagedResult<Provider>
+                {
+                    Items = pagedItems,
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    TotalItems = filteredCount
+                };
+            }
+            
+            var escapedFilter = EscapeLikePattern(nameFilter);
+            var likePattern = $"%{escapedFilter}%";
+            
+            if (IsPostgres)
+            {
+                query = query.Where(p => EF.Functions.ILike(p.Name, likePattern, LikeEscapeChar));
             }
             else
             {
-                var escapedFilter = EscapeLikePattern(nameFilter);
-                var likePattern = $"%{escapedFilter}%";
-                
-                if (IsPostgres)
-                {
-                    query = query.Where(p => EF.Functions.ILike(p.Name, likePattern, LikeEscapeChar));
-                }
-                else
-                {
-                    // SQLite translation issue with complex navigations; use client-side evaluation
-                    query = query.AsEnumerable().Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar)).AsQueryable();
-                }
+                query = query.Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar));
             }
         }
 
