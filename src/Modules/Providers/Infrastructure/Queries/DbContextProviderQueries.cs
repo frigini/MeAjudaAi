@@ -86,26 +86,63 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        // Fetch to memory for both relational and non-relational to ensure stable LINQ translation for complex owned types
-        var providers = await GetProvidersQuery().Where(p => !p.IsDeleted).ToListAsync(cancellationToken);
+        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
-        var lowerCity = city.ToLower();
-        return providers
-            .Where(p => p.BusinessProfile?.PrimaryAddress?.City?.ToLower().Contains(lowerCity) == true)
-            .OrderBy(p => p.Id.Value)
-            .ToList();
+        if (IsRelational)
+        {
+            var escapedCity = EscapeLikePattern(city);
+            var likePattern = $"%{escapedCity}%";
+
+            if (IsPostgres)
+            {
+                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar));
+            }
+            else
+            {
+                query = query.Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar));
+            }
+        }
+        else
+        {
+            var lowerCity = city.ToLower();
+            query = query.Where(p => p.BusinessProfile != null && 
+                                     p.BusinessProfile.PrimaryAddress != null && 
+                                     p.BusinessProfile.PrimaryAddress.City != null && 
+                                     p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
+        }
+        
+        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        var providers = await GetProvidersQuery().Where(p => !p.IsDeleted).ToListAsync(cancellationToken);
+        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
         
-        var lowerState = state.ToLower();
-        return providers
-            .Where(p => p.BusinessProfile?.PrimaryAddress?.State?.ToLower().Contains(lowerState) == true)
-            .OrderBy(p => p.Id.Value)
-            .ToList();
+        if (IsRelational)
+        {
+            var escapedState = EscapeLikePattern(state);
+            var likePattern = $"%{escapedState}%";
+
+            if (IsPostgres)
+            {
+                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar));
+            }
+            else
+            {
+                query = query.Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar));
+            }
+        }
+        else
+        {
+            var lowerState = state.ToLower();
+            query = query.Where(p => p.BusinessProfile != null && 
+                                     p.BusinessProfile.PrimaryAddress != null && 
+                                     p.BusinessProfile.PrimaryAddress.State != null && 
+                                     p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
+        }
+        
+        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />

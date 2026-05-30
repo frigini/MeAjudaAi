@@ -205,7 +205,7 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
 
     private async Task CreateTestProviderAsync(Guid userId, string name)
     {
-        await CreateTestProviderAsync(userId, name, "Muriae", "MG");
+        await CreateTestProviderAsync(userId, name, "Muriaé", "MG");
     }
 
     private async Task CreateTestProviderAsync(Guid userId, string name, string city, string state)

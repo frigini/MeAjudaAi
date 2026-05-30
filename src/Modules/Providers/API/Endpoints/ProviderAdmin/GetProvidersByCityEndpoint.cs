@@ -63,7 +63,8 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
                 """)
             .RequirePermission(EPermission.ProvidersRead)
             .Produces<Response<IReadOnlyList<ProviderDto>>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError, typeof(ProblemDetails));
 
     /// <summary>
     /// Implementa a lógica de consulta de prestadores por cidade.
@@ -86,29 +87,26 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken,
         ILogger<GetProvidersByCityEndpoint> logger)
     {
-        logger.LogInformation("Receiving request for city: '{City}'", city);
-        
         try
         {
             var query = city.ToCityQuery();
             var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
                 query, cancellationToken);
-            
-            if (result.IsFailure)
-            {
-                logger.LogWarning("Query result failure for city '{City}': {Error}. Status: {StatusCode}", city, result.Error.Message, result.Error.StatusCode);
-            }
-            else
-            {
-                logger.LogInformation("Successfully retrieved {Count} providers for city {City}", result.Value?.Count, city);
-            }
 
             return Handle(result);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error processing city {City}: {Message}", city, ex.Message);
-            return Results.InternalServerError("Unexpected error");
+            logger.LogError(ex, "Erro inesperado ao buscar prestadores por cidade: {City}", city);
+            
+            return Results.Problem(
+                detail: "Ocorreu um erro interno ao buscar prestadores por cidade. Consulte os logs.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Erro Interno do Servidor");
         }
     }
 }

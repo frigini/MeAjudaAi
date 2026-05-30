@@ -109,6 +109,30 @@ public class CompositeUnitOfWorkTests
     }
 
     [Fact]
+    public async Task SaveChangesAsync_WithLocationsDbContext_ShouldSaveChanges()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var context = new MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext(options, null!);
+        var services = new ServiceCollection();
+        services.AddScoped(_ => context);
+        var serviceProvider = services.BuildServiceProvider();
+        var unitOfWork = new CompositeUnitOfWork(serviceProvider);
+
+        var city = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity("Muriaé", "MG", "admin", 3143906);
+        context.AllowedCities.Add(city);
+
+        // Act
+        var result = await unitOfWork.SaveChangesAsync();
+
+        // Assert
+        result.Should().Be(1);
+    }
+
+    [Fact]
     public async Task SaveChangesAsync_WithMultipleDbContexts_ShouldSaveAllChanges()
     {
         // Arrange

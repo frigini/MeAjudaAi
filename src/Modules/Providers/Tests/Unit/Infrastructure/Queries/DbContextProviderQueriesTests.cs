@@ -642,6 +642,40 @@ public class DbContextProviderQueriesTests : IDisposable
         result.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task GetByCityAsync_WithProviderHavingNullAddress_ShouldNotThrowAndReturnEmpty()
+    {
+        // Arrange
+        var provider = new ProviderBuilder().Build();
+        // Manually nullify address components if possible, or use a provider without them
+        // In this case, ProviderBuilder usually creates them.
+        
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByCityAsync("SomeCity");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByStateAsync_WithProviderHavingNullAddress_ShouldNotThrowAndReturnEmpty()
+    {
+        // Arrange
+        var provider = new ProviderBuilder().Build();
+        
+        _context.Providers.Add(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _queries.GetByStateAsync("SomeState");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
     public void Dispose()
     {
         _context.Database.EnsureDeleted();
