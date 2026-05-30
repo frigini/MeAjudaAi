@@ -4,10 +4,13 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Npgsql;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
@@ -95,6 +98,179 @@ public class RegisterProviderCommandHandlerTests
             x => x.Add(It.Is<Provider>(p => p.UserId == userId && p.Name == "New Provider")),
             Times.Once);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenUniqueConstraintViolationAndProviderExists_ShouldReturnSuccess()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new RegisterProviderCommand(
+            UserId: userId,
+            Name: "New Provider",
+            Email: "new@test.com",
+            PhoneNumber: "11988888888",
+            Type: EProviderType.Individual,
+            DocumentNumber: "12345678901");
+
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        _uowMock
+            .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateUniqueConstraintException());
+
+        var existingProvider = new Provider(userId, "Existing Provider", EProviderType.Individual,
+            new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"),
+                new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")));
+
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingProvider);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Name.Should().Be("Existing Provider");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenUniqueConstraintViolationAndProviderNotFound_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new RegisterProviderCommand(
+            UserId: userId,
+            Name: "New Provider",
+            Email: "new@test.com",
+            PhoneNumber: "11988888888",
+            Type: EProviderType.Individual,
+            DocumentNumber: "12345678901");
+
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        _uowMock
+            .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateUniqueConstraintException());
+
+        // Second call also returns null (provider not found after duplicate check)
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDbUpdateExceptionWithoutUniqueViolation_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new RegisterProviderCommand(
+            UserId: userId,
+            Name: "New Provider",
+            Email: "new@test.com",
+            PhoneNumber: "11988888888",
+            Type: EProviderType.Individual,
+            DocumentNumber: "12345678901");
+
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        _uowMock
+            .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException("Connection error"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDomainExceptionThrown_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new RegisterProviderCommand(
+            UserId: userId,
+            Name: "New Provider",
+            Email: "new@test.com",
+            PhoneNumber: "11988888888",
+            Type: EProviderType.Individual,
+            DocumentNumber: "12345678901");
+
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        _providerRepositoryMock
+            .Setup(x => x.Add(It.IsAny<Provider>()))
+            .Throws(new ProviderDomainException("Invalid provider data"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenArgumentExceptionThrown_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new RegisterProviderCommand(
+            UserId: userId,
+            Name: "New Provider",
+            Email: "new@test.com",
+            PhoneNumber: "11988888888",
+            Type: EProviderType.Individual,
+            DocumentNumber: "12345678901");
+
+        _providerQueriesMock
+            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        _providerRepositoryMock
+            .Setup(x => x.Add(It.IsAny<Provider>()))
+            .Throws(new ArgumentException("Invalid argument"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(400);
+    }
+
+    private static DbUpdateException CreateUniqueConstraintException()
+    {
+        // PostgresException is sealed; create via uninitialized object
+        var pgEx = (PostgresException)System.Runtime.Serialization.FormatterServices
+            .GetUninitializedObject(typeof(PostgresException));
+
+        // Set SqlState via reflection on the backing field (NpgsqlException._sqlState)
+        var sqlStateField = typeof(NpgsqlException).GetField("_sqlState",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        sqlStateField?.SetValue(pgEx, "23505");
+
+        return new DbUpdateException("Unique constraint violation", pgEx);
     }
 }
 
