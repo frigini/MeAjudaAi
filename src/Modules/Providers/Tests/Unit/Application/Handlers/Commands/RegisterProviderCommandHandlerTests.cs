@@ -113,21 +113,18 @@ public class RegisterProviderCommandHandlerTests
             Type: EProviderType.Individual,
             DocumentNumber: "12345678901");
 
-        _providerQueriesMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Provider?)null);
-
-        _uowMock
-            .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(CreateUniqueConstraintException());
-
         var existingProvider = new Provider(userId, "Existing Provider", EProviderType.Individual,
             new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"),
                 new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")));
 
         _providerQueriesMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .SetupSequence(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null)
             .ReturnsAsync(existingProvider);
+
+        _uowMock
+            .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateUniqueConstraintException());
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -152,17 +149,13 @@ public class RegisterProviderCommandHandlerTests
             DocumentNumber: "12345678901");
 
         _providerQueriesMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .SetupSequence(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null)
             .ReturnsAsync((Provider?)null);
 
         _uowMock
             .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(CreateUniqueConstraintException());
-
-        // Second call also returns null (provider not found after duplicate check)
-        _providerQueriesMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Provider?)null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -261,14 +254,9 @@ public class RegisterProviderCommandHandlerTests
 
     private static DbUpdateException CreateUniqueConstraintException()
     {
-        // PostgresException is sealed; create via uninitialized object
-        var pgEx = (PostgresException)System.Runtime.Serialization.FormatterServices
-            .GetUninitializedObject(typeof(PostgresException));
-
-        // Set SqlState via reflection on the backing field (NpgsqlException._sqlState)
-        var sqlStateField = typeof(NpgsqlException).GetField("_sqlState",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        sqlStateField?.SetValue(pgEx, "23505");
+        // Usar o construtor público do PostgresException para evitar reflexão e FormatterServices
+        // O código de erro "23505" representa Unique Violation no PostgreSQL
+        var pgEx = new PostgresException("Unique constraint violation", "ERROR", "ERROR", "23505");
 
         return new DbUpdateException("Unique constraint violation", pgEx);
     }
