@@ -101,7 +101,7 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro inesperado ao buscar prestadores por cidade: {City}", city);
+            logger.LogError(ex, "Unexpected error fetching providers by city: {City}", city);
             
             return Results.Problem(
                 detail: "Ocorreu um erro interno ao buscar prestadores por cidade. Consulte os logs.",

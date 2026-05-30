@@ -111,7 +111,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
                                      p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
         }
         
-        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
+        return await ApplyOrdering(query).ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -142,7 +142,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
                                      p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
         }
         
-        return await query.OrderBy(p => p.Id.Value).ToListAsync(cancellationToken);
+        return await ApplyOrdering(query).ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -293,5 +293,14 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             .Replace("\\", "\\\\")
             .Replace("%", "\\%")
             .Replace("_", "\\_");
+    }
+
+    private IQueryable<Provider> ApplyOrdering(IQueryable<Provider> query)
+    {
+        // InMemory cannot order by ProviderId (no IComparable), so use .Value;
+        // relational providers translate .Id directly to the column.
+        return IsRelational
+            ? query.OrderBy(p => p.Id)
+            : query.OrderBy(p => p.Id.Value);
     }
 }

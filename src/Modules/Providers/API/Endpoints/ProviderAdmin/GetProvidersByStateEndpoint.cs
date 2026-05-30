@@ -101,7 +101,7 @@ public class GetProvidersByStateEndpoint : BaseEndpoint, IEndpoint
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro inesperado ao buscar prestadores por estado: {State}", state);
+            logger.LogError(ex, "Unexpected error fetching providers by state: {State}", state);
 
             return Results.Problem(
                 detail: "Ocorreu um erro interno ao buscar prestadores por estado. Consulte os logs.",
