@@ -30,31 +30,6 @@ public static class ModuleServiceRegistrationExtensions
     }
 
     /// <summary>
-    /// Registra todos os repositories de um módulo seguindo convenções de nomenclatura
-    /// </summary>
-    /// <remarks>
-    /// DEPRECATED: Este método será removido na Fase 5 do plano de refatoração.
-    /// Os repositórios agora são substituídos pelo DbContext implementando IUnitOfWork + IRepository.
-    /// Use registro explícito do DbContext por módulo.
-    /// </remarks>
-    [Obsolete("Será removido na Fase 5. Use registro explícito do DbContext.")]
-    public static IServiceCollection AddModuleRepositories(
-        this IServiceCollection services,
-        params System.Reflection.Assembly[] assemblies)
-    {
-        services.Scan(scan => scan
-            .FromAssemblies(assemblies)
-            .AddClasses(classes => classes.Where(type =>
-                type.Name.EndsWith("Repository") &&
-                !type.IsInterface &&
-                !type.IsAbstract))
-            .AsImplementedInterfaces()
-            .WithScopedLifetime());
-
-        return services;
-    }
-
-    /// <summary>
     /// Registra validators do FluentValidation automaticamente
     /// </summary>
     public static IServiceCollection AddModuleValidators(

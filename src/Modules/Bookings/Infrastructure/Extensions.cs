@@ -1,6 +1,8 @@
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
@@ -33,7 +35,6 @@ public static class Extensions
                 throw new InvalidOperationException("Bookings connection string is missing.");
             }
 
-            // Em ambientes não locais, forneça uma string de conexão real
             options.UseNpgsql(connStr, m => 
             {
                 m.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
@@ -42,12 +43,12 @@ public static class Extensions
             });
         });
 
-        // Configuração do Unit of Work
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Bookings, (sp, key) => sp.GetRequiredService<BookingsDbContext>());
 
-        services.AddScoped<IBookingRepository, BookingRepository>();
-        services.AddScoped<IProviderScheduleRepository, ProviderScheduleRepository>();
+        services.AddScoped<IBookingQueries, DbContextBookingQueries>();
+        services.AddScoped<IProviderScheduleQueries, DbContextProviderScheduleQueries>();
+        services.AddScoped<IBookingCommandService, DbContextBookingCommandService>();
 
         return services;
     }

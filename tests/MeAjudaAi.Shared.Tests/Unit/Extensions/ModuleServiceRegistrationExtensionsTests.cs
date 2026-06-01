@@ -30,27 +30,6 @@ public class ModuleServiceRegistrationExtensionsTests
     }
 
     [Fact]
-    public void AddModuleRepositories_WithNullServices_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        IServiceCollection? services = null;
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => services!.AddModuleRepositories());
-    }
-
-    [Fact]
-    public void AddModuleRepositories_WithValidAssemblies_ShouldNotThrow()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act & Assert
-        var result = services.AddModuleRepositories();
-        result.Should().BeSameAs(services);
-    }
-
-    [Fact]
     public void AddModuleValidators_WithNullServices_ShouldThrowArgumentNullException()
     {
         // Arrange

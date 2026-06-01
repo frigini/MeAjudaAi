@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 
-public class BookingsDbContext : BaseDbContext, IUnitOfWork
+public partial class BookingsDbContext : BaseDbContext, IUnitOfWork
 {
     public BookingsDbContext(DbContextOptions<BookingsDbContext> options) 
         : base(options)

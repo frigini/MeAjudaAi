@@ -1,7 +1,7 @@
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
 public class GetBillingPortalCommandHandler(
-    ISubscriptionRepository repository,
+    ISubscriptionQueries subscriptionQueries,
     IPaymentGateway gateway,
     IConfiguration configuration,
     IOptions<PaymentsOptions> paymentsOptions,
@@ -24,7 +24,7 @@ public class GetBillingPortalCommandHandler(
     {
         ValidateReturnUrl(command.ReturnUrl);
 
-        var subscription = await repository.GetActiveByProviderIdAsync(command.ProviderId, cancellationToken);
+        var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(command.ProviderId, cancellationToken);
         if (subscription == null)
         {
             throw new NotFoundException(nameof(Subscription), command.ProviderId);
@@ -68,7 +68,6 @@ public class GetBillingPortalCommandHandler(
 
         var trustedHosts = new HashSet<string>(_options.AllowedReturnHosts, StringComparer.OrdinalIgnoreCase);
         
-        // Incluir ClientBaseUrl na lista de confiáveis se configurado
         var clientBaseUrl = configuration["ClientBaseUrl"];
         if (!string.IsNullOrEmpty(clientBaseUrl) && Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out var clientUri))
         {

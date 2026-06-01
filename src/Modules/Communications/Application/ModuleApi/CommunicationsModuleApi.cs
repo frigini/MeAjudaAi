@@ -4,6 +4,7 @@ using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -12,17 +13,14 @@ using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Communications.Application.ModuleApi;
 
-/// <summary>
-/// Implementação da API pública do módulo de comunicações.
-/// </summary>
 [MeAjudaAi.Contracts.Modules.ModuleApi(ModuleNames.Communications)]
 public sealed class CommunicationsModuleApi(
     IOutboxMessageRepository outboxRepository,
-    IEmailTemplateRepository templateRepository,
-    ICommunicationLogRepository logRepository)
+    IEmailTemplateQueries templateQueries,
+    ICommunicationLogQueries logQueries)
     : ICommunicationsModuleApi
 {
-    private readonly IEmailTemplateRepository _templateRepository = templateRepository;
+    private readonly IEmailTemplateQueries _templateQueries = templateQueries;
 
     public string ModuleName => ModuleNames.Communications;
     public string ApiVersion => "1.0";
@@ -48,7 +46,7 @@ public sealed class CommunicationsModuleApi(
 
     public async Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default)
     {
-        var templates = await _templateRepository.GetAllAsync(ct);
+        var templates = await _templateQueries.GetAllAsync(ct);
         
         var dtos = templates.Select(x => new EmailTemplateDto(
             x.Id,
@@ -101,7 +99,7 @@ public sealed class CommunicationsModuleApi(
         if (query.PageNumber < 1) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O número da página deve ser pelo menos 1."));
         if (query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O tamanho da página deve estar entre 1 e 100."));
 
-        var (items, totalCount) = await logRepository.SearchAsync(
+        var (items, totalCount) = await logQueries.SearchAsync(
             query.CorrelationId,
             query.Channel,
             query.Recipient,

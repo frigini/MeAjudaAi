@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Communications.Application.Handlers;
+using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
@@ -10,18 +11,18 @@ namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 public class UserRegisteredIntegrationEventHandlerTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
-    private readonly Mock<ICommunicationLogRepository> _logRepositoryMock;
+    private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<ILogger<UserRegisteredIntegrationEventHandler>> _loggerMock;
     private readonly UserRegisteredIntegrationEventHandler _handler;
 
     public UserRegisteredIntegrationEventHandlerTests()
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
-        _logRepositoryMock = new Mock<ICommunicationLogRepository>();
+        _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _loggerMock = new Mock<ILogger<UserRegisteredIntegrationEventHandler>>();
         _handler = new UserRegisteredIntegrationEventHandler(
             _outboxRepositoryMock.Object,
-            _logRepositoryMock.Object,
+            _logQueriesMock.Object,
             _loggerMock.Object);
     }
 
@@ -40,7 +41,7 @@ public class UserRegisteredIntegrationEventHandlerTests
             new[] { "User" },
             DateTime.UtcNow);
 
-        _logRepositoryMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
@@ -66,7 +67,7 @@ public class UserRegisteredIntegrationEventHandlerTests
             new[] { "User" },
             DateTime.UtcNow);
 
-        _logRepositoryMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -91,7 +92,7 @@ public class UserRegisteredIntegrationEventHandlerTests
             new[] { "User" },
             DateTime.UtcNow);
 
-        _logRepositoryMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Throw UniqueConstraintException directly
@@ -123,7 +124,7 @@ public class UserRegisteredIntegrationEventHandlerTests
             new[] { "User" },
             DateTime.UtcNow);
 
-        _logRepositoryMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -134,7 +135,7 @@ public class UserRegisteredIntegrationEventHandlerTests
 
         // Assert
         await act.Should().ThrowExactlyAsync<Exception>().WithMessage("Generic database error");
-        _logRepositoryMock.Verify(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _logQueriesMock.Verify(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

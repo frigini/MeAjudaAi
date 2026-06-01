@@ -1,11 +1,12 @@
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Payments.Infrastructure.Repositories;
+using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -42,8 +43,11 @@ public static class Extensions
             options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "payments"));
         });
 
-        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
-        services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Payments, (sp, key) => sp.GetRequiredService<PaymentsDbContext>());
+
+        services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
+        services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
         
         services.AddScoped<IStripeClient>(provider => 
         {
@@ -51,9 +55,6 @@ public static class Extensions
             var apiKey = config["Stripe:ApiKey"];
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                // Note: We only throw here if Stripe module is actually used and apiKey is missing.
-                // However, StripePaymentGateway also validates this.
-                // For tests, we might need a dummy key if real Stripe is not used but DI is validated.
                 return new StripeClient("sk_test_dummy"); 
             }
             return new StripeClient(apiKey);

@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -11,16 +10,16 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
 public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
-    private readonly Mock<IProviderScheduleRepository> _scheduleRepoMock = new();
+    private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
+    private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<ILogger<GetProviderAvailabilityQueryHandler>> _loggerMock = new();
     private readonly GetProviderAvailabilityQueryHandler _sut;
 
     public GetProviderAvailabilityQueryHandlerTests()
     {
         _sut = new GetProviderAvailabilityQueryHandler(
-            _bookingRepoMock.Object,
-            _scheduleRepoMock.Object,
+            _bookingQueriesMock.Object,
+            _scheduleQueriesMock.Object,
             _loggerMock.Object);
     }
 
@@ -39,9 +38,9 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
             [TimeSlot.Create(slotStart, slotEnd)]));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
-        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking>());
 
         var result = await _sut.HandleAsync(query);
@@ -70,9 +69,9 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(8, 30), new TimeOnly(9, 30)));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
-        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { existingBooking });
 
         var result = await _sut.HandleAsync(query);
@@ -97,7 +96,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         var result = await _sut.HandleAsync(query);
@@ -122,9 +121,9 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(slotStart, slotEnd));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
-        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { existingBooking });
 
         var result = await _sut.HandleAsync(query);
@@ -150,11 +149,11 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var bookingOnOtherDate = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), otherDate,
             TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(9, 0)));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
-        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == date), It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == date), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking>());
-        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == otherDate), It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == otherDate), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { bookingOnOtherDate });
 
         var result = await _sut.HandleAsync(query);

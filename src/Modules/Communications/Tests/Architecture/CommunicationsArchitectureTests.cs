@@ -41,17 +41,6 @@ public class CommunicationsArchitectureTests
     }
 
     [Fact]
-    public void Infrastructure_Should_Not_Have_Dependency_On_Application()
-    {
-        var result = Types.InAssembly(InfrastructureAssembly)
-            .ShouldNot()
-            .HaveDependencyOn("MeAjudaAi.Modules.Communications.Application")
-            .GetResult();
-
-        result.IsSuccessful.Should().BeTrue();
-    }
-
-    [Fact]
     public void Handlers_Should_Be_Sealed()
     {
         var result = Types.InAssembly(ApplicationAssembly)

@@ -2,15 +2,14 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Common;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class GetProviderAvailabilityQueryHandler(
-    IBookingRepository bookingRepository,
-    IProviderScheduleRepository scheduleRepository,
+    IBookingQueries bookingQueries,
+    IProviderScheduleQueries scheduleQueries,
     ILogger<GetProviderAvailabilityQueryHandler> logger) : IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>
 {
     public async Task<Result<AvailabilityDto>> HandleAsync(GetProviderAvailabilityQuery query, CancellationToken cancellationToken = default)
@@ -18,7 +17,7 @@ public sealed class GetProviderAvailabilityQueryHandler(
         logger.LogInformation("Getting availability for Provider {ProviderId} on {Date}", 
             query.ProviderId, query.Date.ToShortDateString());
 
-        var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(query.ProviderId, cancellationToken);
+        var schedule = await scheduleQueries.GetByProviderIdReadOnlyAsync(query.ProviderId, cancellationToken);
         if (schedule == null)
         {
             return Result<AvailabilityDto>.Failure(Error.NotFound("Agenda do prestador não encontrada."));
@@ -30,7 +29,7 @@ public sealed class GetProviderAvailabilityQueryHandler(
             return new AvailabilityDto(query.Date.DayOfWeek, []);
         }
 
-        var dayBookings = await bookingRepository.GetActiveByProviderAndDateAsync(query.ProviderId, query.Date, cancellationToken);
+        var dayBookings = await bookingQueries.GetActiveByProviderAndDateAsync(query.ProviderId, query.Date, cancellationToken);
         var occupiedSlots = dayBookings.Select(b => b.TimeSlot).ToList();
 
         var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger);

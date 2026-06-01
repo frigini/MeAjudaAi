@@ -3,23 +3,30 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
 public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IProviderScheduleRepository> _scheduleRepoMock = new();
+    private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<IRepository<ProviderSchedule, Guid>> _repoMock = new();
     private readonly Mock<IProvidersModuleApi> _providersApiMock = new();
     private readonly Mock<ILogger<SetProviderScheduleCommandHandler>> _loggerMock = new();
     private readonly SetProviderScheduleCommandHandler _sut;
 
     public SetProviderScheduleCommandHandlerTests()
     {
+        _uowMock.Setup(x => x.GetRepository<ProviderSchedule, Guid>()).Returns(_repoMock.Object);
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         _sut = new SetProviderScheduleCommandHandler(
-            _scheduleRepoMock.Object,
+            _scheduleQueriesMock.Object,
+            _uowMock.Object,
             _providersApiMock.Object,
             _loggerMock.Object);
     }
@@ -42,7 +49,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(ProviderSchedule.Create(providerId));
 
         // Act
@@ -50,8 +57,8 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _scheduleRepoMock.Verify(x => x.UpdateAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Once);
-        _scheduleRepoMock.Verify(x => x.AddAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _repoMock.Verify(x => x.Add(It.IsAny<ProviderSchedule>()), Times.Never);
     }
 
     [Fact]
@@ -129,7 +136,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Call_AddAsync_When_Schedule_Does_Not_Exist()
+    public async Task HandleAsync_Should_Call_Add_When_Schedule_Does_Not_Exist()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -146,7 +153,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         // Act
@@ -154,8 +161,8 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _scheduleRepoMock.Verify(x => x.AddAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Once);
-        _scheduleRepoMock.Verify(x => x.UpdateAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repoMock.Verify(x => x.Add(It.IsAny<ProviderSchedule>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
