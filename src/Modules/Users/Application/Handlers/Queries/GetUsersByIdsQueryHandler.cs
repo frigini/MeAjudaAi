@@ -2,7 +2,6 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -26,11 +25,11 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// 
 /// Utiliza cache distribuído para melhorar performance e reduzir carga no banco.
 /// </remarks>
-/// <param name="userRepository">Repositório para consultas batch de usuários</param>
+/// <param name="userQueries">Serviço de queries de leitura de usuários</param>
 /// <param name="usersCacheService">Serviço de cache específico para usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
 internal sealed class GetUsersByIdsQueryHandler(
-    IUserRepository userRepository,
+    IUserQueries userQueries,
     IUsersCacheService usersCacheService,
     ILogger<GetUsersByIdsQueryHandler> logger
 ) : IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>
@@ -73,7 +72,7 @@ internal sealed class GetUsersByIdsQueryHandler(
 
             // Executar batch query no repositório
             var userIdsValueObjects = query.UserIds.Select(id => new UserId(id)).ToList();
-            var users = await userRepository.GetUsersByIdsAsync(userIdsValueObjects, cancellationToken);
+            var users = await userQueries.GetUsersByIdsAsync(userIdsValueObjects, cancellationToken);
 
             // Converter para DTOs
             var userDtos = users.Select(user => user.ToDto()).ToList();

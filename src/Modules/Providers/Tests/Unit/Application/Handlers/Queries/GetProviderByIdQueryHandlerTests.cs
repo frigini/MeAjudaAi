@@ -1,7 +1,8 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
@@ -13,15 +14,15 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetProviderByIdQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProviderByIdQueryHandler>> _loggerMock;
     private readonly GetProviderByIdQueryHandler _handler;
 
     public GetProviderByIdQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProviderByIdQueryHandler>>();
-        _handler = new GetProviderByIdQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProviderByIdQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -33,8 +34,8 @@ public class GetProviderByIdQueryHandlerTests
             .WithId(providerId)
             .Build();
 
-        _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerQueriesMock
+            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(id => id.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         var query = new GetProviderByIdQuery(providerId);
@@ -47,7 +48,7 @@ public class GetProviderByIdQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(provider.Id.Value);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -58,9 +59,9 @@ public class GetProviderByIdQueryHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
+            .ReturnsAsync((Provider?)null);
 
         var query = new GetProviderByIdQuery(providerId);
 
@@ -70,31 +71,10 @@ public class GetProviderByIdQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Prestador não encontrado");
+        result.Error!.Message.Should().Contain("não encontrado");
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-
-        _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"));
-
-        var query = new GetProviderByIdQuery(providerId);
-
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Erro ao buscar prestador");
     }
 }

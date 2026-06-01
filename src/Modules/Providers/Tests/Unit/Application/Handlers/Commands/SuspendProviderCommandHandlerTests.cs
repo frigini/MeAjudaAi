@@ -1,31 +1,36 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 public sealed class SuspendProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<SuspendProviderCommandHandler>> _loggerMock;
     private readonly SuspendProviderCommandHandler _handler;
 
     public SuspendProviderCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<SuspendProviderCommandHandler>>();
 
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         _handler = new SuspendProviderCommandHandler(
-            _providerRepositoryMock.Object,
+            _uowMock.Object,
             _loggerMock.Object);
     }
 
@@ -48,12 +53,8 @@ public sealed class SuspendProviderCommandHandlerTests
             "Policy violation");
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -65,10 +66,10 @@ public sealed class SuspendProviderCommandHandlerTests
         provider.SuspensionReason.Should().Be("Policy violation");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -82,7 +83,7 @@ public sealed class SuspendProviderCommandHandlerTests
             "Policy violation");
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -92,12 +93,12 @@ public sealed class SuspendProviderCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Provider not found");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -121,7 +122,7 @@ public sealed class SuspendProviderCommandHandlerTests
         result.Error.Message.Should().Be("Suspension reason is required");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -145,8 +146,9 @@ public sealed class SuspendProviderCommandHandlerTests
         result.Error.Message.Should().Be("SuspendedBy is required");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -159,7 +161,7 @@ public sealed class SuspendProviderCommandHandlerTests
             "Policy violation");
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act
@@ -169,8 +171,8 @@ public sealed class SuspendProviderCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Failed to suspend provider");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -190,7 +192,7 @@ public sealed class SuspendProviderCommandHandlerTests
             .Build();
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -201,8 +203,8 @@ public sealed class SuspendProviderCommandHandlerTests
         // Domain exception message should be propagated
         result.Error.Message.Should().StartWith("Invalid status transition");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

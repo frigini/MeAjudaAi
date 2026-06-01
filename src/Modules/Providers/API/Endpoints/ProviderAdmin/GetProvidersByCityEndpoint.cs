@@ -6,6 +6,8 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -61,7 +63,8 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
                 """)
             .RequirePermission(EPermission.ProvidersRead)
             .Produces<Response<IReadOnlyList<ProviderDto>>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError, typeof(ProblemDetails));
 
     /// <summary>
     /// Implementa a lógica de consulta de prestadores por cidade.
@@ -69,6 +72,7 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// <param name="city">Nome da cidade para busca</param>
     /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <param name="logger">Logger para rastreamento de requisições</param>
     /// <returns>Resultado HTTP com lista de prestadores ou erro apropriado</returns>
     /// <remarks>
     /// Processo da consulta:
@@ -78,14 +82,31 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// 4. Retorna resposta HTTP com lista de prestadores
     /// </remarks>
     private static async Task<IResult> GetProvidersByCityAsync(
-        string city,
+        [FromRoute] string city,
         IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ILogger<GetProvidersByCityEndpoint> logger)
     {
-        var query = city.ToCityQuery();
-        var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
-            query, cancellationToken);
+        try
+        {
+            var query = city.ToCityQuery();
+            var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
+                query, cancellationToken);
 
-        return Handle(result);
+            return Handle(result);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error fetching providers by city: {City}", city);
+            
+            return Results.Problem(
+                detail: "Ocorreu um erro interno ao buscar prestadores por cidade. Consulte os logs.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Erro Interno do Servidor");
+        }
     }
 }

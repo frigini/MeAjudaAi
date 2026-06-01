@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -16,20 +16,20 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetPublicProviderByIdOrSlugQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<IFeatureManager> _featureManagerMock;
     private readonly GetPublicProviderByIdOrSlugQueryHandler _handler;
 
     public GetPublicProviderByIdOrSlugQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _featureManagerMock = new Mock<IFeatureManager>();
-        
+
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
             .ReturnsAsync(false);
-            
-        _handler = new GetPublicProviderByIdOrSlugQueryHandler(_providerRepositoryMock.Object, _featureManagerMock.Object);
+
+        _handler = new GetPublicProviderByIdOrSlugQueryHandler(_providerQueriesMock.Object, _featureManagerMock.Object);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .WithStatus(EProviderStatus.Active)
             .Build();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -73,7 +73,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -103,7 +103,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
         var upperSlug = provider.Slug.ToUpperInvariant();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -134,7 +134,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
         var dirtySlug = $"  {provider.Slug.ToUpperInvariant()}  ";
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -166,12 +166,12 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .Build();
 
         // GetByIdAsync retorna null (nenhum provedor com esse ID)
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Fallback para a busca por slug retorna o provedor
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetBySlugAsync(slugValue, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -185,8 +185,8 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(provider.Id);
 
-        _providerRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == slugGuid), It.IsAny<CancellationToken>()), Times.Once);
-        _providerRepositoryMock.Verify(x => x.GetBySlugAsync(slugValue, It.IsAny<CancellationToken>()), Times.Once);
+        _providerQueriesMock.Verify(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == slugGuid), It.IsAny<CancellationToken>()), Times.Once);
+        _providerQueriesMock.Verify(x => x.GetBySlugAsync(slugValue, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -194,10 +194,10 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
     {
         // Arrange
         var provider = ProviderBuilder.Create()
-            .Build(); 
+            .Build();
         // O status padrão do builder é PendingBasicInfo (não Active)
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -217,7 +217,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
@@ -236,10 +236,10 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
     {
         // Arrange
         var provider = ProviderBuilder.Create()
-            .Build(); 
+            .Build();
         // O status padrão do builder é PendingBasicInfo (não Active)
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetBySlugAsync(provider.Slug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
@@ -259,7 +259,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         // Arrange
         var slug = "non-existent-slug";
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetBySlugAsync(slug, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
@@ -278,21 +278,21 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         // Arrange
         var provider = ProviderBuilder.Create()
             .WithBusinessProfile(new BusinessProfile(
-                "Restricted Legal", 
-                new ContactInfo("privacy@test.com", "11999999999"), 
-                new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"), 
-                "Restricted Fantasy", 
+                "Restricted Legal",
+                new ContactInfo("privacy@test.com", "11999999999"),
+                new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"),
+                "Restricted Fantasy",
                 "Description"))
             // Ignora transições de domínio para definir o status Active diretamente no teste
             .WithStatus(EProviderStatus.Active)
             .Build();
-        
+
         provider.AddService(Guid.NewGuid(), "Restricted Service");
-        
-        _providerRepositoryMock
+
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-            
+
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
             .ReturnsAsync(true);
@@ -317,22 +317,22 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         // Arrange
         var provider = ProviderBuilder.Create()
             .WithBusinessProfile(new BusinessProfile(
-                "Restricted Legal", 
-                new ContactInfo("privacy@test.com", "11999999999"), 
-                new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"), 
-                "Restricted Fantasy", 
+                "Restricted Legal",
+                new ContactInfo("privacy@test.com", "11999999999"),
+                new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"),
+                "Restricted Fantasy",
                 "Description"))
             // Ignora transições de domínio para definir o status Active diretamente no teste
             .WithStatus(EProviderStatus.Active)
             .Build();
-        
+
         var expectedServiceId = Guid.NewGuid();
         provider.AddService(expectedServiceId, "Known Service");
-        
-        _providerRepositoryMock
+
+        _providerQueriesMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-            
+
         _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
             .ReturnsAsync(false);

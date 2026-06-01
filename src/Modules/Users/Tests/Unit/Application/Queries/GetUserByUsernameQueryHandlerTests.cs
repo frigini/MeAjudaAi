@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -14,15 +13,15 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 [Trait("Layer", "Application")]
 public class GetUserByUsernameQueryHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<GetUserByUsernameQueryHandler>> _loggerMock;
     private readonly GetUserByUsernameQueryHandler _handler;
 
     public GetUserByUsernameQueryHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<GetUserByUsernameQueryHandler>>();
-        _handler = new GetUserByUsernameQueryHandler(_userRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetUserByUsernameQueryHandler(_userQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -38,7 +37,7 @@ public class GetUserByUsernameQueryHandlerTests
             .WithLastName("User")
             .Build();
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
@@ -54,7 +53,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Value.FirstName.Should().Be("Test");
         result.Value.LastName.Should().Be("User");
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -66,7 +65,7 @@ public class GetUserByUsernameQueryHandlerTests
         var username = "nonexistentuser";
         var query = new GetUserByUsernameQuery(username);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
@@ -79,7 +78,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Be(ValidationMessages.NotFound.User);
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -92,7 +91,7 @@ public class GetUserByUsernameQueryHandlerTests
         var query = new GetUserByUsernameQuery(username);
         var exception = new InvalidOperationException("Database connection failed");
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
@@ -106,7 +105,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Error.Message.Should().Contain("Failed to retrieve user");
         result.Error.Message.Should().Contain("Database connection failed");
 
-        _userRepositoryMock.Verify(
+        _userQueriesMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -139,7 +138,7 @@ public class GetUserByUsernameQueryHandlerTests
             .WithUsername(username)
             .Build();
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
@@ -161,8 +160,8 @@ public class GetUserByUsernameQueryHandlerTests
         var cancellationTokenSource = new CancellationTokenSource();
         await cancellationTokenSource.CancelAsync();
 
-        _userRepositoryMock
-            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
+        _userQueriesMock
+            .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.Is<CancellationToken>(t => t == cancellationTokenSource.Token)))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act

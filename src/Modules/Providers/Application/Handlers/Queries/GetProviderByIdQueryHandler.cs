@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Constants;
 using MeAjudaAi.Contracts.Functional;
@@ -13,10 +12,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// <summary>
 /// Handler responsável por processar queries de busca de prestador de serviços por ID.
 /// </summary>
-/// <param name="providerRepository">Repositório para acesso aos dados</param>
+/// <param name="providerQueries">Serviço de queries para acesso aos dados</param>
 /// <param name="logger">Logger estruturado</param>
 public sealed class GetProviderByIdQueryHandler(
-    IProviderRepository providerRepository,
+    IProviderQueries providerQueries,
     ILogger<GetProviderByIdQueryHandler> logger
 ) : IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>>
 {
@@ -30,7 +29,7 @@ public sealed class GetProviderByIdQueryHandler(
             logger.LogInformation("Getting provider by ID {ProviderId}", query.ProviderId);
 
             var providerId = new ProviderId(query.ProviderId);
-            var provider = await providerRepository.GetByIdAsync(providerId, cancellationToken);
+            var provider = await providerQueries.GetByIdAsync(providerId, cancellationToken);
 
             if (provider == null)
             {

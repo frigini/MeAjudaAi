@@ -35,7 +35,7 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new UsersDbContext(options);
+        _context = new UsersDbContext(options, null!);
         _handler = new UserRegisteredDomainEventHandler(_messageBusMock.Object, _context, _loggerMock.Object);
     }
 

@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -21,11 +21,11 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// e validações de negócio. Opera diretamente no agregado User.
 /// Invalida cache automaticamente após atualizações.
 /// </remarks>
-/// <param name="userRepository">Repositório para persistência de usuários</param>
+/// <param name="uow">Unit of Work para persistência de usuários</param>
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class UpdateUserProfileCommandHandler(
-    IUserRepository userRepository,
+    IUserUnitOfWork uow,
     IUsersCacheService usersCacheService,
     ILogger<UpdateUserProfileCommandHandler> logger
 ) : ICommandHandler<UpdateUserProfileCommand, Result<UserDto>>
@@ -52,6 +52,12 @@ public sealed class UpdateUserProfileCommandHandler(
         UpdateUserProfileCommand command,
         CancellationToken cancellationToken = default)
     {
+        using var activity = logger.BeginScope(new Dictionary<string, object>
+        {
+            ["UserId"] = command.UserId,
+            ["CorrelationId"] = command.CorrelationId
+        });
+
         logger.LogInformation("Processing UpdateUserProfileCommand for user {UserId} with correlation {CorrelationId}",
             command.UserId, command.CorrelationId);
 
@@ -105,7 +111,7 @@ public sealed class UpdateUserProfileCommandHandler(
     {
         logger.LogDebug("Fetching user {UserId} for profile update", command.UserId);
 
-        var user = await userRepository.GetByIdAsync(
+        var user = await uow.GetRepository<Domain.Entities.User, UserId>().TryFindAsync(
             new UserId(command.UserId), cancellationToken);
 
         if (user == null)
@@ -139,7 +145,7 @@ public sealed class UpdateUserProfileCommandHandler(
         logger.LogDebug("Persisting profile changes for user {UserId}", command.UserId);
 
         // Persiste as alterações no repositório
-        await userRepository.UpdateAsync(user, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         // Invalida cache relacionado ao usuário atualizado
         await usersCacheService.InvalidateUserAsync(command.UserId, user.Email.Value, cancellationToken);

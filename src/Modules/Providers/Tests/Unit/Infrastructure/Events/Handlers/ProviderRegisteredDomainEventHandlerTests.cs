@@ -32,7 +32,7 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
             .UseInMemoryDatabase(databaseName: $"TestDb_{UuidGenerator.NewId()}")
             .Options;
-        _context = new ProvidersDbContext(options);
+        _context = new ProvidersDbContext(options, null!);
 
         _handler = new ProviderRegisteredDomainEventHandler(
             _messageBusMock.Object,

@@ -3,7 +3,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,15 +14,15 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetProvidersByTypeQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProvidersByTypeQueryHandler>> _loggerMock;
     private readonly GetProvidersByTypeQueryHandler _handler;
 
     public GetProvidersByTypeQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProvidersByTypeQueryHandler>>();
-        _handler = new GetProvidersByTypeQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProvidersByTypeQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class GetProvidersByTypeQueryHandlerTests
             new ProviderBuilder().WithType(providerType).Build()
         };
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()))
             .ReturnsAsync(providers);
 
@@ -51,7 +51,7 @@ public class GetProvidersByTypeQueryHandlerTests
         result.Value.Should().HaveCount(2);
         result.Value.Should().OnlyContain(p => p.Type == providerType);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -62,7 +62,7 @@ public class GetProvidersByTypeQueryHandlerTests
         // Arrange
         var providerType = EProviderType.Company;
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>());
 
@@ -76,7 +76,7 @@ public class GetProvidersByTypeQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value.Should().BeEmpty();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -87,7 +87,7 @@ public class GetProvidersByTypeQueryHandlerTests
         // Arrange
         var providerType = EProviderType.Individual;
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
@@ -101,7 +101,7 @@ public class GetProvidersByTypeQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()),
             Times.Once);
     }

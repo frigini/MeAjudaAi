@@ -2,26 +2,26 @@ using FluentAssertions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Queries;
+namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
 public class GetProvidersByCityQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProvidersByCityQueryHandler>> _loggerMock;
     private readonly GetProvidersByCityQueryHandler _handler;
 
     public GetProvidersByCityQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProvidersByCityQueryHandler>>();
-        _handler = new GetProvidersByCityQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProvidersByCityQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class GetProvidersByCityQueryHandlerTests
             new ProviderBuilder().Build()
         };
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()))
             .ReturnsAsync(providers);
 
@@ -49,7 +49,7 @@ public class GetProvidersByCityQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(3);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -60,7 +60,7 @@ public class GetProvidersByCityQueryHandlerTests
         // Arrange
         var city = "Cidade Inexistente";
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -73,7 +73,7 @@ public class GetProvidersByCityQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -85,7 +85,7 @@ public class GetProvidersByCityQueryHandlerTests
         var city = "São Paulo";
         var exception = new Exception("Database error");
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
@@ -99,7 +99,7 @@ public class GetProvidersByCityQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -112,7 +112,7 @@ public class GetProvidersByCityQueryHandlerTests
         using var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByCityAsync(city, cancellationToken))
             .ReturnsAsync([]);
 
@@ -122,7 +122,7 @@ public class GetProvidersByCityQueryHandlerTests
         await _handler.HandleAsync(query, cancellationToken);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByCityAsync(city, cancellationToken),
             Times.Once);
     }

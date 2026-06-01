@@ -320,52 +320,49 @@ public class Provider : AggregateRoot<Guid>
 
 **Propósito**: Coordenar mudanças em múltiplos repositórios com transações.
 
+**Padrão Único**: O projeto utiliza **Keyed Services** para injetar a instância correta de `IUnitOfWork` para cada módulo, evitando a criação de interfaces duplicadas (ex: `IProviderUnitOfWork`). A única exceção é quando um módulo necessita estender o contrato base (ex: `IUserUnitOfWork` para operações específicas de identidade).
+
 **Implementação Real**:
 
 ```csharp
-// Interface (Shared Layer)
+// Interface Base (Shared Layer)
 public interface IUnitOfWork
 {
-    Task<int> CommitAsync(CancellationToken cancellationToken = default);
-    Task RollbackAsync(CancellationToken cancellationToken = default);
+    IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 
-// Implementação EF Core (Infrastructure Layer)
-internal sealed class UnitOfWork(DbContext context) : IUnitOfWork
+// Implementação EF Core - DbContext como Unit of Work (Infrastructure Layer)
+public partial class ProvidersDbContext : BaseDbContext, IUnitOfWork
 {
-    public async Task<int> CommitAsync(CancellationToken cancellationToken = default)
-    {
-        // EF Core já gerencia transação implicitamente
-        return await context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task RollbackAsync(CancellationToken cancellationToken = default)
-    {
-        await context.Database.RollbackTransactionAsync(cancellationToken);
-    }
+    // GetRepository<T,K>() implementado no partial ProvidersDbContext.Provider.cs
+    // SaveChangesAsync() herdado de DbContext
 }
+
+// Registro no DI (Infrastructure Layer - Extensions.cs)
+services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Providers, (sp, key) => sp.GetRequiredService<ProvidersDbContext>());
 
 // Uso em Handler
-internal sealed class UpdateProviderProfileCommandHandler(
-    IProviderRepository providerRepository,
-    IDocumentsModuleApi documentsApi,
-    IUnitOfWork unitOfWork)
+public sealed class UpdateProviderProfileCommandHandler(
+    [FromKeyedServices(ModuleKeys.Providers)] IUnitOfWork uow,
+    ILogger<UpdateProviderProfileCommandHandler> logger)
+    : ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>
 {
-    public async Task<Result> HandleAsync(UpdateProviderProfileCommand command, CancellationToken ct)
+    public async Task<Result<ProviderDto>> HandleAsync(UpdateProviderProfileCommand command, CancellationToken ct)
     {
-        // 1. Buscar provider
-        var provider = await providerRepository.GetByIdAsync(command.ProviderId, ct);
-        
-        // 2. Atualizar aggregate
-        provider.UpdateProfile(/* ... */);
-        
-        // 3. Atualizar no repositório
-        await providerRepository.UpdateAsync(provider, ct);
-        
-        // 4. Commit atômico (transação)
-        await unitOfWork.CommitAsync(ct);
-        
-        return Result.Success();
+        var provider = await uow
+            .GetRepository<Provider, ProviderId>()
+            .TryFindAsync(new ProviderId(command.ProviderId), ct);
+
+        if (provider is null)
+        {
+            return Result<ProviderDto>.Failure(Error.NotFound("Provider.NotFound", "Fornecedor não encontrado"));
+        }
+
+        provider.UpdateProfile(command.Name, command.BusinessProfile.ToDomain(), command.UpdatedBy);
+        await uow.SaveChangesAsync(ct);
+
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }
 ```
@@ -711,7 +708,7 @@ public class ProviderService
 {
     public void RegisterProvider(RegisterProviderDto dto)
     {
-        var repository = ServiceLocator.GetService<IProviderRepository>();
+        var uow = ServiceLocator.GetService<IProviderUnitOfWork>();
         var logger = ServiceLocator.GetService<ILogger>();
         // Dependências ocultas, difícil de testar
     }
@@ -719,11 +716,15 @@ public class ProviderService
 
 // ✅ PATTERN CORRETO: Constructor Injection
 public class RegisterProviderCommandHandler(
-    IProviderRepository repository,
-    IUnitOfWork unitOfWork,
+    IProviderUnitOfWork uow,
     ILogger<RegisterProviderCommandHandler> logger)
 {
     // Dependências explícitas e testáveis
+    public async Task<Result> HandleAsync(RegisterProviderCommand command, CancellationToken ct)
+    {
+        var repository = uow.GetRepository<Provider, ProviderId>();
+        // ...
+    }
 }
 ```
 
@@ -1951,7 +1952,7 @@ Task<Result<bool>> HasRejectedDocumentsAsync(Guid providerId, CancellationToken 
 ```csharp
 // src/Modules/Providers/Application/Handlers/Commands/ActivateProviderCommandHandler.cs
 public sealed class ActivateProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
     IDocumentsModuleApi documentsModuleApi, // ✅ Injetado
     ILogger<ActivateProviderCommandHandler> logger
 ) : ICommandHandler<ActivateProviderCommand, Result>
@@ -1975,9 +1976,15 @@ public sealed class ActivateProviderCommandHandler(
         if (hasRejectedResult.Value)
             return Result.Failure("Provider cannot be activated with rejected documents");
 
-        // Ativar provider
+        // Buscar e ativar provider
+        var provider = await uow.GetRepository<Provider, ProviderId>()
+            .TryFindAsync(new ProviderId(command.ProviderId), ct);
+        
+        if (provider is null)
+            return Result.Failure("Provider not found");
+
         provider.Activate(command.ActivatedBy);
-        await providerRepository.UpdateAsync(provider, ct);
+        await uow.SaveChangesAsync(ct);
         return Result.Success();
     }
 }

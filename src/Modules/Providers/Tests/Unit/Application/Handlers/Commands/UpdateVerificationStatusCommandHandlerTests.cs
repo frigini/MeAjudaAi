@@ -1,11 +1,17 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 
@@ -14,15 +20,25 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class UpdateVerificationStatusCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<UpdateVerificationStatusCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly UpdateVerificationStatusCommandHandler _handler;
 
     public UpdateVerificationStatusCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<UpdateVerificationStatusCommandHandler>>();
-        _handler = new UpdateVerificationStatusCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        
+        // Setup localizer to return the key name
+        _localizerMock.Setup(l => l[It.IsAny<string>()]).Returns((string name) => new LocalizedString(name, name));
+
+        _handler = new UpdateVerificationStatusCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Theory]
@@ -42,12 +58,8 @@ public class UpdateVerificationStatusCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -58,11 +70,11 @@ public class UpdateVerificationStatusCommandHandlerTests
         result.Value!.Id.Should().Be(providerId);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -77,7 +89,7 @@ public class UpdateVerificationStatusCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -85,14 +97,14 @@ public class UpdateVerificationStatusCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider not found");
+        result.Error.Message.Should().Contain("ProviderNotFound");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -107,7 +119,7 @@ public class UpdateVerificationStatusCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -115,10 +127,10 @@ public class UpdateVerificationStatusCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while updating the verification status");
+        result.Error.Message.Should().Contain("VerificationStatusUpdateError");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -137,12 +149,8 @@ public class UpdateVerificationStatusCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -153,11 +161,11 @@ public class UpdateVerificationStatusCommandHandlerTests
         result.Value!.Id.Should().Be(providerId);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -176,12 +184,8 @@ public class UpdateVerificationStatusCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -192,11 +196,11 @@ public class UpdateVerificationStatusCommandHandlerTests
         result.Value!.Id.Should().Be(providerId);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -222,12 +226,8 @@ public class UpdateVerificationStatusCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act & Assert - Primeira atualização
         var result1 = await _handler.HandleAsync(command1, CancellationToken.None);
@@ -238,11 +238,11 @@ public class UpdateVerificationStatusCommandHandlerTests
         result2.IsSuccess.Should().BeTrue();
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Exactly(2));
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Exactly(2));
     }
 }

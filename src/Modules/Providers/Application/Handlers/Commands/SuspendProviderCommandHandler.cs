@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -15,10 +16,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Este handler suspende temporariamente um prestador, impedindo que ele ofereça serviços
 /// até que a suspensão seja revertida.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class SuspendProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
     ILogger<SuspendProviderCommandHandler> logger
 ) : ICommandHandler<SuspendProviderCommand, Result>
 {
@@ -47,7 +48,7 @@ public sealed class SuspendProviderCommandHandler(
                 return Result.Failure("SuspendedBy is required");
             }
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
@@ -56,7 +57,7 @@ public sealed class SuspendProviderCommandHandler(
 
             provider.Suspend(command.Reason, command.SuspendedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} suspended successfully", command.ProviderId);
             return Result.Success();

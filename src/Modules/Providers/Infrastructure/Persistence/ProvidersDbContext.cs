@@ -1,41 +1,44 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 
 /// <summary>
-/// Contexto do Entity Framework para o módulo Providers.
+/// Contexto de banco de dados para o módulo de prestadores de serviços.
 /// </summary>
-/// <remarks>
-/// Implementa o padrão DbContext do Entity Framework Core para persistência
-/// das entidades do domínio de prestadores de serviços.
-/// </remarks>
-public class ProvidersDbContext : DbContext
+public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
 {
-    /// <summary>
-    /// Inicializa uma nova instância do contexto.
-    /// </summary>
-    /// <param name="options">Opções de configuração do contexto</param>
-    public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options) : base(options)
-    {
-    }
-    /// <summary>
-    /// Conjunto de dados para prestadores de serviços.
-    /// </summary>
-    public DbSet<Provider> Providers { get; set; } = null!;
+    private readonly IServiceProvider? _serviceProvider;
 
-    /// <summary>
-    /// Configura o modelo de dados durante a criação do contexto.
-    /// </summary>
-    /// <param name="modelBuilder">Construtor do modelo</param>
+    public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options) : base(options) { }
+
+    public ProvidersDbContext(
+        DbContextOptions<ProvidersDbContext> options,
+        IServiceProvider serviceProvider) : base(options)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public DbSet<Provider> Providers => Set<Provider>();
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+        {
+            return repository;
+        }
+
+        throw new InvalidOperationException($"Repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name} is not supported by {nameof(ProvidersDbContext)}.");
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("providers");
-
-        // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
         base.OnModelCreating(modelBuilder);
     }
 }

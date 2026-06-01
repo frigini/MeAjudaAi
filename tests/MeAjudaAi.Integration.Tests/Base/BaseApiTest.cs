@@ -145,9 +145,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["Logging:LogLevel:Default"] = "Warning",
+                        ["Logging:LogLevel:Default"] = "Information",
                         ["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
-                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Information",
+                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
                         ["Postgres:ConnectionString"] = connectionString,
                         ["ConnectionStrings:DefaultConnection"] = connectionString,
                         ["RabbitMQ:Enabled"] = "false",
@@ -207,6 +207,11 @@ public abstract class BaseApiTest : IAsyncLifetime
                     var paymentGatewayDescriptors = services.Where(d => d.ServiceType == typeof(IPaymentGateway)).ToList();
                     foreach (var descriptor in paymentGatewayDescriptors) services.Remove(descriptor);
                     services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+
+                    // Sempre simular IUserDomainService para evitar chamadas ao Keycloak nos testes
+                    var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
+                    foreach (var descriptor in userDomainDescriptors) services.Remove(descriptor);
+                    services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
 
                     // Register dummy Stripe client to satisfy DI validation
                     services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));

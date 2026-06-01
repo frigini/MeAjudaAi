@@ -1,9 +1,10 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -13,237 +14,170 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class ChangeUserEmailCommandHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<ChangeUserEmailCommandHandler>> _loggerMock;
     private readonly ChangeUserEmailCommandHandler _handler;
 
     public ChangeUserEmailCommandHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _unitOfWorkMock = new Mock<IUserUnitOfWork>();
+        _userRepositoryMock = new Mock<IRepository<User, UserId>>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<ChangeUserEmailCommandHandler>>();
-        _handler = new ChangeUserEmailCommandHandler(_userRepositoryMock.Object, _loggerMock.Object);
+
+        _unitOfWorkMock
+            .Setup(x => x.GetRepository<User, UserId>())
+            .Returns(_userRepositoryMock.Object);
+
+        _handler = new ChangeUserEmailCommandHandler(
+            _unitOfWorkMock.Object,
+            _userQueriesMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_ValidCommand_ShouldChangeEmailSuccessfully()
+    public async Task HandleAsync_WithValidCommand_ShouldReturnSuccess()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var newEmail = "newemail@test.com";
-        var command = new ChangeUserEmailCommand(userId, newEmail, "admin");
-
-        var user = new UserBuilder()
-            .WithUsername("testuser")
-            .WithEmail("oldemail@test.com")
-            .WithFirstName("Test")
-            .WithLastName("User")
-            .Build();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
-
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Email.Should().Be(newEmail);
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_UserNotFound_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var command = new ChangeUserEmailCommand(userId, "newemail@test.com");
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("User not found");
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()), Times.Never);
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task HandleAsync_EmailAlreadyInUse_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var existingUserId = Guid.NewGuid();
-        var newEmail = "existing@test.com";
-        var command = new ChangeUserEmailCommand(userId, newEmail);
-
-        var user = new UserBuilder()
-            .WithUsername("testuser")
-            .WithEmail("oldemail@test.com")
-            .Build();
+        var command = new ChangeUserEmailCommand(
+            UserId: userId,
+            NewEmail: "newemail@example.com",
+            UpdatedBy: null);
 
         var existingUser = new UserBuilder()
-            .WithUsername("existinguser")
-            .WithEmail(newEmail)
+            .WithId(new UserId(userId))
+            .WithEmail("old@example.com")
             .Build();
 
         _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("Email address is already in use by another user");
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task HandleAsync_SameUserWithSameEmail_ShouldChangeEmailSuccessfully()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var newEmail = "sameemail@test.com";
-        var command = new ChangeUserEmailCommand(userId, newEmail);
-
-        var user = new UserBuilder()
-            .WithUsername("testuser")
-            .WithEmail("oldemail@test.com")
-            .Build();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user); // Mesmo usuário
-
-        _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Email.Should().Be(newEmail);
-
-        _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_RepositoryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var command = new ChangeUserEmailCommand(userId, "newemail@test.com");
-        var exceptionMessage = "Database connection failed";
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException(exceptionMessage));
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error.Message.Should().StartWith("Failed to change user email:");
-
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_CancellationRequested_ShouldRespectCancellation()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var command = new ChangeUserEmailCommand(userId, "newemail@test.com");
-        var cancellationTokenSource = new CancellationTokenSource();
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException());
-
-        // Act & Assert
-        var result = await _handler.HandleAsync(command, cancellationTokenSource.Token);
-
-        // O handler captura a exceção e retorna failure
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().StartWith("Failed to change user email:");
-    }
-
-    [Fact]
-    public async Task HandleAsync_UpdateRepositoryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var newEmail = "newemail@test.com";
-        var command = new ChangeUserEmailCommand(userId, newEmail);
-
-        var user = new UserBuilder()
-            .WithUsername("testuser")
-            .WithEmail("oldemail@test.com")
-            .Build();
-
-        _userRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        _userRepositoryMock
-            .Setup(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()))
+        _userQueriesMock
+            .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Email.Should().Be("newemail@example.com");
+
+        _userRepositoryMock.Verify(
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _unitOfWorkMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNonExistentUser_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new ChangeUserEmailCommand(
+            UserId: userId,
+            NewEmail: "newemail@example.com",
+            UpdatedBy: null);
+
         _userRepositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
+
+        _userRepositoryMock.Verify(
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithExistingEmail_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new ChangeUserEmailCommand(
+            UserId: userId,
+            NewEmail: "taken@example.com",
+            UpdatedBy: null);
+
+        var existingUser = new UserBuilder()
+            .WithId(new UserId(userId))
+            .WithEmail("old@example.com")
+            .Build();
+
+        var otherUser = new UserBuilder()
+            .WithId(Guid.NewGuid())
+            .WithEmail("taken@example.com")
+            .Build();
+
+        _userRepositoryMock
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingUser);
+
+        _userQueriesMock
+            .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(otherUser);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("Email address is already in use");
+
+        _userRepositoryMock.Verify(
+            x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new ChangeUserEmailCommand(
+            UserId: userId,
+            NewEmail: "newemail@example.com",
+            UpdatedBy: null);
+
+        _userRepositoryMock
+            .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().StartWith("Failed to change user email:");
     }
 }

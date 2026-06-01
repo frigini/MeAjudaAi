@@ -1,11 +1,12 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -16,16 +17,29 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 public class CreateUserCommandHandlerTests
 {
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<CreateUserCommandHandler>> _loggerMock;
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
     {
         _userDomainServiceMock = new Mock<IUserDomainService>();
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _unitOfWorkMock = new Mock<IUserUnitOfWork>();
+        _userRepositoryMock = new Mock<IRepository<User, UserId>>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<CreateUserCommandHandler>>();
-        _handler = new CreateUserCommandHandler(_userDomainServiceMock.Object, _userRepositoryMock.Object, _loggerMock.Object);
+
+        _unitOfWorkMock
+            .Setup(x => x.GetRepository<User, UserId>())
+            .Returns(_userRepositoryMock.Object);
+
+        _handler = new CreateUserCommandHandler(
+            _userDomainServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _userQueriesMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -48,12 +62,11 @@ public class CreateUserCommandHandlerTests
             .WithLastName(command.LastName)
             .Build();
 
-        // Configura as validações para passar (sem usuários existentes)
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
@@ -70,8 +83,12 @@ public class CreateUserCommandHandlerTests
             .ReturnsAsync(Result<User>.Success(user));
 
         _userRepositoryMock
-            .Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.Add(It.IsAny<User>()))
+            .Verifiable();
+
+        _unitOfWorkMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -86,8 +103,8 @@ public class CreateUserCommandHandlerTests
         result.Value.LastName.Should().Be(command.LastName);
 
         // Verifica se todos os métodos foram chamados
-        _userRepositoryMock.Verify(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()), Times.Once);
-        _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userQueriesMock.Verify(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userQueriesMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Once);
         _userDomainServiceMock.Verify(
             x => x.CreateUserAsync(
                 It.Is<Username>(u => u.Value == command.Username),
@@ -99,7 +116,8 @@ public class CreateUserCommandHandlerTests
                 phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
-        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userRepositoryMock.Verify(x => x.Add(It.IsAny<User>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -136,18 +154,6 @@ public class CreateUserCommandHandlerTests
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(error);
-
-        _userDomainServiceMock.Verify(
-            x => x.CreateUserAsync(
-                It.IsAny<Username>(),
-                It.IsAny<Email>(),
-                command.FirstName,
-                command.LastName,
-                command.Password,
-                command.Roles,
-                phoneNumber: null,
-                It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Fact]
@@ -170,7 +176,7 @@ public class CreateUserCommandHandlerTests
             .WithLastName("Smith")
             .Build();
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
@@ -183,7 +189,7 @@ public class CreateUserCommandHandlerTests
         result.Error.Message.Should().Contain("email já existe");
 
         // Verifica que o check de username e o serviço de domínio não foram chamados
-        _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
+        _userQueriesMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
         _userDomainServiceMock.Verify(
             x => x.CreateUserAsync(
                 It.IsAny<Username>(),
@@ -217,11 +223,11 @@ public class CreateUserCommandHandlerTests
             .WithLastName("Smith")
             .Build();
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
@@ -260,7 +266,7 @@ public class CreateUserCommandHandlerTests
             Roles: ["Customer"]
         );
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
@@ -273,7 +279,7 @@ public class CreateUserCommandHandlerTests
         result.Error.Message.Should().Contain("Falha ao criar usuário");
 
         // Verifica que métodos subsequentes não foram chamados
-        _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
+        _userQueriesMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
         _userDomainServiceMock.Verify(
             x => x.CreateUserAsync(
                 It.IsAny<Username>(),

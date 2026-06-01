@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using Microsoft.Extensions.Logging;
@@ -15,18 +14,18 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 [Trait("Layer", "Application")]
 public class GetUserByIdQueryHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly Mock<ILogger<GetUserByIdQueryHandler>> _loggerMock;
     private readonly GetUserByIdQueryHandler _handler;
 
     public GetUserByIdQueryHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _userQueriesMock = new Mock<IUserQueries>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _loggerMock = new Mock<ILogger<GetUserByIdQueryHandler>>();
         _handler = new GetUserByIdQueryHandler(
-            _userRepositoryMock.Object,
+            _userQueriesMock.Object,
             _usersCacheServiceMock.Object,
             _loggerMock.Object);
     }
@@ -187,19 +186,16 @@ public class GetUserByIdQueryHandlerTests
             .ReturnsAsync(userDto);
 
         // Act
-        await _handler.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
-        _usersCacheServiceMock.Verify(
-            x => x.GetOrCacheUserByIdAsync(
-                userId, // Verifica se o userId correto foi passado
-                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(userDto);
+        _userQueriesMock.Verify(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_CacheMiss_ShouldCallRepositoryAndReturnUser()
+    public async Task HandleAsync_CacheMiss_ShouldCallQueriesAndReturnUser()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -211,7 +207,6 @@ public class GetUserByIdQueryHandlerTests
             .WithLastName("User")
             .Build();
 
-        // Configura o serviço de cache para chamar a função de fábrica (simulando cache miss)
         _usersCacheServiceMock
             .Setup(x => x.GetOrCacheUserByIdAsync(
                 userId,
@@ -220,7 +215,7 @@ public class GetUserByIdQueryHandlerTests
             .Returns<Guid, Func<CancellationToken, ValueTask<UserDto?>>, CancellationToken>(
                 async (id, factory, ct) => await factory(ct));
 
-        _userRepositoryMock
+        _userQueriesMock
             .Setup(x => x.GetByIdAsync(It.Is<UserId>(uid => uid.Value == userId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
@@ -234,6 +229,6 @@ public class GetUserByIdQueryHandlerTests
         result.Value!.Username.Should().Be("testuser");
         result.Value!.Email.Should().Be("test@example.com");
 
-        _userRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(uid => uid.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
+        _userQueriesMock.Verify(x => x.GetByIdAsync(It.Is<UserId>(uid => uid.Value == userId), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

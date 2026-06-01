@@ -1173,8 +1173,8 @@ Para aumentar a cobertura de **89.1% para 90%**, precisamos cobrir aproximadamen
 #### SearchProvidersDbContext (43.4%) 🟡
 **Solução**: Testes de queries e configurações
 
-#### Providers.Infrastructure.ProviderRepository (87.5%) 🟢
-**Solução**: Testar métodos específicos não cobertos
+#### Providers.Infrastructure.DbContextProviderQueries (87.5%) 🟢
+**Solução**: Testar métodos específicos não cobertos (GetByDocumentAsync, GetByCityAsync, etc.)
 
 #### SearchProviders.Application.ModuleApi (73.9%) 🟡
 **Solução**: Testar cenários de erro na API

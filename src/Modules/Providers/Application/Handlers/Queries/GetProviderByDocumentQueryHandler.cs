@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -13,10 +12,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// </summary>
 /// <remarks>
 /// Implementa a lógica de negócio para buscar prestadores utilizando número de documento,
-/// integrando com o repositório de dados e aplicando as regras de mapeamento necessárias.
+/// integrando com as queries de dados e aplicando as regras de mapeamento necessárias.
 /// </remarks>
 public sealed class GetProviderByDocumentQueryHandler(
-    IProviderRepository providerRepository,
+    IProviderQueries providerQueries,
     ILogger<GetProviderByDocumentQueryHandler> logger)
     : IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>>
 {
@@ -42,7 +41,7 @@ public sealed class GetProviderByDocumentQueryHandler(
                 return Result<ProviderDto?>.Failure(Error.BadRequest("Document cannot be empty"));
             }
 
-            var provider = await providerRepository.GetByDocumentAsync(normalizedDocument, cancellationToken);
+            var provider = await providerQueries.GetByDocumentAsync(normalizedDocument, cancellationToken);
 
             if (provider == null)
             {

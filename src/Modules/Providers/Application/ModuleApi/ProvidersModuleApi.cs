@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Locations;
@@ -27,12 +27,8 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>> getProviderByUserIdHandler,
     IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>> getProviderByDocumentHandler,
     IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByIdsHandler,
-    IQueryHandler<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByCityHandler,
-    IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByStateHandler,
-    IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByTypeHandler,
-    IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByVerificationStatusHandler,
     ILocationsModuleApi locationApi,
-    IProviderRepository providerRepository,
+    IProviderQueries providerQueries,
     IServiceProvider serviceProvider,
     ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
@@ -51,7 +47,6 @@ public sealed class ProvidersModuleApi(
         {
             logger.LogDebug("Checking Providers module availability");
 
-            // Verifica health checks registrados do sistema
             var healthCheckService = serviceProvider.GetService<HealthCheckService>();
             if (healthCheckService != null)
             {
@@ -59,7 +54,6 @@ public sealed class ProvidersModuleApi(
                     check => check.Tags.Contains("providers") || check.Tags.Contains("database"),
                     cancellationToken);
 
-                // Se algum health check crítico falhou, o módulo não está disponível
                 if (healthReport.Status == HealthStatus.Unhealthy)
                 {
                     logger.LogWarning("Providers module unavailable due to failed health checks: {FailedChecks}",
@@ -68,7 +62,6 @@ public sealed class ProvidersModuleApi(
                 }
             }
 
-            // Testa funcionalidade básica - verifica se os handlers essenciais estão disponíveis
             var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
             if (!canExecuteBasicOperations)
             {
@@ -82,7 +75,7 @@ public sealed class ProvidersModuleApi(
 
         catch (OperationCanceledException)
         {
-            throw; // Let cancellation propagate
+            throw; 
         }
         catch (Exception ex)
         {
@@ -91,18 +84,13 @@ public sealed class ProvidersModuleApi(
         }
     }
 
-    /// <summary>
-    /// Testa se as operações básicas do módulo estão funcionando
-    /// </summary>
     private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancellationToken)
     {
         try
         {
-            // Teste básico: tentar buscar por ID não existente (deve retornar NotFound ou Success com null)
             var testId = Guid.NewGuid();
             var result = await GetProviderByIdAsync(testId, cancellationToken);
 
-            // Sucesso se: 1) Success com null, 2) Failure com NotFound
             if (result.IsSuccess && result.Value == null)
                 return true;
 
@@ -111,7 +99,6 @@ public sealed class ProvidersModuleApi(
 
             return false;
         }
-
         catch (OperationCanceledException)
         {
             throw;
@@ -148,15 +135,16 @@ public sealed class ProvidersModuleApi(
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBasicInfoAsync(IEnumerable<Guid> providerIds, CancellationToken cancellationToken = default)
     {
         var idList = providerIds.ToList();
-        logger.LogDebug("Getting basic provider info for {Count} provider IDs", idList.Count);
-
         var result = await getProvidersByIdsHandler.HandleAsync(new GetProvidersByIdsQuery(idList), cancellationToken);
 
-        return result.Match(
-            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
-                providerDtos.Select(MapToModuleBasicDto).ToList()),
-            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
-        );
+        if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
+
+        var dtos = new List<ModuleProviderBasicDto>();
+        foreach (var dto in result.Value)
+        {
+            dtos.Add(MapDtoToBasicDto(dto));
+        }
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
 
     public async Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -177,66 +165,70 @@ public sealed class ProvidersModuleApi(
         var batchQuery = new GetProvidersByIdsQuery(providerIds.ToList());
         var result = await getProvidersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
 
-        return result.Match(
-            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
-                providerDtos.Select(MapToModuleBasicDto).ToList()),
-            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
-        );
+        if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
+
+        var dtos = new List<ModuleProviderBasicDto>();
+        foreach (var dto in result.Value)
+        {
+            dtos.Add(MapDtoToBasicDto(dto));
+        }
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
 
     public async Task<Result<bool>> ProviderExistsAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        var result = await GetProviderByIdAsync(providerId, cancellationToken);
-        return result.Match(
-            onSuccess: provider => Result<bool>.Success(provider != null),
-            onFailure: error => Result<bool>.Failure(error)
-        );
+        return await providerQueries.ExistsAsync(new ProviderId(providerId), cancellationToken);
     }
 
     public async Task<Result<bool>> UserIsProviderAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var result = await GetProviderByUserIdAsync(userId, cancellationToken);
-        return result.Match(
-            onSuccess: provider => Result<bool>.Success(provider != null), // Verdadeiro se o provider existir, falso se for null
-            onFailure: error => Result<bool>.Failure(error) // Propaga quaisquer erros
-        );
+        return await providerQueries.ExistsByUserIdAsync(userId, cancellationToken);
     }
 
     public async Task<Result<bool>> DocumentExistsAsync(string document, CancellationToken cancellationToken = default)
     {
-        var result = await GetProviderByDocumentAsync(document, cancellationToken);
-        return result.Match(
-            onSuccess: provider => Result<bool>.Success(provider != null),
-            onFailure: error => Result<bool>.Failure(error)
-        );
+        var provider = await providerQueries.GetByDocumentAsync(document, cancellationToken);
+        return Result<bool>.Success(provider != null);
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByCityAsync(
         string city,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetProvidersByCityQuery(city);
-        var result = await getProvidersByCityHandler.HandleAsync(query, cancellationToken);
-
-        return result.Match(
-            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
-                providerDtos.Select(MapToModuleBasicDto).ToList()),
-            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
-        );
+        var providers = await providerQueries.GetByCityAsync(city, cancellationToken);
+        var dtos = new List<ModuleProviderBasicDto>();
+        foreach (var p in providers)
+        {
+             dtos.Add(new ModuleProviderBasicDto(
+                Id: p.Id.Value,
+                Name: p.Name,
+                Slug: p.Slug,
+                Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+                ProviderType: p.Type.ToString(),
+                VerificationStatus: p.VerificationStatus.ToString(),
+                IsActive: p.IsActive));
+        }
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByStateAsync(
         string state,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetProvidersByStateQuery(state);
-        var result = await getProvidersByStateHandler.HandleAsync(query, cancellationToken);
-
-        return result.Match(
-            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
-                providerDtos.Select(MapToModuleBasicDto).ToList()),
-            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
-        );
+        var providers = await providerQueries.GetByStateAsync(state, cancellationToken);
+        var dtos = new List<ModuleProviderBasicDto>();
+        foreach (var p in providers)
+        {
+             dtos.Add(new ModuleProviderBasicDto(
+                Id: p.Id.Value,
+                Name: p.Name,
+                Slug: p.Slug,
+                Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+                ProviderType: p.Type.ToString(),
+                VerificationStatus: p.VerificationStatus.ToString(),
+                IsActive: p.IsActive));
+        }
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByTypeAsync(
@@ -244,19 +236,22 @@ public sealed class ProvidersModuleApi(
         CancellationToken cancellationToken = default)
     {
         var enumResult = providerType.ToEnum<EProviderType>();
-        if (enumResult.IsFailure)
+        if (enumResult.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(enumResult.Error);
+
+        var providers = await providerQueries.GetByTypeAsync(enumResult.Value, cancellationToken);
+        var dtos = new List<ModuleProviderBasicDto>();
+        foreach (var p in providers)
         {
-            return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(enumResult.Error);
+             dtos.Add(new ModuleProviderBasicDto(
+                Id: p.Id.Value,
+                Name: p.Name,
+                Slug: p.Slug,
+                Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+                ProviderType: p.Type.ToString(),
+                VerificationStatus: p.VerificationStatus.ToString(),
+                IsActive: p.IsActive));
         }
-
-        var query = new GetProvidersByTypeQuery(enumResult.Value);
-        var result = await getProvidersByTypeHandler.HandleAsync(query, cancellationToken);
-
-        return result.Match(
-            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
-                providerDtos.Select(MapToModuleBasicDto).ToList()),
-            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
-        );
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByVerificationStatusAsync(
@@ -264,27 +259,24 @@ public sealed class ProvidersModuleApi(
         CancellationToken cancellationToken = default)
     {
         var enumResult = verificationStatus.ToEnum<EVerificationStatus>();
-        if (enumResult.IsFailure)
+        if (enumResult.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(enumResult.Error);
+
+        var providers = await providerQueries.GetByVerificationStatusAsync(enumResult.Value, cancellationToken);
+        var dtos = new List<ModuleProviderBasicDto>();
+        foreach (var p in providers)
         {
-            return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(enumResult.Error);
+             dtos.Add(new ModuleProviderBasicDto(
+                Id: p.Id.Value,
+                Name: p.Name,
+                Slug: p.Slug,
+                Email: p.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+                ProviderType: p.Type.ToString(),
+                VerificationStatus: p.VerificationStatus.ToString(),
+                IsActive: p.IsActive));
         }
-
-        var query = new GetProvidersByVerificationStatusQuery(enumResult.Value);
-        var result = await getProvidersByVerificationStatusHandler.HandleAsync(query, cancellationToken);
-
-        return result.Match(
-            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
-                providerDtos.Select(MapToModuleBasicDto).ToList()),
-            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
-        );
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
     }
 
-    /// <summary>
-    /// Obtém dados do provedor preparados para indexação de busca, incluindo coordenadas obtidas via geocodificação.
-    /// </summary>
-    /// <param name="providerId">O identificador único do provedor a ser indexado.</param>
-    /// <param name="cancellationToken">Token de cancelamento.</param>
-    /// <returns>DTO de indexação do provedor com localização geocodificada, ou null se provedor não encontrado, ou falha se geocodificação falhar.</returns>
     public async Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
@@ -293,70 +285,33 @@ public sealed class ProvidersModuleApi(
 
         try
         {
-            // 1. Buscar entidade Provider diretamente do repositório (inclui Services)
-            var providerEntity = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+            var providerEntity = await providerQueries.GetByIdAsync(new ProviderId(providerId), cancellationToken);
 
-            if (providerEntity == null)
-            {
-                logger.LogDebug("Provider {ProviderId} not found for indexing", providerId);
-                return Result<ModuleProviderIndexingDto?>.Success(null);
-            }
+            if (providerEntity == null) return Result<ModuleProviderIndexingDto?>.Success(null);
 
-            // 2. Obter coordenadas do endereço primário via ILocationsModuleApi
             var address = providerEntity.BusinessProfile.PrimaryAddress;
             var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
 
             var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
-
-            if (coordinatesResult.IsFailure)
-            {
-                logger.LogWarning(
-                    "Failed to get coordinates for provider {ProviderId} address '{Address}': {Error}",
-                    providerId, fullAddress, coordinatesResult.Error.Message);
-
-                // Sem coordenadas não podemos indexar (SearchableProvider exige Location)
-                return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
-            }
+            if (coordinatesResult.IsFailure) return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
 
             var coordinates = coordinatesResult.Value;
-
-            // 3. Obter ServiceIds do provider (da coleção Services)
-            var serviceIds = providerEntity.GetServiceIds();
-
-            // 4. TODO: Buscar rating e reviews do provider (quando implementarmos Reviews)
-            // Por enquanto, valores padrão
-            decimal averageRating = 0;
-            int totalReviews = 0;
-
-            // 5. TODO: Mapear subscription tier do provider
-            // Por enquanto, Free como padrão
-            var subscriptionTier = ESubscriptionTier.Free;
-
-            // 6. Criar DTO de indexação
             var indexingDto = new ModuleProviderIndexingDto(
                 ProviderId: providerEntity.Id.Value,
                 Name: providerEntity.Name,
                 Slug: providerEntity.Slug,
                 Latitude: coordinates.Latitude,
                 Longitude: coordinates.Longitude,
-                ServiceIds: serviceIds,
-                AverageRating: averageRating,
-                TotalReviews: totalReviews,
-                SubscriptionTier: subscriptionTier,
+                ServiceIds: providerEntity.GetServiceIds(),
+                AverageRating: 0, 
+                TotalReviews: 0, 
+                SubscriptionTier: ESubscriptionTier.Free,
                 IsActive: providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted,
                 Description: providerEntity.BusinessProfile.Description,
                 City: address.City,
                 State: address.State);
 
-            logger.LogInformation(
-                "Successfully prepared indexing data for provider {ProviderId} at ({Lat}, {Lon})",
-                providerId, coordinates.Latitude, coordinates.Longitude);
-
             return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
         }
         catch (Exception ex)
         {
@@ -365,29 +320,24 @@ public sealed class ProvidersModuleApi(
         }
     }
 
-    /// <summary>
-    /// Mapeia ProviderDto interno para ModuleProviderDto público
-    /// </summary>
     private static ModuleProviderDto MapToModuleDto(ProviderDto providerDto)
     {
+        var doc = providerDto.Documents?.FirstOrDefault(d => d.IsPrimary) ?? providerDto.Documents?.FirstOrDefault();
         return new ModuleProviderDto(
             Id: providerDto.Id,
             Name: providerDto.Name,
             Slug: providerDto.Slug,
             Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            Document: GetMainDocument(providerDto)?.Number ?? string.Empty,
+            Document: doc?.Number ?? string.Empty,
             ProviderType: providerDto.Type.ToString(),
             VerificationStatus: providerDto.VerificationStatus.ToString(),
             CreatedAt: providerDto.CreatedAt,
             UpdatedAt: providerDto.UpdatedAt ?? providerDto.CreatedAt,
-            IsActive: !providerDto.IsDeleted,
+            IsActive: providerDto.IsActive,
             Phone: providerDto.BusinessProfile?.ContactInfo?.PhoneNumber);
     }
 
-    /// <summary>
-    /// Mapeia ProviderDto interno para ModuleProviderBasicDto público
-    /// </summary>
-    private static ModuleProviderBasicDto MapToModuleBasicDto(ProviderDto providerDto)
+    private static ModuleProviderBasicDto MapDtoToBasicDto(ProviderDto providerDto)
     {
         return new ModuleProviderBasicDto(
             Id: providerDto.Id,
@@ -396,83 +346,17 @@ public sealed class ProvidersModuleApi(
             Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
             ProviderType: providerDto.Type.ToString(),
             VerificationStatus: providerDto.VerificationStatus.ToString(),
-            IsActive: !providerDto.IsDeleted);
+            IsActive: providerDto.IsActive);
     }
 
-    /// <summary>
-    /// Obtém o documento primário do provider
-    /// </summary>
-    /// <param name="providerDto">DTO do provider</param>
-    /// <returns>O documento primário ou null se não houver</returns>
-    private static DocumentDto? GetPrimaryDocument(ProviderDto providerDto)
-    {
-        return providerDto.Documents?.FirstOrDefault(d => d.IsPrimary);
-    }
-
-    /// <summary>
-    /// Obtém o documento principal (primário ou primeiro disponível)
-    /// </summary>
-    /// <param name="providerDto">DTO do provider</param>
-    /// <returns>O documento principal ou null se não houver documentos</returns>
-    private static DocumentDto? GetMainDocument(ProviderDto providerDto)
-    {
-        return GetPrimaryDocument(providerDto) ?? providerDto.Documents?.FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Verifica se algum provider oferece um serviço específico
-    /// </summary>
-    /// <param name="serviceId">ID do serviço</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>True se existe ao menos um provider oferecendo o serviço</returns>
     public async Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Checking if any provider offers service {ServiceId}", serviceId);
-
-        try
-        {
-            var hasProviders = await providerRepository.HasProvidersWithServiceAsync(serviceId, cancellationToken);
-            return Result<bool>.Success(hasProviders);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking if providers offer service {ServiceId}", serviceId);
-            return Result<bool>.Failure(ProvidersErrorMessages.ServiceProvidersCheckError);
-        }
+        return Result<bool>.Success(await providerQueries.HasProvidersWithServiceAsync(serviceId, cancellationToken));
     }
 
-    /// <inheritdoc />
-    /// <remarks>
-    /// Se o provedor não existir, retorna Success(false) de forma defensiva, 
-    /// pois o CreateBookingCommandHandler valida a existência do provedor previamente.
-    /// </remarks>
     public async Task<Result<bool>> IsServiceOfferedByProviderAsync(Guid providerId, Guid serviceId, CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
-
-        try
-        {
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
-            if (provider == null)
-            {
-                return Result<bool>.Success(false);
-            }
-
-            var offersService = provider.OffersService(serviceId);
-            return Result<bool>.Success(offersService);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
-            return Result<bool>.Failure(ProvidersErrorMessages.ProviderServiceCheckError);
-        }
+        var provider = await providerQueries.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+        return Result<bool>.Success(provider?.OffersService(serviceId) ?? false);
     }
 }

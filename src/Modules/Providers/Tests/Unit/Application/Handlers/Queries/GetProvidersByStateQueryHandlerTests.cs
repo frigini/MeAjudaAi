@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,15 +13,15 @@ namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Queries;
 [Trait("Category", "Unit")]
 public class GetProvidersByStateQueryHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProvidersByStateQueryHandler>> _loggerMock;
     private readonly GetProvidersByStateQueryHandler _handler;
 
     public GetProvidersByStateQueryHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProvidersByStateQueryHandler>>();
-        _handler = new GetProvidersByStateQueryHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new GetProvidersByStateQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class GetProvidersByStateQueryHandlerTests
             new ProviderBuilder().Build()
         };
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()))
             .ReturnsAsync(providers);
 
@@ -48,7 +48,7 @@ public class GetProvidersByStateQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -67,7 +67,7 @@ public class GetProvidersByStateQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.StateParameterRequired);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -86,7 +86,7 @@ public class GetProvidersByStateQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.StateParameterRequired);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -105,7 +105,7 @@ public class GetProvidersByStateQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.StateParameterRequired);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -116,7 +116,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Arrange
         var state = "XX";
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -129,7 +129,7 @@ public class GetProvidersByStateQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -141,7 +141,7 @@ public class GetProvidersByStateQueryHandlerTests
         var state = "SP";
         var exception = new Exception("Database error");
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
@@ -155,7 +155,7 @@ public class GetProvidersByStateQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
 
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -168,7 +168,7 @@ public class GetProvidersByStateQueryHandlerTests
         using var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        _providerRepositoryMock
+        _providerQueriesMock
             .Setup(x => x.GetByStateAsync(state, cancellationToken))
             .ReturnsAsync([]);
 
@@ -178,7 +178,7 @@ public class GetProvidersByStateQueryHandlerTests
         await _handler.HandleAsync(query, cancellationToken);
 
         // Assert
-        _providerRepositoryMock.Verify(
+        _providerQueriesMock.Verify(
             x => x.GetByStateAsync(state, cancellationToken),
             Times.Once);
     }

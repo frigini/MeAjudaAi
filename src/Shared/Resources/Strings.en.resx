@@ -67,4 +67,22 @@
   <data name="Unauthorized" xml:space="preserve">
     <value>You do not have permission to perform this operation.</value>
   </data>
+  <data name="ProviderNotFound" xml:space="preserve">
+    <value>Provider not found.</value>
+  </data>
+  <data name="QualificationAddError" xml:space="preserve">
+    <value>An error occurred while adding the qualification.</value>
+  </data>
+  <data name="CorrectionReasonRequired" xml:space="preserve">
+    <value>Correction reason is required.</value>
+  </data>
+  <data name="RequestedByRequired" xml:space="preserve">
+    <value>RequestedBy is required.</value>
+  </data>
+  <data name="BasicInfoCorrectionError" xml:space="preserve">
+    <value>Failed to require basic info correction.</value>
+  </data>
+  <data name="VerificationStatusUpdateError" xml:space="preserve">
+    <value>An error occurred while updating the verification status.</value>
+  </data>
 </root>

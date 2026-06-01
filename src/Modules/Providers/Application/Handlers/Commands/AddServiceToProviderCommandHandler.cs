@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Commands;
@@ -13,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Valida os serviços via IServiceCatalogsModuleApi antes de permitir a associação.
 /// </summary>
 public sealed class AddServiceToProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
     IServiceCatalogsModuleApi serviceCatalogsModuleApi,
     ILogger<AddServiceToProviderCommandHandler> logger
 ) : ICommandHandler<AddServiceToProviderCommand, Result>
@@ -34,7 +35,7 @@ public sealed class AddServiceToProviderCommandHandler(
                 command.ProviderId);
 
             // 1. Buscar o provider
-            var provider = await providerRepository.GetByIdAsync(
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(
                 new ProviderId(command.ProviderId),
                 cancellationToken);
 
@@ -99,7 +100,7 @@ public sealed class AddServiceToProviderCommandHandler(
             provider.AddService(command.ServiceId, serviceName);
 
             // 5. Persistir mudanças
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
                 "Service {ServiceId} successfully added to provider {ProviderId}",

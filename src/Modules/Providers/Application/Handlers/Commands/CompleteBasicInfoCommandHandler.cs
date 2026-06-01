@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -14,10 +15,10 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Este handler move o prestador da etapa de PendingBasicInfo para PendingDocumentVerification,
 /// indicando que as informações básicas foram preenchidas e o próximo passo é o envio de documentos.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class CompleteBasicInfoCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
     ILogger<CompleteBasicInfoCommandHandler> logger
 ) : ICommandHandler<CompleteBasicInfoCommand, Result>
 {
@@ -33,7 +34,7 @@ public sealed class CompleteBasicInfoCommandHandler(
         {
             logger.LogInformation("Completing basic info for provider {ProviderId}", command.ProviderId);
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
@@ -42,7 +43,7 @@ public sealed class CompleteBasicInfoCommandHandler(
 
             provider.CompleteBasicInfo(command.UpdatedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Basic info completed for provider {ProviderId}", command.ProviderId);
             return Result.Success();

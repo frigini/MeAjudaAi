@@ -2,10 +2,11 @@ using FluentAssertions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -17,26 +18,26 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 /// </summary>
 public class DeleteMyProviderProfileCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<TimeProvider> _timeProviderMock;
     private readonly Mock<ILogger<DeleteMyProviderProfileCommandHandler>> _loggerMock;
     private readonly DeleteMyProviderProfileCommandHandler _handler;
 
     public DeleteMyProviderProfileCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _timeProviderMock = new Mock<TimeProvider>();
         _loggerMock = new Mock<ILogger<DeleteMyProviderProfileCommandHandler>>();
 
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         _handler = new DeleteMyProviderProfileCommandHandler(
-            _providerRepositoryMock.Object,
+            _uowMock.Object,
             _timeProviderMock.Object,
             _loggerMock.Object);
     }
 
-    /// <summary>
-    /// Testa exclusão de perfil quando provider existe deve fazer soft delete.
-    /// </summary>
     [Fact]
     public async Task HandleAsync_WhenProviderExists_ShouldSoftDeleteProvider()
     {
@@ -46,7 +47,7 @@ public class DeleteMyProviderProfileCommandHandlerTests
         
         var provider = new ProviderBuilder().WithId(providerId).Build();
 
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -56,12 +57,9 @@ public class DeleteMyProviderProfileCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         provider.IsDeleted.Should().BeTrue();
         
-        _providerRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Provider>(p => p.Id.Value == providerId && p.IsDeleted), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    /// <summary>
-    /// Testa exclusão de perfil quando provider não existe deve retornar erro.
-    /// </summary>
     [Fact]
     public async Task HandleAsync_WhenProviderDoesNotExist_ShouldReturnNotFoundError()
     {
@@ -69,7 +67,7 @@ public class DeleteMyProviderProfileCommandHandlerTests
         var providerId = Guid.NewGuid();
         var command = new DeleteMyProviderProfileCommand(providerId);
 
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(x => x.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -80,6 +78,6 @@ public class DeleteMyProviderProfileCommandHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(404);
         
-        _providerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

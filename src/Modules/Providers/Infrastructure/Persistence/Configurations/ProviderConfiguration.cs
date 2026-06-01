@@ -205,7 +205,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");
             doc.Property("ProviderId").HasColumnName("provider_id");
-            doc.Property("Id").HasColumnName("id");
+            doc.Property("Id").HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
             doc.HasIndex("ProviderId", "DocumentType").IsUnique();
         });
 
@@ -239,7 +239,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             qual.ToTable("qualification", "providers");
             qual.WithOwner().HasForeignKey("ProviderId");
             qual.Property("ProviderId").HasColumnName("provider_id");
-            qual.Property("Id").HasColumnName("id");
+            qual.Property("Id").HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
         });
 
         // Configuração da coleção de serviços (ProviderServices many-to-many)

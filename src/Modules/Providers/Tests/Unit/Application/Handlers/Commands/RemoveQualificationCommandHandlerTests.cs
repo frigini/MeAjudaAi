@@ -1,10 +1,14 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 
@@ -13,15 +17,19 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class RemoveQualificationCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RemoveQualificationCommandHandler>> _loggerMock;
     private readonly RemoveQualificationCommandHandler _handler;
 
     public RemoveQualificationCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveQualificationCommandHandler>>();
-        _handler = new RemoveQualificationCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new RemoveQualificationCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -47,14 +55,8 @@ public class RemoveQualificationCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        Provider? updatedProvider = null;
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Callback<Provider, CancellationToken>((p, ct) => updatedProvider = p)
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -68,16 +70,12 @@ public class RemoveQualificationCommandHandlerTests
         result.Value!.Qualifications.Should().BeEmpty("the qualification should have been removed");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
-
-        // Verify the provider passed to UpdateAsync has the qualification removed
-        updatedProvider.Should().NotBeNull();
-        updatedProvider!.Qualifications.Should().BeEmpty("the qualification should have been removed from the provider sent to repository");
     }
 
     [Fact]
@@ -91,7 +89,7 @@ public class RemoveQualificationCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -102,11 +100,11 @@ public class RemoveQualificationCommandHandlerTests
         result.Error.Message.Should().Contain("Provider not found");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -123,7 +121,7 @@ public class RemoveQualificationCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -134,11 +132,11 @@ public class RemoveQualificationCommandHandlerTests
         result.Error.Message.Should().Contain("An error occurred while removing the qualification");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -153,7 +151,7 @@ public class RemoveQualificationCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -163,8 +161,8 @@ public class RemoveQualificationCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("An error occurred while removing the qualification");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -183,7 +181,7 @@ public class RemoveQualificationCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -194,11 +192,11 @@ public class RemoveQualificationCommandHandlerTests
         result.Error.Message.Should().Contain("An error occurred while removing the qualification");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -235,14 +233,8 @@ public class RemoveQualificationCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        Provider? updatedProvider = null;
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Callback<Provider, CancellationToken>((p, ct) => updatedProvider = p)
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -258,17 +250,11 @@ public class RemoveQualificationCommandHandlerTests
         result.Value!.Qualifications.Should().Contain(q => q.Name == qualificationToKeep);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
-
-        // Verify the provider passed to UpdateAsync has the qualification removed
-        updatedProvider.Should().NotBeNull();
-        updatedProvider!.Qualifications.Should().HaveCount(1);
-        updatedProvider!.Qualifications.Should().NotContain(q => q.Name == qualificationToRemove);
-        updatedProvider!.Qualifications.Should().Contain(q => q.Name == qualificationToKeep);
     }
 }

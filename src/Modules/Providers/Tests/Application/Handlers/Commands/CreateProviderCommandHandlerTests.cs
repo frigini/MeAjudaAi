@@ -1,29 +1,41 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
 
+using MeAjudaAi.Modules.Providers.Application.Queries;
+
+// ...
+
 public class CreateProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<CreateProviderCommandHandler>> _loggerMock;
     private readonly CreateProviderCommandHandler _handler;
 
     public CreateProviderCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<CreateProviderCommandHandler>>();
-        _handler = new CreateProviderCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new CreateProviderCommandHandler(_uowMock.Object, _providerQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -44,16 +56,8 @@ public class CreateProviderCommandHandlerTests
             )
         );
 
-        var existingProvider = new Provider(
-            new ProviderId(Guid.NewGuid()),
-            userId,
-            "Existing Name",
-            EProviderType.Individual,
-            new BusinessProfile("Existing Legal", new ContactInfo("exist@email.com"), new Address("Rua", "1", "Bairro", "Cidade", "ES", "CEP"))
-        );
-
-        _providerRepositoryMock.Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingProvider);
+        _providerQueriesMock.Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -81,8 +85,8 @@ public class CreateProviderCommandHandlerTests
             )
         );
 
-        _providerRepositoryMock.Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Provider?)null);
+        _providerQueriesMock.Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -91,8 +95,9 @@ public class CreateProviderCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be("Provider Name");
         result.Value.Type.Should().Be(EProviderType.Individual);
-        
-        _providerRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Once);
+
+        _providerRepositoryMock.Verify(r => r.Add(It.IsAny<Provider>()), Times.Once);
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -113,7 +118,7 @@ public class CreateProviderCommandHandlerTests
             )
         );
 
-        _providerRepositoryMock.Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+        _providerQueriesMock.Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act

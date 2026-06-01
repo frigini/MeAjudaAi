@@ -33,7 +33,7 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new UsersDbContext(options);
+        _context = new UsersDbContext(options, null!);
         _handler = new UserProfileUpdatedDomainEventHandler(_messageBusMock.Object, _context, _loggerMock.Object);
     }
 

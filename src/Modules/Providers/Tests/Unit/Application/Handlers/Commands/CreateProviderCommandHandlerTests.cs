@@ -1,39 +1,39 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using DTOs = MeAjudaAi.Modules.Providers.Application.DTOs;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 public class CreateProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
+    private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<CreateProviderCommandHandler>> _loggerMock;
     private readonly CreateProviderCommandHandler _handler;
 
     public CreateProviderCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
+        _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<CreateProviderCommandHandler>>();
-        _handler = new CreateProviderCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
-    }
 
-    private static BusinessProfileDto CreateTestBusinessProfile() =>
-        new BusinessProfileDto(
-            "Test Business",
-            "12345678000100",
-            null,
-            new ContactInfoDto("test@test.com", null, null),
-            new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country"));
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new CreateProviderCommandHandler(_uowMock.Object, _providerQueriesMock.Object, _loggerMock.Object);
+    }
 
     [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldCreateProvider()
@@ -46,9 +46,9 @@ public class CreateProviderCommandHandlerTests
             Type: EProviderType.Individual,
             BusinessProfile: CreateTestBusinessProfile());
 
-        _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
+        _providerQueriesMock
+            .Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -56,10 +56,14 @@ public class CreateProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Id.Should().NotBe(Guid.Empty);
+        result.Value!.Name.Should().Be("Test Provider");
 
         _providerRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.Add(It.Is<Provider>(p => p.UserId == userId)),
+            Times.Once);
+
+        _uowMock.Verify(
+            u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -74,15 +78,9 @@ public class CreateProviderCommandHandlerTests
             Type: EProviderType.Individual,
             BusinessProfile: CreateTestBusinessProfile());
 
-        var existingProvider = new ProviderBuilder()
-            .WithUserId(userId)
-            .WithName("Existing")
-            .WithType(EProviderType.Individual)
-            .Build();
-
-        _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingProvider);
+        _providerQueriesMock
+            .Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -93,7 +91,11 @@ public class CreateProviderCommandHandlerTests
         result.Error!.Message.Should().Be(ValidationMessages.Providers.AlreadyExists);
 
         _providerRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.Add(It.IsAny<Provider>()),
+            Times.Never);
+
+        _uowMock.Verify(
+            u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -108,8 +110,8 @@ public class CreateProviderCommandHandlerTests
             Type: EProviderType.Individual,
             BusinessProfile: CreateTestBusinessProfile());
 
-        _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+        _providerQueriesMock
+            .Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act
@@ -118,5 +120,32 @@ public class CreateProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.CreationError);
+
+        _uowMock.Verify(
+            u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private static DTOs.BusinessProfileDto CreateTestBusinessProfile()
+    {
+        return new DTOs.BusinessProfileDto(
+            LegalName: "Test Legal Name",
+            FantasyName: "Test Fantasy Name",
+            Description: "Test Description",
+            ContactInfo: new DTOs.ContactInfoDto(
+                Email: "test@provider.com",
+                PhoneNumber: "+5511999999999",
+                Website: "https://test.com"),
+            PrimaryAddress: new DTOs.AddressDto(
+                Street: "Test Street",
+                Number: "123",
+                Complement: null,
+                Neighborhood: "Test Neighborhood",
+                City: "Test City",
+                State: "TS",
+                ZipCode: "12345678",
+                Country: "Brasil")
+        );
     }
 }

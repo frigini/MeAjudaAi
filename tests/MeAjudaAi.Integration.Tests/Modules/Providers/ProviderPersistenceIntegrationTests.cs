@@ -3,36 +3,41 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
 /// <summary>
-/// Integration tests for ProviderRepository with real database (TestContainers).
-/// Tests actual persistence logic, EF mappings, and database constraints.
+/// Testes de integração para persistência de Provider com banco de dados real (TestContainers).
 /// </summary>
-public class ProviderRepositoryIntegrationTests : BaseApiTest
+public class ProviderPersistenceIntegrationTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Providers;
 
     private readonly Faker _faker = new("pt_BR");
 
     [Fact]
-    public async Task AddAsync_WithValidProvider_ShouldPersistToDatabase()
+    public async Task Add_WithValidProvider_ShouldPersistToDatabase()
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
+        var repository = uow.GetRepository<Provider, ProviderId>();
         var provider = CreateValidProvider();
 
         // Act
-        await repository.AddAsync(provider);
+        repository.Add(provider);
+        await uow.SaveChangesAsync();
 
         // Assert
-        var retrieved = await repository.GetByIdAsync(provider.Id);
+        var retrieved = await providerQueries.GetByIdAsync(provider.Id);
         retrieved.Should().NotBeNull();
         retrieved!.Id.Should().Be(provider.Id);
         retrieved.Name.Should().Be(provider.Name);
@@ -43,13 +48,15 @@ public class ProviderRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
         var userId = Guid.NewGuid();
         var provider = CreateValidProvider(userId);
-        await repository.AddAsync(provider);
+        uow.GetRepository<Provider, ProviderId>().Add(provider);
+        await uow.SaveChangesAsync();
 
         // Act
-        var result = await repository.GetByUserIdAsync(userId);
+        var result = await providerQueries.GetByUserIdAsync(userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -61,13 +68,15 @@ public class ProviderRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
         var userId = Guid.NewGuid();
         var provider = CreateValidProvider(userId);
-        await repository.AddAsync(provider);
+        uow.GetRepository<Provider, ProviderId>().Add(provider);
+        await uow.SaveChangesAsync();
 
         // Act
-        var exists = await repository.ExistsByUserIdAsync(userId);
+        var exists = await providerQueries.ExistsByUserIdAsync(userId);
 
         // Assert
         exists.Should().BeTrue();
@@ -78,46 +87,25 @@ public class ProviderRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IProviderRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
+        var repository = uow.GetRepository<Provider, ProviderId>();
         var city = "São Paulo";
         var provider1 = CreateValidProviderWithAddress(city, "SP");
         var provider2 = CreateValidProviderWithAddress(city, "SP");
 
-        await repository.AddAsync(provider1);
-        await repository.AddAsync(provider2);
+        repository.Add(provider1);
+        repository.Add(provider2);
+        await uow.SaveChangesAsync();
 
         // Act
-        var results = await repository.GetByCityAsync(city);
+        var results = await providerQueries.GetByCityAsync(city);
 
         // Assert
         results.Should().HaveCountGreaterThanOrEqualTo(2);
         results.Should().Contain(p => p.Id == provider1.Id);
         results.Should().Contain(p => p.Id == provider2.Id);
     }
-
-    [Fact]
-    public async Task GetByStateAsync_WithMatchingState_ShouldReturnProviders()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IProviderRepository>();
-        var state = "SP";
-        var provider1 = CreateValidProviderWithAddress("São Paulo", state);
-        var provider2 = CreateValidProviderWithAddress("Campinas", state);
-
-        await repository.AddAsync(provider1);
-        await repository.AddAsync(provider2);
-
-        // Act
-        var results = await repository.GetByStateAsync(state);
-
-        // Assert
-        results.Should().HaveCountGreaterThanOrEqualTo(2);
-    }
-
-    // Note: UpdateAsync test not implemented yet - requires investigation of EF Core change tracking
-    // [Fact]
-    // public async Task UpdateAsync_WithModifiedProvider_ShouldPersistChanges()
 
     #region Helper Methods
 

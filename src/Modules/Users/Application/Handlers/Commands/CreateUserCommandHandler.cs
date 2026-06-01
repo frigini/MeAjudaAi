@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -20,11 +20,13 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// integração ao Keycloak.
 /// </remarks>
 /// <param name="userDomainService">Serviço de domínio para operações de usuário</param>
-/// <param name="userRepository">Repositório para persistência de usuários</param>
+/// <param name="uow">Unit of Work para operações de escrita</param>
+/// <param name="userQueries">Queries de leitura de usuário</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 internal sealed class CreateUserCommandHandler(
     IUserDomainService userDomainService,
-    IUserRepository userRepository,
+    IUserUnitOfWork uow,
+    IUserQueries userQueries,
     ILogger<CreateUserCommandHandler> logger
 ) : ICommandHandler<CreateUserCommand, Result<UserDto>>
 {
@@ -101,7 +103,7 @@ internal sealed class CreateUserCommandHandler(
         catch (Exception ex)
         {
             // Capturar erros de infraestrutura (database, cache, etc.) e logar com detalhes completos
-            logger.LogError(ex, "Unexpected error creating user with email {Email}. ExceptionType: {ExceptionType}, Message: {Message}", 
+            logger.LogError(ex, "Unexpected error creating user with email {Email}. ExceptionType: {ExceptionType}, Message: {Message}",
                 command.Email, ex.GetType().Name, ex.Message);
             return Result<UserDto>.Failure("Falha ao criar usuário. Tente novamente mais tarde.");
         }
@@ -116,7 +118,7 @@ internal sealed class CreateUserCommandHandler(
     {
         // Verifica se já existe usuário com o email informado
         logger.LogDebug("Checking email uniqueness for {Email}", command.Email);
-        var existingByEmail = await userRepository.GetByEmailAsync(
+        var existingByEmail = await userQueries.GetByEmailAsync(
             new Email(command.Email), cancellationToken);
         if (existingByEmail != null)
         {
@@ -126,7 +128,7 @@ internal sealed class CreateUserCommandHandler(
 
         // Verifica se já existe usuário com o username informado
         logger.LogDebug("Checking username uniqueness for {Username}", command.Username);
-        var existingByUsername = await userRepository.GetByUsernameAsync(
+        var existingByUsername = await userQueries.GetByUsernameAsync(
             new Username(command.Username), cancellationToken);
         if (existingByUsername != null)
         {
@@ -180,7 +182,8 @@ internal sealed class CreateUserCommandHandler(
     {
         logger.LogDebug("Persisting user {UserId} to repository", user.Id);
         var persistenceStart = stopwatch.ElapsedMilliseconds;
-        await userRepository.AddAsync(user, cancellationToken);
+        uow.GetRepository<Domain.Entities.User, UserId>().Add(user);
+        await uow.SaveChangesAsync(cancellationToken);
 
         logger.LogDebug("User persistence completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - persistenceStart);

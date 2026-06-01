@@ -45,6 +45,20 @@ O gateway será implementado após a conclusão das fases de refatoração de pe
 
 ---
 
+## ✅ Sprint 14: Refatoração de Persistência — Módulos Users e Providers (Concluída em 25 Mai 2026)
+
+**Objetivo**: Refatorar a camada de persistência dos módulos Users e Providers eliminando repositórios intermediários e adotando o padrão Híbrido (EF Core UoW + Queries).
+
+### Entregas:
+- ✅ **Infrastructure**: Implementação de `DbContextUserQueries` e `DbContextProviderQueries` (`AsNoTracking`).
+- ✅ **Persistence**: `UsersDbContext` e `ProvidersDbContext` atualizados para `BaseDbContext` e `IUnitOfWork`.
+- ✅ **DI**: Registro explícito de dependências, removendo scan do Scrutor.
+- ✅ **Handlers**: Refatoração completa de Command/Query Handlers (`RegisterProviderCommandHandler`, etc.) para padrão UoW.
+- ✅ **Testes**: Refatoração de testes de integração (`ProviderPersistenceIntegrationTests`) e unitários para uso de novas interfaces.
+- ✅ **Documentação**: Atualização da documentação técnica e do plano de persistência.
+
+---
+
 ## ✅ Sprint 13.3: Refatoração de Persistência — Fase 0 (Concluída em 05 Mai 2026)
 
 **Objetivo**: Preparar a camada compartilhada para o novo modelo de persistência com EF Core como UoW e Repository.

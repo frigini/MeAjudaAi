@@ -1,9 +1,12 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -16,11 +19,13 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// permitindo que o prestador corrija informações identificadas como incorretas ou incompletas
 /// durante o processo de verificação de documentos.
 /// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
+/// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
+/// <param name="localizer">Localizador de strings</param>
 public sealed class RequireBasicInfoCorrectionCommandHandler(
-    IProviderRepository providerRepository,
-    ILogger<RequireBasicInfoCorrectionCommandHandler> logger
+    IProviderUnitOfWork uow,
+    ILogger<RequireBasicInfoCorrectionCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<RequireBasicInfoCorrectionCommand, Result>
 {
     /// <summary>
@@ -40,25 +45,25 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
             if (string.IsNullOrWhiteSpace(command.Reason))
             {
                 logger.LogWarning("Correction reason is required but was not provided");
-                return Result.Failure("Correction reason is required");
+                return Result.Failure(localizer["CorrectionReasonRequired"]);
             }
 
             if (string.IsNullOrWhiteSpace(command.RequestedBy))
             {
                 logger.LogWarning("RequestedBy is required but was not provided");
-                return Result.Failure("RequestedBy is required");
+                return Result.Failure(localizer["RequestedByRequired"]);
             }
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Provider not found");
+                return Result.Failure(localizer["ProviderNotFound"]);
             }
 
             provider.RequireBasicInfoCorrection(command.Reason, command.RequestedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
                 "Basic info correction required for provider {ProviderId}. Provider returned to PendingBasicInfo status",
@@ -78,7 +83,7 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
         {
             // Generic error for unexpected failures
             logger.LogError(ex, "Error requiring basic info correction for provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Failed to require basic info correction");
+            return Result.Failure(localizer["BasicInfoCorrectionError"]);
         }
     }
 }

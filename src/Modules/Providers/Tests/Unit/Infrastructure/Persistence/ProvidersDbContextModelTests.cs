@@ -15,7 +15,7 @@ public class ProvidersDbContextModelTests
             .Options;
 
         // Act
-        using var ctx = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(options);
+        using var ctx = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(options, null!);
 
         // Assert
         ctx.Model.GetEntityTypes().Should().NotBeEmpty();

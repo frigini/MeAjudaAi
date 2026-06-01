@@ -3,26 +3,26 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Shared.Database.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
 public sealed class RegisterProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
+    IProviderQueries providerQueries,
     ILogger<RegisterProviderCommandHandler> logger
 ) : ICommandHandler<RegisterProviderCommand, Result<ProviderDto>>
 {
     public async Task<Result<ProviderDto>> HandleAsync(RegisterProviderCommand command, CancellationToken cancellationToken)
     {
-        var existingProvider = await providerRepository.GetByUserIdAsync(command.UserId, cancellationToken);
+        var existingProvider = await providerQueries.GetByUserIdAsync(command.UserId, cancellationToken);
         if (existingProvider is not null)
         {
             return Result<ProviderDto>.Success(existingProvider.ToDto());
@@ -32,23 +32,22 @@ public sealed class RegisterProviderCommandHandler(
         {
             var contactInfo = new ContactInfo(command.Email, command.PhoneNumber);
             
-            // Endereço e BusinessProfile inicialmente placeholders para permitir cadastro em etapas
-            // Usando valores sentinela claros para indicar pendência
             var address = new Address(
-                "Rua Pendente", // street
-                "0",            // number
-                "Bairro Pendente", // neighborhood
-                "Cidade Pendente", // city
-                "SP",            // state (valid UF)
-                "00000-000"     // zipCode
+                "Rua Pendente",
+                "0",
+                "Bairro Pendente",
+                "Cidade Pendente",
+                "SP",
+                "00000-000",
+                "Brasil"
             ); 
             
             var businessProfile = new BusinessProfile(
-                command.Name, // LegalName
+                command.Name,
                 contactInfo,
                 address,
-                command.Name, // FantasyName default
-                "Prestador de serviços" // Description default
+                command.Name,
+                "Prestador de serviços"
             );
 
             var provider = new Provider(
@@ -64,7 +63,8 @@ public sealed class RegisterProviderCommandHandler(
             var doc = new Document(command.DocumentNumber, docType, isPrimary: true);
             provider.AddDocument(doc);
             
-            await providerRepository.AddAsync(provider, cancellationToken);
+            uow.GetRepository<Provider, ProviderId>().Add(provider);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} created successfully via registration for user {UserId}",
                 provider.Id.Value, command.UserId);
@@ -73,23 +73,20 @@ public sealed class RegisterProviderCommandHandler(
         }
         catch (DbUpdateException ex)
         {
-            var processedEx = PostgreSqlExceptionProcessor.ProcessException(ex);
-            
-            if (processedEx is UniqueConstraintException)
+            if (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
             {
-                logger.LogWarning(ex, "Duplicate provider registration attempt for user {UserId}", command.UserId);
-                var existing = await providerRepository.GetByUserIdAsync(command.UserId, cancellationToken);
-                if (existing is not null)
-                {
-                    return Result<ProviderDto>.Success(existing.ToDto());
-                }
+                logger.LogWarning(ex, "Uniqueness violation in RegisterProvider for user {UserId}. Checking if provider already exists.", command.UserId);
                 
-                // Se houver violação de constraint única mas não encontrarmos o prestador,
-                // isso implica numa condição de corrida ou inconsistência de dados que devemos reportar como falha
-                return Result<ProviderDto>.Failure(Error.Conflict("Um prestador já está registrado para este usuário."));
+                // Recalcula se o prestador já existe (race condition entre a verificação inicial e o save)
+                var duplicateProvider = await providerQueries.GetByUserIdAsync(command.UserId, cancellationToken);
+                if (duplicateProvider is not null)
+                {
+                    return Result<ProviderDto>.Success(duplicateProvider.ToDto());
+                }
             }
-            // Para outros erros de banco de dados, relança para ser tratado pelo handler global de exceções ou catch externo
-            throw processedEx;
+
+            logger.LogError(ex, "Database update error in RegisterProvider for user {UserId}", command.UserId);
+            return Result<ProviderDto>.Failure(new Error("Erro ao salvar os dados. Verifique se as informações já estão cadastradas ou tente novamente.", 500));
         }
         catch (Exception ex) when (ex is DomainException || ex is ArgumentException)
         {

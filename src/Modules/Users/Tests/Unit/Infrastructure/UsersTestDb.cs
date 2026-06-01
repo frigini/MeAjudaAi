@@ -15,7 +15,7 @@ public static class UsersTestDb
             .UseSqlite(connection)
             .Options;
 
-        var context = new UsersDbContext(options);
+        var context = new UsersDbContext(options, null!);
         context.Database.EnsureCreated();
 
         return context;

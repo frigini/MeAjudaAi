@@ -1,12 +1,18 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 
@@ -15,15 +21,25 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class RequireBasicInfoCorrectionCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RequireBasicInfoCorrectionCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly RequireBasicInfoCorrectionCommandHandler _handler;
 
     public RequireBasicInfoCorrectionCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RequireBasicInfoCorrectionCommandHandler>>();
-        _handler = new RequireBasicInfoCorrectionCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        
+        // Setup localizer to return the key name
+        _localizerMock.Setup(l => l[It.IsAny<string>()]).Returns((string name) => new LocalizedString(name, name));
+
+        _handler = new RequireBasicInfoCorrectionCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
@@ -44,12 +60,8 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -59,11 +71,11 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         provider.Status.Should().Be(EProviderStatus.PendingBasicInfo);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -79,7 +91,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -87,14 +99,14 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("Provider not found");
+        result.Error.ToString().Should().Contain("ProviderNotFound");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -117,14 +129,14 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("Correction reason is required");
+        result.Error.ToString().Should().Contain("CorrectionReasonRequired");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -147,14 +159,14 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("RequestedBy is required");
+        result.Error.ToString().Should().Contain("RequestedByRequired");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -196,7 +208,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -206,8 +218,8 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.ToString().Should().Contain("Can only require basic info correction during document verification");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -223,7 +235,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -231,10 +243,10 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("Failed to require basic info correction");
+        result.Error.ToString().Should().Contain("BasicInfoCorrectionError");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -256,12 +268,8 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -290,12 +298,8 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);

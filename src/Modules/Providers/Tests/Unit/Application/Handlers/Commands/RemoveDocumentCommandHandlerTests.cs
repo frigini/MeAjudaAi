@@ -1,11 +1,15 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 
@@ -14,15 +18,19 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class RemoveDocumentCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RemoveDocumentCommandHandler>> _loggerMock;
     private readonly RemoveDocumentCommandHandler _handler;
 
     public RemoveDocumentCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveDocumentCommandHandler>>();
-        _handler = new RemoveDocumentCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new RemoveDocumentCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -40,12 +48,8 @@ public class RemoveDocumentCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -56,11 +60,11 @@ public class RemoveDocumentCommandHandlerTests
         result.Value!.Id.Should().Be(providerId);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -75,7 +79,7 @@ public class RemoveDocumentCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -86,11 +90,11 @@ public class RemoveDocumentCommandHandlerTests
         result.Error.Message.Should().Contain("Provider not found");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -107,7 +111,7 @@ public class RemoveDocumentCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -118,11 +122,11 @@ public class RemoveDocumentCommandHandlerTests
         result.Error.Message.Should().Contain("An error occurred while removing the document");
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -137,7 +141,7 @@ public class RemoveDocumentCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -147,8 +151,8 @@ public class RemoveDocumentCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("An error occurred while removing the document");
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -170,12 +174,8 @@ public class RemoveDocumentCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _providerRepositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -186,11 +186,11 @@ public class RemoveDocumentCommandHandlerTests
         result.Value!.Id.Should().Be(providerId);
 
         _providerRepositoryMock.Verify(
-            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+        _uowMock.Verify(
+            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
 }

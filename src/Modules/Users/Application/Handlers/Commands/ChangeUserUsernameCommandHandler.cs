@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -31,11 +31,13 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// - SEO e links externos podem ser impactados
 /// - Possível necessidade de período de carência entre mudanças
 /// </remarks>
-/// <param name="userRepository">Repositório para operações de usuário</param>
+/// <param name="uow">Unit of Work para operações de escrita</param>
+/// <param name="userQueries">Queries de leitura de usuário</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
 public sealed class ChangeUserUsernameCommandHandler(
-    IUserRepository userRepository,
+    IUserUnitOfWork uow,
+    IUserQueries userQueries,
     TimeProvider dateTimeProvider,
     ILogger<ChangeUserUsernameCommandHandler> logger
 ) : ICommandHandler<ChangeUserUsernameCommand, Result<UserDto>>
@@ -102,7 +104,7 @@ public sealed class ChangeUserUsernameCommandHandler(
             ApplyUsernameChange(command, user, oldUsername);
 
             // Persistir alterações
-            await PersistUsernameChangeAsync(user, stopwatch, cancellationToken);
+            await PersistUsernameChangeAsync(stopwatch, cancellationToken);
 
             stopwatch.Stop();
             logger.LogInformation(
@@ -146,7 +148,7 @@ public sealed class ChangeUserUsernameCommandHandler(
     {
         // Busca o usuário pelo ID
         logger.LogDebug("Fetching user {UserId} for username change", command.UserId);
-        var user = await userRepository.GetByIdAsync(
+        var user = await uow.GetRepository<Domain.Entities.User, UserId>().TryFindAsync(
             new UserId(command.UserId), cancellationToken);
 
         if (user == null)
@@ -157,7 +159,7 @@ public sealed class ChangeUserUsernameCommandHandler(
 
         // Verifica se já existe usuário com o novo username
         logger.LogDebug("Checking username uniqueness for {NewUsername}", command.NewUsername);
-        var existingUserWithUsername = await userRepository.GetByUsernameAsync(
+        var existingUserWithUsername = await userQueries.GetByUsernameAsync(
             new Username(command.NewUsername), cancellationToken);
 
         if (existingUserWithUsername != null && existingUserWithUsername.Id != user.Id)
@@ -200,12 +202,11 @@ public sealed class ChangeUserUsernameCommandHandler(
     /// Persiste as alterações de username no repositório.
     /// </summary>
     private async Task PersistUsernameChangeAsync(
-        Domain.Entities.User user,
         System.Diagnostics.Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
         var persistenceStart = stopwatch.ElapsedMilliseconds;
-        await userRepository.UpdateAsync(user, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         logger.LogDebug("Username change persistence completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - persistenceStart);

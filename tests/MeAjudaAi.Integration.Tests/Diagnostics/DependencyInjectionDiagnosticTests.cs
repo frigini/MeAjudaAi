@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -48,7 +49,7 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
             typeof(IQueryDispatcher),
             typeof(IQueryHandler<GetProvidersQuery, Result<PagedResult<ProviderDto>>>),
             typeof(MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext),
-            typeof(MeAjudaAi.Modules.Providers.Domain.Repositories.IProviderRepository)
+            typeof(IUnitOfWork)
         };
 
         // Act & Assert
@@ -58,6 +59,10 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
             testOutput.WriteLine($"{serviceType.Name}: {service != null}");
             service.Should().NotBeNull($"{serviceType.Name} should be registered");
         }
+
+        // Verify IUnitOfWork can resolve repositories
+        var uow = Services.GetService<IUnitOfWork>();
+        uow.Should().NotBeNull("IUnitOfWork should be registered");
     }
 
     [Fact]

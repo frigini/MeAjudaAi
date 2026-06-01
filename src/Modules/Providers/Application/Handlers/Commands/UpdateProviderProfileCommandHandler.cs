@@ -1,10 +1,12 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -13,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de atualização de perfil do prestador de serviços.
 /// </summary>
 public sealed class UpdateProviderProfileCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
     ILogger<UpdateProviderProfileCommandHandler> logger
 ) : ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>
 {
@@ -24,12 +26,12 @@ public sealed class UpdateProviderProfileCommandHandler(
             logger.LogInformation("Updating provider profile {ProviderId}", command.ProviderId);
 
             var providerId = new ProviderId(command.ProviderId);
-            var provider = await providerRepository.GetByIdAsync(providerId, cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
 
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(Error.NotFound("Provider not found"));
+                return Result<ProviderDto>.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
             }
 
             var businessProfile = command.BusinessProfile.ToDomain();
@@ -40,7 +42,7 @@ public sealed class UpdateProviderProfileCommandHandler(
                 provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
             }
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);
             return Result<ProviderDto>.Success(provider.ToDto());
@@ -52,4 +54,3 @@ public sealed class UpdateProviderProfileCommandHandler(
         }
     }
 }
-

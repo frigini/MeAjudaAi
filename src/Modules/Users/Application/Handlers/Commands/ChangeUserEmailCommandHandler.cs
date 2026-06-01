@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -29,10 +29,12 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// - Sistema de notificações por email
 /// - Logs de auditoria de segurança
 /// </remarks>
-/// <param name="userRepository">Repositório para operações de usuário</param>
+/// <param name="uow">Unit of Work para operações de escrita</param>
+/// <param name="userQueries">Queries de leitura de usuário</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
 public sealed class ChangeUserEmailCommandHandler(
-    IUserRepository userRepository,
+    IUserUnitOfWork uow,
+    IUserQueries userQueries,
     ILogger<ChangeUserEmailCommandHandler> logger
 ) : ICommandHandler<ChangeUserEmailCommand, Result<UserDto>>
 {
@@ -90,7 +92,7 @@ public sealed class ChangeUserEmailCommandHandler(
             ApplyEmailChange(command, user, oldEmail);
 
             // Persistir alterações
-            await PersistEmailChangeAsync(user, stopwatch, cancellationToken);
+            await PersistEmailChangeAsync(stopwatch, cancellationToken);
 
             stopwatch.Stop();
             logger.LogInformation(
@@ -119,7 +121,7 @@ public sealed class ChangeUserEmailCommandHandler(
     {
         // Busca o usuário pelo ID
         logger.LogDebug("Fetching user {UserId} for email change", command.UserId);
-        var user = await userRepository.GetByIdAsync(
+        var user = await uow.GetRepository<Domain.Entities.User, UserId>().TryFindAsync(
             new UserId(command.UserId), cancellationToken);
 
         if (user == null)
@@ -130,7 +132,7 @@ public sealed class ChangeUserEmailCommandHandler(
 
         // Verifica se já existe usuário com o novo email
         logger.LogDebug("Checking email uniqueness for {NewEmail}", command.NewEmail);
-        var existingUserWithEmail = await userRepository.GetByEmailAsync(
+        var existingUserWithEmail = await userQueries.GetByEmailAsync(
             new Email(command.NewEmail), cancellationToken);
 
         if (existingUserWithEmail != null && existingUserWithEmail.Id != user.Id)
@@ -158,12 +160,11 @@ public sealed class ChangeUserEmailCommandHandler(
     /// Persiste as alterações de email no repositório.
     /// </summary>
     private async Task PersistEmailChangeAsync(
-        Domain.Entities.User user,
         System.Diagnostics.Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
         var persistenceStart = stopwatch.ElapsedMilliseconds;
-        await userRepository.UpdateAsync(user, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         logger.LogDebug("Email change persistence completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - persistenceStart);

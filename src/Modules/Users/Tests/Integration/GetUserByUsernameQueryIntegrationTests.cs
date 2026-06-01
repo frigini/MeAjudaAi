@@ -1,10 +1,11 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Modules.Users;
@@ -25,7 +26,8 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Arrange
         using var scope = CreateScope();
         var userDomainService = GetScopedService<IUserDomainService>(scope);
-        var userRepository = GetScopedService<IUserRepository>(scope);
+        var uow = GetScopedService<IUnitOfWork>(scope);
+        var userQueries = GetScopedService<IUserQueries>(scope);
         var dbContext = GetScopedService<UsersDbContext>(scope);
         var queryHandler = GetScopedService<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>(scope);
 
@@ -43,8 +45,8 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         Assert.True(createResult.IsSuccess);
 
         var createdUser = createResult.Value;
-        await userRepository.AddAsync(createdUser);
-        await dbContext.SaveChangesAsync();
+        uow.GetRepository<User, UserId>().Add(createdUser);
+        await uow.SaveChangesAsync();
 
         // Act - Consulta o usuário pelo nome de usuário
         var query = new GetUserByUsernameQuery(username.Value);
@@ -84,8 +86,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Arrange
         using var scope = CreateScope();
         var userDomainService = GetScopedService<IUserDomainService>(scope);
-        var userRepository = GetScopedService<IUserRepository>(scope);
-        var dbContext = GetScopedService<UsersDbContext>(scope);
+        var uow = GetScopedService<IUnitOfWork>(scope);
         var usersModuleApi = GetScopedService<IUsersModuleApi>(scope);
 
         // Cria um usuário de teste primeiro
@@ -102,8 +103,8 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         Assert.True(createResult.IsSuccess);
 
         var createdUser = createResult.Value;
-        await userRepository.AddAsync(createdUser);
-        await dbContext.SaveChangesAsync();
+        uow.GetRepository<User, UserId>().Add(createdUser);
+        await uow.SaveChangesAsync();
 
         // Act - Verifica se o nome de usuário existe
         var existsResult = await usersModuleApi.UsernameExistsAsync(username.Value);

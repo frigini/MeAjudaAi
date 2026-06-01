@@ -170,9 +170,16 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
+        var userId = Guid.NewGuid();
+        await CreateTestProviderAsync(userId, "Provider Test", "Muriaé", "MG");
         
         // Act - Por Cidade
-        var cityResponse = await Client.GetAsync("/api/v1/providers/by-city/Muriae");
+        var cityResponse = await Client.GetAsync("/api/v1/providers/by-city/Muriaé");
+        if (cityResponse.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await cityResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Expected OK, but found {cityResponse.StatusCode}. Content: {content}");
+        }
         cityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Act - Por Estado
@@ -198,6 +205,11 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
 
     private async Task CreateTestProviderAsync(Guid userId, string name)
     {
+        await CreateTestProviderAsync(userId, name, "Muriaé", "MG");
+    }
+
+    private async Task CreateTestProviderAsync(Guid userId, string name, string city, string state)
+    {
         // Garante que o contexto tem os dados do usuário para o comando
         AuthConfig.ConfigureUser(userId.ToString(), "provider", $"{userId}@test.com", "provider");
 
@@ -215,7 +227,18 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
                     email = $"{Guid.NewGuid()}@test.com",
                     phoneNumber = "+5511999999999"
                 },
-                showAddressToClient = false
+                primaryAddress = new 
+                {
+                    street = "Rua Teste",
+                    number = "123",
+                    complement = "Casa",
+                    neighborhood = "Bairro Teste",
+                    city = city,
+                    state = state,
+                    zipCode = "12345-678",
+                    country = "Brasil"
+                },
+                showAddressToClient = true
             }
         };
         

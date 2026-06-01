@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -10,23 +11,11 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <summary>
 /// Handler responsável por processar comandos de rejeição de prestadores.
 /// </summary>
-/// <remarks>
-/// Este handler rejeita o registro de um prestador após falha na verificação,
-/// impedindo que ele seja ativado na plataforma.
-/// </remarks>
-/// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
-/// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class RejectProviderCommandHandler(
-    IProviderRepository providerRepository,
+    IProviderUnitOfWork uow,
     ILogger<RejectProviderCommandHandler> logger
 ) : ICommandHandler<RejectProviderCommand, Result>
 {
-    /// <summary>
-    /// Processa o comando de rejeição de prestador.
-    /// </summary>
-    /// <param name="command">Comando de rejeição</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(RejectProviderCommand command, CancellationToken cancellationToken)
     {
         try
@@ -37,25 +26,25 @@ public sealed class RejectProviderCommandHandler(
             if (string.IsNullOrWhiteSpace(command.Reason))
             {
                 logger.LogWarning("Rejection reason is required but was not provided");
-                return Result.Failure("Rejection reason is required");
+                return Result.Failure("Motivo da rejeição é obrigatório");
             }
 
             if (string.IsNullOrWhiteSpace(command.RejectedBy))
             {
                 logger.LogWarning("RejectedBy is required but was not provided");
-                return Result.Failure("RejectedBy is required");
+                return Result.Failure("Responsável pela rejeição é obrigatório");
             }
 
-            var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
+            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Provider not found");
+                return Result.Failure("Fornecedor não encontrado");
             }
 
             provider.Reject(command.Reason, command.RejectedBy);
 
-            await providerRepository.UpdateAsync(provider, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} rejected successfully", command.ProviderId);
             return Result.Success();
@@ -63,7 +52,7 @@ public sealed class RejectProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error rejecting provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Failed to reject provider");
+            return Result.Failure("Falha ao rejeitar o fornecedor");
         }
     }
 }

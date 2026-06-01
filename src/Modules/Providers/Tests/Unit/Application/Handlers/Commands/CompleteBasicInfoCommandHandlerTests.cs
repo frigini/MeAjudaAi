@@ -1,25 +1,31 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 public sealed class CompleteBasicInfoCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _mockRepository;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>> _mockRepository;
     private readonly Mock<ILogger<CompleteBasicInfoCommandHandler>> _mockLogger;
     private readonly CompleteBasicInfoCommandHandler _handler;
 
     public CompleteBasicInfoCommandHandlerTests()
     {
-        _mockRepository = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _mockRepository = new Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>>();
         _mockLogger = new Mock<ILogger<CompleteBasicInfoCommandHandler>>();
-        _handler = new CompleteBasicInfoCommandHandler(_mockRepository.Object, _mockLogger.Object);
+
+        _uowMock.Setup(u => u.GetRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>()).Returns(_mockRepository.Object);
+        _handler = new CompleteBasicInfoCommandHandler(_uowMock.Object, _mockLogger.Object);
     }
 
     [Fact]
@@ -33,11 +39,8 @@ public sealed class CompleteBasicInfoCommandHandlerTests
 
         var command = new CompleteBasicInfoCommand(providerId, "admin@test.com");
 
-        _mockRepository.Setup(r => r.GetByIdAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+        _mockRepository.Setup(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
-
-        _mockRepository.Setup(r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -46,8 +49,8 @@ public sealed class CompleteBasicInfoCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         provider.Status.Should().Be(EProviderStatus.PendingDocumentVerification);
 
-        _mockRepository.Verify(r => r.GetByIdAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()), Times.Once);
-        _mockRepository.Verify(r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()), Times.Once);
+        _mockRepository.Verify(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -57,7 +60,7 @@ public sealed class CompleteBasicInfoCommandHandlerTests
         var providerId = Guid.NewGuid();
         var command = new CompleteBasicInfoCommand(providerId, "admin@test.com");
 
-        _mockRepository.Setup(r => r.GetByIdAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+        _mockRepository.Setup(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
 
         // Act
@@ -67,7 +70,8 @@ public sealed class CompleteBasicInfoCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Message.Should().Be("Provider not found");
 
-        _mockRepository.Verify(r => r.GetByIdAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()), Times.Once);
+        _mockRepository.Verify(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -81,10 +85,10 @@ public sealed class CompleteBasicInfoCommandHandlerTests
 
         var command = new CompleteBasicInfoCommand(providerId, "admin@test.com");
 
-        _mockRepository.Setup(r => r.GetByIdAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+        _mockRepository.Setup(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        _mockRepository.Setup(r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()))
+        _uowMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act

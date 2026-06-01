@@ -93,6 +93,28 @@ public class GetProvidersRequestValidatorTests
     }
 
     [Theory]
+    [InlineData(1)]
+    [InlineData(10)]
+    [InlineData(25)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void Validate_ValidPageSizes_ShouldNotHaveValidationError(int pageSize)
+    {
+        // Arrange
+        var request = new GetProvidersRequest
+        {
+            PageNumber = 1,
+            PageSize = pageSize
+        };
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.PageSize);
+    }
+
+    [Theory]
     [InlineData("a")]
     public void Validate_NameTooShort_ShouldHaveValidationError(string name)
     {

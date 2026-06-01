@@ -6,6 +6,8 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -61,13 +63,15 @@ public class GetProvidersByStateEndpoint : BaseEndpoint, IEndpoint
                 """)
             .RequirePermission(EPermission.ProvidersRead)
             .Produces<Response<IReadOnlyList<ProviderDto>>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError, typeof(ProblemDetails));
 
     /// <summary>
     /// Implementa a lógica de consulta de prestadores por estado.
     /// </summary>
     /// <param name="state">Nome do estado para busca</param>
     /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
+    /// <param name="logger">Logger para registro de erros</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>Resultado HTTP com lista de prestadores ou erro apropriado</returns>
     /// <remarks>
@@ -80,12 +84,29 @@ public class GetProvidersByStateEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> GetProvidersByStateAsync(
         string state,
         IQueryDispatcher queryDispatcher,
+        ILogger<GetProvidersByStateEndpoint> logger,
         CancellationToken cancellationToken)
     {
-        var query = state.ToStateQuery();
-        var result = await queryDispatcher.QueryAsync<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>(
-            query, cancellationToken);
+        try
+        {
+            var query = state.ToStateQuery();
+            var result = await queryDispatcher.QueryAsync<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>(
+                query, cancellationToken);
 
-        return Handle(result);
+            return Handle(result);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error fetching providers by state: {State}", state);
+
+            return Results.Problem(
+                detail: "Ocorreu um erro interno ao buscar prestadores por estado. Consulte os logs.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Erro Interno do Servidor");
+        }
     }
 }

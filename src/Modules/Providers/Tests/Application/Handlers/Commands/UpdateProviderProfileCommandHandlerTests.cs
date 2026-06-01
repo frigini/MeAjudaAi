@@ -1,11 +1,13 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -14,15 +16,19 @@ namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
 
 public class UpdateProviderProfileCommandHandlerTests
 {
-    private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<UpdateProviderProfileCommandHandler>> _loggerMock;
     private readonly UpdateProviderProfileCommandHandler _handler;
 
     public UpdateProviderProfileCommandHandlerTests()
     {
-        _providerRepositoryMock = new Mock<IProviderRepository>();
+        _uowMock = new Mock<IProviderUnitOfWork>();
+        _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<UpdateProviderProfileCommandHandler>>();
-        _handler = new UpdateProviderProfileCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+
+        _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
+        _handler = new UpdateProviderProfileCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -52,7 +58,7 @@ public class UpdateProviderProfileCommandHandlerTests
             new BusinessProfile("Old Legal", new ContactInfo("old@email.com"), new Address("Rua", "1", "Bairro", "Cidade", "ES", "CEP"), "Old Fantasy", "Old Desc")
         );
 
-        _providerRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProvider);
 
         // Act
@@ -62,8 +68,8 @@ public class UpdateProviderProfileCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be("Updated Name");
         result.Value.BusinessProfile.LegalName.Should().Be("Legal Name");
-        
-        _providerRepositoryMock.Verify(r => r.UpdateAsync(existingProvider, It.IsAny<CancellationToken>()), Times.Once);
+
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -83,7 +89,7 @@ public class UpdateProviderProfileCommandHandlerTests
             "Tester"
         );
 
-        _providerRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         // Act
@@ -92,7 +98,7 @@ public class UpdateProviderProfileCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(404);
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
     }
 
     [Fact]
@@ -112,7 +118,7 @@ public class UpdateProviderProfileCommandHandlerTests
             "Tester"
         );
 
-        _providerRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database connection failed"));
 
         // Act

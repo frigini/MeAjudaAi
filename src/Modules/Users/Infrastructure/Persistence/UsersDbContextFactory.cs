@@ -11,6 +11,6 @@ public class UsersDbContextFactory : BaseDesignTimeDbContextFactory<UsersDbConte
 {
     protected override UsersDbContext CreateDbContextInstance(DbContextOptions<UsersDbContext> options)
     {
-        return new UsersDbContext(options);
+        return new UsersDbContext(options, null!);
     }
 }

@@ -1,9 +1,10 @@
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,11 +62,13 @@ public class DependencyInjectionTests
 
             // Assert
             scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
-            scopedProvider.GetRequiredService<IUserRepository>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IUnitOfWork>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IUserQueries>().Should().NotBeNull();
             scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
             scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
             
-            services.Single(d => d.ServiceType == typeof(IUserRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+            services.Single(d => d.ServiceType == typeof(IUnitOfWork)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+            services.Single(d => d.ServiceType == typeof(IUserQueries)).Lifetime.Should().Be(ServiceLifetime.Scoped);
             services.Single(d => d.ServiceType == typeof(IUserDomainService)).Lifetime.Should().Be(ServiceLifetime.Scoped);
         }
     }
@@ -95,10 +98,12 @@ public class DependencyInjectionTests
             scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
             
             // Verifica que a persistência não foi quebrada ao habilitar Keycloak
-            scopedProvider.GetRequiredService<IUserRepository>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IUnitOfWork>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IUserQueries>().Should().NotBeNull();
             scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
 
-            services.Single(d => d.ServiceType == typeof(IUserRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+            services.Single(d => d.ServiceType == typeof(IUnitOfWork)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+            services.Single(d => d.ServiceType == typeof(IUserQueries)).Lifetime.Should().Be(ServiceLifetime.Scoped);
         }
     }
 }

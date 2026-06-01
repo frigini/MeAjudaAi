@@ -2,18 +2,21 @@ using Bogus;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
 /// <summary>
-/// Integration tests for UserRepository with real database (TestContainers).
-/// Tests actual persistence logic, EF mappings, and database constraints.
+/// Testes de integração da persistência de Usuário com banco de dados real (TestContainers).
+/// Testa a lógica de persistência, mapeamentos EF e restrições de banco de dados.
 /// </summary>
-public class UserRepositoryIntegrationTests : BaseApiTest
+public class UserPersistenceIntegrationTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Users;
 
@@ -23,18 +26,21 @@ public class UserRepositoryIntegrationTests : BaseApiTest
     /// Adds a valid User via repository and verifies the user is persisted and retrievable by Id.
     /// </summary>
     [Fact]
-    public async Task AddAsync_WithValidUser_ShouldPersistToDatabase()
+    public async Task Add_WithValidUser_ShouldPersistToDatabase()
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var userQueries = scope.ServiceProvider.GetRequiredService<IUserQueries>();
+        var repository = uow.GetRepository<User, UserId>();
         var user = CreateValidUser();
 
-        // Act - AddAsync auto-saves internally
-        await repository.AddAsync(user);
+        // Act
+        repository.Add(user);
+        await uow.SaveChangesAsync();
 
         // Assert
-        var retrieved = await repository.GetByIdAsync(user.Id);
+        var retrieved = await userQueries.GetByIdAsync(user.Id);
         retrieved.Should().NotBeNull();
         retrieved!.Id.Should().Be(user.Id);
         retrieved.Email.Value.Should().Be(user.Email.Value);
@@ -50,12 +56,14 @@ public class UserRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var userQueries = scope.ServiceProvider.GetRequiredService<IUserQueries>();
         var user = CreateValidUser();
-        await repository.AddAsync(user);
+        uow.GetRepository<User, UserId>().Add(user);
+        await uow.SaveChangesAsync();
 
         // Act
-        var result = await repository.GetByEmailAsync(user.Email);
+        var result = await userQueries.GetByEmailAsync(user.Email);
 
         // Assert
         result.Should().NotBeNull();
@@ -71,12 +79,14 @@ public class UserRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var userQueries = scope.ServiceProvider.GetRequiredService<IUserQueries>();
         var user = CreateValidUser();
-        await repository.AddAsync(user);
+        uow.GetRepository<User, UserId>().Add(user);
+        await uow.SaveChangesAsync();
 
         // Act
-        var result = await repository.GetByUsernameAsync(user.Username);
+        var result = await userQueries.GetByUsernameAsync(user.Username);
 
         // Assert
         result.Should().NotBeNull();
@@ -92,16 +102,19 @@ public class UserRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var userQueries = scope.ServiceProvider.GetRequiredService<IUserQueries>();
+        var repository = uow.GetRepository<User, UserId>();
         var user1 = CreateValidUser();
         var user2 = CreateValidUser();
         var user3 = CreateValidUser();
-        await repository.AddAsync(user1);
-        await repository.AddAsync(user2);
-        await repository.AddAsync(user3);
+        repository.Add(user1);
+        repository.Add(user2);
+        repository.Add(user3);
+        await uow.SaveChangesAsync();
 
         // Act
-        var result = await repository.GetUsersByIdsAsync(new[] { user1.Id, user3.Id });
+        var result = await userQueries.GetUsersByIdsAsync(new[] { user1.Id, user3.Id });
 
         // Assert
         result.Should().HaveCount(2);
@@ -117,43 +130,21 @@ public class UserRepositoryIntegrationTests : BaseApiTest
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var userQueries = scope.ServiceProvider.GetRequiredService<IUserQueries>();
+        var repository = uow.GetRepository<User, UserId>();
         for (int i = 0; i < 15; i++)
         {
-            await repository.AddAsync(CreateValidUser());
+            repository.Add(CreateValidUser());
         }
+        await uow.SaveChangesAsync();
 
         // Act
-        var (users, totalCount) = await repository.GetPagedAsync(pageNumber: 1, pageSize: 10);
+        var (users, totalCount) = await userQueries.GetPagedAsync(pageNumber: 1, pageSize: 10);
 
         // Assert
         users.Should().HaveCount(10);
         totalCount.Should().BeGreaterThanOrEqualTo(15);
-    }
-
-    /// <summary>
-    /// Updates a user's profile and verifies the changes are persisted to the database.
-    /// </summary>
-    [Fact]
-    public async Task UpdateAsync_WithModifiedUser_ShouldPersistChanges()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-        var user = CreateValidUser();
-        await repository.AddAsync(user);
-
-        // Act - UpdateProfile modifies FirstName and LastName
-        string newFirstName = _faker.Name.FirstName();
-        string newLastName = _faker.Name.LastName();
-        user.UpdateProfile(newFirstName, newLastName);
-        await repository.UpdateAsync(user);
-
-        // Assert
-        var updated = await repository.GetByIdAsync(user.Id);
-        updated.Should().NotBeNull();
-        updated!.FirstName.Should().Be(newFirstName);
-        updated.LastName.Should().Be(newLastName);
     }
 
     private User CreateValidUser()

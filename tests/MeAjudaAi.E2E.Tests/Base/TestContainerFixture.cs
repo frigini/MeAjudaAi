@@ -250,6 +250,10 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in keycloakDescriptors) services.Remove(d);
         services.AddSingleton<IKeycloakService, MockKeycloakService>();
 
+        var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
+        foreach (var d in userDomainDescriptors) services.Remove(d);
+        services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
+
         var blobDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
         foreach (var d in blobDescriptors) services.Remove(d);
         services.AddSingleton<IBlobStorageService, MockBlobStorageService>();
@@ -286,8 +290,8 @@ public class TestContainerFixture : IAsyncLifetime
 
     private void ReconfigureDbContexts(IServiceCollection services)
     {
-        ReconfigureDbContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services, ModuleKeys.Users);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services, ModuleKeys.Providers);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
@@ -316,18 +320,23 @@ public class TestContainerFixture : IAsyncLifetime
 
         services.AddScoped<IDapperConnection, DapperConnection>();
     }
+
     private void ReconfigureDbContextWithUnitOfWork<TContext>(IServiceCollection services, string moduleKey)
         where TContext : DbContext
     {
         ReconfigureDbContext<TContext>(services);
 
-        // Register keyed service for the module using the context type directly
-        // We use the lambda but we cast it to IUnitOfWork to ensure it's registered as the interface
+        // Registra o serviço por chave para o módulo usando o tipo do contexto diretamente
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
-        
-        // Also ensure a global one exists (use Replace to ensure the last one registered wins, 
-        // which is better than TryAdd because it's predictable)
-        services.Replace(ServiceDescriptor.Scoped<IUnitOfWork>(sp => (IUnitOfWork)sp.GetRequiredService<TContext>()));
+
+        // Somente o módulo de Usuários deve definir IUserUnitOfWork (que estende IUnitOfWork)
+        // Todos os outros módulos usam apenas o registro por chave de IUnitOfWork
+        // Os handlers de usuário agora usam IUserUnitOfWork diretamente, então não é necessária a substituição global de IUnitOfWork
+        if (typeof(TContext).Name == "UsersDbContext")
+        {
+            services.Replace(ServiceDescriptor.Scoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(
+                sp => (MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork)sp.GetRequiredService<TContext>()));
+        }
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext

@@ -2,7 +2,6 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
@@ -20,11 +19,11 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// uma mensagem de erro caso não seja encontrado.
 /// Utiliza cache distribuído para melhorar performance.
 /// </remarks>
-/// <param name="userRepository">Repositório para consultas de usuários</param>
+/// <param name="userQueries">Serviço de queries de leitura de usuários</param>
 /// <param name="usersCacheService">Serviço de cache específico para usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
 internal sealed class GetUserByIdQueryHandler(
-    IUserRepository userRepository,
+    IUserQueries userQueries,
     IUsersCacheService usersCacheService,
     ILogger<GetUserByIdQueryHandler> logger
 ) : IQueryHandler<GetUserByIdQuery, Result<UserDto>>
@@ -67,7 +66,7 @@ internal sealed class GetUserByIdQueryHandler(
                 {
                     logger.LogDebug("Cache miss - fetching user from repository. UserId: {UserId}", query.UserId);
 
-                    var user = await userRepository.GetByIdAsync(new UserId(query.UserId), ct);
+                    var user = await userQueries.GetByIdAsync(new UserId(query.UserId), ct);
                     return user?.ToDto();
                 },
                 cancellationToken);
