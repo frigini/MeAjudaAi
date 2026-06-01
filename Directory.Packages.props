@@ -53,7 +53,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.1" />
     <!-- Acesso a Dados -->
-    <PackageVersion Include="Npgsql" Version="10.0.2" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
     <!-- Nota: Dapper.AOT é trazido pelo Hangfire.PostgreSql. Inofensivo pois não usamos AOT estrito ainda. -->
     <PackageVersion Include="Dapper" Version="2.1.72" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.7" />

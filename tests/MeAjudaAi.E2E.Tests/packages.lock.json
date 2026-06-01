@@ -145,10 +145,10 @@
           "Microsoft.Extensions.Primitives": "10.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Transitive",
         "resolved": "13.2.4",
-        "contentHash": "9PjR4aGeEgxe4H4+Ix19Ps7+LxNaT7+ykWVG1XlaBVBqg7LSbflBWr8eg+TD692BV7wBVC+6yW+uBSK3wWkw2Q=="
+        "contentHash": "9/Nl+3Hc/oK8upfYl7swUy5MEkwMPUtWpQkUJZcs1F0XvROI48V5ZXaPycDxxyNMAn/DYXgpOvU+QLdr2uTjCg=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -373,10 +373,10 @@
           "System.IO.Hashing": "10.0.3"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Transitive",
         "resolved": "13.2.4",
-        "contentHash": "jQ67V8hG78O2Ok0DR0rBvWb5409NEDiVSPIO5viA+NEU+69Z85i4sUfEMc4AGfK9d2sj6fUl7ZdwUJyGZRFgBA=="
+        "contentHash": "/OzUdJUKWDVbK2igP+X3r455Y8SV+5Y7WaTur7fPcS6FalTFtNvfR2NZWiwd9UjY3M7ytdIS4PKHnReWyX7rLg=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -1682,13 +1682,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.2.4, )",
+          "Aspire.Dashboard.Sdk.linux-x64": "[13.2.4, )",
           "Aspire.Hosting.AppHost": "[13.2.4, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.2.4, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.2.4, )",
           "Aspire.Hosting.JavaScript": "[13.2.4, )",
           "Aspire.Hosting.Keycloak": "[13.2.4-preview.1.26224.4, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.2.4, )",
+          "Aspire.Hosting.Orchestration.linux-x64": "[13.2.4, )",
           "Aspire.Hosting.PostgreSQL": "[13.2.4, )",
           "Aspire.Hosting.RabbitMQ": "[13.2.4, )",
           "Aspire.Hosting.Redis": "[13.2.4, )",
@@ -1754,7 +1754,7 @@
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.7, )",
           "Microsoft.NET.Test.Sdk": "[18.4.0, )",
           "Moq": "[4.20.72, )",
-          "Npgsql": "[10.0.2, )",
+          "Npgsql": "[10.0.3, )",
           "Respawn": "[7.0.0, )",
           "Testcontainers.PostgreSql": "[4.11.0, )",
           "xunit.v3": "[3.2.2, )"
@@ -1960,7 +1960,7 @@
         "dependencies": {
           "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.7, )",
-          "Npgsql": "[10.0.2, )"
+          "Npgsql": "[10.0.3, )"
         }
       },
       "meajudaai.modules.ratings.domain": {
@@ -3126,9 +3126,9 @@
       },
       "Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[10.0.2, )",
-        "resolved": "10.0.2",
-        "contentHash": "q5RfBI+wywJSFUNDE1L4ZbHEHCFTblo8Uf6A6oe4feOUFYiUQXyAf9GBh5qEZpvJaHiEbpBPkQumjEhXCJxdrg==",
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0"
         }
