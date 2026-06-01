@@ -53,6 +53,7 @@ public sealed class DocumentationExtensionsTests
         services.AddLogging();
         services.AddDocumentation();
         services.AddRouting();
+        services.AddSingleton<IWebHostEnvironment>(new Mock<IWebHostEnvironment>().Object);
 
         var serviceProvider = services.BuildServiceProvider();
         var app = new ApplicationBuilder(serviceProvider);
