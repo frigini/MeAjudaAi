@@ -1296,6 +1296,7 @@
         "type": "Project",
         "dependencies": {
           "EFCore.NamingConventions": "[10.0.1, )",
+          "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
         }

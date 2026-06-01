@@ -1,9 +1,11 @@
 using MeAjudaAi.Modules.Payments.Application.Queries;
+using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
+using MeAjudaAi.Modules.Payments.Infrastructure.Services;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
@@ -48,6 +50,7 @@ public static class Extensions
 
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
         services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
+        services.AddScoped<IPaymentCommandService, DbContextPaymentCommandService>();
         
         services.AddScoped<IStripeClient>(provider => 
         {

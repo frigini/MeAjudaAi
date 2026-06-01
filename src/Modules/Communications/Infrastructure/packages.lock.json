@@ -337,6 +337,14 @@
           "FluentValidation": "[12.1.1, )"
         }
       },
+      "meajudaai.modules.communications.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.Domain": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
       "meajudaai.modules.communications.domain": {
         "type": "Project",
         "dependencies": {

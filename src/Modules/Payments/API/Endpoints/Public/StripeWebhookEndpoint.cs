@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Payments.Domain.Entities;
+using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +22,7 @@ public class StripeWebhookEndpoint : IEndpoint
             HttpContext context,
             [FromServices] IConfiguration configuration,
             [FromServices] IHostEnvironment environment,
-            [FromServices] PaymentsDbContext dbContext,
+            [FromServices] IPaymentCommandService paymentService,
             [FromServices] ILogger<StripeWebhookEndpoint> logger,
             CancellationToken cancellationToken) =>
         {
@@ -57,7 +57,7 @@ public class StripeWebhookEndpoint : IEndpoint
                     var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
                     if (mockEvent == null) return Results.BadRequest(new { error = "Falha ao processar evento mock" });
                     
-                    await SaveToInbox(mockEvent.Type, json, mockEvent.Id, dbContext, cancellationToken);
+                    await paymentService.SaveInboxMessageAsync(mockEvent.Type, json, mockEvent.Id, cancellationToken);
                     return Results.Ok();
                 }
 
@@ -73,7 +73,7 @@ public class StripeWebhookEndpoint : IEndpoint
                     webhookSecret,
                     throwOnApiVersionMismatch: false);
 
-                await SaveToInbox(stripeEvent.Type, json, stripeEvent.Id, dbContext, cancellationToken);
+                await paymentService.SaveInboxMessageAsync(stripeEvent.Type, json, stripeEvent.Id, cancellationToken);
 
                 return Results.Ok();
             }
@@ -100,30 +100,5 @@ public class StripeWebhookEndpoint : IEndpoint
         .WithTags(PaymentsEndpoints.Tag)
         .WithName("StripeWebhook")
         .WithSummary("Recebe webhooks do Stripe de forma assíncrona.");
-    }
-
-    private static async Task SaveToInbox(string type, string content, string externalEventId, PaymentsDbContext dbContext, CancellationToken ct)
-    {
-        if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
-
-        try
-        {
-            // Idempotência: verifica se o evento já existe
-            var exists = await dbContext.InboxMessages.AnyAsync(m => m.ExternalEventId == externalEventId, ct);
-            if (exists) return;
-
-            var inboxMessage = new InboxMessage(type, content, externalEventId);
-
-            dbContext.InboxMessages.Add(inboxMessage);
-            await dbContext.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateException)
-        {
-            // Violação de chave única ou erro de persistência: verifica se o evento já existe (idempotência agnóstica)
-            var exists = await dbContext.InboxMessages.AsNoTracking().AnyAsync(m => m.ExternalEventId == externalEventId, ct);
-            if (exists) return;
-            
-            throw;
-        }
     }
 }

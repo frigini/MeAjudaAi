@@ -2,6 +2,8 @@ using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -32,10 +34,14 @@ public class ProcessInboxJob(
             try
             {
                 using var scope = _sp.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+                var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Payments);
                 var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
 
+                var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
+
+                var inboxRepo = uow.GetRepository<InboxMessage, Guid>();
 
                 var messages = await dbContext.InboxMessages
                     .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
@@ -50,9 +56,9 @@ public class ProcessInboxJob(
                     continue;
                 }
 
-                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, stoppingToken);
+                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, uow, stoppingToken);
 
-                await dbContext.SaveChangesAsync(stoppingToken);
+                await uow.SaveChangesAsync(stoppingToken);
                 await transaction.CommitAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -72,8 +78,11 @@ public class ProcessInboxJob(
         List<InboxMessage> messages, 
         PaymentsDbContext dbContext, 
         ISubscriptionQueries subscriptionQueries, 
+        IUnitOfWork uow,
         CancellationToken ct)
     {
+        var transactionRepo = uow.GetRepository<PaymentTransaction, Guid>();
+
         foreach (var message in messages)
         {
             try
@@ -81,7 +90,7 @@ public class ProcessInboxJob(
                 var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
                 var data = MapToStripeEventData(stripeEvent);
                 
-                await ProcessStripeEventAsync(data, dbContext, subscriptionQueries, ct);
+                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, ct);
 
                 message.MarkAsProcessed();
             }
@@ -148,7 +157,7 @@ public class ProcessInboxJob(
 
     public async Task ProcessStripeEventAsync(
         StripeEventData data, 
-        PaymentsDbContext dbContext,
+        IRepository<PaymentTransaction, Guid> transactionRepo,
         ISubscriptionQueries subscriptionQueries,
         CancellationToken ct)
     {
@@ -221,7 +230,7 @@ public class ProcessInboxJob(
                     {
                         var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
                         paymentTransaction.Settle(data.InvoiceId);
-                        dbContext.PaymentTransactions.Add(paymentTransaction);
+                        transactionRepo.Add(paymentTransaction);
                     }
                     else
                     {
