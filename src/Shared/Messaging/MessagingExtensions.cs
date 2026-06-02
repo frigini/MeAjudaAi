@@ -77,7 +77,6 @@ public static class MessagingExtensions
         });
 
         // Registro do Serializador de Mensagens (usado pelo DeadLetter e infra) - always use System.Text.Json
-        services.AddSingleton<IMessageSerializer, SystemTextJsonMessageSerializer>();
         services.Replace(ServiceDescriptor.Singleton<IMessageSerializer, SystemTextJsonMessageSerializer>());
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();

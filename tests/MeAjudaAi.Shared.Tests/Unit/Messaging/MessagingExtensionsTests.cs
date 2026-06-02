@@ -59,6 +59,151 @@ public class MessagingExtensionsTests
     }
 
     [Fact]
+    public void AddMessaging_WhenDisabled_ShouldRegisterOnlyNoOpMessageBus()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(Mock.Of<ILogger<MeAjudaAi.Shared.Messaging.NoOp.NoOpMessageBus>>());
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "false"
+            }).Build();
+        var env = new MockHostEnvironment("Development");
+
+        services.AddMessaging(configuration, env);
+
+        var provider = services.BuildServiceProvider();
+        var bus = provider.GetRequiredService<IMessageBus>();
+        bus.Should().BeOfType<MeAjudaAi.Shared.Messaging.NoOp.NoOpMessageBus>();
+    }
+
+    [Fact]
+    public async Task EnsureMessagingInfrastructureAsync_WhenDisabled_ShouldReturnEarlyWithoutThrow()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "false"
+            }).Build());
+
+        var provider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(provider);
+
+        // Não deve lançar exceção nem exigir IRabbitMqInfrastructureManager
+        var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task EnsureMessagingInfrastructureAsync_WhenTestingEnvironment_ShouldReturnEarlyWithoutThrow()
+    {
+        using var envScope = new EnvironmentVariableScope(
+            ("ASPNETCORE_ENVIRONMENT", "Testing"),
+            ("DOTNET_ENVIRONMENT", null),
+            ("INTEGRATION_TESTS", null));
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Testing"));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        // IRabbitMqInfrastructureManager intencionalmente ausente
+
+        var provider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(provider);
+
+        var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task EnsureMessagingInfrastructureAsync_WhenManagerRegistered_ShouldCallEnsureInfrastructure()
+    {
+        using var envScope = new EnvironmentVariableScope(
+            ("ASPNETCORE_ENVIRONMENT", "Development"),
+            ("DOTNET_ENVIRONMENT", "Development"),
+            ("INTEGRATION_TESTS", null));
+
+        var mockManager = new Mock<MeAjudaAi.Shared.Messaging.RabbitMq.IRabbitMqInfrastructureManager>();
+        mockManager.Setup(m => m.EnsureInfrastructureAsync()).Returns(Task.CompletedTask);
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Development"));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        services.AddSingleton(mockManager.Object);
+
+        var provider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(provider);
+
+        await hostMock.Object.EnsureMessagingInfrastructureAsync();
+
+        mockManager.Verify(m => m.EnsureInfrastructureAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task EnsureMessagingInfrastructureAsync_WhenManagerThrows_ShouldRethrow()
+    {
+        using var envScope = new EnvironmentVariableScope(
+            ("ASPNETCORE_ENVIRONMENT", "Development"),
+            ("DOTNET_ENVIRONMENT", "Development"),
+            ("INTEGRATION_TESTS", null));
+
+        var mockManager = new Mock<MeAjudaAi.Shared.Messaging.RabbitMq.IRabbitMqInfrastructureManager>();
+        mockManager.Setup(m => m.EnsureInfrastructureAsync())
+            .ThrowsAsync(new InvalidOperationException("RabbitMQ unreachable"));
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Development"));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        services.AddSingleton(mockManager.Object);
+
+        var provider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(provider);
+
+        var act = () => hostMock.Object.EnsureMessagingInfrastructureAsync();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*RabbitMQ unreachable*");
+    }
+
+    [Fact]
+    public void AddMessaging_WhenAspireConnectionStringProvided_ShouldUseFallback()
+    {
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true",
+                ["ConnectionStrings:rabbitmq"] = "amqp://aspire-host:5672/",
+                // Sem Messaging:RabbitMQ:ConnectionString explícita
+            }).Build();
+        var env = new MockHostEnvironment("Testing"); // Testing evita registro do Rebus
+
+        services.AddMessaging(configuration, env);
+
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<RabbitMqOptions>();
+        options.ConnectionString.Should().Be("amqp://aspire-host:5672/");
+    }
+
+    [Fact]
     public void RabbitMqOptions_DefaultValues_ShouldBeCorrect()
     {
         // Arrange & Act
