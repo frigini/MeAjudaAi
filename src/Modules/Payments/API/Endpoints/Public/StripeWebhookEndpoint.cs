@@ -94,7 +94,6 @@ public class StripeWebhookEndpoint : IEndpoint
             }
         })
         .AllowAnonymous()
-        .DisableRateLimiting()
         .RequireRateLimiting("StripeWebhookPolicy")
         .WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(256_000))
         .WithTags(PaymentsEndpoints.Tag)

@@ -10,6 +10,9 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
     public async Task<EmailTemplate?> GetActiveByKeyAsync(
         string templateKey, string language = "pt-BR", CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(templateKey))
+            throw new ArgumentException("Template key cannot be null or whitespace.", nameof(templateKey));
+
         var templateKeyLower = templateKey.ToLowerInvariant();
         var languageLower = (language ?? "pt-BR").ToLowerInvariant();
 
@@ -31,6 +34,9 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
     public async Task<IReadOnlyList<EmailTemplate>> GetAllByKeyAsync(
         string templateKey, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(templateKey))
+            throw new ArgumentException("Template key cannot be null or whitespace.", nameof(templateKey));
+
         return await dbContext.EmailTemplates
             .AsNoTracking()
             .Where(x => x.TemplateKey == templateKey.ToLowerInvariant())

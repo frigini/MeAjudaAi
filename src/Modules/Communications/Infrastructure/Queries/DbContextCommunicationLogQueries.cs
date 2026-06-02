@@ -14,6 +14,7 @@ public class DbContextCommunicationLogQueries(CommunicationsDbContext dbContext)
     public async Task<IReadOnlyList<CommunicationLog>> GetByRecipientAsync(
         string recipient, int maxResults = 50, CancellationToken cancellationToken = default)
     {
+        maxResults = Math.Clamp(maxResults, 1, 100);
         return await dbContext.CommunicationLogs
             .AsNoTracking()
             .Where(x => x.Recipient == recipient)
@@ -26,6 +27,9 @@ public class DbContextCommunicationLogQueries(CommunicationsDbContext dbContext)
         string? correlationId = null, string? channel = null, string? recipient = null,
         bool? isSuccess = null, int pageNumber = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = dbContext.CommunicationLogs.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(correlationId))
             query = query.Where(x => x.CorrelationId.Contains(correlationId));

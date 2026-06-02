@@ -6,9 +6,9 @@ using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
@@ -50,7 +50,7 @@ public sealed class RejectBookingCommandHandler(
             logger.LogWarning(ex, "Business rule error rejecting booking {BookingId}", command.BookingId);
             return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes podem ser rejeitados.", ErrorCodes.Bookings.InvalidState));
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (ConcurrencyConflictException ex)
         {
             logger.LogWarning(ex, "Concurrency conflict rejecting booking {BookingId}", command.BookingId);
             return Result.Failure(Error.Conflict("O agendamento foi modificado por outro usuário."));

@@ -24,7 +24,7 @@ public class DbContextSubscriptionQueries(PaymentsDbContext dbContext) : ISubscr
 
     public async Task<Subscription?> GetLatestByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Subscriptions.AsNoTracking()
+        return await dbContext.Subscriptions
             .Where(s => s.ProviderId == providerId)
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -34,7 +34,7 @@ public class DbContextSubscriptionQueries(PaymentsDbContext dbContext) : ISubscr
     {
         if (string.IsNullOrWhiteSpace(externalSubscriptionId))
             throw new ArgumentException("ExternalSubscriptionId cannot be null or empty.", nameof(externalSubscriptionId));
-        return await dbContext.Subscriptions.AsNoTracking()
+        return await dbContext.Subscriptions
             .FirstOrDefaultAsync(s => s.ExternalSubscriptionId == externalSubscriptionId, cancellationToken);
     }
 }

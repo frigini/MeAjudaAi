@@ -67,6 +67,7 @@ public sealed class OutboxProcessorService(
                 templateKey: ExtractTemplateKey(message));
             
             uow.GetRepository<CommunicationLog, Guid>().Add(log);
+            await uow.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -97,6 +98,7 @@ public sealed class OutboxProcessorService(
                     templateKey: ExtractTemplateKey(message));
                 
                 uow.GetRepository<CommunicationLog, Guid>().Add(log);
+                await uow.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {
