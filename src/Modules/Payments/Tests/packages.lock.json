@@ -282,14 +282,6 @@
         "resolved": "2.23.0",
         "contentHash": "nWArUZTdU7iqZLycLKWe0TDms48KKGE6pONH2terYNa8REXiqixrMOkf1sk5DHGMaUTqONU2YkS4SAXBhLStgw=="
       },
-      "Microsoft.AspNetCore.Http.Features": {
-        "type": "Transitive",
-        "resolved": "2.3.9",
-        "contentHash": "nDWDF0YBgElg6f0omqJ8DupmITQg5p4lklBxFpVR83tQQhOG2tw9Fa5ul8b+KywsYBsyfn9DschUmfzOV6RvGw==",
-        "dependencies": {
-          "Microsoft.Extensions.Primitives": "8.0.0"
-        }
-      },
       "Microsoft.AspNetCore.TestHost": {
         "type": "Transitive",
         "resolved": "10.0.8",
@@ -1246,7 +1238,6 @@
           "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.Http.Abstractions": "[2.3.10, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.8, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[10.0.8, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.8, )"
@@ -1379,7 +1370,6 @@
           "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.Http.Abstractions": "[2.3.10, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.8, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[10.0.8, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.8, )"
@@ -1479,7 +1469,6 @@
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.Http.Abstractions": "[2.3.10, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.8, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[10.0.8, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.8, )"
@@ -1513,7 +1502,6 @@
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.Http.Abstractions": "[2.3.10, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.8, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[10.0.8, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.8, )"
@@ -1828,15 +1816,6 @@
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
         }
       },
-      "Microsoft.AspNetCore.Http.Abstractions": {
-        "type": "CentralTransitive",
-        "requested": "[2.3.10, )",
-        "resolved": "2.3.10",
-        "contentHash": "FD6mE5v3qB/sEcnLNni1oHsATuLHIFzsKHCulUZS7iaJez8+TkD432L89DQtU9PfjCkaPO0JOQjB4tS4L8oZXQ==",
-        "dependencies": {
-          "Microsoft.AspNetCore.Http.Features": "2.3.9"
-        }
-      },
       "Microsoft.AspNetCore.OpenApi": {
         "type": "CentralTransitive",
         "requested": "[10.0.8, )",
@@ -1848,9 +1827,12 @@
       },
       "Microsoft.Build.Framework": {
         "type": "CentralTransitive",
-        "requested": "[18.0.2, )",
-        "resolved": "18.0.2",
-        "contentHash": "sOSb+0J4G/jCBW/YqmRuL0eOMXgfw1KQLdC9TkbvfA5xs7uNm+PBQXJCOzSJGXtZcZrtXozcwxPmUiRUbmd7FA=="
+        "requested": "[18.6.3, )",
+        "resolved": "18.6.3",
+        "contentHash": "jywLHZK1Skb+kVO9Q2Drz0h3p0MnUDsMudYcXNKq1vYXPiYDXHbWJZlMxhyt2dp0T3IYiTQPb+6FMnWRwt3Kiw==",
+        "dependencies": {
+          "Microsoft.NET.StringTools": "18.6.3"
+        }
       },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
@@ -2152,6 +2134,12 @@
         "dependencies": {
           "Microsoft.FeatureManagement": "4.5.0"
         }
+      },
+      "Microsoft.NET.StringTools": {
+        "type": "CentralTransitive",
+        "requested": "[18.6.3, )",
+        "resolved": "18.6.3",
+        "contentHash": "meWX/k62HeaQ+7zxcJBcGo2EccmLZiaHYwJJ9wAO6ZX3Ujeht5XNetVZWU7nW2vKbDB+88X1lQkLafVkOUrtgQ=="
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
