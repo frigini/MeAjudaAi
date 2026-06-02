@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -11,16 +10,16 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
 public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
-    private readonly Mock<IProviderScheduleRepository> _scheduleRepoMock = new();
+    private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
+    private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<ILogger<GetBookingsByClientQueryHandler>> _loggerMock = new();
     private readonly GetBookingsByClientQueryHandler _sut;
 
     public GetBookingsByClientQueryHandlerTests()
     {
         _sut = new GetBookingsByClientQueryHandler(
-            _bookingRepoMock.Object,
-            _scheduleRepoMock.Object,
+            _bookingQueriesMock.Object,
+            _scheduleQueriesMock.Object,
             _loggerMock.Object);
     }
 
@@ -41,10 +40,10 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
-        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(ProviderSchedule.Create(providerId));
 
         // Act
@@ -61,7 +60,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var clientId = Guid.NewGuid();
-        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking>().AsReadOnly(), 0));
 
         // Act
@@ -83,7 +82,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
             PageSize = 5
         };
 
-        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 2, 5, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 2, 5, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking>().AsReadOnly(), 15));
 
         // Act
@@ -109,7 +108,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
             To = to
         };
 
-        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(
+        _bookingQueriesMock.Setup(x => x.GetByClientIdPagedAsync(
                 clientId,
                 DateOnly.FromDateTime(from),
                 DateOnly.FromDateTime(to),
@@ -122,7 +121,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
         await _sut.HandleAsync(query);
 
         // Assert
-        _bookingRepoMock.Verify(x => x.GetByClientIdPagedAsync(
+        _bookingQueriesMock.Verify(x => x.GetByClientIdPagedAsync(
             clientId,
             DateOnly.FromDateTime(from),
             DateOnly.FromDateTime(to),
@@ -148,10 +147,10 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
-        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(ProviderSchedule.Create(providerId));
 
         // Act
@@ -160,6 +159,6 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         // O schedule do prestador deve ser buscado apenas uma vez (cache interno)
-        _scheduleRepoMock.Verify(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()), Times.Once);
+        _scheduleQueriesMock.Verify(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -1863,9 +1863,9 @@
       },
       "Microsoft.NET.StringTools": {
         "type": "CentralTransitive",
-        "requested": "[18.0.2, )",
-        "resolved": "18.0.2",
-        "contentHash": "cTZw3GHkAlqZACYGeQT3niS3UfVQ8CH0O5+zUdhxstrg1Z8Q2ViXYFKjSxHmEXTX85mrOT/QnHZOeQhhSsIrkQ=="
+        "requested": "[18.6.3, )",
+        "resolved": "18.6.3",
+        "contentHash": "meWX/k62HeaQ+7zxcJBcGo2EccmLZiaHYwJJ9wAO6ZX3Ujeht5XNetVZWU7nW2vKbDB+88X1lQkLafVkOUrtgQ=="
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",

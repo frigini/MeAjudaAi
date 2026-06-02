@@ -3,11 +3,12 @@ using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -18,14 +19,18 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 [Trait("Category", "Unit")]
 public class CompleteBookingCommandHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
+    private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly Mock<ILogger<CompleteBookingCommandHandler>> _loggerMock = new();
     private readonly CompleteBookingCommandHandler _sut;
 
     public CompleteBookingCommandHandlerTests()
     {
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         _sut = new CompleteBookingCommandHandler(
-            _bookingRepoMock.Object,
+            _bookingQueriesMock.Object,
+            _uowMock.Object,
             _loggerMock.Object);
     }
 
@@ -40,7 +45,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
 
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         // Act
@@ -49,7 +54,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         booking.Status.Should().Be(EBookingStatus.Completed);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -60,7 +65,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
 
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         // Act
@@ -70,7 +75,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -83,7 +88,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
 
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         // Act
@@ -92,14 +97,14 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task HandleAsync_Should_Fail_When_BookingNotFound()
     {
         // Arrange
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         // Act
@@ -121,7 +126,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
 
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         // Act
@@ -130,11 +135,11 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         booking.Status.Should().Be(EBookingStatus.Completed);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Return_409_When_UpdateAsync_Throws_ConcurrencyConflictException()
+    public async Task HandleAsync_Should_Return_409_When_SaveChangesAsync_Throws_DbUpdateConcurrencyException()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -144,11 +149,11 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        _bookingRepoMock.Setup(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ConcurrencyConflictException());
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException());
 
         // Act
         var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, providerId, Guid.NewGuid()));
@@ -156,6 +161,6 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Modules.Communications.Application.ModuleApi;
+using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -13,20 +14,20 @@ namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.ModuleApi;
 public class CommunicationsModuleApiTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
-    private readonly Mock<IEmailTemplateRepository> _templateRepositoryMock;
-    private readonly Mock<ICommunicationLogRepository> _logRepositoryMock;
+    private readonly Mock<IEmailTemplateQueries> _templateQueriesMock;
+    private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly CommunicationsModuleApi _api;
 
     public CommunicationsModuleApiTests()
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
-        _templateRepositoryMock = new Mock<IEmailTemplateRepository>();
-        _logRepositoryMock = new Mock<ICommunicationLogRepository>();
+        _templateQueriesMock = new Mock<IEmailTemplateQueries>();
+        _logQueriesMock = new Mock<ICommunicationLogQueries>();
 
         _api = new CommunicationsModuleApi(
             _outboxRepositoryMock.Object,
-            _templateRepositoryMock.Object,
-            _logRepositoryMock.Object);
+            _templateQueriesMock.Object,
+            _logQueriesMock.Object);
     }
 
     [Fact]
@@ -206,7 +207,7 @@ public class CommunicationsModuleApiTests
         var result = await _api.GetLogsAsync(null!);
 
         result.IsSuccess.Should().BeFalse();
-        _logRepositoryMock.Verify(x => x.SearchAsync(
+        _logQueriesMock.Verify(x => x.SearchAsync(
             It.IsAny<string?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -214,7 +215,7 @@ public class CommunicationsModuleApiTests
             It.IsAny<int>(),
             It.IsAny<int>(),
             It.IsAny<CancellationToken>()), Times.Never);
-        _logRepositoryMock.VerifyNoOtherCalls();
+        _logQueriesMock.VerifyNoOtherCalls();
     }
 
     [Theory]
@@ -231,7 +232,7 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        _logRepositoryMock.Verify(x => x.SearchAsync(
+        _logQueriesMock.Verify(x => x.SearchAsync(
             It.IsAny<string?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -249,7 +250,7 @@ public class CommunicationsModuleApiTests
         {
             EmailTemplate.Create("key1", "Sub1", "Html1", "Text1")
         };
-        _templateRepositoryMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(templates);
 
         // Act
@@ -270,7 +271,7 @@ public class CommunicationsModuleApiTests
         {
             CommunicationLog.CreateSuccess("corr1", ECommunicationChannel.Email, "rec1", 1)
         };
-        _logRepositoryMock.Setup(x => x.SearchAsync(null, null, null, null, 1, 10, It.IsAny<CancellationToken>()))
+        _logQueriesMock.Setup(x => x.SearchAsync(null, null, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((logs, 1));
 
         // Act

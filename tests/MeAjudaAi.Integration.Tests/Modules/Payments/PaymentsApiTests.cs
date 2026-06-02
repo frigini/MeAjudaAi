@@ -8,8 +8,8 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -297,8 +297,7 @@ public class PaymentsApiTests : BaseApiTest
         using (var scope = Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-            var subRepo = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
-            var txRepo = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
+            var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
             
             var messages = await dbContext.InboxMessages.Where(m => m.ExternalEventId == "evt_e2e_paid").ToListAsync();
             messages.Should().HaveCount(1);
@@ -307,7 +306,7 @@ public class PaymentsApiTests : BaseApiTest
             var stripeEvent = Stripe.EventUtility.ParseEvent(messages[0].Content, throwOnApiVersionMismatch: false);
             var data = job.MapToStripeEventData(stripeEvent);
             
-            await job.ProcessStripeEventAsync(data, subRepo, txRepo, CancellationToken.None);
+            await job.ProcessStripeEventAsync(data, dbContext, subscriptionQueries, CancellationToken.None);
             
             messages[0].MarkAsProcessed();
             await dbContext.SaveChangesAsync();

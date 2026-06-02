@@ -1,7 +1,9 @@
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -32,13 +34,15 @@ public class ProcessInboxJob(
             try
             {
                 using var scope = _sp.CreateScope();
+                var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Payments);
+                var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
+
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-                var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
-                var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
 
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-                // Processar em lote para eficiência
+                var inboxRepo = uow.GetRepository<InboxMessage, Guid>();
+
                 var messages = await dbContext.InboxMessages
                     .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
                     .OrderBy(m => m.CreatedAt)
@@ -52,9 +56,9 @@ public class ProcessInboxJob(
                     continue;
                 }
 
-                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionRepository, paymentTransactionRepository, stoppingToken);
+                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, uow, stoppingToken);
 
-                await dbContext.SaveChangesAsync(stoppingToken);
+                await uow.SaveChangesAsync(stoppingToken);
                 await transaction.CommitAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -73,10 +77,12 @@ public class ProcessInboxJob(
     public virtual async Task ProcessMessagesBatchAsync(
         List<InboxMessage> messages, 
         PaymentsDbContext dbContext, 
-        ISubscriptionRepository subscriptionRepository, 
-        IPaymentTransactionRepository paymentTransactionRepository, 
+        ISubscriptionQueries subscriptionQueries, 
+        IUnitOfWork uow,
         CancellationToken ct)
     {
+        var transactionRepo = uow.GetRepository<PaymentTransaction, Guid>();
+
         foreach (var message in messages)
         {
             try
@@ -84,7 +90,7 @@ public class ProcessInboxJob(
                 var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
                 var data = MapToStripeEventData(stripeEvent);
                 
-                await ProcessStripeEventAsync(data, subscriptionRepository, paymentTransactionRepository, ct);
+                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, ct);
 
                 message.MarkAsProcessed();
             }
@@ -151,8 +157,8 @@ public class ProcessInboxJob(
 
     public async Task ProcessStripeEventAsync(
         StripeEventData data, 
-        ISubscriptionRepository repository, 
-        IPaymentTransactionRepository paymentTransactionRepository,
+        IRepository<PaymentTransaction, Guid> transactionRepo,
+        ISubscriptionQueries subscriptionQueries,
         CancellationToken ct)
     {
         switch (data.Type)
@@ -164,8 +170,7 @@ public class ProcessInboxJob(
                     throw new InvalidOperationException("Essential data missing in checkout.session.completed event");
                 }
 
-                // Tenta carregar a assinatura mais recente pendente
-                var subscription = await repository.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
+                var subscription = await subscriptionQueries.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
 
                 if (subscription == null)
                 {
@@ -180,8 +185,6 @@ public class ProcessInboxJob(
                 }
 
                 subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty); 
-                
-                await repository.UpdateAsync(subscription, ct);
                 logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, data.ProviderId, data.CustomerId);
                 break;
 
@@ -192,17 +195,15 @@ public class ProcessInboxJob(
                     break;
                 }
 
-                var subToRenew = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
+                var subToRenew = await subscriptionQueries.GetByExternalIdAsync(data.SubscriptionId, ct);
                 if (subToRenew != null)
                 {
                     if (data.PeriodEnd.HasValue)
                     {
                         subToRenew.Renew(data.PeriodEnd.Value);
-                        await repository.UpdateAsync(subToRenew, ct);
                         logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}", subToRenew.Id, subToRenew.ExpiresAt);
                     }
 
-                    // Registrar a transação de pagamento
                     Money? amount = null;
                     try
                     {
@@ -212,7 +213,6 @@ public class ProcessInboxJob(
                                 CurrencyUtils.ConvertFromMinorUnits(data.AmountPaid, data.Currency), 
                                 data.Currency);
                             
-                            // Log warning if currency differs from subscription
                             if (!string.Equals(amount.Currency, subToRenew.Amount.Currency, StringComparison.OrdinalIgnoreCase))
                             {
                                 logger.LogWarning("Currency divergence detected for Subscription {Id}. Subscription: {SubCurrency}, Invoice: {InvCurrency}", 
@@ -230,7 +230,7 @@ public class ProcessInboxJob(
                     {
                         var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
                         paymentTransaction.Settle(data.InvoiceId);
-                        await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
+                        transactionRepo.Add(paymentTransaction);
                     }
                     else
                     {
@@ -247,11 +247,10 @@ public class ProcessInboxJob(
             case "customer.subscription.deleted":
                 if (string.IsNullOrEmpty(data.SubscriptionId)) break;
 
-                var subToCancel = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
+                var subToCancel = await subscriptionQueries.GetByExternalIdAsync(data.SubscriptionId, ct);
                 if (subToCancel != null)
                 {
                     subToCancel.Cancel();
-                    await repository.UpdateAsync(subToCancel, ct);
                     logger.LogInformation("Subscription {Id} canceled due to deletion in Stripe", subToCancel.Id);
                 }
                 else

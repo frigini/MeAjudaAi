@@ -1,5 +1,5 @@
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
@@ -49,15 +49,17 @@ public class DependencyInjectionTests
         var scopedProvider = scope.ServiceProvider;
 
         scopedProvider.GetRequiredService<PaymentsDbContext>().Should().NotBeNull();
-        scopedProvider.GetRequiredService<ISubscriptionRepository>().Should().NotBeNull();
-        scopedProvider.GetRequiredService<IPaymentTransactionRepository>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IUnitOfWork>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<ISubscriptionQueries>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IPaymentTransactionQueries>().Should().NotBeNull();
         scopedProvider.GetRequiredService<IPaymentGateway>().Should().NotBeNull();
         
         var hostedServices = provider.GetServices<IHostedService>();
         hostedServices.Should().Contain(s => s is ProcessInboxJob);
         
-        services.Single(d => d.ServiceType == typeof(ISubscriptionRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
-        services.Single(d => d.ServiceType == typeof(IPaymentTransactionRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        services.Single(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        services.Single(d => d.ServiceType == typeof(ISubscriptionQueries)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        services.Single(d => d.ServiceType == typeof(IPaymentTransactionQueries)).Lifetime.Should().Be(ServiceLifetime.Scoped);
         services.Single(d => d.ServiceType == typeof(IPaymentGateway)).Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 }

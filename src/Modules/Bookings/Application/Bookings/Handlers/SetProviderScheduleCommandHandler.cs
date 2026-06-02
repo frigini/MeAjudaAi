@@ -1,17 +1,20 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class SetProviderScheduleCommandHandler(
-    IProviderScheduleRepository scheduleRepository,
+    IProviderScheduleQueries scheduleQueries,
+    [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
     IProvidersModuleApi providersApi,
     ILogger<SetProviderScheduleCommandHandler> logger) : ICommandHandler<SetProviderScheduleCommand, Result>
 {
@@ -25,7 +28,6 @@ public sealed class SetProviderScheduleCommandHandler(
             return Result.Failure(Error.BadRequest("A lista de disponibilidades não pode ser nula."));
         }
 
-        // 1. Validar existência do Provider
         var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
         if (providerExists.IsFailure)
         {
@@ -37,7 +39,6 @@ public sealed class SetProviderScheduleCommandHandler(
             return Result.Failure(Error.NotFound("Prestador não encontrado."));
         }
 
-        // 2. Pré-validar e montar objetos de Domínio (Fail-fast antes de alterar estado do aggregate)
         var newAvailabilities = new List<Availability>();
         try
         {
@@ -69,14 +70,12 @@ public sealed class SetProviderScheduleCommandHandler(
             return Result.Failure(Error.Internal("Erro interno ao processar disponibilidades."));
         }
 
-        // 3. Buscar ou criar Schedule
-        var schedule = await scheduleRepository.GetByProviderIdAsync(command.ProviderId, cancellationToken);
+        var schedule = await scheduleQueries.GetByProviderIdAsync(command.ProviderId, cancellationToken);
         
         if (schedule == null)
         {
             schedule = ProviderSchedule.Create(command.ProviderId);
             
-            // Aplica disponibilidades
             foreach (var availability in newAvailabilities)
             {
                 schedule.SetAvailability(availability);
@@ -84,28 +83,27 @@ public sealed class SetProviderScheduleCommandHandler(
 
             try 
             {
-                await scheduleRepository.AddAsync(schedule, cancellationToken);
+                uow.GetRepository<ProviderSchedule, Guid>().Add(schedule);
+                await uow.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("New schedule for Provider {ProviderId} created successfully.", command.ProviderId);
                 return Result.Success();
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException)
             {
-                // Provável corrida: outro request criou o schedule. Tenta buscar novamente para atualizar.
                 logger.LogWarning("Conflict detected while adding schedule for Provider {ProviderId}. Falling back to update.", command.ProviderId);
-                schedule = await scheduleRepository.GetByProviderIdAsync(command.ProviderId, cancellationToken);
+                schedule = await scheduleQueries.GetByProviderIdAsync(command.ProviderId, cancellationToken);
                 
-                if (schedule == null) throw; // Se ainda for null, algo muito errado aconteceu
+                if (schedule == null) throw;
             }
         }
 
-        // Se chegamos aqui, o schedule existe (ou foi carregado após conflito)
         schedule.ClearAvailabilities();
         foreach (var availability in newAvailabilities)
         {
             schedule.SetAvailability(availability);
         }
 
-        await scheduleRepository.UpdateAsync(schedule, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Schedule for Provider {ProviderId} updated successfully.", command.ProviderId);
 
         return Result.Success();

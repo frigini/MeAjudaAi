@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -9,12 +10,9 @@ using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
-/// <summary>
-/// Consome o evento UserRegisteredIntegrationEvent e enfileira e-mail de boas-vindas no Outbox.
-/// </summary>
 public sealed class UserRegisteredIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
-    ICommunicationLogRepository logRepository,
+    ICommunicationLogQueries logQueries,
     ILogger<UserRegisteredIntegrationEventHandler> logger)
     : IEventHandler<UserRegisteredIntegrationEvent>
 {
@@ -26,8 +24,7 @@ public sealed class UserRegisteredIntegrationEventHandler(
     {
         var correlationId = $"{TemplateKey}:{integrationEvent.UserId}";
 
-        // Idempotência: evita re-enfileirar se já foi processado
-        if (await logRepository.ExistsByCorrelationIdAsync(correlationId, cancellationToken))
+        if (await logQueries.ExistsByCorrelationIdAsync(correlationId, cancellationToken))
         {
             logger.LogInformation(
                 "Skipping welcome email for user {UserId} — already sent (correlationId: {CorrelationId}).",

@@ -2,7 +2,10 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
+using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
@@ -12,26 +15,16 @@ using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMes
 
 namespace MeAjudaAi.Modules.Communications.Application.Services;
 
-/// <summary>
-/// Serviço de processamento das mensagens do Outbox.
-/// </summary>
 public interface IOutboxProcessorService
 {
-    /// <summary>
-    /// Processa mensagens pendentes no Outbox.
-    /// </summary>
     Task<int> ProcessPendingMessagesAsync(
         int batchSize = 50,
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>
-/// Implementação do processador de Outbox específica para comunicações.
-/// Estende a base genérica para aproveitar lógica de polling e retries.
-/// </summary>
 public sealed class OutboxProcessorService(
     IOutboxMessageRepository outboxRepository,
-    ICommunicationLogRepository logRepository,
+    [FromKeyedServices(ModuleKeys.Communications)] IUnitOfWork uow,
     IEmailSender emailSender,
     ISmsSender smsSender,
     IPushSender pushSender,
@@ -62,10 +55,11 @@ public sealed class OutboxProcessorService(
     {
         var recipientRaw = ExtractRecipient(message);
         var recipientMasked = MaskRecipientForChannel(recipientRaw, message.Channel);
+        CommunicationLog? log = null;
 
         try
         {
-            var log = CommunicationLog.CreateSuccess(
+            log = CommunicationLog.CreateSuccess(
                 correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                 channel: message.Channel,
                 recipient: recipientRaw,
@@ -73,13 +67,14 @@ public sealed class OutboxProcessorService(
                 outboxMessageId: message.Id,
                 templateKey: ExtractTemplateKey(message));
             
-            await logRepository.AddAsync(log, cancellationToken);
-            // SaveChanges handled by OutboxProcessorBase
+            uow.GetRepository<CommunicationLog, Guid>().Add(log);
+            await uow.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                 message.Id, message.CorrelationId);
+            if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
         }
 
         logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
@@ -93,9 +88,10 @@ public sealed class OutboxProcessorService(
 
         if (!message.HasRetriesLeft)
         {
+            CommunicationLog? log = null;
             try
             {
-                var log = CommunicationLog.CreateFailure(
+                log = CommunicationLog.CreateFailure(
                     correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                     channel: message.Channel,
                     recipient: recipientRaw,
@@ -104,13 +100,14 @@ public sealed class OutboxProcessorService(
                     outboxMessageId: message.Id,
                     templateKey: ExtractTemplateKey(message));
                 
-                await logRepository.AddAsync(log, cancellationToken);
-                // SaveChanges handled by OutboxProcessorBase
+                uow.GetRepository<CommunicationLog, Guid>().Add(log);
+                await uow.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                     message.Id, message.CorrelationId);
+                if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
             }
         }
 

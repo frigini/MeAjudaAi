@@ -4,9 +4,10 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
+
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 
-public class PaymentsDbContext : BaseDbContext
+public partial class PaymentsDbContext : BaseDbContext, IUnitOfWork
 {
     public PaymentsDbContext(DbContextOptions<PaymentsDbContext> options) 
         : base(options)
@@ -23,6 +24,16 @@ public class PaymentsDbContext : BaseDbContext
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
     public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
     public DbSet<InboxMessage> InboxMessages { get; set; } = null!;
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+
+        throw new InvalidOperationException(
+            $"PaymentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context supports: Subscription(Guid), PaymentTransaction(Guid), InboxMessage(Guid).");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

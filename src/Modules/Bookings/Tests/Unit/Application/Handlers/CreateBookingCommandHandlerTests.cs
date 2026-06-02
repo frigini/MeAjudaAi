@@ -4,8 +4,9 @@ using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.Extensions.Logging;
@@ -17,8 +18,8 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
 public class CreateBookingCommandHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
-    private readonly Mock<IProviderScheduleRepository> _scheduleRepoMock = new();
+    private readonly Mock<IBookingCommandService> _bookingCommandServiceMock = new();
+    private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<IProvidersModuleApi> _providersApiMock = new();
     private readonly Mock<IServiceCatalogsModuleApi> _serviceCatalogsApiMock = new();
     private readonly Mock<ILogger<CreateBookingCommandHandler>> _loggerMock = new();
@@ -27,8 +28,8 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public CreateBookingCommandHandlerTests()
     {
         _sut = new CreateBookingCommandHandler(
-            _bookingRepoMock.Object,
-            _scheduleRepoMock.Object,
+            _bookingCommandServiceMock.Object,
+            _scheduleQueriesMock.Object,
             _providersApiMock.Object,
             _serviceCatalogsApiMock.Object,
             _loggerMock.Object);
@@ -59,11 +60,11 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         if (schedule != null)
         {
-            _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(schedule);
         }
 
-        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+        _bookingCommandServiceMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
     }
 
@@ -101,7 +102,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _bookingRepoMock.Verify(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Once);
+        _bookingCommandServiceMock.Verify(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -169,7 +170,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         // Act
@@ -198,7 +199,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         // Act
@@ -221,7 +222,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         
         SetupHappyPath(command.ProviderId, command.ServiceId, schedule);
 
-        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+        _bookingCommandServiceMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(Error.Conflict("Overlap", ErrorCodes.Bookings.Overlap)));
 
         // Act
@@ -248,7 +249,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, It.IsAny<CancellationToken>()))

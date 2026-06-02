@@ -1,34 +1,37 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class CompleteBookingCommandHandler(
-    IBookingRepository bookingRepository,
+    IBookingQueries bookingQueries,
+    [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
     ILogger<CompleteBookingCommandHandler> logger) : ICommandHandler<CompleteBookingCommand, Result>
 {
     public async Task<Result> HandleAsync(CompleteBookingCommand command, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Completing booking {BookingId}", command.BookingId);
 
-        var booking = await bookingRepository.GetByIdTrackedAsync(command.BookingId, cancellationToken);
+        var booking = await bookingQueries.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
             return Result.Failure(Error.NotFound("Reserva não encontrada."));
         }
 
-        // Validar Autorização (Somente o Provider dono ou Admin)
         var authResult = ProviderAuthorizationResolver.AuthorizeBookingOperation(
             command.IsSystemAdmin,
             command.UserProviderId,
-            null, // Clientes não podem completar
+            null,
             null,
             booking.ProviderId);
 
@@ -40,14 +43,14 @@ public sealed class CompleteBookingCommandHandler(
         try
         {
             booking.Complete();
-            await bookingRepository.UpdateAsync(booking, cancellationToken);
+            await uow.SaveChangesAsync(cancellationToken);
         }
         catch (InvalidBookingStateException ex)
         {
             logger.LogWarning(ex, "Business rule error completing booking {BookingId}", command.BookingId);
             return Result.Failure(Error.BadRequest("Apenas agendamentos confirmados podem ser concluídos.", ErrorCodes.Bookings.InvalidState));
         }
-        catch (ConcurrencyConflictException ex)
+        catch (DbUpdateConcurrencyException ex)
         {
             logger.LogWarning(ex, "Concurrency conflict completing booking {BookingId}", command.BookingId);
             return Result.Failure(Error.Conflict("O agendamento foi modificado por outro usuário."));

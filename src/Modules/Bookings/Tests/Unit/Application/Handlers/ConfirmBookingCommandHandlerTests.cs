@@ -2,13 +2,14 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
-using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -19,14 +20,18 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 [Trait("Category", "Unit")]
 public class ConfirmBookingCommandHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
+    private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly Mock<ILogger<ConfirmBookingCommandHandler>> _loggerMock = new();
     private readonly ConfirmBookingCommandHandler _sut;
 
     public ConfirmBookingCommandHandlerTests()
     {
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         _sut = new ConfirmBookingCommandHandler(
-            _bookingRepoMock.Object,
+            _bookingQueriesMock.Object,
+            _uowMock.Object,
             _loggerMock.Object);
     }
 
@@ -39,7 +44,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new ConfirmBookingCommand(booking.Id, false, providerId, Guid.NewGuid());
@@ -50,7 +55,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         booking.Status.Should().Be(EBookingStatus.Confirmed);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -62,11 +67,11 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        _bookingRepoMock.Setup(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ConcurrencyConflictException());
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException());
 
         var command = new ConfirmBookingCommand(booking.Id, false, providerId, Guid.NewGuid());
 
@@ -86,7 +91,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new ConfirmBookingCommand(booking.Id, false, Guid.NewGuid(), Guid.NewGuid());
@@ -97,7 +102,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -105,7 +110,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var bookingId = Guid.NewGuid();
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(bookingId, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(bookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         var command = new ConfirmBookingCommand(bookingId, false, Guid.NewGuid(), Guid.NewGuid());
@@ -126,7 +131,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new ConfirmBookingCommand(booking.Id, true, null, Guid.NewGuid());
@@ -150,7 +155,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         
         booking.Confirm(); // Já confirmado, não pode confirmar novamente
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new ConfirmBookingCommand(booking.Id, false, providerId, Guid.NewGuid());

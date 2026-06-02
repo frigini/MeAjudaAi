@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,8 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
 
 public class CreateSubscriptionCommandHandlerTests
 {
-    private readonly Mock<ISubscriptionRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<Subscription, Guid>> _repositoryMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<CreateSubscriptionCommandHandler>> _loggerMock;
@@ -23,12 +24,14 @@ public class CreateSubscriptionCommandHandlerTests
 
     public CreateSubscriptionCommandHandlerTests()
     {
-        _repositoryMock = new Mock<ISubscriptionRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _repositoryMock = new Mock<IRepository<Subscription, Guid>>();
+        _uowMock.Setup(u => u.GetRepository<Subscription, Guid>()).Returns(_repositoryMock.Object);
         _gatewayMock = new Mock<IPaymentGateway>();
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<CreateSubscriptionCommandHandler>>();
         _handler = new CreateSubscriptionCommandHandler(
-            _repositoryMock.Object,
+            _uowMock.Object,
             _gatewayMock.Object,
             _configurationMock.Object,
             _loggerMock.Object);
@@ -57,7 +60,8 @@ public class CreateSubscriptionCommandHandlerTests
 
         // Assert
         result.Should().Be(checkoutUrl);
-        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Subscription>()), Times.Once);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -132,7 +136,7 @@ public class CreateSubscriptionCommandHandlerTests
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
-        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
         // Act
@@ -183,7 +187,7 @@ public class CreateSubscriptionCommandHandlerTests
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
-        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
         _gatewayMock.Setup(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()))
@@ -206,7 +210,7 @@ public class CreateSubscriptionCommandHandlerTests
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
-        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
         _gatewayMock.Setup(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()))
@@ -243,7 +247,7 @@ public class CreateSubscriptionCommandHandlerTests
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(SubscriptionGatewayResult.Succeeded("sub_123", "https://url"));
 
-        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act

@@ -1,10 +1,12 @@
 using System.Globalization;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -12,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
 public class CreateSubscriptionCommandHandler(
-    ISubscriptionRepository subscriptionRepository,
+    [FromKeyedServices(ModuleKeys.Payments)] IUnitOfWork uow,
     IPaymentGateway paymentGateway,
     IConfiguration configuration,
     ILogger<CreateSubscriptionCommandHandler> logger) : ICommandHandler<CreateSubscriptionCommand, string>
@@ -70,7 +72,8 @@ public class CreateSubscriptionCommandHandler(
 
         try
         {
-            await subscriptionRepository.AddAsync(subscription, cancellationToken);
+            uow.GetRepository<Subscription, Guid>().Add(subscription);
+            await uow.SaveChangesAsync(cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -78,7 +81,6 @@ public class CreateSubscriptionCommandHandler(
         }
         catch (Exception ex)
         {
-            // Compensação: cancelar no gateway se a persistência local falhar
             await TryCompensateAsync(result);
             throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex);
         }

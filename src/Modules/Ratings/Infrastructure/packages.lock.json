@@ -522,9 +522,12 @@
       },
       "Microsoft.Build.Framework": {
         "type": "CentralTransitive",
-        "requested": "[18.0.2, )",
-        "resolved": "18.0.2",
-        "contentHash": "sOSb+0J4G/jCBW/YqmRuL0eOMXgfw1KQLdC9TkbvfA5xs7uNm+PBQXJCOzSJGXtZcZrtXozcwxPmUiRUbmd7FA=="
+        "requested": "[18.6.3, )",
+        "resolved": "18.6.3",
+        "contentHash": "jywLHZK1Skb+kVO9Q2Drz0h3p0MnUDsMudYcXNKq1vYXPiYDXHbWJZlMxhyt2dp0T3IYiTQPb+6FMnWRwt3Kiw==",
+        "dependencies": {
+          "Microsoft.NET.StringTools": "18.6.3"
+        }
       },
       "Microsoft.EntityFrameworkCore.Relational": {
         "type": "CentralTransitive",
@@ -682,6 +685,12 @@
         "dependencies": {
           "Microsoft.FeatureManagement": "4.5.0"
         }
+      },
+      "Microsoft.NET.StringTools": {
+        "type": "CentralTransitive",
+        "requested": "[18.6.3, )",
+        "resolved": "18.6.3",
+        "contentHash": "meWX/k62HeaQ+7zxcJBcGo2EccmLZiaHYwJJ9wAO6ZX3Ujeht5XNetVZWU7nW2vKbDB+88X1lQkLafVkOUrtgQ=="
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",

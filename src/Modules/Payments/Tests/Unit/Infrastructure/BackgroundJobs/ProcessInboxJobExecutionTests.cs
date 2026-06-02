@@ -1,7 +1,9 @@
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,8 +20,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
     private readonly PaymentsDbContext _dbContext;
     private readonly Mock<ILogger<ProcessInboxJob>> _loggerMock;
     private readonly ServiceProvider _serviceProvider;
-    private readonly Mock<ISubscriptionRepository> _subscriptionRepositoryMock;
-    private readonly Mock<IPaymentTransactionRepository> _paymentTransactionRepositoryMock;
+    private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
 
     public ProcessInboxJobExecutionTests()
     {
@@ -34,13 +35,12 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _dbContext.Database.EnsureCreated();
 
         _loggerMock = new Mock<ILogger<ProcessInboxJob>>();
-        _subscriptionRepositoryMock = new Mock<ISubscriptionRepository>();
-        _paymentTransactionRepositoryMock = new Mock<IPaymentTransactionRepository>();
+        _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
 
         var services = new ServiceCollection();
         services.AddSingleton(_dbContext);
-        services.AddSingleton(_subscriptionRepositoryMock.Object);
-        services.AddSingleton(_paymentTransactionRepositoryMock.Object);
+        services.AddSingleton(_subscriptionQueriesMock.Object);
+        services.AddKeyedSingleton<IUnitOfWork>(ModuleKeys.Payments, _dbContext);
         _serviceProvider = services.BuildServiceProvider();
     }
 
@@ -101,8 +101,8 @@ public class ProcessInboxJobExecutionTests : IDisposable
         {
             using var scope = _sp.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-            var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
-            var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
+            var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
+            var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Payments);
 
             var messages = await dbContext.InboxMessages
                 .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries)
@@ -112,8 +112,8 @@ public class ProcessInboxJobExecutionTests : IDisposable
 
             if (messages.Count == 0) return;
 
-            await ProcessMessagesBatchAsync(messages, dbContext, subscriptionRepository, paymentTransactionRepository, ct);
-            await dbContext.SaveChangesAsync(ct);
+            await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, uow, ct);
+            await uow.SaveChangesAsync(ct);
         }
     }
 }

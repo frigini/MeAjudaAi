@@ -3,10 +3,12 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -17,14 +19,18 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 [Trait("Category", "Unit")]
 public class RejectBookingCommandHandlerTests : BaseUnitTest
 {
-    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
+    private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly Mock<ILogger<RejectBookingCommandHandler>> _loggerMock = new();
     private readonly RejectBookingCommandHandler _sut;
 
     public RejectBookingCommandHandlerTests()
     {
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         _sut = new RejectBookingCommandHandler(
-            _bookingRepoMock.Object,
+            _bookingQueriesMock.Object,
+            _uowMock.Object,
             _loggerMock.Object);
     }
 
@@ -37,7 +43,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
@@ -48,7 +54,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         booking.Status.Should().Be(EBookingStatus.Rejected);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -60,7 +66,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         // Act - Simulando o ID vindo do claim mapeado para UserProviderId no comando
@@ -80,7 +86,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new RejectBookingCommand(booking.Id, "Reason", false, Guid.NewGuid(), Guid.NewGuid());
@@ -98,7 +104,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var command = new RejectBookingCommand(Guid.NewGuid(), "Reason", false, Guid.NewGuid(), Guid.NewGuid());
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         // Act
@@ -121,7 +127,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
@@ -143,7 +149,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var command = new RejectBookingCommand(booking.Id, "Admin Reason", true, null, Guid.NewGuid());
@@ -165,11 +171,11 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        _bookingRepoMock.Setup(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new MeAjudaAi.Shared.Exceptions.ConcurrencyConflictException());
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException());
 
         var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
 

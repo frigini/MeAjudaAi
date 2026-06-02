@@ -6,10 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 
-/// <summary>
-/// DbContext para o módulo de comunicações.
-/// </summary>
-public sealed class CommunicationsDbContext : BaseDbContext
+public partial class CommunicationsDbContext : BaseDbContext, IUnitOfWork
 {
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
@@ -22,6 +19,16 @@ public sealed class CommunicationsDbContext : BaseDbContext
     public CommunicationsDbContext(DbContextOptions<CommunicationsDbContext> options, IDomainEventProcessor domainEventProcessor) 
         : base(options, domainEventProcessor)
     {
+    }
+
+    public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
+    {
+        if (this is IRepository<TAggregate, TKey> repository)
+            return repository;
+
+        throw new InvalidOperationException(
+            $"CommunicationsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
+            $"This context supports: EmailTemplate(Guid), CommunicationLog(Guid).");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -11,12 +12,9 @@ using System.Text.Encodings.Web;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
-/// <summary>
-/// Consome o ProviderActivatedIntegrationEvent e enfileira e-mail de aprovação do prestador.
-/// </summary>
 public sealed class ProviderActivatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
-    ICommunicationLogRepository logRepository,
+    ICommunicationLogQueries logQueries,
     IUsersModuleApi usersModuleApi,
     ILogger<ProviderActivatedIntegrationEventHandler> logger)
     : IEventHandler<ProviderActivatedIntegrationEvent>
@@ -29,7 +27,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
     {
         var correlationId = $"{TemplateKey}:{integrationEvent.ProviderId}";
 
-        if (await logRepository.ExistsByCorrelationIdAsync(correlationId, cancellationToken))
+        if (await logQueries.ExistsByCorrelationIdAsync(correlationId, cancellationToken))
         {
             logger.LogInformation(
                 "Skipping provider activation email for {ProviderId} — already sent (correlationId: {CorrelationId}).",

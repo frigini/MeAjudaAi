@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Text.Json;
@@ -14,7 +15,8 @@ namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
 public class OutboxProcessorServiceTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
-    private readonly Mock<ICommunicationLogRepository> _logRepositoryMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<CommunicationLog, Guid>> _logRepositoryMock;
     private readonly Mock<IEmailSender> _emailSenderMock;
     private readonly Mock<ISmsSender> _smsSenderMock;
     private readonly Mock<IPushSender> _pushSenderMock;
@@ -24,7 +26,9 @@ public class OutboxProcessorServiceTests
     public OutboxProcessorServiceTests()
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
-        _logRepositoryMock = new Mock<ICommunicationLogRepository>();
+        _uowMock = new Mock<IUnitOfWork>();
+        _logRepositoryMock = new Mock<IRepository<CommunicationLog, Guid>>();
+        _uowMock.Setup(u => u.GetRepository<CommunicationLog, Guid>()).Returns(_logRepositoryMock.Object);
         _emailSenderMock = new Mock<IEmailSender>();
         _smsSenderMock = new Mock<ISmsSender>();
         _pushSenderMock = new Mock<IPushSender>();
@@ -32,7 +36,7 @@ public class OutboxProcessorServiceTests
 
         _service = new OutboxProcessorService(
             _outboxRepositoryMock.Object,
-            _logRepositoryMock.Object,
+            _uowMock.Object,
             _emailSenderMock.Object,
             _smsSenderMock.Object,
             _pushSenderMock.Object,
@@ -74,7 +78,8 @@ public class OutboxProcessorServiceTests
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -118,7 +123,8 @@ public class OutboxProcessorServiceTests
         // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Failed);
-        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => !l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -201,7 +207,8 @@ public class OutboxProcessorServiceTests
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _smsSenderMock.Verify(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -224,7 +231,8 @@ public class OutboxProcessorServiceTests
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _pushSenderMock.Verify(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -248,7 +256,8 @@ public class OutboxProcessorServiceTests
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Failed);
         _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => !l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Once);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
