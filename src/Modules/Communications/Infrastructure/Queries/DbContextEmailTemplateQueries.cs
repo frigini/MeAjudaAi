@@ -37,12 +37,13 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
         if (string.IsNullOrWhiteSpace(templateKey))
             throw new ArgumentException("Template key cannot be null or whitespace.", nameof(templateKey));
 
-        return await dbContext.EmailTemplates
+        var result = await dbContext.EmailTemplates
             .AsNoTracking()
             .Where(x => x.TemplateKey == templateKey.ToLowerInvariant())
             .OrderBy(x => x.Language)
-            .ThenByDescending(x => x.Version)
             .ToListAsync(cancellationToken);
+
+        return result.OrderByDescending(x => x.Version).ToList();
     }
 
     public async Task<IReadOnlyList<EmailTemplate>> GetAllAsync(CancellationToken cancellationToken = default)
