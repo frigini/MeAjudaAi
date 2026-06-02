@@ -32,7 +32,7 @@ public partial class PaymentsDbContext : BaseDbContext, IUnitOfWork
 
         throw new InvalidOperationException(
             $"PaymentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context supports: Subscription(Guid), PaymentTransaction(Guid).");
+            $"This context supports: Subscription(Guid), PaymentTransaction(Guid), InboxMessage(Guid).");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
