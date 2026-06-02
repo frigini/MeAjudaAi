@@ -79,22 +79,5 @@ public class ExceptionTests
         exception.EntityName.Should().Be(entityName);
     }
 
-    [Fact]
-    public void ConcurrencyConflictException_Constructor_Should_SetProperties()
-    {
-        // Arrange
-        var message = "Concurrency conflict";
-        var entityType = "Order";
-        var aggregateId = "789";
-
-        // Act
-        var exception = new ConcurrencyConflictException(message, aggregateId, entityType);
-
-        // Assert
-        exception.Message.Should().Be(message);
-        exception.EntityType.Should().Be(entityType);
-        exception.AggregateId.Should().Be(aggregateId);
-    }
-
     private class TestBadRequestException(string message) : BadRequestException(message);
 }

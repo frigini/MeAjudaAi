@@ -7,7 +7,6 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -176,7 +175,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
             .ReturnsAsync(booking);
 
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ConcurrencyConflictException());
+            .ThrowsAsync(new DbUpdateConcurrencyException());
 
         var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
 
