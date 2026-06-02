@@ -180,3 +180,16 @@ As futuras atualizações da tabela de sprints devem observar a política: anál
 **Decisão de antecipação**: NX foi antecipado do pós-MVP para o Sprint 8B.2 porque o Provider App (Sprint 8C) e a migração Admin (Sprint 8D) se beneficiam diretamente do workspace unificado. Criar o NX antes desses projetos evita migração posterior mais custosa.
 
 ---
+
+## 🎯 Histórico de Fases da Refatoração de Persistência
+
+> **Plano completo**: consulte [prompts/plano-refatoracao-persistencia.md](../prompts/plano-refatoracao-persistencia.md)
+
+| Fase | Escopo | Status |
+|------|--------|--------|
+| **0** | Shared — IRepository, IUnitOfWork | ✅ Concluída |
+| **1** | Locations (módulo piloto) | ✅ Concluída |
+| **2** | Ratings, Documents, ServiceCatalogs | ✅ Concluída |
+| **3** | Providers, Users, SearchProviders | ✅ Concluída |
+| **4** | Bookings, Communications, Payments | ✅ Concluída |
+| **5** | Limpeza e consolidação global | ✅ Concluída |

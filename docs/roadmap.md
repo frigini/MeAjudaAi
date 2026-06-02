@@ -6,9 +6,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Maio 2026)
 
-**Sprint Atual**: Sprint 14 (Planejada)
+**Sprint Atual**: Sprint 14 (Em andamento)
 
-**Status**: 📋 Planejamento
+**Status**: 🚀 Em Execução
 
 **Meta MVP**: 12 a 16 de maio de 2026
 
@@ -16,18 +16,22 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 🎯 Fases da Refatoração de Persistência
+## 🏃‍♂️ Sprint Atual: Planejamento Tático
 
-> **Plano completo**: consulte [prompts/plano-refatoracao-persistencia.md](../prompts/plano-refatoracao-persistencia.md)
+| Sprint | Foco | Status |
+|--------|------|--------|
+| **14** | **Revisão Geral e Débito Técnico** | 🚀 Em Execução |
+| **14.1**| **Backend Code Review & Sync** | 🚀 Em Execução |
 
-| Fase | Escopo | Status |
-|------|--------|--------|
-| **0** | Shared — `IRepository`, `IUnitOfWork` | ✅ Concluída |
-| **1** | Locations (módulo piloto) | ✅ Concluída |
-| **2** | Ratings, Documents, ServiceCatalogs | ✅ Concluída |
-| **3** | Providers, Users, SearchProviders | ✅ Concluída |
-| **4** | Bookings, Communications, Payments | 📋 Planejada |
-| **5** | Limpeza e consolidação global | 📋 Planejada |
+### Detalhes Sprint 14
+- ✅ **Concluído**: Revisão geral de pendências de arquitetura e qualidade.
+- ✅ **Concluído**: Implementação de `ServiceNameUpdatedIntegrationEvent` para sincronização orientada a eventos entre `ServiceCatalogs` e `Providers`, eliminando débito técnico de isolamento de schemas.
+
+### Detalhes Sprint 14.1
+- Code Review de backend focado em conformidade com padrões DDD e mensageria.
+- Validação da robustez do barramento de eventos implementado.
+- Limpeza final de códigos de fallback pós-refatoração de persistência.
+
 
 ---
 

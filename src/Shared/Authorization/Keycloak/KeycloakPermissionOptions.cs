@@ -32,7 +32,6 @@ public sealed class KeycloakPermissionOptions
     /// </summary>
     [Required]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Newtonsoft.Json.JsonIgnore]
     public string ClientSecret { get; set; } = string.Empty;
 
     /// <summary>
@@ -46,7 +45,6 @@ public sealed class KeycloakPermissionOptions
     /// </summary>
     [Required]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Newtonsoft.Json.JsonIgnore]
     public string AdminPassword { get; set; } = string.Empty;
 
     /// <summary>

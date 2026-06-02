@@ -63,4 +63,15 @@ public sealed class ProviderService
     {
         return new ProviderService(providerId, serviceId, serviceName);
     }
+
+    /// <summary>
+    /// Atualiza o nome do serviço (utilizado para sincronização de dados desnormalizados).
+    /// </summary>
+    public void UpdateServiceName(string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+            throw new ArgumentException("ServiceName cannot be empty.", nameof(newName));
+
+        ServiceName = newName.Trim();
+    }
 }
