@@ -55,10 +55,11 @@ public sealed class OutboxProcessorService(
     {
         var recipientRaw = ExtractRecipient(message);
         var recipientMasked = MaskRecipientForChannel(recipientRaw, message.Channel);
+        CommunicationLog? log = null;
 
         try
         {
-            var log = CommunicationLog.CreateSuccess(
+            log = CommunicationLog.CreateSuccess(
                 correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                 channel: message.Channel,
                 recipient: recipientRaw,
@@ -73,6 +74,7 @@ public sealed class OutboxProcessorService(
         {
             logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                 message.Id, message.CorrelationId);
+            if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
         }
 
         logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
@@ -86,9 +88,10 @@ public sealed class OutboxProcessorService(
 
         if (!message.HasRetriesLeft)
         {
+            CommunicationLog? log = null;
             try
             {
-                var log = CommunicationLog.CreateFailure(
+                log = CommunicationLog.CreateFailure(
                     correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                     channel: message.Channel,
                     recipient: recipientRaw,
@@ -104,6 +107,7 @@ public sealed class OutboxProcessorService(
             {
                 logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                     message.Id, message.CorrelationId);
+                if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
             }
         }
 
