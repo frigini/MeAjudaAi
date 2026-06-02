@@ -35,8 +35,6 @@ internal sealed class MessagingConfiguration
 /// </summary>
 public static class MessagingExtensions
 {
-    private const string UseNewtonsoftJsonKey = "Messaging:UseNewtonsoftJson";
-
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -78,16 +76,8 @@ public static class MessagingExtensions
             return options;
         });
 
-        // Registro do Serializador de Mensagens (usado pelo DeadLetter e infra)
-        var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
-        if (useNewtonsoftJson)
-        {
-            services.TryAddSingleton<IMessageSerializer, NewtonsoftJsonMessageSerializer>();
-        }
-        else
-        {
-            services.TryAddSingleton<IMessageSerializer, SystemTextJsonMessageSerializer>();
-        }
+        // Registro do Serializador de Mensagens (usado pelo DeadLetter e infra) - always use System.Text.Json
+        services.TryAddSingleton<IMessageSerializer, SystemTextJsonMessageSerializer>();
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
@@ -115,11 +105,6 @@ public static class MessagingExtensions
                 
                 var config = configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));
-
-                if (useNewtonsoftJson)
-                {
-                    config = config.Serialization(s => s.UseNewtonsoftJson());
-                }
 
                 return config
                     .Options(o => 
@@ -217,13 +202,6 @@ public static class MessagingExtensions
         {
             return;
         }
-
-        var useNewtonsoftJson = ResolveUseNewtonsoftJson(configuration);
-        if (useNewtonsoftJson)
-        {
-            logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");
-        }
-
         try
         {
             logger.LogInformation("Ensuring messaging infrastructure (Queues/Exchanges)...");
@@ -236,7 +214,4 @@ public static class MessagingExtensions
             throw;
         }
     }
-
-    private static bool ResolveUseNewtonsoftJson(IConfiguration cfg) =>
-        cfg.GetValue<bool>(UseNewtonsoftJsonKey, false);
 }
