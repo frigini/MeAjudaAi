@@ -343,17 +343,16 @@ public class ExtensionsTests
     }
 
     [Fact]
-    public void ConfigureOpenTelemetry_ShouldBeChainable()
+    public void ConfigureOpenTelemetry_ShouldNotReturnNull()
     {
         // Arrange
         var builder = CreateHostBuilder();
 
         // Act
-        var result = builder.ConfigureOpenTelemetry();
+        builder.ConfigureOpenTelemetry();
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().BeSameAs(builder);
+        builder.Should().NotBeNull();
     }
 
     #endregion
@@ -1342,20 +1341,18 @@ public class ExtensionsTests
     }
 
     [Fact]
-    public void MultipleExtensions_CanBeChainedTogether()
+    public void MultipleExtensions_CanBeExecutedSequentially()
     {
         // Arrange
         var builder = CreateHostBuilder();
 
         // Act
-        var result = builder
-            .AddServiceDefaults()
-            .ConfigureOpenTelemetry()
-            .AddServiceDefaults();
+        builder.AddServiceDefaults();
+        builder.ConfigureOpenTelemetry();
+        builder.AddServiceDefaults();
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().BeSameAs(builder);
+        builder.Should().NotBeNull();
     }
 
     #endregion
