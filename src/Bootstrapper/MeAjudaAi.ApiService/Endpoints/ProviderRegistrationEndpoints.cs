@@ -112,8 +112,9 @@ public static class ProviderRegistrationEndpoints
             // Compensação: Tentar remover o usuário criado para evitar orfãos
             try
             {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                 var deleteUserCommand = new DeleteUserCommand(userResult.Value!.Id);
-                var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cancellationToken);
+                var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cts.Token);
 
                 if (deleteResult.IsFailure)
                 {
@@ -134,6 +135,11 @@ public static class ProviderRegistrationEndpoints
             {
                 // Exemplo de outra falha específica esperada do dispatcher.
                 logger.LogError(ex, "Compensation failed (invalid operation): Could not delete orphaned user {UserId}.", userResult.Value!.Id);
+            }
+            catch (Exception ex)
+            {
+                // Erro inesperado na compensação - registra e ignora para manter a resposta original de BadRequest
+                logger.LogError(ex, "Unexpected error during compensation for orphaned user {UserId}.", userResult.Value!.Id);
             }
 
             return Results.BadRequest("Ocorreu um erro ao registrar o provedor.");

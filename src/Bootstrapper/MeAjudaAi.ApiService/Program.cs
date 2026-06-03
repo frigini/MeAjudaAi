@@ -28,6 +28,11 @@ public partial class Program
 {
     protected Program() { }
 
+    private static bool IsTestOrIntegrationEnvironment(IHostEnvironment environment)
+    {
+        return environment.IsEnvironment("Testing") || environment.IsEnvironment("Integration");
+    }
+
     public static async Task Main(string[] args)
     {
         // Correção para compatibilidade DateTime UTC com PostgreSQL timestamp
@@ -71,7 +76,7 @@ public partial class Program
 
             // Aplicar migrations de todos os módulos ANTES de seed
             // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
-            if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Migrations:Enabled", true))
+            if (!IsTestOrIntegrationEnvironment(app.Environment) && app.Configuration.GetValue("Migrations:Enabled", true))
             {
                 await app.ApplyModuleMigrationsAsync();
                 
@@ -97,7 +102,7 @@ public partial class Program
     private static void ConfigureLogging(WebApplicationBuilder builder)
     {
         // Configurar Serilog apenas se NÃO for ambiente de Testing
-        if (!builder.Environment.IsEnvironment("Testing"))
+        if (!IsTestOrIntegrationEnvironment(builder.Environment))
         {
             // Logger de inicialização para mensagens de startup precoces
             Log.Logger = new LoggerConfiguration()
@@ -131,7 +136,7 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
-        if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
+        if (IsTestOrIntegrationEnvironment(app.Environment))
         {
             app.UseCors(policy =>
             {
@@ -164,7 +169,7 @@ public partial class Program
 
     private static void LogStartupComplete(WebApplication app)
     {
-        if (!app.Environment.IsEnvironment("Testing"))
+        if (!IsTestOrIntegrationEnvironment(app.Environment))
         {
             var environmentName = app.Environment.IsEnvironment("Integration") ? "Integration Test" : app.Environment.EnvironmentName;
             Log.Information("✅ MeAjudaAi API Service configured successfully - Environment: {Environment}", environmentName);
@@ -173,7 +178,8 @@ public partial class Program
 
     private static void HandleStartupException(Exception ex)
     {
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        if (environment != "Testing" && environment != "Integration")
         {
             Log.Fatal(ex, "❌ Critical failure initializing MeAjudaAi API Service");
         }
@@ -181,7 +187,8 @@ public partial class Program
 
     private static void CloseLogging()
     {
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        if (environment != "Testing" && environment != "Integration")
         {
             Log.CloseAndFlush();
         }

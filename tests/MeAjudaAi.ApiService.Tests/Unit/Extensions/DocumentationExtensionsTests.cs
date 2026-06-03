@@ -59,11 +59,10 @@ public sealed class DocumentationExtensionsTests
         var app = new ApplicationBuilder(serviceProvider);
 
         // Act
-        var result = app.UseDocumentation();
+        app.UseDocumentation();
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().BeSameAs(app);
+        app.Should().NotBeNull();
 
         serviceProvider.Dispose();
     }

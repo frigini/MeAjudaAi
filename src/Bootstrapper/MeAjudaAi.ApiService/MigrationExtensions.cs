@@ -111,7 +111,7 @@ public static class MigrationExtensions
                         loaded.Count, assembly.GetName().Name);
                 }
 
-                logger.LogWarning(ex, "⚠️ Alguns tipos não puderam ser carregados do assembly {AssemblyName}. Verifique LoaderExceptions para detalhes.", assembly.FullName);
+                logger.LogWarning(ex, "⚠️ Some types couldn't be loaded from assembly {AssemblyName}. Check LoaderExceptions for details.", assembly.FullName);
                 if (ex.LoaderExceptions != null)
                 {
                     foreach (var loaderEx in ex.LoaderExceptions)
@@ -122,15 +122,14 @@ public static class MigrationExtensions
                 }
                 catch (FileLoadException ex)
                 {
-                logger.LogWarning(ex, "⚠️ Falha ao carregar o assembly {AssemblyName}", assembly.FullName);
+                logger.LogWarning(ex, "⚠️ Failed to load assembly {AssemblyName}", assembly.FullName);
                 // continua com o próximo assembly
                 }
                 catch (BadImageFormatException ex)
                 {
-                logger.LogWarning(ex, "⚠️ Formato de imagem inválido para o assembly {AssemblyName}", assembly.FullName);
+                logger.LogWarning(ex, "⚠️ Bad image format for assembly {AssemblyName}", assembly.FullName);
                 // continua com o próximo assembly
                 }
-
         }
 
         return dbContextTypes;

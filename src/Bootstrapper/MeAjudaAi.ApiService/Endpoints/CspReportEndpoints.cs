@@ -58,6 +58,11 @@ public static class CspReportEndpoints
 
             return TypedResults.NoContent();
         }
+        catch (JsonException ex)
+        {
+            logger.LogError(ex, "Invalid CSP report payload");
+            return TypedResults.BadRequest("Invalid CSP report");
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing CSP report");

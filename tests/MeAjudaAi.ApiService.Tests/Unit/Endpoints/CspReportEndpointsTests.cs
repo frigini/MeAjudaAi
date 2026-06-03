@@ -1,4 +1,5 @@
 using MeAjudaAi.ApiService.Endpoints;
+using MeAjudaAi.ApiService.Endpoints.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -58,7 +59,7 @@ public class CspReportEndpointsTests
     }
 
     [Fact]
-    public async Task ReceiveCspReport_Should_ReturnNoContent_When_InvalidJson()
+    public async Task ReceiveCspReport_Should_ReturnBadRequest_When_InvalidJson()
     {
         // Arrange
         var context = CreateHttpContext("{ invalid json }");
@@ -67,9 +68,7 @@ public class CspReportEndpointsTests
         var result = await CspReportEndpoints.ReceiveCspReport(context, _loggerMock.Object);
 
         // Assert
-        // JsonSerializer.Deserialize throws for invalid JSON, which is caught and returns 500 in current impl
-        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult>()
-            .Which.StatusCode.Should().Be(500);
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.BadRequest<string>>();
     }
 
     private static HttpContext CreateHttpContext(string body)
