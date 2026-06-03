@@ -246,7 +246,7 @@ public class PermissionClaimsTransformationTests
         var userId = "user-456";
         var claims = new List<Claim>
         {
-            new(AuthConstants.Claims.Subject, userId) // Using 'sub' instead of NameIdentifier
+            new(AuthConstants.Claims.Subject, userId) // Usa 'sub' em vez de NameIdentifier
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -271,7 +271,7 @@ public class PermissionClaimsTransformationTests
         var userId = "user-789";
         var claims = new List<Claim>
         {
-            new("id", userId) // Using 'id' claim
+            new("id", userId) // Usa claim 'id'
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);

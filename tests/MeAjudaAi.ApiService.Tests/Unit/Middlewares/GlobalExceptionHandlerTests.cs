@@ -1,4 +1,3 @@
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 
@@ -116,10 +116,15 @@ public class GlobalExceptionHandlerTests
         });
 
         problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(StatusCodes.Status500InternalServerError);
-        problemDetails.Detail.Should().Contain("Development error details");
-        problemDetails.Extensions.Should().ContainKey("traceId");
-        problemDetails.Extensions["traceId"].ToString().Should().Be("trace-dev-123");
+        var pd = problemDetails!;
+        pd.Status.Should().Be(StatusCodes.Status500InternalServerError);
+        pd.Detail.Should().Contain("Development error details");
+
+        pd.Extensions.Should().NotBeNull();
+        var extensions = pd.Extensions!;
+        extensions.Should().ContainKey("traceId");
+        var traceVal = extensions["traceId"] as string;
+        traceVal.Should().Be("trace-dev-123");
     }
 
     [Fact]
@@ -145,10 +150,15 @@ public class GlobalExceptionHandlerTests
         });
 
         problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(StatusCodes.Status500InternalServerError);
-        problemDetails.Detail.Should().NotContain("Dados sensíveis");
-        problemDetails.Detail.Should().Contain("Ocorreu um erro inesperado");
-        problemDetails.Extensions.Should().ContainKey("traceId");
-        problemDetails.Extensions["traceId"].ToString().Should().Be("trace-abc");
+        var pd = problemDetails!;
+        pd.Status.Should().Be(StatusCodes.Status500InternalServerError);
+        pd.Detail.Should().NotContain("Dados sensíveis");
+        pd.Detail.Should().Contain("Ocorreu um erro inesperado");
+
+        pd.Extensions.Should().NotBeNull();
+        var extensions = pd.Extensions!;
+        extensions.Should().ContainKey("traceId");
+        var traceVal = extensions["traceId"] as string;
+        traceVal.Should().Be("trace-abc");
     }
 }

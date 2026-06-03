@@ -1,8 +1,8 @@
-using System.Reflection;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
+using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 
@@ -242,7 +242,7 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthConstants_Claims_ShouldBeConstantStrings()
     {
-        // Arrange - Explicit list of all Claims constants
+        // Arrange - Lista explícita de todas as constantes de Claims
         var claims = new[]
         {
             AuthConstants.Claims.Subject,

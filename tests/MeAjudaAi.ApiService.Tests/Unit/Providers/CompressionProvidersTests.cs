@@ -1,6 +1,6 @@
-using System.IO.Compression;
 using MeAjudaAi.ApiService.Providers.Compression;
 using FluentAssertions;
+using System.IO.Compression;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Providers;

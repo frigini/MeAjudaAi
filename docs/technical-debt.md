@@ -13,6 +13,13 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 - [ ] Perfilagem de memória em produção
 
+### 🏗️ Arquitetura & Código
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog
+
+- [ ] **Contratos de Cliente (Client Contracts) Incompletos**: O projeto `MeAjudaAi.Client.Contracts` carece de interfaces `Refit` para módulos críticos (`Bookings`, `Users`, `Payments`, `Communications`, `Ratings`, `SearchProviders`). Isso força implementações manuais ou duplicadas de consumo de API em diferentes clientes, comprometendo a segurança de tipos e a facilidade de integração. É necessário criar as interfaces equivalentes para todos os módulos restantes para padronizar o consumo de API em toda a solução.
+
 ---
 
 ## 📋 Histórico

@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Services.Authentication;
+using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Security;
 

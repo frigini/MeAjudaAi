@@ -1,12 +1,12 @@
+using FluentAssertions;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Endpoints.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
-using Xunit;
 using System.Text;
 using System.Text.Json;
+using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Endpoints;
 

@@ -1,4 +1,4 @@
-using System.Text.Json;
+using MeAjudaAi.Gateway.Extensions;
 using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
 using MeAjudaAi.ServiceDefaults;
@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.FeatureManagement;
+using System.Text.Json;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
 

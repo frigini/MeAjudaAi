@@ -40,7 +40,7 @@ public class ServiceCollectionExtensionsTests
         var mockEnvironment = new Mock<IWebHostEnvironment>();
         mockEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
 
-        // Act & Assert - Basic null check without calling the problematic method
+        // Act & Assert - Verificação básica de valores nulos sem chamar o método problemático
         services.Should().NotBeNull();
         configuration.Should().NotBeNull();
         mockEnvironment.Object.Should().NotBeNull();

@@ -1,12 +1,12 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Infrastructure.Persistence;
@@ -178,7 +178,7 @@ public class CompositeUnitOfWorkTests
             // InMemory database não suporta transações distribuídas, mas deve ter salvo individualmente
         }
 
-        // Assert - Verify persistence using fresh context instances
+        // Assert - Verifica persistência usando novas instâncias de contexto
         using var freshUsersContext = new MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext(usersOptions, null!);
         using var freshProvidersContext = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(providersOptions, null!);
         

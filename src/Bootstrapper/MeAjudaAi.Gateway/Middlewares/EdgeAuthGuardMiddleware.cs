@@ -3,6 +3,10 @@ using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Gateway.Middlewares;
 
+/// <summary>
+/// Middleware responsável por realizar a autenticação de borda, bloqueando requisições
+/// não autorizadas para rotas protegidas antes de chegarem aos serviços internos.
+/// </summary>
 public class EdgeAuthGuardMiddleware
 {
     private readonly RequestDelegate _next;
@@ -82,13 +86,5 @@ public class EdgeAuthGuardMiddleware
         }
 
         await _next(context);
-    }
-}
-
-public static class EdgeAuthGuardMiddlewareExtensions
-{
-    public static IApplicationBuilder UseEdgeAuthGuard(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<EdgeAuthGuardMiddleware>();
     }
 }
