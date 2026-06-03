@@ -1,4 +1,3 @@
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 namespace MeAjudaAi.Contracts.Utilities.Constants;
 
 /// <summary>
@@ -7,6 +6,10 @@ namespace MeAjudaAi.Contracts.Utilities.Constants;
 /// <remarks>
 /// Baseadas nas mensagens realmente utilizadas no projeto.
 /// </remarks>
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Security",
+    "S2068:Hard-coded credentials",
+    Justification = "These are user-facing validation messages, not hard-coded credentials.")]
 public static class ValidationMessages
 {
     /// <summary>

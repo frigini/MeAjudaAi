@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Contracts.Bookings.Enums;
+namespace MeAjudaAi.Contracts.Modules.Bookings.Enums;
 
 public enum EBookingStatus
 {

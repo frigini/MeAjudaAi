@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
+namespace MeAjudaAi.Contracts.Modules.Locations.DTOs;
 
 public record LocationCandidate(
     string DisplayName,

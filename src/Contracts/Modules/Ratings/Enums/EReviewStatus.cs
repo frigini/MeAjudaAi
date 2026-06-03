@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Contracts.Contracts.Modules.Ratings.Enums;
+namespace MeAjudaAi.Contracts.Modules.Ratings.Enums;
 
 /// <summary>
 /// Status de uma avaliação de prestador (versão contrato).
