@@ -37,6 +37,15 @@
           "Microsoft.Extensions.Resilience": "10.6.0"
         }
       },
+      "Microsoft.Extensions.ServiceDiscovery": {
+        "type": "Direct",
+        "requested": "[10.6.0, )",
+        "resolved": "10.6.0",
+        "contentHash": "G0FmQN28AgUQP7KMKihIOgcxtrXPXEan2kWdabOOtC6Yod8Wjlb8WujjrDwYCOOO6pm0WNtbMdfEjAXU4HhU6A==",
+        "dependencies": {
+          "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.6.0"
+        }
+      },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "Direct",
         "requested": "[4.5.0, )",
@@ -278,6 +287,11 @@
           "Polly.Extensions": "8.4.2",
           "Polly.RateLimiting": "8.4.2"
         }
+      },
+      "Microsoft.Extensions.ServiceDiscovery.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.6.0",
+        "contentHash": "zD6cX/qP0wR9LONlwS+dPBv9N6rs0eGm/pPNPeqy3LGKmgODDG1AmvK4Q0Aa6CWDq5SGlSuO3bJOonnJ7+Z1qQ=="
       },
       "Microsoft.Extensions.Telemetry": {
         "type": "Transitive",
@@ -564,7 +578,6 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.6.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.8, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
-          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",

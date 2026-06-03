@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Builder;
@@ -14,11 +13,15 @@ using Microsoft.FeatureManagement;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Text.Json;
 
 namespace MeAjudaAi.ServiceDefaults;
 
 public static class Extensions
 {
+    /// <summary>
+    /// Adiciona configurações padrão de serviço (OpenTelemetry, HealthChecks, Feature Management).
+    /// </summary>
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();
@@ -34,7 +37,10 @@ public static class Extensions
         return builder;
     }
 
-    public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    /// <summary>
+    /// Configura OpenTelemetry para rastreamento e métricas.
+    /// </summary>
+    public static void ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -70,11 +76,9 @@ public static class Extensions
             });
 
         builder.AddOpenTelemetryExporters();
-
-        return builder;
     }
 
-    private static TBuilder ConfigureHttpClients<TBuilder>(this TBuilder builder)
+    private static void ConfigureHttpClients<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
         builder.Services.ConfigureHttpClientDefaults(http =>
@@ -85,23 +89,21 @@ public static class Extensions
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
         });
-
-        return builder;
     }
 
-    private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder)
+    private static void AddOpenTelemetryExporters<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
         var config = builder.Configuration;
 
-        // OTEL Configuration via Environment Variables
+        // Configuração de OTEL via variáveis de ambiente
         var otlpEndpoint = config["OTEL_EXPORTER_OTLP_ENDPOINT"] ??
                           Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
 
         var applicationInsightsConnectionString = config["APPLICATIONINSIGHTS_CONNECTION_STRING"] ??
                                                 Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
 
-        // Use OTLP Exporter if endpoint is configured
+        // Usa exportador OTLP se endpoint estiver configurado
         var useOtlpExporter = !string.IsNullOrWhiteSpace(otlpEndpoint);
 
         if (useOtlpExporter)
@@ -109,7 +111,7 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Use Azure Monitor if Application Insights is configured
+        // Usa Azure Monitor se Application Insights estiver configurado
         if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
         {
             builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
@@ -117,8 +119,6 @@ public static class Extensions
                 options.ConnectionString = applicationInsightsConnectionString;
             });
         }
-
-        return builder;
     }
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
@@ -133,12 +133,12 @@ public static class Extensions
 
         if (app.Environment.IsDevelopment() || IsTestingEnvironment())
         {
-            // Health endpoint excludes critical infrastructure (database) - only external services
-            // Returns 200 for Healthy/Degraded (external services can be down without affecting app availability)
-            // External services like Keycloak/IBGE degraded don't prevent the API from serving requests
+            // Endpoint de health exclui infraestrutura crítica (banco de dados) - apenas serviços externos
+            // Retorna 200 para Healthy/Degraded (serviços externos podem estar fora do ar sem afetar a disponibilidade do app)
+            // Serviços externos como Keycloak/IBGE degradados não impedem a API de atender requisições
             app.MapHealthChecks("/health", new HealthCheckOptions
             {
-                Predicate = check => check.Tags.Contains("external"),  // Only external services, not database
+                Predicate = check => check.Tags.Contains("external"),  // Apenas serviços externos, não banco de dados
                 ResponseWriter = WriteHealthCheckResponse,
                 AllowCachingResponses = false,
                 ResultStatusCodes =
@@ -172,7 +172,7 @@ public static class Extensions
 
             app.MapHealthChecks("/health/ready", new HealthCheckOptions
             {
-                Predicate = r => r.Tags.Contains("ready"),  // Includes database + external services
+                Predicate = r => r.Tags.Contains("ready"),  // Inclui banco de dados + serviços externos
                 ResponseWriter = WriteHealthCheckResponse,
                 AllowCachingResponses = false
             });
@@ -258,14 +258,12 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Configura Microsoft.FeatureManagement para controle dinâmico de features.
+    /// Configura Microsoft.FeatureManagement para controle dinâmico de recursos.
     /// Suporta Azure App Configuration ou configuração local via appsettings.json.
     /// </summary>
-    private static TBuilder AddFeatureManagement<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    private static void AddFeatureManagement<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        // Adicionar Feature Management com suporte a filters (TimeWindow, Percentage, etc)
+        // Adicionar Feature Management com suporte a filtros (TimeWindow, Percentage, etc)
         builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureManagement"));
-
-        return builder;
     }
 }

@@ -38,13 +38,14 @@ public static class HealthCheckExtensions
         return builder;
     }
 
-    private static IHealthChecksBuilder AddDatabaseHealthCheck(this IServiceCollection services)
+    private static void AddDatabaseHealthCheck(this IServiceCollection services)
     {
         // Em ambiente de teste, adiciona um health check mock ao invés do real
         if (IsTestingEnvironment())
         {
-            return services.AddHealthChecks()
+            services.AddHealthChecks()
                 .AddCheck("postgres", () => HealthCheckResult.Healthy("Database ready for testing"), ["ready", "database"]);
+            return;
         }
 
         // Registra PostgresOptions como singleton para PostgresHealthCheck
@@ -52,11 +53,11 @@ public static class HealthCheckExtensions
             serviceProvider.GetRequiredService<IOptions<PostgresOptions>>().Value);
 
         // Registra o health check do Postgres
-        return services.AddHealthChecks()
+        services.AddHealthChecks()
             .AddCheck<PostgresHealthCheck>("postgres", tags: ["ready", "database"]);
     }
 
-    private static IHealthChecksBuilder AddExternalServicesHealthCheck(this IServiceCollection services)
+    private static void AddExternalServicesHealthCheck(this IServiceCollection services)
     {
         // Registra ExternalServicesOptions usando AddOptions<>()
         services.AddOptions<ExternalServicesOptions>()
@@ -71,23 +72,23 @@ public static class HealthCheckExtensions
         services.AddHttpClient<ExternalServicesHealthCheck>();
 
         // Registra o health check de serviços externos
-        return services.AddHealthChecks()
+        services.AddHealthChecks()
             .AddCheck<ExternalServicesHealthCheck>("external-services", tags: ["ready", "external"]);
     }
 
-    private static IHealthChecksBuilder AddCacheHealthCheck(this IServiceCollection services)
+    private static void AddCacheHealthCheck(this IServiceCollection services)
     {
         // Health check simples para cache
-        return services.AddHealthChecks()
+        services.AddHealthChecks()
             .AddCheck("cache", () => HealthCheckResult.Healthy("Cache is available"), ["ready", "cache"]);
     }
 
     /// <summary>
-    /// Determines if the current environment is Testing using the same precedence as AppHost EnvironmentHelpers
+    /// Determina se o ambiente atual é de Teste, usando a mesma precedência do EnvironmentHelpers do AppHost
     /// </summary>
     private static bool IsTestingEnvironment()
     {
-        // Check DOTNET_ENVIRONMENT first, then fallback to ASPNETCORE_ENVIRONMENT (same precedence as EnvironmentHelpers)
+        // Verifica DOTNET_ENVIRONMENT primeiro, depois ASPNETCORE_ENVIRONMENT (mesma precedência do EnvironmentHelpers)
         var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
@@ -98,17 +99,17 @@ public static class HealthCheckExtensions
             return true;
         }
 
-        // Check INTEGRATION_TESTS environment variable with robust boolean parsing
+        // Verifica a variável de ambiente INTEGRATION_TESTS com parse booleano robusto
         var integrationTestsValue = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
         if (!string.IsNullOrEmpty(integrationTestsValue))
         {
-            // Handle both "true"/"false" and "1"/"0" patterns case-insensitively
+            // Lida com padrões "true"/"false" e "1"/"0" de forma insensível a maiúsculas/minúsculas
             if (bool.TryParse(integrationTestsValue, out var boolResult))
             {
                 return boolResult;
             }
 
-            // Handle "1" as true (common in CI/CD environments)
+            // Lida com "1" como verdadeiro (comum em ambientes de CI/CD)
             if (string.Equals(integrationTestsValue, "1", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
