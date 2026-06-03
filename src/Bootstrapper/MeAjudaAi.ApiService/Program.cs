@@ -75,7 +75,7 @@ public partial class Program
             await ConfigureMiddlewareAsync(app);
 
             // Aplicar migrations de todos os módulos ANTES de seed
-            // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
+            // Pular em ambiente de Testing ou Integration pois os testes controlam suas próprias migrations
             if (!IsTestOrIntegrationEnvironment(app.Environment) && app.Configuration.GetValue("Migrations:Enabled", true))
             {
                 await app.ApplyModuleMigrationsAsync();

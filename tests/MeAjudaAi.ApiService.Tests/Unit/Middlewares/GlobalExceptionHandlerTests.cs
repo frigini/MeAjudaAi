@@ -132,7 +132,8 @@ public class GlobalExceptionHandlerTests
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
-        context.TraceIdentifier = "trace-abc";
+        context.TraceIdentifier = "trace-abc"; // Define explicitamente antes de disparar o erro
+        
         var exception = new InvalidOperationException("Dados sensíveis do sistema interno");
         _mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
 

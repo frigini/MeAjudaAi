@@ -8,8 +8,8 @@ public class EdgeAuthGuardOptions
     public const string SectionName = "EdgeAuthGuard";
 
     public bool Enabled { get; set; } = true;
-    public List<string> PublicRoutes { get; set; } = new List<string>
-    {
+    public List<string> PublicRoutes { get; set; } = 
+    [
         "/health",
         "/swagger",
         "/api/v1/auth/login",
@@ -18,7 +18,7 @@ public class EdgeAuthGuardOptions
         "/api/v1/customers/register",
         "/api/v1/providers/register",
         "/webhooks/stripe"
-    };
+    ];
     public string ChallengeHeader { get; set; } = "X-Gateway-Challenge";
     public string AuthenticatedHeader { get; set; } = "X-Gateway-Authenticated";
 }

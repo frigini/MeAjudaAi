@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Moq;
 using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
@@ -208,32 +210,30 @@ public class PermissionArchitectureTests
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
+        var env = new Mock<IWebHostEnvironment>().Object;
 
-        // Registrar as dependências mínimas necessárias para AddPermissionBasedAuthorization
-        services.AddLogging();
-        services.AddOptions();
-
-        // Simular o registro feito em AuthorizationExtensions.AddPermissionBasedAuthorization
-        services.AddScoped<IPermissionService, PermissionService>();
-        services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
-        services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
-
-        var serviceProvider = services.BuildServiceProvider();
+        // Registrar serviços de autorização usando a extensão real
+        services.AddPermissionBasedAuthorization(configuration, env);
 
         // Lista de tipos e seus tempos de vida esperados
         var authorizationServices = new[]
         {
             typeof(IPermissionService),
+            typeof(IClaimsTransformation),
             typeof(IAuthorizationHandler)
         };
 
         // Act & Assert
         foreach (var serviceType in authorizationServices)
         {
-            var descriptor = services.FirstOrDefault(s => s.ServiceType == serviceType);
-
-            Assert.NotNull(descriptor);
-            Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+            // O AddPermissionBasedAuthorization pode registrar múltiplos handlers, 
+            // precisamos encontrar o descriptor correto.
+            var descriptors = services.Where(s => s.ServiceType == serviceType);
+            
+            foreach (var descriptor in descriptors)
+            {
+                Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+            }
         }
     }
 

@@ -46,7 +46,7 @@ public sealed class DocumentationExtensionsTests
     }
 
     [Fact]
-    public void UseDocumentation_ShouldRegisterMiddlewareAndReturnBuilder()
+    public void UseDocumentation_ShouldRegisterMiddleware()
     {
         // Arrange
         var services = new ServiceCollection();

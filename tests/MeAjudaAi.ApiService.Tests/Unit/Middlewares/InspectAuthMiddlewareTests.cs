@@ -85,7 +85,8 @@ public class InspectAuthMiddlewareTests
         {
             new(ClaimTypes.Name, "testuser"),
             new(ClaimTypes.Role, "Admin"),
-            new(ClaimTypes.Role, "User")
+            new(ClaimTypes.Role, "User"),
+            new(AuthConstants.Claims.Permission, "Read")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         

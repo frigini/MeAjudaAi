@@ -2,7 +2,6 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Middleware;
 using Microsoft.Extensions.Options;
 using Moq;
-using System.Text.Json;
 
 namespace MeAjudaAi.Gateway.Tests.Unit.Middleware;
 

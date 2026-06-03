@@ -10,89 +10,71 @@ namespace MeAjudaAi.Gateway.Handlers;
 /// </summary>
 internal sealed class RetryDelegatingHandler(GatewayResilienceOptions options, ILogger<ResilientForwarderHttpClientFactory> logger) : DelegatingHandler
 {
-    private static readonly HashSet<string> DefaultRetryableMethods =
-        new(["GET", "HEAD", "OPTIONS"], StringComparer.OrdinalIgnoreCase);
+    private static readonly IList<string> CachedDefaultRetryableMethods = new List<string> { "GET", "HEAD", "OPTIONS" }.AsReadOnly();
+    
+    private readonly GatewayResilienceOptions _options = options;
+    private readonly ILogger<ResilientForwarderHttpClientFactory> _logger = logger;
+    private readonly IList<string> _retryableMethods = options.RetryableMethods?.Count > 0 ? options.RetryableMethods : CachedDefaultRetryableMethods;
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
-
-        var retryableMethods = options.RetryableMethods?.Count > 0 
-            ? options.RetryableMethods 
-            : DefaultRetryableMethods.ToList();
-        
-        var allowRetry = retryableMethods.Contains(request.Method.Method, StringComparer.OrdinalIgnoreCase);
-        
-        if (!allowRetry || options.RetryCount <= 0)
+        if (request.Content != null)
         {
-            return await base.SendAsync(request, timeoutCts.Token);
+            await request.Content.LoadIntoBufferAsync();
         }
 
-        HttpResponseMessage? last = null;
-        Exception? lastException = null;
-        
-        for (int attempt = 0; attempt <= options.RetryCount; attempt++)
+        var attempt = 0;
+        while (true)
         {
+            HttpResponseMessage? response = null;
             try
             {
-                last = await base.SendAsync(request, timeoutCts.Token);
-                
-                if (!IsTransient(last))
+                response = await base.SendAsync(request, cancellationToken);
+                if (attempt >= _options.RetryCount || !ShouldRetry(request, response, null))
                 {
-                    return last;
-                }
-
-                logger.LogWarning(
-                    "Retry attempt {AttemptNumber}/{MaxAttempts} for {Method} {Url} - Status: {StatusCode}",
-                    attempt + 1,
-                    options.RetryCount,
-                    request.Method.Method,
-                    request.RequestUri,
-                    last.StatusCode);
-
-                if (attempt < options.RetryCount)
-                {
-                    last.Dispose();
-                    last = null;
+                    return response;
                 }
             }
-            catch (Exception ex) when (IsTransientException(ex))
+            catch (Exception ex) when (attempt < _options.RetryCount && (IsTransientException(ex) || ex is OperationCanceledException))
             {
-                lastException = ex;
-                logger.LogWarning(
-                    "Retry attempt {AttemptNumber}/{MaxAttempts} for {Method} {Url} - Exception: {Message}",
-                    attempt + 1,
-                    options.RetryCount,
-                    request.Method.Method,
-                    request.RequestUri,
-                    ex.Message);
+                response?.Dispose();
+                if (ex is OperationCanceledException && cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+            }
+            catch (Exception)
+            {
+                response?.Dispose();
+                throw;
             }
 
-            if (attempt < options.RetryCount)
-            {
-                var delay = TimeSpan.FromMilliseconds(options.RetryBaseDelayMs * Math.Pow(2, attempt));
-                await Task.Delay(delay, timeoutCts.Token);
-            }
+            attempt++;
+            var delay = TimeSpan.FromMilliseconds(_options.RetryBaseDelayMs * Math.Pow(2, attempt));
+            await Task.Delay(delay, cancellationToken);
+            response?.Dispose();
+        }
         }
 
-        if (last != null)
+        private bool ShouldRetry(HttpRequestMessage request, HttpResponseMessage? response, Exception? exception)
         {
-            return last;
-        }
-
-        if (lastException != null)
+        if (!_retryableMethods.Contains(request.Method.Method, StringComparer.OrdinalIgnoreCase))
         {
-            throw lastException;
+            return false;
         }
 
-        throw new HttpRequestException("All retry attempts failed");
-    }
+        if (response != null)
+        {
+            return IsTransient(response);
+        }
 
-    private static bool IsTransient(HttpResponseMessage response) =>
+        return exception != null && IsTransientException(exception);
+        }
+
+        private static bool IsTransient(HttpResponseMessage response) =>
         (int)response.StatusCode >= 500 ||
         response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout;
 
-    private static bool IsTransientException(Exception ex) =>
+        private static bool IsTransientException(Exception ex) =>
         ex is HttpRequestException or TaskCanceledException or IOException;
-}
+        }
