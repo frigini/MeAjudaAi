@@ -15,6 +15,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 /// <summary>
 /// Testes para Options de Messaging (ServiceBusOptions, RabbitMqOptions, MessageBusOptions)
 /// </summary>
+[Collection("EnvironmentVariableTests")]
 public class MessagingExtensionsTests
 {
 

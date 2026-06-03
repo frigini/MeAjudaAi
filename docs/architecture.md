@@ -64,23 +64,23 @@ src/
     └── MeAjudaAi.ServiceDefaults/ # Configurações padrão
 ```
 
-    ### 🚀 Configuração do .NET Aspire (AppHost)
+### 🚀 Configuração do .NET Aspire (AppHost)
 
-    O projeto `MeAjudaAi.AppHost` atua como o orquestrador da infraestrutura local utilizando o .NET Aspire.
+O projeto `MeAjudaAi.AppHost` atua como o orquestrador da infraestrutura local utilizando o .NET Aspire.
 
-    #### Configuração do Projeto (`MeAjudaAi.AppHost.csproj`)
+#### Configuração do Projeto (`MeAjudaAi.AppHost.csproj`)
 
-    Os pontos críticos de configuração são:
+Os pontos críticos de configuração são:
 
-    - **`OutputType`**: Definido como `Exe` para execução como processo orquestrador.
-    - **`RestoreLockedMode`**: Definido como `false` para permitir flexibilidade com dependências do SDK do Aspire que variam conforme o SO, evitando falhas de restore em ambientes heterogêneos.
-    - **`IsAspireProjectResource="false"`**: Marcador aplicado em `ProjectReferences` de infraestrutura (como migrações) para informar ao Aspire que não devem ser iniciados como serviços independentes.
+- **`OutputType`**: Definido como `Exe` para execução como processo orquestrador.
+- **`RestoreLockedMode`**: Definido como `false` para permitir flexibilidade com dependências do SDK do Aspire que variam conforme o SO, evitando falhas de restore em ambientes heterogêneos.
+- **`IsAspireProjectResource="false"`**: Marcador aplicado em `ProjectReferences` de infraestrutura (como migrações) para informar ao Aspire que não devem ser iniciados como serviços independentes.
 
-    ---
+---
 
-    ### 🔌 Dependency Injection: Keyed Services (Unit of Work)
+### 🔌 Dependency Injection: Keyed Services (Unit of Work)
 
-    **Propósito**: Resolver conflitos de injeção de dependência em uma estrutura de monólito modular onde múltiplos módulos podem registrar implementações distintas de `IUnitOfWork` (cada um seu próprio `DbContext`).
+**Propósito**: Resolver conflitos de injeção de dependência em uma estrutura de monólito modular onde múltiplos módulos podem registrar implementações distintas de `IUnitOfWork` (cada um seu próprio `DbContext`).
 
 **Problema**: O uso de um registro genérico `services.AddScoped<IUnitOfWork>(...)` causa o conflito "last-registration-wins", onde o último módulo registrado sobrescreve os demais, fazendo com que handlers recebam o contexto de banco de dados incorreto.
 

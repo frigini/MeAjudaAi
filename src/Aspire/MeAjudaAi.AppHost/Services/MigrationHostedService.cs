@@ -378,10 +378,6 @@ internal class MigrationHostedService(
         {
             logger.LogError(ex, "❌ Access denied while reading seed scripts");
         }
-        catch (InvalidOperationException ex)
-        {
-            logger.LogError(ex, "❌ Invalid operation during data seeding");
-        }
     }
 }
 
