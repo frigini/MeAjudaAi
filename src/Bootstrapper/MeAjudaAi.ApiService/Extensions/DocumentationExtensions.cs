@@ -1,13 +1,15 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Filters;
 using Microsoft.OpenApi;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Xml;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
 [ExcludeFromCodeCoverage]
 public static class DocumentationExtensions
 {
-    public static IServiceCollection AddDocumentation(this IServiceCollection services)
+    public static void AddDocumentation(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
@@ -69,9 +71,17 @@ public static class DocumentationExtensions
                 {
                     options.IncludeXmlComments(xmlFile);
                 }
-                catch
+                catch (XmlException)
                 {
-                    // Ignora erros de XML inválido
+                    // Ignorar arquivos de comentários XML inválidos
+                }
+                catch (IOException)
+                {
+                    // Ignorar problemas de E/S ao ler arquivos XML
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Ignorar arquivos que não podemos acessar
                 }
             }
 
@@ -119,11 +129,9 @@ public static class DocumentationExtensions
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
         });
-
-        return services;
     }
 
-    public static IApplicationBuilder UseDocumentation(this IApplicationBuilder app)
+    public static void UseDocumentation(this IApplicationBuilder app)
     {
         app.UseSwagger(options =>
         {
@@ -145,8 +153,5 @@ public static class DocumentationExtensions
             // CSS otimizado
             options.InjectStylesheet("/css/swagger-custom.css");
         });
-
-        return app;
     }
 }
-

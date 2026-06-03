@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Services.Authentication;
 

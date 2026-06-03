@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService;
 
@@ -21,8 +21,8 @@ public static class MigrationExtensions
 
         var dbContextTypes = DiscoverDbContextTypes(logger);
         
-        // Ordem de migração (dependências SQL entre módulos): 
-        // Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications -> Ratings -> Payments -> Bookings -> SearchProviders
+        // Define a ordem de execução das migrações para respeitar restrições de chave estrangeira (FK)
+        // entre tabelas de diferentes módulos no banco de dados compartilhado.
         var modulePriority = new Dictionary<string, int>
         {
             { "Users", 1 },
@@ -95,11 +95,42 @@ public static class MigrationExtensions
                         types.Count, assembly.GetName().Name);
                 }
             }
-            catch (Exception ex)
+            catch (System.Reflection.ReflectionTypeLoadException ex)
             {
-                logger.LogWarning(ex, "⚠️ Error discovering types in assembly {AssemblyName}", 
-                    assembly.FullName);
-            }
+                // Alguns tipos falharam ao carregar; use os tipos que foram carregados e registre as exceções do carregador
+                var loaded = ex.Types?
+                    .Where(t => t != null && t.IsClass && !t.IsAbstract && typeof(DbContext).IsAssignableFrom(t))
+                    .Where(t => t!.Name.EndsWith("DbContext"))
+                    .Select(t => t!)
+                    .ToList();
+
+                if (loaded != null && loaded.Count > 0)
+                {
+                    dbContextTypes.AddRange(loaded);
+                    logger.LogDebug("✅ Discovered {Count} DbContext(s) in {Assembly} (partial load)", 
+                        loaded.Count, assembly.GetName().Name);
+                }
+
+                logger.LogWarning(ex, "⚠️ Alguns tipos não puderam ser carregados do assembly {AssemblyName}. Verifique LoaderExceptions para detalhes.", assembly.FullName);
+                if (ex.LoaderExceptions != null)
+                {
+                    foreach (var loaderEx in ex.LoaderExceptions)
+                    {
+                        logger.LogDebug(loaderEx, "LoaderException: {Message}", loaderEx?.Message);
+                    }
+                }
+                }
+                catch (FileLoadException ex)
+                {
+                logger.LogWarning(ex, "⚠️ Falha ao carregar o assembly {AssemblyName}", assembly.FullName);
+                // continua com o próximo assembly
+                }
+                catch (BadImageFormatException ex)
+                {
+                logger.LogWarning(ex, "⚠️ Formato de imagem inválido para o assembly {AssemblyName}", assembly.FullName);
+                // continua com o próximo assembly
+                }
+
         }
 
         return dbContextTypes;
@@ -119,9 +150,7 @@ public static class MigrationExtensions
         try
         {
             // Obtém DbContext do container DI (já tem a connection string configurada)
-            var dbContext = services.GetRequiredService(contextType) as DbContext;
-
-            if (dbContext == null)
+            if (services.GetRequiredService(contextType) is not DbContext dbContext)
             {
                 throw new InvalidOperationException(
                     $"DbContext {contextType.Name} could not be resolved as DbContext. " +

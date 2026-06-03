@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Shared.Utilities;
+using System.Diagnostics;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 

@@ -1,11 +1,10 @@
-using System.Security.Claims;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Middlewares;
-
 
 /// <summary>
 /// Middleware para diagnóstico de problemas de autorização.

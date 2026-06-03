@@ -1,15 +1,13 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Middlewares;
+using MeAjudaAi.Modules.Bookings.API;
 using MeAjudaAi.Modules.Communications.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.API;
+using MeAjudaAi.Modules.Payments.API;
 using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.Ratings.API;
-using MeAjudaAi.Modules.Payments.API;
-using MeAjudaAi.Modules.Bookings.API;
 using MeAjudaAi.Modules.SearchProviders.API;
 using MeAjudaAi.Modules.ServiceCatalogs.API;
 using MeAjudaAi.Modules.Users.API;
@@ -20,6 +18,8 @@ using MeAjudaAi.Shared.Seeding;
 using Microsoft.FeatureManagement;
 using Serilog;
 using Serilog.Context;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService;
 
@@ -36,8 +36,6 @@ public partial class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
-            // builder.Logging.Services.AddLogging(l => l.AddSerilog()); // Serilog set up via builder.Host
-            
             builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
 
             ConfigureLogging(builder);
@@ -133,7 +131,7 @@ public partial class Program
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
-if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
+        if (app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("Integration"))
         {
             app.UseCors(policy =>
             {

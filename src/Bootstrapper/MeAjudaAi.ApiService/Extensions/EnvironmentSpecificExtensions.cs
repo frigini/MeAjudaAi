@@ -1,9 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

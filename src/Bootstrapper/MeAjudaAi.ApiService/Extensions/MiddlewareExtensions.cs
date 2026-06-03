@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Middlewares;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

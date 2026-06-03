@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using MeAjudaAi.ApiService.Handlers;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
@@ -12,6 +9,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics.CodeAnalysis;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Linq;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -34,7 +35,7 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(environment);
         // A autenticação específica por ambiente agora é gerenciada pelo EnvironmentSpecificExtensions
         // Aqui apenas configuramos Keycloak para ambientes não-testing
-        if (!MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        if (!Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             services.AddKeycloakAuthentication(configuration, environment);
         }
@@ -208,11 +209,10 @@ public static class SecurityExtensions
         if (jwtToken.Payload.TryGetValue("roles", out var rootRolesObj) &&
             rootRolesObj is IEnumerable<object> rootRolesList)
         {
-            foreach (var role in rootRolesList.OfType<string>())
-            {
-                if (!roleClaims.Any(c => c.Value == role))
-                    roleClaims.Add(new Claim(ClaimTypes.Role, role));
-            }
+            roleClaims.AddRange(rootRolesList
+                                    .OfType<string>()
+                                    .Where(role => !roleClaims.Any(c => c.Value == role))
+                                    .Select(role => new Claim(ClaimTypes.Role, role)));
         }
 
         // 2. Extrai roles do realm_access (padrão do Keycloak)
@@ -221,11 +221,10 @@ public static class SecurityExtensions
             realmDict.TryGetValue("roles", out var realmRoles) &&
             realmRoles is IEnumerable<object> realmRolesList)
         {
-            foreach (var role in realmRolesList.OfType<string>())
-            {
-                if (!roleClaims.Any(c => c.Value == role))
-                    roleClaims.Add(new Claim(ClaimTypes.Role, role));
-            }
+            roleClaims.AddRange(realmRolesList
+                                    .OfType<string>()
+                                    .Where(role => !roleClaims.Any(c => c.Value == role))
+                                    .Select(role => new Claim(ClaimTypes.Role, role)));
         }
 
         // 3. Extrai roles do resource_access para o cliente específico
@@ -236,11 +235,10 @@ public static class SecurityExtensions
             clientDict.TryGetValue("roles", out var clientRoles) &&
             clientRoles is IEnumerable<object> clientRolesList)
         {
-            foreach (var role in clientRolesList.OfType<string>())
-            {
-                if (!roleClaims.Any(c => c.Value == role))
-                    roleClaims.Add(new Claim(ClaimTypes.Role, role));
-            }
+            roleClaims.AddRange(clientRolesList
+                                    .OfType<string>()
+                                    .Where(role => !roleClaims.Any(c => c.Value == role))
+                                    .Select(role => new Claim(ClaimTypes.Role, role)));
         }
 
         return roleClaims;

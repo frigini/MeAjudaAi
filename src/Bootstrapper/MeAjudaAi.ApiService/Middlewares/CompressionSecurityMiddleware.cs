@@ -10,17 +10,8 @@ namespace MeAjudaAi.ApiService.Middlewares;
 /// NOTA: Este middleware é executado ANTES de UseAuthentication(), então não pode usar
 /// HttpContext.User.Identity.IsAuthenticated. Em vez disso, verifica headers de autenticação.
 /// </summary>
-public class CompressionSecurityMiddleware
+public class CompressionSecurityMiddleware(RequestDelegate next, ILogger<CompressionSecurityMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<CompressionSecurityMiddleware> _logger;
-
-    public CompressionSecurityMiddleware(RequestDelegate next, ILogger<CompressionSecurityMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         var isSafe = IsSafeForCompression(context);
@@ -28,11 +19,11 @@ public class CompressionSecurityMiddleware
         // Verifica se é seguro comprimir antes de permitir que o middleware de compressão processe
         if (!isSafe)
         {
-            _logger.LogWarning("Compression disabled for request {Path} due to security policy (BREACH/CRIME protection).", context.Request.Path);
+            logger.LogWarning("Compression disabled for request {Path} due to security policy (BREACH/CRIME protection).", context.Request.Path);
             
             // Desabilita a compressão para esta requisição. 
             // Definir como "identity" é mais explícito do que remover o header para alguns proxies/middlewares.
-            context.Request.Headers["Accept-Encoding"] = "identity";
+            context.Request.Headers.AcceptEncoding= "identity";
             
             // Adiciona um marker no context para auditoria/testes
             context.Items["CompressionDisabledBySecurity"] = true;
@@ -41,7 +32,7 @@ public class CompressionSecurityMiddleware
             context.Response.Headers["X-Compression-Disabled"] = "Security-Policy";
         }
 
-        await _next(context);
+        await next(context);
     }
 
     /// <summary>

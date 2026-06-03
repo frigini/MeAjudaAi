@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.ApiService.Infrastructure.Persistence;
 
@@ -8,7 +9,7 @@ namespace MeAjudaAi.ApiService.Infrastructure.Persistence;
 /// Resolve repositórios de qualquer módulo e garante que as alterações em todos
 /// os contextos de banco de dados sejam persistidas.
 /// </summary>
-public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
+public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider, ILogger<CompositeUnitOfWork> logger) : IUnitOfWork
 {
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
@@ -44,18 +45,13 @@ public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider) : IUni
 
         int total = 0;
         using var transaction = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled);
-        try
+
+        foreach (var db in dbContexts)
         {
-            foreach (var db in dbContexts)
-            {
-                total += await db.SaveChangesAsync(cancellationToken);
-            }
-            transaction.Complete();
-            return total;
+            total += await db.SaveChangesAsync(cancellationToken);
         }
-        catch
-        {
-            throw;
-        }
+
+        transaction.Complete();
+        return total;
     }
 }
