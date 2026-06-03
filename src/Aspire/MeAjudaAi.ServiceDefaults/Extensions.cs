@@ -40,7 +40,7 @@ public static class Extensions
     /// <summary>
     /// Configura OpenTelemetry para rastreamento e métricas.
     /// </summary>
-    public static void ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -76,6 +76,8 @@ public static class Extensions
             });
 
         builder.AddOpenTelemetryExporters();
+        
+        return builder;
     }
 
     private static void ConfigureHttpClients<TBuilder>(this TBuilder builder)
