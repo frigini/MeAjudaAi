@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <UserSecretsId>6a599a9f-ccdf-4f96-b355-3aeec60dd18b</UserSecretsId>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <!-- Disable locked mode due to platform-specific Aspire.Dashboard.Sdk dependencies -->
+    <!-- Desabilita o modo de bloqueio de pacotes devido às dependências específicas de plataforma do Aspire.Dashboard.Sdk -->
     <RestoreLockedMode>false</RestoreLockedMode>
   </PropertyGroup>
 
@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
-    <!-- Module Infrastructure projects - needed for automatic migrations -->
+    <!-- Projetos de infraestrutura de módulos - necessários para migrações automáticas -->
     <ProjectReference Include="..\..\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" IsAspireProjectResource="false" />

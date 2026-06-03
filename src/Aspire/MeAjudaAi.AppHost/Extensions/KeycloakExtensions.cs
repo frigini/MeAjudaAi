@@ -198,7 +198,7 @@ public static class MeAjudaAiKeycloakExtensions
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
-            // Mount realm file for import
+            // Montar arquivo de realm para importação
             var appHostDir = AppContext.BaseDirectory;
             var realmPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "realms"));
             

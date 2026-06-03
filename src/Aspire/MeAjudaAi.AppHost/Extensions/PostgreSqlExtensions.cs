@@ -62,7 +62,7 @@ public static class PostgreSqlExtensions
             Password = string.Empty
         };
 
-        // Aplica sobrescritas de variáveis de ambiente primeiro (consistente com o caminho local/test)
+        // Aplica sobrescritas de variáveis de ambiente primeiro (consistente com o caminho local/teste)
         ApplyEnvironmentVariables(options);
 
         // Depois aplica configuração do usuário (pode sobrescrever variáveis de ambiente)
@@ -107,20 +107,20 @@ public static class PostgreSqlExtensions
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for testing.");
 
-        // Check if running in CI environment with external PostgreSQL service
+        // Verificar se está rodando em ambiente CI com serviço PostgreSQL externo
         var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
 
         if (isCI)
         {
-            // In CI, use external PostgreSQL service (e.g., GitHub Actions service)
+            // Em CI, usar serviço PostgreSQL externo (ex: serviço no GitHub Actions)
             var externalDbHost = Environment.GetEnvironmentVariable("CI_POSTGRES_HOST") ?? "localhost";
             var externalDbPort = Environment.GetEnvironmentVariable("CI_POSTGRES_PORT") ?? "5432";
             var connectionString = $"Host={externalDbHost};Port={externalDbPort};Database={options.MainDatabase};Username={options.Username};Password={options.Password}";
 
-            // Set the connection string as an environment variable so AddConnectionString can find it
+            // Definir a string de conexão como variável de ambiente para que AddConnectionString possa encontrá-la
             Environment.SetEnvironmentVariable("ConnectionStrings__meajudaai-db-local", connectionString);
 
-            // Create a connection string resource that will read from the environment variable
+            // Criar um recurso de string de conexão que lerá da variável de ambiente
             var externalDb = builder.AddConnectionString("meajudaai-db-local");
 
             return new MeAjudaAiPostgreSqlResult
@@ -130,15 +130,15 @@ public static class PostgreSqlExtensions
         }
         else
         {
-            // Local testing - create PostgreSQL container with PostGIS extension
+            // Testes locais - criar container PostgreSQL com extensão PostGIS
             var postgres = builder.AddPostgres("postgres-local")
                 .WithImage("postgis/postgis")
-                .WithImageTag("16-3.4") // PostgreSQL 16 with PostGIS 3.4
+                .WithImageTag("16-3.4") // PostgreSQL 16 com PostGIS 3.4
                 .WithEnvironment("POSTGRES_DB", options.MainDatabase)
                 .WithEnvironment("POSTGRES_USER", options.Username)
                 .WithEnvironment("POSTGRES_PASSWORD", options.Password);
 
-            // Mount database initialization scripts
+            // Montar scripts de inicialização do banco de dados
             MountInitializationScripts(postgres, builder);
 
             var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
@@ -187,15 +187,18 @@ public static class PostgreSqlExtensions
         var mainDb = postgresBuilder.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
         // Abordagem de banco único - todos os módulos usam o mesmo banco com schemas diferentes
-        // - schema users (módulo Users - autenticação e perfis)
-        // - schema providers (módulo Providers - prestadores de serviço)
-        // - schema documents (módulo Documents - upload e verificação)
+        // - schema users (módulo Usuários - autenticação e perfis)
+        // - schema providers (módulo Provedores - prestadores de serviço)
+        // - schema documents (módulo Documentos - upload e verificação)
         // - schema search (módulo SearchProviders - busca geoespacial com PostGIS)
-        // - schema locations (módulo Locations - CEP lookup e geocoding)
-        // - schema catalogs (módulo Catalogs - catálogo de serviços)
-        // - schema hangfire (background jobs - Hangfire)
+        // - schema locations (módulo Localizações - CEP lookup e geocoding)
+        // - schema catalogs (módulo Catálogos - catálogo de serviços)
+        // - schema bookings (módulo Agendamentos - agendamento de serviços)
+        // - schema payments (módulo Pagamentos - gestão financeira)
+        // - schema communications (módulo Comunicações - mensagens)
+        // - schema hangfire (jobs em segundo plano - Hangfire)
         // - schema identity (Keycloak - autenticação)
-        // - schema meajudaai_app (cross-cutting objects)
+        // - schema meajudaai_app (objetos transversais)
         // - schema public (tabelas compartilhadas/comuns)
 
         return new MeAjudaAiPostgreSqlResult

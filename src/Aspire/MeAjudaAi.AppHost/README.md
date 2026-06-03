@@ -74,6 +74,7 @@ export POSTGRES_PASSWORD="your-secure-database-password"
 Para mais detalhes sobre infraestrutura e deployment, consulte:
 - [docs/infrastructure.md](../../../docs/infrastructure.md)
 - [docs/deployment-environments.md](../../../docs/deployment-environments.md)
+- [docs/architecture.md](../../../docs/architecture.md#🚀-configuração-do-net-aspire-apphost)
 
 ## 🎯 Benefícios das Extensions
 

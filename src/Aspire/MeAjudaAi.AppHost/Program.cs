@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
 using Aspire.Hosting;
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
 using MeAjudaAi.AppHost.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.AppHost;
 
@@ -78,7 +78,7 @@ internal static class Program
                 Console.Error.WriteLine("Please set MEAJUDAAI_DB_PASS to the database password in your CI environment.");
                 Environment.Exit(1);
             }
-// Suppress S2068: intentional hardcoded dev/test default credential, only used in local/dev scenarios; CI requires env var
+// Suprimir S2068: credencial padrão de dev/teste hardcoded intencional, usada apenas em cenários locais/dev; CI exige variável de ambiente
 #pragma warning disable S2068
             testDbPassword = "test123";
 #pragma warning restore S2068
@@ -243,8 +243,8 @@ internal static class Program
             .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
             .WaitFor(gateway)
             .WaitFor(keycloakBootstrap);
-            // Nota: AddJavaScriptApp usa "dev" script por padrão em desenvolvimento
-            // e "build" script em produção. Ver package.json para scripts configurados.
+            // Nota: AddJavaScriptApp usa o script "dev" por padrão em desenvolvimento
+            // e o script "build" em produção. Verifique o package.json para os scripts configurados.
 
         // Aplicação Web do Prestador (Next.js 15)
         var providerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Provider");
@@ -260,7 +260,7 @@ internal static class Program
             .WaitFor(gateway)
             .WaitFor(keycloakBootstrap);
 
-        // Pass resolved endpoints to Keycloak options for bootstrap
+        // Passar endpoints resolvidos para as opções do Keycloak para o bootstrap
         keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("http");
         keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
         keycloakSettings.ProviderWebEndpoint = providerWeb.GetEndpoint("http");
