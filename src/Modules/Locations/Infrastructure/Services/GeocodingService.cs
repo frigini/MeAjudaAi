@@ -47,7 +47,7 @@ public sealed class GeocodingService(
 
 
 
-    public async Task<List<MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate>> SearchAsync(string query, CancellationToken cancellationToken = default)
+    public async Task<List<MeAjudaAi.Contracts.Modules.Locations.DTOs.LocationCandidate>> SearchAsync(string query, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(query))
         {

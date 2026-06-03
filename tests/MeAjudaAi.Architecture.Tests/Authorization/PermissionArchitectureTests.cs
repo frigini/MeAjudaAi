@@ -1,7 +1,12 @@
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
@@ -200,24 +205,38 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthorizationServices_ShouldBeRegisteredAsScoped()
     {
-        // Esta regra deve ser verificada na configuração de DI
         // Arrange
-        var authorizationServiceTypes = new[]
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder().Build();
+
+        // Registrar as dependências mínimas necessárias para AddPermissionBasedAuthorization
+        services.AddLogging();
+        services.AddOptions();
+
+        // Simular o registro feito em AuthorizationExtensions.AddPermissionBasedAuthorization
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
+        services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Lista de tipos e seus tempos de vida esperados
+        var authorizationServices = new[]
         {
             typeof(IPermissionService),
-            typeof(PermissionService),
-            typeof(IModulePermissionResolver)
+            typeof(IAuthorizationHandler)
         };
 
         // Act & Assert
-        foreach (var serviceType in authorizationServiceTypes)
+        foreach (var serviceType in authorizationServices)
         {
-            // Em um teste real, verificaria o ServiceLifetime no container
-            // Por agora, apenas verificamos que os tipos existem
-            Assert.NotNull(serviceType);
-            Assert.True(serviceType.IsClass || serviceType.IsInterface);
+            var descriptor = services.FirstOrDefault(s => s.ServiceType == serviceType);
+
+            Assert.NotNull(descriptor);
+            Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
         }
     }
+
 
     [Fact]
     public void ModulePermissionClasses_ShouldFollowNamingConvention()

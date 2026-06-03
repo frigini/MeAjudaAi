@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 
 namespace MeAjudaAi.Modules.Locations.API.Mappers;

@@ -39,7 +39,7 @@ public class RequestMapperExtensionsTests
     public void ToCommand_CreateAllowedCityRequestDto_ShouldMapContractProperties()
     {
         // Arrange
-        var dto = new MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.CreateAllowedCityRequestDto(
+        var dto = new MeAjudaAi.Contracts.Modules.Locations.DTOs.CreateAllowedCityRequestDto(
             City: "Linhares",
             State: "ES",
             Country: "Brasil",

@@ -27,7 +27,7 @@ public static class RequestMapperExtensions
     /// <summary>
     /// Mapeia CreateAllowedCityRequestDto (Contract) para CreateAllowedCityCommand.
     /// </summary>
-    public static CreateAllowedCityCommand ToCommand(this MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.CreateAllowedCityRequestDto request)
+    public static CreateAllowedCityCommand ToCommand(this MeAjudaAi.Contracts.Modules.Locations.DTOs.CreateAllowedCityRequestDto request)
     {
         return new CreateAllowedCityCommand(
             request.City,

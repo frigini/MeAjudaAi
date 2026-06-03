@@ -115,7 +115,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         bookingResponseData.Should().NotBeNull();
         var bookingId = bookingResponseData!.Id;
         
-        bookingResponseData.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Pending);
+        bookingResponseData.Status.Should().Be(MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Pending);
 
         // 5. Autentica como Provider
         AuthenticateAsProvider(providerIdClaim);
@@ -131,7 +131,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         
         var updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
         updatedBooking.Should().NotBeNull();
-        updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
+        updatedBooking!.Status.Should().Be(MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Confirmed);
     }
 
     private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)

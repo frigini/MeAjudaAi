@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -91,3 +91,4 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasDatabaseName("ix_bookings_provider_date");
     }
 }
+

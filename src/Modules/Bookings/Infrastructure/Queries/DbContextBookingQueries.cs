@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
@@ -80,3 +80,4 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
         return (items, totalCount);
     }
 }
+

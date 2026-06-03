@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Locations.Application.Commands;

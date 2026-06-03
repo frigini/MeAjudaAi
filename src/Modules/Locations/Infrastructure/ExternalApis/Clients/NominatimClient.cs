@@ -115,7 +115,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
         }
     }
 
-    public async Task<MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate[]> SearchAsync(string query, CancellationToken cancellationToken)
+    public async Task<MeAjudaAi.Contracts.Modules.Locations.DTOs.LocationCandidate[]> SearchAsync(string query, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -157,7 +157,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                     return [];
                 }
 
-                var candidates = new List<MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate>();
+                var candidates = new List<MeAjudaAi.Contracts.Modules.Locations.DTOs.LocationCandidate>();
                 var seenLocations = new HashSet<(string City, string State)>();
 
                 foreach (var result in results)
@@ -194,7 +194,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                     }
                     seenLocations.Add(locationKey);
 
-                    candidates.Add(new MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate(
+                    candidates.Add(new MeAjudaAi.Contracts.Modules.Locations.DTOs.LocationCandidate(
                         result.DisplayName ?? "",
                         city,
                         state ?? "",
