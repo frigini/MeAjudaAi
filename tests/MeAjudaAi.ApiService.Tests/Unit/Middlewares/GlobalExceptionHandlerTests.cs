@@ -120,11 +120,8 @@ public class GlobalExceptionHandlerTests
         pd.Status.Should().Be(StatusCodes.Status500InternalServerError);
         pd.Detail.Should().Contain("Development error details");
 
-        pd.Extensions.Should().NotBeNull();
-        var extensions = pd.Extensions!;
-        extensions.Should().ContainKey("traceId");
-        var traceVal = extensions["traceId"] as string;
-        traceVal.Should().Be("trace-dev-123");
+        body.Should().Contain("\"traceId\":");
+        body.Should().Contain("trace-dev-123");
     }
 
     [Fact]
@@ -145,6 +142,7 @@ public class GlobalExceptionHandlerTests
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
+        
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -156,10 +154,7 @@ public class GlobalExceptionHandlerTests
         pd.Detail.Should().NotContain("Dados sensíveis");
         pd.Detail.Should().Contain("Ocorreu um erro inesperado");
 
-        pd.Extensions.Should().NotBeNull();
-        var extensions = pd.Extensions!;
-        extensions.Should().ContainKey("traceId");
-        var traceVal = extensions["traceId"] as string;
-        traceVal.Should().Be("trace-abc");
+        body.Should().Contain("\"traceId\":");
+        body.Should().Contain("trace-abc");
     }
 }

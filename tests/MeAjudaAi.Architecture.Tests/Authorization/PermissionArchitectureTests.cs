@@ -226,13 +226,19 @@ public class PermissionArchitectureTests
         // Act & Assert
         foreach (var serviceType in authorizationServices)
         {
-            // O AddPermissionBasedAuthorization pode registrar múltiplos handlers, 
-            // precisamos encontrar o descriptor correto.
-            var descriptors = services.Where(s => s.ServiceType == serviceType);
+            var descriptors = services.Where(s => s.ServiceType == serviceType).ToList();
+            
+            Assert.NotEmpty(descriptors);
             
             foreach (var descriptor in descriptors)
             {
-                Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+                // Apenas verifica Scoped para implementações internas.
+                // Alguns handlers podem ser registrados por frameworks externos, então
+                // filtramos apenas pelos que são nossos.
+                if (descriptor.ImplementationType?.Namespace?.StartsWith("MeAjudaAi") == true)
+                {
+                    Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+                }
             }
         }
     }

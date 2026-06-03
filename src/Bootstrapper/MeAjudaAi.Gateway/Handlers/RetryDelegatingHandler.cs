@@ -51,11 +51,10 @@ internal sealed class RetryDelegatingHandler(GatewayResilienceOptions options, I
 
             attempt++;
             var delay = TimeSpan.FromMilliseconds(_options.RetryBaseDelayMs * Math.Pow(2, attempt));
-            await Task.Delay(delay, cancellationToken);
             response?.Dispose();
-        }
-        }
-
+            await Task.Delay(delay, cancellationToken);
+            }
+            }
         private bool ShouldRetry(HttpRequestMessage request, HttpResponseMessage? response, Exception? exception)
         {
         if (!_retryableMethods.Contains(request.Method.Method, StringComparer.OrdinalIgnoreCase))
