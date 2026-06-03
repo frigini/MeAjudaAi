@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using System.IO;
+using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 
@@ -40,7 +40,7 @@ public class ContentSecurityPolicyMiddlewareTests
 
         // Assert
         context.Response.Headers.Should().ContainKey("Content-Security-Policy");
-        context.Response.Headers["Content-Security-Policy"].ToString().Should().Contain("localhost");
+        context.Response.Headers.ContentSecurityPolicy.ToString().Should().Contain("localhost");
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class ContentSecurityPolicyMiddlewareTests
 
         // Assert
         context.Response.Headers.Should().ContainKey("X-Content-Type-Options");
-        context.Response.Headers["X-Content-Type-Options"].ToString().Should().Be("nosniff");
+        context.Response.Headers.XContentTypeOptions.ToString().Should().Be("nosniff");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class ContentSecurityPolicyMiddlewareTests
 
         // Assert
         context.Response.Headers.Should().ContainKey("X-Frame-Options");
-        context.Response.Headers["X-Frame-Options"].ToString().Should().Be("DENY");
+        context.Response.Headers.XFrameOptions.ToString().Should().Be("DENY");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class ContentSecurityPolicyMiddlewareTests
 
         // Assert
         context.Response.Headers.Should().ContainKey("X-XSS-Protection");
-        context.Response.Headers["X-XSS-Protection"].ToString().Should().Be("1; mode=block");
+        context.Response.Headers.XXSSProtection.ToString().Should().Be("1; mode=block");
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("https:");
     }
 
@@ -203,7 +203,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
 
         // Should contain basic CSP directives
         csp.Should().Contain("default-src");
@@ -226,7 +226,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("https://keycloak.example.com/realms/myrealm");
     }
 
@@ -246,7 +246,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("https://keycloak.example.com/realms/meajudaai");
     }
 
@@ -266,7 +266,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         // connect-src should only contain 'self' (no keycloak URL)
         csp.Should().Contain("connect-src 'self'");
     }
@@ -287,7 +287,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("https://keycloak.example.com/realms/testrealm");
         csp.Should().NotContain("https://keycloak.example.com//realms/testrealm");
     }
@@ -306,7 +306,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("https://api.example.com");
     }
 
@@ -324,7 +324,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("wss://ws.example.com");
     }
 
@@ -341,7 +341,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().Contain("upgrade-insecure-requests");
     }
 
@@ -358,7 +358,7 @@ public class ContentSecurityPolicyMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // Assert
-        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        var csp = context.Response.Headers.ContentSecurityPolicy.ToString();
         csp.Should().NotContain("upgrade-insecure-requests");
     }
 

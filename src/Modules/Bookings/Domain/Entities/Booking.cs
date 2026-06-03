@@ -1,5 +1,5 @@
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
@@ -97,3 +97,4 @@ public sealed class Booking : BaseEntity
             Id, 1, ProviderId, ClientId));
     }
 }
+

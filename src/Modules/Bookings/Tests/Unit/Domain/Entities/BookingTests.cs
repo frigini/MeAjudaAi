@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Modules.Bookings.Domain.Events;

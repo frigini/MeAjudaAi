@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Constants;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
@@ -51,3 +51,4 @@ public class BookingRealtimeEventsHandler(
         await sseHub.PublishAsync(topic, data, cancellationToken);
     }
 }
+

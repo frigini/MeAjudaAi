@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Handlers;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Handlers;
@@ -51,8 +51,8 @@ public class SelfOrAdminHandlerTests
         // Arrange
         var claims = new List<Claim>
         {
-            new Claim(AuthConstants.Claims.Subject, "user123"),
-            new Claim(claimType, adminRole)
+            new(AuthConstants.Claims.Subject, "user123"),
+            new(claimType, adminRole)
         };
         
         var identity = new ClaimsIdentity(claims, "test");

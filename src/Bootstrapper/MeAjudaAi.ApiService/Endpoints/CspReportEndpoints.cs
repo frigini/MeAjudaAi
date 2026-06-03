@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using MeAjudaAi.ApiService.Endpoints.Models;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
@@ -58,49 +58,15 @@ public static class CspReportEndpoints
 
             return TypedResults.NoContent();
         }
+        catch (JsonException ex)
+        {
+            logger.LogError(ex, "Invalid CSP report payload");
+            return TypedResults.BadRequest("Invalid CSP report");
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing CSP report");
             return TypedResults.StatusCode(500);
         }
     }
-}
-
-/// <summary>
-/// Modelo para relatório de violação CSP enviado pelo browser.
-/// </summary>
-public class CspViolationReport
-{
-    [JsonPropertyName("csp-report")]
-    public CspReportDetails? CspReport { get; set; }
-}
-
-/// <summary>
-/// Detalhes da violação CSP.
-/// </summary>
-public class CspReportDetails
-{
-    [JsonPropertyName("document-uri")]
-    public string? DocumentUri { get; set; }
-    
-    [JsonPropertyName("referrer")]
-    public string? Referrer { get; set; }
-    
-    [JsonPropertyName("blocked-uri")]
-    public string? BlockedUri { get; set; }
-    
-    [JsonPropertyName("violated-directive")]
-    public string? ViolatedDirective { get; set; }
-    
-    [JsonPropertyName("effective-directive")]
-    public string? EffectiveDirective { get; set; }
-    
-    [JsonPropertyName("original-policy")]
-    public string? OriginalPolicy { get; set; }
-    
-    [JsonPropertyName("disposition")]
-    public string? Disposition { get; set; }
-    
-    [JsonPropertyName("status-code")]
-    public int StatusCode { get; set; }
 }

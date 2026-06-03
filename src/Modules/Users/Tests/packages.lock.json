@@ -511,6 +511,11 @@
         "resolved": "10.0.8",
         "contentHash": "0j06qq5I1YGSIi4M86UaVITBprvn3bTWKmQiLDNEqnZ2d+UxaFb+tVqemxVzr5lkr6GTR83ExUfSIpCnBaTZFA=="
       },
+      "Microsoft.Extensions.Features": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "pzn7prqSzxHmXIQw+yomgkEUMU5ZtE+WK/5syc8ob5rWrRaqb+JTt7GkW9AU9y6NMVNTEjV9vrJMfO+lUlcH8A=="
+      },
       "Microsoft.Extensions.FileProviders.Abstractions": {
         "type": "Transitive",
         "resolved": "10.0.8",
@@ -610,6 +615,20 @@
           "Microsoft.Extensions.Telemetry.Abstractions": "10.6.0",
           "Polly.Extensions": "8.4.2",
           "Polly.RateLimiting": "8.4.2"
+        }
+      },
+      "Microsoft.Extensions.ServiceDiscovery.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.6.0",
+        "contentHash": "zD6cX/qP0wR9LONlwS+dPBv9N6rs0eGm/pPNPeqy3LGKmgODDG1AmvK4Q0Aa6CWDq5SGlSuO3bJOonnJ7+Z1qQ==",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Configuration.Binder": "10.0.8",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Features": "10.0.8",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Options": "10.0.8",
+          "Microsoft.Extensions.Primitives": "10.0.8"
         }
       },
       "Microsoft.Extensions.Telemetry": {
@@ -1542,6 +1561,7 @@
           "Azure.Monitor.OpenTelemetry.AspNetCore": "[1.5.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.6.0, )",
+          "Microsoft.Extensions.ServiceDiscovery": "[10.6.0, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
           "OpenTelemetry.Exporter.Console": "[1.15.3, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.15.3, )",
@@ -1573,7 +1593,6 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.6.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.8, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
-          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
@@ -2120,6 +2139,16 @@
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.8",
           "Microsoft.Extensions.Primitives": "10.0.8"
+        }
+      },
+      "Microsoft.Extensions.ServiceDiscovery": {
+        "type": "CentralTransitive",
+        "requested": "[10.6.0, )",
+        "resolved": "10.6.0",
+        "contentHash": "G0FmQN28AgUQP7KMKihIOgcxtrXPXEan2kWdabOOtC6Yod8Wjlb8WujjrDwYCOOO6pm0WNtbMdfEjAXU4HhU6A==",
+        "dependencies": {
+          "Microsoft.Extensions.Http": "10.0.8",
+          "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.6.0"
         }
       },
       "Microsoft.Extensions.TimeProvider.Testing": {

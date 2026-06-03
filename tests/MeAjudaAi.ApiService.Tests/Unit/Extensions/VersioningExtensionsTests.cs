@@ -15,7 +15,7 @@ public class VersioningExtensionsTests
         // Assert
         extensionsType.Should().NotBeNull();
         extensionsType.IsClass.Should().BeTrue();
-        extensionsType.IsAbstract.Should().BeTrue(); // Static classes are abstract and sealed
+        extensionsType.IsAbstract.Should().BeTrue(); // Classes static são abstract e sealed
         extensionsType.IsSealed.Should().BeTrue();
     }
 

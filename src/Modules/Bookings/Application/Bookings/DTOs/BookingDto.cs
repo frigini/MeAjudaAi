@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 
@@ -12,3 +12,4 @@ public record BookingDto(
     EBookingStatus Status,
     string? RejectionReason = null,
     string? CancellationReason = null);
+

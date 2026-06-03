@@ -1,7 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
-using System.IO.Compression;
 using MeAjudaAi.ApiService.Providers.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
+using System.Diagnostics.CodeAnalysis;
+using System.IO.Compression;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

@@ -220,7 +220,7 @@ public class PerformanceExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
-        // Note: Static files configuration is internal to ASP.NET Core, so only chainability can be verified
+        // Observação: a configuração de arquivos estáticos é interna ao ASP.NET Core, portanto, somente a capacidade de encadeamento pode ser verificada.
     }
 
     #endregion
@@ -238,7 +238,7 @@ public class PerformanceExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
-        // Note: ResponseCachingOptions is internal to ASP.NET Core, so only chainability can be verified
+        // Observação: ResponseCachingOptions é interno ao ASP.NET Core, portanto, somente a capacidade de encadeamento pode ser verificada
     }
 
     #endregion

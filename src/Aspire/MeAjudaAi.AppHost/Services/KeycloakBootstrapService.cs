@@ -115,11 +115,11 @@ public class KeycloakBootstrapService(
             logger.LogInformation("Keycloak bootstrap completed successfully.");
             return true;
         }
-        catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException || ex is OperationCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
             if (ct.IsCancellationRequested)
             {
-                // Rethrow or exit silently if it's a normal shutdown
+                // Relançar ou sair silenciosamente se for um desligamento normal
                 throw;
             }
 
@@ -163,9 +163,8 @@ public class KeycloakBootstrapService(
         if (getResponse.IsSuccessStatusCode)
         {
             var content = await getResponse.Content.ReadAsStringAsync(ct);
-            var clients = JsonNode.Parse(content) as JsonArray;
 
-            if (clients != null && clients.Count > 0)
+            if (JsonNode.Parse(content) is JsonArray clients && clients.Count > 0)
             {
                 logger.LogInformation("Client {ClientId} already exists.", clientId);
                 return true;

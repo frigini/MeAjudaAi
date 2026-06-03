@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Routing;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
 
-using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;

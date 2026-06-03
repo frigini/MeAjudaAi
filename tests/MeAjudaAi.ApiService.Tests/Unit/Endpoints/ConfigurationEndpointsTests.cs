@@ -1,3 +1,4 @@
+using FluentAssertions;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.Contracts.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -5,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Endpoints;

@@ -3,8 +3,8 @@ using MeAjudaAi.ApiService.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using System.IO;
+using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 
@@ -32,7 +32,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("gzip");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("gzip");
         context.Response.Headers.ContainsKey("X-Compression-Disabled").Should().BeFalse();
     }
 
@@ -68,7 +68,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
         context.Response.Headers["X-Compression-Disabled"].Should().BeEquivalentTo("Security-Policy");
     }
 
@@ -85,7 +85,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -245,7 +245,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -261,7 +261,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -277,7 +277,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("gzip");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("gzip");
     }
 
     [Fact]
@@ -293,7 +293,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("identity");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("identity");
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class CompressionSecurityMiddlewareTests
 
         // Assert
         _nextCalled.Should().BeTrue();
-        context.Request.Headers["Accept-Encoding"].Should().BeEquivalentTo("gzip");
+        context.Request.Headers.AcceptEncoding.Should().BeEquivalentTo("gzip");
     }
 
     private CompressionSecurityMiddleware CreateMiddleware()

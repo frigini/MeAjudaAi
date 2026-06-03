@@ -1,8 +1,15 @@
-using System.Reflection;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Moq;
+using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 
@@ -200,24 +207,42 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthorizationServices_ShouldBeRegisteredAsScoped()
     {
-        // Esta regra deve ser verificada na configuração de DI
         // Arrange
-        var authorizationServiceTypes = new[]
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder().Build();
+        var env = new Mock<IWebHostEnvironment>().Object;
+
+        // Registrar serviços de autorização usando a extensão real
+        services.AddPermissionBasedAuthorization(configuration, env);
+
+        // Lista de tipos e seus tempos de vida esperados
+        var authorizationServices = new[]
         {
             typeof(IPermissionService),
-            typeof(PermissionService),
-            typeof(IModulePermissionResolver)
+            typeof(IClaimsTransformation),
+            typeof(IAuthorizationHandler)
         };
 
         // Act & Assert
-        foreach (var serviceType in authorizationServiceTypes)
+        foreach (var serviceType in authorizationServices)
         {
-            // Em um teste real, verificaria o ServiceLifetime no container
-            // Por agora, apenas verificamos que os tipos existem
-            Assert.NotNull(serviceType);
-            Assert.True(serviceType.IsClass || serviceType.IsInterface);
+            var descriptors = services.Where(s => s.ServiceType == serviceType).ToList();
+            
+            Assert.NotEmpty(descriptors);
+            
+            foreach (var descriptor in descriptors)
+            {
+                // Apenas verifica Scoped para implementações internas.
+                // Alguns handlers podem ser registrados por frameworks externos, então
+                // filtramos apenas pelos que são nossos.
+                if (descriptor.ImplementationType?.Namespace?.StartsWith("MeAjudaAi") == true)
+                {
+                    Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+                }
+            }
         }
     }
+
 
     [Fact]
     public void ModulePermissionClasses_ShouldFollowNamingConvention()
@@ -242,7 +267,7 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthConstants_Claims_ShouldBeConstantStrings()
     {
-        // Arrange - Explicit list of all Claims constants
+        // Arrange - Lista explícita de todas as constantes de Claims
         var claims = new[]
         {
             AuthConstants.Claims.Subject,

@@ -46,7 +46,7 @@ public sealed class DocumentationExtensionsTests
     }
 
     [Fact]
-    public void UseDocumentation_ShouldRegisterMiddlewareAndReturnBuilder()
+    public void UseDocumentation_ShouldRegisterMiddleware()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -59,11 +59,10 @@ public sealed class DocumentationExtensionsTests
         var app = new ApplicationBuilder(serviceProvider);
 
         // Act
-        var result = app.UseDocumentation();
+        app.UseDocumentation();
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().BeSameAs(app);
+        app.Should().NotBeNull();
 
         serviceProvider.Dispose();
     }

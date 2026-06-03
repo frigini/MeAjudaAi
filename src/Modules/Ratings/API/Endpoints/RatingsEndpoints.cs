@@ -2,8 +2,8 @@ using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Contracts.Modules.Ratings.DTOs;
-using MeAjudaAi.Contracts.Contracts.Modules.Ratings.Enums;
+using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
+using MeAjudaAi.Contracts.Modules.Ratings.Enums;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using DomainEnumEReviewStatus = MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus;
-using ContractsEnumEReviewStatus = MeAjudaAi.Contracts.Contracts.Modules.Ratings.Enums.EReviewStatus;
+using ContractsEnumEReviewStatus = MeAjudaAi.Contracts.Modules.Ratings.Enums.EReviewStatus;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints;
 

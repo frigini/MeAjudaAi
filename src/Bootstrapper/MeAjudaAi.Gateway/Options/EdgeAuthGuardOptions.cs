@@ -1,11 +1,15 @@
 namespace MeAjudaAi.Gateway.Options;
 
+/// <summary>
+/// Opções de configuração para o middleware de proteção de autenticação de borda (EdgeAuthGuard).
+/// </summary>
 public class EdgeAuthGuardOptions
 {
     public const string SectionName = "EdgeAuthGuard";
 
     public bool Enabled { get; set; } = true;
-    public List<string> PublicRoutes { get; set; } = [
+    public List<string> PublicRoutes { get; set; } = 
+    [
         "/health",
         "/swagger",
         "/api/v1/auth/login",

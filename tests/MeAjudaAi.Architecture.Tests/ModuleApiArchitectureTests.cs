@@ -1,4 +1,3 @@
-using System.Reflection;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Modules.Locations;
@@ -8,6 +7,7 @@ using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests;
 

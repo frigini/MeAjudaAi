@@ -8,19 +8,12 @@ namespace MeAjudaAi.AppHost.Services;
 /// <summary>
 /// Hosted service que roda migrations na inicialização do AppHost
 /// </summary>
-internal class MigrationHostedService : IHostedService
+internal class MigrationHostedService(
+    ILogger<MigrationHostedService> logger) : IHostedService
 {
-    private readonly ILogger<MigrationHostedService> _logger;
-
-    public MigrationHostedService(
-        ILogger<MigrationHostedService> logger)
-    {
-        _logger = logger;
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🔄 Starting migrations for all modules...");
+        logger.LogInformation("🔄 Starting migrations for all modules...");
 
         List<Type> dbContextTypes = new();
 
@@ -32,7 +25,7 @@ internal class MigrationHostedService : IHostedService
             if (environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) || 
                 environment.Equals("Test", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("⏭️ Skipping migrations in {Environment} environment", environment);
+                logger.LogInformation("⏭️ Skipping migrations in {Environment} environment", environment);
                 return;
             }
             
@@ -43,12 +36,12 @@ internal class MigrationHostedService : IHostedService
             {
                 if (isDevelopment)
                 {
-                    _logger.LogWarning("⚠️ Connection string not found in Development, skipping migrations");
+                    logger.LogWarning("⚠️ Connection string not found in Development, skipping migrations");
                     return;
                 }
                 else
                 {
-                    _logger.LogError("❌ Connection string is required for migrations in {Environment} environment. " +
+                    logger.LogError("❌ Connection string is required for migrations in {Environment} environment. " +
                         "Configure POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.", environment);
                     throw new InvalidOperationException(
                         $"Database connection configuration missing for {environment} environment. " +
@@ -57,21 +50,21 @@ internal class MigrationHostedService : IHostedService
             }
 
             dbContextTypes = DiscoverDbContextTypes();
-            _logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
+            logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
 
             foreach (var contextType in dbContextTypes)
             {
                 await MigrateDbContextAsync(contextType, connectionString, cancellationToken);
             }
 
-            _logger.LogInformation("✅ All migrations applied successfully!");
+            logger.LogInformation("✅ All migrations applied successfully!");
             
             // Executar seeding após migrations
             await ExecuteSeedingAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error applying migrations for {DbContextCount} module(s)", dbContextTypes.Count);
+            logger.LogError(ex, "❌ Error applying migrations for {DbContextCount} module(s)", dbContextTypes.Count);
             throw new InvalidOperationException(
                 $"Failed to apply database migrations for {dbContextTypes.Count} module(s)",
                 ex);
@@ -110,13 +103,13 @@ internal class MigrationHostedService : IHostedService
             // Senha é obrigatória mesmo em dev - use variável de ambiente
             if (string.IsNullOrEmpty(password))
             {
-                _logger.LogWarning(
+                logger.LogWarning(
                     "POSTGRES_PASSWORD not configured for Development environment. " +
                     "Set the environment variable or use user secrets.");
                 return null;
             }
 
-            _logger.LogWarning(
+            logger.LogWarning(
                 "Using default connection values for Development environment. " +
                 "Configure environment variables for production deployments.");
         }
@@ -127,7 +120,7 @@ internal class MigrationHostedService : IHostedService
                 string.IsNullOrEmpty(database) || string.IsNullOrEmpty(username) ||
                 string.IsNullOrEmpty(password))
             {
-                _logger.LogError(
+                logger.LogError(
                     "Database connection configuration missing. " +
                     "Set the environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.");
                 return null; // Fail startup to prevent insecure connection
@@ -150,7 +143,7 @@ internal class MigrationHostedService : IHostedService
 
         if (assemblies.Count == 0)
         {
-            _logger.LogWarning("⚠️ No module assemblies found. Migrations will not be applied automatically.");
+            logger.LogWarning("⚠️ No module assemblies found. Migrations will not be applied automatically.");
             return dbContextTypes;
         }
 
@@ -167,12 +160,12 @@ internal class MigrationHostedService : IHostedService
 
                 if (types.Count > 0)
                 {
-                    _logger.LogDebug("✅ Discovered {Count} DbContext(s) in {Assembly}", types.Count, assembly.GetName().Name);
+                    logger.LogDebug("✅ Discovered {Count} DbContext(s) in {Assembly}", types.Count, assembly.GetName().Name);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "⚠️ Error discovering types in assembly {AssemblyName}", assembly.FullName);
+                logger.LogWarning(ex, "⚠️ Error discovering types in assembly {AssemblyName}", assembly.FullName);
             }
         }
 
@@ -187,8 +180,8 @@ internal class MigrationHostedService : IHostedService
             var modulePattern = "MeAjudaAi.Modules.*.Infrastructure.dll";
             var moduleDlls = Directory.GetFiles(baseDirectory, modulePattern, SearchOption.AllDirectories);
 
-            _logger.LogDebug("🔍 Searching for module assemblies in: {BaseDirectory}", baseDirectory);
-            _logger.LogDebug("📦 Found {Count} module infrastructure DLLs", moduleDlls.Length);
+            logger.LogDebug("🔍 Searching for module assemblies in: {BaseDirectory}", baseDirectory);
+            logger.LogDebug("📦 Found {Count} module infrastructure DLLs", moduleDlls.Length);
 
             foreach (var dllPath in moduleDlls)
             {
@@ -199,29 +192,29 @@ internal class MigrationHostedService : IHostedService
                     // Verificar se já foi carregado
                     if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName == assemblyName.FullName))
                     {
-                        _logger.LogDebug("⏭️  Assembly already loaded: {AssemblyName}", assemblyName.Name);
+                        logger.LogDebug("⏭️  Assembly already loaded: {AssemblyName}", assemblyName.Name);
                         continue;
                     }
 
                     System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
-                    _logger.LogDebug("✅ Assembly loaded: {AssemblyName}", assemblyName.Name);
+                    logger.LogDebug("✅ Assembly loaded: {AssemblyName}", assemblyName.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "⚠️ Could not load assembly: {DllPath}", Path.GetFileName(dllPath));
+                    logger.LogWarning(ex, "⚠️ Could not load assembly: {DllPath}", Path.GetFileName(dllPath));
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Error attempting to dynamically load module assemblies");
+            logger.LogWarning(ex, "⚠️ Error attempting to dynamically load module assemblies");
         }
     }
 
     private async Task MigrateDbContextAsync(Type contextType, string connectionString, CancellationToken cancellationToken)
     {
         var moduleName = ExtractModuleName(contextType);
-        _logger.LogInformation("🔧 Applying migrations for {Module}...", moduleName);
+        logger.LogInformation("🔧 Applying migrations for {Module}...", moduleName);
 
         try
         {
@@ -262,9 +255,7 @@ internal class MigrationHostedService : IHostedService
 
             // NOTA: Todos os DbContexts devem ter um construtor público aceitando DbContextOptions<TContext>.
             // Esta é uma restrição de design aplicada em toda a codebase.
-            var dbContext = Activator.CreateInstance(contextType, options) as DbContext;
-
-            if (dbContext == null)
+            if (Activator.CreateInstance(contextType, options) is not DbContext dbContext)
             {
                 throw new InvalidOperationException(
                     $"Failed to create DbContext instance of type {contextType.Name}. " +
@@ -278,24 +269,24 @@ internal class MigrationHostedService : IHostedService
 
                 if (pendingMigrations.Any())
                 {
-                    _logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
+                    logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
                     foreach (var migration in pendingMigrations)
                     {
-                        _logger.LogDebug("   - {Migration}", migration);
+                        logger.LogDebug("   - {Migration}", migration);
                     }
 
                     await dbContext.Database.MigrateAsync(cancellationToken);
-                    _logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
+                    logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
                 }
                 else
                 {
-                    _logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
+                    logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error applying migrations for {Module}", moduleName);
+            logger.LogError(ex, "❌ Error applying migrations for {Module}", moduleName);
             throw new InvalidOperationException(
                 $"Failed to apply database migrations for module '{moduleName}' (DbContext: {contextType.Name})",
                 ex);
@@ -322,18 +313,18 @@ internal class MigrationHostedService : IHostedService
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
         if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogInformation("⏭️ Skipping data seeding in {Environment} environment", environment);
+            logger.LogInformation("⏭️ Skipping data seeding in {Environment} environment", environment);
             return;
         }
 
         try
         {
-            _logger.LogInformation("🌱 Executing data seeding for Development environment...");
+            logger.LogInformation("🌱 Executing data seeding for Development environment...");
             
             var connectionString = GetConnectionString();
             if (string.IsNullOrEmpty(connectionString))
             {
-                _logger.LogWarning("⚠️ Cannot execute seeding: connection string not available");
+                logger.LogWarning("⚠️ Cannot execute seeding: connection string not available");
                 return;
             }
 
@@ -352,29 +343,40 @@ internal class MigrationHostedService : IHostedService
                 foreach (var seedFile in seedFiles)
                 {
                     var fileName = Path.GetFileName(seedFile);
-                    _logger.LogInformation("📜 Executing seed script: {FileName}", fileName);
+                    logger.LogInformation("📜 Executing seed script: {FileName}", fileName);
                     
                     var sqlScript = await File.ReadAllTextAsync(seedFile, cancellationToken);
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - Safe: reading from trusted seed files
                     await using var command = new Npgsql.NpgsqlCommand(sqlScript, connection);
-#pragma warning restore CA2100
-                    command.CommandTimeout = 120; // 2 minutes timeout for seed scripts
+                    command.CommandTimeout = 120; // 2 minutos de timeout para scripts de seed
                     
                     await command.ExecuteNonQueryAsync(cancellationToken);
-                    _logger.LogInformation("✅ Seed script executed: {FileName}", fileName);
+                    logger.LogInformation("✅ Seed script executed: {FileName}", fileName);
                 }
                 
-                _logger.LogInformation("✅ Data seeding completed successfully! ({Count} scripts)", seedFiles.Count);
+                logger.LogInformation("✅ Data seeding completed successfully! ({Count} scripts)", seedFiles.Count);
             }
             else
             {
-                _logger.LogWarning("⚠️ Seed scripts directory not found: {Path}", normalizedPath);
+                logger.LogWarning("⚠️ Seed scripts directory not found: {Path}", normalizedPath);
             }
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogError(ex, "❌ Error during data seeding");
-            // Don't fail the application if seeding fails in development
+            // Respeitar o cancelamento e permitir que ele propague
+            throw;
+        }
+        catch (Npgsql.NpgsqlException ex)
+        {
+            logger.LogError(ex, "❌ Database error during data seeding");
+            // Ignorar intencionalmente para evitar falha no startup de dev; ajuste se desejar falhar em erros de banco de dados.
+        }
+        catch (IOException ex)
+        {
+            logger.LogError(ex, "❌ IO error while reading seed scripts");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogError(ex, "❌ Access denied while reading seed scripts");
         }
     }
 }

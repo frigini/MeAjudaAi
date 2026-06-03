@@ -1,5 +1,5 @@
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 
 namespace MeAjudaAi.Modules.Locations.Application.Services;
 

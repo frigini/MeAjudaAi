@@ -67,12 +67,24 @@ public class ExternalServicesHealthCheck(
             // Deixa a camada de hospedagem lidar com semânticas de cancelamento ao invés de tratá-lo como falha
             throw;
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
-            logger.LogError(ex, "Unexpected error during external services health check");
-            return HealthCheckResult.Unhealthy("Verificação de saúde falhou com erro inesperado", ex);
+            logger.LogError(ex, "HTTP request error during external services health check");
+            return HealthCheckResult.Unhealthy("Connectivity error with external service", ex);
         }
-    }
+        catch (TimeoutException ex)
+        {
+            logger.LogError(ex, "Timeout during external services health check");
+            return HealthCheckResult.Unhealthy("Timeout connecting to external service", ex);
+        }
+        catch (Exception ex) when (!IsFatal(ex))
+        {
+            // Registra exceções inesperadas e retorna Unhealthy para garantir que o health check sempre reporte um resultado.
+            logger.LogError(ex, "Unexpected error during external services health check");
+            return HealthCheckResult.Unhealthy("Health check failed with an unexpected error", ex);
+        }
+        }
+
 
     /// <summary>
     /// Lógica comum de health check para serviços externos
@@ -132,4 +144,11 @@ public class ExternalServicesHealthCheck(
             externalServicesOptions.Geolocation.TimeoutSeconds,
             externalServicesOptions.Geolocation.HealthEndpointPath,
             cancellationToken);
+
+    private static bool IsFatal(Exception ex) =>
+        ex is OutOfMemoryException
+        or StackOverflowException
+        or ThreadAbortException
+        or AccessViolationException
+        or AppDomainUnloadedException;
 }

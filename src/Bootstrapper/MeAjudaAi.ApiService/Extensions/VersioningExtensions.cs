@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using FluentAssertions;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace MeAjudaAi.Architecture.Tests;
@@ -23,7 +23,7 @@ public sealed class NoCrossSchemaSqlInMigrationsTests
 
     // Padrões proibidos em migrations
     private static readonly Regex Forbidden =
-        new Regex(@"\b(FROM|JOIN|INSERT\s+INTO|UPDATE\b.*\bFROM|DELETE\s+FROM|REFERENCES)\s+(?<schema>[a-z_]+)\.",
+        new(@"\b(FROM|JOIN|INSERT\s+INTO|UPDATE\b.*\bFROM|DELETE\s+FROM|REFERENCES)\s+(?<schema>[a-z_]+)\.",
                   RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     [Fact]

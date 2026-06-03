@@ -4,32 +4,19 @@ namespace MeAjudaAi.ApiService.Middlewares;
 /// Middleware para adicionar Content Security Policy headers.
 /// Protege contra XSS, data injection e clickjacking.
 /// </summary>
-public class ContentSecurityPolicyMiddleware
+public class ContentSecurityPolicyMiddleware(
+    RequestDelegate next,
+    ILogger<ContentSecurityPolicyMiddleware> logger,
+    IConfiguration configuration,
+    IWebHostEnvironment environment)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ContentSecurityPolicyMiddleware> _logger;
-
-    private readonly string _cspPolicy;
-
-    public ContentSecurityPolicyMiddleware(
-        RequestDelegate next,
-        ILogger<ContentSecurityPolicyMiddleware> logger,
-        IConfiguration configuration,
-        IWebHostEnvironment environment)
-    {
-        _next = next;
-        _logger = logger;
-
-        _cspPolicy = BuildCspPolicy(environment, configuration);
-    }
+    private readonly string _cspPolicy = BuildCspPolicy(environment, configuration);
 
     public async Task InvokeAsync(HttpContext context)
     {
         // Adicionar headers de CSP
         context.Response.Headers.Append("Content-Security-Policy", _cspPolicy);
         
-
-
         // Adicionar headers de segurança adicionais
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
         context.Response.Headers.Append("X-Frame-Options", "DENY");
@@ -37,9 +24,9 @@ public class ContentSecurityPolicyMiddleware
         context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         context.Response.Headers.Append("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
 
-        _logger.LogDebug("CSP headers applied to response");
+        logger.LogDebug("CSP headers applied to response");
 
-        await _next(context);
+        await next(context);
     }
 
     private static string BuildCspPolicy(IWebHostEnvironment environment, IConfiguration configuration)
@@ -132,16 +119,5 @@ public class ContentSecurityPolicyMiddleware
             return $"{baseUrl.TrimEnd('/')}/realms/{realm}";
 
         return "";
-    }
-}
-
-/// <summary>
-/// Extension methods para registrar o middleware CSP.
-/// </summary>
-public static class ContentSecurityPolicyMiddlewareExtensions
-{
-    public static IApplicationBuilder UseContentSecurityPolicy(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<ContentSecurityPolicyMiddleware>();
     }
 }

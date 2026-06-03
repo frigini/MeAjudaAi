@@ -3,7 +3,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
-using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -116,3 +116,4 @@ public class DbContextBookingCommandService(
         return false;
     }
 }
+

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 
@@ -116,10 +116,12 @@ public class GlobalExceptionHandlerTests
         });
 
         problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(StatusCodes.Status500InternalServerError);
-        problemDetails.Detail.Should().Contain("Development error details");
-        problemDetails.Extensions.Should().ContainKey("traceId");
-        problemDetails.Extensions["traceId"].ToString().Should().Be("trace-dev-123");
+        var pd = problemDetails!;
+        pd.Status.Should().Be(StatusCodes.Status500InternalServerError);
+        pd.Detail.Should().Contain("Development error details");
+
+        body.Should().Contain("\"traceId\":");
+        body.Should().Contain("trace-dev-123");
     }
 
     [Fact]
@@ -127,7 +129,8 @@ public class GlobalExceptionHandlerTests
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
-        context.TraceIdentifier = "trace-abc";
+        context.TraceIdentifier = "trace-abc"; // Define explicitamente antes de disparar o erro
+        
         var exception = new InvalidOperationException("Dados sensíveis do sistema interno");
         _mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
 
@@ -139,16 +142,19 @@ public class GlobalExceptionHandlerTests
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
+        
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
 
         problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(StatusCodes.Status500InternalServerError);
-        problemDetails.Detail.Should().NotContain("Dados sensíveis");
-        problemDetails.Detail.Should().Contain("Ocorreu um erro inesperado");
-        problemDetails.Extensions.Should().ContainKey("traceId");
-        problemDetails.Extensions["traceId"].ToString().Should().Be("trace-abc");
+        var pd = problemDetails!;
+        pd.Status.Should().Be(StatusCodes.Status500InternalServerError);
+        pd.Detail.Should().NotContain("Dados sensíveis");
+        pd.Detail.Should().Contain("Ocorreu um erro inesperado");
+
+        body.Should().Contain("\"traceId\":");
+        body.Should().Contain("trace-abc");
     }
 }

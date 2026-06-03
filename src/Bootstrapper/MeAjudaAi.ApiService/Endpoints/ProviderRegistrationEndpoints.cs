@@ -110,19 +110,36 @@ public static class ProviderRegistrationEndpoints
         if (providerResult.IsFailure)
         {
             // Compensação: Tentar remover o usuário criado para evitar orfãos
-            try 
+            try
             {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                 var deleteUserCommand = new DeleteUserCommand(userResult.Value!.Id);
-                var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cancellationToken);
-                
+                var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cts.Token);
+
                 if (deleteResult.IsFailure)
                 {
                     logger.LogError("Compensation failed: Could not delete orphaned user {UserId}. Error: {Error}", userResult.Value!.Id, deleteResult.Error.Message);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // O cancelamento foi solicitado — respeite-o e registre no nível de aviso.
+                logger.LogWarning("Compensation cancelled while attempting to delete orphaned user {UserId}.", userResult.Value!.Id);
+            }
+            catch (TimeoutException ex)
+            {
+                // Se o dispatcher puder exceder o tempo limite, registre e continue (compensação de melhor esforço).
+                logger.LogError(ex, "Compensation failed (timeout): Could not delete orphaned user {UserId}.", userResult.Value!.Id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Exemplo de outra falha específica esperada do dispatcher.
+                logger.LogError(ex, "Compensation failed (invalid operation): Could not delete orphaned user {UserId}.", userResult.Value!.Id);
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Compensation failed: Could not delete orphaned user {UserId} after provider creation failed.", userResult.Value!.Id);
+                // Erro inesperado na compensação - registra e ignora para manter a resposta original de BadRequest
+                logger.LogError(ex, "Unexpected error during compensation for orphaned user {UserId}.", userResult.Value!.Id);
             }
 
             return Results.BadRequest("Ocorreu um erro ao registrar o provedor.");

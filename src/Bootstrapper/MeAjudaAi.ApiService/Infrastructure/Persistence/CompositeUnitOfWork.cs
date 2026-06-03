@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Database;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.ApiService.Infrastructure.Persistence;
 
@@ -8,8 +7,13 @@ namespace MeAjudaAi.ApiService.Infrastructure.Persistence;
 /// Resolve repositórios de qualquer módulo e garante que as alterações em todos
 /// os contextos de banco de dados sejam persistidas.
 /// </summary>
-public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
+public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider, ILogger<CompositeUnitOfWork> logger) : IUnitOfWork
 {
+    public CompositeUnitOfWork(IServiceProvider serviceProvider)
+        : this(serviceProvider, serviceProvider.GetRequiredService<ILogger<CompositeUnitOfWork>>())
+    {
+    }
+
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
         // Tenta resolver o repositório diretamente do container de DI.
@@ -43,19 +47,15 @@ public sealed class CompositeUnitOfWork(IServiceProvider serviceProvider) : IUni
         if (searchDb != null) dbContexts.Add(searchDb);
 
         int total = 0;
+        logger.LogInformation("Salvando alterações em {Count} contextos de banco de dados", dbContexts.Count);
         using var transaction = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled);
-        try
+
+        foreach (var db in dbContexts)
         {
-            foreach (var db in dbContexts)
-            {
-                total += await db.SaveChangesAsync(cancellationToken);
-            }
-            transaction.Complete();
-            return total;
+            total += await db.SaveChangesAsync(cancellationToken);
         }
-        catch
-        {
-            throw;
-        }
+
+        transaction.Complete();
+        return total;
     }
 }

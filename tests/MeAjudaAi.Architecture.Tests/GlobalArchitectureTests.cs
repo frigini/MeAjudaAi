@@ -1,4 +1,5 @@
 using MeAjudaAi.Architecture.Tests.Helpers;
+using MeAjudaAi.Architecture.Tests.Helpers.Models;
 
 namespace MeAjudaAi.Architecture.Tests;
 
@@ -220,8 +221,7 @@ public class GlobalArchitectureTests
         // Validar que todos os services implementam pelo menos uma interface
         var servicesWithoutInterface = services
             .Where(service => service.GetInterfaces()
-                .Where(i => !i.Namespace?.StartsWith("System") == true)
-                .Count() == 0)
+                .Count(i => !i.Namespace?.StartsWith("System") == true) == 0)
             .Select(service => service.FullName)
             .ToList();
 

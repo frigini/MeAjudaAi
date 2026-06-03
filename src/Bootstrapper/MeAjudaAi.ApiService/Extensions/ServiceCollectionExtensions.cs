@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
@@ -11,6 +9,8 @@ using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -78,10 +78,6 @@ public static class ServiceCollectionExtensions
 
         // Health Checks customizados
         services.AddMeAjudaAiHealthChecks();
-
-        // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
-        // A Aspire Dashboard fornece visualização avançada de health checks, métricas, traces e logs
-        // em uma interface unificada e moderna, tornando o Health Checks UI redundante
 
         // Serviços específicos por ambiente
         services.AddEnvironmentSpecificServices(configuration, environment);
@@ -163,13 +159,6 @@ public static class ServiceCollectionExtensions
 
         // Map CSP Report Endpoint (deve ser anônimo)
         app.MapCspReportEndpoints();
-
-        // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
-        // Para visualizar health checks, acesse o Aspire Dashboard que oferece:
-        // - Visualização em tempo real do status de todos os serviços
-        // - Histórico e tendências de saúde dos componentes
-        // - Integração com logs, traces e métricas
-        // - Interface moderna e responsiva
 
         return app;
     }

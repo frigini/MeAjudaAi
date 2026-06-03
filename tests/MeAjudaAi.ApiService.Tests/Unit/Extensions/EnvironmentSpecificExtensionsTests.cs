@@ -111,7 +111,7 @@ public class EnvironmentSpecificExtensionsTests
         var app = new ApplicationBuilder(provider);
         var environment = CreateEnvironment("Production");
 
-        // Act - Just verify it doesn't throw, middleware registration is tested in integration tests
+        // Act - Basta verificar se não gera nenhuma exceção; o registro do middleware é testado nos testes de integração
         var act = () => app.UseEnvironmentSpecificMiddlewares(environment);
 
         // Assert

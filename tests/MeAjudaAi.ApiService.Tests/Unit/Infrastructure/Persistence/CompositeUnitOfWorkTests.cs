@@ -1,12 +1,12 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Infrastructure.Persistence;
@@ -20,6 +20,7 @@ public class CompositeUnitOfWorkTests
         // Arrange
         var repository = new TestRepository();
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddSingleton<IRepository<TestAggregate, Guid>>(repository);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
@@ -37,6 +38,7 @@ public class CompositeUnitOfWorkTests
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
 
@@ -50,6 +52,7 @@ public class CompositeUnitOfWorkTests
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
 
@@ -70,6 +73,7 @@ public class CompositeUnitOfWorkTests
 
         var context = new MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext(options, null!);
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddScoped(_ => context);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
@@ -94,6 +98,7 @@ public class CompositeUnitOfWorkTests
 
         var context = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(options, null!);
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddScoped(_ => context);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
@@ -118,6 +123,7 @@ public class CompositeUnitOfWorkTests
 
         var context = new MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext(options, null!);
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddScoped(_ => context);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
@@ -150,6 +156,7 @@ public class CompositeUnitOfWorkTests
         var providersContext = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(providersOptions, null!);
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddScoped(_ => usersContext);
         services.AddScoped(_ => providersContext);
         var serviceProvider = services.BuildServiceProvider();
@@ -171,7 +178,7 @@ public class CompositeUnitOfWorkTests
             // InMemory database não suporta transações distribuídas, mas deve ter salvo individualmente
         }
 
-        // Assert - Verify persistence using fresh context instances
+        // Assert - Verifica persistência usando novas instâncias de contexto
         using var freshUsersContext = new MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext(usersOptions, null!);
         using var freshProvidersContext = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(providersOptions, null!);
         
@@ -191,6 +198,7 @@ public class CompositeUnitOfWorkTests
             .ThrowsAsync(new InvalidOperationException("Test exception"));
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddScoped(_ => mockContext.Object);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
@@ -213,6 +221,7 @@ public class CompositeUnitOfWorkTests
             .ReturnsAsync(1);
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddScoped(_ => mockContext.Object);
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);

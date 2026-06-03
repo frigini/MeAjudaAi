@@ -1,5 +1,6 @@
 using System.Reflection;
 using MeAjudaAi.Architecture.Tests.Helpers;
+using MeAjudaAi.Architecture.Tests.Helpers.Models;
 
 #pragma warning disable xUnit1004 // Teste documentacional ignorado intencionalmente
 

@@ -6,14 +6,6 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ## 🔮 Melhorias Futuras (Backlog)
 
-### 🏗️ Arquitetura & Isolamento
-
-**Severidade**: ALTA  
-**Sprint**: Próxima (Backlog)
-
-- [ ] **Desacoplamento de Schemas nas Migrações**: Identificada quebra de isolamento na migration `20260210193620_AddProviderProfileEnhancements.cs` do módulo **Providers**, que acessava diretamente o schema `service_catalogs`. Embora corrigido para o ambiente de testes, a sincronização real dos nomes de serviços deve ser migrada para uma arquitetura orientada a eventos (Integration Events).
-- [ ] **Sincronização de Dados Desnormalizados via Eventos**: Implementar `ServiceNameUpdatedIntegrationEvent` e seus respectivos assinantes no módulo de **Providers** para garantir a consistência eventual de nomes de serviços sem dependência física de banco de dados.
-
 ### 🧪 Testes & Qualidade
 
 **Severidade**: BAIXA  
@@ -21,9 +13,21 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 - [ ] Perfilagem de memória em produção
 
+### 🏗️ Arquitetura & Código
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog
+
+- [ ] **Contratos de Cliente (Client Contracts) Incompletos**: O projeto `MeAjudaAi.Client.Contracts` carece de interfaces `Refit` para módulos críticos (`Bookings`, `Users`, `Payments`, `Communications`, `Ratings`, `SearchProviders`). Isso força implementações manuais ou duplicadas de consumo de API em diferentes clientes, comprometendo a segurança de tipos e a facilidade de integração. É necessário criar as interfaces equivalentes para todos os módulos restantes para padronizar o consumo de API em toda a solução.
+
 ---
 
 ## 📋 Histórico
+
+### 🔄 Sincronização de Dados Desnormalizados via Eventos (Sincronização de Nomes de Serviços)
+
+**Resolvido em**: Jun 2026 (Sprint 14) | **Severidade original**: ALTA
+Implementação de `ServiceNameUpdatedIntegrationEvent` para garantir a consistência eventual de nomes de serviços sem dependência física de banco de dados entre os módulos `ServiceCatalogs` e `Providers`. A funcionalidade foi coberta por testes no módulo de origem (`ServiceCatalogs`).
 
 ### 🎨 UI/UX Admin Portal - Cores da Marca
 

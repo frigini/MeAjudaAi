@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -6,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Moq;
+using System.Security.Claims;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
@@ -18,9 +18,9 @@ public class InspectAuthMiddlewareTests
 
     public InspectAuthMiddlewareTests()
     {
-        _envMock = new Mock<IWebHostEnvironment>();
-        _nextMock = new Mock<RequestDelegate>();
-        _middleware = new InspectAuthMiddleware(_nextMock.Object, _envMock.Object);
+        _envMock = new();
+        _nextMock = new();
+        _middleware = new(_nextMock.Object, _envMock.Object);
     }
 
     [Fact]
@@ -83,9 +83,10 @@ public class InspectAuthMiddlewareTests
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, "testuser"),
-            new Claim(ClaimTypes.Role, "Admin"),
-            new Claim(AuthConstants.Claims.Permission, "Read")
+            new(ClaimTypes.Name, "testuser"),
+            new(ClaimTypes.Role, "Admin"),
+            new(ClaimTypes.Role, "User"),
+            new(AuthConstants.Claims.Permission, "Read")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         

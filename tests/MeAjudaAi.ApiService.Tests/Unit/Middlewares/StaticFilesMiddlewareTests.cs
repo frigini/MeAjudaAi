@@ -19,11 +19,14 @@ public class StaticFilesMiddlewareTests
         var context = new DefaultHttpContext();
         context.Request.Path = path;
         var nextCalled = false;
-        RequestDelegate next = (ctx) =>
+
+        Task Next(HttpContext ctx)
         {
             nextCalled = true;
             return Task.CompletedTask;
-        };
+        }
+
+        RequestDelegate next = Next;
 
         var middleware = new StaticFilesMiddleware(next);
 
@@ -44,11 +47,14 @@ public class StaticFilesMiddlewareTests
         var context = new DefaultHttpContext();
         context.Request.Path = path;
         var nextCalled = false;
-        RequestDelegate next = (ctx) =>
+
+        Task Next(HttpContext ctx)
         {
             nextCalled = true;
             return Task.CompletedTask;
-        };
+        }
+
+        RequestDelegate next = Next;
 
         var middleware = new StaticFilesMiddleware(next);
 
@@ -70,11 +76,14 @@ public class StaticFilesMiddlewareTests
         var context = new DefaultHttpContext();
         context.Request.Path = path;
         var nextCalled = false;
-        RequestDelegate next = (ctx) =>
+
+        Task Next(HttpContext ctx)
         {
             nextCalled = true;
             return Task.CompletedTask;
-        };
+        }
+
+        RequestDelegate next = Next;
 
         var middleware = new StaticFilesMiddleware(next);
 
@@ -92,11 +101,14 @@ public class StaticFilesMiddlewareTests
         var context = new DefaultHttpContext();
         context.Request.Path = "/";
         var nextCalled = false;
-        RequestDelegate next = (ctx) =>
+
+        Task Next(HttpContext ctx)
         {
             nextCalled = true;
             return Task.CompletedTask;
-        };
+        }
+
+        RequestDelegate next = Next;
 
         var middleware = new StaticFilesMiddleware(next);
 
@@ -117,11 +129,14 @@ public class StaticFilesMiddlewareTests
         var context = new DefaultHttpContext();
         context.Request.Path = path;
         var nextCalled = false;
-        RequestDelegate next = (ctx) =>
+
+        Task Next(HttpContext ctx)
         {
             nextCalled = true;
             return Task.CompletedTask;
-        };
+        }
+
+        RequestDelegate next = Next;
 
         var middleware = new StaticFilesMiddleware(next);
 
@@ -136,7 +151,8 @@ public class StaticFilesMiddlewareTests
     public void Constructor_ShouldAcceptRequestDelegate()
     {
         // Arrange
-        RequestDelegate next = (ctx) => Task.CompletedTask;
+        Task Next(HttpContext ctx) => Task.CompletedTask;
+        RequestDelegate next = Next;
 
         // Act
         var act = () => new StaticFilesMiddleware(next);

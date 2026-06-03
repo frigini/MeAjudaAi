@@ -37,7 +37,7 @@ public class GlobalExceptionHandler(
                     .ToDictionary(
                         g => g.Key,
                         g => g.Select(e => e.ErrorMessage).ToArray()),
-                new Dictionary<string, object?>()),
+                new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             // UnprocessableEntityException (422 - erros semânticos/regras de negócio)
             UnprocessableEntityException unprocessableException => (
@@ -47,7 +47,8 @@ public class GlobalExceptionHandler(
                 null,
                 CreateExtensionsWithNonNullValues(
                     ("entityName", unprocessableException.EntityName),
-                    ("details", unprocessableException.Details))),
+                    ("details", unprocessableException.Details),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             UniqueConstraintException uniqueException => (
                 StatusCodes.Status409Conflict,
@@ -56,7 +57,8 @@ public class GlobalExceptionHandler(
                 null,
                 CreateExtensionsWithNonNullValues(
                     ("constraintName", uniqueException.ConstraintName),
-                    ("columnName", uniqueException.ColumnName))),
+                    ("columnName", uniqueException.ColumnName),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             NotNullConstraintException notNullException => (
                 StatusCodes.Status400BadRequest,
@@ -64,7 +66,8 @@ public class GlobalExceptionHandler(
                 $"O campo {notNullException.ColumnName ?? "este campo"} é obrigatório",
                 null,
                 CreateExtensionsWithNonNullValues(
-                    ("columnName", notNullException.ColumnName))),
+                    ("columnName", notNullException.ColumnName),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             ForeignKeyConstraintException foreignKeyException => (
                 StatusCodes.Status400BadRequest,
@@ -73,9 +76,10 @@ public class GlobalExceptionHandler(
                 null,
                 CreateExtensionsWithNonNullValues(
                     ("constraintName", foreignKeyException.ConstraintName),
-                    ("tableName", foreignKeyException.TableName))),
+                    ("tableName", foreignKeyException.TableName),
+                    ("traceId", httpContext.TraceIdentifier))),
 
-            DbUpdateException dbUpdateException => ProcessDbUpdateException(dbUpdateException),
+            DbUpdateException dbUpdateException => ProcessDbUpdateException(dbUpdateException, httpContext.TraceIdentifier),
 
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
@@ -84,21 +88,22 @@ public class GlobalExceptionHandler(
                 null,
                 CreateExtensionsWithNonNullValues(
                     ("entityName", notFoundException.EntityName),
-                    ("entityId", notFoundException.EntityId))),
+                    ("entityId", notFoundException.EntityId),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             UnauthorizedAccessException => (
                 StatusCodes.Status401Unauthorized,
                 "Não Autorizado",
                 "Autenticação é necessária para acessar este recurso",
                 null,
-                []),
+                new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             ForbiddenAccessException forbiddenException => (
                 StatusCodes.Status403Forbidden,
                 "Acesso Negado",
                 forbiddenException.Message,
                 null,
-                []),
+                new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             BusinessRuleException businessException => (
                 StatusCodes.Status400BadRequest,
@@ -106,7 +111,8 @@ public class GlobalExceptionHandler(
                 businessException.Message,
                 null,
                 CreateExtensionsWithNonNullValues(
-                    ("ruleName", businessException.RuleName))),
+                    ("ruleName", businessException.RuleName),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             ArgumentException argumentException => (
                 StatusCodes.Status400BadRequest,
@@ -114,21 +120,22 @@ public class GlobalExceptionHandler(
                 argumentException.Message,
                 null,
                 CreateExtensionsWithNonNullValues(
-                    ("parameterName", argumentException.ParamName))),
+                    ("parameterName", argumentException.ParamName),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             DomainException domainException => (
                 StatusCodes.Status400BadRequest,
                 "Violação de Regra de Domínio",
                 domainException.Message,
                 null,
-                []),
+                new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             BadRequestException badRequestException => (
                 StatusCodes.Status400BadRequest,
                 "Erro de validação",
                 badRequestException.Message,
                 null,
-                []),
+                new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             BadHttpRequestException badHttpRequestException => (
                 badHttpRequestException.StatusCode is >= 400 and < 500 
@@ -137,9 +144,9 @@ public class GlobalExceptionHandler(
                 "Requisição inválida",
                 "A requisição enviada é inválida ou está mal formatada.",
                 null,
-                env.IsDevelopment() 
-                    ? new Dictionary<string, object?> { ["originalMessage"] = badHttpRequestException.Message }
-                    : []),
+                CreateExtensionsWithNonNullValues(
+                    ("originalMessage", env.IsDevelopment() ? badHttpRequestException.Message : null),
+                    ("traceId", httpContext.TraceIdentifier))),
 
             _ => (
                 StatusCodes.Status500InternalServerError,
@@ -193,7 +200,7 @@ public class GlobalExceptionHandler(
         return true;
     }
 
-    private static (int statusCode, string title, string detail, object? errors, Dictionary<string, object?> extensions) ProcessDbUpdateException(DbUpdateException dbUpdateException)
+    private static (int statusCode, string title, string detail, object? errors, Dictionary<string, object?> extensions) ProcessDbUpdateException(DbUpdateException dbUpdateException, string traceId)
     {
         // Tenta processar a exceção usando nosso processador customizado
         var processedException = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
@@ -207,7 +214,8 @@ public class GlobalExceptionHandler(
                 null,
                 CreateExtensionsWithNonNullValues(
                     ("constraintName", uniqueException.ConstraintName),
-                    ("columnName", uniqueException.ColumnName)));
+                    ("columnName", uniqueException.ColumnName),
+                    ("traceId", traceId)));
         }
 
         if (processedException is NotNullConstraintException notNullException)
@@ -218,7 +226,8 @@ public class GlobalExceptionHandler(
                 $"O campo {notNullException.ColumnName ?? "este campo"} é obrigatório",
                 null,
                 CreateExtensionsWithNonNullValues(
-                    ("columnName", notNullException.ColumnName)));
+                    ("columnName", notNullException.ColumnName),
+                    ("traceId", traceId)));
         }
 
         if (processedException is ForeignKeyConstraintException foreignKeyException)
@@ -230,7 +239,8 @@ public class GlobalExceptionHandler(
                 null,
                 CreateExtensionsWithNonNullValues(
                     ("constraintName", foreignKeyException.ConstraintName),
-                    ("tableName", foreignKeyException.TableName)));
+                    ("tableName", foreignKeyException.TableName),
+                    ("traceId", traceId)));
         }
 
         // Fallback para DbUpdateException genérica
@@ -241,7 +251,8 @@ public class GlobalExceptionHandler(
             null,
             new Dictionary<string, object?>
             {
-                ["exceptionType"] = dbUpdateException.GetType().Name
+                ["exceptionType"] = dbUpdateException.GetType().Name,
+                ["traceId"] = traceId
             });
     }
 
