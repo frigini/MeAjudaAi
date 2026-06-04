@@ -95,6 +95,6 @@ public class UsersCacheService(ICacheService cacheService) : IUsersCacheService
         await cacheService.RemoveAsync(UsersCacheKeys.UserRoles(userId), cancellationToken);
 
         // Invalida listas que podem conter este usuário
-        await cacheService.RemoveByPatternAsync(CacheTags.UsersList, cancellationToken);
+        await cacheService.RemoveByPatternAsync(CacheTags.Users, cancellationToken);
     }
 }

@@ -68,7 +68,7 @@ public class UsersCacheServiceTests
                 _cancellationToken),
             Times.Once);
 
-        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserTag(userId) };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
@@ -180,7 +180,7 @@ public class UsersCacheServiceTests
         result.Should().Be(user);
         factoryCalled.Should().BeTrue();
 
-        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserTag(userId) };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
@@ -246,7 +246,7 @@ public class UsersCacheServiceTests
         await _usersCacheService.SetUserAsync(user, _cancellationToken);
 
         // Assert
-        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UserByEmail, CacheTags.UserEmailTag(user.Email), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserTag(userId), CacheTags.UserEmailTag(user.Email) };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
@@ -277,7 +277,7 @@ public class UsersCacheServiceTests
             Times.Once);
 
         _cacheServiceMock.Verify(
-            x => x.RemoveByPatternAsync(CacheTags.UsersList, _cancellationToken),
+            x => x.RemoveByPatternAsync(CacheTags.Users, _cancellationToken),
             Times.Once);
     }
 
@@ -305,7 +305,7 @@ public class UsersCacheServiceTests
             Times.Once);
 
         _cacheServiceMock.Verify(
-            x => x.RemoveByPatternAsync(CacheTags.UsersList, _cancellationToken),
+            x => x.RemoveByPatternAsync(CacheTags.Users, _cancellationToken),
             Times.Once);
     }
 
@@ -394,7 +394,7 @@ public class UsersCacheServiceTests
                 _cancellationToken),
             Times.Once);
 
-        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserTag(userId) };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),

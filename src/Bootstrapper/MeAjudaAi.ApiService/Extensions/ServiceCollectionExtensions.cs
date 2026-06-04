@@ -3,6 +3,7 @@ using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Middleware;
 using MeAjudaAi.Shared.Monitoring;

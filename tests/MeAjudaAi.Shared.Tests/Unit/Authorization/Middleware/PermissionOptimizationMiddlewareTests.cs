@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -26,8 +27,6 @@ public class PermissionOptimizationMiddlewareTests
         _middleware = new PermissionOptimizationMiddleware(_nextMock.Object, _loggerMock.Object);
         _httpContext = new DefaultHttpContext();
     }
-
-    #region Public Endpoint Tests
 
     [Fact]
     public async Task InvokeAsync_PublicEndpoint_ShouldSkipOptimization()
@@ -64,10 +63,6 @@ public class PermissionOptimizationMiddlewareTests
         _httpContext.Items.Should().BeEmpty();
     }
 
-    #endregion
-
-    #region Unauthenticated User Tests
-
     [Fact]
     public async Task InvokeAsync_UnauthenticatedUser_ShouldSkipOptimization()
     {
@@ -83,10 +78,6 @@ public class PermissionOptimizationMiddlewareTests
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         _httpContext.Items.Should().BeEmpty();
     }
-
-    #endregion
-
-    #region Authenticated User Tests
 
     [Fact]
     public async Task InvokeAsync_AuthenticatedUser_ShouldApplyOptimizations()
@@ -138,10 +129,6 @@ public class PermissionOptimizationMiddlewareTests
         _httpContext.Items.Should().ContainKey("PermissionCacheTimestamp");
         _httpContext.Items["UserId"].Should().Be("user-456");
     }
-
-    #endregion
-
-    #region Permission Preloading Tests
 
     [Theory]
     [InlineData("/api/v1/users", "GET")]
@@ -249,10 +236,6 @@ public class PermissionOptimizationMiddlewareTests
         permissions.Should().Contain(EPermission.AdminUsers);
     }
 
-    #endregion
-
-    #region ReadOnly Optimization Tests
-
     [Fact]
     public async Task InvokeAsync_ProfileGET_ShouldUseAggressiveCache()
     {
@@ -329,10 +312,6 @@ public class PermissionOptimizationMiddlewareTests
         _httpContext.Items.Should().NotContainKey("PermissionCacheDuration");
     }
 
-    #endregion
-
-    #region Admin Path Tests
-
     [Theory]
     [InlineData("/api/v1/users/admin/settings", EPermission.AdminUsers)]
     [InlineData("/api/v1/users/admin/config", EPermission.AdminUsers)]
@@ -353,8 +332,6 @@ public class PermissionOptimizationMiddlewareTests
         var permissions = _httpContext.Items["ExpectedPermissions"] as List<EPermission>;
         permissions.Should().Contain(expectedPermission);
     }
-
-    #endregion
 
     [Theory]
     [InlineData("/api/v1/search", "GET", EPermission.SearchRead)]
@@ -443,10 +420,6 @@ public class PermissionOptimizationMiddlewareTests
         var permissions = _httpContext.Items["ExpectedPermissions"] as List<EPermission>;
         permissions.Should().Contain(expectedPermission);
     }
-
-    #endregion
-
-    #region Extension Methods Tests
 
     [Fact]
     public void GetExpectedPermissions_WithPermissions_ShouldReturnThem()
@@ -544,10 +517,6 @@ public class PermissionOptimizationMiddlewareTests
         result.Should().Be(TimeSpan.FromMinutes(15));
     }
 
-    #endregion
-
-    #region User ID Extraction Tests
-
     [Fact]
     public async Task InvokeAsync_UserIdFromNameIdentifier_ShouldExtractCorrectly()
     {
@@ -602,10 +571,6 @@ public class PermissionOptimizationMiddlewareTests
         _httpContext.Items["UserId"].Should().Be("user-from-id");
     }
 
-    #endregion
-
-    #region HTTP Methods Tests
-
     [Theory]
     [InlineData("HEAD")]
     [InlineData("OPTIONS")]
@@ -647,6 +612,4 @@ public class PermissionOptimizationMiddlewareTests
         var permissions = _httpContext.Items["ExpectedPermissions"] as List<EPermission>;
         permissions.Should().Contain(EPermission.UsersUpdate);
     }
-
-    #endregion
 }

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
@@ -5,6 +6,7 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
 public class GetBillingPortalCommandHandler(
-    ISubscriptionQueries subscriptionQueries,
+    IQueryDispatcher queryDispatcher,
     IPaymentGateway gateway,
     IConfiguration configuration,
     IOptions<PaymentsOptions> paymentsOptions,
@@ -24,12 +26,16 @@ public class GetBillingPortalCommandHandler(
     {
         ValidateReturnUrl(command.ReturnUrl);
 
-        var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(command.ProviderId, cancellationToken);
-        if (subscription == null)
+        var query = new GetActiveSubscriptionByProviderQuery(command.ProviderId, command.CorrelationId);
+        var result = await queryDispatcher.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(query, cancellationToken);
+        
+        if (result.IsFailure || result.Value == null)
         {
             throw new NotFoundException(nameof(Subscription), command.ProviderId);
         }
 
+        var subscription = result.Value;
+        
         if (string.IsNullOrEmpty(subscription.ExternalCustomerId))
         {
             logger.LogError("Active subscription {Id} for Provider {ProviderId} is missing ExternalCustomerId", 

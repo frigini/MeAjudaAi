@@ -3,6 +3,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Handlers;
+using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
@@ -19,14 +20,16 @@ namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 public class PermissionClaimsTransformationTests
 {
     private readonly Mock<IPermissionService> _permissionServiceMock;
+    private readonly Mock<IPermissionMetricsService> _metricsServiceMock;
     private readonly Mock<ILogger<PermissionClaimsTransformation>> _loggerMock;
     private readonly PermissionClaimsTransformation _sut;
 
     public PermissionClaimsTransformationTests()
     {
         _permissionServiceMock = new Mock<IPermissionService>();
+        _metricsServiceMock = new Mock<IPermissionMetricsService>();
         _loggerMock = new Mock<ILogger<PermissionClaimsTransformation>>();
-        _sut = new PermissionClaimsTransformation(_permissionServiceMock.Object, _loggerMock.Object);
+        _sut = new PermissionClaimsTransformation(_permissionServiceMock.Object, _metricsServiceMock.Object, _loggerMock.Object);
     }
 
     [Fact]

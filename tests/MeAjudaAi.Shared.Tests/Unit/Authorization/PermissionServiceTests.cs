@@ -30,7 +30,7 @@ public class PermissionServiceTests
 
         // Setup metrics mock to return a disposal that doesn't crash
         _metricsMock.Setup(m => m.MeasurePermissionResolution(It.IsAny<string>())).Returns(new Mock<IDisposable>().Object);
-        _metricsMock.Setup(m => m.MeasureCacheOperation(It.IsAny<string>(), It.IsAny<bool>())).Returns(new Mock<IDisposable>().Object);
+        _metricsMock.Setup(m => m.MeasureCacheOperation(It.IsAny<string>(), It.IsAny<Func<bool>>())).Returns(new Mock<IDisposable>().Object);
         _metricsMock.Setup(m => m.MeasurePermissionCheck(It.IsAny<string>(), It.IsAny<EPermission>(), It.IsAny<bool>())).Returns(new Mock<IDisposable>().Object);
 
         _service = new PermissionService(
