@@ -1545,7 +1545,7 @@
       "meajudaai.servicedefaults": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Npgsql": "[13.4.0, )",
+          "Aspire.Npgsql": "[13.4.2, )",
           "Azure.Monitor.OpenTelemetry.AspNetCore": "[1.5.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.6.0, )",
@@ -1653,9 +1653,9 @@
       },
       "Aspire.Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[13.4.0, )",
-        "resolved": "13.4.0",
-        "contentHash": "WhK6XfhNio8/5A7wKmnYpTIkmcWRBSI3QM0LOm96tHMuMiX8DJ9ExSHhrPBcZubLu2KEPyK2qKMLMIyQfVt46A==",
+        "requested": "[13.4.2, )",
+        "resolved": "13.4.2",
+        "contentHash": "hOL2ElIC7hxpaKNby2lRCtihO9hobFMNlcGSWbDJeXtXy1g5ldD+hPbkBOuPskRbXQE5sRoO2tHX+1yvELhNFQ==",
         "dependencies": {
           "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.8",
