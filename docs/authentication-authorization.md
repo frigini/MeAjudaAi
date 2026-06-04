@@ -47,7 +47,7 @@ Implementa `IHealthCheck`.
 - **Papel:** Monitora a saúde do subsistema de permissões.
 - **Verificações:** 
     - **Funcionalidade:** Testa a resolução de permissões para um usuário de teste.
-    - **Performance:** Monitora tempo de resposta e taxa de acerto do cache (`CacheHitRate`).
+    - **Desempenho:** Monitora tempo de resposta e taxa de acerto do cache (`CacheHitRate`)."
     - **Cache:** Valida a integridade do cache distribuído.
 - **Impacto:** Se o sistema de permissões falhar (ex: falha na conexão com banco/cache), o Health Check marca a API como `Unhealthy`, garantindo que o orquestrador (ex: Kubernetes) remova a instância do tráfego.
 

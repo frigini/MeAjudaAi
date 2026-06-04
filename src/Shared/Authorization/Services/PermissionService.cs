@@ -47,13 +47,13 @@ public sealed class PermissionService(
             var tags = new[] { "permissions", $"user:{userId}" };
 
             bool cacheHit = false;
-            using var cacheTimer = metrics.MeasureCacheOperation("get_user_permissions", cacheHit);
+            using var cacheTimer = metrics.MeasureCacheOperation("get_user_permissions", () => cacheHit);
 
             var result = await cacheService.GetOrCreateAsync(
                 cacheKey,
                 async _ =>
                 {
-                    cacheHit = false; // Cache miss (falha no cache)
+                    cacheHit = false; // Cache miss
                     return await ResolveUserPermissionsAsync(userId, cancellationToken);
                 },
                 CacheExpiration,
@@ -63,7 +63,7 @@ public sealed class PermissionService(
 
             if (result.Any())
             {
-                cacheHit = true; // Resultado do cache obtido
+                cacheHit = true; // Cache hit
             }
 
             return result;

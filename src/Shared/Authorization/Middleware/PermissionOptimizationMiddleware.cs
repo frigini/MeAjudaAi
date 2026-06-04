@@ -148,7 +148,7 @@ public sealed class PermissionOptimizationMiddleware(
         if (requiredPermissions.Any())
         {
             // Armazena as permissões esperadas no contexto para otimização downstream
-            context.Items["ExpectedPermissions"] = requiredPermissions;
+            context.Items[PermissionOptimizationConstants.ExpectedPermissions] = requiredPermissions;
 
             logger.LogDebug("Pre-identified {PermissionCount} required permissions for {Method} {Path}",
                 requiredPermissions.Count, context.Request.Method, path);
@@ -175,15 +175,15 @@ public sealed class PermissionOptimizationMiddleware(
         if (pathSpan.StartsWith("/api/v1/users/profile", StringComparison.OrdinalIgnoreCase) ||
             pathSpan.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
-            context.Items["UseAggressivePermissionCache"] = true;
-            context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(30);
+            context.Items[PermissionOptimizationConstants.UseAggressivePermissionCache] = true;
+            context.Items[PermissionOptimizationConstants.PermissionCacheDuration] = TimeSpan.FromMinutes(30);
         }
         else if (pathSpan.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) && context.Request.Method == "GET")
         {
             // Catch-all para operações GET em qualquer versão da API - cache intermediário
             // Suporta múltiplas versões da API (v1, v2, etc.) para compatibilidade
-            context.Items["UseAggressivePermissionCache"] = false;
-            context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(10);
+            context.Items[PermissionOptimizationConstants.UseAggressivePermissionCache] = false;
+            context.Items[PermissionOptimizationConstants.PermissionCacheDuration] = TimeSpan.FromMinutes(10);
         }
     }
 

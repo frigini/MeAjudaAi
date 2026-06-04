@@ -356,7 +356,46 @@ public class PermissionOptimizationMiddlewareTests
 
     #endregion
 
-    #region Module Specific Optimization Tests
+    [Theory]
+    [InlineData("/api/v1/search", "GET", EPermission.SearchRead)]
+    [InlineData("/api/v1/search/index", "POST", EPermission.SearchManage)]
+    public async Task InvokeAsync_SearchModule_ShouldIdentifyCorrectPermissions(
+        string path, string method, EPermission expectedPermission)
+    {
+        // Arrange
+        _httpContext.Request.Path = path;
+        _httpContext.Request.Method = method;
+
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        _httpContext.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await _middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        var permissions = _httpContext.GetExpectedPermissions();
+        permissions.Should().Contain(expectedPermission);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_SearchModule_PostWithoutIndex_ShouldNotIdentifySearchManage()
+    {
+        // Arrange
+        _httpContext.Request.Path = "/api/v1/search";
+        _httpContext.Request.Method = "POST";
+
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        _httpContext.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await _middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        var permissions = _httpContext.GetExpectedPermissions();
+        permissions.Should().NotContain(EPermission.SearchManage);
+    }
 
     [Theory]
     [InlineData("/api/v1/bookings", "GET", EPermission.BookingsRead)]

@@ -329,7 +329,7 @@ public class PermissionClaimsTransformationTests
     }
 
     [Fact]
-    public async Task TransformAsync_WhenPermissionServiceThrowsPermissionServiceException_ShouldReturnPrincipalUnchangedAndLogError()
+    public async Task TransformAsync_WhenPermissionServiceThrowsUnexpectedException_ShouldThrowAndLogError()
     {
         // Arrange
         var userId = "user-123";
@@ -340,16 +340,14 @@ public class PermissionClaimsTransformationTests
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
 
-        var exception = new PermissionServiceException("Service error");
+        var exception = new InvalidOperationException("Unexpected error");
         _permissionServiceMock
             .Setup(s => s.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
-        // Act
-        var result = await _sut.TransformAsync(principal);
-
-        // Assert
-        result.Should().BeSameAs(principal);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.TransformAsync(principal));
+        
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,

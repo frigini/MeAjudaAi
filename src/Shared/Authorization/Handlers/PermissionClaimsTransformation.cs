@@ -15,6 +15,7 @@ namespace MeAjudaAi.Shared.Authorization.Handlers;
 /// </summary>
 public sealed class PermissionClaimsTransformation(
     IPermissionService permissionService,
+    IPermissionMetricsService metrics,
     ILogger<PermissionClaimsTransformation> logger) : IClaimsTransformation
 {
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -82,6 +83,8 @@ public sealed class PermissionClaimsTransformation(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to transform claims for user {UserId}", userId);
+            // Emite métrica de erro inesperado
+            metrics.RecordPerformanceStats("claims_transformation_failure", 1, "error");
             throw;
         }
     }

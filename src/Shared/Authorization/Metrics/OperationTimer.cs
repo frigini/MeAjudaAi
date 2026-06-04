@@ -13,6 +13,9 @@ public sealed class OperationTimer : IDisposable
 
     public OperationTimer(Action onStart, Action<TimeSpan> onComplete)
     {
+        ArgumentNullException.ThrowIfNull(onStart);
+        ArgumentNullException.ThrowIfNull(onComplete);
+        
         _onComplete = onComplete;
         _stopwatch = Stopwatch.StartNew();
         onStart();

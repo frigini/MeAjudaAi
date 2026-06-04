@@ -22,7 +22,7 @@ public static class PermissionOptimizationMiddlewareExtensions
     /// </summary>
     public static IEnumerable<EPermission> GetExpectedPermissions(this HttpContext context)
     {
-        if (context.Items.TryGetValue("ExpectedPermissions", out var permissions))
+        if (context.Items.TryGetValue(PermissionOptimizationConstants.ExpectedPermissions, out var permissions))
         {
             return permissions as IEnumerable<EPermission> ?? Enumerable.Empty<EPermission>();
         }
@@ -35,7 +35,7 @@ public static class PermissionOptimizationMiddlewareExtensions
     /// </summary>
     public static bool ShouldUseAggressivePermissionCache(this HttpContext context)
     {
-        return context.Items.TryGetValue("UseAggressivePermissionCache", out var useCache) &&
+        return context.Items.TryGetValue(PermissionOptimizationConstants.UseAggressivePermissionCache, out var useCache) &&
                useCache is bool useCacheBool && useCacheBool;
     }
 
@@ -44,7 +44,7 @@ public static class PermissionOptimizationMiddlewareExtensions
     /// </summary>
     public static TimeSpan GetRecommendedPermissionCacheDuration(this HttpContext context)
     {
-        if (context.Items.TryGetValue("PermissionCacheDuration", out var duration) &&
+        if (context.Items.TryGetValue(PermissionOptimizationConstants.PermissionCacheDuration, out var duration) &&
             duration is TimeSpan durationTimeSpan)
         {
             return durationTimeSpan;

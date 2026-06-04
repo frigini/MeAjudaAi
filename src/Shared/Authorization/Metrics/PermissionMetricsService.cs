@@ -1,6 +1,7 @@
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.Metrics; // Import central timer
+using MeAjudaAi.Shared.Authorization.Metrics.Models; // Import models namespace
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -226,30 +227,34 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     /// <summary>
     /// Registra uma operação de cache.
     /// </summary>
-    public IDisposable MeasureCacheOperation(string operation, bool hit)
+    public IDisposable MeasureCacheOperation(string operation, Func<bool> getCacheHit)
     {
-        var tags = new TagList
-        {
-            { "operation", operation },
-            { "result", hit ? "hit" : "miss" }
-        };
-
-        if (hit)
-        {
-            _cacheHitCounter.Add(1, tags);
-            lock (_statsLock)
-            {
-                _totalCacheHits++;
-            }
-        }
-        else
-        {
-            _cacheMissCounter.Add(1, tags);
-        }
-
         return new OperationTimer(
             () => { },
-            duration => _cacheOperationDuration.Record(duration.TotalSeconds, tags));
+            duration =>
+            {
+                var hit = getCacheHit();
+                var tags = new TagList
+                {
+                    { "operation", operation },
+                    { "result", hit ? "hit" : "miss" }
+                };
+
+                if (hit)
+                {
+                    _cacheHitCounter.Add(1, tags);
+                    lock (_statsLock)
+                    {
+                        _totalCacheHits++;
+                    }
+                }
+                else
+                {
+                    _cacheMissCounter.Add(1, tags);
+                }
+                
+                _cacheOperationDuration.Record(duration.TotalSeconds, tags);
+            });
     }
 
     /// <summary>

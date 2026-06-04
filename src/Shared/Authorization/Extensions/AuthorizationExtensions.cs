@@ -42,8 +42,7 @@ public static class AuthorizationExtensions
         services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
 
         // Adiciona métricas e monitoramento
-        services.AddSingleton<PermissionMetricsService>();
-        services.AddSingleton<IPermissionMetricsService>(provider => provider.GetRequiredService<PermissionMetricsService>());
+        services.AddSingleton<IPermissionMetricsService, PermissionMetricsService>();
 
         // Adiciona health checks
         services.AddPermissionSystemHealthCheck();
