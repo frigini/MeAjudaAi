@@ -11,7 +11,6 @@ MeAjudaAi utiliza um sistema robusto de autenticação e autorização com as se
 - **Arquitetura Modular**: Cada módulo pode implementar suas próprias regras de permissão
 - **Cache Inteligente**: HybridCache para otimização de desempenho
 - **Extensibilidade**: Suporte para múltiplos provedores de permissões
-
 ## 🏗️ Arquitetura do Sistema
 
 ### Componentes Principais
@@ -20,7 +19,7 @@ MeAjudaAi utiliza um sistema robusto de autenticação e autorização com as se
 Sistema de Autenticação & Autorização
 ├── Autenticação (Keycloak + JWT)
 │   ├── Validação de Token JWT
-│   ├── Transformação de Claims
+│   ├── Transformação de Claims (PermissionClaimsTransformation)
 │   └── Gerenciamento de Identidade do Usuário
 │
 └── Autorização (Permissões Type-Safe)
@@ -28,7 +27,31 @@ Sistema de Autenticação & Autorização
     ├── Serviço de Permissões (Cache + Resolução)
     ├── Resolvedores de Permissão de Módulo
     └── Handlers de Autorização
+    └── Health Check do Sistema (PermissionSystemHealthCheck)
 ```
+
+...
+
+### 3. Componentes de Infraestrutura (Invisíveis)
+
+O sistema de autorização inclui componentes que operam automaticamente no pipeline do ASP.NET Core:
+
+#### 3.1 PermissionClaimsTransformation
+Implementa a interface nativa `IClaimsTransformation`.
+- **Papel:** Automaticamente intercepta cada requisição autenticada, chama o `IPermissionService` para obter as permissões do usuário e as injeta como *Claims* (`AuthConstants.Claims.Permission` e `AuthConstants.Claims.Module`) no `ClaimsPrincipal`.
+- **Vantagem:** Permite o uso de atributos nativos de autorização baseados em políticas (`[Authorize(Policy = "...")]`) sem consultas manuais ao serviço em cada controller.
+- **Registro:** Registrado automaticamente via `AddPermissionBasedAuthorization` em `AuthorizationExtensions`.
+
+#### 3.2 PermissionSystemHealthCheck
+Implementa `IHealthCheck`.
+- **Papel:** Monitora a saúde do subsistema de permissões.
+- **Verificações:** 
+    - **Funcionalidade:** Testa a resolução de permissões para um usuário de teste.
+    - **Performance:** Monitora tempo de resposta e taxa de acerto do cache (`CacheHitRate`).
+    - **Cache:** Valida a integridade do cache distribuído.
+- **Impacto:** Se o sistema de permissões falhar (ex: falha na conexão com banco/cache), o Health Check marca a API como `Unhealthy`, garantindo que o orquestrador (ex: Kubernetes) remova a instância do tráfego.
+
+...
 
 ### Fluxo de Autorização
 

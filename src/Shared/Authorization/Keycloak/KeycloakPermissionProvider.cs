@@ -1,6 +1,8 @@
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak;
 
@@ -33,7 +35,6 @@ public sealed class KeycloakPermissionProvider(
 
         try
         {
-            // Null guard: garante que nunca retornamos null
             var permissions = await keycloakResolver.ResolvePermissionsAsync(userId, cancellationToken)
                 ?? Array.Empty<EPermission>();
 
@@ -46,16 +47,31 @@ public sealed class KeycloakPermissionProvider(
         }
         catch (OperationCanceledException)
         {
-            // Propaga cancelação para o caller
             throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(
+                ex,
+                "Network error while resolving permissions from Keycloak for user {UserId}",
+                MaskUserId(userId));
+            return Array.Empty<EPermission>();
+        }
+        catch (JsonException ex)
+        {
+            logger.LogError(
+                ex,
+                "Deserialization error while resolving permissions from Keycloak for user {UserId}",
+                MaskUserId(userId));
+            return Array.Empty<EPermission>();
         }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
-                "Failed to resolve permissions from Keycloak for user {UserId}",
+                "Unexpected error while resolving permissions from Keycloak for user {UserId}",
                 MaskUserId(userId));
-            return Array.Empty<EPermission>();
+            throw;
         }
     }
 

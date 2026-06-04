@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Authorization.Handlers;
 

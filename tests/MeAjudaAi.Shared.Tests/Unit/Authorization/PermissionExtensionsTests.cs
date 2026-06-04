@@ -291,8 +291,18 @@ public class PermissionExtensionsTests
         result.Should().Contain("users");
         result.Should().Contain("system");
         result.Should().Contain("providers");
-        result.Should().Contain("orders");
+        result.Should().Contain("bookings");
+        result.Should().Contain("payments");
+        result.Should().Contain("communications");
+        result.Should().Contain("ratings");
+        result.Should().Contain("search");
+        result.Should().Contain("documents");
+        result.Should().Contain("service-catalogs");
+        result.Should().Contain("locations");
+        result.Should().Contain("reports");
+        result.Should().Contain("admin");
         result.Should().NotContain("unknown");
+        result.Should().NotContain("orders");
         result.Should().OnlyHaveUniqueItems();
     }
 

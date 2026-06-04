@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Metrics.Models;
 
 namespace MeAjudaAi.Shared.Authorization.Metrics;
 

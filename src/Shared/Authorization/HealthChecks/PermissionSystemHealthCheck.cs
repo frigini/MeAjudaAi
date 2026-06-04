@@ -11,26 +11,16 @@ namespace MeAjudaAi.Shared.Authorization.HealthChecks;
 /// Health check específico para o sistema de permissões.
 /// Verifica se o sistema está funcionando corretamente e com boa performance.
 /// </summary>
-public sealed class PermissionSystemHealthCheck : IHealthCheck
+public sealed class PermissionSystemHealthCheck(
+    IPermissionService permissionService,
+    IPermissionMetricsService metricsService,
+    ILogger<PermissionSystemHealthCheck> logger) : IHealthCheck
 {
-    private readonly IPermissionService _permissionService;
-    private readonly IPermissionMetricsService _metricsService;
-    private readonly ILogger<PermissionSystemHealthCheck> _logger;
 
     // Limites para considerações de saúde
     private static readonly TimeSpan MaxPermissionResolutionTime = TimeSpan.FromSeconds(2);
     private const double MinCacheHitRate = 0.7; // 70%
     private const int MaxActiveChecks = 100;
-
-    public PermissionSystemHealthCheck(
-        IPermissionService permissionService,
-        IPermissionMetricsService metricsService,
-        ILogger<PermissionSystemHealthCheck> logger)
-    {
-        _permissionService = permissionService;
-        _metricsService = metricsService;
-        _logger = logger;
-    }
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
@@ -102,7 +92,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Permission system health check failed");
+            logger.LogError(ex, "Permission system health check failed");
             return new HealthCheckResult(
                 HealthStatus.Unhealthy,
                 "Permission system health check threw an exception",
@@ -122,7 +112,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
 
             // Testa resolução de permissões
             var startTime = DateTimeOffset.UtcNow;
-            _ = await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
+            _ = await permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
             var duration = DateTimeOffset.UtcNow - startTime;
 
             // Verifica se a operação não demorou muito
@@ -132,7 +122,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
             }
 
             // Testa verificação de permissão
-            _ = await _permissionService.HasPermissionAsync(testUserId, testPermission, cancellationToken);
+            _ = await permissionService.HasPermissionAsync(testUserId, testPermission, cancellationToken);
 
             // Para health check, não importa se tem ou não a permissão, apenas que a operação funcione
             return new InternalHealthCheckResult(true, "Basic functionality working");
@@ -150,7 +140,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
     {
         try
         {
-            var stats = _metricsService.GetSystemStats();
+            var stats = metricsService.GetSystemStats();
 
             var issues = new List<string>();
 
@@ -201,10 +191,10 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
             var startTime = DateTimeOffset.UtcNow;
 
             // Primeira chamada (cache miss esperado)
-            await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
+            await permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
 
             // Segunda chamada (cache hit esperado)
-            await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
+            await permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
 
             var duration = DateTimeOffset.UtcNow - startTime;
 
@@ -240,7 +230,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
                 ResolverCount = 1 // Pelo menos o UsersPermissionResolver deve estar presente
             };
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return new ResolversHealthResult
             {
@@ -250,5 +240,6 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
                 ResolverCount = 0
             };
         }
+        // Do not catch Exception; let other exceptions bubble up.
     }
 }

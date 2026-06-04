@@ -1,3 +1,12 @@
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Keycloak.Models;
+using MeAjudaAi.Shared.Authorization.ValueObjects;
+using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
@@ -5,14 +14,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.ValueObjects;
-using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak;
 
@@ -254,10 +255,22 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
             return foundUser;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
         {
             _logger.LogWarning(
-                "Failed to find user {MaskedUserId} by username in Keycloak ({ExceptionType})",
+                "Failed to find user {MaskedUserId} by username in Keycloak (HTTP error: {ExceptionType})",
+                MaskUserId(userId),
+                ex.GetType().Name);
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(
+                "Failed to find user {MaskedUserId} by username in Keycloak (JSON error: {ExceptionType})",
                 MaskUserId(userId),
                 ex.GetType().Name);
             return null;
@@ -395,67 +408,4 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(bytes);
     }
-}
-
-/// <summary>
-/// Configuração para integração com Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-public sealed class KeycloakConfiguration
-{
-    public string BaseUrl { get; set; } = string.Empty;
-    public string Realm { get; set; } = string.Empty;
-    public string AdminClientId { get; set; } = string.Empty;
-    public string AdminClientSecret { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Resposta do token do Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal sealed class TokenResponse
-{
-    [JsonPropertyName("access_token")]
-    public string AccessToken { get; set; } = string.Empty;
-
-    [JsonPropertyName("token_type")]
-    public string TokenType { get; set; } = string.Empty;
-
-    [JsonPropertyName("expires_in")]
-    public int ExpiresIn { get; set; }
-}
-
-/// <summary>
-/// Representação do usuário no Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal sealed class KeycloakUser
-{
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-
-    [JsonPropertyName("username")]
-    public string Username { get; set; } = string.Empty;
-
-    [JsonPropertyName("email")]
-    public string Email { get; set; } = string.Empty;
-
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; }
-}
-
-/// <summary>
-/// Representação do role no Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal sealed class KeycloakRole
-{
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-
-    [JsonPropertyName("description")]
-    public string Description { get; set; } = string.Empty;
 }
