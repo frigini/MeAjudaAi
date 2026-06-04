@@ -1,0 +1,39 @@
+meta {
+  name: Stripe Webhook
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/payments/webhooks/stripe
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Stripe-Signature: t=123,v1=abc
+}
+
+body:json {
+  {
+    "id": "evt_123",
+    "type": "checkout.session.completed",
+    "data": {
+      "object": {
+        "id": "cs_123",
+        "customer": "cus_123"
+      }
+    }
+  }
+}
+
+docs {
+  # Stripe Webhook
+
+  Endpoint para receber webhooks do Stripe.
+
+  ## Nota
+  - Este endpoint geralmente é chamado pelo Stripe.
+  - Para testes locais, você precisará simular o header `Stripe-Signature`.
+}

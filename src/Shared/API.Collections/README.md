@@ -18,31 +18,26 @@ src/Shared/API.Collections/
 
 ## 🚀 Como Usar
 
-### 1. **Setup Inicial (OBRIGATÓRIO)**
+### 1. **Setup Inicial (RECOMENDADO)**
 
-Antes de usar qualquer collection de módulo, execute:
+No Bruno, cada módulo é uma **Collection** independente. Para compartilhar o token entre elas:
 
-```
-📁 Setup/SetupGetKeycloakToken.bru
-```
+1. **Abra a Collection Shared**: `src/Shared/API.Collections`
+2. **Selecione um Ambiente**: Escolha `Local` (ou crie um novo).
+3. **Execute o Setup**:
+   ```
+   📁 Setup/SetupGetKeycloakToken.bru
+   ```
+4. **No seu Módulo**: Utilize o **mesmo arquivo de ambiente** ou copie o valor da variável `accessToken` gerada.
 
-Este endpoint:
-- ✅ Obtém token de acesso do Keycloak
-- ✅ Define automaticamente a variável `accessToken` 
-- ✅ Funciona para todos os módulos (Users, Providers, Services, etc.)
+> **Dica**: No Bruno, você pode importar o arquivo `src/Shared/API.Collections/environments/Local.bru` em qualquer coleção para manter as URLs e credenciais sincronizadas.
 
 ### 2. **Verificação de Saúde**
-
-Para verificar se todos os serviços estão funcionando:
-
 ```
 📁 Setup/HealthCheckAll.bru
 ```
 
 ### 3. **Informações do Sistema**
-
-Para ver estado do Aspire e serviços:
-
 ```
 📁 Setup/AspireDashboard.bru
 ```
@@ -51,28 +46,28 @@ Para ver estado do Aspire e serviços:
 
 ### **Para Desenvolvedores de Módulos:**
 
-1. **No README do seu módulo**, documente:
+1. **Importe o ambiente compartilhado**:
+   Aponte seu Bruno para `src/Shared/API.Collections/environments/Local.bru`.
+
+2. **No README do seu módulo**, documente:
    ```markdown
    ## 🔧 Setup Inicial
    
    ### 1. Autenticação (COMPARTILHADO)
-   Execute primeiro: `src/Shared/API.Collections/Setup/SetupGetKeycloakToken.bru`
+   1. Abra a coleção `src/Shared/API.Collections`.
+   2. Execute `Setup/SetupGetKeycloakToken.bru` usando o ambiente `Local`.
+   3. O token será salvo na variável `accessToken` do ambiente.
    
    ### 2. Testes do Módulo
-   Agora execute os endpoints específicos do módulo...
+   Certifique-se de que sua coleção está usando o mesmo ambiente `Local`.
    ```
 
-2. **Na sua collection.bru**, referencie as variáveis compartilhadas:
+3. **Na sua collection.bru**, herde as variáveis:
    ```javascript
    vars {
-     # Módulo-specific variables
-     userId: 
-     testEmail: test@example.com
-     
-     # Global variables (set by shared Setup)
-     # Execute src/Shared/API.Collections/Setup/SetupGetKeycloakToken.bru first
-     # accessToken: [AUTO-SET by shared setup]
-     # baseUrl: [AUTO-SET by shared setup]
+     # O token e baseUrl virão do Ambiente Local compartilhado
+     # accessToken: {{accessToken}}
+     # baseUrl: {{baseUrl}}
    }
    ```
 

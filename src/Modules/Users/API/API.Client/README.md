@@ -39,14 +39,14 @@ cp collection.bru.example collection.bru
 ```
 
 #### ⚡ **Execute PRIMEIRO a configuração compartilhada**
-1. **Navegue para**: `src/Shared/API.Collections/Setup/`
-2. **Execute**: `SetupGetKeycloakToken.bru` para autenticar
-3. **Resultado**: Token de acesso será definido automaticamente para TODOS os módulos
+1. **Abra a Collection**: `src/Shared/API.Collections/` no Bruno.
+2. **Selecione o Ambiente**: `Local`.
+3. **Execute**: `Setup/SetupGetKeycloakToken.bru` para autenticar.
+4. **Resultado**: O token de acesso será salvo no ambiente compartilhado.
 
-#### Configurações Globais (Compartilhadas):
-- **Variáveis**: `src/Shared/API.Collections/Common/GlobalVariables.bru`
-- **Headers Padrão**: `src/Shared/API.Collections/Common/StandardHeaders.bru`
-- **Autenticação**: `src/Shared/API.Collections/Setup/SetupGetKeycloakToken.bru`
+#### ⚡ **Configure esta Collection**
+1. **Selecione o MESMO Ambiente**: Certifique-se de que a coleção `Users API` também está usando o ambiente `Local` (ou importe o arquivo `.bru` de ambiente do Shared).
+2. **Variáveis herdadas**: `accessToken` e `baseUrl` serão lidos automaticamente do ambiente.
 
 #### Iniciar a aplicação:
 ```bash
@@ -91,16 +91,7 @@ curl -X POST "http://localhost:8080/realms/meajudaai-realm/protocol/openid-conne
 2. Verifique logs do Keycloak
 3. Encontre tokens nos logs de autenticação
 
-### 4. Configurar Token no Bruno
-
-1. Abra a collection no Bruno
-2. Vá em **Environment/Variables**
-3. Cole o `access_token` na variável `accessToken`
-4. Configure outras variáveis se necessário:
-   - `userId`: ID de um usuário válido
-   - `testEmail`: Email de um usuário existente
-
-### 5. Executar Endpoints
+### 4. Executar Endpoints
 
 #### Sequência Recomendada:
 1. **SetupGetKeycloakToken** - Obter token do Keycloak primeiro

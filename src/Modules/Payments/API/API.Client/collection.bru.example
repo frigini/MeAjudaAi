@@ -1,18 +1,9 @@
 // Configure estas variáveis com os valores do seu ambiente local
 // RECOMENDADO: Use o ambiente compartilhado em src/Shared/API.Collections/environments/Local.bru
 vars {
-  // Se estiver usando o ambiente compartilhado, estas variáveis podem ser deixadas vazias
+  // API base URLs (Herdas do ambiente compartilhado se selecionado)
   baseUrl: http://localhost:5000
-  keycloakUrl: http://localhost:8080
-  realm: meajudaai-realm
-  clientId: meajudaai-client
-
+  
   // O accessToken será preenchido automaticamente ao rodar o setup do Shared
   accessToken: 
-
-  adminUser: admin
-  adminPassword: 
-
-  userId: 
-  testEmail: test@example.com
 }

@@ -33,9 +33,14 @@ API.Client/
 ### 2. Configuração Inicial
 
 #### ⚡ **PRIMEIRO: Execute a configuração compartilhada**
-1. **Navegue para**: `src/Shared/API.Collections/Setup/`
-2. **Execute**: `SetupGetKeycloakToken.bru` para autenticar
-3. **Resultado**: Token de acesso será definido automaticamente
+1. **Abra a Collection**: `src/Shared/API.Collections/` no Bruno.
+2. **Selecione o Ambiente**: `Local`.
+3. **Execute**: `Setup/SetupGetKeycloakToken.bru` para autenticar.
+4. **Resultado**: O token de acesso será salvo no ambiente compartilhado.
+
+#### ⚡ **Configure esta Collection**
+1. **Selecione o MESMO Ambiente**: Certifique-se de que esta coleção também está usando o ambiente `Local`.
+2. **Variáveis herdadas**: `accessToken` e `baseUrl` serão lidos automaticamente do ambiente.
 
 #### Iniciar a aplicação:
 ```bash

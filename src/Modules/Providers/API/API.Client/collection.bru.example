@@ -1,20 +1,20 @@
-// Configure these variables with your local environment values
 // Configure estas variáveis com os valores do seu ambiente local
-// DO NOT commit real credentials to version control
-// NÃO faça commit de credenciais reais no controle de versão
-// Use environment variables or a local .env file for sensitive data
-// Use variáveis de ambiente ou um arquivo .env local para dados sensíveis
+// RECOMENDADO: Use o ambiente compartilhado em src/Shared/API.Collections/environments/Local.bru
 vars {
-  // API base URLs
+  // API base URLs (Herdas do ambiente compartilhado se selecionado)
   baseUrl: http://localhost:5000
   keycloakUrl: http://localhost:8080
   // Keycloak configuration
   realm: meajudaai-realm
   clientId: meajudaai-client
-  // Admin credentials (leave empty, set via environment)
-  adminUser: your-admin-username
-  adminPassword: 
+  
+  // O accessToken será preenchido automaticamente ao rodar o setup do Shared
   accessToken: 
+  
+  // Admin credentials
+  adminUser: admin
+  adminPassword: 
+  
   // Entity IDs (populated during test execution)
   providerId: 
   userId: 
