@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 

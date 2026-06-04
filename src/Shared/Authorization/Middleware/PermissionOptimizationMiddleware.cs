@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
@@ -208,20 +209,31 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Orders module (futuro) - Aguardando implementação do módulo completo
-        else if (path.StartsWith("/api/v1/orders", StringComparison.OrdinalIgnoreCase))
+        // Bookings module
+        else if (path.StartsWith("/api/v1/bookings", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
-                "GET" => new[] { EPermission.OrdersRead },
-                "POST" => new[] { EPermission.OrdersCreate },
-                "PUT" or "PATCH" => new[] { EPermission.OrdersUpdate },
-                "DELETE" => new[] { EPermission.OrdersDelete },
+                "GET" => new[] { EPermission.BookingsRead },
+                "POST" => new[] { EPermission.BookingsCreate },
+                "PUT" or "PATCH" => new[] { EPermission.BookingsUpdate },
+                "DELETE" => new[] { EPermission.BookingsCancel },
                 _ => Array.Empty<EPermission>()
             });
         }
 
-        // Reports module (futuro) - Aguardando implementação do módulo completo
+        // Search module
+        else if (path.StartsWith("/api/v1/search", StringComparison.OrdinalIgnoreCase))
+        {
+            permissions.AddRange(method.ToUpperInvariant() switch
+            {
+                "GET" => new[] { EPermission.SearchRead },
+                "POST" when path.EndsWith("/index", StringComparison.OrdinalIgnoreCase) => new[] { EPermission.SearchManage },
+                _ => Array.Empty<EPermission>()
+            });
+        }
+
+        // Reports module (Analytics & Reports)
         else if (path.StartsWith("/api/v1/reports", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch

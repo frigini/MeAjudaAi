@@ -13,6 +13,7 @@ public static class Permission
     // System permissions
     public static EPermission SystemRead => EPermission.SystemRead;
     public static EPermission SystemWrite => EPermission.SystemWrite;
+    public static EPermission SystemAdmin => EPermission.SystemAdmin;
 
     // Users permissions
     public static EPermission UsersRead => EPermission.UsersRead;
@@ -21,6 +22,7 @@ public static class Permission
     public static EPermission UsersDelete => EPermission.UsersDelete;
     public static EPermission UsersList => EPermission.UsersList;
     public static EPermission UsersProfile => EPermission.UsersProfile;
+    public static EPermission UsersRegister => EPermission.UsersRegister;
 
     // Providers permissions
     public static EPermission ProvidersRead => EPermission.ProvidersRead;
@@ -29,15 +31,50 @@ public static class Permission
     public static EPermission ProvidersDelete => EPermission.ProvidersDelete;
     public static EPermission ProvidersList => EPermission.ProvidersList;
     public static EPermission ProvidersApprove => EPermission.ProvidersApprove;
+    public static EPermission ProvidersRegister => EPermission.ProvidersRegister;
+    public static EPermission ProvidersUploadDocuments => EPermission.ProvidersUploadDocuments;
+    public static EPermission ProvidersManageTier => EPermission.ProvidersManageTier;
 
-    // Orders permissions  
-    public static EPermission OrdersRead => EPermission.OrdersRead;
-    public static EPermission OrdersCreate => EPermission.OrdersCreate;
-    public static EPermission OrdersUpdate => EPermission.OrdersUpdate;
-    public static EPermission OrdersDelete => EPermission.OrdersDelete;
-    public static EPermission OrdersList => EPermission.OrdersList;
-    public static EPermission OrdersCancel => EPermission.OrdersCancel;
-    public static EPermission OrdersFulfill => EPermission.OrdersFulfill;
+    // Service Catalogs permissions
+    public static EPermission ServiceCatalogsRead => EPermission.ServiceCatalogsRead;
+    public static EPermission ServiceCatalogsManage => EPermission.ServiceCatalogsManage;
+
+    // Locations permissions
+    public static EPermission LocationsRead => EPermission.LocationsRead;
+    public static EPermission LocationsManage => EPermission.LocationsManage;
+
+    // Bookings permissions
+    public static EPermission BookingsRead => EPermission.BookingsRead;
+    public static EPermission BookingsCreate => EPermission.BookingsCreate;
+    public static EPermission BookingsUpdate => EPermission.BookingsUpdate;
+    public static EPermission BookingsCancel => EPermission.BookingsCancel;
+    public static EPermission BookingsList => EPermission.BookingsList;
+    public static EPermission BookingsManage => EPermission.BookingsManage;
+
+    // Payments permissions
+    public static EPermission PaymentsRead => EPermission.PaymentsRead;
+    public static EPermission PaymentsManage => EPermission.PaymentsManage;
+    public static EPermission PaymentsCheckout => EPermission.PaymentsCheckout;
+
+    // Communications permissions
+    public static EPermission CommunicationsRead => EPermission.CommunicationsRead;
+    public static EPermission CommunicationsSend => EPermission.CommunicationsSend;
+    public static EPermission CommunicationsManage => EPermission.CommunicationsManage;
+
+    // Ratings permissions
+    public static EPermission RatingsRead => EPermission.RatingsRead;
+    public static EPermission RatingsCreate => EPermission.RatingsCreate;
+    public static EPermission RatingsModerate => EPermission.RatingsModerate;
+
+    // Search permissions
+    public static EPermission SearchRead => EPermission.SearchRead;
+    public static EPermission SearchManage => EPermission.SearchManage;
+
+    // Documents permissions
+    public static EPermission DocumentsRead => EPermission.DocumentsRead;
+    public static EPermission DocumentsUpload => EPermission.DocumentsUpload;
+    public static EPermission DocumentsVerify => EPermission.DocumentsVerify;
+    public static EPermission DocumentsDelete => EPermission.DocumentsDelete;
 
     // Reports permissions
     public static EPermission ReportsView => EPermission.ReportsView;

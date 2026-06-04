@@ -15,4 +15,4 @@ Esta coleção do Bruno contém os endpoints para o módulo de pagamentos e assi
 |--------|----------|-----------|
 | POST | `/api/v1/payments/subscriptions` | Criar uma assinatura |
 | GET | `/api/v1/payments/billing-portal` | Obter link do portal de cobrança |
-| POST | `/api/v1/payments/webhook` | Webhook para eventos do Stripe |
+| POST | `/api/payments/webhooks/stripe` | Endpoint de webhook do Stripe para receber eventos de pagamento e assinatura |

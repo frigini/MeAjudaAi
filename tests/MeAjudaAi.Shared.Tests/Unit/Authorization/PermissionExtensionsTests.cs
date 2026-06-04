@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -90,16 +90,16 @@ public class PermissionExtensionsTests
     }
 
     [Fact]
-    public void GetModule_WithOrdersPermission_ShouldReturnOrders()
+    public void GetModule_WithBookingsPermission_ShouldReturnBookings()
     {
         // Arrange
-        var permission = EPermission.OrdersRead;
+        var permission = EPermission.BookingsRead;
 
         // Act
         var result = permission.GetModule();
 
         // Assert
-        result.Should().Be("orders");
+        result.Should().Be("bookings");
     }
 
     #endregion

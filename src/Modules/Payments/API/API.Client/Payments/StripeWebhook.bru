@@ -12,7 +12,6 @@ post {
 
 headers {
   Content-Type: application/json
-  Stripe-Signature: t=123,v1=abc
 }
 
 body:json {
@@ -33,7 +32,8 @@ docs {
 
   Endpoint para receber webhooks do Stripe.
 
-  ## Nota
-  - Este endpoint geralmente é chamado pelo Stripe.
-  - Para testes locais, você precisará simular o header `Stripe-Signature`.
+  ## Testes Locais
+  - Para testar este endpoint localmente sem uma assinatura válida, a aplicação deve estar rodando no ambiente de **Testing** ou com a validação de assinatura desabilitada.
+  - Caso contrário, o `StripeWebhookEndpoint.cs` retornará erro de validação de assinatura.
+  - Alternativamente, use a **Stripe CLI** para encaminhar webhooks reais para o seu localhost, o que gerará signatures válidas automaticamente.
 }

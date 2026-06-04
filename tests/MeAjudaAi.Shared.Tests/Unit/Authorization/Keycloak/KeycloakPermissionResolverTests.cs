@@ -80,7 +80,14 @@ public class KeycloakPermissionResolverTests
         // Assert
         result.Should().Contain(EPermission.AdminSystem);
         result.Should().Contain(EPermission.UsersRead);
+        result.Should().Contain(EPermission.BookingsManage);
+        result.Should().Contain(EPermission.PaymentsManage);
+        result.Should().Contain(EPermission.CommunicationsManage);
+        result.Should().Contain(EPermission.RatingsModerate);
+        result.Should().Contain(EPermission.SearchManage);
+        result.Should().Contain(EPermission.DocumentsVerify);
         result.Should().Contain(EPermission.ServiceCatalogsManage);
+        result.Should().Contain(EPermission.ReportsAdmin);
     }
 
     [Fact]
@@ -168,30 +175,32 @@ public class KeycloakPermissionResolverTests
     [Theory]
     [InlineData("meajudaai-order-admin")]
     [InlineData("MEAJUDAAI-ORDER-ADMIN")]
-    public void MapKeycloakRoleToPermissions_OrderAdminRole_ShouldReturnOrderAdminPermissions(string role)
+    [InlineData("booking_admin")]
+    public void MapKeycloakRoleToPermissions_BookingAdminRole_ShouldReturnBookingAdminPermissions(string role)
     {
         // Act
         var result = _resolver.MapKeycloakRoleToPermissions(role);
 
         // Assert
-        result.Should().Contain(EPermission.OrdersRead);
-        result.Should().Contain(EPermission.OrdersCreate);
-        result.Should().Contain(EPermission.OrdersUpdate);
-        result.Should().Contain(EPermission.OrdersDelete);
+        result.Should().Contain(EPermission.BookingsRead);
+        result.Should().Contain(EPermission.BookingsCreate);
+        result.Should().Contain(EPermission.BookingsUpdate);
+        result.Should().Contain(EPermission.BookingsCancel);
     }
 
     [Theory]
     [InlineData("meajudaai-order-operator")]
     [InlineData("MEAJUDAAI-ORDER-OPERATOR")]
-    public void MapKeycloakRoleToPermissions_OrderOperatorRole_ShouldReturnOperatorPermissions(string role)
+    [InlineData("booking_operator")]
+    public void MapKeycloakRoleToPermissions_BookingOperatorRole_ShouldReturnOperatorPermissions(string role)
     {
         // Act
         var result = _resolver.MapKeycloakRoleToPermissions(role);
 
         // Assert
-        result.Should().Contain(EPermission.OrdersRead);
-        result.Should().Contain(EPermission.OrdersUpdate);
-        result.Should().NotContain(EPermission.OrdersCreate);
+        result.Should().Contain(EPermission.BookingsRead);
+        result.Should().Contain(EPermission.BookingsUpdate);
+        result.Should().NotContain(EPermission.BookingsCreate);
     }
 
     [Theory]

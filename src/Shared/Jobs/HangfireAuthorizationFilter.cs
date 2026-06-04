@@ -1,5 +1,5 @@
 using Hangfire.Dashboard;
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Shared.Jobs;
 

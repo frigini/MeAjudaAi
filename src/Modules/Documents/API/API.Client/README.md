@@ -109,6 +109,6 @@ documentId: [CONFIGURE_AQUI após upload]
 
 ---
 
-**📝 Última atualização**: Novembro 2025  
+**📝 Última atualização**: Junho 4, 2026  
 **🏗️ Versão da API**: v1  
 **🔧 Bruno Version**: Compatível com versões recentes

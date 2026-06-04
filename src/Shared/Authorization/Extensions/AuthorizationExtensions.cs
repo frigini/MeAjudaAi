@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Handlers;
@@ -7,17 +6,18 @@ using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Authorization.Services;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System.Security.Claims;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Extensions;
 
 /// <summary>
 /// Extensions para configurar o sistema de autorização baseado em permissões.

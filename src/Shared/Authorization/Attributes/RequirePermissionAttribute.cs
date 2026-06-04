@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using Microsoft.AspNetCore.Authorization;
 
 namespace MeAjudaAi.Shared.Authorization.Attributes;

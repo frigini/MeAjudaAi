@@ -24,16 +24,17 @@ body:form-urlencoded {
 script:post-response {
   if (res.status === 200) {
     const response = res.getBody();
-    // Sets the token as an Environment Variable for persistence
+    // Sets the tokens as Environment Variables for persistence
     bru.setEnvVar("accessToken", response.access_token);
+    bru.setEnvVar("refreshToken", response.refresh_token);
     
-    // Also set as a collection variable for immediate use in this collection
+    // Also set as collection variables for immediate use in this collection
     bru.setVar("accessToken", response.access_token);
+    bru.setVar("refreshToken", response.refresh_token);
     
     console.log("✅ Token obtained successfully!");
-    console.log("🔑 Access Token:", response.access_token.substring(0, 50) + "...");
     console.log("⏰ Expires in:", response.expires_in, "seconds");
-    console.log("ℹ️ Variable 'accessToken' set in active environment.");
+    console.log("ℹ️ Variables 'accessToken' and 'refreshToken' set in active environment.");
   } else {
     console.log("❌ Failed to get token");
     console.log("Status:", res.status);

@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints;
 

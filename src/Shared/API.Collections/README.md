@@ -4,7 +4,7 @@ Esta pasta contém resources compartilhados entre todos os módulos da aplicaç�
 
 ## 📁 Estrutura
 
-```
+```text
 src/Shared/API.Collections/
 ├── README.md                    # Esta documentação
 ├── Setup/
@@ -136,6 +136,6 @@ No Bruno, cada módulo é uma **Collection** independente. Para compartilhar o t
 
 ---
 
-**📝 Última atualização**: September 2025  
+**📝 Última atualização**: June 4, 2026  
 **🔧 Compatível com**: Bruno v1.x+  
 **🏗️ Versão da API**: v1

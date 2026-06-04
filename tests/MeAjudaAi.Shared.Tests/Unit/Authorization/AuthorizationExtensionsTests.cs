@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using FluentAssertions;
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
 

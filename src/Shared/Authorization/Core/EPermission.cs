@@ -44,7 +44,10 @@ public enum EPermission
     [Display(Name = "users:profile")]
     UsersProfile,
 
-    // ===== PROVIDERS MODULE (futuro) =====
+    [Display(Name = "users:register")]
+    UsersRegister,
+
+    // ===== PROVIDERS MODULE =====
     [Display(Name = "providers:read")]
     ProvidersRead,
 
@@ -63,30 +66,99 @@ public enum EPermission
     [Display(Name = "providers:approve")]
     ProvidersApprove,
 
-    // ===== ORDERS MODULE (futuro) =====
-    [Display(Name = "orders:read")]
-    OrdersRead,
+    [Display(Name = "providers:register")]
+    ProvidersRegister,
 
-    [Display(Name = "orders:create")]
-    OrdersCreate,
+    [Display(Name = "providers:upload-documents")]
+    ProvidersUploadDocuments,
 
-    [Display(Name = "orders:update")]
-    OrdersUpdate,
+    [Display(Name = "providers:manage-tier")]
+    ProvidersManageTier,
 
-    [Display(Name = "orders:cancel")]
-    OrdersCancel,
+    // ===== SERVICE CATALOGS MODULE =====
+    [Display(Name = "service-catalogs:read")]
+    ServiceCatalogsRead,
 
-    [Display(Name = "orders:list")]
-    OrdersList,
+    [Display(Name = "service-catalogs:manage")]
+    ServiceCatalogsManage,
 
-    [Display(Name = "orders:fulfill")]
-    OrdersFulfill,
+    // ===== LOCATIONS MODULE =====
+    [Display(Name = "locations:read")]
+    LocationsRead,
 
-    // ===== ORDERS MODULE - Delete =====
-    [Display(Name = "orders:delete")]
-    OrdersDelete,
+    [Display(Name = "locations:manage")]
+    LocationsManage,
 
-    // ===== REPORTS MODULE (futuro) =====
+    // ===== BOOKINGS MODULE =====
+    [Display(Name = "bookings:read")]
+    BookingsRead,
+
+    [Display(Name = "bookings:create")]
+    BookingsCreate,
+
+    [Display(Name = "bookings:update")]
+    BookingsUpdate,
+
+    [Display(Name = "bookings:cancel")]
+    BookingsCancel,
+
+    [Display(Name = "bookings:list")]
+    BookingsList,
+
+    [Display(Name = "bookings:manage")]
+    BookingsManage,
+
+    // ===== PAYMENTS MODULE =====
+    [Display(Name = "payments:read")]
+    PaymentsRead,
+
+    [Display(Name = "payments:manage")]
+    PaymentsManage,
+
+    [Display(Name = "payments:checkout")]
+    PaymentsCheckout,
+
+    // ===== COMMUNICATIONS MODULE =====
+    [Display(Name = "communications:read")]
+    CommunicationsRead,
+
+    [Display(Name = "communications:send")]
+    CommunicationsSend,
+
+    [Display(Name = "communications:manage")]
+    CommunicationsManage,
+
+    // ===== RATINGS MODULE =====
+    [Display(Name = "ratings:read")]
+    RatingsRead,
+
+    [Display(Name = "ratings:create")]
+    RatingsCreate,
+
+    [Display(Name = "ratings:moderate")]
+    RatingsModerate,
+
+    // ===== SEARCH PROVIDERS MODULE =====
+    [Display(Name = "search:read")]
+    SearchRead,
+
+    [Display(Name = "search:manage")]
+    SearchManage,
+
+    // ===== DOCUMENTS MODULE =====
+    [Display(Name = "documents:read")]
+    DocumentsRead,
+
+    [Display(Name = "documents:upload")]
+    DocumentsUpload,
+
+    [Display(Name = "documents:verify")]
+    DocumentsVerify,
+
+    [Display(Name = "documents:delete")]
+    DocumentsDelete,
+
+    // ===== ANALYTICS & REPORTS (PLANNED) =====
     [Display(Name = "reports:view")]
     ReportsView,
 
@@ -108,38 +180,4 @@ public enum EPermission
 
     [Display(Name = "admin:reports")]
     AdminReports,
-
-    // ===== SERVICE CATALOGS MODULE =====
-    [Display(Name = "service-catalogs:read")]
-    ServiceCatalogsRead,
-
-    [Display(Name = "service-catalogs:manage")]
-    ServiceCatalogsManage,
-
-    // ===== LOCATIONS MODULE =====
-    [Display(Name = "locations:read")]
-    LocationsRead,
-
-    [Display(Name = "locations:manage")]
-    LocationsManage,
-
-    // ===== SELF-REGISTRATION (PUBLIC) =====
-
-    /// <summary>Auto-registro de cliente — endpoint público, sem autenticação.</summary>
-    [Display(Name = "users:register")]
-    UsersRegister,
-
-    /// <summary>Auto-registro de prestador — endpoint público, sem autenticação.</summary>
-    [Display(Name = "providers:register")]
-    ProvidersRegister,
-
-    // ===== PROVIDER SELF-SERVICE (AUTENTICADO) =====
-
-    /// <summary>Upload de documentos pelo próprio prestador.</summary>
-    [Display(Name = "providers:upload-documents")]
-    ProvidersUploadDocuments,
-
-    /// <summary>Gestão de tier pelo sistema (Stripe webhook).</summary>
-    [Display(Name = "providers:manage-tier")]
-    ProvidersManageTier,
 }

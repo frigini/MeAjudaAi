@@ -356,14 +356,14 @@ public class PermissionOptimizationMiddlewareTests
 
     #endregion
 
-    #region Future Modules Tests
+    #region Module Specific Optimization Tests
 
     [Theory]
-    [InlineData("/api/v1/orders", "GET", EPermission.OrdersRead)]
-    [InlineData("/api/v1/orders", "POST", EPermission.OrdersCreate)]
-    [InlineData("/api/v1/orders/123", "PUT", EPermission.OrdersUpdate)]
-    [InlineData("/api/v1/orders/456", "DELETE", EPermission.OrdersDelete)]
-    public async Task InvokeAsync_OrdersModule_ShouldIdentifyCorrectPermissions(
+    [InlineData("/api/v1/bookings", "GET", EPermission.BookingsRead)]
+    [InlineData("/api/v1/bookings", "POST", EPermission.BookingsCreate)]
+    [InlineData("/api/v1/bookings/123", "PUT", EPermission.BookingsUpdate)]
+    [InlineData("/api/v1/bookings/456", "DELETE", EPermission.BookingsCancel)]
+    public async Task InvokeAsync_BookingsModule_ShouldIdentifyCorrectPermissions(
         string path, string method, EPermission expectedPermission)
     {
         // Arrange

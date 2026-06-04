@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
@@ -13,6 +12,7 @@ using MeAjudaAi.Contracts.Functional;
 
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 

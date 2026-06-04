@@ -301,53 +301,59 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 EPermission.AdminSystem,
                 EPermission.AdminUsers,
                 EPermission.AdminReports,
-                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList,
+                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList, EPermission.UsersProfile,
                 EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete, EPermission.ProvidersList, EPermission.ProvidersApprove,
-                EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete, EPermission.OrdersList, EPermission.OrdersFulfill, EPermission.OrdersCancel,
+                EPermission.BookingsRead, EPermission.BookingsCreate, EPermission.BookingsUpdate, EPermission.BookingsCancel, EPermission.BookingsList, EPermission.BookingsManage,
                 EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate, EPermission.ReportsAdmin,
                 EPermission.ServiceCatalogsRead, EPermission.ServiceCatalogsManage,
-                EPermission.LocationsRead, EPermission.LocationsManage
+                EPermission.LocationsRead, EPermission.LocationsManage,
+                EPermission.PaymentsRead, EPermission.PaymentsManage, EPermission.PaymentsCheckout,
+                EPermission.CommunicationsRead, EPermission.CommunicationsSend, EPermission.CommunicationsManage,
+                EPermission.RatingsRead, EPermission.RatingsCreate, EPermission.RatingsModerate,
+                EPermission.SearchRead, EPermission.SearchManage,
+                EPermission.DocumentsRead, EPermission.DocumentsUpload, EPermission.DocumentsVerify, EPermission.DocumentsDelete
             },
 
             // Roles de administração de usuários
             var r when r == RoleConstants.UserAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.AdminUsers,
-                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList
+                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList, EPermission.UsersProfile
             },
 
             // Roles de operação de usuários
             var r when r == RoleConstants.UserOperator.ToLowerInvariant() => new[]
             {
-                EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList
+                EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList, EPermission.UsersProfile
             },
 
             // Usuário básico
             var r when r == RoleConstants.User.ToLowerInvariant() => new[]
             {
-                EPermission.UsersRead, EPermission.UsersProfile
+                EPermission.UsersRead, EPermission.UsersProfile, EPermission.BookingsRead, EPermission.BookingsCreate, EPermission.RatingsCreate
             },
 
             // Roles de prestadores
             var r when r == RoleConstants.ProviderAdmin.ToLowerInvariant() => new[]
             {
-                EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete
+                EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete, EPermission.ProvidersList,
+                EPermission.BookingsRead, EPermission.BookingsUpdate, EPermission.BookingsList
             },
 
             var r when r == RoleConstants.Provider.ToLowerInvariant() => new[]
             {
-                EPermission.ProvidersRead
+                EPermission.ProvidersRead, EPermission.ProvidersUpdate, EPermission.BookingsRead, EPermission.BookingsUpdate, EPermission.BookingsList
             },
 
-            // Roles de pedidos
-            var r when r == RoleConstants.OrderAdmin.ToLowerInvariant() => new[]
+            // Roles de agendamentos
+            var r when r == "booking_admin" || r == RoleConstants.OrderAdmin.ToLowerInvariant() => new[]
             {
-                EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete
+                EPermission.BookingsRead, EPermission.BookingsCreate, EPermission.BookingsUpdate, EPermission.BookingsCancel, EPermission.BookingsList, EPermission.BookingsManage
             },
 
-            var r when r == RoleConstants.OrderOperator.ToLowerInvariant() => new[]
+            var r when r == "booking_operator" || r == RoleConstants.OrderOperator.ToLowerInvariant() => new[]
             {
-                EPermission.OrdersRead, EPermission.OrdersUpdate
+                EPermission.BookingsRead, EPermission.BookingsUpdate, EPermission.BookingsList
             },
 
             // Roles de relatórios
