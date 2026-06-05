@@ -1,10 +1,10 @@
-using System.Text.Json;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
+using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Middleware;
 

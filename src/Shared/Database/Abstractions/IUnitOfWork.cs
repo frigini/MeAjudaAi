@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Database;
+namespace MeAjudaAi.Shared.Database.Abstractions;
 
 /// <summary>
 /// Define uma unidade de trabalho para gerenciar transações e operações de persistência de forma atômica.

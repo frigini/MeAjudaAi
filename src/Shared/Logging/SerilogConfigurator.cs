@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Authorization.Keycloak;
+using MeAjudaAi.Shared.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Logging;
 

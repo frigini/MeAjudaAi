@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Database;
+namespace MeAjudaAi.Shared.Database.Abstractions;
 
 public interface IRepository<TAggregate, TKey>
 {

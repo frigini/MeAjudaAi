@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using Npgsql;

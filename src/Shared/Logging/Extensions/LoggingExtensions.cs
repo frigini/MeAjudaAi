@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -10,8 +9,9 @@ using Serilog;
 using Serilog.Configuration;
 using Serilog.Context;
 using Serilog.Events;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Shared.Logging;
+namespace MeAjudaAi.Shared.Logging.Extensions;
 
 /// <summary>
 /// Extension methods consolidados para configuração de Logging

@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Database;
+namespace MeAjudaAi.Shared.Database.Constants;
 
 public static class DatabaseConstants
 {

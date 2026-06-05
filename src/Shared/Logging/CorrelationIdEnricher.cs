@@ -1,11 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
-using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Logging;
 
@@ -62,7 +61,11 @@ public class CorrelationIdEnricher : ILogEventEnricher
             var serviceProvider = GetCurrentServiceProvider();
             return serviceProvider?.GetService<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
         }
-        catch
+        catch (ObjectDisposedException)
+        {
+            return null;
+        }
+        catch (InvalidOperationException)
         {
             return null;
         }
@@ -73,23 +76,5 @@ public class CorrelationIdEnricher : ILogEventEnricher
         // Em um contexto real, isso seria injetado ou obtido do contexto da aplicação
         // Por simplicidade, retornando null por enquanto
         return null;
-    }
-}
-
-/// <summary>
-/// Extensões para configuração do CorrelationIdEnricher no Serilog
-/// </summary>
-public static class CorrelationIdEnricherExtensions
-{
-    /// <summary>
-    /// Adiciona o enricher de Correlation ID à configuração do Serilog
-    /// </summary>
-    public static LoggerConfiguration WithCorrelationIdEnricher(
-        this LoggerEnrichmentConfiguration enrichmentConfiguration)
-    {
-        if (enrichmentConfiguration == null)
-            throw new ArgumentNullException(nameof(enrichmentConfiguration));
-
-        return enrichmentConfiguration.With<CorrelationIdEnricher>();
     }
 }
