@@ -168,8 +168,9 @@ public class PermissionServiceTests
 
         // Assert
         await act.Should().ThrowAsync<PermissionServiceException>()
-            .WithMessage($"Error checking permission {permission} for user {userId}");
-    }
+            .WithMessage($"Failed to retrieve permissions for user {userId}");
+        }
+
 
     [Fact]
     public async Task HasPermissionsAsync_WhenRequireAllIsTrueAndAllPresent_ShouldReturnTrue()

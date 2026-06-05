@@ -79,10 +79,10 @@ public sealed class PermissionService(
     {
         try
         {
-            using var timer = metrics.MeasurePermissionCheck(userId, permission, false); // Será atualizado com resultado real
-
             var permissions = await GetUserPermissionsAsync(userId, cancellationToken);
             var hasPermission = permissions.Contains(permission);
+
+            using var timer = metrics.MeasurePermissionCheck(userId, permission, hasPermission);
 
             if (!hasPermission)
             {
