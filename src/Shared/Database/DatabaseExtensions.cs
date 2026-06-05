@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using MeAjudaAi.Shared.Authorization.Core.Models;
 
 namespace MeAjudaAi.Shared.Database;
 

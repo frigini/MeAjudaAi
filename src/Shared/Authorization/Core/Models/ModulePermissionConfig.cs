@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Database;
+namespace MeAjudaAi.Shared.Authorization.Core.Models;
 
 /// <summary>
 /// Configuração de permissões por módulo.

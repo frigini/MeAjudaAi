@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Authorization.Core.Models;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 

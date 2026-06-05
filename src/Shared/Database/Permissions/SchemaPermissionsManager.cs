@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Authorization.Core.Models;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using System.Text.RegularExpressions;
