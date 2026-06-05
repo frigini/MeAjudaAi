@@ -2,9 +2,6 @@ using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
 

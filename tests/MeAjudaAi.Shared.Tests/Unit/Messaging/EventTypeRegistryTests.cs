@@ -3,9 +3,6 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Hybrid;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 

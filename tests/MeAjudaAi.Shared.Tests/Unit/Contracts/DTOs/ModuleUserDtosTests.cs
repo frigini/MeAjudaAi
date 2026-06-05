@@ -1,5 +1,4 @@
 using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.Users.DTOs;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Contracts.DTOs;

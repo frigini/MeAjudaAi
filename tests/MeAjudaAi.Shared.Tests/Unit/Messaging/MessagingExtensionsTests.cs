@@ -1,13 +1,10 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;

@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Infrastructure.Mappers;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Mappers;
 

@@ -1,12 +1,7 @@
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Common;
 

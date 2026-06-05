@@ -1,7 +1,5 @@
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;

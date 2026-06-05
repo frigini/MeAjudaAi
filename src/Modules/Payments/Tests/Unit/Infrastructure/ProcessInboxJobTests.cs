@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
@@ -8,12 +7,8 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 using Stripe;
 using DomainSubscription = MeAjudaAi.Modules.Payments.Domain.Entities.Subscription;
-using DomainPaymentTransaction = MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure;
 

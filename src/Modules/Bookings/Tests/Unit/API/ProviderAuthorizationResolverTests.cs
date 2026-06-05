@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using FluentAssertions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
@@ -8,8 +7,6 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.API;
 

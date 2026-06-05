@@ -1,5 +1,3 @@
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
-
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 
 /// <summary>

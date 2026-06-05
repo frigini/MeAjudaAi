@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;

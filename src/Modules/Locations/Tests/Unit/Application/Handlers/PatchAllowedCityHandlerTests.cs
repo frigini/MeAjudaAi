@@ -3,8 +3,6 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;

@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-
 namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>

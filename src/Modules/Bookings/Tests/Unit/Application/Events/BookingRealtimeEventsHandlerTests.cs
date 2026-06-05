@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Bookings.Application.Events;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Shared.Streaming;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Events;
 

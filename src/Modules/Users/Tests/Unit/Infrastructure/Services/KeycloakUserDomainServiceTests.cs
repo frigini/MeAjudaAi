@@ -1,10 +1,8 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Users.Domain.Entities;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Services;
 

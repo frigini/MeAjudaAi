@@ -1,7 +1,6 @@
 using System.Globalization;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;

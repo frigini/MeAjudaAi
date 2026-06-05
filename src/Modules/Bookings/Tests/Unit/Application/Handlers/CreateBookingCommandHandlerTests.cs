@@ -8,12 +8,8 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 

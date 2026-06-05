@@ -1,9 +1,6 @@
-using Bogus;
-using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Utilities;
 

@@ -1,7 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
 

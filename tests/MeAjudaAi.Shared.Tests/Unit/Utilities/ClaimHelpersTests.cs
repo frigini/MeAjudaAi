@@ -1,9 +1,6 @@
 using System.Security.Claims;
-using FluentAssertions;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Http;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Utilities;
 

@@ -3,7 +3,6 @@ using System.Reflection;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 

@@ -4,8 +4,6 @@ using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Handlers;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.EntityFrameworkCore;

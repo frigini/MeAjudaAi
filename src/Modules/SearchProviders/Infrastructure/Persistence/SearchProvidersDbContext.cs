@@ -3,7 +3,6 @@ using System.Reflection;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;

@@ -1,12 +1,8 @@
-using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Stripe;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Gateways;
 

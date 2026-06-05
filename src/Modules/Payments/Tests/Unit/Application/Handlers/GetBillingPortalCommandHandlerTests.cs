@@ -11,7 +11,6 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
 

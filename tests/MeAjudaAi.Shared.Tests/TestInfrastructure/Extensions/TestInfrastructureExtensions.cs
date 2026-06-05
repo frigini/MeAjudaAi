@@ -1,8 +1,6 @@
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

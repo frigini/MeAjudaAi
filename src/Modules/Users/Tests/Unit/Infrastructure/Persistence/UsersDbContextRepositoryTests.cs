@@ -1,14 +1,9 @@
-using System;
-using System.Threading.Tasks;
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence;
 

@@ -5,8 +5,6 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;

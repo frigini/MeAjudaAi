@@ -1,14 +1,8 @@
-using FluentAssertions;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
-using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 

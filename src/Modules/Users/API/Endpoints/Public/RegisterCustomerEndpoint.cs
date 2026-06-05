@@ -2,7 +2,6 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

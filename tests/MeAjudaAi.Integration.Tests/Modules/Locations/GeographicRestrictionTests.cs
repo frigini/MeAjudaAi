@@ -1,4 +1,3 @@
-using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 

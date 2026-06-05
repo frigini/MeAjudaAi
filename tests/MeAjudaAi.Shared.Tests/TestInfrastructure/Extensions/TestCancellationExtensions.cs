@@ -1,5 +1,3 @@
-using System.Net.Http;
-
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>

@@ -6,7 +6,6 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 

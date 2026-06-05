@@ -2,7 +2,6 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;

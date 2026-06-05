@@ -1,6 +1,4 @@
 using MeAjudaAi.Shared.Utilities;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Utilities;
 

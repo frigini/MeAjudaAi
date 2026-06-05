@@ -1,9 +1,6 @@
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Persistence;
 

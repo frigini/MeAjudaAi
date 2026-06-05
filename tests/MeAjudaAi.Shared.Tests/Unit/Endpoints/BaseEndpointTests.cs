@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;

@@ -2,15 +2,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
-using Moq;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Database.Exceptions;
 using System.Text.Json;
-using FluentAssertions;
-using Xunit;
-using System.IO;
-using Npgsql;
-using FluentValidation;
 using ValidationFailure = FluentValidation.Results.ValidationFailure;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;

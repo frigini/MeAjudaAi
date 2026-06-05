@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Serialization;

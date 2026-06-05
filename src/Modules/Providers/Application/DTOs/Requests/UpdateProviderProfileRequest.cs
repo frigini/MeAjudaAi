@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;

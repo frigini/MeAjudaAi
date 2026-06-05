@@ -6,12 +6,7 @@ using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMes
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Database.Exceptions;
-using MeAjudaAi.Shared.Database.Outbox;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 

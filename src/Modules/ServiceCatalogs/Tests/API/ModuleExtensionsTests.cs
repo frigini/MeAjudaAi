@@ -1,10 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.API;
 

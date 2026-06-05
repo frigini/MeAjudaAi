@@ -1,13 +1,10 @@
 using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
-using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using Moq;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.ExternalApis;

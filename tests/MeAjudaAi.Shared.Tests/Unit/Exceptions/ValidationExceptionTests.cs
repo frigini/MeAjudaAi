@@ -1,4 +1,3 @@
-using FluentAssertions;
 using FluentValidation.Results;
 using ValidationException = MeAjudaAi.Shared.Exceptions.ValidationException;
 

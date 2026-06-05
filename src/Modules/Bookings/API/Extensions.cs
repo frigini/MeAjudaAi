@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Modules.Bookings.API.Endpoints;
-using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Modules.Bookings.Application;
 using MeAjudaAi.Modules.Bookings.Infrastructure;
 using Microsoft.AspNetCore.Builder;

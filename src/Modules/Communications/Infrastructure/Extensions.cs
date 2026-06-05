@@ -7,7 +7,6 @@ using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 using MeAjudaAi.Modules.Communications.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

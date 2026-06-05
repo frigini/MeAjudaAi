@@ -1,9 +1,3 @@
-using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.Extensions;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-
 namespace MeAjudaAi.Shared.Authorization.Metrics.Models;
 
 /// <summary>

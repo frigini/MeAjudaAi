@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 

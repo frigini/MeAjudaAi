@@ -1,12 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;

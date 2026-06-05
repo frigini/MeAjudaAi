@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Shared;
 using Microsoft.EntityFrameworkCore;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;

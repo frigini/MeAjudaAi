@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Utilities.Constants;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Bookings;

@@ -2,8 +2,6 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Persistence;
 

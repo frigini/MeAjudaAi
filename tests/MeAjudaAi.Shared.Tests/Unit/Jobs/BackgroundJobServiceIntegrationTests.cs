@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Jobs;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Jobs;

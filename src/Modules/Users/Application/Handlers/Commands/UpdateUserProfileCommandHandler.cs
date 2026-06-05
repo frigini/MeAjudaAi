@@ -5,7 +5,6 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;

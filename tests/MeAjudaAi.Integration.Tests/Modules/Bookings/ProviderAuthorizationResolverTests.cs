@@ -8,11 +8,7 @@ using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Bookings;

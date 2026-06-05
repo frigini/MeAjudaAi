@@ -1,4 +1,3 @@
-using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Shared;
 using Microsoft.EntityFrameworkCore;
 

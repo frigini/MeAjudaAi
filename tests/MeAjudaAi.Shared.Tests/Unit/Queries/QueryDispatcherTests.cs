@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Mediator;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Queries;
 

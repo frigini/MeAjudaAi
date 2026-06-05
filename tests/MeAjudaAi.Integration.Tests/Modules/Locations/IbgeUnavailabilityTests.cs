@@ -1,7 +1,5 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Integration.Tests.Infrastructure;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

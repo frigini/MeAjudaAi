@@ -1,10 +1,5 @@
 using MeAjudaAi.Modules.Locations.API.Endpoints;
-using MeAjudaAi.Modules.Locations.Application;
 using MeAjudaAi.Modules.Locations.Infrastructure;
-using MeAjudaAi.Contracts.Modules.Locations;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Locations.API;
 

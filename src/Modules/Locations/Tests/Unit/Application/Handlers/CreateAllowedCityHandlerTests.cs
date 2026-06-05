@@ -4,14 +4,10 @@ using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Net.Http;
 using System.Security.Claims;
 using Xunit;
 

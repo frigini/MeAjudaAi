@@ -2,11 +2,7 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Services.Implementations;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Shared.Caching;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Caching;
 

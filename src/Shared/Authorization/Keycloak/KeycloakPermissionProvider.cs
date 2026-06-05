@@ -1,7 +1,6 @@
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak;

@@ -1,16 +1,7 @@
-using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
-using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Contracts.Modules.Locations;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
-using MeAjudaAi.Shared.Utilities;
-using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

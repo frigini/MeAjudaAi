@@ -1,11 +1,6 @@
 using System.Data.Common;
-using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Database;
-using FluentAssertions;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
 

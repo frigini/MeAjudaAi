@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;

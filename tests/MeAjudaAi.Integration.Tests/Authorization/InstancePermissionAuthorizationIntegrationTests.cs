@@ -1,8 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
 

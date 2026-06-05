@@ -1,5 +1,4 @@
 using System.Net;
-using System.Security.Claims;
 using System.Text.Json;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Keycloak;
@@ -7,11 +6,8 @@ using MeAjudaAi.Shared.Authorization.ValueObjects;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.Protected;
-using FluentAssertions;
 using MeAjudaAi.Shared.Caching;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Keycloak;
 

@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Moq;
 using Serilog;
 
 namespace MeAjudaAi.Shared.Tests.Logging;

@@ -2,12 +2,10 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Database;using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests;
 

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Contracts.Functional;
 

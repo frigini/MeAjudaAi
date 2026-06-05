@@ -1,12 +1,8 @@
-using MeAjudaAi.Modules.Locations.API;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.Time.Testing;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;

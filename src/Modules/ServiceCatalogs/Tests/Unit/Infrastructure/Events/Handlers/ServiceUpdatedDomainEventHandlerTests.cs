@@ -7,9 +7,6 @@ using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Events.Handlers;
 

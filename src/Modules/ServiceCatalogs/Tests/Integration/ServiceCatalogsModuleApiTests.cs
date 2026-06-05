@@ -1,13 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
-using Domain = MeAjudaAi.Modules.ServiceCatalogs.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 

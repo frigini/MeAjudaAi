@@ -5,9 +5,7 @@ using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using Moq;
 using MeAjudaAi.Contracts.Shared;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.ModuleApi;
 

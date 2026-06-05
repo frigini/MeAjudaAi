@@ -1,11 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Mappers;
 

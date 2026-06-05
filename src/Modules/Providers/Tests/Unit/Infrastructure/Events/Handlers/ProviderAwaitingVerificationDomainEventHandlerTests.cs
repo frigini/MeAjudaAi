@@ -1,12 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.Events;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events.Handlers;
 

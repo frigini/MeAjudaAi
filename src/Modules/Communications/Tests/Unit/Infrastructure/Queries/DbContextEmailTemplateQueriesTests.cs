@@ -1,9 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Queries;
-using MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure.Queries;
 

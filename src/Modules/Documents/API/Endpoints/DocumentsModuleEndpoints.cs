@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Builder;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints;
 

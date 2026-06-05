@@ -1,12 +1,8 @@
 using System.Diagnostics.Metrics;
-using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 

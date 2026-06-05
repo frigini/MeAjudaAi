@@ -1,10 +1,6 @@
 using Azure.AI.DocumentIntelligence;
-using FluentAssertions;
-using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 using static MeAjudaAi.Modules.Documents.Application.Constants.DocumentTypes;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;

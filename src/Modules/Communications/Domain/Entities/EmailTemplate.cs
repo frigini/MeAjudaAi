@@ -1,4 +1,3 @@
-using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Communications.Domain.Entities;

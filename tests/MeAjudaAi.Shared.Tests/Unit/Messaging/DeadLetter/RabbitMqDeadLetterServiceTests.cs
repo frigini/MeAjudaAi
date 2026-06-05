@@ -1,12 +1,8 @@
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging.DeadLetter;
 

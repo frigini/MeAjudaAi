@@ -3,8 +3,6 @@ using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Events;
 

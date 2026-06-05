@@ -1,15 +1,10 @@
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Queries;
 

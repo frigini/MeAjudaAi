@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Domain.ValueObjects;
 

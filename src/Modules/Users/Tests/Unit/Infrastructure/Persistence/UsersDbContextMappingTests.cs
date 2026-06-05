@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence;
 

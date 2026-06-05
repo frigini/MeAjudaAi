@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Documents.Domain.Entities;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.EntityFrameworkCore;

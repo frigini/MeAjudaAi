@@ -1,10 +1,7 @@
 using System.Net;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.Protected;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity.Keycloak;
 

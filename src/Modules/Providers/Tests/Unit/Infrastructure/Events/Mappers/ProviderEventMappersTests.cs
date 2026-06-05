@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Mappers;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events.Mappers;
 

@@ -1,11 +1,7 @@
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Shared.Endpoints;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;

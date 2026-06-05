@@ -1,7 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Extensions;
 

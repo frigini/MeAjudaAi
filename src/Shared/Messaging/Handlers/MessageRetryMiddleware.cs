@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Messaging.DeadLetter;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 

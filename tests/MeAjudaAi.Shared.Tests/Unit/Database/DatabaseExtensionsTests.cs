@@ -1,13 +1,9 @@
-using System.Linq;
-using FluentAssertions;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
 

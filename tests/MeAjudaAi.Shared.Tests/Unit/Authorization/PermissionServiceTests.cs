@@ -3,12 +3,8 @@ using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Hybrid;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 

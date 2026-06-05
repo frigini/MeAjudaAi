@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints;

@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 using FluentValidation;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;

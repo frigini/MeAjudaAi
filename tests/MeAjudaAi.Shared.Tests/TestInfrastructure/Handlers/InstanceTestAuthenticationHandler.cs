@@ -1,7 +1,5 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

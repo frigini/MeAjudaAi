@@ -2,7 +2,6 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;

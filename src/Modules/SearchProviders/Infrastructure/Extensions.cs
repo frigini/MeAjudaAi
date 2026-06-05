@@ -4,8 +4,6 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;

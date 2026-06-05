@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Shared.Caching;
 

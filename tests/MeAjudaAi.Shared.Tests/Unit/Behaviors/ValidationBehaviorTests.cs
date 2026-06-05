@@ -1,9 +1,7 @@
-using FluentAssertions;
 using FluentValidation;
 using MeAjudaAi.Shared.Behaviors;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Mediator;
-using Moq;
 using FVValidationFailure = FluentValidation.Results.ValidationFailure;
 using FVValidationResult = FluentValidation.Results.ValidationResult;
 

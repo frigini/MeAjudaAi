@@ -1,9 +1,5 @@
 using System.Net.Http.Json;
-using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 

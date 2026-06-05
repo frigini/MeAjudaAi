@@ -2,9 +2,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 

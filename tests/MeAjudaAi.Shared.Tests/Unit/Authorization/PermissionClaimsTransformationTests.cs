@@ -1,13 +1,10 @@
 using System.Security.Claims;
-using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 

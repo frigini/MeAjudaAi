@@ -1,8 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using MeAjudaAi.Shared.Events;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Events;
 

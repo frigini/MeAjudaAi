@@ -1,13 +1,10 @@
-using FluentAssertions;
 using Hangfire;
 using Hangfire.Dashboard;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using System.Security.Claims;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 

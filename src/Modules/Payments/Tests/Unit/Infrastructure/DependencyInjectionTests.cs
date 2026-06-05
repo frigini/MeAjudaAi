@@ -4,15 +4,10 @@ using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure;
 

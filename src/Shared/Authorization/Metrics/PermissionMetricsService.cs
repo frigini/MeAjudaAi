@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
-using MeAjudaAi.Shared.Authorization.Metrics; // Import central timer
 using MeAjudaAi.Shared.Authorization.Metrics.Models; // Import models namespace
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;

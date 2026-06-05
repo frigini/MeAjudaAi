@@ -1,5 +1,3 @@
-using FluentAssertions;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 
 

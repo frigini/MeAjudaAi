@@ -1,12 +1,8 @@
-using System;
-using FluentAssertions;
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Queries;
 

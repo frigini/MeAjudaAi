@@ -6,9 +6,7 @@ using MeAjudaAi.Modules.Communications.Application.Services;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
-using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Communications;
 

@@ -1,10 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
 

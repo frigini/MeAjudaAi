@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
@@ -6,8 +5,6 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 

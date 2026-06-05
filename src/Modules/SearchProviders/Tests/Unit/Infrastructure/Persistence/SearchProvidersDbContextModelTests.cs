@@ -1,11 +1,8 @@
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Persistence;
 

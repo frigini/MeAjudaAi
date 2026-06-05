@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;

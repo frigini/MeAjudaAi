@@ -3,8 +3,6 @@ using MeAjudaAi.ApiService.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.IO;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 

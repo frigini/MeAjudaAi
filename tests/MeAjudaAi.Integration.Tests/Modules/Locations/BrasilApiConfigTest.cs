@@ -1,8 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;

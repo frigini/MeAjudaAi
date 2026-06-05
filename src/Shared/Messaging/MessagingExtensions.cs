@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
-using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
@@ -17,9 +16,7 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
-using Rebus.Serialization.Json;
 using Rebus.Topic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging;
 

@@ -4,8 +4,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;

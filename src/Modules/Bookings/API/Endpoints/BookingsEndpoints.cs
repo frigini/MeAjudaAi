@@ -2,8 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints;

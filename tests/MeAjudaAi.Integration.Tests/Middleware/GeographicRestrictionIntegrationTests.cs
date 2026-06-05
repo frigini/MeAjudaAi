@@ -1,8 +1,6 @@
-using System.Net;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 

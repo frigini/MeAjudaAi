@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Integration.Tests.Base;

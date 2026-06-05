@@ -1,9 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.Attributes;
 using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
-using Moq;
 using Rebus.Topic;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Conventions;
 

@@ -1,7 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 

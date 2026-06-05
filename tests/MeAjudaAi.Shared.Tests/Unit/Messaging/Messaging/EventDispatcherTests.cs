@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Messaging;
 

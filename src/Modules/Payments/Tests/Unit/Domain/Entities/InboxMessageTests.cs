@@ -1,6 +1,4 @@
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Domain.Entities;
 

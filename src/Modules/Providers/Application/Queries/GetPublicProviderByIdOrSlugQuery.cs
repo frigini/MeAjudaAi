@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Queries;

@@ -1,7 +1,6 @@
 using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging.RabbitMq;
 

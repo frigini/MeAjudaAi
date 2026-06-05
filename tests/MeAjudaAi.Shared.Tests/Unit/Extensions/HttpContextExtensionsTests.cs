@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Extensions;
 

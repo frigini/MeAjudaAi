@@ -1,19 +1,13 @@
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
-using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Middleware.GeographicRestriction;
-using MeAjudaAi.Shared.Middleware.RateLimiting;
-using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Middleware;
 using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

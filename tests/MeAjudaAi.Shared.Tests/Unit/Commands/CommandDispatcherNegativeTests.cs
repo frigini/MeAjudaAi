@@ -1,9 +1,5 @@
 using MeAjudaAi.Shared.Commands;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Commands;
 

@@ -1,8 +1,6 @@
 using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Serialization;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Serialization;
 

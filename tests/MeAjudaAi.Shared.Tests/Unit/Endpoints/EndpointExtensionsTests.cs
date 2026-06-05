@@ -1,11 +1,7 @@
-using System.Net;
-using FluentAssertions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Endpoints;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Xunit;
 using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Endpoints;

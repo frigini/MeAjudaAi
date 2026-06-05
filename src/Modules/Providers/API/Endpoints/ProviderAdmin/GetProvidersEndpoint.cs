@@ -2,10 +2,8 @@ using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
 

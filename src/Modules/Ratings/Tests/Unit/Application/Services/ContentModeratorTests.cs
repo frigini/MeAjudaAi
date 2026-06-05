@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Ratings.Application.Services;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Services;
 

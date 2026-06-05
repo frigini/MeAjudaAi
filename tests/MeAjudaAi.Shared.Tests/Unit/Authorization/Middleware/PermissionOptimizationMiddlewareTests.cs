@@ -1,12 +1,10 @@
 using System.Security.Claims;
-using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Middleware;
 

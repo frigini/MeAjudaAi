@@ -1,6 +1,4 @@
 using MeAjudaAi.ApiService.Handlers;
-using MeAjudaAi.ApiService.Middlewares;
-using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.HostedServices;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -11,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Linq;
 using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.ApiService.Extensions;

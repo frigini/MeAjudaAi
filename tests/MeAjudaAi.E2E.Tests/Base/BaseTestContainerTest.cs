@@ -1,4 +1,3 @@
-using System.Net;
 using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -17,7 +16,6 @@ using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;

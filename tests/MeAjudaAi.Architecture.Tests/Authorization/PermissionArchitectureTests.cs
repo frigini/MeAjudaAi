@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;

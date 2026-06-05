@@ -2,7 +2,6 @@ using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Events;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 

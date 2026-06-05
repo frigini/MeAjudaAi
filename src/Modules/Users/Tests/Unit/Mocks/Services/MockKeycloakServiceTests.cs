@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Mocks.Services;

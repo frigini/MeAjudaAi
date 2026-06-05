@@ -2,10 +2,7 @@ using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
 using RabbitMQ.Client;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 

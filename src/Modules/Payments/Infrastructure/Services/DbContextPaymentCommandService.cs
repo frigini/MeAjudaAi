@@ -3,8 +3,6 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Exceptions;
 using Microsoft.EntityFrameworkCore;

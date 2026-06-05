@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;

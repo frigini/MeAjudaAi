@@ -1,4 +1,3 @@
-using DotNet.Testcontainers.Builders;
 using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -19,7 +18,6 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Testcontainers.Azurite;

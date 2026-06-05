@@ -1,7 +1,5 @@
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.Commands;
-using MeAjudaAi.Shared.Authorization.Attributes;
-using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Endpoints;

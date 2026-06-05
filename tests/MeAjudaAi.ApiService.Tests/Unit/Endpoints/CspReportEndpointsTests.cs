@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Text;
 using System.Text.Json;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Endpoints;
 

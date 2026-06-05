@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Exceptions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;

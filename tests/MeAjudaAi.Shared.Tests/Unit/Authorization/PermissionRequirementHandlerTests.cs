@@ -4,9 +4,6 @@ using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;

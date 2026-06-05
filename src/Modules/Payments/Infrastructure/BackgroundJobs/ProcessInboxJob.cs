@@ -6,7 +6,6 @@ using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Stripe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 

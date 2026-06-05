@@ -2,8 +2,6 @@ using MeAjudaAi.Modules.Communications.Application.Handlers;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using NetArchTest.Rules;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Architecture;
 

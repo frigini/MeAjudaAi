@@ -1,11 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Events;
 using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Events;
 

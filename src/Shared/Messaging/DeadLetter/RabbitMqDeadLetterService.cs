@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

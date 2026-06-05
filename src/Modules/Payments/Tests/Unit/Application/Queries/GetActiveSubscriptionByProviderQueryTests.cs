@@ -1,7 +1,5 @@
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Shared.Caching;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Queries;
 

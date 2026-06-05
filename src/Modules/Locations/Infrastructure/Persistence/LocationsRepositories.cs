@@ -1,6 +1,4 @@
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 

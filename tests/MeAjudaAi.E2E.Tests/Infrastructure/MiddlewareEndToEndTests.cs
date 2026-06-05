@@ -1,11 +1,8 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;
 

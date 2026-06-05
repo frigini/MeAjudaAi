@@ -1,10 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace MeAjudaAi.Modules.Users.Tests.API;
 

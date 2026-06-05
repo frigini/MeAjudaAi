@@ -2,7 +2,6 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.Logging;

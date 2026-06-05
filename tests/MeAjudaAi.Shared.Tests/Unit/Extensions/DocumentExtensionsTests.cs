@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Extensions;

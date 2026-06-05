@@ -1,9 +1,6 @@
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence;
 

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Database.Exceptions;
 using Microsoft.EntityFrameworkCore;
 

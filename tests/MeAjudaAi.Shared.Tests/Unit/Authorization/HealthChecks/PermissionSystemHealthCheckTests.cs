@@ -1,13 +1,9 @@
 using MeAjudaAi.Shared.Authorization.HealthChecks;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
-using MeAjudaAi.Shared.Authorization.HealthChecks.Models;
 using MeAjudaAi.Shared.Authorization.Metrics.Models;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.HealthChecks;
 

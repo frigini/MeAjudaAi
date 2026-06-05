@@ -1,6 +1,4 @@
 using MeAjudaAi.Contracts.Functional;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Functional;
 

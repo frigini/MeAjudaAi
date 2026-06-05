@@ -5,10 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 

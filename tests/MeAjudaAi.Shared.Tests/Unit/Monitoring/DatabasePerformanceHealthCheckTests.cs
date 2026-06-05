@@ -1,9 +1,7 @@
 using System.Diagnostics.Metrics;
-using FluentAssertions;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 

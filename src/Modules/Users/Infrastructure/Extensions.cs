@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
@@ -10,7 +9,6 @@ using MeAjudaAi.Modules.Users.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Communications.Domain.Enums;
-using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Shared;
 
 namespace MeAjudaAi.Modules.Communications.Domain.Entities;

@@ -8,8 +8,6 @@ using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using MeAjudaAi.Modules.Payments.Infrastructure.Services;
 using MeAjudaAi.Modules.Payments.Application.Options;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;

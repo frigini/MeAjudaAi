@@ -1,13 +1,9 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Globalization;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 
 namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
