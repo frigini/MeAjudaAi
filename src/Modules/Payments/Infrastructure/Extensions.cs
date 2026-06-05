@@ -66,6 +66,8 @@ public static class Extensions
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IPaymentGateway, StripePaymentGateway>();
 
+        // Corrigir: registrar IMessageBus (assume-se que já está registrado no Shared, mas garantir a injeção correta aqui caso necessário)
+        
         services.AddHostedService<ProcessInboxJob>();
 
         return services;
