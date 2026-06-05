@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -240,32 +241,4 @@ public class GeographicRestrictionMiddleware(
         var states = options.CurrentValue.AllowedStates?.Any() == true ? string.Join(", ", options.CurrentValue.AllowedStates) : "Nenhum";
         return $"Cidades: {cities} | Estados: {states}";
     }
-}
-
-public class GeographicRestrictionOptions
-{
-    public const string SectionName = "GeographicRestriction";
-
-    public bool Enabled { get; set; } = false;
-    public List<string> AllowedStates { get; set; } = [];
-    public List<string> AllowedCities { get; set; } = [];
-    public string? BlockedMessage { get; set; }
-    public string? DefaultBlockedMessage { get; set; }
-    public bool FailOpen { get; set; } = true;
-}
-
-public record GeographicRestrictionErrorResponse(
-    string message,
-    UserLocation? userLocation,
-    IEnumerable<AllowedCity>? allowedCities,
-    List<string>? allowedStates);
-
-public record AllowedCity(string Name, string? State)
-{
-    public static AllowedCity Create(string name, string? state = null) => new(name, state);
-}
-
-public record UserLocation(string? City, string? State)
-{
-    public static UserLocation Create(string? city, string? state) => new(city, state);
 }

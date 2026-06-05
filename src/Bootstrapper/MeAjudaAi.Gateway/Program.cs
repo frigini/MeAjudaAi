@@ -4,6 +4,8 @@ using MeAjudaAi.Gateway.Options;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Middleware;
+using MeAjudaAi.Shared.Middleware.GeographicRestriction;
+using MeAjudaAi.Shared.Middleware.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.FeatureManagement;

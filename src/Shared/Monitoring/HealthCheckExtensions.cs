@@ -1,7 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Jobs.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Monitoring;
 

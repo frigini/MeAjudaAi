@@ -1,5 +1,5 @@
-using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Monitoring;
 

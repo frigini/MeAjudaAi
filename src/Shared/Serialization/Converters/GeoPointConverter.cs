@@ -1,6 +1,6 @@
+using MeAjudaAi.Shared.Geolocation;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MeAjudaAi.Shared.Geolocation;
 
 namespace MeAjudaAi.Shared.Serialization.Converters;
 

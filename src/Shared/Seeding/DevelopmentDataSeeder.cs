@@ -11,10 +11,10 @@ namespace MeAjudaAi.Shared.Seeding;
 /// Implementação do seeder de dados de desenvolvimento
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class DevelopmentDataSeeder : IDevelopmentDataSeeder
+public class DevelopmentDataSeeder(
+    IServiceProvider serviceProvider,
+    ILogger<DevelopmentDataSeeder> logger) : IDevelopmentDataSeeder
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<DevelopmentDataSeeder> _logger;
 
     // IDs estáveis para categorias (para evitar FK failures em re-runs)
     private static readonly Guid HealthCategoryId = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -97,26 +97,18 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         (ProviderLinhares10Id, "Confeitaria"),
     };
 
-    public DevelopmentDataSeeder(
-        IServiceProvider serviceProvider,
-        ILogger<DevelopmentDataSeeder> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
-
     public async Task SeedIfEmptyAsync(CancellationToken cancellationToken = default)
     {
         // Removida verificação de HasData para garantir que sempre tentamos semear/atualizar dados de desenvolvimento.
         // Os métodos de seed individuais usam ON CONFLICT para serem idempotentes.
         
-        _logger.LogInformation("🌱 Starting development data seed (Idempotent)...");
+        logger.LogInformation("🌱 Starting development data seed (Idempotent)...");
         await ExecuteSeedAsync(cancellationToken);
     }
 
     public async Task ForceSeedAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("🔄 Running data seed (ensuring minimum data)...");
+        logger.LogWarning("🔄 Running data seed (ensuring minimum data)...");
         await ExecuteSeedAsync(cancellationToken);
     }
 
@@ -149,7 +141,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
                         if (anyMethod == null)
                         {
-                            _logger.LogWarning("⚠️ AnyAsync method not found via reflection for ServiceCatalogs");
+                            logger.LogWarning("⚠️ AnyAsync method not found via reflection for ServiceCatalogs");
                             return false;
                         }
 
@@ -186,7 +178,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
                         if (anyMethod == null)
                         {
-                            _logger.LogWarning("⚠️ AnyAsync method not found via reflection for Locations");
+                            logger.LogWarning("⚠️ AnyAsync method not found via reflection for Locations");
                             return false;
                         }
 
@@ -200,10 +192,29 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
             return false;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (System.Data.Common.DbException dbEx)
+        {
+            logger.LogWarning(dbEx, "⚠️ Database error checking existing data ({ExceptionType}), assuming empty database", dbEx.GetType().Name);
+            return false;
+        }
+        catch (System.Reflection.TargetInvocationException tie)
+        {
+            logger.LogWarning(tie, "⚠️ Reflection invocation error checking existing data ({ExceptionType}), assuming empty database", tie.GetType().Name);
+            return false;
+        }
+        catch (InvalidOperationException ioe)
+        {
+            logger.LogWarning(ioe, "⚠️ Invalid operation checking existing data ({ExceptionType}), assuming empty database", ioe.GetType().Name);
+            return false;
+        }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Error checking existing data ({ExceptionType}), assuming empty database", ex.GetType().Name);
-            return false;
+            logger.LogWarning(ex, "❌ Unexpected error checking existing data ({ExceptionType})", ex.GetType().Name);
+            throw;
         }
     }
 
@@ -215,18 +226,18 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             await SeedLocationsAsync(cancellationToken);
             
             // Sempre semeia providers (usa ON CONFLICT DO NOTHING)
-            _logger.LogInformation("🏢 Ensuring provider seed data...");
+            logger.LogInformation("🏢 Ensuring provider seed data...");
             await SeedProvidersAsync(cancellationToken);
             await SeedProviderServicesAsync(cancellationToken);
 
-            _logger.LogInformation("🔍 Ensuring search providers read model...");
+            logger.LogInformation("🔍 Ensuring search providers read model...");
             await SeedSearchProvidersAsync(cancellationToken);
 
-            _logger.LogInformation("✅ Data seed completed successfully!");
+            logger.LogInformation("✅ Data seed completed successfully!");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error during data seeding");
+            logger.LogError(ex, "❌ Error during data seeding");
             throw new InvalidOperationException(
                 "Failed to seed development data (ServiceCatalogs, Users, Providers, Documents, Locations)",
                 ex);
@@ -235,12 +246,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
     private async Task SeedServiceCatalogsAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("📦 Seeding ServiceCatalogs...");
+        logger.LogInformation("📦 Seeding ServiceCatalogs...");
 
         var context = GetDbContext("ServiceCatalogs");
         if (context == null)
         {
-            _logger.LogWarning("⚠️ ServiceCatalogsDbContext not found, skipping seed");
+            logger.LogWarning("⚠️ ServiceCatalogsDbContext not found, skipping seed");
             return;
         }
 
@@ -291,7 +302,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             }
         }
 
-        _logger.LogInformation("✅ ServiceCatalogs: {Count} categories inserted/updated", categories.Length);
+        logger.LogInformation("✅ ServiceCatalogs: {Count} categories inserted/updated", categories.Length);
 
         // Services usando IDs reais das categorias do idMap
         var services = new[]
@@ -362,17 +373,17 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ ServiceCatalogs: {Count} services processed (new inserted, existing ignored)", services.Length);
+        logger.LogInformation("✅ ServiceCatalogs: {Count} services processed (new inserted, existing ignored)", services.Length);
     }
 
     private async Task SeedLocationsAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("📍 Seeding Locations (AllowedCities)...");
+        logger.LogInformation("📍 Seeding Locations (AllowedCities)...");
 
         var context = GetDbContext("Locations");
         if (context == null)
         {
-            _logger.LogWarning("⚠️ LocationsDbContext not found, skipping seed");
+            logger.LogWarning("⚠️ LocationsDbContext not found, skipping seed");
             return;
         }
 
@@ -405,17 +416,17 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ Locations: {Count} cities processed (updated coordinates/radius if existed)", cities.Length);
+        logger.LogInformation("✅ Locations: {Count} cities processed (updated coordinates/radius if existed)", cities.Length);
     }
 
     private async Task SeedProvidersAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🏢 Seeding Providers...");
+        logger.LogInformation("🏢 Seeding Providers...");
 
         var context = GetDbContext("Providers");
         if (context == null)
         {
-            _logger.LogWarning("⚠️ ProvidersDbContext not found, skipping seed");
+            logger.LogWarning("⚠️ ProvidersDbContext not found, skipping seed");
             return;
         }
 
@@ -511,14 +522,21 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             new { Id = ProviderLinhares4Id, UserId = ProviderLinhares4UserId, DocumentId = ProviderLinhares4DocumentId, Name = "Pinturas Premium", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Marcos Pintor", FantasyName = (string?)"Pinturas Premium", Description = "Pintura residencial, texturas, grafiato e efeitos especiais.", Email = "marcos@pinturas.com", PhoneNumber = "27999884444", Website = (string?)null, Street = "Rua Ipê", Number = "400", Complement = (string?)null, Neighborhood = "Bela Vista", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "33344455566", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
             new { Id = ProviderLinhares5Id, UserId = ProviderLinhares5UserId, DocumentId = ProviderLinhares5DocumentId, Name = "Jardins & Cia", Type = "Company", Status = "Active", VerificationStatus = "Verified", LegalName = "Jardins e Paisagismo Ltda", FantasyName = (string?)"Jardins & Cia", Description = "Manutenção de jardins, poda de árvores e paisagismo.", Email = "contato@jardins.com", PhoneNumber = "27999885555", Website = (string?)"https://jardineiros.com.br", Street = "Av. Lagoa Juparanã", Number = "500", Complement = (string?)null, Neighborhood = "Três Barras", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "98765432000100", DocumentType = "CNPJ", AdditionalPhoneNumbers = Array.Empty<string>() },
             new { Id = ProviderLinhares6Id, UserId = ProviderLinhares6UserId, DocumentId = ProviderLinhares6DocumentId, Name = "Limpeza Total", Type = "Company", Status = "Active", VerificationStatus = "Verified", LegalName = "Limpeza Total Serviços", FantasyName = (string?)"Limpeza Total", Description = "Limpeza pós-obra, faxinas residenciais e higienização de estofados.", Email = "sac@limpezatotal.com", PhoneNumber = "27999886666", Website = (string?)"https://limpezatotal.com.br", Street = "Rua dos Jacarandás", Number = "600", Complement = (string?)null, Neighborhood = "Movelar", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "11223344000155", DocumentType = "CNPJ", AdditionalPhoneNumbers = Array.Empty<string>() },
-            new { Id = ProviderLinhares7Id, UserId = ProviderLinhares7UserId, DocumentId = ProviderLinhares7DocumentId, Name = "Montador Express", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Ricardo Montador", FantasyName = "Montador Express", Description = "Montagem de móveis comprados na internet. Rápido e cuidadoso.", Email = "ricardo@montador.com", PhoneNumber = "27999887777", Website = (string?)null, Street = "Rua Araucária", Number = "700", Complement = (string?)null, Neighborhood = "Planalto", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "44455566677", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
-            new { Id = ProviderLinhares8Id, UserId = ProviderLinhares8UserId, DocumentId = ProviderLinhares8DocumentId, Name = "Fretes do João", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "João Freteiro", FantasyName = "Fretes do João", Description = "Pequenos fretes e mudanças dentro de Linhares e região.", Email = "joao@fretes.com", PhoneNumber = "27999888888", Website = (string?)null, Street = "Av. Samuel Batista Cruz", Number = "800", Complement = (string?)null, Neighborhood = "Shell", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "55566677788", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
-            new { Id = ProviderLinhares9Id, UserId = ProviderLinhares9UserId, DocumentId = ProviderLinhares9DocumentId, Name = "SOS Computadores", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Paulo Técnico", FantasyName = "SOS Computadores", Description = "Formatação, remoção de vírus e reparo de computadores e notebooks.", Email = "paulo@soscomp.com", PhoneNumber = "27999889999", Website = (string?)null, Street = "Rua Capitão José Maria", Number = "900", Complement = (string?)"Sala 2", Neighborhood = "Centro", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "66677788899", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
-            new { Id = ProviderLinhares10Id, UserId = ProviderLinhares10UserId, DocumentId = ProviderLinhares10DocumentId, Name = "Dona Maria Bolos", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Maria Boleira", FantasyName = "Dona Maria Bolos", Description = "Bolos caseiros e doces para festas. Encomendas com antecedência.", Email = "maria@bolos.com", PhoneNumber = "27999880000", Website = (string?)"https://instagram.com/donamaria", Street = "Rua Monsenhor Pedrinha", Number = "1000", Complement = (string?)null, Neighborhood = "Araçá", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "77788899900", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() }
+            new { Id = ProviderLinhares7Id, UserId = ProviderLinhares7UserId, DocumentId = ProviderLinhares7DocumentId, Name = "Montador Express", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Ricardo Montador", FantasyName = (string?)"Montador Express", Description = "Montagem de móveis comprados na internet. Rápido e cuidadoso.", Email = "ricardo@montador.com", PhoneNumber = "27999887777", Website = (string?)null, Street = "Rua Araucária", Number = "700", Complement = (string?)null, Neighborhood = "Planalto", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "44455566677", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
+            new { Id = ProviderLinhares8Id, UserId = ProviderLinhares8UserId, DocumentId = ProviderLinhares8DocumentId, Name = "Fretes do João", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "João Freteiro", FantasyName = (string?)"Fretes do João", Description = "Pequenos fretes e mudanças dentro de Linhares e região.", Email = "joao@fretes.com", PhoneNumber = "27999888888", Website = (string?)null, Street = "Av. Samuel Batista Cruz", Number = "800", Complement = (string?)null, Neighborhood = "Shell", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "55566677788", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
+            new { Id = ProviderLinhares9Id, UserId = ProviderLinhares9UserId, DocumentId = ProviderLinhares9DocumentId, Name = "SOS Computadores", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Paulo Técnico", FantasyName = (string?)"SOS Computadores", Description = "Formatação, remoção de vírus e reparo de computadores e notebooks.", Email = "paulo@soscomp.com", PhoneNumber = "27999889999", Website = (string?)null, Street = "Rua Capitão José Maria", Number = "900", Complement = (string?)"Sala 2", Neighborhood = "Centro", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "66677788899", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() },
+            new { Id = ProviderLinhares10Id, UserId = ProviderLinhares10UserId, DocumentId = ProviderLinhares10DocumentId, Name = "Dona Maria Bolos", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Maria Boleira", FantasyName = (string?)"Dona Maria Bolos", Description = "Bolos caseiros e doces para festas. Encomendas com antecedência.", Email = "maria@bolos.com", PhoneNumber = "27999880000", Website = (string?)"https://instagram.com/donamaria", Street = "Rua Monsenhor Pedrinha", Number = "1000", Complement = (string?)null, Neighborhood = "Araçá", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "77788899900", DocumentType = "CPF", AdditionalPhoneNumbers = Array.Empty<string>() }
         };
 
         foreach (var provider in providers)
         {
+            if (string.IsNullOrEmpty(provider.FantasyName))
+                return;
+            if (string.IsNullOrEmpty(provider.Website))
+                return;
+            if (string.IsNullOrEmpty(provider.Complement))
+                return;
+
             // Inserir Provedor
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.providers (
@@ -580,19 +598,19 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ Providers: {Count} providers processed with documents", providers.Length);
+        logger.LogInformation("✅ Providers: {Count} providers processed with documents", providers.Length);
     }
 
     private async Task SeedProviderServicesAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🛠️ Seeding ProviderServices...");
+        logger.LogInformation("🛠️ Seeding ProviderServices...");
 
         var context = GetDbContext("Providers");
         var servicesContext = GetDbContext("ServiceCatalogs");
 
         if (context == null || servicesContext == null)
         {
-            _logger.LogWarning("⚠️ ProvidersDbContext or ServiceCatalogsDbContext not found, skipping provider services seed");
+            logger.LogWarning("⚠️ ProvidersDbContext or ServiceCatalogsDbContext not found, skipping provider services seed");
             return;
         }
 
@@ -608,7 +626,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
             if (serviceId == Guid.Empty)
             {
-                 _logger.LogWarning("⚠️ Service '{ServiceName}' not found. Skipping linkage for Provider {ProviderId}", ps.ServiceName, ps.ProviderId);
+                 logger.LogWarning("⚠️ Service '{ServiceName}' not found. Skipping linkage for Provider {ProviderId}", ps.ServiceName, ps.ProviderId);
                  continue;
             }
 
@@ -625,17 +643,17 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             count++;
         }
 
-        _logger.LogInformation("✅ ProviderServices: {Count} services linked to providers", count);
+        logger.LogInformation("✅ ProviderServices: {Count} services linked to providers", count);
     }
 
     private async Task SeedSearchProvidersAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🔍 Seeding SearchProviders (Read Model)...");
+        logger.LogInformation("🔍 Seeding SearchProviders (Read Model)...");
 
         var context = GetDbContext("SearchProviders");
         if (context == null)
         {
-            _logger.LogWarning("⚠️ SearchProvidersDbContext not found, skipping search seed");
+            logger.LogWarning("⚠️ SearchProvidersDbContext not found, skipping search seed");
             return;
         }
 
@@ -644,7 +662,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         if (servicesContext == null)
         {
-             _logger.LogWarning("⚠️ ServiceCatalogsDbContext not found, skipping search seed");
+             logger.LogWarning("⚠️ ServiceCatalogsDbContext not found, skipping search seed");
              return;
         }
 
@@ -684,7 +702,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             
             if (serviceId == Guid.Empty)
             {
-                _logger.LogWarning("⚠️ Service '{ServiceName}' not found. Skipping.", ps.ServiceName);
+                logger.LogWarning("⚠️ Service '{ServiceName}' not found. Skipping.", ps.ServiceName);
                 continue;
             }
 
@@ -700,7 +718,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             // Get all service IDs for this provider
             if (!providerServiceMap.TryGetValue(p.Id, out var serviceIds) || serviceIds.Count == 0)
             {
-                _logger.LogWarning("⚠️ No services found for provider '{ProviderName}'. Skipping search index seed.", p.Name);
+                logger.LogWarning("⚠️ No services found for provider '{ProviderName}'. Skipping search index seed.", p.Name);
                 continue;
             }
 
@@ -751,7 +769,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 syncedCount++;
         }
 
-        _logger.LogInformation("✅ SearchProviders: {Count} providers synced to read model", syncedCount);
+        logger.LogInformation("✅ SearchProviders: {Count} providers synced to read model", syncedCount);
     }
 
     /// <summary>
@@ -771,17 +789,17 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 var contextType = assembly.GetType(contextTypeName);
                 if (contextType != null)
                 {
-                    return _serviceProvider.GetService(contextType) as DbContext;
+                    return serviceProvider.GetService(contextType) as DbContext;
                 }
             }
 
-            _logger.LogWarning("⚠️ DbContext not found for module {ModuleName}", moduleName);
+            logger.LogWarning("⚠️ DbContext not found for module {ModuleName}", moduleName);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error obtaining DbContext for {ModuleName}", moduleName);
-            return null;
+            logger.LogError(ex, "❌ Error obtaining DbContext for {ModuleName}", moduleName);
+            throw;
         }
     }
 }

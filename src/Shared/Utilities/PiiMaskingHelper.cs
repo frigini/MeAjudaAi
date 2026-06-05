@@ -38,9 +38,9 @@ public static class PiiMaskingHelper
         
         if (name.Length == 0 || domain.Length == 0) return "***@***";
         
-        if (name.Length <= 2) return $"*@{domain.ToString()}";
+        if (name.Length <= 2) return $"*@{domain}";
         
-        return $"{name[..2].ToString()}**@{domain.ToString()}";
+        return $"{name[..2]}**@{domain}";
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public static class PiiMaskingHelper
         
         if (count != 11) return "****";
         
-        return $"{digits[..3].ToString()}.***.***-{digits[^2..].ToString()}";
+        return $"{digits[..3]}.***.***-{digits[^2..]}";
     }
 
     /// <summary>

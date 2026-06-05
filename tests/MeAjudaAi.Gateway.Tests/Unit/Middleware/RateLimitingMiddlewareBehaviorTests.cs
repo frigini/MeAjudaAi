@@ -1,5 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Middleware;
+using MeAjudaAi.Shared.Middleware.GeographicRestriction;
+using MeAjudaAi.Shared.Middleware.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
