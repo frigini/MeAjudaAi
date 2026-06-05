@@ -334,7 +334,8 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_WithCacheHit_ShouldIncrementHitCounter()
     {
         // Act
-        using var timer = _service.MeasureCacheOperation("get", () => true);
+        var timer = _service.MeasureCacheOperation("get", () => true);
+        timer.Dispose();
 
         // Assert
         var hitKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_hits_total"));
@@ -346,7 +347,8 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_WithCacheMiss_ShouldIncrementMissCounter()
     {
         // Act
-        using var timer = _service.MeasureCacheOperation("get", () => false);
+        var timer = _service.MeasureCacheOperation("get", () => false);
+        timer.Dispose();
 
         // Assert
         var missKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_misses_total"));

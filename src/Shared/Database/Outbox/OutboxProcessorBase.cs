@@ -80,8 +80,6 @@ public abstract partial class OutboxProcessorBase<TMessage>(
                     message.MarkAsFailed(ex.Message);
                     await OnFailureAsync(message, ex.Message, cancellationToken);
                     await outboxRepository.SaveChangesAsync(cancellationToken);
-
-                    throw;
                 }
 
                 await outboxRepository.SaveChangesAsync(cancellationToken);

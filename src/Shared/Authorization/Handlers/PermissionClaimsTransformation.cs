@@ -76,6 +76,12 @@ public sealed class PermissionClaimsTransformation(
             logger.LogError(ex, "Failed to transform claims for user {UserId}", userId);
             return principal;
         }
+        catch (InvalidOperationException ex)
+        {
+            // Exceção de serviço conhecida/recuperável: log e retorna principal
+            logger.LogError(ex, "Failed to transform claims for user {UserId} due to service unavailability", userId);
+            return principal;
+        }
         catch (OperationCanceledException)
         {
             throw;
