@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
