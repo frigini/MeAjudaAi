@@ -70,6 +70,7 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: JsonSerializer.Serialize(emailPayload),
+            maxRetries: 3,
             priority: ECommunicationPriority.High,
             correlationId: correlationId);
 

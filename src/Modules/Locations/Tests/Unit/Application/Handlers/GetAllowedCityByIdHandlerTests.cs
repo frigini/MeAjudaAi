@@ -23,7 +23,7 @@ public class GetAllowedCityByIdHandlerTests
     public async Task HandleAsync_WithValidId_ShouldReturnAllowedCityDto()
     {
         var cityId = Guid.NewGuid();
-        var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var query = new GetAllowedCityByIdQuery(cityId);
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, -21.130, -42.366, 15);
 
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
@@ -40,7 +40,8 @@ public class GetAllowedCityByIdHandlerTests
     [Fact]
     public async Task HandleAsync_WithInvalidId_ShouldReturnNull()
     {
-        var query = new GetAllowedCityByIdQuery { Id = Guid.NewGuid() };
+        var cityId = Guid.NewGuid();
+        var query = new GetAllowedCityByIdQuery(cityId);
 
         _queriesMock.Setup(x => x.GetByIdAsync(query.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
@@ -54,7 +55,7 @@ public class GetAllowedCityByIdHandlerTests
     public async Task HandleAsync_WithInactiveCity_ShouldReturnDto()
     {
         var cityId = Guid.NewGuid();
-        var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var query = new GetAllowedCityByIdQuery(cityId);
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
 
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
@@ -70,7 +71,7 @@ public class GetAllowedCityByIdHandlerTests
     public async Task HandleAsync_ShouldMapAllPropertiesToDto()
     {
         var cityId = Guid.NewGuid();
-        var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var query = new GetAllowedCityByIdQuery(cityId);
         var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))

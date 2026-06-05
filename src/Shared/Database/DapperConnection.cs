@@ -12,7 +12,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
 
     private static string GetConnectionString(PostgresOptions? postgresOptions)
     {
-        if (postgresOptions?.ConnectionString != null)
+        if (!string.IsNullOrWhiteSpace(postgresOptions?.ConnectionString))
         {
             return postgresOptions.ConnectionString;
         }

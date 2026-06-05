@@ -138,7 +138,8 @@ public sealed class CommunicationsModuleApi(
         var message = OutboxMessage.Create(
             channel,
             serializedPayload,
-            priority);
+            maxRetries: 3,
+            priority: priority);
 
         await outboxRepository.AddAsync(message, ct);
         await outboxRepository.SaveChangesAsync(ct);

@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Shared;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Database.Outbox;
 

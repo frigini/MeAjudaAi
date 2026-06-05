@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
@@ -12,4 +13,10 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 /// <param name="ActiveOnly">Se verdadeiro, retorna apenas os serviços ativos da categoria.</param>
 [ExcludeFromCodeCoverage]
 public sealed record GetServicesByCategoryQuery(Guid CategoryId, bool ActiveOnly = false)
-    : Query<Result<IReadOnlyList<ServiceListDto>>>;
+    : Query<Result<IReadOnlyList<ServiceListDto>>>, ICacheableQuery
+{
+    public string GetCacheKey() => $"services:category:{CategoryId}:active:{ActiveOnly}";
+    public TimeSpan GetCacheExpiration() => TimeSpan.FromHours(1);
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.ServiceCatalogs, CacheTags.CategoryTag(CategoryId)];
+}

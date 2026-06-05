@@ -61,6 +61,7 @@ public sealed class DocumentRejectedIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: JsonSerializer.Serialize(emailPayload),
+            maxRetries: 3,
             priority: ECommunicationPriority.High,
             correlationId: correlationId);
 

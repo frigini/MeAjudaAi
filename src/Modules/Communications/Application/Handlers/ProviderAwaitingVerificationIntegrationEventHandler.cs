@@ -41,7 +41,8 @@ public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
         var message = OutboxMessage.Create(
             ECommunicationChannel.Email,
             JsonSerializer.Serialize(emailPayload),
-            ECommunicationPriority.Normal,
+            maxRetries: 3,
+            priority: ECommunicationPriority.Normal,
             correlationId: correlationId);
 
         try

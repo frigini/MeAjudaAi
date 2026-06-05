@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Events;
 

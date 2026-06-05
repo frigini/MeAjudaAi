@@ -129,15 +129,8 @@ public class OutboxMessage : BaseEntity
         RetryCount++;
         ErrorMessage = errorMessage;
 
-        if (RetryCount >= MaxRetries)
-        {
-            Status = EOutboxMessageStatus.Failed;
-        }
-        else
-        {
-            Status = EOutboxMessageStatus.Pending;
-        }
-        
+        Status =RetryCount >= MaxRetries ? EOutboxMessageStatus.Failed : EOutboxMessageStatus.Pending;
+
         MarkAsUpdated();
     }
 

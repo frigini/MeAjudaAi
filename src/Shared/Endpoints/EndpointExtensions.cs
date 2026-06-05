@@ -1,7 +1,6 @@
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-
 using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Shared.Endpoints;

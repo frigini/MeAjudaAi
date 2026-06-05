@@ -1,7 +1,5 @@
 using MeAjudaAi.Shared.Caching;
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
@@ -13,6 +11,7 @@ using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Extensions;
 

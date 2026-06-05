@@ -46,6 +46,7 @@ public sealed class UserRegisteredIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: payload,
+            maxRetries: 3,
             priority: ECommunicationPriority.Normal,
             correlationId: correlationId);
 

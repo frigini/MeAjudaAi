@@ -61,6 +61,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: payload,
+            maxRetries: 3,
             priority: ECommunicationPriority.High,
             correlationId: correlationId);
 

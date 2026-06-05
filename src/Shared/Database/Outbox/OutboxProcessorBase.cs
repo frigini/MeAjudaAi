@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Database.Outbox;
 /// Centraliza lógica de polling, retries e atualização de estado.
 /// </summary>
 /// <typeparam name="TMessage">Tipo da entidade de mensagem.</typeparam>
-public abstract class OutboxProcessorBase<TMessage>(
+public abstract partial class OutboxProcessorBase<TMessage>(
     IOutboxRepository<TMessage> outboxRepository,
     ILogger logger)
     where TMessage : OutboxMessage
@@ -79,6 +79,9 @@ public abstract class OutboxProcessorBase<TMessage>(
                     logger.LogError(ex, "Error processing outbox message {Id}: {Message}", message.Id, ex.Message);
                     message.MarkAsFailed(ex.Message);
                     await OnFailureAsync(message, ex.Message, cancellationToken);
+                    await outboxRepository.SaveChangesAsync(cancellationToken);
+
+                    throw;
                 }
 
                 await outboxRepository.SaveChangesAsync(cancellationToken);
@@ -116,14 +119,4 @@ public abstract class OutboxProcessorBase<TMessage>(
     /// Gancho para execução após falha (ex: logging de erro).
     /// </summary>
     protected virtual Task OnFailureAsync(TMessage message, string? error, CancellationToken cancellationToken) => Task.CompletedTask;
-
-    /// <summary>
-    /// Resultado de um despacho de mensagem.
-    /// </summary>
-    public record DispatchResult(bool IsSuccess, string? ErrorMessage = null, bool IsCanceled = false)
-    {
-        public static DispatchResult Success() => new(true);
-        public static DispatchResult Failure(string errorMessage) => new(false, errorMessage);
-        public static DispatchResult Canceled() => new(false, null, true);
-    }
 }

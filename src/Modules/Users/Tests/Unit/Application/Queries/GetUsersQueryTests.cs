@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 
 using MeAjudaAi.Contracts.Models;
@@ -165,9 +166,8 @@ public class GetUsersQueryTests
 
         // Assert
         tags.Should().NotBeNull();
-        tags.Should().HaveCount(2);
-        tags.Should().Contain("users");
-        tags.Should().Contain("users-list");
+        tags.Should().HaveCount(1);
+        tags.Should().Contain(CacheTags.Users);
     }
 
     [Fact]

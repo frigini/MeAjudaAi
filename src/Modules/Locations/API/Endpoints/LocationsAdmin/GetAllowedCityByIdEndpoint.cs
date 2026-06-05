@@ -31,7 +31,7 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
         IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)
     {
-        var query = new GetAllowedCityByIdQuery { Id = id };
+        var query = new GetAllowedCityByIdQuery(id);
 
         var result = await queryDispatcher.QueryAsync<GetAllowedCityByIdQuery, AllowedCityDto?>(query, cancellationToken);
 
