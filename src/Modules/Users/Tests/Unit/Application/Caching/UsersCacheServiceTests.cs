@@ -277,7 +277,7 @@ public class UsersCacheServiceTests
             Times.Once);
 
         _cacheServiceMock.Verify(
-            x => x.RemoveByPatternAsync(CacheTags.Users, _cancellationToken),
+            x => x.RemoveByTagAsync(CacheTags.Users, _cancellationToken),
             Times.Once);
     }
 
@@ -305,7 +305,7 @@ public class UsersCacheServiceTests
             Times.Once);
 
         _cacheServiceMock.Verify(
-            x => x.RemoveByPatternAsync(CacheTags.Users, _cancellationToken),
+            x => x.RemoveByTagAsync(CacheTags.Users, _cancellationToken),
             Times.Once);
     }
 

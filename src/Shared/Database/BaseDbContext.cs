@@ -60,9 +60,4 @@ public abstract class BaseDbContext : DbContext
             entry.Entity.ClearDomainEvents();
         }
     }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-    }
 }

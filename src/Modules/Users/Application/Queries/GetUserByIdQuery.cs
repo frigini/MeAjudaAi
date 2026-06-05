@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
@@ -20,8 +21,6 @@ public sealed record GetUserByIdQuery(Guid UserId) : Query<Result<UserDto>>, ICa
         return TimeSpan.FromMinutes(15);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["users", $"user:{UserId}"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Users, CacheTags.UserTag(UserId)];
 }

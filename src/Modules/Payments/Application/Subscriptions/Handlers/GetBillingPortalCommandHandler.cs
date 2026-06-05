@@ -29,7 +29,13 @@ public class GetBillingPortalCommandHandler(
         var query = new GetActiveSubscriptionByProviderQuery(command.ProviderId, command.CorrelationId);
         var result = await queryDispatcher.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(query, cancellationToken);
         
-        if (result.IsFailure || result.Value == null)
+        if (result.IsFailure)
+        {
+             // Propaga falha do domínio ou aplicação
+             throw new BusinessRuleException("QUERY_FAILURE", result.Error.Message);
+        }
+        
+        if (result.Value == null)
         {
             throw new NotFoundException(nameof(Subscription), command.ProviderId);
         }

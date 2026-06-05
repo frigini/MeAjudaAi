@@ -36,6 +36,9 @@ public static class CacheTags
     public const string EmailTemplates = "email-templates";
     public static string EmailTemplateTag(string key) => $"email-template:{key}";
 
+    // Tags para infraestrutura
+    public const string EventRegistry = "event-registry";
+
     // Tags para o módulo Providers
     public const string Providers = "providers";
     public static string ProviderTag(Guid id) => $"provider:{id}";

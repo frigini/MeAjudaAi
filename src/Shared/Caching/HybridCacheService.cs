@@ -113,28 +113,6 @@ public class HybridCacheService(HybridCache hybridCache,
         }
     }
 
-    public async Task RemoveByPatternAsync(string pattern, CancellationToken cancellationToken = default)
-    {
-        // Se o cache estiver desabilitado, ignora e não remove
-        if (!_isCacheEnabled)
-        {
-            logger.LogDebug("Cache desabilitado - ignorando remoção para padrão {Pattern}", pattern);
-            return;
-        }
-
-        try
-        {
-            // TODO(#250): HybridCache suporta apenas remoção baseada em tags, não matching de padrão com wildcards.
-            // Comportamento atual: Trata o padrão como correspondência exata de tag (não glob/regex).
-            // Recomendações: Migrar consumidores para abordagem baseada em tags.
-            await hybridCache.RemoveByTagAsync(pattern, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Falha ao remover valores pelo padrão {Pattern}", pattern);
-        }
-    }
-
     public async Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
     {
         // Se o cache estiver desabilitado, ignora e não remove
@@ -162,7 +140,7 @@ public class HybridCacheService(HybridCache hybridCache,
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
-        // If cache is disabled, bypass and call factory directly
+        // Se o cache estiver desativado, ignore e chame a factory diretamente
         if (!_isCacheEnabled)
         {
             logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);

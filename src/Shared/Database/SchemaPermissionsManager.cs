@@ -1,180 +1,115 @@
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using System.Text.RegularExpressions;
 
 namespace MeAjudaAi.Shared.Database;
 
 /// <summary>
-/// Gerencia permissões de schema usando scripts SQL existentes da infraestrutura.
-/// Executa apenas quando necessário e de forma modular.
+/// Gerencia permissões de schema usando scripts SQL da infraestrutura.
+/// Implementação genérica para suportar múltiplos módulos.
 /// </summary>
 public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
 {
-    /// <summary>
-    /// Configura permissões usando os scripts existentes em infrastructure/database/schemas
-    /// </summary>
-    public async Task EnsureUsersModulePermissionsAsync(
-        string adminConnectionString,
-        string usersRolePassword,
-        string appRolePassword)
-    {
-        if (string.IsNullOrWhiteSpace(usersRolePassword))
-            throw new ArgumentException("Password for users_role cannot be null or whitespace.", nameof(usersRolePassword));
-            
-        if (string.IsNullOrWhiteSpace(appRolePassword))
-            throw new ArgumentException("Password for app_role cannot be null or whitespace.", nameof(appRolePassword));
+    private const string BasePath = "infrastructure/database/modules";
 
-        logger.LogInformation("Configuring permissions for Users module using existing scripts");
+    private static readonly Regex IdentifierRegex = new(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Configura permissões usando os scripts padronizados (00-roles.sql, 01-permissions.sql).
+    /// </summary>
+    public async Task EnsureModulePermissionsAsync(string adminConnectionString, ModulePermissionConfig config)
+    {
+        if (string.IsNullOrWhiteSpace(config.RolePassword) || string.IsNullOrWhiteSpace(config.AppRolePassword))
+            throw new ArgumentException("Passwords cannot be null or whitespace.");
+
+        logger.LogInformation("Configurando permissões para o módulo {ModuleName}", config.ModuleName);
 
         using var connection = new NpgsqlConnection(adminConnectionString);
         await connection.OpenAsync();
 
         try
         {
-            // Executar os scripts na ordem correta
-            // NOTA: Schema 'users' será criado automaticamente pelo EF Core durante as migrações
-            await ExecuteSchemaScript(connection, "00-roles", usersRolePassword, appRolePassword);
-            await ExecuteSchemaScript(connection, "01-permissions");
+            await ExecuteScriptAsync(connection, config, "00-roles.sql");
+            await ExecuteScriptAsync(connection, config, "01-permissions.sql");
 
-            logger.LogInformation("✅ Permissions successfully configured for Users module");
+            logger.LogInformation("✅ Permissões configuradas com sucesso para {ModuleName}", config.ModuleName);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "❌ Error configuring permissions for Users module");
-            throw new InvalidOperationException(
-                "Failed to configure database schema permissions for Users module (roles: users_role, app_role)",
-                ex);
+            logger.LogError(ex, "❌ Erro configurando permissões para {ModuleName}", config.ModuleName);
+            throw;
         }
     }
 
-    /// <summary>
-    /// Cria connection string para o usuário específico do módulo Users
-    /// </summary>
-    public static string CreateUsersModuleConnectionString(
-        string baseConnectionString,
-        string usersRolePassword)
-    {
-        var builder = new NpgsqlConnectionStringBuilder(baseConnectionString)
-        {
-            Username = "users_role",
-            Password = usersRolePassword,
-            SearchPath = "users,public" // Schema users primeiro, public como fallback
-        };
+    private static string QuoteIdentifier(string identifier) =>
+        "\"" + identifier.Replace("\"", "\"\"") + "\"";
 
-        return builder.ToString();
+    private static void EnsureValidIdentifier(string value, string paramName)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !IdentifierRegex.IsMatch(value))
+            throw new ArgumentException($"Invalid identifier for {paramName}. Only ASCII letters, digits and underscores are allowed, and it must not start with a digit.", paramName);
+    }
+
+    private async Task ExecuteScriptAsync(NpgsqlConnection connection, ModulePermissionConfig config, string scriptName)
+    {
+        EnsureValidIdentifier(config.RoleName, nameof(config.RoleName));
+        EnsureValidIdentifier(config.AppRoleName, nameof(config.AppRoleName));
+        EnsureValidIdentifier(config.SchemaName, nameof(config.SchemaName));
+
+        var scriptPath = Path.Combine(BasePath, config.ModuleName, scriptName);
+        if (!File.Exists(scriptPath))
+            throw new FileNotFoundException($"Script não encontrado: {scriptPath}");
+
+        var sql = await File.ReadAllTextAsync(scriptPath);
+
+        // Replace identifier placeholders only after validation and quoting.
+        sql = sql.Replace("{{ROLE_NAME}}", QuoteIdentifier(config.RoleName))
+                 .Replace("{{APP_ROLE_NAME}}", QuoteIdentifier(config.AppRoleName))
+                 .Replace("{{SCHEMA_NAME}}", QuoteIdentifier(config.SchemaName))
+                 // For passwords (literals) use parameters instead of inlining
+                 .Replace("{{ROLE_PASSWORD}}", "@role_pwd")
+                 .Replace("{{APP_ROLE_PASSWORD}}", "@app_pwd");
+
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        // Add password parameters (safe as bind parameters)
+        command.Parameters.AddWithValue("role_pwd", config.RolePassword);
+        command.Parameters.AddWithValue("app_pwd", config.AppRolePassword);
+
+        await command.ExecuteNonQueryAsync();
     }
 
     /// <summary>
-    /// Verifica se as permissões do módulo Users já estão configuradas
+    /// Verifica se as permissões do módulo já estão configuradas.
     /// </summary>
-    public async Task<bool> AreUsersPermissionsConfiguredAsync(string adminConnectionString)
+    public async Task<bool> AreModulePermissionsConfiguredAsync(string adminConnectionString, string schemaName, string roleName)
     {
         try
         {
             using var connection = new NpgsqlConnection(adminConnectionString);
             await connection.OpenAsync();
 
-            var result = await ExecuteScalarAsync<bool>(connection, """
+            var sql = """
                 SELECT EXISTS (
-                    SELECT 1 FROM pg_catalog.pg_roles 
-                    WHERE rolname = 'users_role'
+                    SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = @RoleName
                 ) AND EXISTS (
-                    SELECT 1 FROM information_schema.schemata 
-                    WHERE schema_name = 'users'
+                    SELECT 1 FROM information_schema.schemata WHERE schema_name = @SchemaName
                 );
-                """);
+                """;
 
-            return result;
+            using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            command.Parameters.AddWithValue("RoleName", roleName);
+            command.Parameters.AddWithValue("SchemaName", schemaName);
+            
+            var result = await command.ExecuteScalarAsync();
+            return (bool)(result ?? false);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Erro ao verificar permissões do módulo Users, assumindo não configurado");
+            logger.LogWarning(ex, "Erro ao verificar permissões do módulo {SchemaName}, assumindo não configurado", schemaName);
             return false;
         }
-    }
-
-    private async Task ExecuteSchemaScript(NpgsqlConnection connection, string scriptType, params string[] parameters)
-    {
-        string sql = scriptType switch
-        {
-            "00-roles" => GetCreateRolesScript(parameters[0], parameters[1]),
-            "01-permissions" => GrantPermissionsScript,
-            _ => throw new ArgumentException($"Script type '{scriptType}' not recognized")
-        };
-
-        logger.LogDebug("Executando script: {ScriptType}", scriptType);
-        await ExecuteSqlAsync(connection, sql);
-    }
-
-    private static string GetCreateRolesScript(string usersPassword, string appPassword) => $"""
-        -- Create dedicated role for users module
-        DO $$
-        BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'users_role') THEN
-                CREATE ROLE users_role LOGIN PASSWORD '{usersPassword.Replace("'", "''")}'; 
-            END IF;
-        END
-        $$;
-
-        -- Create a general application role for cross-cutting operations
-        DO $$
-        BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'meajudaai_app_role') THEN
-                CREATE ROLE meajudaai_app_role LOGIN PASSWORD '{appPassword.Replace("'", "''")}'; 
-            END IF;
-        END
-        $$;
-
-        -- Grant necessary permissions to app role to manage users
-        GRANT users_role TO meajudaai_app_role;
-        """;
-
-    private const string GrantPermissionsScript = """
-        -- Grant permissions for users module
-        GRANT USAGE ON SCHEMA users TO users_role;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;
-        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA users TO users_role;
-
-        -- Set default privileges for future tables and sequences in users schema
-        ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO users_role;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT USAGE, SELECT ON SEQUENCES TO users_role;
-
-        -- Set default search path for users_role
-        ALTER ROLE users_role SET search_path = users, public;
-
-        -- Grant cross-schema permissions to app role
-        GRANT USAGE ON SCHEMA users TO meajudaai_app_role;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO meajudaai_app_role;
-        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA users TO meajudaai_app_role;
-
-        -- Set default privileges for app role
-        ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
-
-        -- Set search path for app role to include all necessary schemas
-        ALTER ROLE meajudaai_app_role SET search_path = users, public;
-
-        -- Grant permissions on public schema
-        GRANT USAGE ON SCHEMA public TO users_role;
-        GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
-        GRANT CREATE ON SCHEMA public TO meajudaai_app_role;
-        """;
-
-    private static async Task ExecuteSqlAsync(NpgsqlConnection connection, string sql)
-    {
-        using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - SQL is from predefined constants, not user input
-        command.CommandText = sql;
-#pragma warning restore CA2100
-        await command.ExecuteNonQueryAsync();
-    }
-
-    private static async Task<T> ExecuteScalarAsync<T>(NpgsqlConnection connection, string sql)
-    {
-        using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - SQL is from predefined constants, not user input
-        command.CommandText = sql;
-#pragma warning restore CA2100
-        var result = await command.ExecuteScalarAsync();
-        return (T)Convert.ChangeType(result!, typeof(T));
     }
 }

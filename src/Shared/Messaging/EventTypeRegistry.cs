@@ -56,6 +56,6 @@ public class EventTypeRegistry(ICacheService cache, ILogger<EventTypeRegistry> l
 
     public async Task InvalidateCacheAsync(CancellationToken cancellationToken = default)
     {
-        await cache.RemoveByPatternAsync("event-registry", cancellationToken);
+        await cache.RemoveByTagAsync(CacheTags.EventRegistry, cancellationToken);
     }
 }

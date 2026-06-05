@@ -1,9 +1,8 @@
-
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Database;
 
@@ -13,16 +12,17 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
 
     private static string GetConnectionString(PostgresOptions? postgresOptions)
     {
-        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+        if (postgresOptions?.ConnectionString != null)
         {
-            // Em ambiente de teste, usa uma connection string mock se não houver uma configurada
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-            return postgresOptions?.ConnectionString ?? "Host=localhost;Database=test;Username=test;Password=test";
-#pragma warning restore S2068
+            return postgresOptions.ConnectionString;
         }
 
-        return postgresOptions?.ConnectionString
-            ?? throw new InvalidOperationException("PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
+        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+        {
+            return DatabaseConstants.DefaultTestConnectionString;
+        }
+
+        throw new InvalidOperationException("PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
     }
 
     public async Task<IEnumerable<T>> QueryAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)

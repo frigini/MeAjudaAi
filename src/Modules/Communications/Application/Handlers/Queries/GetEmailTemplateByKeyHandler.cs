@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers.Queries;
 
-public class GetEmailTemplateByKeyHandler(IEmailTemplateQueries emailTemplateQueries) 
+public sealed class GetEmailTemplateByKeyHandler(IEmailTemplateQueries emailTemplateQueries) 
     : IQueryHandler<GetEmailTemplateByKeyQuery, Result<EmailTemplate?>>
 {
     public async Task<Result<EmailTemplate?>> HandleAsync(GetEmailTemplateByKeyQuery query, CancellationToken cancellationToken = default)

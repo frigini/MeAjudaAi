@@ -1,8 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using EFCore.NamingConventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Database;
 

@@ -343,13 +343,13 @@ public class PermissionClaimsTransformationTests
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
 
-        var exception = new InvalidOperationException("Unexpected error");
+        var exception = new Exception("Unexpected error");
         _permissionServiceMock
             .Setup(s => s.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.TransformAsync(principal));
+        await Assert.ThrowsAsync<Exception>(() => _sut.TransformAsync(principal));
         
         _loggerMock.Verify(
             x => x.Log(

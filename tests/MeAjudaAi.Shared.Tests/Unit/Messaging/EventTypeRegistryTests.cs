@@ -104,6 +104,6 @@ public class EventTypeRegistryTests
         await _sut.InvalidateCacheAsync();
 
         // Assert
-        _cacheMock.Verify(c => c.RemoveByPatternAsync("event-registry", It.IsAny<CancellationToken>()), Times.Once);
+        _cacheMock.Verify(c => c.RemoveByTagAsync(CacheTags.EventRegistry, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
