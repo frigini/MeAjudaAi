@@ -158,7 +158,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
-                        ["Cache:Enabled"] = "false"
+                        ["Cache:Enabled"] = "false",
+                        ["Payments:AllowedReturnHosts:0"] = "localhost"
                     });
                 });
                 builder.ConfigureServices(services =>

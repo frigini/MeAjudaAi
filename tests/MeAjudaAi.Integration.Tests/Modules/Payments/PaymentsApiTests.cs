@@ -124,8 +124,8 @@ public class PaymentsApiTests : BaseApiTest
         await dbContext.SaveChangesAsync();
 
         // Act
-        var request = new { providerId, returnUrl = "https://localhost/account" };
-        var response = await Client.PostAsJsonAsync($"/api/v1/{ApiEndpoints.Payments.Base}/subscriptions/billing-portal", request);
+        var request = new { providerId, returnUrl = "account" };
+        var response = await Client.PostAsJsonAsync("/api/payments/subscriptions/billing-portal", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
