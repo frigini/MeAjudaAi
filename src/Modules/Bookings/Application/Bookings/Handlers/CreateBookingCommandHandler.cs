@@ -12,6 +12,7 @@ using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
@@ -131,6 +132,7 @@ public sealed class CreateBookingCommandHandler(
 
         // Publicar evento de integração
         await messageBus.PublishAsync(new BookingCreatedIntegrationEvent(
+            ModuleNames.Bookings,
             booking.Id,
             booking.ProviderId,
             booking.ClientId,

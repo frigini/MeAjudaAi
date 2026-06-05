@@ -5,14 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Shared.Messaging.Messages.Bookings;
 
 /// <summary>
-/// Evento de integração disparado quando um booking é criado.
+/// Evento de integração disparado quando um agendamento é rejeitado.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public record BookingCreatedIntegrationEvent(
+public record BookingRejectedIntegrationEvent(
     string Source,
     Guid BookingId,
     Guid ProviderId,
     Guid ClientId,
-    Guid ServiceId,
-    DateOnly Date
+    string Reason
 ) : IntegrationEvent(Source);

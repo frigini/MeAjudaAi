@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -23,6 +24,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<CancelBookingCommandHandler>> _loggerMock = new();
     private readonly CancelBookingCommandHandler _sut;
 
@@ -33,6 +35,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _sut = new CancelBookingCommandHandler(
             _bookingQueriesMock.Object,
             _uowMock.Object,
+            _messageBusMock.Object,
             _loggerMock.Object);
     }
 

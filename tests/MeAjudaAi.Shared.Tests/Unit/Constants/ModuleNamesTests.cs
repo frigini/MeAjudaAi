@@ -141,11 +141,12 @@ public class ModuleNamesTests
     #region Collections Tests
 
     [Fact]
-    public void ImplementedModules_ShouldContainExactly6Modules()
+    public void ImplementedModules_ShouldContainExactly10Modules()
     {
         // Assert
         Assert.Equal(10, ModuleNames.ImplementedModules.Count);
     }
+
 
     [Fact]
     public void ImplementedModules_ShouldContainExpectedModules()

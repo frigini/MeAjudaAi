@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Payments.Application.Queries;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
@@ -20,6 +21,7 @@ public class ProcessInboxJobTests : IDisposable
 {
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<ProcessInboxJob>> _loggerMock;
+    private readonly Mock<IMessageBus> _messageBusMock;
     private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
     private readonly SqliteConnection _connection;
     private readonly PaymentsDbContext _dbContext;
@@ -41,7 +43,8 @@ public class ProcessInboxJobTests : IDisposable
         _dbContext = new PaymentsDbContext(options);
         _dbContext.Database.EnsureCreated();
 
-        _job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
+        _messageBusMock = new Mock<IMessageBus>();
+        _job = new ProcessInboxJob(_serviceProviderMock.Object, _messageBusMock.Object, _loggerMock.Object);
     }
 
     [Fact]

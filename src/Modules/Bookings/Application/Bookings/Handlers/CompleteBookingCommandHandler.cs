@@ -12,12 +12,16 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Bookings;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class CompleteBookingCommandHandler(
     IBookingQueries bookingQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
+    IMessageBus messageBus,
     ILogger<CompleteBookingCommandHandler> logger) : ICommandHandler<CompleteBookingCommand, Result>
 {
     public async Task<Result> HandleAsync(CompleteBookingCommand command, CancellationToken cancellationToken = default)
@@ -46,6 +50,13 @@ public sealed class CompleteBookingCommandHandler(
         {
             booking.Complete();
             await uow.SaveChangesAsync(cancellationToken);
+
+            // Publicar evento de integração
+            await messageBus.PublishAsync(new BookingCompletedIntegrationEvent(
+                ModuleNames.Bookings,
+                booking.Id,
+                booking.ProviderId,
+                booking.ClientId), cancellationToken: cancellationToken);
         }
         catch (InvalidBookingStateException ex)
         {

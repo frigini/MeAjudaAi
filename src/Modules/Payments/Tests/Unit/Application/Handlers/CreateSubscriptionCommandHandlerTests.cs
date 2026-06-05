@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
+using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -21,6 +22,7 @@ public class CreateSubscriptionCommandHandlerTests
     private readonly Mock<IRepository<Subscription, Guid>> _repositoryMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IMessageBus> _messageBusMock;
     private readonly Mock<ILogger<CreateSubscriptionCommandHandler>> _loggerMock;
     private readonly CreateSubscriptionCommandHandler _handler;
 
@@ -31,11 +33,13 @@ public class CreateSubscriptionCommandHandlerTests
         _uowMock.Setup(u => u.GetRepository<Subscription, Guid>()).Returns(_repositoryMock.Object);
         _gatewayMock = new Mock<IPaymentGateway>();
         _configurationMock = new Mock<IConfiguration>();
+        _messageBusMock = new Mock<IMessageBus>();
         _loggerMock = new Mock<ILogger<CreateSubscriptionCommandHandler>>();
         _handler = new CreateSubscriptionCommandHandler(
             _uowMock.Object,
             _gatewayMock.Object,
             _configurationMock.Object,
+            _messageBusMock.Object,
             _loggerMock.Object);
 
         // Configuração de plano válida
