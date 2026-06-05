@@ -5,62 +5,96 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 /// <summary>
 /// Constantes para endpoints da API organizados por módulo
 /// </summary>
-/// <remarks>
-/// Baseado nos endpoints realmente existentes no projeto.
-/// Mantém apenas o que está implementado para evitar confusão.
-/// </remarks>
 [ExcludeFromCodeCoverage]
 public static class ApiEndpoints
 {
-    /// <summary>
-    /// Endpoints do módulo de usuários (UserAdmin)
-    /// </summary>
-    /// <remarks>
-    /// Todos estes endpoints existem em UserAdmin/ e estão funcionais.
-    /// </remarks>
     public static class Users
     {
-        // Endpoints existentes e implementados
-        public const string Create = "/";                    // POST   CreateUserEndpoint
-        public const string GetAll = "/";                   // GET    GetUsersEndpoint  
-        public const string GetById = "/{id:guid}";         // GET    GetUserByIdEndpoint
-        public const string Delete = "/{id:guid}";          // DELETE DeleteUserEndpoint
-        public const string GetByEmail = "/by-email/{email}"; // GET    GetUserByEmailEndpoint
-        public const string UpdateProfile = "/{id:guid}/profile"; // PUT    UpdateUserProfileEndpoint
+        public const string Base = "users";
+        public const string Create = "/";
+        public const string GetAll = "/";
+        public const string GetById = "/{id:guid}";
+        public const string Delete = "/{id:guid}";
+        public const string GetByEmail = "/by-email/{email}";
+        public const string UpdateProfile = "/{id:guid}/profile";
     }
 
-    /// <summary>
-    /// Endpoints do módulo de prestadores de serviços (ProviderAdmin)
-    /// </summary>
-    /// <remarks>
-    /// Todos estes endpoints existem em ProviderAdmin/ e estão funcionais.
-    /// </remarks>
     public static class Providers
     {
-        // Endpoints existentes e implementados
-        public const string Create = "/";                    // POST   CreateProviderEndpoint
-        public const string GetAll = "/";                   // GET    GetProvidersEndpoint  
-        public const string GetById = "/{id:guid}";         // GET    GetProviderByIdEndpoint
-        public const string Delete = "/{id:guid}";          // DELETE DeleteProviderEndpoint
-        public const string GetByUserId = "/by-user/{userId:guid}"; // GET GetProviderByUserIdEndpoint
-        public const string GetByCity = "/by-city/{city}";  // GET    GetProvidersByCityEndpoint
-        public const string GetByState = "/by-state/{state}"; // GET   GetProvidersByStateEndpoint
-        public const string GetByType = "/by-type/{type}";  // GET    GetProvidersByTypeEndpoint
-        public const string GetByVerificationStatus = "/verification-status/{status}"; // GET GetProvidersByVerificationStatusEndpoint
-        public const string UpdateProfile = "/{id:guid}/profile"; // PUT UpdateProviderProfileEndpoint
-        public const string UpdateVerificationStatus = "/{id:guid}/verification-status"; // PUT UpdateVerificationStatusEndpoint
-        public const string AddDocument = "/{id:guid}/documents"; // POST AddDocumentEndpoint
-        public const string RemoveDocument = "/{id:guid}/documents/{documentType}"; // DELETE RemoveDocumentEndpoint
-        public const string RequireBasicInfoCorrection = "/{id:guid}/require-basic-info-correction"; // POST RequireBasicInfoCorrectionEndpoint
-        public const string GetPublicByIdOrSlug = "/public/{idOrSlug}";  // GET GetPublicProviderByIdOrSlugEndpoint
+        public const string Base = "providers";
+        public const string Create = "/";
+        public const string GetAll = "/";
+        public const string GetById = "/{id:guid}";
+        public const string Delete = "/{id:guid}";
+        public const string GetByUserId = "/by-user/{userId:guid}";
+        public const string GetByCity = "/by-city/{city}";
+        public const string GetByState = "/by-state/{state}";
+        public const string GetByType = "/by-type/{type}";
+        public const string GetByVerificationStatus = "/verification-status/{status}";
+        public const string UpdateProfile = "/{id:guid}/profile";
+        public const string UpdateVerificationStatus = "/{id:guid}/verification-status";
+        public const string AddDocument = "/{id:guid}/documents";
+        public const string RemoveDocument = "/{id:guid}/documents/{documentType}";
+        public const string RequireBasicInfoCorrection = "/{id:guid}/require-basic-info-correction";
+        public const string GetPublicByIdOrSlug = "/public/{idOrSlug}";
     }
 
-    /// <summary>
-    /// Endpoints de sistema (Health checks e monitoramento)
-    /// </summary>
-    /// <remarks>
-    /// Endpoints básicos que toda aplicação ASP.NET Core possui.
-    /// </remarks>
+    public static class Bookings
+    {
+        public const string Base = "bookings";
+        public const string Create = "/";
+        public const string Confirm = "/{id:guid}/confirm";
+        public const string Cancel = "/{id:guid}/cancel";
+        public const string Reject = "/{id:guid}/reject";
+        public const string Complete = "/{id:guid}/complete";
+        public const string GetById = "/{id:guid}";
+        public const string GetMy = "/my";
+        public const string GetProviderBookings = "/provider/{providerId:guid}";
+        public const string GetProviderAvailability = "/availability/{providerId:guid}";
+        public const string SetProviderSchedule = "/schedule";
+        public const string Events = "/events";
+    }
+
+    public static class Communications
+    {
+        public const string Base = "communications";
+        public const string GetLogs = "/logs";
+        public const string GetTemplates = "/templates";
+    }
+
+    public static class Documents
+    {
+        public const string Base = "documents";
+    }
+
+    public static class Locations
+    {
+        public const string Base = "locations";
+        public const string AdminAllowedCities = "admin/allowed-cities";
+    }
+
+    public static class Payments
+    {
+        public const string Base = "payments";
+    }
+
+    public static class Ratings
+    {
+        public const string Base = "ratings";
+    }
+
+    public static class SearchProviders
+    {
+        public const string Base = "search-providers";
+    }
+
+    public static class ServiceCatalogs
+    {
+        public const string Base = "service-catalogs";
+        public const string Categories = "service-catalogs/categories";
+        public const string Services = "service-catalogs/services";
+    }
+
     public static class System
     {
         public const string Health = "/health";

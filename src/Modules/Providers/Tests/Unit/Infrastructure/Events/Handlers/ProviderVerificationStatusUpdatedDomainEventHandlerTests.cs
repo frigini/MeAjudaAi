@@ -39,7 +39,6 @@ public class ProviderVerificationStatusUpdatedDomainEventHandlerTests : IDisposa
         _handler = new ProviderVerificationStatusUpdatedDomainEventHandler(
             _mockMessageBus.Object,
             _context,
-            _mockSearchProvidersModuleApi.Object,
             _mockLogger.Object);
     }
 

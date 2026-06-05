@@ -102,13 +102,13 @@ public class DevelopmentDataSeeder(
         // Removida verificação de HasData para garantir que sempre tentamos semear/atualizar dados de desenvolvimento.
         // Os métodos de seed individuais usam ON CONFLICT para serem idempotentes.
         
-        logger.LogInformation("🌱 Starting development data seed (Idempotent)...");
+        logger.LogInformation("Starting development data seed (Idempotent)...");
         await ExecuteSeedAsync(cancellationToken);
     }
 
     public async Task ForceSeedAsync(CancellationToken cancellationToken = default)
     {
-        logger.LogWarning("🔄 Running data seed (ensuring minimum data)...");
+        logger.LogWarning("Running data seed (ensuring minimum data)...");
         await ExecuteSeedAsync(cancellationToken);
     }
 
@@ -141,7 +141,7 @@ public class DevelopmentDataSeeder(
 
                         if (anyMethod == null)
                         {
-                            logger.LogWarning("⚠️ AnyAsync method not found via reflection for ServiceCatalogs");
+                            logger.LogWarning("AnyAsync method not found via reflection for ServiceCatalogs");
                             return false;
                         }
 
@@ -178,7 +178,7 @@ public class DevelopmentDataSeeder(
 
                         if (anyMethod == null)
                         {
-                            logger.LogWarning("⚠️ AnyAsync method not found via reflection for Locations");
+                            logger.LogWarning("AnyAsync method not found via reflection for Locations");
                             return false;
                         }
 
@@ -198,17 +198,17 @@ public class DevelopmentDataSeeder(
         }
         catch (System.Data.Common.DbException dbEx)
         {
-            logger.LogWarning(dbEx, "⚠️ Database error checking existing data ({ExceptionType}), assuming empty database", dbEx.GetType().Name);
+            logger.LogWarning(dbEx, "Database error checking existing data ({ExceptionType}), assuming empty database", dbEx.GetType().Name);
             return false;
         }
         catch (System.Reflection.TargetInvocationException tie)
         {
-            logger.LogWarning(tie, "⚠️ Reflection invocation error checking existing data ({ExceptionType}), assuming empty database", tie.GetType().Name);
+            logger.LogWarning(tie, "Reflection invocation error checking existing data ({ExceptionType}), assuming empty database", tie.GetType().Name);
             return false;
         }
         catch (InvalidOperationException ioe)
         {
-            logger.LogWarning(ioe, "⚠️ Invalid operation checking existing data ({ExceptionType}), assuming empty database", ioe.GetType().Name);
+            logger.LogWarning(ioe, "Invalid operation checking existing data ({ExceptionType}), assuming empty database", ioe.GetType().Name);
             return false;
         }
         catch (Exception ex)

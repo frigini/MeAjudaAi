@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Payments.Infrastructure;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ public class DependencyInjectionTests
         envMock.SetupGet(e => e.EnvironmentName).Returns("Testing");
 
         services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton<IMessageBus>(new Mock<IMessageBus>().Object);
 
         services.AddInfrastructure(configuration, envMock.Object);
         services.AddLogging();

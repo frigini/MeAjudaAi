@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Serialization;
 
-public sealed class JsonSerializer : ISerializer
+public sealed class SystemTextJsonSerializer : ISerializer
 {
     private readonly JsonSerializerOptions _options = SerializationDefaults.Default;
 

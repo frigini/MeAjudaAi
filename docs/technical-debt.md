@@ -15,9 +15,11 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ### 🏗️ Arquitetura & Código
 
-**Severidade**: MÉDIA  
+**Severidade**: ALTA  
 **Sprint**: Backlog
 
+- [ ] **Auditoria e Implementação de Consumidores de Eventos de Integração**: Foi realizada uma normalização na emissão de eventos (`IntegrationEvents`) para os módulos `Bookings`, `Payments`, `Providers` e `Locations`. É necessário realizar uma auditoria completa de todos os eventos de integração para garantir que cada um possua ao menos um consumidor (`IntegrationEventHandler`) válido, removendo eventos "órfãos". Além disso, deve-se revisar todos os módulos para implementar seus respectivos consumidores e garantir que os testes unitários e de integração cubram o consumo desses eventos, completando o ciclo de vida da arquitetura orientada a eventos.
+- [ ] **Revisão da Arquitetura de Eventos**: Revisar o balanço entre chamadas diretas via `Contracts` (API) e comunicação reativa (Eventos). Identificar pontos onde o acoplamento síncrono pode ser reduzido convertendo chamadas de ação/escrita em consumo de eventos de integração.
 - [ ] **Contratos de Cliente (Client Contracts) Incompletos**: O projeto `MeAjudaAi.Client.Contracts` carece de interfaces `Refit` para módulos críticos (`Bookings`, `Users`, `Payments`, `Communications`, `Ratings`, `SearchProviders`). Isso força implementações manuais ou duplicadas de consumo de API em diferentes clientes, comprometendo a segurança de tipos e a facilidade de integração. É necessário criar as interfaces equivalentes para todos os módulos restantes para padronizar o consumo de API em toda a solução.
 
 ---

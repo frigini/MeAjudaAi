@@ -7,6 +7,8 @@ using MeAjudaAi.Contracts.Modules.Ratings.Enums;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,8 +31,7 @@ public static class RatingsEndpoints
 
     public static void Map(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/v1/ratings")
-            .WithTags("Ratings")
+        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Ratings.Base, "Ratings")
             .RequireAuthorization();
 
         group.MapPost("/", CreateReviewAsync)
@@ -77,7 +78,7 @@ public static class RatingsEndpoints
 
         var reviewId = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.Created($"/api/v1/ratings/{reviewId}/status", reviewId);
+        return Results.Created($"/{ApiEndpoints.Ratings.Base}/{reviewId}/status", reviewId);
     }
 
     private static async Task<IResult> GetReviewByIdAsync(

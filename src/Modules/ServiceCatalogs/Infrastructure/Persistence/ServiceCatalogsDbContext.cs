@@ -3,7 +3,6 @@ using System.Reflection;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,6 +52,3 @@ public partial class ServiceCatalogsDbContext : BaseDbContext, IUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
-
-
-

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
@@ -23,7 +24,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
     {
-        var group = CreateVersionedGroup(app, "search", "Search");
+        var group = CreateVersionedGroup(app, ApiEndpoints.SearchProviders.Base, "Search");
 
         group.MapGet("/providers", SearchProvidersAsync)
             .WithName("SearchProviders")

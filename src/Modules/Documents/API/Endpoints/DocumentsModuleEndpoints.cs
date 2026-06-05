@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints;
@@ -16,7 +17,7 @@ public static class DocumentsModuleEndpoints
     public static void MapDocumentsEndpoints(this WebApplication app)
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
-        var endpoints = BaseEndpoint.CreateVersionedGroup(app, "documents", "Documents")
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Documents.Base, "Documents")
             .RequireAuthorization(); // Aplica autorização global
 
         // Endpoints de gestão de documentos

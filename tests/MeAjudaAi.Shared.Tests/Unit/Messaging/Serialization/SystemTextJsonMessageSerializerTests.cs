@@ -9,7 +9,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Serialization;
 [Trait("Category", "Unit")]
 public class SystemTextJsonMessageSerializerTests
 {
-    private readonly Shared.Serialization.JsonSerializer _sut = new();
+    private readonly SystemTextJsonSerializer _sut = new();
 
     [Fact]
     public void Serialize_WithPrimitiveTypes_ShouldReturnValidJson()
