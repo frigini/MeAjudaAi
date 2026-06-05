@@ -5,6 +5,7 @@ using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Middleware;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;

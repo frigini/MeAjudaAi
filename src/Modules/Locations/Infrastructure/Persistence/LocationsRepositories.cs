@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
@@ -16,3 +17,4 @@ public partial class LocationsDbContext : IRepository<AllowedCity, Guid>
     void IRepository<AllowedCity, Guid>.Delete(AllowedCity aggregate) =>
         AllowedCities.Remove(aggregate);
 }
+

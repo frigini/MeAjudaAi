@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -6,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
@@ -239,3 +241,6 @@ public class RequestVerificationCommandHandlerTests
         _mockOutboxRepo.Verify(x => x.Add(It.IsAny<OutboxMessage>()), Times.Never);
     }
 }
+
+
+

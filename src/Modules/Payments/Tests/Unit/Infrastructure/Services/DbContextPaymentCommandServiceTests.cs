@@ -1,8 +1,10 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -89,3 +91,6 @@ public class DbContextPaymentCommandServiceTests : IDisposable
         _connection.Dispose();
     }
 }
+
+
+

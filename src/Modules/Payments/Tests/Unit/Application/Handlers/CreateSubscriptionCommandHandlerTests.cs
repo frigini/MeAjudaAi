@@ -1,9 +1,11 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -257,3 +259,6 @@ public class CreateSubscriptionCommandHandlerTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 }
+
+
+

@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
@@ -12,3 +13,5 @@ public partial class PaymentsDbContext : IRepository<Subscription, Guid>
     void IRepository<Subscription, Guid>.Add(Subscription aggregate) => Subscriptions.Add(aggregate);
     void IRepository<Subscription, Guid>.Delete(Subscription aggregate) => Subscriptions.Remove(aggregate);
 }
+
+

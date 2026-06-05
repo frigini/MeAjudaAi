@@ -1,9 +1,11 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +23,7 @@ public class DependencyInjectionTests
     {
         var services = new ServiceCollection();
         var inMemorySettings = new Dictionary<string, string?> {
-            {"ConnectionStrings:Payments", DatabaseConstants.DefaultTestConnectionString},
+            {"ConnectionStrings:Payments", MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString},
             {"Stripe:ApiKey", "stripe_test_api_key_placeholder"},
             {"ClientBaseUrl", "https://test.com"},
             {"Payments:SuccessUrl", "success"},
@@ -63,3 +65,6 @@ public class DependencyInjectionTests
         services.Single(d => d.ServiceType == typeof(IPaymentGateway)).Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 }
+
+
+

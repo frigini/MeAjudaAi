@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using EFCore.NamingConventions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Queries;
@@ -8,6 +9,7 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
@@ -48,7 +50,7 @@ public static class Extensions
             {
                 // Use placeholder for integration tests - will be replaced by test infrastructure
 #pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+                connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
 #pragma warning restore S2068
             }
             else
@@ -168,3 +170,9 @@ public static class Extensions
         return services;
     }
 }
+
+
+
+
+
+

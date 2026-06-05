@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
@@ -7,6 +8,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -169,3 +171,6 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
     }
 }
+
+
+

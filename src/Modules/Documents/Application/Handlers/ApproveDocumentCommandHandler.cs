@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
@@ -7,6 +8,7 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Serialization;
@@ -98,3 +100,6 @@ public class ApproveDocumentCommandHandler(
         }
     }
 }
+
+
+

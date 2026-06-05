@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
@@ -9,6 +10,7 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
@@ -41,7 +43,7 @@ public static class Extensions
                 if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
                 }
                 else
                 {
@@ -192,3 +194,9 @@ public static class Extensions
         return services;
     }
 }
+
+
+
+
+
+

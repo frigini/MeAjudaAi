@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
@@ -8,6 +9,7 @@ using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using MeAjudaAi.Modules.Payments.Infrastructure.Services;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -71,3 +73,8 @@ public static class Extensions
         return services;
     }
 }
+
+
+
+
+

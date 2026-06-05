@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
@@ -18,3 +19,5 @@ public partial class BookingsDbContext : IRepository<Booking, Guid>, IRepository
     void IRepository<ProviderSchedule, Guid>.Add(ProviderSchedule aggregate) => ProviderSchedules.Add(aggregate);
     void IRepository<ProviderSchedule, Guid>.Delete(ProviderSchedule aggregate) => ProviderSchedules.Remove(aggregate);
 }
+
+

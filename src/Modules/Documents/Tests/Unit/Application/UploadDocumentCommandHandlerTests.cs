@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Security.Claims;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
@@ -8,6 +9,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
@@ -238,3 +240,6 @@ public class UploadDocumentCommandHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*enviar*");
     }
 }
+
+
+

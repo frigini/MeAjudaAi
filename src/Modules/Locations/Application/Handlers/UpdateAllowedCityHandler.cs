@@ -1,8 +1,10 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
@@ -110,3 +112,6 @@ public sealed class UpdateAllowedCityHandler(
         return Result.Success();
     }
 }
+
+
+

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -7,6 +8,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
@@ -108,3 +110,6 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
         persisted!.Status.Should().Be(EDocumentStatus.Verified);
     }
 }
+
+
+

@@ -1,5 +1,7 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -87,3 +89,6 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
         // Nenhum evento de domínio para limpar no módulo Locations
     }
 }
+
+
+

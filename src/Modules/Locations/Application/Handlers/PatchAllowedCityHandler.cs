@@ -1,7 +1,9 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Extensions;
@@ -56,3 +58,6 @@ public sealed class PatchAllowedCityHandler(
         return Result.Success();
     }
 }
+
+
+

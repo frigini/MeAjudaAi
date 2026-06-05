@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
@@ -85,3 +86,5 @@ public class LocationsDbContextFactory : BaseDesignTimeDbContextFactory<Location
         return new LocationsDbContext(options);
     }
 }
+
+

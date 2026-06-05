@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
@@ -13,3 +14,5 @@ public class CommunicationsDbContextFactory : BaseDesignTimeDbContextFactory<Com
         return new CommunicationsDbContext(options);
     }
 }
+
+

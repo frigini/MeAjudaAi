@@ -1,9 +1,11 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
@@ -231,3 +233,5 @@ public class CreateAllowedCityHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
 }
+
+
