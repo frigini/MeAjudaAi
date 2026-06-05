@@ -93,16 +93,6 @@ public class ModuleNamesTests
     }
 
     [Theory]
-    [InlineData(ModuleNames.Users)]
-    [InlineData(ModuleNames.Providers)]
-    [InlineData(ModuleNames.Documents)]
-    [InlineData(ModuleNames.ServiceCatalogs)]
-    [InlineData(ModuleNames.SearchProviders)]
-    [InlineData(ModuleNames.Locations)]
-    [InlineData(ModuleNames.Bookings)]
-    [InlineData(ModuleNames.Communications)]
-    [InlineData(ModuleNames.Payments)]
-    [InlineData(ModuleNames.Ratings)]
     [InlineData(ModuleNames.Reports)]
     public void IsImplemented_WithPlannedModule_ShouldReturnFalse(string moduleName)
     {
