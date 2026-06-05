@@ -486,7 +486,7 @@ services.AddHttpContextAccessor();
         var jsonString = await content.ReadAsStringAsync();
         try 
         {
-            var json = JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
+            var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
             
             // Só tentamos desembrulhar se:
             // 1. O JSON for um objeto com a estrutura do Result { items: ..., isSuccess: true, value: ... }
@@ -509,9 +509,9 @@ services.AddHttpContextAccessor();
             }
 
             if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
-                return JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
+                return System.Text.Json.JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
             
-            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
+            return System.Text.Json.JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
         catch (JsonException ex)
         {

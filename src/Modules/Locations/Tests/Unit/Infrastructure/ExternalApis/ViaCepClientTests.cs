@@ -50,7 +50,7 @@ public sealed class ViaCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(viaCepResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(viaCepResponse, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetAddressAsync(cep, CancellationToken.None);
@@ -73,7 +73,7 @@ public sealed class ViaCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(viaCepResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(viaCepResponse, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetAddressAsync(cep, CancellationToken.None);
@@ -155,7 +155,7 @@ public sealed class ViaCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(viaCepResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(viaCepResponse, SerializationDefaults.Default));
 
         // Act
         await _client.GetAddressAsync(cep, CancellationToken.None);

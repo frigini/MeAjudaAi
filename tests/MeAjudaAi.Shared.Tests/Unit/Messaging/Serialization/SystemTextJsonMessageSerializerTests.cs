@@ -1,7 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
-using MeAjudaAi.Shared.Messaging.Serialization;
+using MeAjudaAi.Shared.Serialization;
 using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Serialization;
@@ -9,7 +9,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Serialization;
 [Trait("Category", "Unit")]
 public class SystemTextJsonMessageSerializerTests
 {
-    private readonly SystemTextJsonMessageSerializer _sut = new();
+    private readonly Shared.Serialization.JsonSerializer _sut = new();
 
     [Fact]
     public void Serialize_WithPrimitiveTypes_ShouldReturnValidJson()
@@ -105,3 +105,4 @@ public class SystemTextJsonMessageSerializerTests
         public Dictionary<string, string> Metadata { get; set; } = [];
     }
 }
+

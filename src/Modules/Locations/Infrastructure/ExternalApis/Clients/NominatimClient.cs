@@ -57,7 +57,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                 }
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                var results = JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
+                var results = System.Text.Json.JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
 
                 if (results is null || results.Length == 0)
                 {
@@ -150,7 +150,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                 }
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                var results = JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
+                var results = System.Text.Json.JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
 
                 if (results is null || results.Length == 0)
                 {

@@ -40,7 +40,7 @@ public sealed class IbgeClientTests : IDisposable
     {
         // Arrange
         var municipio = CreateMockMunicipio(1, input);
-        _mockHandler.SetResponse(HttpStatusCode.OK, JsonSerializer.Serialize(new[] { municipio }, SerializationDefaults.Default));
+        _mockHandler.SetResponse(HttpStatusCode.OK, System.Text.Json.JsonSerializer.Serialize(new[] { municipio }, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetMunicipioByNameAsync(input);
@@ -58,7 +58,7 @@ public sealed class IbgeClientTests : IDisposable
     {
         // Arrange
         var expectedMunicipio = CreateMockMunicipio(3104502, "Muriaé");
-        _mockHandler.SetResponse(HttpStatusCode.OK, JsonSerializer.Serialize(new[] { expectedMunicipio }, SerializationDefaults.Default));
+        _mockHandler.SetResponse(HttpStatusCode.OK, System.Text.Json.JsonSerializer.Serialize(new[] { expectedMunicipio }, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetMunicipioByNameAsync("Muriaé");
@@ -123,7 +123,7 @@ public sealed class IbgeClientTests : IDisposable
             CreateMockMunicipio(1, "Cidade1"),
             CreateMockMunicipio(2, "Cidade2")
         };
-        _mockHandler.SetResponse(HttpStatusCode.OK, JsonSerializer.Serialize(municipios, SerializationDefaults.Default));
+        _mockHandler.SetResponse(HttpStatusCode.OK, System.Text.Json.JsonSerializer.Serialize(municipios, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetMunicipiosByUFAsync(uf);
@@ -151,7 +151,7 @@ public sealed class IbgeClientTests : IDisposable
     {
         // Arrange
         var municipio = CreateMockMunicipio(3104502, "Muriaé", "MG");
-        _mockHandler.SetResponse(HttpStatusCode.OK, JsonSerializer.Serialize(new[] { municipio }, SerializationDefaults.Default));
+        _mockHandler.SetResponse(HttpStatusCode.OK, System.Text.Json.JsonSerializer.Serialize(new[] { municipio }, SerializationDefaults.Default));
 
         // Act
         var result = await _client.ValidateCityInStateAsync("Muriaé", "MG");
@@ -165,7 +165,7 @@ public sealed class IbgeClientTests : IDisposable
     {
         // Arrange
         var municipio = CreateMockMunicipio(3104502, "Muriaé", "MG");
-        _mockHandler.SetResponse(HttpStatusCode.OK, JsonSerializer.Serialize(new[] { municipio }, SerializationDefaults.Default));
+        _mockHandler.SetResponse(HttpStatusCode.OK, System.Text.Json.JsonSerializer.Serialize(new[] { municipio }, SerializationDefaults.Default));
 
         // Act
         var result = await _client.ValidateCityInStateAsync("Muriaé", "RJ");

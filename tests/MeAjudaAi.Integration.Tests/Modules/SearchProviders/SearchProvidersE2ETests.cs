@@ -31,7 +31,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        var result = System.Text.Json.JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty("At least one provider should match the service and radius filter");
         
@@ -56,7 +56,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        var result = System.Text.Json.JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty("At least one provider should be within the tiny radius for this test to be valid");
         
@@ -85,7 +85,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        var result = System.Text.Json.JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
         result.Items.Should().OnlyContain(x => x.DistanceInKm.HasValue);
@@ -115,7 +115,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        var result = System.Text.Json.JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
         result.TotalItems.Should().Be(0);
@@ -137,7 +137,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        var result = System.Text.Json.JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         result.PageSize.Should().Be(pageSize);
@@ -161,7 +161,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
 
-        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        var result = System.Text.Json.JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeNullOrEmpty();
 

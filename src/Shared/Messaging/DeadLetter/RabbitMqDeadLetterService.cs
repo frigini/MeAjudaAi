@@ -1,13 +1,13 @@
+using MeAjudaAi.Shared.Messaging.Options;
+using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Serialization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
-using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
-using MeAjudaAi.Shared.Messaging.Serialization;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 
@@ -18,7 +18,7 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 public sealed class RabbitMqDeadLetterService(
     RabbitMqOptions rabbitMqOptions,
     IOptions<DeadLetterOptions> deadLetterOptions,
-    IMessageSerializer serializer,
+    ISerializer serializer,
     ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable, IDisposable
 {
     private readonly DeadLetterOptions _deadLetterOptions = deadLetterOptions.Value;
@@ -59,18 +59,17 @@ public sealed class RabbitMqDeadLetterService(
                 Persistent = _deadLetterOptions.RabbitMq.EnablePersistence,
                 MessageId = failedMessageInfo.MessageId,
                 Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
-                Expiration = TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds.ToString()
-            };
-
-            // Adicionar headers para facilitar consultas
-            properties.Headers = new Dictionary<string, object?>
-            {
-                ["original-message-type"] = typeof(TMessage).FullName ?? "Unknown",
-                ["failure-reason"] = exception.GetType().Name,
-                ["attempt-count"] = attemptCount,
-                ["source-queue"] = sourceQueue,
-                ["handler-type"] = handlerType,
-                ["failed-at"] = DateTime.UtcNow.ToString("O")
+                Expiration = TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds.ToString(),
+                // Adicionar headers para facilitar consultas
+                Headers = new Dictionary<string, object?>
+                {
+                    ["original-message-type"] = typeof(TMessage).FullName ?? "Unknown",
+                    ["failure-reason"] = exception.GetType().Name,
+                    ["attempt-count"] = attemptCount,
+                    ["source-queue"] = sourceQueue,
+                    ["handler-type"] = handlerType,
+                    ["failed-at"] = DateTime.UtcNow.ToString("O")
+                }
             };
 
             await _channelSemaphore.WaitAsync(cancellationToken);
@@ -411,12 +410,30 @@ public sealed class RabbitMqDeadLetterService(
                 }
             }
         }
-        catch (Exception ex)
+        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
+        {
+            logger.LogError(ex, "Failed to list dead letter messages from queue {Queue} - RabbitMQ operation interrupted", deadLetterQueueName);
+            throw new InvalidOperationException($"Failed to list dead letter messages from RabbitMQ queue '{deadLetterQueueName}'", ex);
+        }
+        catch (System.IO.IOException ex)
+        {
+            logger.LogError(ex, "Failed to list dead letter messages from queue {Queue} - IO error", deadLetterQueueName);
+            throw new InvalidOperationException($"Failed to list dead letter messages from RabbitMQ queue '{deadLetterQueueName}'", ex);
+        }
+        catch (System.TimeoutException ex)
+        {
+            logger.LogError(ex, "Failed to list dead letter messages from queue {Queue} - Timeout", deadLetterQueueName);
+            throw new InvalidOperationException($"Failed to list dead letter messages from RabbitMQ queue '{deadLetterQueueName}'", ex);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            logger.LogError(ex, "Failed to list dead letter messages from queue {Queue} - object disposed", deadLetterQueueName);
+            throw new InvalidOperationException($"Failed to list dead letter messages from RabbitMQ queue '{deadLetterQueueName}'", ex);
+        }
+        catch (InvalidOperationException ex)
         {
             logger.LogError(ex, "Failed to list dead letter messages from queue {Queue}", deadLetterQueueName);
-            throw new InvalidOperationException(
-                $"Failed to list dead letter messages from RabbitMQ queue '{deadLetterQueueName}'",
-                ex);
+            throw; // already an InvalidOperationException with useful context: rethrow to preserve semantics
         }
 
         return messages;

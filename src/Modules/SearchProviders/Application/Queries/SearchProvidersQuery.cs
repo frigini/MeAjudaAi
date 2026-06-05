@@ -59,5 +59,5 @@ public sealed record SearchProvidersQuery(
     }
 
     public IReadOnlyCollection<string>? GetCacheTags() => 
-        [CacheTags.Search, CacheTags.SearchResults];
+        [CacheTags.Search, CacheTags.Providers, CacheTags.SearchResults];
 }

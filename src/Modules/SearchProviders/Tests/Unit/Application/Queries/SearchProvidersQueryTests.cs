@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Shared.Caching;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Queries;
 
@@ -114,9 +115,9 @@ public class SearchProvidersQueryTests
 
         // Assert
         tags.Should().NotBeNull();
-        tags.Should().Contain("search");
-        tags.Should().Contain("providers");
-        tags.Should().Contain("search-results");
+        tags.Should().Contain(CacheTags.Search);
+        tags.Should().Contain(CacheTags.Providers);
+        tags.Should().Contain(CacheTags.SearchResults);
     }
 
     [Fact]

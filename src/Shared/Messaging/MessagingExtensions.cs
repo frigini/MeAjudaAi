@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
 using MeAjudaAi.Shared.Messaging.Handlers;
@@ -7,19 +5,21 @@ using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
-using RabbitMQ.Client;
 using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
-using MeAjudaAi.Shared.Messaging.Serialization;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 using Rebus.Serialization.Json;
 using Rebus.Topic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging;
 
@@ -77,7 +77,7 @@ public static class MessagingExtensions
         });
 
         // Registro do Serializador de Mensagens (usado pelo DeadLetter e infra) - always use System.Text.Json
-        services.Replace(ServiceDescriptor.Singleton<IMessageSerializer, SystemTextJsonMessageSerializer>());
+        services.Replace(ServiceDescriptor.Singleton<ISerializer, JsonSerializer>());
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
@@ -148,7 +148,6 @@ public static class MessagingExtensions
 
         return services;
     }
-
 
     public static async Task EnsureMessagingInfrastructureAsync(this IHost host)
     {

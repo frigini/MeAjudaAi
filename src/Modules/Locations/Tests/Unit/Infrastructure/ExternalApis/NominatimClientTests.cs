@@ -55,7 +55,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetCoordinatesAsync(address, CancellationToken.None);
@@ -159,7 +159,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetCoordinatesAsync(address, CancellationToken.None);
@@ -185,7 +185,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetCoordinatesAsync(address, CancellationToken.None);
@@ -219,7 +219,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         var result = await _client.SearchAsync(query, CancellationToken.None);
@@ -248,7 +248,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         var result = await _client.SearchAsync(query, CancellationToken.None);
@@ -276,7 +276,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         var result = await _client.SearchAsync(query, CancellationToken.None);
@@ -303,7 +303,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
 
         // Act
         await _client.GetCoordinatesAsync(address, CancellationToken.None);

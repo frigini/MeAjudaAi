@@ -41,7 +41,7 @@ public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : B
         try
         {
             // Use shared JSON deserialization for consistency with API serialization options
-            json = JsonSerializer.Deserialize<JsonElement>(content, SerializationDefaults.Api);
+            json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content, SerializationDefaults.Api);
             testOutput.WriteLine($"JSON ValueKind: {json.ValueKind}");
 
             var responseData = GetResponseData(json);

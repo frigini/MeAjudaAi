@@ -20,8 +20,8 @@ public class ModuleNamesTests
     [InlineData(ModuleNames.Bookings, true)]
     [InlineData(ModuleNames.Communications, true)]
     [InlineData(ModuleNames.Payments, true)]
+    [InlineData(ModuleNames.Ratings, true)]
     [InlineData(ModuleNames.Reports, true)]
-    [InlineData(ModuleNames.Reviews, true)]
     public void IsValid_WithValidModuleName_ShouldReturnTrue(string moduleName, bool expected)
     {
         // Act
@@ -79,6 +79,10 @@ public class ModuleNamesTests
     [InlineData(ModuleNames.ServiceCatalogs, true)]
     [InlineData(ModuleNames.SearchProviders, true)]
     [InlineData(ModuleNames.Locations, true)]
+    [InlineData(ModuleNames.Bookings, true)]
+    [InlineData(ModuleNames.Communications, true)]
+    [InlineData(ModuleNames.Payments, true)]
+    [InlineData(ModuleNames.Ratings, true)]
     public void IsImplemented_WithImplementedModule_ShouldReturnTrue(string moduleName, bool expected)
     {
         // Act
@@ -89,11 +93,17 @@ public class ModuleNamesTests
     }
 
     [Theory]
+    [InlineData(ModuleNames.Users)]
+    [InlineData(ModuleNames.Providers)]
+    [InlineData(ModuleNames.Documents)]
+    [InlineData(ModuleNames.ServiceCatalogs)]
+    [InlineData(ModuleNames.SearchProviders)]
+    [InlineData(ModuleNames.Locations)]
     [InlineData(ModuleNames.Bookings)]
     [InlineData(ModuleNames.Communications)]
     [InlineData(ModuleNames.Payments)]
+    [InlineData(ModuleNames.Ratings)]
     [InlineData(ModuleNames.Reports)]
-    [InlineData(ModuleNames.Reviews)]
     public void IsImplemented_WithPlannedModule_ShouldReturnFalse(string moduleName)
     {
         // Act
@@ -134,7 +144,7 @@ public class ModuleNamesTests
     public void ImplementedModules_ShouldContainExactly6Modules()
     {
         // Assert
-        Assert.Equal(6, ModuleNames.ImplementedModules.Count);
+        Assert.Equal(10, ModuleNames.ImplementedModules.Count);
     }
 
     [Fact]
@@ -148,7 +158,11 @@ public class ModuleNamesTests
             ModuleNames.Documents,
             ModuleNames.ServiceCatalogs,
             ModuleNames.SearchProviders,
-            ModuleNames.Locations
+            ModuleNames.Locations,
+            ModuleNames.Bookings,
+            ModuleNames.Communications,
+            ModuleNames.Payments,
+            ModuleNames.Ratings,
         };
 
         // Assert
@@ -181,11 +195,17 @@ public class ModuleNamesTests
         // Arrange
         var plannedModules = new[]
         {
+            ModuleNames.Users,
+            ModuleNames.Providers,
+            ModuleNames.Documents,
+            ModuleNames.ServiceCatalogs,
+            ModuleNames.SearchProviders,
+            ModuleNames.Locations,
             ModuleNames.Bookings,
             ModuleNames.Communications,
             ModuleNames.Payments,
+            ModuleNames.Ratings,
             ModuleNames.Reports,
-            ModuleNames.Reviews
         };
 
         // Assert
@@ -220,7 +240,7 @@ public class ModuleNamesTests
     [Fact]
     public void ModuleNames_AllConstantsShouldBeNotNullOrEmpty()
     {
-        // Arrange - Explicit list of all module name constants
+        // Arrange
         var moduleConstants = new[]
         {
             ModuleNames.Users,
@@ -233,7 +253,7 @@ public class ModuleNamesTests
             ModuleNames.Communications,
             ModuleNames.Payments,
             ModuleNames.Reports,
-            ModuleNames.Reviews
+            ModuleNames.Ratings
         };
 
         // Act & Assert
@@ -303,11 +323,7 @@ public class ModuleNamesTests
         // Arrange
         var plannedModules = new[]
         {
-            ModuleNames.Bookings,
-            ModuleNames.Communications,
-            ModuleNames.Payments,
-            ModuleNames.Reports,
-            ModuleNames.Reviews
+            ModuleNames.Reports,  
         };
 
         // Assert

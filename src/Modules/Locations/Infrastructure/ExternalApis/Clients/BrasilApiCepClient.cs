@@ -28,7 +28,7 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogDebug("BrasilAPI response for {Cep}: {Content}", cep.Value, content);
-            var brasilApiResponse = JsonSerializer.Deserialize<BrasilApiCepResponse>(content, SerializationDefaults.Api);
+            var brasilApiResponse = System.Text.Json.JsonSerializer.Deserialize<BrasilApiCepResponse>(content, SerializationDefaults.Api);
 
             if (brasilApiResponse is null)
             {

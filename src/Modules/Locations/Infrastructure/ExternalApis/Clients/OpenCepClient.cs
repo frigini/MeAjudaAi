@@ -29,7 +29,7 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogDebug("OpenCEP response for {Cep}: {Content}", cep.Value, content);
-            var openCepResponse = JsonSerializer.Deserialize<OpenCepResponse>(content, SerializationDefaults.Api);
+            var openCepResponse = System.Text.Json.JsonSerializer.Deserialize<OpenCepResponse>(content, SerializationDefaults.Api);
 
             if (openCepResponse is null)
             {

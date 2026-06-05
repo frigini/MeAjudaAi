@@ -113,7 +113,7 @@ public class UploadDocumentCommandHandler(
             _uow.GetRepository<Document, Guid>().Add(document);
 
             var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
-            var payload = JsonSerializer.Serialize(new { documentId = document.Id }, SerializationDefaults.Default);
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { documentId = document.Id }, SerializationDefaults.Default);
 
             var outboxMessage = OutboxMessage.Create(
                 type: OutboxMessageTypes.DocumentVerification,

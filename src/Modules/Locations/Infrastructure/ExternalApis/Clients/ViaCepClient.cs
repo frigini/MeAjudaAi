@@ -29,7 +29,7 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogDebug("ViaCEP response for {Cep}: {Content}", cep.Value, content);
-            var viaCepResponse = JsonSerializer.Deserialize<ViaCepResponse>(content, SerializationDefaults.Api);
+            var viaCepResponse = System.Text.Json.JsonSerializer.Deserialize<ViaCepResponse>(content, SerializationDefaults.Api);
 
             if (viaCepResponse is null)
             {

@@ -83,7 +83,7 @@ public class RequestVerificationCommandHandler(
             document.MarkAsPendingVerification();
 
             var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
-            var payload = JsonSerializer.Serialize(new { documentId = command.DocumentId }, SerializationDefaults.Default);
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { documentId = command.DocumentId }, SerializationDefaults.Default);
 
             var outboxMessage = OutboxMessage.Create(
                 type: OutboxMessageTypes.DocumentVerification,

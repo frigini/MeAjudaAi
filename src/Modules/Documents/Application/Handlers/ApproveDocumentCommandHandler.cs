@@ -75,7 +75,7 @@ public class ApproveDocumentCommandHandler(
             }
 
             var ocrData = command.VerificationNotes != null 
-                ? JsonSerializer.Serialize(new { notes = command.VerificationNotes }, SerializationDefaults.Default)
+                ? System.Text.Json.JsonSerializer.Serialize(new { notes = command.VerificationNotes }, SerializationDefaults.Default)
                 : null;
             
             document.MarkAsVerified(ocrData);

@@ -53,7 +53,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
             // A API retorna array quando busca por nome
-            var municipios = JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
+            var municipios = System.Text.Json.JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
 
             if (municipios is null || municipios.Count == 0)
             {
@@ -125,7 +125,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var municipios = JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
+            var municipios = System.Text.Json.JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
 
             return municipios ?? [];
         }

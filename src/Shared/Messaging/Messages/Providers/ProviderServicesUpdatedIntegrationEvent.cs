@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
 

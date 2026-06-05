@@ -202,7 +202,7 @@ public static class Extensions
             .GetRequiredService<IWebHostEnvironment>()
             .IsDevelopment();
 
-        var result = JsonSerializer.Serialize(new
+        var result = System.Text.Json.JsonSerializer.Serialize(new
         {
             status = report.Status.ToString(),
             totalDuration = report.TotalDuration.TotalMilliseconds,

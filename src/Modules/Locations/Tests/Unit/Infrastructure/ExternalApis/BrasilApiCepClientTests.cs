@@ -49,7 +49,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(brasilApiResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(brasilApiResponse, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetAddressAsync(cep, CancellationToken.None);
@@ -135,7 +135,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(brasilApiResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(brasilApiResponse, SerializationDefaults.Default));
 
         // Act
         await _client.GetAddressAsync(cep, CancellationToken.None);
