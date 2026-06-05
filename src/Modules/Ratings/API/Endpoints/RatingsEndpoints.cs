@@ -75,7 +75,7 @@ public static class RatingsEndpoints
 
         var reviewId = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.Created($"/{ApiEndpoints.Ratings.Base}/{reviewId}/status", reviewId);
+        return Results.Created($"/api/v1/{ApiEndpoints.Ratings.Base}/{reviewId}/status", reviewId);
     }
 
     private static async Task<IResult> GetReviewByIdAsync(

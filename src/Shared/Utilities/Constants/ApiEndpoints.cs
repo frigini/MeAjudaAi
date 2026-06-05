@@ -52,7 +52,6 @@ public static class ApiEndpoints
         public const string GetProviderBookings = "/provider/{providerId:guid}";
         public const string GetProviderAvailability = "/availability/{providerId:guid}";
         public const string SetProviderSchedule = "/schedule";
-        public const string Events = "/events";
     }
 
     public static class Communications
@@ -85,7 +84,7 @@ public static class ApiEndpoints
 
     public static class SearchProviders
     {
-        public const string Base = "search-providers";
+        public const string Base = "search";
     }
 
     public static class ServiceCatalogs

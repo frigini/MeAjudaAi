@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints;
@@ -17,7 +19,8 @@ public static class PaymentsEndpoints
              .MapEndpoint<GetBillingPortalEndpoint>();
 
         // Webhooks do Stripe devem ficar fora do grupo versionado para garantir estabilidade da URL
-        var webhookGroup = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Payments.Base + "/webhooks", "Webhooks");
+        var webhookGroup = app.MapGroup("/api/payments/webhooks")
+                              .WithTags("Webhooks");
         webhookGroup.MapEndpoint<StripeWebhookEndpoint>();
     }
 }
