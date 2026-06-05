@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Modules.Users.Application;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;

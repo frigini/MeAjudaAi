@@ -73,8 +73,10 @@ public class CorrelationIdEnricher : ILogEventEnricher
 
     private static IServiceProvider? GetCurrentServiceProvider()
     {
-        // Em um contexto real, isso seria injetado ou obtido do contexto da aplicação
-        // Por simplicidade, retornando null por enquanto
+        // Em um contexto real, isso seria injetado ou obtido do contexto da aplicação.
+        // Como o ILogEventEnricher é instanciado fora do container de DI do ASP.NET Core, 
+        // o acesso direto ao IHttpContextAccessor via estática não é trivial.
+        // Mantido como null até que uma estratégia de injeção de dependência via Serilog seja implementada.
         return null;
     }
 }

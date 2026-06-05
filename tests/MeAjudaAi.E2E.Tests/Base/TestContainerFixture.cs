@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
@@ -568,3 +569,4 @@ public class TestContainerFixture : IAsyncLifetime
         return ExtractIdFromLocation(locationHeader);
     }
 }
+

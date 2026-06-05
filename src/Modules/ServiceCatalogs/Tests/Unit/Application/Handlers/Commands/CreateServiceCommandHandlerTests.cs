@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
@@ -6,6 +7,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -241,3 +243,6 @@ public class CreateServiceCommandHandlerTests
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao criar o serviço.");
     }
 }
+
+
+

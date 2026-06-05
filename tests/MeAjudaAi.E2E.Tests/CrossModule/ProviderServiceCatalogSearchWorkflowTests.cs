@@ -184,7 +184,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // Isso garante que o provider esteja indexado corretamente para a busca
         await _fixture.WithServiceScopeAsync(async sp =>
         {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
+            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
             Console.WriteLine($"DEBUG: Inserindo provider {providerId} com service {serviceId}");
             
@@ -434,7 +434,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // Inserir diretamente na tabela searchable_providers com ambos serviços
         await _fixture.WithServiceScopeAsync(async sp =>
         {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
+            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
@@ -513,7 +513,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // Inserir diretamente na tabela searchable_providers com um serviço
         await _fixture.WithServiceScopeAsync(async sp =>
         {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
+            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
@@ -610,3 +610,4 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         }
     }
 }
+

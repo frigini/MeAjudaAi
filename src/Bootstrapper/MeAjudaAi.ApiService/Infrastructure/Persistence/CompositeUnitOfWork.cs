@@ -1,4 +1,6 @@
-using MeAjudaAi.Shared.Database;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Database.Abstractions;
 
 namespace MeAjudaAi.ApiService.Infrastructure.Persistence;
 

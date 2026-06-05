@@ -1,7 +1,9 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,3 +51,6 @@ public sealed class ActivateServiceCategoryCommandHandler : ICommandHandler<Acti
         }
     }
 }
+
+
+

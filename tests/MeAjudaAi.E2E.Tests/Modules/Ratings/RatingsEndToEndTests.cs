@@ -129,7 +129,7 @@ public class RatingsEndToEndTests : BaseTestContainerTest
     {
         await WithServiceScopeAsync(async sp =>
         {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
+            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
@@ -164,3 +164,4 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         });
     }
 }
+

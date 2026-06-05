@@ -3,7 +3,7 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database;using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -58,3 +58,5 @@ public async Task ValidRepository_ShouldHaveAllMethods()
     repository.Should().BeAssignableTo<IRepository<AllowedCity, Guid>>();
 }
 }
+
+

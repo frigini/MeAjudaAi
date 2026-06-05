@@ -1,13 +1,14 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
-using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
@@ -69,3 +70,5 @@ public sealed class DeleteServiceCommandHandler : ICommandHandler<DeleteServiceC
         }
     }
 }
+
+

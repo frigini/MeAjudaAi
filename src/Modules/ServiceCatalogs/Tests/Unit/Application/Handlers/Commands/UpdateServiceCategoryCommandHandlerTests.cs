@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
@@ -162,3 +164,6 @@ internal class ServiceCategoryBuilder
     public ServiceCategoryBuilder AsInactive() { _category.Deactivate(); return this; }
     public ServiceCategory Build() => _category;
 }
+
+
+

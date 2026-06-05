@@ -10,7 +10,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database;using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -555,3 +555,5 @@ services.AddHttpContextAccessor();
         return null;
     }
 }
+
+

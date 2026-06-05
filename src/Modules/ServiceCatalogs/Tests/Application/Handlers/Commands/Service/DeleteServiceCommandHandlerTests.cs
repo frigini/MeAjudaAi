@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -6,6 +7,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
@@ -96,3 +98,6 @@ public class DeleteServiceCommandHandlerTests
         result.Error.Message.Should().Contain(string.Format(ValidationMessages.Catalogs.CannotDeleteServiceOffered, service.Name));
     }
 }
+
+
+

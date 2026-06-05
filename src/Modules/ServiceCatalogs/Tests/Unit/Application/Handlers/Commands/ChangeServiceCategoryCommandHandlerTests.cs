@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
@@ -169,3 +171,6 @@ public class ChangeServiceCategoryCommandHandlerTests
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
+
+
+
