@@ -1,8 +1,10 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using Microsoft.Extensions.Logging;
@@ -69,4 +71,7 @@ public class ServiceDeactivatedIntegrationEventHandlerTests
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
+
+
+
 

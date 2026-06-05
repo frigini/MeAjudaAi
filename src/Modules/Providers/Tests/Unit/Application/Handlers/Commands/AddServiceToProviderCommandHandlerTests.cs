@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 using MeAjudaAi.Contracts.Functional;
@@ -264,3 +265,5 @@ public class AddServiceToProviderCommandHandlerTests
         result.Error.Message.Should().Contain("Database error");
     }
 }
+
+

@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -19,3 +20,5 @@ public partial class UsersDbContext : IRepository<User, UserId>
     public void Delete(User aggregate) =>
         Users.Remove(aggregate);
 }
+
+

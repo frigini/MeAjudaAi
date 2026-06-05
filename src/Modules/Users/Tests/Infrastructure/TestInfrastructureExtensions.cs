@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Users.Application;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -76,7 +76,7 @@ public static class UsersTestInfrastructureExtensions
         services.AddUsersTestMocks(options.ExternalServices);
 
         // Adicionar IUnitOfWork e IUserQueries específicos do Users
-        services.AddScoped<MeAjudaAi.Shared.Database.IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
+        services.AddScoped<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
         services.AddScoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
         services.AddScoped<MeAjudaAi.Modules.Users.Application.Queries.IUserQueries, MeAjudaAi.Modules.Users.Infrastructure.Queries.DbContextUserQueries>();
 
@@ -110,3 +110,4 @@ public static class UsersTestInfrastructureExtensions
         return services;
     }
 }
+

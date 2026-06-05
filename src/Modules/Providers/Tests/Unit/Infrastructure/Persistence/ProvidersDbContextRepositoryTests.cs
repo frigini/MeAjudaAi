@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -178,3 +179,5 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.Dispose();
     }
 }
+
+

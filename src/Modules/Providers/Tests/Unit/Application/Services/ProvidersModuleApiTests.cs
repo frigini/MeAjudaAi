@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -82,3 +83,5 @@ public class ProvidersModuleApiTests
             IsActive: true);
     }
 }
+
+

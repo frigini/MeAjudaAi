@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
@@ -11,6 +12,7 @@ using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
@@ -269,3 +271,6 @@ public sealed class SearchProvidersModuleApi(
         _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
     };
 }
+
+
+

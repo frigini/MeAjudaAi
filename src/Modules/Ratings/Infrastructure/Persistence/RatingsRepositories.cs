@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
@@ -16,3 +17,4 @@ public partial class RatingsDbContext : IRepository<Review, ReviewId>
     void IRepository<Review, ReviewId>.Delete(Review aggregate) =>
         Reviews.Remove(aggregate);
 }
+

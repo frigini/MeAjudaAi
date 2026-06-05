@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
@@ -141,3 +142,5 @@ public class DbContextSearchableProviderQueriesTests : IDisposable
         _dapperMock.VerifyNoOtherCalls();
     }
 }
+
+

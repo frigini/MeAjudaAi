@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
@@ -6,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -119,4 +121,7 @@ public static class ProvidersTestInfrastructureExtensions
         return services;
     }
 }
+
+
+
 

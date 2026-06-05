@@ -1,9 +1,11 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Data.Common;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -290,3 +292,6 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         return SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..GuidSuffixLength]);
     }
 }
+
+
+

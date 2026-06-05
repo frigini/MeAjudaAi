@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -208,3 +209,5 @@ public sealed class SuspendProviderCommandHandlerTests
             Times.Never);
     }
 }
+
+

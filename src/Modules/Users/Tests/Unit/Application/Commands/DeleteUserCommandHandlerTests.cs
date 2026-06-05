@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -97,3 +98,5 @@ public class DeleteUserCommandHandlerTests
             Times.Once);
     }
 }
+
+

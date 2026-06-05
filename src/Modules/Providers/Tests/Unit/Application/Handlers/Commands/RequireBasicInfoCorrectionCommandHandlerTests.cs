@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -316,3 +317,5 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         correctionEvent.RequestedBy.Should().Be("verifier@test.com");
     }
 }
+
+

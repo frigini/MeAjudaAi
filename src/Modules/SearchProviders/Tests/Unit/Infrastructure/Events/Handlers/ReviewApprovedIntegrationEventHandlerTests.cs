@@ -1,8 +1,10 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using Microsoft.Extensions.Logging;
@@ -110,3 +112,6 @@ public class ReviewApprovedIntegrationEventHandlerTests
         await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(integrationEvent));
     }
 }
+
+
+

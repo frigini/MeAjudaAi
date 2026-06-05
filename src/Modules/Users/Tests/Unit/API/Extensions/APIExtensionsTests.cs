@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
+                ["ConnectionStrings:Users"] = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString,
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
@@ -48,7 +49,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
+                ["ConnectionStrings:Users"] = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString,
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
@@ -69,7 +70,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
+                ["ConnectionStrings:Users"] = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString,
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
@@ -167,7 +168,7 @@ public class APIExtensionsTests
         var services = new ServiceCollection();
         var configData = new Dictionary<string, string?>
         {
-            ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
+            ["ConnectionStrings:Users"] = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString,
             ["Cache:RedisConnectionString"] = "localhost:6379"
         };
         var configuration = new ConfigurationBuilder()
@@ -192,7 +193,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString
+                ["ConnectionStrings:Users"] = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString
             })
             .Build();
 
@@ -206,3 +207,6 @@ public class APIExtensionsTests
         act.Should().NotThrow();
     }
 }
+
+
+

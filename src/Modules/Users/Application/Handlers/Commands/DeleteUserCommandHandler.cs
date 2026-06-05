@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
@@ -163,3 +164,5 @@ internal sealed class DeleteUserCommandHandler(
         logger.LogDebug("User {UserId} deletion persisted successfully", user.Id);
     }
 }
+
+

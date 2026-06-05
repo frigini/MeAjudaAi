@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
@@ -13,6 +14,7 @@ using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -608,4 +610,7 @@ public class SearchProvidersModuleApiTests
 
     #endregion
 }
+
+
+
 

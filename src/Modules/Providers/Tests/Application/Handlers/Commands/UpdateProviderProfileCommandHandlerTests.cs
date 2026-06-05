@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -129,3 +130,5 @@ public class UpdateProviderProfileCommandHandlerTests
         result.Error.Message.Should().Contain("Error updating provider profile");
     }
 }
+
+

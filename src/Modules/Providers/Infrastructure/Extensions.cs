@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
@@ -5,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +47,7 @@ public static class Extensions
                 {
                     // Para testes, usar uma connection string temporária que será substituída
 #pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
 #pragma warning restore S2068
                 }
                 else
@@ -120,3 +123,10 @@ public static class Extensions
         return services;
     }
 }
+
+
+
+
+
+
+

@@ -5,6 +5,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Contracts.Modules.Ratings.Enums;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -132,3 +133,4 @@ public static class RatingsEndpoints
         return Results.Ok(result);
     }
 }
+

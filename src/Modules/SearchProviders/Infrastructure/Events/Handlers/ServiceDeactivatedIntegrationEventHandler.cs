@@ -1,5 +1,7 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
@@ -39,3 +41,6 @@ public sealed class ServiceDeactivatedIntegrationEventHandler(
             integrationEvent.ServiceId, providers.Count);
     }
 }
+
+
+

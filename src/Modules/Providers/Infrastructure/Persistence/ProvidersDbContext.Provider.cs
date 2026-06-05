@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -24,3 +25,5 @@ public partial class ProvidersDbContext : IRepository<Provider, ProviderId>
     public void Delete(Provider aggregate) =>
         Providers.Remove(aggregate);
 }
+
+
