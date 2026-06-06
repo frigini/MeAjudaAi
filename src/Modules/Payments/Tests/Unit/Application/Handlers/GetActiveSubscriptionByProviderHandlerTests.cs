@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Shared.ValueObjects;
+using MeAjudaAi.Shared.Domain.ValueObjects;
 using Moq;
 using Xunit;
 

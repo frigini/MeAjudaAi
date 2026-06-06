@@ -26,7 +26,7 @@ public class GetEmailTemplateByKeyHandlerTests
         _emailTemplateQueriesMock.Setup(q => q.GetActiveByKeyAsync("template1", "en", It.IsAny<CancellationToken>()))
             .ReturnsAsync(template);
 
-        var query = new GetEmailTemplateByKeyQuery("template1", "en");
+        var query = new GetEmailTemplateByKeyQuery("template1", "en", Guid.NewGuid());
 
         // Act
         var result = await _handler.HandleAsync(query);
@@ -44,7 +44,7 @@ public class GetEmailTemplateByKeyHandlerTests
         _emailTemplateQueriesMock.Setup(q => q.GetActiveByKeyAsync("template1", "en", It.IsAny<CancellationToken>()))
             .ReturnsAsync((EmailTemplate?)null);
 
-        var query = new GetEmailTemplateByKeyQuery("template1", "en");
+        var query = new GetEmailTemplateByKeyQuery("template1", "en", Guid.NewGuid());
 
         // Act
         var result = await _handler.HandleAsync(query);

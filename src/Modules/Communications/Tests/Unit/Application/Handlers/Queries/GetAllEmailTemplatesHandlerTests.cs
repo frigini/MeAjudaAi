@@ -30,7 +30,7 @@ public class GetAllEmailTemplatesHandlerTests
         _emailTemplateQueriesMock.Setup(q => q.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(templates);
 
-        var query = new GetAllEmailTemplatesQuery();
+        var query = new GetAllEmailTemplatesQuery(Guid.NewGuid());
 
         // Act
         var result = await _handler.HandleAsync(query);

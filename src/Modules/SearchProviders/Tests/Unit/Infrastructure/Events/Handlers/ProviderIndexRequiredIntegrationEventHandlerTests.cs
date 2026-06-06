@@ -29,7 +29,7 @@ public class ProviderIndexRequiredIntegrationEventHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var integrationEvent = new ProviderIndexRequiredIntegrationEvent(providerId);
+        var integrationEvent = new ProviderIndexRequiredIntegrationEvent("Test", providerId);
 
         _searchProvidersModuleApiMock
             .Setup(x => x.IndexProviderAsync(providerId, It.IsAny<CancellationToken>()))
@@ -57,8 +57,8 @@ public class ProviderIndexRequiredIntegrationEventHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var integrationEvent = new ProviderIndexRequiredIntegrationEvent(providerId);
-        var expectedError = Error.Failure("INDEX_ERROR", "Failed to index");
+        var integrationEvent = new ProviderIndexRequiredIntegrationEvent("Test", providerId);
+        var expectedError = Error.BadRequest("Failed to index", "INDEX_ERROR");
 
         _searchProvidersModuleApiMock
             .Setup(x => x.IndexProviderAsync(providerId, It.IsAny<CancellationToken>()))
