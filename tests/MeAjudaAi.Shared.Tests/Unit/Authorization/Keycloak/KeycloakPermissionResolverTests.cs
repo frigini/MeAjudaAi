@@ -340,6 +340,45 @@ public class KeycloakPermissionResolverTests
     }
 
     [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WithHttpRequestException_ReturnsEmpty()
+    {
+        // Arrange
+        var userId = "user-123";
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupThrowingHttpMessage(HttpMethod.Get, $"users/{userId}", new HttpRequestException("Network failure", null, HttpStatusCode.NotFound));
+
+        // Act
+        var result = await _resolver.GetUserRolesFromKeycloakAsync(userId);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WithJsonException_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var userId = "user-123";
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupHttpMessage(HttpMethod.Get, $"users/{userId}", "{ invalid json");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _resolver.GetUserRolesFromKeycloakAsync(userId));
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WithUnexpectedException_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var userId = "user-123";
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupThrowingHttpMessage(HttpMethod.Get, $"users/{userId}", new Exception("Unexpected error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _resolver.GetUserRolesFromKeycloakAsync(userId));
+    }
+
+    [Fact]
     public void ModuleName_ShouldReturnUsersModule()
     {
         // Act
