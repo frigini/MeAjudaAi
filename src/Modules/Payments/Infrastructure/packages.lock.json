@@ -53,9 +53,9 @@
       },
       "Stripe.net": {
         "type": "Direct",
-        "requested": "[51.2.0, )",
-        "resolved": "51.2.0",
-        "contentHash": "lxylbSfZDXK9hW2ZvivnxLL/raCOxlvjUYyv2IXwWbq1DUxQ9OFhMwslLq+7JudBQ0ysd9ThV34CjrByyFnu7w==",
+        "requested": "[52.0.0, )",
+        "resolved": "52.0.0",
+        "contentHash": "tbsaYfycHQ91QlgfF27iLGA16VV0OSMwRWYTBtiHIeOmeCJJHr4P/cXoqfKpcBu5BBs2mp2hqV5cKhQYRK2JcQ==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
           "System.Configuration.ConfigurationManager": "9.0.0"
@@ -411,7 +411,6 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.6.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.8, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
-          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
