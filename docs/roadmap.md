@@ -31,6 +31,10 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
     - **Fase 2**: Implementação de Handlers pendentes – ✅ Concluído. (Todos os 10 módulos auditados e handlers/APIs implementados)
     - **Fase 3**: Testes (Unitários e Integração) – 🚀 Em execução: Validar lógica de handler e fluxos de integração.
     - **Extra**: Auditoria de Comunicação Síncrona vs Assíncrona realizada (Ver `docs/communication-audit.md`) e criação de APIs Públicas.
+    - **Infraestrutura e Mensageria**:
+        - **Desempenho do Service Bus (Concluído)**: ✅ Ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` via QoS.
+        - **Resiliência Crítica (Concluído)**: ✅ Persistência via Quorum Queues para eventos `[CriticalEvent]`.
+        - **Roteamento por Atributo (Concluído)**: ✅ Suporte total a tópicos dedicados via `AttributeTopicNameConvention`.
 
 ---
 
@@ -45,11 +49,6 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
     - **Administração**: Relatórios de crescimento da plataforma, hotspots geográficos de demanda e exportação de dados para contabilidade (CSV/PDF).
     - **Inteligência**: Sugestões de precificação baseadas na demanda da região.
 
-### 🚀 Arquitetura Evolutiva e Mensageria (Objetivos)
-
-- **Desempenho do Service Bus (Concluído)**: ✅ Implementado ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` via QoS no `RabbitMqInfrastructureManager`.
-- **Resiliência Crítica (Concluído)**: ✅ Garantida persistência via Quorum Queues para eventos marcados com `[CriticalEvent]`.
-- **Roteamento por Atributo (Em Andamento)**: Evolução do `AttributeTopicNameConvention` para suporte total a tópicos dedicados.
 
 ---
 
