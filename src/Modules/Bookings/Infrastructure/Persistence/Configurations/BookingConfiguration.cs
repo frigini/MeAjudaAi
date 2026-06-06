@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

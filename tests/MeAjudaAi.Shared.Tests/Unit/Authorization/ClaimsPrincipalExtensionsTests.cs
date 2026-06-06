@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;

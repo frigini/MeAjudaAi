@@ -2,8 +2,8 @@ using System.Reflection;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 
@@ -42,3 +42,5 @@ public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
+
+

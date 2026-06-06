@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Events;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Events;
 

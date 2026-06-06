@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Shared.Database;
@@ -78,3 +79,6 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
+
+
+

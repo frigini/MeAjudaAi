@@ -1,9 +1,11 @@
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Payments;
+using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +13,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Stripe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 
 public class ProcessInboxJob(
     IServiceProvider sp,
+    IMessageBus messageBus,
     ILogger<ProcessInboxJob> logger) : BackgroundService
 {
     protected readonly IServiceProvider _sp = sp;
@@ -34,14 +32,12 @@ public class ProcessInboxJob(
             try
             {
                 using var scope = _sp.CreateScope();
-                var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Payments);
+                var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments);
                 var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
 
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
 
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
-
-                var inboxRepo = uow.GetRepository<InboxMessage, Guid>();
 
                 var messages = await dbContext.InboxMessages
                     .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
@@ -106,6 +102,7 @@ public class ProcessInboxJob(
             }
         }
     }
+    // ... (rest of the file stays the same, need to update ProcessStripeEventAsync)
 
     public StripeEventData MapToStripeEventData(Event stripeEvent)
     {
@@ -186,6 +183,8 @@ public class ProcessInboxJob(
 
                 subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty); 
                 logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, data.ProviderId, data.CustomerId);
+                
+                await messageBus.PublishAsync(new SubscriptionActivatedIntegrationEvent(ModuleNames.Payments, subscription.Id, subscription.ProviderId), null, ct); // Assuming ProviderId is the equivalent of UserId in Payments context for now based on domain model
                 break;
 
             case "invoice.paid":
@@ -202,6 +201,11 @@ public class ProcessInboxJob(
                     {
                         subToRenew.Renew(data.PeriodEnd.Value);
                         logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}", subToRenew.Id, subToRenew.ExpiresAt);
+                        
+                        await messageBus.PublishAsync(new SubscriptionRenewedIntegrationEvent(
+                            ModuleNames.Payments,
+                            subToRenew.Id,
+                            subToRenew.ProviderId), null, ct);
                     }
 
                     Money? amount = null;
@@ -252,6 +256,11 @@ public class ProcessInboxJob(
                 {
                     subToCancel.Cancel();
                     logger.LogInformation("Subscription {Id} canceled due to deletion in Stripe", subToCancel.Id);
+                    
+                    await messageBus.PublishAsync(new SubscriptionCanceledIntegrationEvent(
+                        ModuleNames.Payments,
+                        subToCancel.Id,
+                        subToCancel.ProviderId), null, ct);
                 }
                 else
                 {
@@ -266,3 +275,6 @@ public class ProcessInboxJob(
         }
     }
 }
+
+
+

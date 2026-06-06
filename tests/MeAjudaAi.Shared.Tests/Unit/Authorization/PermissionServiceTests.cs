@@ -1,13 +1,10 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Hybrid;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -29,7 +26,7 @@ public class PermissionServiceTests
 
         // Setup metrics mock to return a disposal that doesn't crash
         _metricsMock.Setup(m => m.MeasurePermissionResolution(It.IsAny<string>())).Returns(new Mock<IDisposable>().Object);
-        _metricsMock.Setup(m => m.MeasureCacheOperation(It.IsAny<string>(), It.IsAny<bool>())).Returns(new Mock<IDisposable>().Object);
+        _metricsMock.Setup(m => m.MeasureCacheOperation(It.IsAny<string>(), It.IsAny<Func<bool>>())).Returns(new Mock<IDisposable>().Object);
         _metricsMock.Setup(m => m.MeasurePermissionCheck(It.IsAny<string>(), It.IsAny<EPermission>(), It.IsAny<bool>())).Returns(new Mock<IDisposable>().Object);
 
         _service = new PermissionService(
@@ -71,6 +68,28 @@ public class PermissionServiceTests
         // Assert
         result.Should().BeEquivalentTo(cachedPermissions);
         _serviceProviderMock.Verify(s => s.GetService(typeof(IEnumerable<IPermissionProvider>)), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetUserPermissionsAsync_WhenCriticalFailureOccurs_ShouldThrowPermissionServiceException()
+    {
+        // Arrange
+        var userId = "user-123";
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Redis connection failed"));
+
+        // Act
+        var act = () => _service.GetUserPermissionsAsync(userId);
+
+        // Assert
+        await act.Should().ThrowAsync<PermissionServiceException>()
+            .WithMessage($"Failed to retrieve permissions for user {userId}");
     }
 
     [Fact]
@@ -128,6 +147,30 @@ public class PermissionServiceTests
         // Assert
         result.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task HasPermissionAsync_WhenCriticalFailureOccurs_ShouldThrowPermissionServiceException()
+    {
+        // Arrange
+        var userId = "user-123";
+        var permission = EPermission.UsersRead;
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var act = () => _service.HasPermissionAsync(userId, permission);
+
+        // Assert
+        await act.Should().ThrowAsync<PermissionServiceException>()
+            .WithMessage($"Failed to retrieve permissions for user {userId}");
+        }
+
 
     [Fact]
     public async Task HasPermissionsAsync_WhenRequireAllIsTrueAndAllPresent_ShouldReturnTrue()

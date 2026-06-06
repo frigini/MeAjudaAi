@@ -1,12 +1,10 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Contracts.Functional;
 
@@ -14,6 +12,9 @@ using MeAjudaAi.Shared.Extensions;
 
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -25,6 +26,7 @@ public sealed class CreateAllowedCityHandler(
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,
+    IMessageBus messageBus,
     ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
@@ -82,6 +84,16 @@ public sealed class CreateAllowedCityHandler(
         uow.GetRepository<AllowedCity, Guid>().Add(allowedCity);
         await uow.SaveChangesAsync(cancellationToken);
 
+        // Publicar evento de integração
+        await messageBus.PublishAsync(new AllowedCityCreatedIntegrationEvent(
+            ModuleNames.Locations,
+            allowedCity.Id,
+            allowedCity.CityName,
+            allowedCity.StateSigla), cancellationToken: cancellationToken);
+
         return Result<Guid>.Success(allowedCity.Id);
     }
 }
+
+
+

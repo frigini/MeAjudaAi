@@ -1,11 +1,10 @@
 using System.Security.Claims;
-using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Handlers;
+using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -18,14 +17,16 @@ namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 public class PermissionClaimsTransformationTests
 {
     private readonly Mock<IPermissionService> _permissionServiceMock;
+    private readonly Mock<IPermissionMetricsService> _metricsServiceMock;
     private readonly Mock<ILogger<PermissionClaimsTransformation>> _loggerMock;
     private readonly PermissionClaimsTransformation _sut;
 
     public PermissionClaimsTransformationTests()
     {
         _permissionServiceMock = new Mock<IPermissionService>();
+        _metricsServiceMock = new Mock<IPermissionMetricsService>();
         _loggerMock = new Mock<ILogger<PermissionClaimsTransformation>>();
-        _sut = new PermissionClaimsTransformation(_permissionServiceMock.Object, _loggerMock.Object);
+        _sut = new PermissionClaimsTransformation(_permissionServiceMock.Object, _metricsServiceMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -323,6 +324,36 @@ public class PermissionClaimsTransformationTests
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Added 4 permission claims")),
                 null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task TransformAsync_WhenPermissionServiceThrowsUnexpectedException_ShouldThrowAndLogError()
+    {
+        // Arrange
+        var userId = "user-123";
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, userId)
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+
+        var exception = new Exception("Unexpected error");
+        _permissionServiceMock
+            .Setup(s => s.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(exception);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _sut.TransformAsync(principal));
+        
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to transform claims")),
+                exception,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Endpoints;
 

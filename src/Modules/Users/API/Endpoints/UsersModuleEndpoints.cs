@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 using MeAjudaAi.Modules.Users.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
@@ -10,7 +11,7 @@ public static class UsersModuleEndpoints
     public static void MapUsersEndpoints(this WebApplication app)
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
-        var endpoints = BaseEndpoint.CreateVersionedGroup(app, "users", "Users")
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Users.Base, ModuleNames.Users)
             .RequireAuthorization(); // Aplica autorização global
 
         endpoints.MapEndpoint<CreateUserEndpoint>()

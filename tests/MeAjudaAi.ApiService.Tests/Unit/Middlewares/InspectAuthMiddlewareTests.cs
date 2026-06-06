@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using System.Security.Claims;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 

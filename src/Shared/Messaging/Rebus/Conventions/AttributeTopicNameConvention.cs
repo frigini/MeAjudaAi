@@ -1,6 +1,6 @@
-using System.Reflection;
 using MeAjudaAi.Shared.Messaging.Attributes;
 using Rebus.Topic;
+using System.Reflection;
 
 namespace MeAjudaAi.Shared.Messaging.Rebus.Conventions;
 

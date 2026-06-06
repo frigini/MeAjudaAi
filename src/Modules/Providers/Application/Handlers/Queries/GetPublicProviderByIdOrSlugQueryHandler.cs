@@ -1,6 +1,4 @@
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
@@ -9,8 +7,6 @@ using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Domain.Constants;
 using Microsoft.FeatureManagement;
-using System.Collections.Generic;
-using System.Linq;
 using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;

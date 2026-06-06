@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
@@ -17,7 +18,7 @@ public static class ServiceCatalogsModuleEndpoints
     public static void MapServiceCatalogsEndpoints(this WebApplication app)
     {
         // Service Categories endpoints
-        var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "service-catalogs/categories", "ServiceCategories");
+        var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.ServiceCatalogs.Categories, "ServiceCategories");
 
         categoriesEndpoints.MapEndpoint<GetAllServiceCategoriesEndpoint>()
             .MapEndpoint<GetServiceCategoryByIdEndpoint>()
@@ -28,7 +29,7 @@ public static class ServiceCatalogsModuleEndpoints
             .MapEndpoint<DeleteServiceCategoryEndpoint>();
 
         // Services endpoints
-        var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "service-catalogs/services", "Services");
+        var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.ServiceCatalogs.Services, "Services");
 
         servicesEndpoints.MapEndpoint<GetAllServicesEndpoint>()
             .MapEndpoint<GetServiceByIdEndpoint>()

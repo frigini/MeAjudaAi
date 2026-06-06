@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
@@ -17,3 +17,5 @@ public partial class SearchProvidersDbContext : IRepository<SearchableProvider, 
     void IRepository<SearchableProvider, SearchableProviderId>.Delete(SearchableProvider aggregate) =>
         SearchableProviders.Remove(aggregate);
 }
+
+

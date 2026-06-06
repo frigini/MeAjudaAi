@@ -1,13 +1,8 @@
-using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Ratings;
 
@@ -129,7 +124,7 @@ public class RatingsEndToEndTests : BaseTestContainerTest
     {
         await WithServiceScopeAsync(async sp =>
         {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
+            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
@@ -164,3 +159,4 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         });
     }
 }
+

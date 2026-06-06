@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
-using Xunit;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -28,9 +27,9 @@ public class PermissionTests
     [Theory]
     [InlineData(EPermission.AdminSystem, "admin:system")]
     [InlineData(EPermission.UsersRead, "users:read")]
-    [InlineData(EPermission.UsersCreate, "users:create")]
-    [InlineData(EPermission.UsersUpdate, "users:update")]
-    [InlineData(EPermission.UsersDelete, "users:delete")]
+    [InlineData(EPermission.BookingsCreate, "bookings:create")]
+    [InlineData(EPermission.PaymentsCheckout, "payments:checkout")]
+    [InlineData(EPermission.RatingsModerate, "ratings:moderate")]
     public void GetValue_ShouldReturnCorrectStringValue(EPermission permission, string expectedValue)
     {
         // Act
@@ -43,7 +42,9 @@ public class PermissionTests
     [Theory]
     [InlineData(EPermission.AdminSystem, "admin")]
     [InlineData(EPermission.UsersRead, "users")]
-    [InlineData(EPermission.AdminUsers, "admin")]
+    [InlineData(EPermission.BookingsRead, "bookings")]
+    [InlineData(EPermission.PaymentsRead, "payments")]
+    [InlineData(EPermission.SearchRead, "search")]
     public void GetModule_ShouldReturnCorrectModuleName(EPermission permission, string expectedModule)
     {
         // Act
@@ -56,7 +57,8 @@ public class PermissionTests
     [Theory]
     [InlineData("admin:system", EPermission.AdminSystem)]
     [InlineData("users:read", EPermission.UsersRead)]
-    [InlineData("users:create", EPermission.UsersCreate)]
+    [InlineData("bookings:create", EPermission.BookingsCreate)]
+    [InlineData("payments:manage", EPermission.PaymentsManage)]
     public void FromValue_WithValidValue_ShouldReturnCorrectPermission(string value, EPermission expectedPermission)
     {
         // Act
@@ -84,7 +86,8 @@ public class PermissionTests
     [InlineData("system")]
     [InlineData("users")]
     [InlineData("providers")]
-    [InlineData("orders")]
+    [InlineData("bookings")]
+    [InlineData("payments")]
     [InlineData("reports")]
     public void GetPermissionsByModule_ShouldReturnOnlyModulePermissions(string moduleName)
     {
@@ -124,7 +127,7 @@ public class PermissionTests
     {
         // Arrange
         var allPermissions = Enum.GetValues<EPermission>();
-        var validModules = new[] { "system", "users", "providers", "orders", "reports", "admin", "service-catalogs", "locations" };
+        var validModules = new[] { "system", "users", "providers", "bookings", "payments", "communications", "ratings", "search", "documents", "reports", "admin", "service-catalogs", "locations" };
 
         // Act & Assert
         foreach (var permission in allPermissions)

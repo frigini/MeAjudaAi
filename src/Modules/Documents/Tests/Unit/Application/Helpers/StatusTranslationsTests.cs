@@ -1,7 +1,5 @@
 using MeAjudaAi.Modules.Documents.Application.Helpers;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Helpers;
 

@@ -1,11 +1,7 @@
 using System.Diagnostics.Metrics;
-using System.Linq;
-using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 

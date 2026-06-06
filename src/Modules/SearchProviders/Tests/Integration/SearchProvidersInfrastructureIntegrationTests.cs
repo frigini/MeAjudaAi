@@ -1,9 +1,8 @@
-using FluentAssertions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -479,4 +478,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         result.Providers.First().Name.Should().Be("João Silva");
     }
 }
+
+
+
 

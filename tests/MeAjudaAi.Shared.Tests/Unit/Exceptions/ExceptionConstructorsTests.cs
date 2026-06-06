@@ -1,6 +1,4 @@
 using MeAjudaAi.Shared.Exceptions;
-using FluentAssertions;
-using Xunit;
 using FluentValidation.Results;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;

@@ -2,8 +2,6 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Queries;

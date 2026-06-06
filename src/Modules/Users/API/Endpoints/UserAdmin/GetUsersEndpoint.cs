@@ -2,11 +2,8 @@ using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
 
@@ -15,6 +12,7 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 

@@ -1,12 +1,8 @@
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
-using MeAjudaAi.Shared.Messaging.Serialization;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging.DeadLetter;
 
@@ -17,7 +13,7 @@ public class RabbitMqDeadLetterServiceTests
     private readonly RabbitMqOptions _rabbitMqOptions = new();
     private readonly DeadLetterOptions _deadLetterOptions = new();
     private readonly Mock<IOptions<DeadLetterOptions>> _optionsMock = new();
-    private readonly Mock<IMessageSerializer> _serializerMock = new();
+    private readonly Mock<ISerializer> _serializerMock = new();
 
     public RabbitMqDeadLetterServiceTests()
     {
@@ -86,3 +82,4 @@ public class RabbitMqDeadLetterServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 }
+

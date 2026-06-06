@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Handlers;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
@@ -5,10 +6,7 @@ using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
 
@@ -157,3 +155,5 @@ public class CreateReviewCommandHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Você já avaliou este prestador.");
     }
 }
+
+

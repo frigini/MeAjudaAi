@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -13,7 +12,6 @@ using Microsoft.FeatureManagement;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using System.Text.Json;
 
 namespace MeAjudaAi.ServiceDefaults;
 
@@ -202,7 +200,7 @@ public static class Extensions
             .GetRequiredService<IWebHostEnvironment>()
             .IsDevelopment();
 
-        var result = JsonSerializer.Serialize(new
+        var result = System.Text.Json.JsonSerializer.Serialize(new
         {
             status = report.Status.ToString(),
             totalDuration = report.TotalDuration.TotalMilliseconds,

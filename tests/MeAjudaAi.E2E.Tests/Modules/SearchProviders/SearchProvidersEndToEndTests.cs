@@ -1,13 +1,9 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Globalization;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 
 namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
@@ -455,7 +451,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
     {
         await _fixture.WithServiceScopeAsync(async sp =>
         {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
+            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
             // Note: The table name is "search_providers.searchable_providers"
             // We need to ensure we set the SRID to 4326 for the geography column
@@ -541,3 +537,4 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         throw new ArgumentException($"Invalid subscription tier: {tier}", nameof(tier));
     }
 }
+

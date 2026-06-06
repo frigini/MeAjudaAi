@@ -8,12 +8,10 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
@@ -28,19 +26,11 @@ using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
-using Moq;
-using Xunit;
 using System.Runtime.CompilerServices;
 
 // Enable parallel execution by isolating databases per test class
@@ -168,7 +158,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
-                        ["Cache:Enabled"] = "false"
+                        ["Cache:Enabled"] = "false",
+                        ["Payments:AllowedReturnHosts:0"] = "localhost",
+                        ["ClientBaseUrl"] = "https://localhost"
                     });
                 });
                 builder.ConfigureServices(services =>
@@ -486,7 +478,7 @@ services.AddHttpContextAccessor();
         var jsonString = await content.ReadAsStringAsync();
         try 
         {
-            var json = JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
+            var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
             
             // Só tentamos desembrulhar se:
             // 1. O JSON for um objeto com a estrutura do Result { items: ..., isSuccess: true, value: ... }
@@ -509,9 +501,9 @@ services.AddHttpContextAccessor();
             }
 
             if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
-                return JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
+                return System.Text.Json.JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
             
-            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
+            return System.Text.Json.JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
         catch (JsonException ex)
         {
@@ -555,3 +547,5 @@ services.AddHttpContextAccessor();
         return null;
     }
 }
+
+

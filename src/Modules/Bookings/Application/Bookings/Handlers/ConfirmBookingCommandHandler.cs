@@ -1,22 +1,25 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Bookings;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class ConfirmBookingCommandHandler(
     IBookingQueries bookingQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
+    IMessageBus messageBus,
     ILogger<ConfirmBookingCommandHandler> logger) : ICommandHandler<ConfirmBookingCommand, Result>
 {
     public async Task<Result> HandleAsync(ConfirmBookingCommand command, CancellationToken cancellationToken = default)
@@ -45,6 +48,13 @@ public sealed class ConfirmBookingCommandHandler(
         {
             booking.Confirm();
             await uow.SaveChangesAsync(cancellationToken);
+
+            // Publicar evento de integração
+            await messageBus.PublishAsync(new BookingConfirmedIntegrationEvent(
+                ModuleNames.Bookings,
+                booking.Id,
+                booking.ProviderId,
+                booking.ClientId), cancellationToken: cancellationToken);
         }
         catch (InvalidBookingStateException ex)
         {
@@ -62,3 +72,6 @@ public sealed class ConfirmBookingCommandHandler(
         return Result.Success();
     }
 }
+
+
+

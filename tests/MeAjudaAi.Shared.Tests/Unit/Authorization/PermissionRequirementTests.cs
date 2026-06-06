@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.Handlers;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
@@ -109,17 +109,17 @@ public class PermissionRequirementTests
     }
 
     [Fact]
-    public void PermissionValue_WithOrdersDeletePermission_ShouldReturnCorrectValue()
+    public void PermissionValue_WithBookingsCancelPermission_ShouldReturnCorrectValue()
     {
         // Arrange
-        var permission = EPermission.OrdersDelete;
+        var permission = EPermission.BookingsCancel;
         var requirement = new PermissionRequirement(permission);
 
         // Act
         var result = requirement.PermissionValue;
 
         // Assert
-        result.Should().Be("orders:delete");
+        result.Should().Be("bookings:cancel");
     }
 
     #endregion

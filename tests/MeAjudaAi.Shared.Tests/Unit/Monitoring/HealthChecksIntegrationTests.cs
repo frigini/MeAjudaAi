@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Jobs.HealthChecks;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;

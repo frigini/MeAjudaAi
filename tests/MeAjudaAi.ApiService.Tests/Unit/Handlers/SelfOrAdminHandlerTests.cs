@@ -4,7 +4,6 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Handlers;
 

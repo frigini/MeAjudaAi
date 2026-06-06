@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.Extensions.Logging;

@@ -1,8 +1,6 @@
+using MeAjudaAi.Shared.Authorization.Core.Models;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
 
@@ -17,54 +15,33 @@ public class SchemaPermissionsManagerTests
         _sut = new SchemaPermissionsManager(_loggerMock.Object);
     }
 
-    [Fact]
-    public void CreateUsersModuleConnectionString_ShouldReturnCorrectFormat()
-    {
-        // Arrange
-        var baseConn = "Host=localhost;Database=test;Password=pass";
-        var rolePass = "secret'pass";
-
-        // Act
-        var result = SchemaPermissionsManager.CreateUsersModuleConnectionString(baseConn, rolePass);
-
-        // Assert
-        result.Should().Contain("Username=users_role");
-        result.Should().Contain("Password=\"secret'pass\"");
-        result.Should().Contain("Search Path=users,public");
-    }
-
     [Theory]
     [InlineData(null, "pass")]
     [InlineData("pass", null)]
     [InlineData("", "pass")]
     [InlineData("pass", " ")]
-    public async Task EnsureUsersModulePermissionsAsync_WithInvalidPasswords_ShouldThrowArgumentException(string userPass, string appPass)
+    public async Task EnsureModulePermissionsAsync_WithInvalidPasswords_ShouldThrowArgumentException(string userPass, string appPass)
     {
+        // Arrange
+        var config = new ModulePermissionConfig("users", "users", "role", userPass, "appRole", appPass);
+
         // Act
-        var act = () => _sut.EnsureUsersModulePermissionsAsync("conn", userPass, appPass);
+        var act = () => _sut.EnsureModulePermissionsAsync("conn", config);
 
         // Assert
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public async Task AreUsersPermissionsConfiguredAsync_WhenConnectionFails_ShouldReturnFalse()
+    public async Task EnsureModulePermissionsAsync_WithNonExistentScript_ShouldThrowFileNotFoundException()
     {
         // Arrange
-        var invalidConn = "Host=invalid;Database=test";
+        var config = new ModulePermissionConfig("non-existent-module", "schema", "role", "pass", "appRole", "pass");
 
         // Act
-        var result = await _sut.AreUsersPermissionsConfiguredAsync(invalidConn);
+        var act = () => _sut.EnsureModulePermissionsAsync("conn", config);
 
         // Assert
-        result.Should().BeFalse();
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        await act.Should().ThrowAsync<FileNotFoundException>();
     }
 }

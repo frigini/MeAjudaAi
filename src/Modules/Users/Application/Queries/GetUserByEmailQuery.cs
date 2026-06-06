@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
@@ -20,8 +21,6 @@ public sealed record GetUserByEmailQuery(string Email) : Query<Result<UserDto>>,
         return TimeSpan.FromMinutes(15);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["users", $"user-email:{Email.ToLowerInvariant()}"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Users, CacheTags.UserEmailTag(Email)];
 }

@@ -1,10 +1,7 @@
-using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.PostgreSql.Factories;
-using Xunit;
 using FluentAssertions;
 using Npgsql;
-using MeAjudaAi.Integration.Tests.Infrastructure;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure.Jobs;
 

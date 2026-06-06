@@ -1,9 +1,6 @@
 using MeAjudaAi.Shared.Messaging.Rebus;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Rebus.Bus;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 

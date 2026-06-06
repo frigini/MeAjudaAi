@@ -1,10 +1,6 @@
 using MeAjudaAi.Modules.SearchProviders.API.Endpoints;
 using MeAjudaAi.Modules.SearchProviders.Application;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.SearchProviders.API;
 

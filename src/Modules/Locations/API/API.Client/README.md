@@ -2,6 +2,13 @@
 
 Coleção Bruno para serviços de localização (CEP lookup, validação geográfica).
 
+## 🚀 Setup Inicial
+
+1. **Abra a coleção** `src/Shared/API.Collections` no Bruno.
+2. **Selecione o ambiente** `Local`.
+3. **Execute** `Setup/SetupGetKeycloakToken.bru` (se necessário para endpoints protegidos).
+4. **Nesta coleção**, selecione o mesmo ambiente `Local` para herdar `baseUrl` e `accessToken`.
+
 ## Endpoints
 
 | Método | Endpoint | Descrição | Auth |

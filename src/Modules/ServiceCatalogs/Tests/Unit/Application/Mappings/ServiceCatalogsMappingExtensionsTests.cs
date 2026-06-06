@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;

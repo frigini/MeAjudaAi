@@ -1,6 +1,4 @@
-using System.Net;
 using MeAjudaAi.Integration.Tests.Base;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

@@ -1,7 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
-using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.ValueObjects;
 

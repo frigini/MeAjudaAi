@@ -28,27 +28,19 @@ API.Client/
 ## 🚀 Como Usar
 
 1. **Instale o Bruno**: [https://usebruno.com/](https://usebruno.com/)
-2. **Abra a pasta** `API.Client` no Bruno
-3. **Crie seu arquivo de configuração**:
-   ```bash
-   cp collection.bru.example collection.bru
-   ```
-4. **Configure as variáveis** em `collection.bru`:
-   - `baseUrl`: URL da API (padrão: `http://localhost:5000`)
-   - `accessToken`: Token JWT obtido após autenticação
-   - Outras variáveis conforme necessário
+2. **Abra a pasta** `API.Client` no Bruno.
+3. **Configure o Ambiente**:
+   - Utilize o arquivo de ambiente compartilhado: `src/Shared/API.Collections/environments/Local.bru`.
+   - No Bruno, você pode importar este arquivo como um novo ambiente.
+4. **Obtenha o Token**:
+   - Abra a coleção `src/Shared/API.Collections`.
+   - Execute `Setup/SetupGetKeycloakToken.bru` usando o ambiente `Local`.
+5. **Execute os Endpoints**: Certifique-se de que a coleção `Providers API` está usando o mesmo ambiente `Local`.
 
 ## 🔐 Autenticação
 
-Todos os endpoints requerem autenticação via Bearer Token:
+Todos os endpoints requerem autenticação via Bearer Token. O token é gerenciado automaticamente via variável de ambiente `accessToken` após a execução do setup compartilhado.
 
-```http
-Authorization: Bearer {{accessToken}}
-```
-
-Para obter um token:
-1. Use o endpoint de autenticação do Keycloak
-2. Configure a variável `accessToken` com o token retornado
 
 ## 📝 Exemplos de Uso
 

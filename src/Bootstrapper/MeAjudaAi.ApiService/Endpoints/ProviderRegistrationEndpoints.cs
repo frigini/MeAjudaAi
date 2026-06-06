@@ -3,13 +3,10 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 

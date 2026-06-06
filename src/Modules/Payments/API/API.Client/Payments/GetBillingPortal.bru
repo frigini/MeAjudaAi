@@ -1,0 +1,28 @@
+meta {
+  name: Get Billing Portal
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/payments/billing-portal
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Billing Portal
+
+  Obtém a URL do portal de cobrança do Stripe para o usuário autenticado.
+
+  ## Autorização
+  - **Requer token**: Sim
+}

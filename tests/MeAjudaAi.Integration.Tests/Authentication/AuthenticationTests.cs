@@ -1,7 +1,5 @@
-using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Integration.Tests.Infrastructure;
 
 namespace MeAjudaAi.Integration.Tests.Authentication;
 

@@ -1,10 +1,7 @@
-using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
-using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Integration.Infrastructure.Queries;
 

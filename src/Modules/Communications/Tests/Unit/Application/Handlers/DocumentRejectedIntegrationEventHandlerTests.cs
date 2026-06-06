@@ -8,9 +8,6 @@ using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 

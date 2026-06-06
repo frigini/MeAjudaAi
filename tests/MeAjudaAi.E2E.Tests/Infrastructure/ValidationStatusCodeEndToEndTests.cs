@@ -1,8 +1,5 @@
-using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;
 

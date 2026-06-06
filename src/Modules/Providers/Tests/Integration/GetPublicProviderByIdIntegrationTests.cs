@@ -1,13 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.DependencyInjection; // For GetRequiredService
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 

@@ -1,8 +1,6 @@
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Shared;
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database.Outbox;
 

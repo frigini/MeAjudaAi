@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Ratings.Infrastructure;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Shared.Events;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

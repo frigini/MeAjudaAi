@@ -1,14 +1,12 @@
-using FluentAssertions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
-using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Testcontainers.PostgreSql;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Persistence;
 
@@ -69,3 +67,6 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         retrieved!.Status.Should().Be(EDocumentStatus.Uploaded);
     }
 }
+
+
+

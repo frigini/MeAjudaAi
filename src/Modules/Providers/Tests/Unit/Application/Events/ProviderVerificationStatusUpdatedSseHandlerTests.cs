@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Shared.Streaming;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Events;
 

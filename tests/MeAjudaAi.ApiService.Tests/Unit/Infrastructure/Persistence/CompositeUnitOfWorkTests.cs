@@ -1,13 +1,9 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Infrastructure.Persistence;
 

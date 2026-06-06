@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 
 namespace MeAjudaAi.Modules.Users.Application.Queries;
 
@@ -9,3 +9,6 @@ namespace MeAjudaAi.Modules.Users.Application.Queries;
 public interface IUserUnitOfWork : IUnitOfWork
 {
 }
+
+
+

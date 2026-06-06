@@ -1,11 +1,10 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.AspNetCore.Builder;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Logging;
 

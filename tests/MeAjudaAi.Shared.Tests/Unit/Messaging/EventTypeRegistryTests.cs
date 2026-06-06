@@ -3,9 +3,6 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Hybrid;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 
@@ -104,6 +101,6 @@ public class EventTypeRegistryTests
         await _sut.InvalidateCacheAsync();
 
         // Assert
-        _cacheMock.Verify(c => c.RemoveByPatternAsync("event-registry", It.IsAny<CancellationToken>()), Times.Once);
+        _cacheMock.Verify(c => c.RemoveByTagAsync(CacheTags.EventRegistry, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

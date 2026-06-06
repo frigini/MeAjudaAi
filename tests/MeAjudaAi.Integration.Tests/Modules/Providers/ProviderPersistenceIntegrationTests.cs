@@ -6,10 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -145,3 +142,5 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
 
     #endregion
 }
+
+

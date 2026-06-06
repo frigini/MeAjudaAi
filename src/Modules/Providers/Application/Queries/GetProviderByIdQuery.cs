@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
@@ -22,8 +23,6 @@ public sealed record GetProviderByIdQuery(Guid ProviderId) : Query<Result<Provid
         return TimeSpan.FromMinutes(15);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["providers", $"provider:{ProviderId}"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Providers, CacheTags.ProviderTag(ProviderId)];
 }

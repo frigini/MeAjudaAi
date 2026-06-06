@@ -2,11 +2,8 @@ using MeAjudaAi.Modules.Providers.API.Endpoints;
 using MeAjudaAi.Modules.Providers.Application;
 using MeAjudaAi.Modules.Providers.Infrastructure;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.API;
 

@@ -1,0 +1,39 @@
+meta {
+  name: Stripe Webhook
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/payments/webhooks/stripe
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "evt_123",
+    "type": "checkout.session.completed",
+    "data": {
+      "object": {
+        "id": "cs_123",
+        "customer": "cus_123"
+      }
+    }
+  }
+}
+
+docs {
+  # Stripe Webhook
+
+  Endpoint para receber webhooks do Stripe.
+
+  ## Testes Locais
+  - Para testar este endpoint localmente sem uma assinatura válida, a aplicação deve estar rodando no ambiente de **Testing** ou com a validação de assinatura desabilitada.
+  - Caso contrário, o `StripeWebhookEndpoint.cs` retornará erro de validação de assinatura.
+  - Alternativamente, use a **Stripe CLI** para encaminhar webhooks reais para o seu localhost, o que gerará signatures válidas automaticamente.
+}

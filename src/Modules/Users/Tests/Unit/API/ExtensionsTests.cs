@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.API;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 

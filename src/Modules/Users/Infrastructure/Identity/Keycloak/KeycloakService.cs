@@ -68,7 +68,7 @@ public class KeycloakService(
                 ]
             };
 
-            var json = JsonSerializer.Serialize(createUserPayload, JsonOptions);
+            var json = System.Text.Json.JsonSerializer.Serialize(createUserPayload, JsonOptions);
             using var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
@@ -110,7 +110,7 @@ public class KeycloakService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred while creating user in Keycloak. Payload: {Payload}",
-                JsonSerializer.Serialize(new { username, email, firstName, lastName }, JsonOptions));
+                System.Text.Json.JsonSerializer.Serialize(new { username, email, firstName, lastName }, JsonOptions));
             return Result<string>.Failure($"Exception: {ex.Message}");
         }
     }
@@ -228,7 +228,7 @@ public class KeycloakService(
                 return adminToken.Error;
 
             var updatePayload = new { enabled = false };
-            var json = JsonSerializer.Serialize(updatePayload, JsonOptions);
+            var json = System.Text.Json.JsonSerializer.Serialize(updatePayload, JsonOptions);
             using var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
@@ -332,7 +332,7 @@ public class KeycloakService(
             }
 
             var availableRolesJson = await availableRolesResponse.Content.ReadAsStringAsync(cancellationToken);
-            var availableRoles = JsonSerializer.Deserialize<KeycloakRole[]>(availableRolesJson,
+            var availableRoles = System.Text.Json.JsonSerializer.Deserialize<KeycloakRole[]>(availableRolesJson,
                 JsonOptions) ?? [];
 
             // 2. Mapear nomes de papéis para objetos de papel
@@ -364,7 +364,7 @@ public class KeycloakService(
             assignRolesRequest.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", adminToken);
 
-            var rolesJson = JsonSerializer.Serialize(rolesToAssign, JsonOptions);
+            var rolesJson = System.Text.Json.JsonSerializer.Serialize(rolesToAssign, JsonOptions);
             using var requestContent = new StringContent(rolesJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
             assignRolesRequest.Content = requestContent;
 

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
@@ -6,17 +6,13 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Moq;
 using System.Security.Claims;
 using Testcontainers.PostgreSql;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Handlers;
 
@@ -109,3 +105,6 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
         persisted.RejectionReason.Should().Be("Notes");
     }
 }
+
+
+

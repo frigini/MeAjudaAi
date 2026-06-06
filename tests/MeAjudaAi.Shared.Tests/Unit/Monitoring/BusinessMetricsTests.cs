@@ -1,6 +1,4 @@
 using MeAjudaAi.Shared.Monitoring;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 

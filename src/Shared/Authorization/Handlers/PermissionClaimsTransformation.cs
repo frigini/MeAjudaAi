@@ -1,9 +1,11 @@
-using System.Security.Claims;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Exceptions;
+using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Authorization.Handlers;
 
@@ -13,6 +15,7 @@ namespace MeAjudaAi.Shared.Authorization.Handlers;
 /// </summary>
 public sealed class PermissionClaimsTransformation(
     IPermissionService permissionService,
+    IPermissionMetricsService metrics,
     ILogger<PermissionClaimsTransformation> logger) : IClaimsTransformation
 {
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -67,10 +70,28 @@ public sealed class PermissionClaimsTransformation(
 
             return new ClaimsPrincipal(claimsIdentity);
         }
+        catch (PermissionServiceException ex)
+        {
+            // Exceção de serviço conhecida/recuperável: log e retorna principal
+            logger.LogError(ex, "Failed to transform claims for user {UserId}", userId);
+            return principal;
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Exceção de serviço conhecida/recuperável: log e retorna principal
+            logger.LogError(ex, "Failed to transform claims for user {UserId} due to service unavailability", userId);
+            return principal;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to transform claims for user {UserId}", userId);
-            return principal;
+            // Emite métrica de erro inesperado
+            metrics.RecordPerformanceStats("claims_transformation_failure", 1, "error");
+            throw;
         }
     }
 

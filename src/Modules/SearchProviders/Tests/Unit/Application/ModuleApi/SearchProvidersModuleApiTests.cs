@@ -1,22 +1,17 @@
-using FluentAssertions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Contracts.Modules.SearchProviders;
-using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
-using Moq;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.ModuleApi;
@@ -608,4 +603,7 @@ public class SearchProvidersModuleApiTests
 
     #endregion
 }
+
+
+
 

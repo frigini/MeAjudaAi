@@ -1,15 +1,13 @@
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 using Microsoft.Data.Sqlite;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.BackgroundJobs;
@@ -19,6 +17,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
     private readonly SqliteConnection _connection;
     private readonly PaymentsDbContext _dbContext;
     private readonly Mock<ILogger<ProcessInboxJob>> _loggerMock;
+    private readonly Mock<IMessageBus> _messageBusMock;
     private readonly ServiceProvider _serviceProvider;
     private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
 
@@ -35,6 +34,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _dbContext.Database.EnsureCreated();
 
         _loggerMock = new Mock<ILogger<ProcessInboxJob>>();
+        _messageBusMock = new Mock<IMessageBus>();
         _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
 
         var services = new ServiceCollection();
@@ -53,7 +53,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _dbContext.InboxMessages.Add(message);
         await _dbContext.SaveChangesAsync();
 
-        var job = new ProcessInboxJobWrapper(_serviceProvider, _loggerMock.Object);
+        var job = new ProcessInboxJobWrapper(_serviceProvider, _messageBusMock.Object, _loggerMock.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -74,7 +74,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // This will throw InvalidOperationException: Essential data missing (provider_id missing)
-        var job = new ProcessInboxJobWrapper(_serviceProvider, _loggerMock.Object);
+        var job = new ProcessInboxJobWrapper(_serviceProvider, _messageBusMock.Object, _loggerMock.Object);
         
         // Act
         await job.DoExecuteStepAsync(CancellationToken.None);
@@ -94,8 +94,8 @@ public class ProcessInboxJobExecutionTests : IDisposable
     }
 
     // Helper class to expose protected methods for testing
-    private class ProcessInboxJobWrapper(IServiceProvider serviceProvider, ILogger<ProcessInboxJob> logger) 
-        : ProcessInboxJob(serviceProvider, logger)
+    private class ProcessInboxJobWrapper(IServiceProvider serviceProvider, IMessageBus messageBus, ILogger<ProcessInboxJob> logger) 
+        : ProcessInboxJob(serviceProvider, messageBus, logger)
     {
         public async Task DoExecuteStepAsync(CancellationToken ct)
         {
@@ -117,3 +117,6 @@ public class ProcessInboxJobExecutionTests : IDisposable
         }
     }
 }
+
+
+

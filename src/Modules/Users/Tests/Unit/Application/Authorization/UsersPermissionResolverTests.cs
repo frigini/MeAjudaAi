@@ -2,13 +2,8 @@ using MeAjudaAi.Modules.Users.Application.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.ValueObjects;
-using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Authorization;
 

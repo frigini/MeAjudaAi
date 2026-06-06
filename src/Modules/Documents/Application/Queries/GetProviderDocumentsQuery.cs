@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
@@ -22,8 +23,6 @@ public record GetProviderDocumentsQuery(Guid ProviderId) : Query<IEnumerable<Doc
         return TimeSpan.FromMinutes(5);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["documents", "provider-documents", $"provider:{ProviderId}"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Documents, CacheTags.ProviderTag(ProviderId)];
 }

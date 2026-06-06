@@ -1,9 +1,6 @@
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Modules.Communications.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure.Services;
 

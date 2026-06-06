@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
-
 using MeAjudaAi.Contracts.Models;
 using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Providers.Application.Queries;
 
 /// <summary>
@@ -38,8 +38,6 @@ public record GetProvidersQuery(
         return TimeSpan.FromMinutes(5);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["providers", "providers-list"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Providers, CacheTags.ProvidersList];
 }

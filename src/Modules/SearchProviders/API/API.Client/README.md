@@ -2,6 +2,13 @@
 
 Esta coleção do Bruno contém todos os endpoints do módulo de busca de prestadores da aplicação MeAjudaAi.
 
+## 🚀 Setup Inicial
+
+1. **Abra a coleção** `src/Shared/API.Collections` no Bruno.
+2. **Selecione o ambiente** `Local`.
+3. **Execute** `Setup/SetupGetKeycloakToken.bru` para obter o token de Admin (necessário para indexação).
+4. **Nesta coleção**, selecione o mesmo ambiente `Local` para herdar `baseUrl` e `accessToken`.
+
 ## 📁 Estrutura da Collection
 
 ```text

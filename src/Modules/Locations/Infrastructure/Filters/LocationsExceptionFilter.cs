@@ -1,5 +1,3 @@
-using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

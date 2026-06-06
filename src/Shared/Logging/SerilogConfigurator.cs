@@ -1,12 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Authorization.Keycloak;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Logging;
 
@@ -80,9 +78,6 @@ public static class SerilogConfigurator
             // Configurar Application Insights se disponível
             ConfigureApplicationInsights(configuration);
         }
-
-        // Configurar correlation ID enricher
-        config.Enrich.WithCorrelationIdEnricher();
     }
 
     /// <summary>

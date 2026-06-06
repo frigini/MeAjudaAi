@@ -1,11 +1,13 @@
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Shared;
 using Microsoft.EntityFrameworkCore;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 
+/// <summary>
+/// Repositório para gerenciamento de mensagens no Outbox do módulo de Comunicações.
+/// </summary>
 internal sealed class OutboxMessageRepository(CommunicationsDbContext context) : IOutboxMessageRepository
 {
     public async Task AddAsync(OutboxMessage message, CancellationToken cancellationToken = default)
@@ -14,7 +16,7 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
     }
 
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(
-        int batchSize = 20,
+        int batchSize,
         DateTime? utcNow = null,
         CancellationToken cancellationToken = default)
     {

@@ -1,9 +1,7 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Shared.Database;
-using Domain = MeAjudaAi.Modules.ServiceCatalogs.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -223,3 +221,6 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
         result.Value.InvalidServiceIds.Should().Contain(invalidServiceId);
     }
 }
+
+
+

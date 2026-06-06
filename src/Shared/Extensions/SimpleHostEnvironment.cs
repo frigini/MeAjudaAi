@@ -1,6 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Extensions;
 
@@ -9,17 +9,10 @@ namespace MeAjudaAi.Shared.Extensions;
 /// Para testes, use MockHostEnvironment de MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.
 /// </summary>
 [ExcludeFromCodeCoverage]
-internal sealed class SimpleHostEnvironment : IHostEnvironment
+internal sealed class SimpleHostEnvironment(string environmentName) : IHostEnvironment
 {
-    public SimpleHostEnvironment(string environmentName)
-    {
-        EnvironmentName = environmentName;
-        ApplicationName = "MeAjudaAi";
-        ContentRootPath = Directory.GetCurrentDirectory();
-    }
-
-    public string EnvironmentName { get; set; }
-    public string ApplicationName { get; set; }
-    public string ContentRootPath { get; set; }
+    public string EnvironmentName { get; set; } = environmentName;
+    public string ApplicationName { get; set; } = "MeAjudaAi";
+    public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
     public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
 }

@@ -1,0 +1,9 @@
+// Configure estas variáveis com os valores do seu ambiente local
+// RECOMENDADO: Use o ambiente compartilhado em src/Shared/API.Collections/environments/Local.bru
+vars {
+  // API base URLs (Herdadas do ambiente compartilhado se selecionado)
+  baseUrl: http://localhost:5000
+  
+  // O accessToken será preenchido automaticamente ao rodar o setup do Shared
+  accessToken: 
+}

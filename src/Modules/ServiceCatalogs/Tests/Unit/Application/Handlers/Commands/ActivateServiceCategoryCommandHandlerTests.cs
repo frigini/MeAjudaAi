@@ -1,16 +1,9 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
-using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -141,3 +134,6 @@ public class ActivateServiceCategoryCommandHandlerTests
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao ativar a categoria de serviço.");
     }
 }
+
+
+

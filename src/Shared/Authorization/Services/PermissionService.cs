@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -38,47 +39,67 @@ public sealed class PermissionService(
             return Array.Empty<EPermission>();
         }
 
-        using var timer = metrics.MeasurePermissionResolution(userId);
-
-        var cacheKey = string.Format(UserPermissionsCacheKey, userId);
-        var tags = new[] { "permissions", $"user:{userId}" };
-
-        bool cacheHit = false;
-        using var cacheTimer = metrics.MeasureCacheOperation("get_user_permissions", cacheHit);
-
-        var result = await cacheService.GetOrCreateAsync(
-            cacheKey,
-            async _ =>
-            {
-                cacheHit = false; // Cache miss (falha no cache)
-                return await ResolveUserPermissionsAsync(userId, cancellationToken);
-            },
-            CacheExpiration,
-            CacheOptions,
-            tags,
-            cancellationToken);
-
-        if (result.Any())
+        try
         {
-            cacheHit = true; // Resultado do cache obtido
-        }
+            using var timer = metrics.MeasurePermissionResolution(userId);
 
-        return result;
+            var cacheKey = string.Format(UserPermissionsCacheKey, userId);
+            var tags = new[] { "permissions", $"user:{userId}" };
+
+            bool cacheHit = false;
+            using var cacheTimer = metrics.MeasureCacheOperation("get_user_permissions", () => cacheHit);
+
+            var result = await cacheService.GetOrCreateAsync(
+                cacheKey,
+                async _ =>
+                {
+                    cacheHit = false; // Cache miss
+                    return await ResolveUserPermissionsAsync(userId, cancellationToken);
+                },
+                CacheExpiration,
+                CacheOptions,
+                tags,
+                cancellationToken);
+
+            if (result.Any())
+            {
+                cacheHit = true; // Cache hit
+            }
+
+            return result;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Critical failure in PermissionService while getting permissions for user {UserId}", userId);
+            throw new PermissionServiceException($"Failed to retrieve permissions for user {userId}", ex);
+        }
     }
 
     public async Task<bool> HasPermissionAsync(string userId, EPermission permission, CancellationToken cancellationToken = default)
     {
-        using var timer = metrics.MeasurePermissionCheck(userId, permission, false); // Será atualizado com resultado real
-
-        var permissions = await GetUserPermissionsAsync(userId, cancellationToken);
-        var hasPermission = permissions.Contains(permission);
-
-        if (!hasPermission)
+        try
         {
-            metrics.RecordAuthorizationFailure(userId, permission, "Permission not granted");
-        }
+            var permissions = await GetUserPermissionsAsync(userId, cancellationToken);
+            var hasPermission = permissions.Contains(permission);
 
-        return hasPermission;
+            using var timer = metrics.MeasurePermissionCheck(userId, permission, hasPermission);
+
+            if (!hasPermission)
+            {
+                metrics.RecordAuthorizationFailure(userId, permission, "Permission not granted");
+            }
+
+            return hasPermission;
+        }
+        catch (PermissionServiceException)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Critical failure in PermissionService while checking permission {Permission} for user {UserId}", permission, userId);
+            throw new PermissionServiceException($"Error checking permission {permission} for user {userId}", ex);
+        }
     }
 
     public async Task<bool> HasPermissionsAsync(string userId, IEnumerable<EPermission> permissions, bool requireAll = true, CancellationToken cancellationToken = default)

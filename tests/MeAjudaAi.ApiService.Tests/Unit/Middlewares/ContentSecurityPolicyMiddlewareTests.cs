@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.IO;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 

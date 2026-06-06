@@ -141,14 +141,14 @@ public abstract class BasePerformanceTest : IAsyncLifetime
     // Métodos helper otimizados
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T value, CancellationToken cancellationToken = default)
     {
-        var json = JsonSerializer.Serialize(value, JsonOptions);
+        var json = System.Text.Json.JsonSerializer.Serialize(value, JsonOptions);
         using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
         return await ApiClient.PostAsync(requestUri, content, cancellationToken);
     }
 
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T value, CancellationToken cancellationToken = default)
     {
-        var json = JsonSerializer.Serialize(value, JsonOptions);
+        var json = System.Text.Json.JsonSerializer.Serialize(value, JsonOptions);
         using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
         return await ApiClient.PutAsync(requestUri, content, cancellationToken);
     }
@@ -158,7 +158,7 @@ public abstract class BasePerformanceTest : IAsyncLifetime
         ArgumentNullException.ThrowIfNull(response);
 
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return JsonSerializer.Deserialize<T>(content, JsonOptions)!;
+        return System.Text.Json.JsonSerializer.Deserialize<T>(content, JsonOptions)!;
     }
 
     protected void SetAuthorizationHeader(string token)

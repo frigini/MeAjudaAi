@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
 using FunctionalUnit = MeAjudaAi.Contracts.Functional.Unit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Commands;

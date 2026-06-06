@@ -2,7 +2,6 @@ using FluentValidation;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;

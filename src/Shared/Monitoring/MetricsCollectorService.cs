@@ -69,11 +69,12 @@ public class MetricsCollectorService(
         }
         catch (OperationCanceledException)
         {
-            throw; // Propagate cancellation to ExecuteAsync
+            throw; // Propaga cancellation para ExecuteAsync
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to collect some metrics");
+            throw;
         }
     }
 
@@ -109,12 +110,12 @@ public class MetricsCollectorService(
         }
         catch (OperationCanceledException)
         {
-            throw; // Propagate cancellation
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to get active users count");
-            return 0;
+            throw;
         }
     }
 
@@ -131,12 +132,12 @@ public class MetricsCollectorService(
         }
         catch (OperationCanceledException)
         {
-            throw; // Propagate cancellation
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to get pending help requests count");
-            return 0;
+            throw;
         }
     }
 }

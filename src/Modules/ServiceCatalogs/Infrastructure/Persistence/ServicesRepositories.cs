@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -22,3 +22,5 @@ public partial class ServiceCatalogsDbContext : IRepository<Service, ServiceId>
     void IRepository<Service, ServiceId>.Delete(Service aggregate) =>
         Services.Remove(aggregate);
 }
+
+

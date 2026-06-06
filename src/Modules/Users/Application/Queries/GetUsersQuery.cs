@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
-
 using MeAjudaAi.Contracts.Models;
 using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Users.Application.Queries;
 
 [ExcludeFromCodeCoverage]
@@ -27,8 +27,5 @@ public sealed record GetUsersQuery(
         return TimeSpan.FromMinutes(5);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["users", "users-list"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => [CacheTags.Users];
 }

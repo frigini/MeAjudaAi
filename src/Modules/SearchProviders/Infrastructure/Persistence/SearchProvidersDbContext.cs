@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
@@ -82,3 +83,6 @@ public partial class SearchProvidersDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
+
+
+

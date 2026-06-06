@@ -3,7 +3,6 @@ using MeAjudaAi.ApiService.Filters;
 using Microsoft.OpenApi; // Required for OpenApiOperation, OpenApiParameter, IOpenApiParameter, ParameterLocation
 using Moq;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Filters;
 

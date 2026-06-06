@@ -1,18 +1,15 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -21,6 +18,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<RejectBookingCommandHandler>> _loggerMock = new();
     private readonly RejectBookingCommandHandler _sut;
 
@@ -31,6 +29,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         _sut = new RejectBookingCommandHandler(
             _bookingQueriesMock.Object,
             _uowMock.Object,
+            _messageBusMock.Object,
             _loggerMock.Object);
     }
 
@@ -187,3 +186,6 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
     }
 }
+
+
+

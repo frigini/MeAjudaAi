@@ -1,32 +1,19 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace MeAjudaAi.Shared.Messaging.RabbitMq;
 
-internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
+internal class RabbitMqInfrastructureManager(
+    IConnectionFactory connectionFactory,
+    RabbitMqOptions options,
+    IEventTypeRegistry eventRegistry,
+    ILogger<RabbitMqInfrastructureManager> logger) : IRabbitMqInfrastructureManager, IAsyncDisposable
 {
-    private readonly IConnectionFactory _connectionFactory;
-    private readonly RabbitMqOptions _options;
-    private readonly IEventTypeRegistry _eventRegistry;
-    private readonly ILogger<RabbitMqInfrastructureManager> _logger;
     private readonly SemaphoreSlim _channelLock = new(1, 1);
     private IConnection? _connection;
     private IChannel? _channel;
     private bool _disposed;
-
-    public RabbitMqInfrastructureManager(
-        IConnectionFactory connectionFactory,
-        RabbitMqOptions options,
-        IEventTypeRegistry eventRegistry,
-        ILogger<RabbitMqInfrastructureManager> logger)
-    {
-        _connectionFactory = connectionFactory;
-        _options = options;
-        _eventRegistry = eventRegistry;
-        _logger = logger;
-    }
 
     private async Task<IChannel> GetChannelAsync()
     {
@@ -51,7 +38,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             if (_connection is null || !_connection.IsOpen)
             {
                 var oldConnection = _connection;
-                _connection = await _connectionFactory.CreateConnectionAsync();
+                _connection = await connectionFactory.CreateConnectionAsync();
                 
                 if (oldConnection is not null)
                 {
@@ -79,26 +66,26 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
     {
         try
         {
-            _logger.LogInformation("Creating RabbitMQ infrastructure...");
+            logger.LogInformation("Creating RabbitMQ infrastructure...");
             var channel = await GetChannelAsync();
 
             // Cria fila padrão
-            await CreateQueueAsync(_options.DefaultQueueName);
+            await CreateQueueAsync(options.DefaultQueueName);
 
             // Cria filas específicas de domínio
-            foreach (var domainQueue in _options.DomainQueues)
+            foreach (var domainQueue in options.DomainQueues)
             {
                 await CreateQueueAsync(domainQueue.Value);
             }
 
             // Cria exchanges e bindings para tipos de eventos
-            var eventTypes = await _eventRegistry.GetAllEventTypesAsync();
-            var exchangeName = $"{_options.DefaultQueueName}.exchange";
+            var eventTypes = await eventRegistry.GetAllEventTypesAsync();
+            var exchangeName = $"{options.DefaultQueueName}.exchange";
 
             await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
 
-            var allQueues = new List<string> { _options.DefaultQueueName };
-            foreach (var queue in _options.DomainQueues.Values)
+            var allQueues = new List<string> { options.DefaultQueueName };
+            foreach (var queue in options.DomainQueues.Values)
             {
                 if (!allQueues.Contains(queue))
                 {
@@ -111,7 +98,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             {
                 if (string.IsNullOrWhiteSpace(eventName))
                 {
-                    _logger.LogWarning("Skipping event type with null/empty FullName.");
+                    logger.LogWarning("Skipping event type with null/empty FullName.");
                     continue;
                 }
 
@@ -119,16 +106,16 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
                 {
                     await BindQueueToExchangeAsync(queueName, exchangeName, eventName);
 
-                    _logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",
+                    logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",
                         eventName, exchangeName, queueName);
                 }
             }
 
-            _logger.LogInformation("RabbitMQ infrastructure setup completed successfully");
+            logger.LogInformation("RabbitMQ infrastructure setup completed successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create RabbitMQ infrastructure");
+            logger.LogError(ex, "Failed to create RabbitMQ infrastructure");
             throw new InvalidOperationException(
                 "Failed to create RabbitMQ infrastructure (exchanges, queues, and bindings for registered event types)",
                 ex);
@@ -137,9 +124,9 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
     public async Task CreateQueueAsync(string queueName, bool durable = true)
     {
-        // GetChannelAsync handles locking internally - no need to lock here
+        // GetChannelAsync gerencia o lock internamente - não há necessidade de travar aqui
         var channel = await GetChannelAsync();
-        _logger.LogDebug("Declaring queue: {QueueName} (durable: {Durable})", queueName, durable);
+        logger.LogDebug("Declaring queue: {QueueName} (durable: {Durable})", queueName, durable);
         
         await channel.QueueDeclareAsync(
             queue: queueName,
@@ -151,9 +138,9 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
     public async Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
     {
-        // GetChannelAsync handles locking internally - no need to lock here
+        // GetChannelAsync gerencia o lock internamente - não há necessidade de travar aqui
         var channel = await GetChannelAsync();
-        _logger.LogDebug("Declaring exchange: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
+        logger.LogDebug("Declaring exchange: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
         
         await channel.ExchangeDeclareAsync(
             exchange: exchangeName,
@@ -165,9 +152,9 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
     public async Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
-        // GetChannelAsync handles locking internally - no need to lock here
+        // GetChannelAsync gerencia o lock internamente - não há necessidade de travar aqui
         var channel = await GetChannelAsync();
-        _logger.LogDebug("Binding queue {QueueName} to exchange {ExchangeName} with routing key '{RoutingKey}'",
+        logger.LogDebug("Binding queue {QueueName} to exchange {ExchangeName} with routing key '{RoutingKey}'",
             queueName, exchangeName, routingKey);
         
         await channel.QueueBindAsync(
@@ -179,7 +166,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
     public async ValueTask DisposeAsync()
     {
-        // Acquire lock to ensure no concurrent operations are in progress
+        // Adquire o lock para garantir que nenhuma operação concorrente esteja em andamento
         await _channelLock.WaitAsync();
         try
         {

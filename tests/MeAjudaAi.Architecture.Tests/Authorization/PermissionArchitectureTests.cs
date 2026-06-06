@@ -1,6 +1,4 @@
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
 using System.Reflection;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 

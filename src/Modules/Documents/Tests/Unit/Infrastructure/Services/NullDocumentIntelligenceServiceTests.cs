@@ -1,8 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;
 

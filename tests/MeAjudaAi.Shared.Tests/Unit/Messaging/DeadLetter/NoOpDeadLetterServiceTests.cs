@@ -1,8 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging.DeadLetter;
 

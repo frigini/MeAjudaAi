@@ -1,8 +1,8 @@
 using System.Globalization;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 
 using MeAjudaAi.Contracts.Models;
@@ -57,8 +57,6 @@ public sealed record SearchProvidersQuery(
         return TimeSpan.FromMinutes(5);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["search", "providers", "search-results"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Search, CacheTags.Providers, CacheTags.SearchResults];
 }

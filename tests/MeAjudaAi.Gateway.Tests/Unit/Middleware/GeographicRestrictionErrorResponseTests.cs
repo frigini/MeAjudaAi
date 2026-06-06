@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MeAjudaAi.Shared.Middleware;
+using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 
 namespace MeAjudaAi.Gateway.Tests.Unit.Middleware;
 

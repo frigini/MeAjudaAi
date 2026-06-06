@@ -1,9 +1,7 @@
-using FluentAssertions;
 using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Application.Validators;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Validators;
 

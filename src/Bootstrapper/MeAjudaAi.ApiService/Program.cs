@@ -1,6 +1,5 @@
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
-using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.Modules.Bookings.API;
 using MeAjudaAi.Modules.Communications.API;
 using MeAjudaAi.Modules.Documents.API;
@@ -13,12 +12,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Seeding;
 using Microsoft.FeatureManagement;
 using Serilog;
-using Serilog.Context;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService;

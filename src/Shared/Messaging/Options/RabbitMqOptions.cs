@@ -1,19 +1,7 @@
 using MeAjudaAi.Shared.Messaging.Strategy;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Messaging.Options;
-
-public static class ModuleNames
-{
-    public const string Users = "Users";
-    public const string Payments = "Payments";
-    public const string Communications = "Communications";
-    public const string Ratings = "Ratings";
-    public const string Providers = "Providers";
-    public const string Documents = "Documents";
-    public const string Locations = "Locations";
-    public const string SearchProviders = "SearchProviders";
-    public const string ServiceCatalogs = "ServiceCatalogs";
-}
 
 public sealed class RabbitMqOptions
 {

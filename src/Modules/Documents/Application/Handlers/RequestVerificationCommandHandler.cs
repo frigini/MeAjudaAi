@@ -1,12 +1,10 @@
-using System.Text.Json;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Documents.Application.Commands;
-using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Serialization;
@@ -81,7 +79,7 @@ public class RequestVerificationCommandHandler(
             document.MarkAsPendingVerification();
 
             var outboxRepository = _uow.GetRepository<OutboxMessage, Guid>();
-            var payload = JsonSerializer.Serialize(new { documentId = command.DocumentId }, SerializationDefaults.Default);
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { documentId = command.DocumentId }, SerializationDefaults.Default);
 
             var outboxMessage = OutboxMessage.Create(
                 type: OutboxMessageTypes.DocumentVerification,
@@ -104,3 +102,6 @@ public class RequestVerificationCommandHandler(
         }
     }
 }
+
+
+

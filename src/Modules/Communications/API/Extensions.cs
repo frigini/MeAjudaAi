@@ -2,7 +2,6 @@ using MeAjudaAi.Modules.Communications.API.Endpoints;
 using MeAjudaAi.Modules.Communications.Application;
 using MeAjudaAi.Modules.Communications.Infrastructure;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

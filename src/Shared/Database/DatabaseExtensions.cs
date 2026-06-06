@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using MeAjudaAi.Shared.Authorization.Core.Models;
 
 namespace MeAjudaAi.Shared.Database;
 
@@ -37,7 +39,15 @@ public static class DatabaseExtensions
                     
                     if (envName == EnvironmentNames.Testing)
                     {
-                        conn = "Host=localhost;Database=dummy;Username=postgres;Password=postgres";
+                        // Leia uma string de conexão de teste do arquivo de configuração ou de ambiente em vez de codificar as credenciais diretamente no código
+                        conn = configuration["Postgres:TestConnectionString"] ??
+                               Environment.GetEnvironmentVariable("POSTGRES_TEST_CONNECTIONSTRING");
+
+                        if (string.IsNullOrEmpty(conn))
+                        {
+                            throw new InvalidOperationException(
+                                "Test environment detected: set 'Postgres:TestConnectionString' (appsettings) or 'POSTGRES_TEST_CONNECTIONSTRING' (env) with the test DB connection string.");
+                        }
                     }
                 }
                 opts.ConnectionString = conn ?? string.Empty;
@@ -141,9 +151,17 @@ public static class DatabaseExtensions
         using var serviceProvider = services.BuildServiceProvider();
         var permissionsManager = serviceProvider.GetRequiredService<SchemaPermissionsManager>();
 
-        if (!await permissionsManager.AreUsersPermissionsConfiguredAsync(adminConnectionString))
+        var config = new ModulePermissionConfig(
+            ModuleName: "users",
+            SchemaName: "users",
+            RoleName: "users_role",
+            RolePassword: usersRolePassword,
+            AppRoleName: "meajudaai_app_role",
+            AppRolePassword: appRolePassword);
+
+        if (!await permissionsManager.AreModulePermissionsConfiguredAsync(adminConnectionString, config.SchemaName, config.RoleName))
         {
-            await permissionsManager.EnsureUsersModulePermissionsAsync(adminConnectionString, usersRolePassword, appRolePassword);
+            await permissionsManager.EnsureModulePermissionsAsync(adminConnectionString, config);
         }
 
         return services;

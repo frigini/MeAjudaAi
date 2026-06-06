@@ -1,5 +1,4 @@
 using System.Net;
-using System.Security.Claims;
 using System.Text.Json;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Keycloak;
@@ -7,11 +6,8 @@ using MeAjudaAi.Shared.Authorization.ValueObjects;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.Protected;
-using FluentAssertions;
 using MeAjudaAi.Shared.Caching;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Keycloak;
 
@@ -80,7 +76,14 @@ public class KeycloakPermissionResolverTests
         // Assert
         result.Should().Contain(EPermission.AdminSystem);
         result.Should().Contain(EPermission.UsersRead);
+        result.Should().Contain(EPermission.BookingsManage);
+        result.Should().Contain(EPermission.PaymentsManage);
+        result.Should().Contain(EPermission.CommunicationsManage);
+        result.Should().Contain(EPermission.RatingsModerate);
+        result.Should().Contain(EPermission.SearchManage);
+        result.Should().Contain(EPermission.DocumentsVerify);
         result.Should().Contain(EPermission.ServiceCatalogsManage);
+        result.Should().Contain(EPermission.ReportsAdmin);
     }
 
     [Fact]
@@ -168,30 +171,32 @@ public class KeycloakPermissionResolverTests
     [Theory]
     [InlineData("meajudaai-order-admin")]
     [InlineData("MEAJUDAAI-ORDER-ADMIN")]
-    public void MapKeycloakRoleToPermissions_OrderAdminRole_ShouldReturnOrderAdminPermissions(string role)
+    [InlineData("booking_admin")]
+    public void MapKeycloakRoleToPermissions_BookingAdminRole_ShouldReturnBookingAdminPermissions(string role)
     {
         // Act
         var result = _resolver.MapKeycloakRoleToPermissions(role);
 
         // Assert
-        result.Should().Contain(EPermission.OrdersRead);
-        result.Should().Contain(EPermission.OrdersCreate);
-        result.Should().Contain(EPermission.OrdersUpdate);
-        result.Should().Contain(EPermission.OrdersDelete);
+        result.Should().Contain(EPermission.BookingsRead);
+        result.Should().Contain(EPermission.BookingsCreate);
+        result.Should().Contain(EPermission.BookingsUpdate);
+        result.Should().Contain(EPermission.BookingsCancel);
     }
 
     [Theory]
     [InlineData("meajudaai-order-operator")]
     [InlineData("MEAJUDAAI-ORDER-OPERATOR")]
-    public void MapKeycloakRoleToPermissions_OrderOperatorRole_ShouldReturnOperatorPermissions(string role)
+    [InlineData("booking_operator")]
+    public void MapKeycloakRoleToPermissions_BookingOperatorRole_ShouldReturnOperatorPermissions(string role)
     {
         // Act
         var result = _resolver.MapKeycloakRoleToPermissions(role);
 
         // Assert
-        result.Should().Contain(EPermission.OrdersRead);
-        result.Should().Contain(EPermission.OrdersUpdate);
-        result.Should().NotContain(EPermission.OrdersCreate);
+        result.Should().Contain(EPermission.BookingsRead);
+        result.Should().Contain(EPermission.BookingsUpdate);
+        result.Should().NotContain(EPermission.BookingsCreate);
     }
 
     [Theory]
@@ -332,6 +337,51 @@ public class KeycloakPermissionResolverTests
 
         // Assert
         result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WithHttpRequestException_ReturnsEmpty()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var encodedUserId = Uri.EscapeDataString(userId);
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        
+        // Mock ID search to throw NotFound
+        SetupThrowingHttpMessage(HttpMethod.Get, $"users/{encodedUserId}", new HttpRequestException("Network failure", null, HttpStatusCode.NotFound));
+        
+        // Mock username search to return empty list
+        SetupHttpMessage(HttpMethod.Get, $"users?username={encodedUserId}", new List<object>());
+
+        // Act
+        var result = await _resolver.GetUserRolesFromKeycloakAsync(userId);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WithJsonException_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var userId = "user-123";
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupHttpMessage(HttpMethod.Get, $"users/{userId}", "{ invalid json");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _resolver.GetUserRolesFromKeycloakAsync(userId));
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WithUnexpectedException_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var userId = "user-123";
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupThrowingHttpMessage(HttpMethod.Get, $"users/{userId}", new Exception("Unexpected error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _resolver.GetUserRolesFromKeycloakAsync(userId));
     }
 
     [Fact]

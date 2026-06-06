@@ -2,7 +2,6 @@ using FluentAssertions;
 using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using System.Net;
 using Yarp.ReverseProxy.Forwarder;

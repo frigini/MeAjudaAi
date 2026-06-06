@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Metrics.Models;
 
 namespace MeAjudaAi.Shared.Authorization.Metrics;
 
@@ -29,9 +30,10 @@ public interface IPermissionMetricsService : IDisposable
     IDisposable MeasureModulePermissionResolution(string userId, string moduleName);
 
     /// <summary>
-    /// Mede operações de cache.
+    /// Registra uma operação de cache.
     /// </summary>
-    IDisposable MeasureCacheOperation(string operation, bool hit);
+    IDisposable MeasureCacheOperation(string operation, Func<bool> getCacheHit);
+
 
     /// <summary>
     /// Registra uma falha de autorização.

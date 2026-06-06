@@ -2,7 +2,6 @@ using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Validators;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 

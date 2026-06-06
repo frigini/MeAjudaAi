@@ -1,9 +1,7 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 

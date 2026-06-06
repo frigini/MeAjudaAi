@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Functional;
@@ -6,14 +7,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
-using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using FluentAssertions;
-using Xunit;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -193,3 +187,6 @@ public class DeleteServiceCommandHandlerTests
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao excluir o serviço.");
     }
 }
+
+
+

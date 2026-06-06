@@ -60,6 +60,7 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: JsonSerializer.Serialize(emailPayload),
+            maxRetries: 3,
             priority: ECommunicationPriority.Normal,
             correlationId: correlationId);
 

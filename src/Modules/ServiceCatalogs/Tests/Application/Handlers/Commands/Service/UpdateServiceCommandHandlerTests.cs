@@ -1,14 +1,10 @@
-using FluentAssertions;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using Xunit;
 
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 
@@ -150,3 +146,6 @@ public class UpdateServiceCommandHandlerTests
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+
+
+

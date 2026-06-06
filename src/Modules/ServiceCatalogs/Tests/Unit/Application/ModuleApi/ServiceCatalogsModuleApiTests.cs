@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
@@ -6,9 +5,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
-using Moq;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.ModuleApi;
 

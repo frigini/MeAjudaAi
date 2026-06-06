@@ -1,5 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Queries;
 
 /// <summary>

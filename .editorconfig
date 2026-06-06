@@ -25,7 +25,7 @@ dotnet_diagnostic.S3427.severity = none
 # Suppress IDE style rules causing build noise
 dotnet_diagnostic.IDE0022.severity = none # Use block body for method
 dotnet_diagnostic.IDE0046.severity = none # 'if' statement can be simplified
-dotnet_diagnostic.IDE0005.severity = none # Using directive is unnecessary
+dotnet_diagnostic.IDE0005.severity = warning # Using directive is unnecessary
 dotnet_diagnostic.IDE0031.severity = none # Null check can be simplified
 dotnet_diagnostic.CA1716.severity = none # Identifiers should not conflict with reserved keywords
 dotnet_diagnostic.CA1873.severity = none # Logger argument evaluation

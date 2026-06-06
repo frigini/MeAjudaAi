@@ -1,11 +1,9 @@
-using System.Linq;
-using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.Services;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Authorization.Middleware;
 
@@ -86,11 +84,25 @@ public sealed class PermissionOptimizationMiddleware(
                     stopwatch.ElapsedMilliseconds, context.Request.Method, context.Request.Path);
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogWarning(ex, "Non-fatal argument error during permission optimization for {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+        }
+        catch (InvalidOperationException ex) 
+        {
+            logger.LogWarning(ex, "Non-fatal invalid operation during permission optimization for {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error during permission optimization for {Method} {Path}",
                 context.Request.Method, context.Request.Path);
-            // Não falha a requisição por causa de otimização
+            throw;
         }
     }
 
@@ -134,7 +146,7 @@ public sealed class PermissionOptimizationMiddleware(
         if (requiredPermissions.Any())
         {
             // Armazena as permissões esperadas no contexto para otimização downstream
-            context.Items["ExpectedPermissions"] = requiredPermissions;
+            context.Items[PermissionOptimizationConstants.ExpectedPermissions] = requiredPermissions;
 
             logger.LogDebug("Pre-identified {PermissionCount} required permissions for {Method} {Path}",
                 requiredPermissions.Count, context.Request.Method, path);
@@ -161,15 +173,15 @@ public sealed class PermissionOptimizationMiddleware(
         if (pathSpan.StartsWith("/api/v1/users/profile", StringComparison.OrdinalIgnoreCase) ||
             pathSpan.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
-            context.Items["UseAggressivePermissionCache"] = true;
-            context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(30);
+            context.Items[PermissionOptimizationConstants.UseAggressivePermissionCache] = true;
+            context.Items[PermissionOptimizationConstants.PermissionCacheDuration] = TimeSpan.FromMinutes(30);
         }
         else if (pathSpan.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) && context.Request.Method == "GET")
         {
             // Catch-all para operações GET em qualquer versão da API - cache intermediário
             // Suporta múltiplas versões da API (v1, v2, etc.) para compatibilidade
-            context.Items["UseAggressivePermissionCache"] = false;
-            context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(10);
+            context.Items[PermissionOptimizationConstants.UseAggressivePermissionCache] = false;
+            context.Items[PermissionOptimizationConstants.PermissionCacheDuration] = TimeSpan.FromMinutes(10);
         }
     }
 
@@ -208,20 +220,31 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Orders module (futuro) - Aguardando implementação do módulo completo
-        else if (path.StartsWith("/api/v1/orders", StringComparison.OrdinalIgnoreCase))
+        // Bookings module
+        else if (path.StartsWith("/api/v1/bookings", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
-                "GET" => new[] { EPermission.OrdersRead },
-                "POST" => new[] { EPermission.OrdersCreate },
-                "PUT" or "PATCH" => new[] { EPermission.OrdersUpdate },
-                "DELETE" => new[] { EPermission.OrdersDelete },
+                "GET" => new[] { EPermission.BookingsRead },
+                "POST" => new[] { EPermission.BookingsCreate },
+                "PUT" or "PATCH" => new[] { EPermission.BookingsUpdate },
+                "DELETE" => new[] { EPermission.BookingsCancel },
                 _ => Array.Empty<EPermission>()
             });
         }
 
-        // Reports module (futuro) - Aguardando implementação do módulo completo
+        // Search module
+        else if (path.StartsWith("/api/v1/search", StringComparison.OrdinalIgnoreCase))
+        {
+            permissions.AddRange(method.ToUpperInvariant() switch
+            {
+                "GET" => new[] { EPermission.SearchRead },
+                "POST" when path.EndsWith("/index", StringComparison.OrdinalIgnoreCase) => new[] { EPermission.SearchManage },
+                _ => Array.Empty<EPermission>()
+            });
+        }
+
+        // Reports module (Analytics & Reports)
         else if (path.StartsWith("/api/v1/reports", StringComparison.OrdinalIgnoreCase))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
@@ -290,55 +313,5 @@ public sealed class PermissionOptimizationMiddleware(
         return principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                principal.FindFirst("sub")?.Value ??
                principal.FindFirst("id")?.Value;
-    }
-}
-
-/// <summary>
-/// Extensões para facilitar o uso do middleware de otimização de permissões.
-/// </summary>
-public static class PermissionOptimizationMiddlewareExtensions
-{
-    /// <summary>
-    /// Adiciona o middleware de otimização de permissões ao pipeline.
-    /// </summary>
-    public static IApplicationBuilder UsePermissionOptimization(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<PermissionOptimizationMiddleware>();
-    }
-
-    /// <summary>
-    /// Obtém as permissões esperadas para a requisição atual (se disponíveis).
-    /// </summary>
-    public static IEnumerable<EPermission> GetExpectedPermissions(this HttpContext context)
-    {
-        if (context.Items.TryGetValue("ExpectedPermissions", out var permissions))
-        {
-            return permissions as IEnumerable<EPermission> ?? Enumerable.Empty<EPermission>();
-        }
-
-        return Enumerable.Empty<EPermission>();
-    }
-
-    /// <summary>
-    /// Verifica se deve usar cache agressivo de permissões para esta requisição.
-    /// </summary>
-    public static bool ShouldUseAggressivePermissionCache(this HttpContext context)
-    {
-        return context.Items.TryGetValue("UseAggressivePermissionCache", out var useCache) &&
-               useCache is bool useCacheBool && useCacheBool;
-    }
-
-    /// <summary>
-    /// Obtém a duração recomendada do cache de permissões para esta requisição.
-    /// </summary>
-    public static TimeSpan GetRecommendedPermissionCacheDuration(this HttpContext context)
-    {
-        if (context.Items.TryGetValue("PermissionCacheDuration", out var duration) &&
-            duration is TimeSpan durationTimeSpan)
-        {
-            return durationTimeSpan;
-        }
-
-        return TimeSpan.FromMinutes(15); // Default
     }
 }

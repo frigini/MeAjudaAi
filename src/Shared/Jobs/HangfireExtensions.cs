@@ -1,9 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Jobs;
 
@@ -48,10 +48,20 @@ public static class HangfireExtensions
                 return app;
             }
         }
+        catch (ObjectDisposedException ex)
+        {
+            logger?.LogWarning(ex, "Service provider was disposed. Skipping dashboard configuration.");
+            return app;
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger?.LogWarning(ex, "Failed to resolve Hangfire services. Skipping dashboard configuration.");
+            return app;
+        }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "Failed to check for Hangfire services. Skipping dashboard configuration.");
-            return app;
+            logger?.LogError(ex, "Unexpected error while checking for Hangfire services.");
+            throw;
         }
 
         // Resolve logger if not provided (use ILoggerFactory since HangfireExtensions is static)

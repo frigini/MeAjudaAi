@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Serialization;
@@ -53,7 +52,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
             // A API retorna array quando busca por nome
-            var municipios = JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
+            var municipios = System.Text.Json.JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
 
             if (municipios is null || municipios.Count == 0)
             {
@@ -125,7 +124,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var municipios = JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
+            var municipios = System.Text.Json.JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
 
             return municipios ?? [];
         }

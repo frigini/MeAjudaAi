@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database;
@@ -65,3 +66,6 @@ public partial class BookingsDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
+
+
+

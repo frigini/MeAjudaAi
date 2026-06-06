@@ -1,12 +1,9 @@
-using System.Linq;
-using FluentAssertions;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
 
@@ -192,7 +189,10 @@ public class DatabaseExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Postgres:TestConnectionString"] = "Host=localhost;Database=dummy;Username=postgres;Password=postgres"
+            })
             .Build();
 
         // Set Testing environment
@@ -207,7 +207,7 @@ public class DatabaseExtensionsTests
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<IOptions<PostgresOptions>>();
             
-            // In Testing environment, a dummy connection string is expected
+            // In Testing environment, the expected connection string is what we provided
             options.Value.ConnectionString.Should().Be("Host=localhost;Database=dummy;Username=postgres;Password=postgres");
         }
         finally

@@ -1,4 +1,3 @@
-using System.Net;
 using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -17,6 +16,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
@@ -619,7 +619,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         ReconfigureDbContext<TContext>(services);
 
         TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
+        services.AddScoped<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>(sp => sp.GetRequiredService<TContext>());
     }
 
     /// <summary>
@@ -714,3 +714,4 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         services.Add(newDescriptor);
     }
 }
+

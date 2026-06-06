@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Documents.Domain.Entities;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,3 +48,5 @@ public partial class DocumentsDbContext : IRepository<Document, Guid>, IReposito
     void IRepository<OutboxMessage, Guid>.Delete(OutboxMessage aggregate) =>
         OutboxMessages.Remove(aggregate);
 }
+
+

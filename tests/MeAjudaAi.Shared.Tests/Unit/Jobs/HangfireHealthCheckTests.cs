@@ -1,11 +1,8 @@
-using FluentAssertions;
 using Hangfire;
 using MeAjudaAi.Shared.Jobs.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 

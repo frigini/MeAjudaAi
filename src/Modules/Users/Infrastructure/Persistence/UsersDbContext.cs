@@ -2,7 +2,7 @@ using System.Reflection;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -52,3 +52,5 @@ public partial class UsersDbContext : BaseDbContext, IUserUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
+
+

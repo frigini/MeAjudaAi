@@ -1,11 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 using MeAjudaAi.Contracts.Functional;
 

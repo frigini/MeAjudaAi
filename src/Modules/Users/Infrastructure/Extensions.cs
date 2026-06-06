@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
@@ -75,7 +76,7 @@ public static class Extensions
                 {
                     // Fallback para testes de integração quando a flag INTEGRATION_TESTS=true é definida
 #pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
 #pragma warning restore S2068
                 }
                 else
@@ -189,3 +190,10 @@ public static class Extensions
         return services;
     }
 }
+
+
+
+
+
+
+

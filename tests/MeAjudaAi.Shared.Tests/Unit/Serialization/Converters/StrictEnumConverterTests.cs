@@ -1,8 +1,5 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using MeAjudaAi.Shared.Serialization.Converters;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Serialization.Converters;
 

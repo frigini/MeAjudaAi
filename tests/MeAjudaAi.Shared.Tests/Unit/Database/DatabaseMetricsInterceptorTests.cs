@@ -1,4 +1,3 @@
-using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Logging;
 

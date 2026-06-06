@@ -1,14 +1,9 @@
-using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using MeAjudaAi.Shared.Database.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -57,3 +52,5 @@ public class ProvidersApiTests : BaseApiTest
         queries.Should().NotBeNull("IProviderQueries should be registered");
     }
 }
+
+

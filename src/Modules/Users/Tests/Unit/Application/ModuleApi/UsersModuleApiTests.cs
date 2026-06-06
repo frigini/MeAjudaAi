@@ -1,13 +1,10 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.ModuleApi;
 

@@ -2,12 +2,12 @@ using MeAjudaAi.Gateway.Extensions;
 using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
 using MeAjudaAi.ServiceDefaults;
-using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Middleware;
+using MeAjudaAi.Shared.Middleware.GeographicRestriction;
+using MeAjudaAi.Shared.Middleware.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.FeatureManagement;
-using System.Text.Json;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
 

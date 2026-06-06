@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Domain.Entities;
 

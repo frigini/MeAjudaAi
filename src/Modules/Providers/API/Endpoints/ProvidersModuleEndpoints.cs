@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints;
@@ -47,7 +48,7 @@ public static class ProvidersModuleEndpoints
     public static void MapProvidersEndpoints(this WebApplication app)
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
-        var endpoints = BaseEndpoint.CreateVersionedGroup(app, "providers", "Providers");
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Providers.Base, ModuleNames.Providers);
         // Remove .RequireAuthorization() global - cada endpoint define sua própria autorização
 
         // Endpoints de gestão de prestadores

@@ -24,10 +24,17 @@ body:form-urlencoded {
 script:post-response {
   if (res.status === 200) {
     const response = res.getBody();
+    // Sets the tokens as Environment Variables for persistence
+    bru.setEnvVar("accessToken", response.access_token);
+    bru.setEnvVar("refreshToken", response.refresh_token);
+    
+    // Also set as collection variables for immediate use in this collection
     bru.setVar("accessToken", response.access_token);
+    bru.setVar("refreshToken", response.refresh_token);
+    
     console.log("✅ Token obtained successfully!");
-    console.log("🔑 Access Token:", response.access_token.substring(0, 50) + "...");
     console.log("⏰ Expires in:", response.expires_in, "seconds");
+    console.log("ℹ️ Variables 'accessToken' and 'refreshToken' set in active environment.");
   } else {
     console.log("❌ Failed to get token");
     console.log("Status:", res.status);
@@ -41,9 +48,10 @@ docs {
   Este endpoint obtém um token de acesso do Keycloak para usar nos outros endpoints.
   
   ## Como usar
-  1. **Execute este endpoint primeiro** antes de testar os outros
-  2. O script automaticamente salvará o token na variável `accessToken`
-  3. Todos os outros endpoints usarão este token automaticamente
+  1. **Selecione um Ambiente** (ex: Local) no Bruno.
+  2. **Execute este endpoint primeiro** antes de testar os outros.
+  3. O script salvará o token na variável de ambiente `accessToken`.
+  4. Módulos que utilizem o mesmo ambiente terão acesso ao token.
   
   ## Pré-requisitos
   - Keycloak rodando em http://localhost:8080
@@ -52,7 +60,7 @@ docs {
   - Usuário admin criado
   
   ## Configuração das Variáveis
-  Certifique-se de que estas variáveis estão configuradas na collection:
+  Certifique-se de que estas variáveis estão configuradas na collection ou no ambiente:
   - `keycloakUrl`: http://localhost:8080
   - `realm`: meajudaai-realm
   - `clientId`: meajudaai-client

@@ -1,11 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Logging;
 

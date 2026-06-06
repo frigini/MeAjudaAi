@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Queries;
@@ -6,12 +5,8 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Application.DTOs;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
@@ -313,3 +308,5 @@ public class RegisterCustomerCommandHandlerTests
             Times.Once);
     }
 }
+
+

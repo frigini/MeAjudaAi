@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 

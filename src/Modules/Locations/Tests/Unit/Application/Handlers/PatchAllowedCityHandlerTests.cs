@@ -1,8 +1,8 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -148,3 +148,5 @@ public class PatchAllowedCityHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
 }
+
+

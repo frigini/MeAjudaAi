@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Validators;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Validators;
 

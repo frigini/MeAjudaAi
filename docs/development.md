@@ -674,8 +674,8 @@ public async Task GetUserPermissions_WithValidUser_ShouldReturnCorrectPermission
     var userId = "test-user-id";
     var expectedPermissions = new[] 
     { 
-        EPermission.Users_Read, 
-        EPermission.Users_Write 
+        EPermission.UsersRead, 
+        EPermission.UsersCreate 
     };
     
     // Act
@@ -690,10 +690,10 @@ public async Task CheckPermission_WithAuthorizedUser_ShouldReturnTrue()
 {
     // Arrange
     var userId = "authorized-user";
-    await _permissionService.GrantPermissionAsync(userId, EPermission.Users_Read);
+    await _permissionService.GrantPermissionAsync(userId, EPermission.UsersRead);
     
     // Act
-    var hasPermission = await _permissionService.HasPermissionAsync(userId, EPermission.Users_Read);
+    var hasPermission = await _permissionService.HasPermissionAsync(userId, EPermission.UsersRead);
     
     // Assert
     hasPermission.Should().BeTrue();
@@ -851,7 +851,7 @@ public class UserBuilder
 // Usage in tests
 var user = new UserBuilder()
     .WithEmail("test@example.com")
-    .WithPermissions(EPermission.Users_Read, EPermission.Users_Write)
+    .WithPermissions(EPermission.UsersRead, EPermission.UsersCreate)
     .Build();
 ```
 

@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Handlers;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 

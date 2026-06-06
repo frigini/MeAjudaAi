@@ -1,15 +1,11 @@
-using FluentAssertions;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Handlers;
 

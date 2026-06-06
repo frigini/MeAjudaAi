@@ -1,7 +1,5 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>

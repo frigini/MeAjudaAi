@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -90,16 +90,16 @@ public class PermissionExtensionsTests
     }
 
     [Fact]
-    public void GetModule_WithOrdersPermission_ShouldReturnOrders()
+    public void GetModule_WithBookingsPermission_ShouldReturnBookings()
     {
         // Arrange
-        var permission = EPermission.OrdersRead;
+        var permission = EPermission.BookingsRead;
 
         // Act
         var result = permission.GetModule();
 
         // Assert
-        result.Should().Be("orders");
+        result.Should().Be("bookings");
     }
 
     #endregion
@@ -291,8 +291,18 @@ public class PermissionExtensionsTests
         result.Should().Contain("users");
         result.Should().Contain("system");
         result.Should().Contain("providers");
-        result.Should().Contain("orders");
+        result.Should().Contain("bookings");
+        result.Should().Contain("payments");
+        result.Should().Contain("communications");
+        result.Should().Contain("ratings");
+        result.Should().Contain("search");
+        result.Should().Contain("documents");
+        result.Should().Contain("service-catalogs");
+        result.Should().Contain("locations");
+        result.Should().Contain("reports");
+        result.Should().Contain("admin");
         result.Should().NotContain("unknown");
+        result.Should().NotContain("orders");
         result.Should().OnlyHaveUniqueItems();
     }
 

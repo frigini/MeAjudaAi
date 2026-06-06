@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-using Aspire.Hosting.ApplicationModel;
 using MeAjudaAi.AppHost.Helpers;
 using MeAjudaAi.AppHost.Options;
 using MeAjudaAi.AppHost.Results;

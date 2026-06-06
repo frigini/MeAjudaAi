@@ -1,18 +1,17 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Database;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Net.Http;
 using System.Security.Claims;
 using Xunit;
 
+using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
@@ -22,6 +21,7 @@ public class CreateAllowedCityHandlerTests
     private readonly Mock<IAllowedCityQueries> _queriesMock;
     private readonly Mock<IGeocodingService> _geocodingServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IMessageBus> _messageBusMock;
     private readonly Mock<ILogger<CreateAllowedCityHandler>> _loggerMock;
     private readonly CreateAllowedCityHandler _handler;
     private readonly Mock<IRepository<AllowedCity, Guid>> _repositoryMock;
@@ -33,6 +33,7 @@ public class CreateAllowedCityHandlerTests
         _geocodingServiceMock = new Mock<IGeocodingService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _loggerMock = new Mock<ILogger<CreateAllowedCityHandler>>();
+        _messageBusMock = new Mock<IMessageBus>();
         _repositoryMock = new Mock<IRepository<AllowedCity, Guid>>();
 
         _uowMock.Setup(x => x.GetRepository<AllowedCity, Guid>()).Returns(_repositoryMock.Object);
@@ -42,6 +43,7 @@ public class CreateAllowedCityHandlerTests
             _queriesMock.Object,
             _geocodingServiceMock.Object,
             _httpContextAccessorMock.Object,
+            _messageBusMock.Object,
             _loggerMock.Object);
     }
 
@@ -231,3 +233,5 @@ public class CreateAllowedCityHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
 }
+
+

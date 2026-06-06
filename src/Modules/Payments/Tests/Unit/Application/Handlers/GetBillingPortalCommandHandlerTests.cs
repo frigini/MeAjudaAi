@@ -4,18 +4,19 @@ using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
 
 public class GetBillingPortalCommandHandlerTests
 {
-    private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
+    private readonly Mock<IQueryDispatcher> _queryDispatcherMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<IOptions<PaymentsOptions>> _optionsMock;
@@ -24,7 +25,7 @@ public class GetBillingPortalCommandHandlerTests
 
     public GetBillingPortalCommandHandlerTests()
     {
-        _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
+        _queryDispatcherMock = new Mock<IQueryDispatcher>();
         _gatewayMock = new Mock<IPaymentGateway>();
         _configurationMock = new Mock<IConfiguration>();
         _optionsMock = new Mock<IOptions<PaymentsOptions>>();
@@ -34,7 +35,7 @@ public class GetBillingPortalCommandHandlerTests
         _optionsMock.Setup(x => x.Value).Returns(options);
 
         _handler = new GetBillingPortalCommandHandler(
-            _subscriptionQueriesMock.Object, 
+            _queryDispatcherMock.Object, 
             _gatewayMock.Object, 
             _configurationMock.Object, 
             _optionsMock.Object,
@@ -53,8 +54,8 @@ public class GetBillingPortalCommandHandlerTests
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
         sub.Activate("sub_123", externalCustomerId, DateTime.UtcNow.AddMonths(1));
 
-        _subscriptionQueriesMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sub);
+        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(sub));
 
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedUrl);
@@ -73,8 +74,8 @@ public class GetBillingPortalCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _subscriptionQueriesMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Subscription?)null);
+        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(null));
 
         var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
 
@@ -93,8 +94,8 @@ public class GetBillingPortalCommandHandlerTests
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
         // Observação: o sub não está ativado, portanto ExternalCustomerId é nulo
 
-        _subscriptionQueriesMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sub);
+        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(sub));
 
         var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
 
@@ -113,8 +114,8 @@ public class GetBillingPortalCommandHandlerTests
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
         sub.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
 
-        _subscriptionQueriesMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sub);
+        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(sub));
 
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?)null);
@@ -141,8 +142,8 @@ public class GetBillingPortalCommandHandlerTests
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
         sub.Activate("sub_123", externalCustomerId, DateTime.UtcNow.AddMonths(1));
 
-        _subscriptionQueriesMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sub);
+        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(sub));
 
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
             .ReturnsAsync("https://stripe.com/portal");
@@ -165,7 +166,9 @@ public class GetBillingPortalCommandHandlerTests
         
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
         sub.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
-        _subscriptionQueriesMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>())).ReturnsAsync(sub);
+        _queryDispatcherMock
+            .Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(sub));
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("https://stripe.com");
 
         var command = new GetBillingPortalCommand(providerId, returnUrl);
@@ -199,9 +202,9 @@ public class GetBillingPortalCommandHandlerTests
         var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
         sub.Activate("sub_ext", "cus_ext_loopback");
 
-        _subscriptionQueriesMock
-            .Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sub);
+        _queryDispatcherMock
+            .Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Success(sub));
 
         _gatewayMock
             .Setup(g => g.CreateBillingPortalSessionAsync("cus_ext_loopback", It.IsAny<string>(), It.IsAny<CancellationToken>()))

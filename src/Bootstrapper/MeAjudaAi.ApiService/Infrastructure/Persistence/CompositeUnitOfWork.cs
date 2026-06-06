@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 
 namespace MeAjudaAi.ApiService.Infrastructure.Persistence;
 

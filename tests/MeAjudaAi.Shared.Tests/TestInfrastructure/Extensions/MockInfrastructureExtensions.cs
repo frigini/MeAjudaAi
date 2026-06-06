@@ -1,5 +1,4 @@
 using System.Reflection;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

@@ -39,20 +39,18 @@ public static class ModuleNames
     /// </summary>
     public const string Locations = "Locations";
 
-    // Módulos planejados para implementação futura
-
     /// <summary>
-    /// Módulo de agendamentos - booking e execução de serviços (futuro)
+    /// Módulo de agendamentos - booking e execução de serviços
     /// </summary>
     public const string Bookings = "Bookings";
 
     /// <summary>
-    /// Módulo de comunicações - email, SMS, push (implementado na Sprint 9)
+    /// Módulo de comunicações - email, SMS, push
     /// </summary>
     public const string Communications = "Communications";
 
     /// <summary>
-    /// Módulo de pagamentos - processamento de pagamentos (futuro)
+    /// Módulo de pagamentos - processamento de pagamentos
     /// </summary>
     public const string Payments = "Payments";
 
@@ -62,9 +60,9 @@ public static class ModuleNames
     public const string Reports = "Reports";
 
     /// <summary>
-    /// Módulo de avaliações - reviews e ratings de prestadores (futuro)
+    /// Módulo de avaliações - reviews e ratings de prestadores
     /// </summary>
-    public const string Reviews = "Reviews";
+    public const string Ratings = "Ratings";
 
     /// <summary>
     /// Todos os nomes de módulos implementados.
@@ -76,7 +74,11 @@ public static class ModuleNames
         Documents,
         ServiceCatalogs,
         SearchProviders,
-        Locations
+        Locations,
+        Bookings,
+        Communications,
+        Payments,
+        Ratings
     };
 
     /// <summary>
@@ -94,7 +96,7 @@ public static class ModuleNames
         Communications,
         Payments,
         Reports,
-        Reviews
+        Ratings
     };
 
     /// <summary>

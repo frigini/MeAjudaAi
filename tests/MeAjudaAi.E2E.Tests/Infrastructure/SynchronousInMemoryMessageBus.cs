@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;

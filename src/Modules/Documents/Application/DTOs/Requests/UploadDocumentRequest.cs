@@ -1,5 +1,4 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Contracts;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.DTOs.Requests;

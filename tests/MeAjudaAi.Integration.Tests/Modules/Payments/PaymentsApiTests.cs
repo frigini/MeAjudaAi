@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
@@ -7,12 +6,11 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
@@ -143,10 +141,10 @@ public class PaymentsApiTests : BaseApiTest
         // Arrange
         var providerId = Guid.NewGuid();
         AuthConfig.ConfigureProvider(providerId, "provider-id", "provider");
-        var request = new { providerId, returnUrl = "account" };
+        var request = new { providerId, returnUrl = "https://localhost/account" };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
+        var response = await Client.PostAsJsonAsync($"/api/v1/{ApiEndpoints.Payments.Base}/subscriptions/billing-portal", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -160,10 +158,10 @@ public class PaymentsApiTests : BaseApiTest
         var providerId = _seededProviderId;
         var otherProviderId = Guid.NewGuid();
         AuthConfig.ConfigureProvider(otherProviderId, "provider-id", "provider"); // Autenticado como provedor diferente
-        var request = new { providerId, returnUrl = "account" };
+        var request = new { providerId, returnUrl = "https://localhost/account" };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
+        var response = await Client.PostAsJsonAsync($"/api/v1/{ApiEndpoints.Payments.Base}/subscriptions/billing-portal", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -179,7 +177,7 @@ public class PaymentsApiTests : BaseApiTest
         var request = new { providerId = Guid.Empty, returnUrl = "account" };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
+        var response = await Client.PostAsJsonAsync($"/api/v1/{ApiEndpoints.Payments.Base}/subscriptions/billing-portal", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

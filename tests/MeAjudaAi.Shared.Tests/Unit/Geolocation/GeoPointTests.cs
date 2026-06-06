@@ -1,8 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization.Converters;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Geolocation;
 

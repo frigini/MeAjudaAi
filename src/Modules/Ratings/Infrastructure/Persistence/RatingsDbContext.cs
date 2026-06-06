@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
@@ -65,3 +66,5 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
+
+

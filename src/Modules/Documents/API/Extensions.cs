@@ -2,12 +2,6 @@ using MeAjudaAi.Modules.Documents.API.Endpoints;
 using MeAjudaAi.Modules.Documents.Application;
 using MeAjudaAi.Modules.Documents.Infrastructure;
 using MeAjudaAi.Contracts.Modules.Documents;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.API;
 

@@ -1,0 +1,42 @@
+meta {
+  name: Create Subscription
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/payments/subscriptions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "priceId": "price_12345",
+    "successUrl": "http://localhost:3000/success",
+    "cancelUrl": "http://localhost:3000/cancel"
+  }
+}
+
+docs {
+  # Create Subscription
+
+  Cria uma nova assinatura para o usuário autenticado.
+
+  ## Autorização
+  - **Requer token**: Sim
+
+  ## Parâmetros Body
+  - `priceId` (string): ID do preço no Stripe
+  - `successUrl` (string): URL de retorno em caso de sucesso
+  - `cancelUrl` (string): URL de retorno em caso de cancelamento
+}

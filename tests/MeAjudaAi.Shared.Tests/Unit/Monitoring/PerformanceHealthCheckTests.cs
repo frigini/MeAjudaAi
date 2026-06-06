@@ -1,7 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 

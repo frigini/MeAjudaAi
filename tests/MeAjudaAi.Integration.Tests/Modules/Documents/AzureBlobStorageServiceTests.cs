@@ -5,7 +5,6 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 

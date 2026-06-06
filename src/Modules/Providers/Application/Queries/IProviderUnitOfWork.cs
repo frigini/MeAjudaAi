@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 
 namespace MeAjudaAi.Modules.Providers.Application.Queries;
 
@@ -9,3 +9,6 @@ namespace MeAjudaAi.Modules.Providers.Application.Queries;
 public interface IProviderUnitOfWork : IUnitOfWork
 {
 }
+
+
+

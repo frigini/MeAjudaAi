@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;

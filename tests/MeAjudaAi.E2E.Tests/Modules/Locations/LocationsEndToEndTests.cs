@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Locations.Domain.Entities;

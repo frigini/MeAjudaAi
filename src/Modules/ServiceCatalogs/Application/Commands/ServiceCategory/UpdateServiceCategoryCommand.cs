@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 

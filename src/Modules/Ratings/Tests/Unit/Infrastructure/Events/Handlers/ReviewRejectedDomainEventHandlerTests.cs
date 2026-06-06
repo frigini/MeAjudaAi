@@ -1,9 +1,6 @@
 using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure.Events.Handlers;
 

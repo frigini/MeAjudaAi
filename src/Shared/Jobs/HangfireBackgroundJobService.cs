@@ -1,6 +1,6 @@
-using System.Linq.Expressions;
 using Hangfire;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace MeAjudaAi.Shared.Jobs;
 
@@ -10,30 +10,19 @@ namespace MeAjudaAi.Shared.Jobs;
 /// Hangfire persiste jobs em PostgreSQL e executa em background workers.
 /// Suporta retry automático, dashboard de monitoramento e jobs recorrentes.
 /// </summary>
-public class HangfireBackgroundJobService : IBackgroundJobService
+public class HangfireBackgroundJobService(
+    IBackgroundJobClient backgroundJobClient,
+    IRecurringJobManager recurringJobManager,
+    ILogger<HangfireBackgroundJobService> logger) : IBackgroundJobService
 {
-    private readonly IBackgroundJobClient _backgroundJobClient;
-    private readonly IRecurringJobManager _recurringJobManager;
-    private readonly ILogger<HangfireBackgroundJobService> _logger;
-
-    public HangfireBackgroundJobService(
-        IBackgroundJobClient backgroundJobClient,
-        IRecurringJobManager recurringJobManager,
-        ILogger<HangfireBackgroundJobService> logger)
-    {
-        _backgroundJobClient = backgroundJobClient;
-        _recurringJobManager = recurringJobManager;
-        _logger = logger;
-    }
-
     public Task EnqueueAsync<T>(Expression<Func<T, Task>> methodCall, TimeSpan? delay = null) where T : notnull
     {
         try
         {
             if (delay.HasValue && delay.Value > TimeSpan.Zero)
             {
-                _backgroundJobClient.Schedule(methodCall, delay.Value);
-                _logger.LogInformation(
+                backgroundJobClient.Schedule(methodCall, delay.Value);
+                logger.LogInformation(
                     "Job scheduled for {JobType}.{Method} with delay of {Delay}",
                     typeof(T).Name,
                     GetMethodName(methodCall),
@@ -41,8 +30,8 @@ public class HangfireBackgroundJobService : IBackgroundJobService
             }
             else
             {
-                _backgroundJobClient.Enqueue(methodCall);
-                _logger.LogInformation(
+                backgroundJobClient.Enqueue(methodCall);
+                logger.LogInformation(
                     "Job enqueued for {JobType}.{Method}",
                     typeof(T).Name,
                     GetMethodName(methodCall));
@@ -52,7 +41,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error enqueueing job for {JobType}", typeof(T).Name);
+            logger.LogError(ex, "Error enqueueing job for {JobType}", typeof(T).Name);
             throw new InvalidOperationException(
                 $"Failed to enqueue background job of type '{typeof(T).Name}' in Hangfire queue",
                 ex);
@@ -65,16 +54,16 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         {
             if (delay.HasValue && delay.Value > TimeSpan.Zero)
             {
-                _backgroundJobClient.Schedule(methodCall, delay.Value);
-                _logger.LogInformation(
+                backgroundJobClient.Schedule(methodCall, delay.Value);
+                logger.LogInformation(
                     "Job scheduled for {Method} with delay of {Delay}",
                     GetMethodName(methodCall),
                     delay.Value);
             }
             else
             {
-                _backgroundJobClient.Enqueue(methodCall);
-                _logger.LogInformation(
+                backgroundJobClient.Enqueue(methodCall);
+                logger.LogInformation(
                     "Job enqueued for {Method}",
                     GetMethodName(methodCall));
             }
@@ -83,7 +72,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error enqueueing job");
+            logger.LogError(ex, "Error enqueueing job");
             throw new InvalidOperationException(
                 "Failed to enqueue background job expression in Hangfire queue",
                 ex);
@@ -111,12 +100,12 @@ public class HangfireBackgroundJobService : IBackgroundJobService
                 catch (TimeZoneNotFoundException ex)
                 {
                     // Fallback final para UTC
-                    _logger.LogWarning(ex, "Timezone America/Sao_Paulo and fallback not found, using UTC");
+                    logger.LogWarning(ex, "Timezone America/Sao_Paulo and fallback not found, using UTC");
                     timeZone = TimeZoneInfo.Utc;
                 }
             }
 
-            _recurringJobManager.AddOrUpdate(
+            recurringJobManager.AddOrUpdate(
                 jobId,
                 methodCall,
                 cronExpression,
@@ -125,7 +114,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
                     TimeZone = timeZone
                 });
 
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Recurring job configured: {JobId} with cron {CronExpression}",
                 jobId,
                 cronExpression);
@@ -134,7 +123,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error configuring recurring job {JobId}", jobId);
+            logger.LogError(ex, "Error configuring recurring job {JobId}", jobId);
             throw new InvalidOperationException(
                 $"Failed to schedule recurring Hangfire job '{jobId}' with cron expression '{cronExpression}'",
                 ex);

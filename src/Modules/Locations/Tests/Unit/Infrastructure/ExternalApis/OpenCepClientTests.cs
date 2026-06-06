@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -50,7 +49,7 @@ public sealed class OpenCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(openCepResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(openCepResponse, SerializationDefaults.Default));
 
         // Act
         var result = await _client.GetAddressAsync(cep, CancellationToken.None);
@@ -121,7 +120,7 @@ public sealed class OpenCepClientTests : IDisposable
 
         _mockHandler.SetResponse(
             HttpStatusCode.OK,
-            JsonSerializer.Serialize(openCepResponse, SerializationDefaults.Default));
+            System.Text.Json.JsonSerializer.Serialize(openCepResponse, SerializationDefaults.Default));
 
         // Act
         await _client.GetAddressAsync(cep, CancellationToken.None);

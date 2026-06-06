@@ -46,6 +46,10 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 - **Sistema de Disputas**: Mediação administrativa para conflitos.
 - **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
+- **Analytics & Reports (Novo)**: 
+    - **Provedores**: Dashboards de conversão (cliques vs. agendamentos), métricas de faturamento e avaliação média temporal.
+    - **Administração**: Relatórios de crescimento da plataforma, hotspots geográficos de demanda e exportação de dados para contabilidade (CSV/PDF).
+    - **Inteligência**: Sugestões de precificação baseadas na demanda da região.
 
 ### 🚀 Arquitetura Evolutiva e Mensageria (Objetivos)
 

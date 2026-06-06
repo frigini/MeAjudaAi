@@ -1,11 +1,11 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace MeAjudaAi.Shared.Caching;
 
-public class HybridCacheService(    HybridCache hybridCache,
+public class HybridCacheService(HybridCache hybridCache,
     ILogger<HybridCacheService> logger,
     ICacheMetrics? metrics,
     IConfiguration configuration) : ICacheService
@@ -15,10 +15,10 @@ public class HybridCacheService(    HybridCache hybridCache,
     
     public async Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
-        // If cache is disabled, bypass and return cache miss
+        // Se o cache estiver desabilitado, ignora e retorna cache miss
         if (!_isCacheEnabled)
         {
-            logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);
+            logger.LogDebug("Cache desabilitado - ignorando cache para chave {Key}", key);
             return (default, false);
         }
 
@@ -48,14 +48,14 @@ public class HybridCacheService(    HybridCache hybridCache,
         catch (InvalidOperationException)
         {
             stopwatch.Stop();
-            logger.LogDebug("Item not found in cache for key {Key} and valueFactory returned null", key);
+            logger.LogDebug("Item não encontrado no cache para chave {Key} e valueFactory retornou null", key);
             return (default, false);
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
             _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get", "error");
-            logger.LogWarning(ex, "Failed to get value from cache for key {Key}", key);
+            logger.LogWarning(ex, "Falha ao obter valor do cache para chave {Key}", key);
             return (default, false);
         }
     }
@@ -68,10 +68,10 @@ public class HybridCacheService(    HybridCache hybridCache,
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
-        // If cache is disabled, bypass and do not set
+        // Se o cache estiver desabilitado, ignora e não salva
         if (!_isCacheEnabled)
         {
-            logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);
+            logger.LogDebug("Cache desabilitado - ignorando cache para chave {Key}", key);
             return;
         }
 
@@ -90,16 +90,16 @@ public class HybridCacheService(    HybridCache hybridCache,
         {
             stopwatch.Stop();
             _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "error");
-            logger.LogWarning(ex, "Failed to set value in cache for key {Key}", key);
+            logger.LogWarning(ex, "Falha ao salvar valor no cache para chave {Key}", key);
         }
     }
 
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
-        // If cache is disabled, bypass and do not remove
+        // Se o cache estiver desabilitado, ignora e não remove
         if (!_isCacheEnabled)
         {
-            logger.LogDebug("Cache disabled - bypassing removal for key {Key}", key);
+            logger.LogDebug("Cache desabilitado - ignorando remoção para chave {Key}", key);
             return;
         }
 
@@ -109,41 +109,16 @@ public class HybridCacheService(    HybridCache hybridCache,
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to remove value from cache for key {Key}", key);
-        }
-    }
-
-    public async Task RemoveByPatternAsync(string pattern, CancellationToken cancellationToken = default)
-    {
-        // If cache is disabled, bypass and do not remove
-        if (!_isCacheEnabled)
-        {
-            logger.LogDebug("Cache disabled - bypassing removal for pattern {Pattern}", pattern);
-            return;
-        }
-
-        try
-        {
-            // TODO(#250): HybridCache only supports tag-based removal, not wildcard pattern matching.
-            // Current behavior: Treats pattern as exact tag match (not glob/regex).
-            // Options: (1) Implement GetKeys() equivalent + filter by pattern (performance cost),
-            // (2) Switch to IDistributedCache for pattern support (lose L1/L2 benefits),
-            // (3) Deprecate RemoveByPatternAsync and migrate consumers to tag-based approach.
-            // Recommendation: Option 3 - tag-based removal aligns with HybridCache design.
-            await hybridCache.RemoveByTagAsync(pattern, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to remove values by pattern {Pattern}", pattern);
+            logger.LogWarning(ex, "Falha ao remover valor do cache para chave {Key}", key);
         }
     }
 
     public async Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
     {
-        // If cache is disabled, bypass and do not remove
+        // Se o cache estiver desabilitado, ignora e não remove
         if (!_isCacheEnabled)
         {
-            logger.LogDebug("Cache disabled - bypassing removal for tag {Tag}", tag);
+            logger.LogDebug("Cache desabilitado - ignorando remoção para tag {Tag}", tag);
             return;
         }
 
@@ -153,7 +128,7 @@ public class HybridCacheService(    HybridCache hybridCache,
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to remove values by tag {Tag}", tag);
+            logger.LogWarning(ex, "Falha ao remover valores pela tag {Tag}", tag);
         }
     }
 
@@ -165,7 +140,7 @@ public class HybridCacheService(    HybridCache hybridCache,
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
-        // If cache is disabled, bypass and call factory directly
+        // Se o cache estiver desativado, ignore e chame a factory diretamente
         if (!_isCacheEnabled)
         {
             logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);

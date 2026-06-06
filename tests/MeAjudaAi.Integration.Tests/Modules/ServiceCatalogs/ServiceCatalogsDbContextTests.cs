@@ -1,7 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 

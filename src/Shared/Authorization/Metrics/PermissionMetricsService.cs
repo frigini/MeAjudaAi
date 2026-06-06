@@ -1,8 +1,9 @@
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Authorization.Metrics.Models; // Import models namespace
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using MeAjudaAi.Shared.Authorization.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Authorization.Metrics;
 
@@ -15,7 +16,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private readonly ILogger<PermissionMetricsService> _logger;
     private readonly Meter _meter;
 
-    // Counters
+    // Contadores
     private readonly Counter<long> _permissionResolutionCounter;
     private readonly Counter<long> _permissionCheckCounter;
     private readonly Counter<long> _cacheHitCounter;
@@ -23,13 +24,13 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private readonly Counter<long> _authorizationFailureCounter;
     private readonly Counter<long> _cacheInvalidationCounter;
 
-    // Histograms
+    // Histogramas
     private readonly Histogram<double> _permissionResolutionDuration;
     private readonly Histogram<double> _cacheOperationDuration;
     private readonly Histogram<double> _authorizationCheckDuration;
     private readonly Histogram<double> _performanceHistogram;
 
-    // State tracking
+    // Rastreamento de estado
     private long _totalPermissionChecks;
     private long _totalCacheHits;
     private int _currentActiveChecks;
@@ -40,7 +41,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         _logger = logger;
         _meter = new Meter("MeAjudaAi.Authorization", "1.0.0");
 
-        // Initialize counters
+        // Inicializa contadores
         _permissionResolutionCounter = _meter.CreateCounter<long>(
             "meajudaai_permission_resolutions_total",
             description: "Total number of permission resolutions performed");
@@ -65,7 +66,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
             "meajudaai_permission_cache_invalidations_total",
             description: "Total number of permission cache invalidations");
 
-        // Initialize histograms
+        // Inicializa histogramas
         _permissionResolutionDuration = _meter.CreateHistogram<double>(
             "meajudaai_permission_resolution_duration_seconds",
             "seconds",
@@ -85,7 +86,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
             "meajudaai_permission_performance",
             description: "Performance metrics for permission components");
 
-        // Initialize observable gauges directly (no need to store reference)
+        // Inicializa medidores observáveis diretamente (não é necessário armazenar referência)
         _meter.CreateObservableGauge<int>(
             "meajudaai_active_permission_checks",
             () => _currentActiveChecks,
@@ -225,30 +226,34 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     /// <summary>
     /// Registra uma operação de cache.
     /// </summary>
-    public IDisposable MeasureCacheOperation(string operation, bool hit)
+    public IDisposable MeasureCacheOperation(string operation, Func<bool> getCacheHit)
     {
-        var tags = new TagList
-        {
-            { "operation", operation },
-            { "result", hit ? "hit" : "miss" }
-        };
-
-        if (hit)
-        {
-            _cacheHitCounter.Add(1, tags);
-            lock (_statsLock)
-            {
-                _totalCacheHits++;
-            }
-        }
-        else
-        {
-            _cacheMissCounter.Add(1, tags);
-        }
-
         return new OperationTimer(
             () => { },
-            duration => _cacheOperationDuration.Record(duration.TotalSeconds, tags));
+            duration =>
+            {
+                var hit = getCacheHit();
+                var tags = new TagList
+                {
+                    { "operation", operation },
+                    { "result", hit ? "hit" : "miss" }
+                };
+
+                if (hit)
+                {
+                    _cacheHitCounter.Add(1, tags);
+                    lock (_statsLock)
+                    {
+                        _totalCacheHits++;
+                    }
+                }
+                else
+                {
+                    _cacheMissCounter.Add(1, tags);
+                }
+                
+                _cacheOperationDuration.Record(duration.TotalSeconds, tags);
+            });
     }
 
     /// <summary>
@@ -334,73 +339,5 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     public void Dispose()
     {
         _meter.Dispose();
-    }
-
-    /// <summary>
-    /// Timer para medir duração de operações.
-    /// </summary>
-    private sealed class OperationTimer : IDisposable
-    {
-        private readonly Stopwatch _stopwatch;
-        private readonly Action<TimeSpan> _onComplete;
-        private bool _disposed;
-
-        public OperationTimer(Action onStart, Action<TimeSpan> onComplete)
-        {
-            _onComplete = onComplete;
-            _stopwatch = Stopwatch.StartNew();
-            onStart();
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-                return;
-
-            _disposed = true;
-            _stopwatch.Stop();
-            _onComplete(_stopwatch.Elapsed);
-        }
-    }
-}
-
-/// <summary>
-/// Estatísticas do sistema de permissões.
-/// </summary>
-public sealed class PermissionSystemStats
-{
-    public long TotalPermissionChecks { get; init; }
-    public long TotalCacheHits { get; init; }
-    public double CacheHitRate { get; init; }
-    public int ActiveChecks { get; init; }
-    public DateTimeOffset Timestamp { get; init; }
-}
-
-/// <summary>
-/// Extensões para facilitar o uso de métricas de permissões.
-/// </summary>
-public static class PermissionMetricsExtensions
-{
-    /// <summary>
-    /// Adiciona o serviço de métricas de permissões ao DI.
-    /// </summary>
-    public static IServiceCollection AddPermissionMetrics(this IServiceCollection services)
-    {
-        services.AddSingleton<PermissionMetricsService>();
-        services.AddSingleton<IPermissionMetricsService>(provider => provider.GetRequiredService<PermissionMetricsService>());
-        return services;
-    }
-
-    /// <summary>
-    /// Wrapper para medir operações de permissão com using statement.
-    /// </summary>
-    public static async Task<T> MeasureAsync<T>(
-        this IPermissionMetricsService metrics,
-        Func<Task<T>> operation,
-        string operationType,
-        string userId)
-    {
-        using var timer = metrics.MeasurePermissionResolution(userId, operationType);
-        return await operation();
     }
 }

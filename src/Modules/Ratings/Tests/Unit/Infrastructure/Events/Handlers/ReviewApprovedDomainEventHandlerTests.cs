@@ -4,9 +4,6 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure.Events.Handlers;
 

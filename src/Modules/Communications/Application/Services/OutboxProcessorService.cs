@@ -1,13 +1,12 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
-using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -201,3 +200,6 @@ public sealed class OutboxProcessorService(
         }
     }
 }
+
+
+

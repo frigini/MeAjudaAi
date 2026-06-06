@@ -1,5 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Shared.Caching;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Queries;
 
@@ -71,8 +71,7 @@ public class GetProviderDocumentsQueryTests
 
         // Assert
         tags.Should().Contain("documents");
-        tags.Should().Contain($"provider:{providerId}");
-        tags.Should().Contain("provider-documents");
+        tags.Should().Contain(CacheTags.ProviderTag(providerId));
     }
 
     [Fact]

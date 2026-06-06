@@ -1,6 +1,4 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
-using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
@@ -10,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 

@@ -1,18 +1,17 @@
-using System.Diagnostics.CodeAnalysis;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Keycloak.Models;
+using MeAjudaAi.Shared.Authorization.ValueObjects;
+using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Authorization.ValueObjects;
-using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak;
 
@@ -254,10 +253,22 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
             return foundUser;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
         {
             _logger.LogWarning(
-                "Failed to find user {MaskedUserId} by username in Keycloak ({ExceptionType})",
+                "Failed to find user {MaskedUserId} by username in Keycloak (HTTP error: {ExceptionType})",
+                MaskUserId(userId),
+                ex.GetType().Name);
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(
+                "Failed to find user {MaskedUserId} by username in Keycloak (JSON error: {ExceptionType})",
                 MaskUserId(userId),
                 ex.GetType().Name);
             return null;
@@ -301,53 +312,59 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 EPermission.AdminSystem,
                 EPermission.AdminUsers,
                 EPermission.AdminReports,
-                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList,
+                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList, EPermission.UsersProfile,
                 EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete, EPermission.ProvidersList, EPermission.ProvidersApprove,
-                EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete, EPermission.OrdersList, EPermission.OrdersFulfill, EPermission.OrdersCancel,
+                EPermission.BookingsRead, EPermission.BookingsCreate, EPermission.BookingsUpdate, EPermission.BookingsCancel, EPermission.BookingsList, EPermission.BookingsManage,
                 EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate, EPermission.ReportsAdmin,
                 EPermission.ServiceCatalogsRead, EPermission.ServiceCatalogsManage,
-                EPermission.LocationsRead, EPermission.LocationsManage
+                EPermission.LocationsRead, EPermission.LocationsManage,
+                EPermission.PaymentsRead, EPermission.PaymentsManage, EPermission.PaymentsCheckout,
+                EPermission.CommunicationsRead, EPermission.CommunicationsSend, EPermission.CommunicationsManage,
+                EPermission.RatingsRead, EPermission.RatingsCreate, EPermission.RatingsModerate,
+                EPermission.SearchRead, EPermission.SearchManage,
+                EPermission.DocumentsRead, EPermission.DocumentsUpload, EPermission.DocumentsVerify, EPermission.DocumentsDelete
             },
 
             // Roles de administração de usuários
             var r when r == RoleConstants.UserAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.AdminUsers,
-                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList
+                EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList, EPermission.UsersProfile
             },
 
             // Roles de operação de usuários
             var r when r == RoleConstants.UserOperator.ToLowerInvariant() => new[]
             {
-                EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList
+                EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList, EPermission.UsersProfile
             },
 
             // Usuário básico
             var r when r == RoleConstants.User.ToLowerInvariant() => new[]
             {
-                EPermission.UsersRead, EPermission.UsersProfile
+                EPermission.UsersRead, EPermission.UsersProfile, EPermission.BookingsRead, EPermission.BookingsCreate, EPermission.RatingsCreate
             },
 
             // Roles de prestadores
             var r when r == RoleConstants.ProviderAdmin.ToLowerInvariant() => new[]
             {
-                EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete
+                EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete, EPermission.ProvidersList,
+                EPermission.BookingsRead, EPermission.BookingsUpdate, EPermission.BookingsList
             },
 
             var r when r == RoleConstants.Provider.ToLowerInvariant() => new[]
             {
-                EPermission.ProvidersRead
+                EPermission.ProvidersRead, EPermission.ProvidersUpdate, EPermission.BookingsRead, EPermission.BookingsUpdate, EPermission.BookingsList
             },
 
-            // Roles de pedidos
-            var r when r == RoleConstants.OrderAdmin.ToLowerInvariant() => new[]
+            // Roles de agendamentos
+            var r when r == "booking_admin" || r == RoleConstants.OrderAdmin.ToLowerInvariant() => new[]
             {
-                EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete
+                EPermission.BookingsRead, EPermission.BookingsCreate, EPermission.BookingsUpdate, EPermission.BookingsCancel, EPermission.BookingsList, EPermission.BookingsManage
             },
 
-            var r when r == RoleConstants.OrderOperator.ToLowerInvariant() => new[]
+            var r when r == "booking_operator" || r == RoleConstants.OrderOperator.ToLowerInvariant() => new[]
             {
-                EPermission.OrdersRead, EPermission.OrdersUpdate
+                EPermission.BookingsRead, EPermission.BookingsUpdate, EPermission.BookingsList
             },
 
             // Roles de relatórios
@@ -389,67 +406,4 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(bytes);
     }
-}
-
-/// <summary>
-/// Configuração para integração com Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-public sealed class KeycloakConfiguration
-{
-    public string BaseUrl { get; set; } = string.Empty;
-    public string Realm { get; set; } = string.Empty;
-    public string AdminClientId { get; set; } = string.Empty;
-    public string AdminClientSecret { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Resposta do token do Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal sealed class TokenResponse
-{
-    [JsonPropertyName("access_token")]
-    public string AccessToken { get; set; } = string.Empty;
-
-    [JsonPropertyName("token_type")]
-    public string TokenType { get; set; } = string.Empty;
-
-    [JsonPropertyName("expires_in")]
-    public int ExpiresIn { get; set; }
-}
-
-/// <summary>
-/// Representação do usuário no Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal sealed class KeycloakUser
-{
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-
-    [JsonPropertyName("username")]
-    public string Username { get; set; } = string.Empty;
-
-    [JsonPropertyName("email")]
-    public string Email { get; set; } = string.Empty;
-
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; }
-}
-
-/// <summary>
-/// Representação do role no Keycloak.
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal sealed class KeycloakRole
-{
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-
-    [JsonPropertyName("description")]
-    public string Description { get; set; } = string.Empty;
 }

@@ -1,9 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
-using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Metrics;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -336,7 +334,8 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_WithCacheHit_ShouldIncrementHitCounter()
     {
         // Act
-        using var timer = _service.MeasureCacheOperation("get", hit: true);
+        var timer = _service.MeasureCacheOperation("get", () => true);
+        timer.Dispose();
 
         // Assert
         var hitKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_hits_total"));
@@ -348,7 +347,8 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_WithCacheMiss_ShouldIncrementMissCounter()
     {
         // Act
-        using var timer = _service.MeasureCacheOperation("get", hit: false);
+        var timer = _service.MeasureCacheOperation("get", () => false);
+        timer.Dispose();
 
         // Assert
         var missKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_misses_total"));
@@ -360,7 +360,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_WithCacheHit_ShouldUpdateSystemStats()
     {
         // Act
-        using (var timer = _service.MeasureCacheOperation("get", hit: true)) { }
+        using (var timer = _service.MeasureCacheOperation("get", () => true)) { }
 
         var stats = _service.GetSystemStats();
 
@@ -372,7 +372,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_OnDispose_ShouldRecordDuration()
     {
         // Act
-        var timer = _service.MeasureCacheOperation("set", hit: false);
+        var timer = _service.MeasureCacheOperation("set", () => false);
         Thread.Sleep(5);
         timer.Dispose();
 
@@ -386,9 +386,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void MeasureCacheOperation_WithDifferentOperations_ShouldTrackSeparately()
     {
         // Act
-        using (var t1 = _service.MeasureCacheOperation("get", hit: true)) { }
-        using (var t2 = _service.MeasureCacheOperation("set", hit: false)) { }
-        using (var t3 = _service.MeasureCacheOperation("invalidate", hit: false)) { }
+        using (var t1 = _service.MeasureCacheOperation("get", () => true)) { }
+        using (var t2 = _service.MeasureCacheOperation("set", () => false)) { }
+        using (var t3 = _service.MeasureCacheOperation("invalidate", () => false)) { }
 
         // Assert - Each operation should be tracked
         var getKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("operation=get"));
@@ -609,9 +609,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange - Need at least one permission check for denominator
         using (var check = _service.MeasurePermissionCheck("user1", EPermission.UsersRead, true)) { }
-        using (var hit1 = _service.MeasureCacheOperation("get", hit: true)) { }
-        using (var hit2 = _service.MeasureCacheOperation("get", hit: true)) { }
-        using (var miss = _service.MeasureCacheOperation("get", hit: false)) { }
+        using (var hit1 = _service.MeasureCacheOperation("get", () => true)) { }
+        using (var hit2 = _service.MeasureCacheOperation("get", () => true)) { }
+        using (var miss = _service.MeasureCacheOperation("get", () => false)) { }
 
         // Act
         var stats = _service.GetSystemStats();
@@ -641,7 +641,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     public void GetSystemStats_WithZeroChecks_ShouldReturnZeroHitRate()
     {
         // Arrange - Only cache operations, no permission checks
-        using (var hit = _service.MeasureCacheOperation("get", hit: true)) { }
+        using (var hit = _service.MeasureCacheOperation("get", () => true)) { }
 
         // Act
         var stats = _service.GetSystemStats();
@@ -723,104 +723,6 @@ public sealed class PermissionMetricsServiceTests : IDisposable
 
     #endregion
 
-    #region PermissionMetricsExtensions Tests
-
-    [Fact]
-    public void AddPermissionMetrics_ShouldRegisterServices()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-
-        // Act
-        services.AddPermissionMetrics();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Assert
-        var concreteService = serviceProvider.GetService<PermissionMetricsService>();
-        var interfaceService = serviceProvider.GetService<IPermissionMetricsService>();
-
-        concreteService.Should().NotBeNull();
-        interfaceService.Should().NotBeNull();
-        concreteService.Should().BeSameAs(interfaceService);
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddPermissionMetrics_ShouldRegisterAsSingleton()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddPermissionMetrics();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var service1 = serviceProvider.GetService<IPermissionMetricsService>();
-        var service2 = serviceProvider.GetService<IPermissionMetricsService>();
-
-        // Assert
-        service1.Should().BeSameAs(service2);
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public async Task MeasureAsync_ShouldExecuteOperationAndReturnResult()
-    {
-        // Arrange
-        var expectedResult = 42;
-        Func<Task<int>> operation = async () =>
-        {
-            await Task.Delay(10);
-            return expectedResult;
-        };
-
-        // Act
-        var result = await _service.MeasureAsync(operation, "test_operation", "user123");
-
-        // Assert
-        result.Should().Be(expectedResult);
-    }
-
-    [Fact]
-    public async Task MeasureAsync_ShouldRecordMetrics()
-    {
-        // Arrange
-        Func<Task<string>> operation = async () =>
-        {
-            await Task.Delay(10);
-            return "success";
-        };
-
-        // Act
-        await _service.MeasureAsync(operation, "test_module", "user456");
-
-        // Assert - Should have incremented resolution counter
-        var counterKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolutions_total"));
-        counterKey.Should().NotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task MeasureAsync_WithException_ShouldPropagateException()
-    {
-        // Arrange
-        Func<Task<int>> operation = async () =>
-        {
-            await Task.Delay(5);
-            throw new InvalidOperationException("Test exception");
-        };
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await _service.MeasureAsync(operation, "failing_operation", "user789"));
-    }
-
-    #endregion
-
     #region Meter Configuration Tests
 
     [Fact]
@@ -864,7 +766,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         {
             using (var check1 = _service.MeasurePermissionCheck("user1", EPermission.UsersRead, true)) { }
             using (var check2 = _service.MeasurePermissionCheck("user1", EPermission.UsersCreate, false)) { }
-            using (var cacheHit = _service.MeasureCacheOperation("get", hit: true)) { }
+            using (var cacheHit = _service.MeasureCacheOperation("get", () => true)) { }
         }
 
         _service.RecordAuthorizationFailure("user1", EPermission.UsersCreate, "insufficient_role");

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using MeAjudaAi.Contracts;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;

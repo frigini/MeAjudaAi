@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using System.Reflection;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Database;
@@ -66,3 +67,6 @@ public partial class PaymentsDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
+
+
+

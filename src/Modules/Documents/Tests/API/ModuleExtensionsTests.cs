@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Contracts.Modules.Documents;
@@ -8,8 +7,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.API;
 

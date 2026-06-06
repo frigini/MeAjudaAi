@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
@@ -22,8 +23,6 @@ public record GetDocumentStatusQuery(Guid DocumentId) : Query<DocumentDto?>, ICa
         return TimeSpan.FromMinutes(2);
     }
 
-    public IReadOnlyCollection<string>? GetCacheTags()
-    {
-        return ["documents", $"document:{DocumentId}"];
-    }
+    public IReadOnlyCollection<string>? GetCacheTags() => 
+        [CacheTags.Documents, CacheTags.DocumentTag(DocumentId)];
 }

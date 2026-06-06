@@ -1,11 +1,8 @@
-using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Bookings;
 

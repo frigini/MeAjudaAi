@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MeAjudaAi.Shared.Middleware;
+using MeAjudaAi.Shared.Middleware.RateLimiting;
 using Microsoft.Extensions.Options;
 using Moq;
 

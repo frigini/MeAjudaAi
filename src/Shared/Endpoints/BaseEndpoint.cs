@@ -1,5 +1,4 @@
 using Asp.Versioning;
-using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;

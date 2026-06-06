@@ -1,7 +1,6 @@
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Services.Email;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
 

@@ -1,5 +1,4 @@
-using MeAjudaAi.Shared.Database;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Database.Abstractions;
 
 namespace MeAjudaAi.E2E.Tests.Base.Helpers;
 
