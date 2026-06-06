@@ -344,8 +344,14 @@ public class KeycloakPermissionResolverTests
     {
         // Arrange
         var userId = Guid.NewGuid().ToString();
+        var encodedUserId = Uri.EscapeDataString(userId);
         SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
-        SetupThrowingHttpMessage(HttpMethod.Get, $"users/{userId}", new HttpRequestException("Network failure", null, HttpStatusCode.NotFound));
+        
+        // Mock ID search to throw NotFound
+        SetupThrowingHttpMessage(HttpMethod.Get, $"users/{encodedUserId}", new HttpRequestException("Network failure", null, HttpStatusCode.NotFound));
+        
+        // Mock username search to return empty list
+        SetupHttpMessage(HttpMethod.Get, $"users?username={encodedUserId}", new List<object>());
 
         // Act
         var result = await _resolver.GetUserRolesFromKeycloakAsync(userId);
