@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using System.Text.Json.Serialization;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak.Models;
@@ -5,6 +7,7 @@ namespace MeAjudaAi.Shared.Authorization.Keycloak.Models;
 /// <summary>
 /// Representação de um usuário no Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class KeycloakUser
 {
     /// <summary>

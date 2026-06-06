@@ -1,4 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Middleware.GeographicRestriction;
+
+[ExcludeFromCodeCoverage]
 
 public class GeographicRestrictionOptions
 {

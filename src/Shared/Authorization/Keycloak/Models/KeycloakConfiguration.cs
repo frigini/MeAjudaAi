@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Authorization.Keycloak.Models;
 
 /// <summary>
 /// Configuração para integração com o servidor Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class KeycloakConfiguration
 {
     /// <summary>

@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Authorization.Metrics.Models;
 
 /// <summary>
 /// Estatísticas do sistema de permissões.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class PermissionSystemStats
 {
     public long TotalPermissionChecks { get; init; }

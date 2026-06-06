@@ -1,4 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Middleware.GeographicRestriction;
+
+[ExcludeFromCodeCoverage]
 
 public record UserLocation(string? City, string? State)
 {

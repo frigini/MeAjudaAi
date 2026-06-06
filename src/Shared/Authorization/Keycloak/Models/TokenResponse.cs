@@ -1,6 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 using System.Text.Json.Serialization;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak.Models;
+
+[ExcludeFromCodeCoverage]
 
 public sealed class TokenResponse
 {

@@ -1,4 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Authorization.Middleware;
+
+[ExcludeFromCodeCoverage]
 
 public static class PermissionOptimizationConstants
 {
