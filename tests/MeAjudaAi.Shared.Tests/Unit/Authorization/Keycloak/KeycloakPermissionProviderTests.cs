@@ -31,7 +31,7 @@ public class KeycloakPermissionProviderTests
     [Fact]
     public async Task GetUserPermissionsAsync_ResolverReturnsPermissions_ReturnsPermissions()
     {
-        var userId = "user123";
+        var userId = Guid.NewGuid().ToString();
         var permissions = new List<EPermission> { EPermission.UsersRead };
         _mockResolver.Setup(r => r.ResolvePermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(permissions);
@@ -43,7 +43,7 @@ public class KeycloakPermissionProviderTests
     [Fact]
     public async Task GetUserPermissionsAsync_HttpRequestException_ReturnsEmpty()
     {
-        var userId = "user123";
+        var userId = Guid.NewGuid().ToString();
         _mockResolver.Setup(r => r.ResolvePermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("Network error"));
 
@@ -55,7 +55,7 @@ public class KeycloakPermissionProviderTests
     [Fact]
     public async Task GetUserPermissionsAsync_JsonException_ReturnsEmpty()
     {
-        var userId = "user123";
+        var userId = Guid.NewGuid().ToString();
         _mockResolver.Setup(r => r.ResolvePermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new JsonException("Deserialization error"));
 
@@ -67,7 +67,7 @@ public class KeycloakPermissionProviderTests
     [Fact]
     public async Task GetUserPermissionsAsync_UnexpectedException_Throws()
     {
-        var userId = "user123";
+        var userId = Guid.NewGuid().ToString();
         _mockResolver.Setup(r => r.ResolvePermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Unexpected"));
 
