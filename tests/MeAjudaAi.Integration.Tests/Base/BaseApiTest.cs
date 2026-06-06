@@ -159,7 +159,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
                         ["Cache:Enabled"] = "false",
-                        ["Payments:AllowedReturnHosts:0"] = "localhost"
+                        ["Payments:AllowedReturnHosts:0"] = "localhost",
+                        ["ClientBaseUrl"] = "https://localhost"
                     });
                 });
                 builder.ConfigureServices(services =>

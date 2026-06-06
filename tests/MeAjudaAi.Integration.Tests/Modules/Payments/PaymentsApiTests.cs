@@ -125,7 +125,7 @@ public class PaymentsApiTests : BaseApiTest
 
         // Act
         var request = new { providerId, returnUrl = "account" };
-        var response = await Client.PostAsJsonAsync("/api/payments/subscriptions/billing-portal", request);
+        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
