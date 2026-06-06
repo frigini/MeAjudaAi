@@ -4,13 +4,13 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 📊 Status Atual (Maio 2026)
+## 📊 Status Atual (Junho 2026)
 
-**Sprint Atual**: Sprint 14 (Em andamento)
+**Sprint Atual**: Sprint 14 (Finalização)
 
 **Status**: 🚀 Em Execução
 
-**Meta MVP**: 12 a 16 de maio de 2026
+**Meta MVP**: 12 a 16 de maio de 2026 (Concluída)
 
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
 
@@ -20,27 +20,21 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 | Sprint | Foco | Status |
 |--------|------|--------|
-| **14** | **Revisão Geral e Débito Técnico** | 🚀 Em Execução |
-| **14.1**| **Backend Code Review & Sync** | 🚀 Em Execução |
+| **14** | **Auditoria de Débitos Técnicos** | 🚀 Em Execução |
 
 ### Detalhes Sprint 14
-- ✅ **Concluído**: Revisão geral de pendências de arquitetura e qualidade.
-- ✅ **Concluído**: Implementação de `ServiceNameUpdatedIntegrationEvent` para sincronização orientada a eventos entre `ServiceCatalogs` e `Providers`, eliminando débito técnico de isolamento de schemas.
-
-### Detalhes Sprint 14.1
-- Code Review de backend focado em conformidade com padrões DDD e mensageria.
-- Validação da robustez do barramento de eventos implementado.
-- Limpeza final de códigos de fallback pós-refatoração de persistência.
-
+- ✅ **Concluído**: Padronização de Infraestrutura e Autorização.
+- ✅ **Concluído**: Normalização de Endpoints da API em todos os módulos.
+- ✅ **Concluído**: Implementação Core de Eventos de Integração (Bookings, Payments, Providers, Locations).
+- 🚀 **Em Execução (Plano de Auditoria e Implementação)**:
+    - **Fase 1**: Auditoria (Matriz de Eventos) – ✅ Concluído. (Ver `docs/event-audit-matrix.md`)
+    - **Fase 2**: Implementação de Handlers pendentes – ✅ Concluído. (Todos os 10 módulos auditados e handlers/APIs implementados)
+    - **Fase 3**: Testes (Unitários e Integração) – 🚀 Em execução: Validar lógica de handler e fluxos de integração.
+    - **Extra**: Auditoria de Comunicação Síncrona vs Assíncrona realizada (Ver `docs/communication-audit.md`) e criação de APIs Públicas.
 
 ---
 
-## 🔮 Roadmaps Futuros (MVP Launch & Além)
-
-### Fase 3: Escala e Provedores Reais
-
-- **Provedores de Comunicação (Próximo)**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
-- **Verificação Automatizada (Próximo)**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
+## 🔮 Roadmaps Futuros (Além do MVP)
 
 ### Fase 4: Experiência e Engajamento
 
@@ -53,14 +47,15 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ### 🚀 Arquitetura Evolutiva e Mensageria (Objetivos)
 
-- **Desempenho do Service Bus (Planejado)**: Implementar ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` e otimizações no `RabbitMqInfrastructureManager`.
-- **Resiliência Crítica (Planejado)**: Garantir persistência via Quorum Queues para eventos marcados com `[CriticalEvent]`.
+- **Desempenho do Service Bus (Concluído)**: ✅ Implementado ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` via QoS no `RabbitMqInfrastructureManager`.
+- **Resiliência Crítica (Concluído)**: ✅ Garantida persistência via Quorum Queues para eventos marcados com `[CriticalEvent]`.
 - **Roteamento por Atributo (Em Andamento)**: Evolução do `AttributeTopicNameConvention` para suporte total a tópicos dedicados.
 
 ---
 
 ## ✅ Concluído Recentemente
 
+- **Sprint 14**: Infraestrutura e Acesso, Padronização de API, Core Integration Events.
 - **Sprint 13**: RabbitMQ Excellence (infraestrutura real com RabbitMqInfrastructureManager, deadlocks corrigidos, dispose seguro), i18n mocks para testes (Provider/Admin/Customer), fail-fast em DI de Messaging.
 - **Sprint 12**: Bookings Module completo, Command Handlers (Reject/Complete), queries de listagem, automação com Domain Events, integração frontend de agenda.
 - **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente.

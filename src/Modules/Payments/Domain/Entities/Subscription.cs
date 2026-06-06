@@ -158,6 +158,13 @@ public class Subscription : AggregateRoot<Guid>
         AddDomainEvent(new SubscriptionRenewedDomainEvent(Id, ProviderId, ExpiresAt.Value, Version));
     }
 
+    public void SetStatus(ESubscriptionStatus status)
+    {
+        Status = status;
+        Version++;
+        MarkAsUpdated();
+    }
+
     public static string MaskExternalId(string externalId)
     {
         if (string.IsNullOrEmpty(externalId)) return string.Empty;

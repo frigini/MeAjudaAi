@@ -81,8 +81,12 @@ public static class Extensions
     {
         // Integration Event Handlers
         services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ProviderProfileUpdatedIntegrationEvent>, ProviderProfileUpdatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ProviderDeletedIntegrationEvent>, ProviderDeletedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ProviderIndexRequiredIntegrationEvent>, ProviderIndexRequiredIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ProviderServicesUpdatedIntegrationEvent>, ProviderServicesUpdatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedIntegrationEvent>, ServiceDeactivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ServiceActivatedIntegrationEvent>, ServiceActivatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ReviewApprovedIntegrationEvent>, ReviewApprovedIntegrationEventHandler>();
 
         return services;

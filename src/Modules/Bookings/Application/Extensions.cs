@@ -14,12 +14,16 @@ using MeAjudaAi.Modules.Bookings.Domain.Events;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
+using MeAjudaAi.Contracts.Modules.Bookings;
+using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
+
 namespace MeAjudaAi.Modules.Bookings.Application;
 
 public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<IBookingsModuleApi, BookingsModuleApi>();
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
         // Comandos
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();

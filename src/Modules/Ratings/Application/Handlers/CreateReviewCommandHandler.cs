@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
@@ -17,6 +18,7 @@ namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
 public sealed class CreateReviewCommandHandler(
     [FromKeyedServices(ModuleKeys.Ratings)] IUnitOfWork uow,
     IReviewQueries queries,
+    IBookingsModuleApi bookingsApi,
     IContentModerator contentModerator,
     ILogger<CreateReviewCommandHandler> logger) : ICommandHandler<CreateReviewCommand, Guid>
 {
@@ -24,11 +26,20 @@ public sealed class CreateReviewCommandHandler(
     {
         logger.LogInformation("Creating review for provider {ProviderId} by customer {CustomerId}", command.ProviderId, command.CustomerId);
 
+        // 1. Verificar se o cliente já avaliou este prestador
         var existingReview = await queries.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
         if (existingReview != null)
         {
             logger.LogWarning("Customer {CustomerId} already reviewed provider {ProviderId}", command.CustomerId, command.ProviderId);
             throw new InvalidOperationException("Você já avaliou este prestador.");
+        }
+
+        // 2. Verificar se o cliente possui um agendamento concluído com o prestador
+        var hasBookingResult = await bookingsApi.HasCompletedBookingAsync(command.CustomerId, command.ProviderId, cancellationToken);
+        if (hasBookingResult.IsFailure || !hasBookingResult.Value)
+        {
+            logger.LogWarning("Customer {CustomerId} attempted to review provider {ProviderId} without a completed booking", command.CustomerId, command.ProviderId);
+            throw new InvalidOperationException("Você só pode avaliar prestadores com quem possui agendamentos concluídos.");
         }
 
         var review = Review.Create(
