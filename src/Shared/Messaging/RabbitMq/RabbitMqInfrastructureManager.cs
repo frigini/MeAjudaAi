@@ -1,6 +1,6 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Attributes;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 

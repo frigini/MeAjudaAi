@@ -20,8 +20,14 @@ public class RatingsModuleApiTests : BaseApiTest
         using (var scope = Services.CreateScope())
         {
             var ratingsDb = scope.ServiceProvider.GetRequiredService<RatingsDbContext>();
-            ratingsDb.Reviews.Add(Review.Create(providerId, Guid.NewGuid(), 5, "Great"));
-            ratingsDb.Reviews.Add(Review.Create(providerId, Guid.NewGuid(), 3, "Okay"));
+            var r1 = Review.Create(providerId, Guid.NewGuid(), 5, "Great");
+            var r2 = Review.Create(providerId, Guid.NewGuid(), 3, "Okay");
+            
+            r1.Approve();
+            r2.Approve();
+            
+            ratingsDb.Reviews.Add(r1);
+            ratingsDb.Reviews.Add(r2);
             await ratingsDb.SaveChangesAsync();
         }
 

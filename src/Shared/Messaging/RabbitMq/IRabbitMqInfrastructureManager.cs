@@ -17,7 +17,7 @@ public interface IRabbitMqInfrastructureManager
     /// <param name="queueName">Nome da fila a ser criada.</param>
     /// <param name="durable">Indica se a fila deve ser durável (padrão: true).</param>
     /// <returns>Uma tarefa que representa a operação assíncrona.</returns>
-    Task CreateQueueAsync(string queueName, bool durable = true);
+    Task CreateQueueAsync(string queueName, bool durable = true, Type? eventType = null);
 
     /// <summary>
     /// Cria um exchange no RabbitMQ.
