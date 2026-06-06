@@ -343,7 +343,7 @@ public class KeycloakPermissionResolverTests
     public async Task GetUserRolesFromKeycloakAsync_WithHttpRequestException_ReturnsEmpty()
     {
         // Arrange
-        var userId = "user-123";
+        var userId = Guid.NewGuid().ToString();
         SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
         SetupThrowingHttpMessage(HttpMethod.Get, $"users/{userId}", new HttpRequestException("Network failure", null, HttpStatusCode.NotFound));
 
