@@ -1,4 +1,5 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Handlers;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
@@ -6,6 +7,7 @@ using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
@@ -14,6 +16,7 @@ public class CreateReviewCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IReviewQueries> _queriesMock;
+    private readonly Mock<IBookingsModuleApi> _bookingsApiMock;
     private readonly Mock<IContentModerator> _moderatorMock;
     private readonly Mock<ILogger<CreateReviewCommandHandler>> _loggerMock;
     private readonly Mock<IRepository<Review, ReviewId>> _repositoryMock;
@@ -23,16 +26,22 @@ public class CreateReviewCommandHandlerTests
     {
         _uowMock = new Mock<IUnitOfWork>();
         _queriesMock = new Mock<IReviewQueries>();
+        _bookingsApiMock = new Mock<IBookingsModuleApi>();
         _moderatorMock = new Mock<IContentModerator>();
         _loggerMock = new Mock<ILogger<CreateReviewCommandHandler>>();
         _repositoryMock = new Mock<IRepository<Review, ReviewId>>();
-        
+
         _uowMock.Setup(u => u.GetRepository<Review, ReviewId>()).Returns(_repositoryMock.Object);
         _moderatorMock.Setup(m => m.IsClean(It.IsAny<string>())).Returns(true);
-        
+
+        // Default: permite review (possui agendamento)
+        _bookingsApiMock.Setup(b => b.HasCompletedBookingAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
         _handler = new CreateReviewCommandHandler(
             _uowMock.Object,
             _queriesMock.Object,
+            _bookingsApiMock.Object,
             _moderatorMock.Object,
             _loggerMock.Object);
     }
@@ -144,7 +153,7 @@ public class CreateReviewCommandHandlerTests
         var providerId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var command = new CreateReviewCommand(providerId, customerId, 5, null);
-        
+
         _queriesMock.Setup(q => q.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Review.Create(providerId, customerId, 1, "Existing"));
 
@@ -155,5 +164,3 @@ public class CreateReviewCommandHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Você já avaliou este prestador.");
     }
 }
-
-
