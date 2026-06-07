@@ -16,6 +16,7 @@ public interface IRabbitMqInfrastructureManager
     /// </summary>
     /// <param name="queueName">Nome da fila a ser criada.</param>
     /// <param name="durable">Indica se a fila deve ser durável (padrão: true).</param>
+    /// <param name="eventType">Tipo do evento opcional, usado para inferir atributos de fila (ex: quorum, prefetch).</param>
     /// <returns>Uma tarefa que representa a operação assíncrona.</returns>
     Task CreateQueueAsync(string queueName, bool durable = true, Type? eventType = null);
 

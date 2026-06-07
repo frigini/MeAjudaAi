@@ -2,7 +2,9 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Payments;
 using MeAjudaAi.Contracts.Modules.Payments.DTOs;
+using MeAjudaAi.Contracts.Modules.Payments.Enums;
 using MeAjudaAi.Modules.Payments.Application.Queries;
+using MeAjudaAi.Modules.Payments.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Application.ModuleApi;
@@ -14,6 +16,15 @@ public sealed class PaymentsModuleApi(
 {
     public string ModuleName => "Payments";
     public string ApiVersion => "1.0";
+
+    private static SubscriptionStatus MapStatus(ESubscriptionStatus status) => status switch
+    {
+        ESubscriptionStatus.Pending => SubscriptionStatus.Pending,
+        ESubscriptionStatus.Active => SubscriptionStatus.Active,
+        ESubscriptionStatus.Canceled => SubscriptionStatus.Canceled,
+        ESubscriptionStatus.Expired => SubscriptionStatus.Expired,
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+    };
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -35,7 +46,7 @@ public sealed class PaymentsModuleApi(
                 subscription.Id,
                 subscription.ProviderId,
                 subscription.PlanId,
-                subscription.Status.ToString(),
+                MapStatus(subscription.Status),
                 subscription.ExpiresAt);
 
             return Result<ModuleSubscriptionDto?>.Success(dto);

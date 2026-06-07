@@ -1,5 +1,4 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.Users;
@@ -9,9 +8,9 @@ using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
@@ -22,6 +21,7 @@ public class BookingCompletedIntegrationEventHandlerTests
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly Mock<IUsersModuleApi> _usersModuleApiMock;
+    private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<BookingCompletedIntegrationEventHandler>> _loggerMock;
     private readonly BookingCompletedIntegrationEventHandler _handler;
 
@@ -31,6 +31,7 @@ public class BookingCompletedIntegrationEventHandlerTests
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
         _usersModuleApiMock = new Mock<IUsersModuleApi>();
+        _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<BookingCompletedIntegrationEventHandler>>();
 
         _handler = new BookingCompletedIntegrationEventHandler(
@@ -38,6 +39,7 @@ public class BookingCompletedIntegrationEventHandlerTests
             _logQueriesMock.Object,
             _providersModuleApiMock.Object,
             _usersModuleApiMock.Object,
+            _configurationMock.Object,
             _loggerMock.Object);
     }
 

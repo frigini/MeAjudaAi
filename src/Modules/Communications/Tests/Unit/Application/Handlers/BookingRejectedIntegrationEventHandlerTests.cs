@@ -1,5 +1,4 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.Users;
@@ -11,7 +10,6 @@ using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;

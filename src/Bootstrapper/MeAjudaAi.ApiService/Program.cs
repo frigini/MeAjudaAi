@@ -54,9 +54,9 @@ public partial class Program
             builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
             builder.Services.AddCommunicationsModule(builder.Configuration);
+            builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
             builder.Services.AddRatingsModule(builder.Configuration, builder.Environment);
             builder.Services.AddPaymentsModule(builder.Configuration, builder.Environment);
-            builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration, builder.Environment);
@@ -154,9 +154,9 @@ public partial class Program
         app.UseLocationsModule();
         app.UseServiceCatalogsModule();
         app.UseCommunicationsModule();
+        app.UseBookingsModule();
         app.UseRatingsModule();
         app.UsePaymentsModule();
-        app.UseBookingsModule();
 
         // Endpoints de orquestração cross-módulo (ficam no ApiService)
         app.MapProviderRegistrationEndpoints();

@@ -195,6 +195,15 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<Provider>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        return await GetProvidersQuery()
+            .Where(p => !p.IsDeleted && p.Services.Any(s => s.ServiceId == serviceId))
+            .OrderBy(p => p.Id.Value)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<PagedResult<Provider>> GetPagedAsync(
         int page,
         int pageSize,

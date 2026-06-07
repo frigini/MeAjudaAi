@@ -25,9 +25,9 @@ public class BookingsModuleApiTests : BaseApiTest
         using (var scope = Services.CreateScope())
         {
             var bookingsDb = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
-            var booking = Booking.Create(providerId, clientId, serviceId, DateOnly.FromDateTime(DateTime.UtcNow), TimeSlot.Create(TimeOnly.FromDateTime(DateTime.UtcNow), TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1))));
-            // Set ID manualmente para testar o GetById, simulando o que o EF Core faria após SaveChanges.
-            booking.GetType().GetProperty("Id")?.SetValue(booking, bookingId);
+            var booking = new Booking(bookingId, providerId, clientId, serviceId, DateOnly.FromDateTime(DateTime.UtcNow), 
+                TimeSlot.Create(TimeOnly.FromDateTime(DateTime.UtcNow), TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1))), 
+                EBookingStatus.Pending, 1);
             bookingsDb.Bookings.Add(booking);
             await bookingsDb.SaveChangesAsync();
         }

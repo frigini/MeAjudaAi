@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Handlers;
@@ -41,9 +42,8 @@ public static class Extensions
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Ratings, (sp, key) => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 
-        // Registrar Command Handlers manualmente injetando o DbContext correto como IUnitOfWork
-        services.AddScoped<ICommandHandler<CreateReviewCommand, Guid>>(sp => 
-            ActivatorUtilities.CreateInstance<CreateReviewCommandHandler>(sp, sp.GetRequiredService<RatingsDbContext>()));
+        services.AddScoped<CreateReviewCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateReviewCommand, Guid>>(sp => sp.GetRequiredService<CreateReviewCommandHandler>());
 
         return services;
     }

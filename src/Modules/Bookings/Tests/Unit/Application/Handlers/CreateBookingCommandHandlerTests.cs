@@ -19,19 +19,18 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<IProvidersModuleApi> _providersApiMock = new();
     private readonly Mock<IServiceCatalogsModuleApi> _serviceCatalogsApiMock = new();
-    private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<CreateBookingCommandHandler>> _loggerMock = new();
     private readonly CreateBookingCommandHandler _sut;
-public CreateBookingCommandHandlerTests()
-{
-    _sut = new CreateBookingCommandHandler(
-        _bookingCommandServiceMock.Object,
-        _scheduleQueriesMock.Object,
-        _providersApiMock.Object,
-        _serviceCatalogsApiMock.Object,
-        _messageBusMock.Object,
-        _loggerMock.Object);
-}
+
+    public CreateBookingCommandHandlerTests()
+    {
+        _sut = new CreateBookingCommandHandler(
+            _bookingCommandServiceMock.Object,
+            _scheduleQueriesMock.Object,
+            _providersApiMock.Object,
+            _serviceCatalogsApiMock.Object,
+            _loggerMock.Object);
+    }
     private CreateBookingCommand BuildFutureCommand(Guid? providerId = null, Guid? serviceId = null, int daysOffset = 2, int hour = 10)
     {
         var start = DateTimeOffset.UtcNow.Date.AddDays(daysOffset).AddHours(hour);

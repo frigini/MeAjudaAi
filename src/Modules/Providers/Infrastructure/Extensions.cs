@@ -120,6 +120,8 @@ public static class Extensions
         // Integration Event Handlers
         services.AddScoped<IEventHandler<DocumentVerifiedIntegrationEvent>, DocumentVerifiedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<SubscriptionActivatedIntegrationEvent>, SubscriptionActivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<SubscriptionCanceledIntegrationEvent>, SubscriptionCanceledIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<SubscriptionExpiredIntegrationEvent>, SubscriptionExpiredIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceNameUpdatedIntegrationEvent>, ServiceNameUpdatedIntegrationEventHandler>();
 
         return services;

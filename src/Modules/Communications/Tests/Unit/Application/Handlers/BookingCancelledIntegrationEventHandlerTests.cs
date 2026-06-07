@@ -1,5 +1,4 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.Users;
@@ -11,7 +10,6 @@ using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
@@ -65,7 +63,16 @@ public class BookingCancelledIntegrationEventHandlerTests
         await _handler.HandleAsync(integrationEvent);
 
         // Assert
-        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => 
+            m.CorrelationId.Contains(":provider") && 
+            m.Payload.Contains("To") && 
+            m.Payload.Contains("booking_cancelled")), It.IsAny<CancellationToken>()), Times.Once);
+        
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => 
+            m.CorrelationId.Contains(":client") && 
+            m.Payload.Contains("To") && 
+            m.Payload.Contains("booking_cancelled")), It.IsAny<CancellationToken>()), Times.Once);
+
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

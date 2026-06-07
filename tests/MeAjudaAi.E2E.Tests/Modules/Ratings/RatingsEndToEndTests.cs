@@ -36,8 +36,29 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         var providerId = await CreateTestProviderAsync();
         
         // 2. Autenticar como cliente (diferente do prestador)
-        AuthenticateAsAdmin();
         var customerId = await CreateTestUserAsync();
+        
+        // --- NOVO: Criar agendamento concluído ---
+        // Para simplificar, faremos a inserção direta no banco de dados para evitar o fluxo complexo de criação/confirmação
+        await WithServiceScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>();
+            var booking = MeAjudaAi.Modules.Bookings.Domain.Entities.Booking.Create(
+                providerId, 
+                customerId, 
+                Guid.NewGuid(), 
+                DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)), 
+                MeAjudaAi.Modules.Bookings.Domain.ValueObjects.TimeSlot.Create(TimeOnly.FromDateTime(DateTime.UtcNow), TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1))));
+            
+            // Força o status para Confirmed e depois Completed
+            booking.Confirm();
+            booking.Complete(); 
+            
+            db.Bookings.Add(booking);
+            await db.SaveChangesAsync();
+        });
+        // --- FIM NOVO ---
+
         AuthenticateAsUser(customerId.ToString());
 
         var reviewRequest = new
@@ -48,8 +69,8 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         };
 
         // Act - Criar a avaliação
-        AuthenticateAsUser(customerId.ToString());
         var response = await ApiClient.PostAsJsonAsync("/api/v1/ratings", reviewRequest);
+
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);

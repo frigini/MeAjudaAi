@@ -8,7 +8,9 @@ using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Users;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
+using System.Web;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -21,6 +23,7 @@ public sealed class BookingCompletedIntegrationEventHandler(
     ICommunicationLogQueries logQueries,
     IProvidersModuleApi providersApi,
     IUsersModuleApi usersApi,
+    IConfiguration configuration,
     ILogger<BookingCompletedIntegrationEventHandler> logger)
     : IEventHandler<BookingCompletedIntegrationEvent>
 {
@@ -53,12 +56,15 @@ public sealed class BookingCompletedIntegrationEventHandler(
         var clientEmail = clientResult.Value.Email;
         var clientFirstName = clientResult.Value.FirstName;
 
+        var appBaseUrl = configuration["ClientBaseUrl"] ?? "http://localhost:5165";
+        var reviewUrl = $"{appBaseUrl.TrimEnd('/')}/reviews/create?bookingId={HttpUtility.UrlEncode(integrationEvent.BookingId.ToString())}";
+
         var payload = JsonSerializer.Serialize(new
         {
             To = clientEmail,
             Subject = $"Como foi sua experiência com {providerName}?",
-            HtmlBody = $"<h1>Olá, {clientFirstName}!</h1><p>Seu agendamento com {providerName} foi concluído. Que tal deixar uma avaliação?</p><p><a href='/reviews/create?bookingId={integrationEvent.BookingId}'>Avaliar agora</a></p>",
-            TextBody = $"Olá, {clientFirstName}! Seu agendamento com {providerName} foi concluído. Deixe sua avaliação em nosso app.",
+            HtmlBody = $"<h1>Olá, {clientFirstName}!</h1><p>Seu agendamento com {providerName} foi concluído. Que tal deixar uma avaliação?</p><p><a href='{reviewUrl}'>Avaliar agora</a></p>",
+            TextBody = $"Olá, {clientFirstName}! Seu agendamento com {providerName} foi concluído. Deixe sua avaliação em nosso app: {reviewUrl}",
             CorrelationId = correlationId,
             TemplateKey = TemplateKey
         });
@@ -80,6 +86,7 @@ public sealed class BookingCompletedIntegrationEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error enqueuing rating invite notification for {BookingId}.", integrationEvent.BookingId);
+            throw;
         }
     }
 }

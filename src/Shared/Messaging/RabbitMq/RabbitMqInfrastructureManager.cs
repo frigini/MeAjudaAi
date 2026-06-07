@@ -123,7 +123,7 @@ internal class RabbitMqInfrastructureManager(
     {
         var channel = await GetChannelAsync();
         
-        var arguments = new Dictionary<string, object>();
+        var arguments = new Dictionary<string, object?>();
         int? prefetchCount = null;
         
         if (eventType != null)

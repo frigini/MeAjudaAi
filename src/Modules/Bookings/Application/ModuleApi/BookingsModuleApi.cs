@@ -30,6 +30,10 @@ public sealed class BookingsModuleApi(
 
             return Result<BookingDto?>.Success(MapToDto(booking));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting booking {BookingId}", bookingId);
@@ -41,13 +45,28 @@ public sealed class BookingsModuleApi(
     {
         try
         {
-            // Busca simplificada para verificar se existe algum booking completed
-            // PERF: Em uma implementação real, deveríamos ter uma query específica "Any" no repositório.
-            var (items, _) = await bookingQueries.GetByClientIdPagedAsync(clientId, null, null, 1, 100, cancellationToken);
+            int page = 1;
+            const int pageSize = 100;
+            bool hasMore = true;
+
+            while (hasMore)
+            {
+                var (items, _) = await bookingQueries.GetByClientIdPagedAsync(clientId, null, null, page, pageSize, cancellationToken);
+                
+                if (items.Any(b => b.ProviderId == providerId && b.Status == MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Completed))
+                {
+                    return Result<bool>.Success(true);
+                }
+                
+                hasMore = items.Count == pageSize;
+                page++;
+            }
             
-            var hasCompleted = items.Any(b => b.ProviderId == providerId && b.Status == MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Completed);
-            
-            return Result<bool>.Success(hasCompleted);
+            return Result<bool>.Success(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -62,11 +81,25 @@ public sealed class BookingsModuleApi(
         {
             var fromDate = DateOnly.FromDateTime(start.Date);
             var toDate = DateOnly.FromDateTime(end.Date);
+            var allBookings = new List<MeAjudaAi.Modules.Bookings.Domain.Entities.Booking>();
+            int page = 1;
+            const int pageSize = 1000;
+            bool hasMore = true;
 
-            var (items, _) = await bookingQueries.GetByProviderIdPagedAsync(providerId, fromDate, toDate, 1, 1000, cancellationToken);
+            while (hasMore)
+            {
+                var (items, _) = await bookingQueries.GetByProviderIdPagedAsync(providerId, fromDate, toDate, page, pageSize, cancellationToken);
+                allBookings.AddRange(items);
+                hasMore = items.Count == pageSize;
+                page++;
+            }
             
-            var dtos = items.Select(MapToDto).ToList();
+            var dtos = allBookings.Select(MapToDto).ToList();
             return Result<IReadOnlyList<BookingDto>>.Success(dtos);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -77,16 +110,19 @@ public sealed class BookingsModuleApi(
 
     private static BookingDto MapToDto(MeAjudaAi.Modules.Bookings.Domain.Entities.Booking booking)
     {
-        // Precisamos converter os horários de volta para DateTimeOffset. 
-        // Como o domínio armazena Date + TimeSlot, precisamos de um fuso horário ou assumir UTC se não disponível.
-        // Simplificação: usando a data diretamente.
+        var startTime = booking.Date.ToDateTime(booking.TimeSlot.Start);
+        var endTime = booking.Date.ToDateTime(booking.TimeSlot.End);
+        
+        var startOffset = new DateTimeOffset(DateTime.SpecifyKind(startTime, DateTimeKind.Utc), TimeSpan.Zero);
+        var endOffset = new DateTimeOffset(DateTime.SpecifyKind(endTime, DateTimeKind.Utc), TimeSpan.Zero);
+        
         return new BookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(booking.Date.ToDateTime(booking.TimeSlot.Start)),
-            new DateTimeOffset(booking.Date.ToDateTime(booking.TimeSlot.End)),
+            startOffset,
+            endOffset,
             booking.Status,
             booking.RejectionReason,
             booking.CancellationReason);

@@ -160,6 +160,14 @@ public class Subscription : AggregateRoot<Guid>
 
     public void SetStatus(ESubscriptionStatus status)
     {
+        if (Status == status) return;
+
+        // Regra de transição: não pode sair de estado terminal (Canceled/Expired) para outros estados
+        if (Status == ESubscriptionStatus.Canceled || Status == ESubscriptionStatus.Expired)
+        {
+            throw new InvalidOperationException($"Cannot change status from terminal state {Status} to {status}.");
+        }
+
         Status = status;
         Version++;
         MarkAsUpdated();

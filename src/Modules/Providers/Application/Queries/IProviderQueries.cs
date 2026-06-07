@@ -71,6 +71,11 @@ public interface IProviderQueries
     Task<bool> HasProvidersWithServiceAsync(Guid serviceId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Busca prestadores que oferecem um serviço específico.
+    /// </summary>
+    Task<IReadOnlyList<Provider>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Busca prestadores com paginação e filtros de forma otimizada.
     /// </summary>
     Task<PagedResult<Provider>> GetPagedAsync(

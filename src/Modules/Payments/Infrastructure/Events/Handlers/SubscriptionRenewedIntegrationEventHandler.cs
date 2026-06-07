@@ -24,9 +24,11 @@ public sealed class SubscriptionRenewedIntegrationEventHandler(
             return;
         }
 
-        subscription.SetStatus(ESubscriptionStatus.Active);
+        // Renova a assinatura (usando uma data futura hipotética já que o evento não traz a nova expiração)
+        // O método Renew valida se o estado é Active e atualiza a data.
+        subscription.Renew(DateTime.UtcNow.AddMonths(1));
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Subscription {SubscriptionId} updated to Active (Renewed).", integrationEvent.SubscriptionId);
+        logger.LogInformation("Subscription {SubscriptionId} renewed successfully.", integrationEvent.SubscriptionId);
     }
 }
