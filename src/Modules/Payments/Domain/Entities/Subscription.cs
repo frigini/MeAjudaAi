@@ -158,7 +158,7 @@ public class Subscription : AggregateRoot<Guid>
         AddDomainEvent(new SubscriptionRenewedDomainEvent(Id, ProviderId, ExpiresAt.Value, Version));
     }
 
-    public void SetStatus(ESubscriptionStatus status)
+    internal void SetStatus(ESubscriptionStatus status)
     {
         if (Status == status) return;
 

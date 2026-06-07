@@ -37,7 +37,7 @@ public class PaymentsModuleApiTests : BaseApiTest
         {
             var paymentsDb = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
             var subscription = new Subscription(providerId, "gold-plan", new MeAjudaAi.Shared.Domain.ValueObjects.Money(100, "BRL"));
-            subscription.SetStatus(ESubscriptionStatus.Active);
+            subscription.Activate("ext-id-123", "cust-123");
             paymentsDb.Subscriptions.Add(subscription);
             await paymentsDb.SaveChangesAsync();
         }

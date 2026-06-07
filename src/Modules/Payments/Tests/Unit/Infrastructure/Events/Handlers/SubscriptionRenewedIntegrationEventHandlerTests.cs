@@ -40,7 +40,7 @@ public class SubscriptionRenewedIntegrationEventHandlerTests
         _repositoryMock.Setup(r => r.TryFindAsync(subscriptionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(subscription);
 
-        var integrationEvent = new SubscriptionRenewedIntegrationEvent("Payments", subscriptionId, Guid.NewGuid());
+        var integrationEvent = new SubscriptionRenewedIntegrationEvent("Payments", subscriptionId, Guid.NewGuid(), DateTime.UtcNow.AddMonths(1));
 
         // Act
         await _handler.HandleAsync(integrationEvent);

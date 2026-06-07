@@ -205,7 +205,8 @@ public class ProcessInboxJob(
                         await messageBus.PublishAsync(new SubscriptionRenewedIntegrationEvent(
                             ModuleNames.Payments,
                             subToRenew.Id,
-                            subToRenew.ProviderId), null, ct);
+                            subToRenew.ProviderId,
+                            data.PeriodEnd.Value), null, ct);
                     }
 
                     Money? amount = null;

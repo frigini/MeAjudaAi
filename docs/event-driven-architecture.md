@@ -57,8 +57,8 @@ Handler que consome um `IntegrationEvent` e realiza ações secundárias (ex: sa
 | AllowedCityDeletedIntegrationEvent | Pendente | - |
 | AllowedCityUpdatedIntegrationEvent | Pendente | - |
 | SubscriptionActivatedIntegrationEvent | OK | SubscriptionActivatedIntegrationEventHandler (Payments, Providers) |
-| SubscriptionCanceledIntegrationEvent | OK | SubscriptionCanceledIntegrationEventHandler (Payments) |
-| SubscriptionExpiredIntegrationEvent | OK | SubscriptionExpiredIntegrationEventHandler (Payments) |
+| SubscriptionCanceledIntegrationEvent | OK | SubscriptionCanceledIntegrationEventHandler (Payments, Providers) |
+| SubscriptionExpiredIntegrationEvent | OK | SubscriptionExpiredIntegrationEventHandler (Payments, Providers) |
 | SubscriptionRenewedIntegrationEvent | OK | SubscriptionRenewedIntegrationEventHandler (Payments) |
 | ProviderActivatedIntegrationEvent | OK | ProviderActivatedIntegrationEventHandler (Communications, SearchProviders) |
 | ProviderAwaitingVerificationIntegrationEvent| OK | ProviderAwaitingVerificationIntegrationEventHandler (Communications) |
@@ -74,7 +74,7 @@ Handler que consome um `IntegrationEvent` e realiza ações secundárias (ex: sa
 | ServiceDeactivatedIntegrationEvent | OK | ServiceDeactivatedIntegrationEventHandler (SearchProviders) |
 | ServiceNameUpdatedIntegrationEvent | OK | ServiceNameUpdatedIntegrationEventHandler (Providers) |
 | UserDeletedIntegrationEvent | OK | UserDeletedIntegrationEventHandler (Ratings) |
-| UserProfileUpdatedIntegrationEvent | Pendente | - |
+| UserProfileUpdatedIntegrationEvent | OK | UserProfileUpdatedIntegrationEventHandler (Communications) |
 | UserRegisteredIntegrationEvent | OK | UserRegisteredIntegrationEventHandler (Communications) |
 
 

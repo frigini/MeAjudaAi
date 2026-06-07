@@ -13,16 +13,20 @@ public class DeleteAllowedCityHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<AllowedCity, Guid>> _repositoryMock;
+    private readonly Mock<MeAjudaAi.Shared.Messaging.IMessageBus> _messageBusMock;
+    private readonly Mock<ILogger<DeleteAllowedCityHandler>> _loggerMock;
     private readonly DeleteAllowedCityHandler _handler;
 
     public DeleteAllowedCityHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<AllowedCity, Guid>>();
+        _messageBusMock = new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>();
+        _loggerMock = new Mock<ILogger<DeleteAllowedCityHandler>>();
 
         _uowMock.Setup(x => x.GetRepository<AllowedCity, Guid>()).Returns(_repositoryMock.Object);
 
-        _handler = new DeleteAllowedCityHandler(_uowMock.Object);
+        _handler = new DeleteAllowedCityHandler(_uowMock.Object, _messageBusMock.Object, _loggerMock.Object);
     }
 
     [Fact]

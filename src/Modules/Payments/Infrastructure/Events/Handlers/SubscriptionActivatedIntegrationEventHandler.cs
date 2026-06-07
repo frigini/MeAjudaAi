@@ -24,7 +24,7 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
             return;
         }
 
-        subscription.SetStatus(ESubscriptionStatus.Active);
+        subscription.Activate(subscription.ExternalSubscriptionId!, subscription.ExternalCustomerId!);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Subscription {SubscriptionId} updated to Active.", integrationEvent.SubscriptionId);

@@ -24,7 +24,7 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
             return;
         }
 
-        subscription.SetStatus(ESubscriptionStatus.Expired);
+        subscription.Expire();
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Subscription {SubscriptionId} updated to Expired.", integrationEvent.SubscriptionId);

@@ -92,12 +92,14 @@ public class SubscriptionIntegrationEventHandlersTests : IDisposable
         await _context.SaveChangesAsync();
 
         var handler = new SubscriptionRenewedIntegrationEventHandler(_context, _mockLoggerRenewed.Object);
-        var evt = new SubscriptionRenewedIntegrationEvent("Test", subscription.Id, DateTime.UtcNow.AddMonths(2));
+        var newExpiration = DateTime.UtcNow.AddMonths(2);
+        var evt = new SubscriptionRenewedIntegrationEvent("Test", subscription.Id, Guid.NewGuid(), newExpiration);
 
         await handler.HandleAsync(evt);
 
         var updated = await _context.Subscriptions.FindAsync(subscription.Id);
         updated!.Status.Should().Be(ESubscriptionStatus.Active);
+        updated.ExpiresAt.Should().BeCloseTo(newExpiration, TimeSpan.FromSeconds(1));
     }
 
     public void Dispose()

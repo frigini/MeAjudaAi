@@ -20,7 +20,15 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
     {
         try
         {
+            var correlationId = integrationEvent.SubscriptionId.ToString();
             logger.LogInformation("Handling SubscriptionCanceledIntegrationEvent for user {UserId}", integrationEvent.UserId);
+
+            // Verificar idempotência
+            if (await dbContext.ProcessedIntegrationEvents.AnyAsync(e => e.CorrelationId == correlationId, cancellationToken))
+            {
+                logger.LogInformation("Event {CorrelationId} already processed.", correlationId);
+                return;
+            }
 
             var provider = await dbContext.Providers
                 .FirstOrDefaultAsync(p => p.UserId == integrationEvent.UserId && !p.IsDeleted, cancellationToken);
@@ -32,6 +40,10 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
             }
             
             provider.PromoteTier(EProviderTier.Standard, "payments-integration-canceled");
+            
+            // Registrar processamento
+            dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
+            
             await dbContext.SaveChangesAsync(cancellationToken);
             
             logger.LogInformation("Demoted provider {ProviderId} to Standard tier.", provider.Id);

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
@@ -87,6 +88,9 @@ public static class Extensions
         services.AddScoped<IEventHandler<ProviderServicesUpdatedIntegrationEvent>, ProviderServicesUpdatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedIntegrationEvent>, ServiceDeactivatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceActivatedIntegrationEvent>, ServiceActivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<AllowedCityCreatedIntegrationEvent>, AllowedCityCreatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<AllowedCityDeletedIntegrationEvent>, AllowedCityDeletedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<AllowedCityUpdatedIntegrationEvent>, AllowedCityUpdatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ReviewApprovedIntegrationEvent>, ReviewApprovedIntegrationEventHandler>();
 
         return services;

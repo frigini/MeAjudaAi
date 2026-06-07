@@ -56,7 +56,11 @@ public sealed class BookingCompletedIntegrationEventHandler(
         var clientEmail = clientResult.Value.Email;
         var clientFirstName = clientResult.Value.FirstName;
 
-        var appBaseUrl = configuration["ClientBaseUrl"] ?? "http://localhost:5165";
+        var appBaseUrl = configuration["ClientBaseUrl"];
+        if (string.IsNullOrWhiteSpace(appBaseUrl))
+        {
+            throw new InvalidOperationException("Configuration 'ClientBaseUrl' is missing.");
+        }
         var reviewUrl = $"{appBaseUrl.TrimEnd('/')}/reviews/create?bookingId={HttpUtility.UrlEncode(integrationEvent.BookingId.ToString())}";
 
         var payload = JsonSerializer.Serialize(new

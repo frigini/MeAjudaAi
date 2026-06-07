@@ -21,10 +21,18 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
     {
         try
         {
+            var correlationId = integrationEvent.SubscriptionId.ToString();
             logger.LogInformation(
                 "Handling SubscriptionActivatedIntegrationEvent for user {UserId}, subscription {SubscriptionId}",
                 integrationEvent.UserId,
                 integrationEvent.SubscriptionId);
+
+            // Verificar idempotência
+            if (await dbContext.ProcessedIntegrationEvents.AnyAsync(e => e.CorrelationId == correlationId, cancellationToken))
+            {
+                logger.LogInformation("Event {CorrelationId} already processed.", correlationId);
+                return;
+            }
 
             var provider = await dbContext.Providers
                 .FirstOrDefaultAsync(p => p.UserId == integrationEvent.UserId && !p.IsDeleted, cancellationToken);
@@ -36,6 +44,10 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
             }
             
             provider.PromoteTier(EProviderTier.Gold, "payments-integration-activated");
+            
+            // Registrar processamento
+            dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
+            
             await dbContext.SaveChangesAsync(cancellationToken);
             
             logger.LogInformation("Promoted provider {ProviderId} to Gold tier.", provider.Id);

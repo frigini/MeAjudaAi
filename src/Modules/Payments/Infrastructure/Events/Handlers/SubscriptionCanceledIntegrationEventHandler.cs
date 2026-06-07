@@ -24,7 +24,7 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
             return;
         }
 
-        subscription.SetStatus(ESubscriptionStatus.Canceled);
+        subscription.Cancel();
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Subscription {SubscriptionId} updated to Canceled.", integrationEvent.SubscriptionId);

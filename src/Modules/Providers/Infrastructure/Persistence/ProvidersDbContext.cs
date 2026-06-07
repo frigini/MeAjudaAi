@@ -24,6 +24,7 @@ public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
     }
 
     public DbSet<Provider> Providers => Set<Provider>();
+    public DbSet<ProcessedIntegrationEvent> ProcessedIntegrationEvents => Set<ProcessedIntegrationEvent>();
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
