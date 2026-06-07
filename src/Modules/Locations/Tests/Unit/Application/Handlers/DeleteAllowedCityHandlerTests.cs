@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
