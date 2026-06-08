@@ -26,7 +26,7 @@ public class BookingsModuleApiTests : BaseApiTest
         {
             var bookingsDb = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
             var booking = new Booking(bookingId, providerId, clientId, serviceId, DateOnly.FromDateTime(DateTime.UtcNow), 
-                TimeSlot.Create(TimeOnly.FromDateTime(DateTime.UtcNow), TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1))), 
+                TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
                 EBookingStatus.Pending, 1);
             bookingsDb.Bookings.Add(booking);
             await bookingsDb.SaveChangesAsync();
