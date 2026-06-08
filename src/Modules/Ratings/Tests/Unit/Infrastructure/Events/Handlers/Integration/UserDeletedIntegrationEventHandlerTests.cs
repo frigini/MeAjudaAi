@@ -64,23 +64,23 @@ public class UserDeletedIntegrationEventHandlerTests
         var userId = Guid.NewGuid();
         var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
 
-        // Instead of mocking DbContext, use an InMemory database and dispose it to force failure
+        // Configura DbContext em memória
         var options = new DbContextOptionsBuilder<RatingsDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var context = new RatingsDbContext(options);
         
-        // Setup handler
+        // Cria handler
         var handler = new UserDeletedIntegrationEventHandler(context, _loggerMock.Object);
         
-        // Dispose context to force failure on SaveChangesAsync
+        // Descarta contexto para forçar falha no SaveChangesAsync
         context.Dispose();
 
         // Act
         Func<Task> act = () => handler.HandleAsync(evt);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>();
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
 }

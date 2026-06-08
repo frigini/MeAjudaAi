@@ -254,8 +254,6 @@ public class PermissionArchitectureTests
             .And()
             .AreClasses()
             .And()
-            .AreNotAbstract()
-            .And()
             .ResideInNamespaceStartingWith("MeAjudaAi")
             .Should()
             .BeStatic()
