@@ -15,7 +15,12 @@ public class ExtensionsTests
     public void AddEventHandlers_ShouldRegisterAllDomainEventHandlers()
     {
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test"
+            })
+            .Build();
         var messageBusMock = new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>();
         services.AddSingleton(messageBusMock.Object);
         services.AddLogging(); // Registrar ILogger

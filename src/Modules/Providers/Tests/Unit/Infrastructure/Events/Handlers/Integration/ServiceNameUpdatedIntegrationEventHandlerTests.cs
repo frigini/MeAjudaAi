@@ -33,7 +33,7 @@ public class ServiceNameUpdatedIntegrationEventHandlerTests : IDisposable
         var provider = new Provider(Guid.NewGuid(), "Provider Name", MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual, 
             new MeAjudaAi.Modules.Providers.Domain.ValueObjects.BusinessProfile("Provider Name", new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo("test@test.com"), null));
         
-        provider.AddService(serviceId, "Old Name", 100);
+        provider.AddService(serviceId, "Old Name");
         _dbContext.Providers.Add(provider);
         await _dbContext.SaveChangesAsync();
 
@@ -44,7 +44,7 @@ public class ServiceNameUpdatedIntegrationEventHandlerTests : IDisposable
 
         // Assert
         var updatedProvider = await _dbContext.Providers.Include(p => p.Services).FirstAsync();
-        updatedProvider.Services.First(s => s.ServiceId == serviceId).Name.Should().Be("New Name");
+        updatedProvider.Services.First(s => s.ServiceId == serviceId).ServiceName.Should().Be("New Name");
         _dbContext.ChangeTracker.HasChanges().Should().BeFalse();
     }
 
