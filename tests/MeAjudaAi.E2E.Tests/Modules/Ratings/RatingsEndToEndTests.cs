@@ -48,7 +48,7 @@ public class RatingsEndToEndTests : BaseTestContainerTest
                 customerId, 
                 Guid.NewGuid(), 
                 DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)), 
-                MeAjudaAi.Modules.Bookings.Domain.ValueObjects.TimeSlot.Create(TimeOnly.FromDateTime(DateTime.UtcNow), TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1))));
+                MeAjudaAi.Modules.Bookings.Domain.ValueObjects.TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
             
             // Força o status para Confirmed e depois Completed
             booking.Confirm();
