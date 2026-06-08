@@ -126,7 +126,8 @@ public static class ArchitecturalDiscoveryHelper
                 .AddClasses(classes => classes
                     .Where(type => type.GetInterfaces().Any(i =>
                            i.Name.Contains("ICommand")) &&
-                           !type.Name.EndsWith("CommandHandler") &&
+                           !type.GetInterfaces().Any(i => i.Name.Contains("ICommandHandler")) &&
+                           !type.Name.EndsWith("Handler") &&
                            !type.Name.EndsWith("Validator")))
                 .AsSelf());
         }
@@ -136,6 +137,7 @@ public static class ArchitecturalDiscoveryHelper
             .Select(sd => sd.ImplementationType!)
             .Distinct();
     }
+
 
     /// <summary>
     /// Descobre todos os Queries usando Scrutor para validar convenções
