@@ -135,6 +135,26 @@ public class HandlerRegistrationTests
             "Unregistered handlers: \n" + string.Join("\n", unregisteredHandlers));
     }
 
+    [Fact]
+    public void EventHandlers_ShouldNotBeRegisteredMoreThanOnceForSameImplementation()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        AddAllModulesForArchitectureTests(services);
+
+        // Act
+        var duplicates = services
+            .Where(d => d.ServiceType.IsGenericType &&
+                        d.ServiceType.GetGenericTypeDefinition() == typeof(IEventHandler<>))
+            .GroupBy(d => new { d.ServiceType, d.ImplementationType })
+            .Where(g => g.Count() > 1)
+            .Select(g => $"{g.Key.ServiceType.Name} -> {g.Key.ImplementationType?.Name} ({g.Count()}x)")
+            .ToList();
+
+        // Assert
+        duplicates.Should().BeEmpty("Handlers should not be registered more than once for the same interface/implementation pair. Duplicates: \n" + string.Join("\n", duplicates));
+    }
+
     private static bool CanResolve(IServiceProvider serviceProvider, Type serviceType, Type implementationType)
     {
         var instances = serviceProvider.GetServices(serviceType);

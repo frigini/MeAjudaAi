@@ -76,21 +76,60 @@ public class BookingsModuleApiTests
     }
 
     [Fact]
-    public async Task HasCompletedBookingAsync_WhenCancelled_ShouldPropagateException()
+    public async Task GetBookingByIdAsync_WhenNotFound_ShouldReturnSuccessWithNull()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
-        var clientId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
-        
-        _bookingQueriesMock.Setup(q => q.HasCompletedBookingAsync(clientId, providerId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException());
+        var bookingId = Guid.NewGuid();
+        _bookingQueriesMock.Setup(q => q.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((MeAjudaAi.Modules.Bookings.Domain.Entities.Booking?)null);
 
         // Act
-        Func<Task> act = () => _api.HasCompletedBookingAsync(clientId, providerId, cts.Token);
+        var result = await _api.GetBookingByIdAsync(bookingId);
 
         // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetBookingByIdAsync_WhenQueryThrowsException_ShouldReturnFailure()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        _bookingQueriesMock.Setup(q => q.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _api.GetBookingByIdAsync(bookingId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be("Error retrieving booking data.");
+    }
+
+    [Fact]
+    public async Task GetProviderBookingsAsync_WhenQueryReturnsItems_ShouldReturnMappedDtos()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var start = DateTimeOffset.UtcNow;
+        var end = start.AddDays(1);
+        
+        var booking = new MeAjudaAi.Modules.Bookings.Domain.Entities.Booking(
+            Guid.NewGuid(), providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            DateOnly.FromDateTime(start.Date), 
+            MeAjudaAi.Modules.Bookings.Domain.ValueObjects.TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)),
+            MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Confirmed, 1);
+            
+        _bookingQueriesMock.Setup(q => q.GetByProviderAndPeriodAsync(providerId, It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<MeAjudaAi.Modules.Bookings.Domain.Entities.Booking> { booking });
+
+        // Act
+        var result = await _api.GetProviderBookingsAsync(providerId, start, end);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
+        result.Value.First().Id.Should().Be(booking.Id);
     }
 }

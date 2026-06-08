@@ -61,23 +61,23 @@ public class UserDeletedIntegrationEventHandlerTests
     public async Task HandleAsync_WhenDatabaseFails_ShouldThrowException()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
+        var userId = Guid.NewGuid(); // Id do usuário
+        var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow); // Evento de exclusão
 
         // Configura DbContext em memória
         var options = new DbContextOptionsBuilder<RatingsDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        var context = new RatingsDbContext(options);
+        var context = new RatingsDbContext(options); // Contexto do banco de dados
         
         // Cria handler
-        var handler = new UserDeletedIntegrationEventHandler(context, _loggerMock.Object);
+        var handler = new UserDeletedIntegrationEventHandler(context, _loggerMock.Object); // Handler a ser testado
         
         // Descarta contexto para forçar falha no SaveChangesAsync
-        context.Dispose();
+        context.Dispose(); // Libera contexto
 
         // Act
-        Func<Task> act = () => handler.HandleAsync(evt);
+        Func<Task> act = () => handler.HandleAsync(evt); // Ação de processamento
 
         // Assert
         await act.Should().ThrowAsync<ObjectDisposedException>();

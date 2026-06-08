@@ -48,6 +48,8 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 - **Sistema de Disputas**: Mediação administrativa para conflitos.
 - **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
+- **Pendências de Infraestrutura (SearchProviders)**:
+    - [ ] `AllowedCityCreated/Updated/DeletedIntegrationEventHandler`: Stub/log implementado. Ativar lógica de reindexação regional quando o filtro de cidade estiver disponível em `SearchProviders`. (Marcado com `[ExcludeFromCodeCoverage]` por serem stubs temporários).
 - **Novos Eventos de Integração (Roadmap)**:
     - `AllowedCity*` com ação real (quando `SearchProviders` filtrar por cidade/região).
     - `SubscriptionExpiringSoonIntegrationEvent` (comunicação preventiva de expiração).

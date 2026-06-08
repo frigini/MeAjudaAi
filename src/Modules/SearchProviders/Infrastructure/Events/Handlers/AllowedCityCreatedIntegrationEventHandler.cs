@@ -2,9 +2,11 @@ using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Locations;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 
+[ExcludeFromCodeCoverage]
 public sealed class AllowedCityCreatedIntegrationEventHandler(
     ILogger<AllowedCityCreatedIntegrationEventHandler> logger) 
     : IEventHandler<AllowedCityCreatedIntegrationEvent>
