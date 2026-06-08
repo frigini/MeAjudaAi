@@ -45,4 +45,121 @@ public class BookingsModuleApiTests : BaseApiTest
             result.Value!.Id.Should().Be(bookingId);
         }
     }
+
+    [Fact]
+    public async Task GetBookingByIdAsync_WhenNotFound_ReturnsSuccessWithNull()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
+            
+            // Act
+            var result = await bookingsApi.GetBookingByIdAsync(bookingId);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeNull();
+        }
+    }
+
+    [Fact]
+    public async Task GetProviderBookingsAsync_WhenPeriodHasBookings_ReturnsMappedDtos()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var date = DateOnly.FromDateTime(DateTime.UtcNow);
+        
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsDb = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+            var booking = new Booking(Guid.NewGuid(), providerId, Guid.NewGuid(), Guid.NewGuid(), date, 
+                TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
+                EBookingStatus.Confirmed, 1);
+            bookingsDb.Bookings.Add(booking);
+            await bookingsDb.SaveChangesAsync();
+        }
+
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
+            
+            // Act
+            var start = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var end = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+            var result = await bookingsApi.GetProviderBookingsAsync(providerId, start, end);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().HaveCount(1);
+            result.Value[0].ProviderId.Should().Be(providerId);
+            result.Value[0].Status.Should().Be(EBookingStatus.Confirmed);
+        }
+    }
+
+    [Fact]
+    public async Task HasCompletedBookingAsync_WhenCompletedBookingExists_ReturnsTrue()
+    {
+        // Arrange
+        var clientId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsDb = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+            var booking = new Booking(Guid.NewGuid(), providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), 
+                TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
+                EBookingStatus.Completed, 1);
+            bookingsDb.Bookings.Add(booking);
+            await bookingsDb.SaveChangesAsync();
+        }
+
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
+            
+            // Act
+            var result = await bookingsApi.HasCompletedBookingAsync(clientId, providerId);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task HasCompletedBookingAsync_WhenOnlyPendingOrCancelled_ReturnsFalse()
+    {
+        // Arrange
+        var clientId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsDb = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+            var b1 = new Booking(Guid.NewGuid(), providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), 
+                TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
+                EBookingStatus.Pending, 1);
+            var b2 = new Booking(Guid.NewGuid(), providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), 
+                TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(12, 0)), 
+                EBookingStatus.Cancelled, 1);
+            
+            bookingsDb.Bookings.AddRange(b1, b2);
+            await bookingsDb.SaveChangesAsync();
+        }
+
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
+            
+            // Act
+            var result = await bookingsApi.HasCompletedBookingAsync(clientId, providerId);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeFalse();
+        }
+    }
 }

@@ -21,7 +21,7 @@ Cada módulo deve expor uma interface `IModuleApi` se precisar disponibilizar fu
 | Módulo | API Pública | Finalidade |
 | :--- | :--- | :--- |
 | Bookings | `IBookingsModuleApi` | Consultas de agendamentos e status |
-| Communications | N/A | (Interno - disparado via eventos) |
+| Communications | `ICommunicationsModuleApi` | Envio de notificações (E-mail/SMS/Push) e consultas de logs |
 | Documents | `IDocumentsModuleApi` | Validação de documentos |
 | Locations | `ILocationsModuleApi` | Geocoding e Validação de Cidades |
 | Payments | `IPaymentsModuleApi` | Status de assinaturas |
@@ -44,43 +44,61 @@ Handler que consome um `IntegrationEvent` e realiza ações secundárias (ex: sa
 
 ### Matriz de Auditoria de Eventos
 
-| Evento | Status | Consumidor(es) Identificado(s) |
-| :--- | :--- | :--- |
-| BookingCancelledIntegrationEvent | OK | Communications |
-| BookingCompletedIntegrationEvent | OK | Communications (Rating Invite) |
-| BookingConfirmedIntegrationEvent | OK | Communications |
-| BookingCreatedIntegrationEvent | OK | Communications |
-| BookingRejectedIntegrationEvent | OK | Communications |
-| DocumentRejectedIntegrationEvent | OK | DocumentRejectedIntegrationEventHandler (Communications) |
-| DocumentVerifiedIntegrationEvent | OK | DocumentVerifiedIntegrationEventHandler (Communications, Providers) |
-| AllowedCityCreatedIntegrationEvent | Pendente | - |
-| AllowedCityDeletedIntegrationEvent | Pendente | - |
-| AllowedCityUpdatedIntegrationEvent | Pendente | - |
-| SubscriptionActivatedIntegrationEvent | OK | SubscriptionActivatedIntegrationEventHandler (Payments, Providers) |
-| SubscriptionCanceledIntegrationEvent | OK | SubscriptionCanceledIntegrationEventHandler (Payments, Providers) |
-| SubscriptionExpiredIntegrationEvent | OK | SubscriptionExpiredIntegrationEventHandler (Payments, Providers) |
-| SubscriptionRenewedIntegrationEvent | OK | SubscriptionRenewedIntegrationEventHandler (Payments) |
-| ProviderActivatedIntegrationEvent | OK | ProviderActivatedIntegrationEventHandler (Communications, SearchProviders) |
-| ProviderAwaitingVerificationIntegrationEvent| OK | ProviderAwaitingVerificationIntegrationEventHandler (Communications) |
-| ProviderDeletedIntegrationEvent | OK | ProviderDeletedIntegrationEventHandler (SearchProviders) |
-| ProviderIndexRequiredIntegrationEvent | OK | ProviderIndexRequiredIntegrationEventHandler (SearchProviders) |
-| ProviderProfileUpdatedIntegrationEvent | OK | ProviderProfileUpdatedIntegrationEventHandler (SearchProviders) |
-| ProviderRegisteredIntegrationEvent | OK | ProviderRegisteredIntegrationEventHandler (Communications) |
-| ProviderServicesUpdatedIntegrationEvent | OK | ProviderServicesUpdatedIntegrationEventHandler (SearchProviders) |
-| ProviderVerificationStatusUpdatedIntegrationEvent| OK | ProviderVerificationStatusUpdatedIntegrationEventHandler (Communications) |
-| ReviewApprovedIntegrationEvent | OK | ReviewApprovedIntegrationEventHandler (SearchProviders) |
-| SearchableProviderIndexedIntegrationEvent | Pendente | - |
-| ServiceActivatedIntegrationEvent | OK | ServiceActivatedIntegrationEventHandler (SearchProviders) |
-| ServiceDeactivatedIntegrationEvent | OK | ServiceDeactivatedIntegrationEventHandler (SearchProviders) |
-| ServiceNameUpdatedIntegrationEvent | OK | ServiceNameUpdatedIntegrationEventHandler (Providers) |
-| UserDeletedIntegrationEvent | OK | UserDeletedIntegrationEventHandler (Ratings) |
-| UserProfileUpdatedIntegrationEvent | OK | UserProfileUpdatedIntegrationEventHandler (Communications) |
-| UserRegisteredIntegrationEvent | OK | UserRegisteredIntegrationEventHandler (Communications) |
+| Evento | Consumidor | Ação atual | Status |
+| :--- | :--- | :--- | :--- |
+| BookingCancelledIntegrationEvent | Communications | Notificação | OK |
+| BookingCompletedIntegrationEvent | Communications | Convite de Avaliação | OK |
+| BookingConfirmedIntegrationEvent | Communications | Notificação | OK |
+| BookingCreatedIntegrationEvent | Communications | Notificação | OK |
+| BookingRejectedIntegrationEvent | Communications | Notificação | OK |
+| DocumentRejectedIntegrationEvent | Communications | Notificação | OK |
+| DocumentVerifiedIntegrationEvent | Communications, Providers | Notificação / Verificação | OK |
+| AllowedCityCreatedIntegrationEvent | SearchProviders | Apenas log | Pendente funcional |
+| AllowedCityDeletedIntegrationEvent | SearchProviders | Apenas log | Pendente funcional |
+| AllowedCityUpdatedIntegrationEvent | SearchProviders | Apenas log | Pendente funcional |
+| SubscriptionActivatedIntegrationEvent | Payments, Providers | Ativação/Promoção | OK |
+| SubscriptionCanceledIntegrationEvent | Payments, Providers | Cancelamento/Demote | OK |
+| SubscriptionExpiredIntegrationEvent | Payments, Providers | Expiração/Demote | OK |
+| SubscriptionRenewedIntegrationEvent | Payments | Renovação | OK |
+| ProviderActivatedIntegrationEvent | Communications, SearchProviders | Ativação/Indexação | OK |
+| ProviderAwaitingVerificationIntegrationEvent| Communications | Notificação | OK |
+| ProviderDeletedIntegrationEvent | SearchProviders | Remoção do índice | OK |
+| ProviderIndexRequiredIntegrationEvent | SearchProviders | Indexação | OK |
+| ProviderProfileUpdatedIntegrationEvent | SearchProviders | Indexação | OK |
+| ProviderRegisteredIntegrationEvent | Communications | Boas-vindas | OK |
+| ProviderServicesUpdatedIntegrationEvent | SearchProviders | Indexação | OK |
+| ProviderVerificationStatusUpdatedIntegrationEvent| Communications | Notificação | OK |
+| ReviewApprovedIntegrationEvent | SearchProviders | Indexação | OK |
+| ServiceActivatedIntegrationEvent | SearchProviders | Indexação | OK |
+| ServiceDeactivatedIntegrationEvent | SearchProviders | Indexação | OK |
+| ServiceNameUpdatedIntegrationEvent | Providers | Atualização | OK |
+| UserDeletedIntegrationEvent | Ratings | Remoção de avaliações | OK |
+| UserProfileUpdatedIntegrationEvent | Communications | Notificação | OK |
+| UserRegisteredIntegrationEvent | Communications | Boas-vindas | OK |
+
+## 5. Eventos no Backlog
+
+| Evento | Motivo |
+| :--- | :--- |
+| SearchableProviderIndexedIntegrationEvent | Sem consumidor ativo; aguardando requisito de analytics ou notificação. |
+| AllowedCityCreatedIntegrationEvent | Pendente funcional |
+| AllowedCityDeletedIntegrationEvent | Pendente funcional |
+| AllowedCityUpdatedIntegrationEvent | Pendente funcional |
 
 
 ## 4. Resiliência de Mensagens
 
 Para garantir a confiabilidade da comunicação assíncrona:
 
+### Estratégia de Idempotência
+
+| Tipo de Handler | Estratégia |
+| :--- | :--- |
+| Notificação | `CommunicationLog` / `correlationId` |
+| Mutação de Estado | `ProcessedIntegrationEvents` (Tabela por módulo) |
+| Reindexação | Idempotência natural (Upsert/Delete if exists) + Log EventId |
+| Remoção | Idempotência natural (Não falhar se já removido) |
+
 - **Quorum Queues**: Eventos marcados com o atributo `[CriticalEvent]` (em `MeAjudaAi.Shared.Messaging.Attributes`) são declarados como Quorum Queues para garantir persistência e alta disponibilidade no RabbitMQ.
+- **High Volume**: Eventos marcados com `[HighVolumeEvent]` configuram o prefetchCount do consumidor baseando-se em `MaxParallelism` do atributo.
 - **Outbox Pattern**: Todos os eventos devem ser persistidos na tabela `Outbox` do módulo origem dentro da mesma transação do domínio antes de serem publicados.

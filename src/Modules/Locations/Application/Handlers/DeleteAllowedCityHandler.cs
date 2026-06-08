@@ -14,7 +14,6 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 public sealed class DeleteAllowedCityHandler(
     [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
-    IMessageBus messageBus,
     ILogger<DeleteAllowedCityHandler> logger) : ICommandHandler<DeleteAllowedCityCommand>
 {
     public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken = default)
@@ -26,11 +25,7 @@ public sealed class DeleteAllowedCityHandler(
         repository.Delete(city);
         await uow.SaveChangesAsync(cancellationToken);
 
-        await messageBus.PublishAsync(new AllowedCityDeletedIntegrationEvent(
-            ModuleNames.Locations,
-            city.Id), cancellationToken: cancellationToken);
-            
-        logger.LogInformation("AllowedCity {CityId} deleted and event published.", city.Id);
+        logger.LogInformation("AllowedCity {CityId} deleted.", city.Id);
     }
 }
 

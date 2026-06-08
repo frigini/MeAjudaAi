@@ -12,6 +12,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
 
+[Trait("Category", "Unit")]
+[Trait("Module", "Ratings")]
+[Trait("Layer", "Application")]
 public class CreateReviewCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
@@ -58,6 +61,49 @@ public class CreateReviewCommandHandlerTests
         // Assert
         result.Should().NotBeEmpty();
         _repositoryMock.Verify(r => r.Add(It.IsAny<Review>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenNoCompletedBooking_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        _bookingsApiMock
+            .Setup(x => x.HasCompletedBookingAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(false));
+
+        var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 5, "Ótimo");
+
+        // Act
+        Func<Task> act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should()
+            .ThrowAsync<InvalidOperationException>()
+            .WithMessage("*agendamentos concluídos*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenBookingsApiFails_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        _bookingsApiMock
+            .Setup(x => x.HasCompletedBookingAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Failure("Bookings unavailable"));
+
+        var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 5, "Ótimo");
+
+        // Act
+        Func<Task> act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Você só pode avaliar prestadores com quem possui agendamentos concluídos.");
     }
 
     [Fact]

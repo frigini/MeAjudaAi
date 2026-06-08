@@ -528,12 +528,6 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <summary>
     /// Promove ou rebaixa o tier do prestador de serviços.
     /// </summary>
-    /// <param name="newTier">Novo tier a ser atribuído</param>
-    /// <param name="updatedBy">Quem está fazendo a atualização (ex: "stripe-webhook")</param>
-    /// <remarks>
-    /// Normalmente chamado via webhook do Stripe após confirmação de pagamento.
-    /// Não há restrição de progressão — pode promover ou rebaixar livremente.
-    /// </remarks>
     public void PromoteTier(EProviderTier newTier, string? updatedBy = null)
     {
         if (IsDeleted)
@@ -553,6 +547,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
             previousTier,
             newTier,
             updatedBy));
+    }
+
+    /// <summary>
+    /// Rebaixa o tier do prestador de serviços.
+    /// </summary>
+    public void DemoteTier(EProviderTier newTier, string? updatedBy = null)
+    {
+        PromoteTier(newTier, updatedBy);
     }
 
     /// <summary>

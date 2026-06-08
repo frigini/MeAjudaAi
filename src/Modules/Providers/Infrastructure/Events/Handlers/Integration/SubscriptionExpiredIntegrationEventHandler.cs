@@ -39,7 +39,7 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
                 return;
             }
             
-            provider.PromoteTier(EProviderTier.Standard, "payments-integration-expired");
+            provider.DemoteTier(EProviderTier.Standard, "payments-integration-expired");
             
             // Registrar processamento
             dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));

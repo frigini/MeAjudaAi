@@ -23,7 +23,6 @@ public sealed class UpdateAllowedCityHandler(
     [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
-    IMessageBus messageBus,
     ILogger<UpdateAllowedCityHandler> logger,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand, Result>
 {
@@ -99,13 +98,7 @@ public sealed class UpdateAllowedCityHandler(
 
         await uow.SaveChangesAsync(cancellationToken);
         
-        await messageBus.PublishAsync(new AllowedCityUpdatedIntegrationEvent(
-            ModuleNames.Locations,
-            allowedCity.Id,
-            allowedCity.CityName,
-            allowedCity.StateSigla), cancellationToken: cancellationToken);
-            
-        logger.LogInformation("AllowedCity {CityId} updated and event published.", allowedCity.Id);
+        logger.LogInformation("AllowedCity {CityId} updated.", allowedCity.Id);
 
         return Result.Success();
     }

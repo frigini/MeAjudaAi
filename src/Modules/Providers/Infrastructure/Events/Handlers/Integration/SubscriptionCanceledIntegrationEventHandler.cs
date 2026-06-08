@@ -39,7 +39,7 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
                 return;
             }
             
-            provider.PromoteTier(EProviderTier.Standard, "payments-integration-canceled");
+            provider.DemoteTier(EProviderTier.Standard, "payments-integration-canceled");
             
             // Registrar processamento
             dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));

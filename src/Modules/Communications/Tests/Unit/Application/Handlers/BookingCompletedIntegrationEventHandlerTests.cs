@@ -34,6 +34,8 @@ public class BookingCompletedIntegrationEventHandlerTests
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<BookingCompletedIntegrationEventHandler>>();
 
+        _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("http://localhost:5165");
+        
         _handler = new BookingCompletedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,

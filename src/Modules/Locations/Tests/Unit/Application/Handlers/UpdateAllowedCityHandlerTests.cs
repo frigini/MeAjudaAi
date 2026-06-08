@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,7 +20,6 @@ public class UpdateAllowedCityHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IAllowedCityQueries> _queriesMock;
     private readonly Mock<IGeocodingService> _geocodingServiceMock;
-    private readonly Mock<MeAjudaAi.Shared.Messaging.IMessageBus> _messageBusMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<ILogger<UpdateAllowedCityHandler>> _loggerMock;
     private readonly UpdateAllowedCityHandler _handler;
@@ -29,14 +29,13 @@ public class UpdateAllowedCityHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _queriesMock = new Mock<IAllowedCityQueries>();
         _geocodingServiceMock = new Mock<IGeocodingService>();
-        _messageBusMock = new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _loggerMock = new Mock<ILogger<UpdateAllowedCityHandler>>();
 
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GeoPoint(0, 0));
 
-        _handler = new UpdateAllowedCityHandler(_uowMock.Object, _queriesMock.Object, _geocodingServiceMock.Object, _messageBusMock.Object, _loggerMock.Object, _httpContextAccessorMock.Object);
+        _handler = new UpdateAllowedCityHandler(_uowMock.Object, _queriesMock.Object, _geocodingServiceMock.Object, _loggerMock.Object, _httpContextAccessorMock.Object);
     }
 
     [Fact]

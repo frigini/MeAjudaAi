@@ -54,6 +54,16 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<bool> HasCompletedBookingAsync(Guid clientId, Guid providerId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Bookings
+            .AsNoTracking()
+            .AnyAsync(b => b.ClientId == clientId &&
+                           b.ProviderId == providerId &&
+                           b.Status == EBookingStatus.Completed,
+                cancellationToken);
+    }
+
     private static async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
         IQueryable<Booking> query,
         DateOnly? fromDate,

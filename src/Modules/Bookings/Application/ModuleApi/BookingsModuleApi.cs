@@ -45,24 +45,8 @@ public sealed class BookingsModuleApi(
     {
         try
         {
-            int page = 1;
-            const int pageSize = 100;
-            bool hasMore = true;
-
-            while (hasMore)
-            {
-                var (items, _) = await bookingQueries.GetByClientIdPagedAsync(clientId, null, null, page, pageSize, cancellationToken);
-                
-                if (items.Any(b => b.ProviderId == providerId && b.Status == MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Completed))
-                {
-                    return Result<bool>.Success(true);
-                }
-                
-                hasMore = items.Count == pageSize;
-                page++;
-            }
-            
-            return Result<bool>.Success(false);
+            var hasBooking = await bookingQueries.HasCompletedBookingAsync(clientId, providerId, cancellationToken);
+            return Result<bool>.Success(hasBooking);
         }
         catch (OperationCanceledException)
         {

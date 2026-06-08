@@ -8,6 +8,8 @@ namespace MeAjudaAi.Contracts.Modules.Communications;
 
 /// <summary>
 /// API pública para o módulo de comunicações (E-mail, SMS, Push).
+/// Esta API é destinada principalmente para orquestração interna de notificações e 
+/// auditoria de comunicações por outros módulos ou portais administrativos.
 /// </summary>
 public interface ICommunicationsModuleApi : IModuleApi
 {

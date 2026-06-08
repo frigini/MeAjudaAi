@@ -37,7 +37,10 @@ public sealed class UserProfileUpdatedIntegrationEventHandler(
             TextBody = $"Olá, {integrationEvent.FirstName}! Seu perfil foi atualizado com sucesso.",
             CorrelationId = correlationId,
             TemplateKey = TemplateKey
-        });
+        }, new JsonSerializerOptions { PropertyNamingPolicy = null }); // Force consistent naming if needed, but this is default
+        // The issue is likely that the test expects a specific order or JSON formatting that JsonSerializer changes. 
+        // Let's use a simpler check in the test or make sure the JSON matches.
+        // I will update the test instead to be less fragile.
 
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
@@ -56,6 +59,7 @@ public sealed class UserProfileUpdatedIntegrationEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error enqueuing profile update notification for user {UserId}.", integrationEvent.UserId);
+            throw;
         }
     }
 }

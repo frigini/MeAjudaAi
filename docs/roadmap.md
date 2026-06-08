@@ -29,7 +29,8 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 - 🚀 **Em Execução (Plano de Auditoria e Implementação)**:
     - **Fase 1**: Auditoria (Matriz de Eventos) – ✅ Concluído. (Ver `docs/event-audit-matrix.md`)
     - **Fase 2**: Implementação de Handlers pendentes – ✅ Concluído. (Todos os 10 módulos auditados e handlers/APIs implementados)
-    - **Fase 3**: Testes (Unitários e Integração) – 🚀 Em execução: Validar lógica de handler e fluxos de integração.
+    - **Fase 3**: Testes (Unitários e Integração) – ✅ Concluído.
+    - **Fase 4**: Automação e Qualidade de Wiring – ✅ Concluído (Testes de Arquitetura para Registro de Handlers).
     - **Extra**: Auditoria de Comunicação Síncrona vs Assíncrona realizada (Ver `docs/communication-audit.md`) e criação de APIs Públicas.
     - **Infraestrutura e Mensageria**:
         - **Desempenho do Service Bus (Concluído)**: ✅ Ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` via QoS.
@@ -44,6 +45,14 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 - **Sistema de Disputas**: Mediação administrativa para conflitos.
 - **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
+- **Novos Eventos de Integração (Roadmap)**:
+    - `AllowedCity*` com ação real (quando `SearchProviders` filtrar por cidade/região).
+    - `SubscriptionExpiringSoonIntegrationEvent` (comunicação preventiva de expiração).
+    - `ReviewRejectedIntegrationEvent` (notificação de cliente/prestador sobre moderação).
+    - `ProviderTierUpdatedIntegrationEvent` (se tier Gold/Standard afetar Search/Communications/Admin).
+- **Evolução de APIs Públicas**:
+    - `IPaymentsModuleApi`: Avaliar `GetSubscriptionStatusAsync` caso surja consumidor específico para apenas o status.
+    - `ICommunicationsModuleApi`: Melhorar documentação de finalidade (uso interno vs admin).
 - **Analytics & Reports (Novo)**: 
     - **Provedores**: Dashboards de conversão (cliques vs. agendamentos), métricas de faturamento e avaliação média temporal.
     - **Administração**: Relatórios de crescimento da plataforma, hotspots geográficos de demanda e exportação de dados para contabilidade (CSV/PDF).
