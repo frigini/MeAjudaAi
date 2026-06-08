@@ -45,41 +45,39 @@ public class UserDeletedIntegrationEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenNoReviewsExist_ShouldNotCallSaveChanges()
+    public async Task HandleAsync_WhenNoReviewsExist_ShouldStillRecordProcessedEventAndSaveChanges()
     {
         var userId = Guid.NewGuid();
         var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
-        
-        var mockRepo = new Mock<IRepository<Review, ReviewId>>();
-        // Using TryFindAsync as per interface
-        mockRepo.Setup(r => r.TryFindAsync(It.IsAny<ReviewId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Review?)null);
 
-        var uow = new Mock<IUnitOfWork>();
-        uow.Setup(u => u.GetRepository<Review, ReviewId>()).Returns(mockRepo.Object);
+        await _handler.HandleAsync(evt);
 
-        // Constructor requires DbContext, we need to pass a mock DbContext or concrete one
-        var handler = new UserDeletedIntegrationEventHandler(_dbContext, _loggerMock.Object);
-
-        await handler.HandleAsync(evt);
-
+        var processedEvent = await _dbContext.ProcessedIntegrationEvents.FirstOrDefaultAsync(e => e.CorrelationId == evt.Id.ToString());
+        processedEvent.Should().NotBeNull();
         _dbContext.ChangeTracker.HasChanges().Should().BeFalse();
     }
 
     [Fact]
     public async Task HandleAsync_WhenDatabaseFails_ShouldThrowException()
     {
+        // Forçar falha no SaveChangesAsync
         var userId = Guid.NewGuid();
         var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
 
-        // We need to pass a valid DbContext to the handler's constructor as it doesn't take an IUnitOfWork directly.
-        // Wait, looking at UserDeletedIntegrationEventHandler, it likely needs RatingsDbContext.
-        // Let's mock a context if possible or use a real one.
-        
-        var handler = new UserDeletedIntegrationEventHandler(_dbContext, _loggerMock.Object);
-        
-        // Induce failure by some other means if possible, or accept we cannot mock DbContext easily.
-        // If the handler relies on _dbContext.Reviews, we cannot easily mock it.
-        // Let's just remove this test if we can't easily mock it without complex setup.
+        var options = new DbContextOptionsBuilder<RatingsDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        // Usar um mock para o DbContext para forçar falha no SaveChangesAsync
+        var mockContext = new Mock<RatingsDbContext>(options);
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        var handler = new UserDeletedIntegrationEventHandler(mockContext.Object, _loggerMock.Object);
+
+        Func<Task> act = () => handler.HandleAsync(evt);
+
+        await act.Should().ThrowAsync<Exception>().WithMessage("Database error");
     }
+
 }

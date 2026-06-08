@@ -33,7 +33,15 @@ public class HandlerRegistrationTests
                 var extensionsType = module.InfrastructureAssembly.GetType($"MeAjudaAi.Modules.{module.Name}.Infrastructure.Extensions");
                 if (extensionsType != null)
                 {
-                    var addModuleMethod = extensionsType.GetMethod($"Add{module.Name}Module", BindingFlags.Public | BindingFlags.Static);
+                    var methodName = $"Add{module.Name}Module";
+                    var addModuleMethod = extensionsType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+                    
+                    if (addModuleMethod == null)
+                    {
+                        methodName = $"Add{module.Name}Infrastructure";
+                        addModuleMethod = extensionsType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+                    }
+
                     if (addModuleMethod != null)
                     {
                         // Alguns AddModule recebem IConfiguration
@@ -127,16 +135,11 @@ public class HandlerRegistrationTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Discover all concrete IDomainEventHandler<T> types in Infrastructure assemblies
-        // Note: Some projects might use a different name for the domain event handler interface
-        // In MeAjudaAi, it seems to be IDomainEventHandler<T> or similar. Let's check IEventHandler<T> too 
-        // as it is often used for both if they share the same base interface logic.
-        
         var handlerTypes = infraAssemblies
             .SelectMany(a => a.GetTypes())
             .Where(t => t is { IsClass: true, IsAbstract: false } &&
                        t.GetInterfaces().Any(i => i.IsGenericType && 
-                                                (i.Name.Contains("IDomainEventHandler") || 
-                                                 i.Name.Contains("IDomainEventConsumer"))))
+                                                typeof(IDomainEvent).IsAssignableFrom(i.GetGenericArguments()[0])))
             .ToList();
 
         var unregisteredHandlers = new List<string>();
@@ -145,7 +148,7 @@ public class HandlerRegistrationTests
         foreach (var handlerType in handlerTypes)
         {
             var interfaceTypes = handlerType.GetInterfaces()
-                .Where(i => i.IsGenericType && (i.Name.Contains("IDomainEventHandler") || i.Name.Contains("IDomainEventConsumer")));
+                .Where(i => i.IsGenericType && typeof(IDomainEvent).IsAssignableFrom(i.GetGenericArguments()[0]));
 
             foreach (var interfaceType in interfaceTypes)
             {
@@ -169,14 +172,7 @@ public class HandlerRegistrationTests
 
     private static bool CanResolve(IServiceProvider serviceProvider, Type serviceType, Type implementationType)
     {
-        try
-        {
-            var instances = serviceProvider.GetServices(serviceType);
-            return instances.Any(i => i != null && i.GetType() == implementationType);
-        }
-        catch
-        {
-            return false;
-        }
+        var instances = serviceProvider.GetServices(serviceType);
+        return instances.Any(i => i != null && i.GetType() == implementationType);
     }
 }

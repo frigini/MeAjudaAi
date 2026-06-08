@@ -132,9 +132,20 @@ public sealed class AllowedCity : AggregateRoot<Guid>
         bool isActive, 
         string updatedBy)
     {
+        cityName = cityName?.Trim() ?? string.Empty;
+        stateSigla = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+        
         if (string.IsNullOrWhiteSpace(cityName)) throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
-        if (string.IsNullOrWhiteSpace(stateSigla) || stateSigla.Length != 2) throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
+        
+        if (string.IsNullOrWhiteSpace(stateSigla)) throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
+        if (stateSigla.Length != 2) throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
+        
+        if (string.IsNullOrWhiteSpace(updatedBy)) throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+        
+        if (double.IsNaN(latitude)) throw new InvalidLocationArgumentException("Latitude inválida");
         if (latitude < -90 || latitude > 90) throw new InvalidLocationArgumentException("Latitude inválida");
+        
+        if (double.IsNaN(longitude)) throw new InvalidLocationArgumentException("Longitude inválida");
         if (longitude < -180 || longitude > 180) throw new InvalidLocationArgumentException("Longitude inválida");
         
         ValidateServiceRadius(serviceRadiusKm);
@@ -154,6 +165,8 @@ public sealed class AllowedCity : AggregateRoot<Guid>
 
     public void MarkAsDeleted(string updatedBy)
     {
+        if (string.IsNullOrWhiteSpace(updatedBy)) throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+
         UpdatedBy = updatedBy;
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new AllowedCityDeletedDomainEvent(Id));
