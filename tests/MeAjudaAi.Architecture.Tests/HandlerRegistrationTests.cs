@@ -146,9 +146,9 @@ public class HandlerRegistrationTests
         var duplicates = services
             .Where(d => d.ServiceType.IsGenericType &&
                         d.ServiceType.GetGenericTypeDefinition() == typeof(IEventHandler<>))
-            .GroupBy(d => new { d.ServiceType, d.ImplementationType })
+            .GroupBy(d => new { d.ServiceType, ImplementationFullName = d.ImplementationType?.FullName })
             .Where(g => g.Count() > 1)
-            .Select(g => $"{g.Key.ServiceType.Name} -> {g.Key.ImplementationType?.Name} ({g.Count()}x)")
+            .Select(g => $"{g.Key.ServiceType.Name} -> {g.Key.ImplementationFullName} ({g.Count()}x)")
             .ToList();
 
         // Assert

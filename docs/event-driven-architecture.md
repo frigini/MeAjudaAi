@@ -44,37 +44,37 @@ Handler que consome um `IntegrationEvent` e realiza ações secundárias (ex: sa
 
 ### Matriz de Auditoria de Eventos
 
-| Evento | Consumidor | Ação atual | Status |
+| Evento | Produtor | Consumidor | Status |
 | :--- | :--- | :--- | :--- |
-| BookingCancelledIntegrationEvent | Communications | Notificação | OK |
-| BookingCompletedIntegrationEvent | Communications | Convite de Avaliação | OK |
-| BookingConfirmedIntegrationEvent | Communications | Notificação | OK |
-| BookingCreatedIntegrationEvent | Communications | Notificação | OK |
-| BookingRejectedIntegrationEvent | Communications | Notificação | OK |
-| DocumentRejectedIntegrationEvent | Communications | Notificação | OK |
-| DocumentVerifiedIntegrationEvent | Communications, Providers | Notificação / Verificação | OK |
-| AllowedCityCreatedIntegrationEvent | SearchProviders | Apenas log | Pendente funcional |
-| AllowedCityDeletedIntegrationEvent | SearchProviders | Apenas log | Pendente funcional |
-| AllowedCityUpdatedIntegrationEvent | SearchProviders | Apenas log | Pendente funcional |
-| SubscriptionActivatedIntegrationEvent | Payments, Providers | Ativação/Promoção | OK |
-| SubscriptionCanceledIntegrationEvent | Payments, Providers | Cancelamento/Demote | OK |
-| SubscriptionExpiredIntegrationEvent | Payments, Providers | Expiração/Demote | OK |
-| SubscriptionRenewedIntegrationEvent | Payments | Renovação | OK |
-| ProviderActivatedIntegrationEvent | Communications, SearchProviders | Ativação/Indexação | OK |
-| ProviderAwaitingVerificationIntegrationEvent| Communications | Notificação | OK |
-| ProviderDeletedIntegrationEvent | SearchProviders | Remoção do índice | OK |
-| ProviderIndexRequiredIntegrationEvent | SearchProviders | Indexação | OK |
-| ProviderProfileUpdatedIntegrationEvent | SearchProviders | Indexação | OK |
-| ProviderRegisteredIntegrationEvent | Communications | Boas-vindas | OK |
-| ProviderServicesUpdatedIntegrationEvent | SearchProviders | Indexação | OK |
-| ProviderVerificationStatusUpdatedIntegrationEvent| Communications | Notificação | OK |
-| ReviewApprovedIntegrationEvent | SearchProviders | Indexação | OK |
-| ServiceActivatedIntegrationEvent | SearchProviders | Indexação | OK |
-| ServiceDeactivatedIntegrationEvent | SearchProviders | Indexação | OK |
-| ServiceNameUpdatedIntegrationEvent | Providers | Atualização | OK |
-| UserDeletedIntegrationEvent | Ratings | Remoção de avaliações | OK |
-| UserProfileUpdatedIntegrationEvent | Communications | Notificação | OK |
-| UserRegisteredIntegrationEvent | Communications | Boas-vindas | OK |
+| BookingCancelledIntegrationEvent | Bookings | Communications | OK |
+| BookingCompletedIntegrationEvent | Bookings | Communications | OK |
+| BookingConfirmedIntegrationEvent | Bookings | Communications | OK |
+| BookingCreatedIntegrationEvent | Bookings | Communications | OK |
+| BookingRejectedIntegrationEvent | Bookings | Communications | OK |
+| DocumentRejectedIntegrationEvent | Documents | Communications | OK |
+| DocumentVerifiedIntegrationEvent | Documents | Communications, Providers | OK |
+| AllowedCityCreatedIntegrationEvent | Locations | SearchProviders | Pendente funcional |
+| AllowedCityDeletedIntegrationEvent | Locations | SearchProviders | Pendente funcional |
+| AllowedCityUpdatedIntegrationEvent | Locations | SearchProviders | Pendente funcional |
+| SubscriptionActivatedIntegrationEvent | Payments | Providers | OK |
+| SubscriptionCanceledIntegrationEvent | Payments | Providers | OK |
+| SubscriptionExpiredIntegrationEvent | Payments | Providers | OK |
+| SubscriptionRenewedIntegrationEvent | Payments | — | Pendente (sem consumidor) |
+| ProviderActivatedIntegrationEvent | Providers | Communications, SearchProviders | OK |
+| ProviderAwaitingVerificationIntegrationEvent| Providers | Communications | OK |
+| ProviderDeletedIntegrationEvent | Providers | SearchProviders | OK |
+| ProviderIndexRequiredIntegrationEvent | Providers | SearchProviders | OK |
+| ProviderProfileUpdatedIntegrationEvent | Providers | SearchProviders | OK |
+| ProviderRegisteredIntegrationEvent | Providers | Communications | OK |
+| ProviderServicesUpdatedIntegrationEvent | Providers | SearchProviders | OK |
+| ProviderVerificationStatusUpdatedIntegrationEvent| Providers | Communications | OK |
+| ReviewApprovedIntegrationEvent | Ratings | SearchProviders | OK |
+| ServiceActivatedIntegrationEvent | ServiceCatalogs | SearchProviders | OK |
+| ServiceDeactivatedIntegrationEvent | ServiceCatalogs | SearchProviders | OK |
+| ServiceNameUpdatedIntegrationEvent | ServiceCatalogs | Providers | OK |
+| UserDeletedIntegrationEvent | Users | Ratings | OK |
+| UserProfileUpdatedIntegrationEvent | Users | Communications | OK |
+| UserRegisteredIntegrationEvent | Users | Communications | OK |
 
 ## 5. Eventos no Backlog
 
