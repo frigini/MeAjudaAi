@@ -110,6 +110,9 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>, GetServiceByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>, GetServicesByCategoryQueryHandler>();
 
+        // Registra MessageBus (assume-se que está disponível no Shared, mas injetamos via factory ou singleton)
+        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus>(sp => sp.GetRequiredService<MeAjudaAi.Shared.Messaging.Factories.IMessageBusFactory>().CreateMessageBus());
+
         // Registra domain event handlers
         services.AddScoped<IEventHandler<ServiceActivatedDomainEvent>, ServiceActivatedDomainEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedDomainEvent>, ServiceDeactivatedDomainEventHandler>();

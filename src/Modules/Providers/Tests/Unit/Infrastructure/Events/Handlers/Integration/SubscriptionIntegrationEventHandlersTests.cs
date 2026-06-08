@@ -62,6 +62,11 @@ public class SubscriptionIntegrationEventHandlersTests
         var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.Parse(correlationId), provider.UserId);
 
         await handler.HandleAsync(evt);
+
+        var refreshedProvider = await _dbContext.Providers.FindAsync(provider.Id);
+        refreshedProvider!.Tier.Should().Be(EProviderTier.Standard);
+        _dbContext.ProcessedIntegrationEvents.Count().Should().Be(1);
+        _dbContext.ChangeTracker.HasChanges().Should().BeFalse();
     }
 
     [Fact]

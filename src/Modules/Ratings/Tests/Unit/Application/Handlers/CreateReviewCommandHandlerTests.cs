@@ -82,7 +82,7 @@ public class CreateReviewCommandHandlerTests
         // Assert
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
-            .WithMessage("*agendamentos concluídos*");
+            .WithMessage("Você só pode avaliar prestadores com quem possui agendamentos concluídos.");
     }
 
     [Fact]

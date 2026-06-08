@@ -132,7 +132,13 @@ public sealed class AllowedCity : AggregateRoot<Guid>
         bool isActive, 
         string updatedBy)
     {
-        // ... (existing logic) ...
+        if (string.IsNullOrWhiteSpace(cityName)) throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
+        if (string.IsNullOrWhiteSpace(stateSigla) || stateSigla.Length != 2) throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
+        if (latitude < -90 || latitude > 90) throw new InvalidLocationArgumentException("Latitude inválida");
+        if (longitude < -180 || longitude > 180) throw new InvalidLocationArgumentException("Longitude inválida");
+        
+        ValidateServiceRadius(serviceRadiusKm);
+        
         CityName = cityName;
         StateSigla = stateSigla;
         IbgeCode = ibgeCode;
