@@ -10,7 +10,12 @@ using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
@@ -303,8 +308,10 @@ public class PaymentsApiTests : BaseApiTest
             var job = ActivatorUtilities.CreateInstance<MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs.ProcessInboxJob>(scope.ServiceProvider);
             var stripeEvent = Stripe.EventUtility.ParseEvent(messages[0].Content, throwOnApiVersionMismatch: false);
             var data = job.MapToStripeEventData(stripeEvent);
+            var transactionRepo = scope.ServiceProvider.GetRequiredService<IRepository<MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction, Guid>>();
+            var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments);
             
-            await job.ProcessStripeEventAsync(data, dbContext, subscriptionQueries, CancellationToken.None);
+            await job.ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, dbContext, uow, CancellationToken.None);
             
             messages[0].MarkAsProcessed();
             await dbContext.SaveChangesAsync();

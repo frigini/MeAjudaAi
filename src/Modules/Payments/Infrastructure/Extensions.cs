@@ -2,6 +2,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
@@ -50,6 +51,10 @@ public static class Extensions
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Payments, (sp, key) => sp.GetRequiredService<PaymentsDbContext>());
+
+        // Registra repositórios
+        services.AddScoped<IRepository<MeAjudaAi.Modules.Payments.Domain.Entities.Subscription, Guid>>(sp => sp.GetRequiredService<PaymentsDbContext>());
+        services.AddScoped<IRepository<PaymentTransaction, Guid>>(sp => sp.GetRequiredService<PaymentsDbContext>());
 
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
         services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
