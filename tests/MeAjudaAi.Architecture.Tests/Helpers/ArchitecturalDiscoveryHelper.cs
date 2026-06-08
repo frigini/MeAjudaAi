@@ -125,7 +125,9 @@ public static class ArchitecturalDiscoveryHelper
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
                     .Where(type => type.GetInterfaces().Any(i =>
-                           i.Name.Contains("ICommand"))))
+                           i.Name.Contains("ICommand")) &&
+                           !type.Name.EndsWith("CommandHandler") &&
+                           !type.Name.EndsWith("Validator")))
                 .AsSelf());
         }
 
