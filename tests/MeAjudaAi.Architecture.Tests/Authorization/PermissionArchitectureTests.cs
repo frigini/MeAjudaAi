@@ -247,6 +247,7 @@ public class PermissionArchitectureTests
     public void ModulePermissionClasses_ShouldFollowNamingConvention()
     {
         // Arrange & Act - Apenas classes que terminam exatamente com "Permissions" (containers de permissões estáticas)
+        // E restringir apenas aos nossos módulos e projeto MeAjudaAi.
         var result = Types.InCurrentDomain()
             .That()
             .HaveNameEndingWith("Permissions")  // Classes de container de permissões
@@ -254,6 +255,8 @@ public class PermissionArchitectureTests
             .AreClasses()
             .And()
             .AreNotAbstract()
+            .And()
+            .ResideInNamespaceStartingWith("MeAjudaAi")
             .Should()
             .BeStatic()
             .GetResult();
