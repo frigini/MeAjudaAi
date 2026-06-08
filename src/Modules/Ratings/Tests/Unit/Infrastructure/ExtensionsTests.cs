@@ -20,10 +20,13 @@ public class ExtensionsTests
     {
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
+        services.AddSingleton<IConfiguration>(configuration); // Registra IConfiguration
         var hostEnv = new Mock<IHostEnvironment>();
         services.AddLogging();
         
         services.AddScoped(sp => new Mock<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>().Object);
+        // Mock do MessageBus para evitar falha de resolução
+        services.AddSingleton(new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>().Object);
 
         MeAjudaAi.Modules.Ratings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostEnv.Object);
         var provider = services.BuildServiceProvider();
