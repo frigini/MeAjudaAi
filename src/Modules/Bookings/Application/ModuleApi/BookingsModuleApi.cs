@@ -65,20 +65,10 @@ public sealed class BookingsModuleApi(
         {
             var fromDate = DateOnly.FromDateTime(start.Date);
             var toDate = DateOnly.FromDateTime(end.Date);
-            var allBookings = new List<MeAjudaAi.Modules.Bookings.Domain.Entities.Booking>();
-            int page = 1;
-            const int pageSize = 1000;
-            bool hasMore = true;
-
-            while (hasMore)
-            {
-                var (items, _) = await bookingQueries.GetByProviderIdPagedAsync(providerId, fromDate, toDate, page, pageSize, cancellationToken);
-                allBookings.AddRange(items);
-                hasMore = items.Count == pageSize;
-                page++;
-            }
             
-            var dtos = allBookings.Select(MapToDto).ToList();
+            var bookings = await bookingQueries.GetByProviderAndPeriodAsync(providerId, fromDate, toDate, cancellationToken);
+            
+            var dtos = bookings.Select(MapToDto).ToList();
             return Result<IReadOnlyList<BookingDto>>.Success(dtos);
         }
         catch (OperationCanceledException)

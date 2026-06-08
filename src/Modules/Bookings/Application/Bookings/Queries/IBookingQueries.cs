@@ -12,6 +12,8 @@ public interface IBookingQueries
         Guid clientId, DateOnly? fromDate, DateOnly? toDate, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Booking>> GetActiveByProviderAndDateAsync(
         Guid providerId, DateOnly date, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Booking>> GetByProviderAndPeriodAsync(
+        Guid providerId, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default);
     Task<bool> HasCompletedBookingAsync(
         Guid clientId, Guid providerId, CancellationToken cancellationToken = default);
 }

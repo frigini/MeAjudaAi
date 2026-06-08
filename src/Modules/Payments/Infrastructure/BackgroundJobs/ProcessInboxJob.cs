@@ -86,7 +86,8 @@ public class ProcessInboxJob(
                 var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
                 var data = MapToStripeEventData(stripeEvent);
                 
-                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, ct);
+                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, dbContext, uow, ct);
+
 
                 message.MarkAsProcessed();
             }
@@ -156,6 +157,8 @@ public class ProcessInboxJob(
         StripeEventData data, 
         IRepository<PaymentTransaction, Guid> transactionRepo,
         ISubscriptionQueries subscriptionQueries,
+        PaymentsDbContext dbContext,
+        IUnitOfWork uow,
         CancellationToken ct)
     {
         switch (data.Type)
@@ -167,7 +170,8 @@ public class ProcessInboxJob(
                     throw new InvalidOperationException("Essential data missing in checkout.session.completed event");
                 }
 
-                var subscription = await subscriptionQueries.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
+                var subscription = await subscriptionQueries.GetByExternalIdAsync(data.SubscriptionId, ct)
+                                   ?? await subscriptionQueries.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
 
                 if (subscription == null)
                 {
@@ -181,11 +185,11 @@ public class ProcessInboxJob(
                     break;
                 }
 
-                subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty); 
-                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, data.ProviderId, data.CustomerId);
+                subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty);
                 
-                await messageBus.PublishAsync(new SubscriptionActivatedIntegrationEvent(ModuleNames.Payments, subscription.Id, subscription.ProviderId), null, ct); // Assuming ProviderId is the equivalent of UserId in Payments context for now based on domain model
+                await uow.SaveChangesAsync(ct);
                 break;
+
 
             case "invoice.paid":
                 if (string.IsNullOrEmpty(data.SubscriptionId))
@@ -201,12 +205,6 @@ public class ProcessInboxJob(
                     {
                         subToRenew.Renew(data.PeriodEnd.Value);
                         logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}", subToRenew.Id, subToRenew.ExpiresAt);
-                        
-                        await messageBus.PublishAsync(new SubscriptionRenewedIntegrationEvent(
-                            ModuleNames.Payments,
-                            subToRenew.Id,
-                            subToRenew.ProviderId,
-                            data.PeriodEnd.Value), null, ct);
                     }
 
                     Money? amount = null;
@@ -241,6 +239,7 @@ public class ProcessInboxJob(
                     {
                         logger.LogWarning("Skipping PaymentTransaction creation for Invoice {InvoiceId} due to unknown or zero amount", data.InvoiceId);
                     }
+                    await uow.SaveChangesAsync(ct);
                 }
                 else
                 {
@@ -257,11 +256,7 @@ public class ProcessInboxJob(
                 {
                     subToCancel.Cancel();
                     logger.LogInformation("Subscription {Id} canceled due to deletion in Stripe", subToCancel.Id);
-                    
-                    await messageBus.PublishAsync(new SubscriptionCanceledIntegrationEvent(
-                        ModuleNames.Payments,
-                        subToCancel.Id,
-                        subToCancel.ProviderId), null, ct);
+                    await uow.SaveChangesAsync(ct);
                 }
                 else
                 {

@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -177,7 +179,7 @@ public class ProcessInboxJobTests : IDisposable
             .ReturnsAsync((DomainSubscription?)null);
 
         // Act
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Subscription not found*");
@@ -193,7 +195,7 @@ public class ProcessInboxJobTests : IDisposable
             .ReturnsAsync((DomainSubscription?)null);
 
         // Act
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not found*");
@@ -206,7 +208,7 @@ public class ProcessInboxJobTests : IDisposable
         var data = new StripeEventData("checkout.session.completed", "evt_1", "sub_1", null, Guid.NewGuid());
 
         // Act
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         // Subscription.Activate handles it by throwing ArgumentException/InvalidOperation or similar
@@ -226,7 +228,7 @@ public class ProcessInboxJobTests : IDisposable
             .ReturnsAsync(sub);
 
         // Act
-        await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         _dbContext.PaymentTransactions.Local.Should().BeEmpty();
@@ -245,7 +247,7 @@ public class ProcessInboxJobTests : IDisposable
             .ReturnsAsync(sub);
 
         // Act
-        await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         sub.Status.Should().Be(ESubscriptionStatus.Active);
@@ -259,7 +261,7 @@ public class ProcessInboxJobTests : IDisposable
         var data = new StripeEventData("checkout.session.completed", "evt_1", "sub_1", "cus_1", null);
 
         // Act
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Essential data missing*");
@@ -279,7 +281,7 @@ public class ProcessInboxJobTests : IDisposable
             .ReturnsAsync(sub);
 
         // Act
-        await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert - no changes expected, subscription was already active with same IDs
         sub.ExternalSubscriptionId.Should().Be(subId);
@@ -296,7 +298,7 @@ public class ProcessInboxJobTests : IDisposable
             .ReturnsAsync((DomainSubscription?)null);
 
         // Act
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, _dbContext, _dbContext, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not found*");
@@ -309,7 +311,7 @@ public class ProcessInboxJobTests : IDisposable
         var data = new StripeEventData("unknown.event", "evt_999", null, null, null);
 
         // Act
-        Func<Task> act = () => _job.ProcessStripeEventAsync(data, _dbContext, _subscriptionQueriesMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, new Mock<IRepository<PaymentTransaction, Guid>>().Object, _subscriptionQueriesMock.Object, _dbContext, new Mock<IUnitOfWork>().Object, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();

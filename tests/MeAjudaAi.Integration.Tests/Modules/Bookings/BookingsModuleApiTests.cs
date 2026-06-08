@@ -162,4 +162,40 @@ public class BookingsModuleApiTests : BaseApiTest
             result.Value.Should().BeFalse();
         }
     }
+
+    [Fact]
+    public async Task GetProviderBookingsAsync_WhenMoreThanOneHundredBookings_ShouldReturnAll()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var date = DateOnly.FromDateTime(DateTime.UtcNow);
+        var bookingsCount = 101;
+        
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsDb = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+            for (int i = 0; i < bookingsCount; i++)
+            {
+                var booking = new Booking(Guid.NewGuid(), providerId, Guid.NewGuid(), Guid.NewGuid(), date, 
+                    TimeSlot.Create(new TimeOnly(0, 0).AddMinutes(i), new TimeOnly(0, 1).AddMinutes(i)), 
+                    EBookingStatus.Confirmed, 1);
+                bookingsDb.Bookings.Add(booking);
+            }
+            await bookingsDb.SaveChangesAsync();
+        }
+
+        using (var scope = Services.CreateScope())
+        {
+            var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
+            
+            // Act
+            var start = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var end = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+            var result = await bookingsApi.GetProviderBookingsAsync(providerId, start, end);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().HaveCount(bookingsCount);
+        }
+    }
 }

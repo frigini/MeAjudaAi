@@ -2,65 +2,57 @@ using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using System.Reflection;
+using Microsoft.Extensions.Hosting;
 using FluentAssertions;
 using Xunit;
+using Moq;
 
 namespace MeAjudaAi.Architecture.Tests;
 
 [Trait("Category", "Architecture")]
 public class HandlerRegistrationTests
 {
+    private static IServiceCollection AddAllModulesForArchitectureTests(IServiceCollection services)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test",
+                ["Stripe:ApiKey"] = "sk_test_dummy",
+                ["Messaging:Enabled"] = "false"
+            })
+            .Build();
+
+        var hostingEnv = Mock.Of<IHostEnvironment>(e => e.EnvironmentName == "Testing");
+
+        services.AddLogging();
+        // Assume shared messaging is registered
+        services.AddSingleton(Mock.Of<MeAjudaAi.Shared.Messaging.IMessageBus>());
+
+        MeAjudaAi.Modules.Bookings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.Communications.Infrastructure.Extensions.AddCommunicationsInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Documents.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.Locations.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Payments.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.Providers.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Ratings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.SearchProviders.Infrastructure.Extensions.AddSearchProvidersInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Extensions.AddServiceCatalogsInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Users.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+
+        return services;
+    }
+
     [Fact]
     public void AllEventHandlers_ShouldBeRegisteredInDependencyInjection()
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
-        
-        // Simular o registro de todos os módulos
-        // No MeAjudaAi, cada módulo costuma ter uma extensão Add[ModuleName]Module
-        // Aqui vamos descobrir e invocar essas extensões ou simular o comportamento
-        
-        var modules = ModuleDiscoveryHelper.DiscoverModules();
-        var infraAssemblies = ModuleDiscoveryHelper.GetAllInfrastructureAssemblies();
-        
-        // Ativar os registros de cada módulo
-        foreach (var module in modules)
-        {
-            if (module.InfrastructureAssembly != null)
-            {
-                var extensionsType = module.InfrastructureAssembly.GetType($"MeAjudaAi.Modules.{module.Name}.Infrastructure.Extensions");
-                if (extensionsType != null)
-                {
-                    var methodName = $"Add{module.Name}Module";
-                    var addModuleMethod = extensionsType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
-                    
-                    if (addModuleMethod == null)
-                    {
-                        methodName = $"Add{module.Name}Infrastructure";
-                        addModuleMethod = extensionsType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
-                    }
-
-                    if (addModuleMethod != null)
-                    {
-                        // Alguns AddModule recebem IConfiguration
-                        var parameters = addModuleMethod.GetParameters();
-                        if (parameters.Length == 2 && parameters[1].ParameterType == typeof(IConfiguration))
-                        {
-                            addModuleMethod.Invoke(null, new object[] { services, configuration });
-                        }
-                        else if (parameters.Length == 1)
-                        {
-                            addModuleMethod.Invoke(null, new object[] { services });
-                        }
-                    }
-                }
-            }
-        }
+        AddAllModulesForArchitectureTests(services);
 
         var serviceProvider = services.BuildServiceProvider();
-
+        var infraAssemblies = ModuleDiscoveryHelper.GetAllInfrastructureAssemblies();
+        
         // Discover all concrete IEventHandler<T> types in Infrastructure assemblies
         var handlerTypes = infraAssemblies
             .SelectMany(a => a.GetTypes())
@@ -79,7 +71,6 @@ public class HandlerRegistrationTests
 
             foreach (var interfaceType in interfaceTypes)
             {
-                // Verifica se o handler está registrado para a interface correspondente
                 var registrations = services.Where(sd => sd.ServiceType == interfaceType).ToList();
                 var isRegistered = registrations.Any(sd => 
                     sd.ImplementationType == handlerType || 
@@ -103,37 +94,11 @@ public class HandlerRegistrationTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
-        
-        var modules = ModuleDiscoveryHelper.DiscoverModules();
-        var infraAssemblies = ModuleDiscoveryHelper.GetAllInfrastructureAssemblies();
-        
-        foreach (var module in modules)
-        {
-            if (module.InfrastructureAssembly != null)
-            {
-                var extensionsType = module.InfrastructureAssembly.GetType($"MeAjudaAi.Modules.{module.Name}.Infrastructure.Extensions");
-                if (extensionsType != null)
-                {
-                    var addModuleMethod = extensionsType.GetMethod($"Add{module.Name}Module", BindingFlags.Public | BindingFlags.Static);
-                    if (addModuleMethod != null)
-                    {
-                        var parameters = addModuleMethod.GetParameters();
-                        if (parameters.Length == 2 && parameters[1].ParameterType == typeof(IConfiguration))
-                        {
-                            addModuleMethod.Invoke(null, new object[] { services, configuration });
-                        }
-                        else if (parameters.Length == 1)
-                        {
-                            addModuleMethod.Invoke(null, new object[] { services });
-                        }
-                    }
-                }
-            }
-        }
+        AddAllModulesForArchitectureTests(services);
 
         var serviceProvider = services.BuildServiceProvider();
-
+        var infraAssemblies = ModuleDiscoveryHelper.GetAllInfrastructureAssemblies();
+        
         // Discover all concrete IDomainEventHandler<T> types in Infrastructure assemblies
         var handlerTypes = infraAssemblies
             .SelectMany(a => a.GetTypes())

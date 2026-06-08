@@ -54,6 +54,17 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Booking>> GetByProviderAndPeriodAsync(
+        Guid providerId, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Bookings
+            .AsNoTracking()
+            .Where(b => b.ProviderId == providerId && b.Date >= fromDate && b.Date <= toDate)
+            .OrderBy(b => b.Date)
+            .ThenBy(b => b.TimeSlot.Start)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<bool> HasCompletedBookingAsync(Guid clientId, Guid providerId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Bookings
