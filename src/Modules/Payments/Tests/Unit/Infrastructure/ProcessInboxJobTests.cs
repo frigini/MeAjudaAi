@@ -41,7 +41,7 @@ public class ProcessInboxJobTests : IDisposable
         _dbContext.Database.EnsureCreated();
 
         _messageBusMock = new Mock<IMessageBus>();
-        _job = new ProcessInboxJob(_serviceProviderMock.Object, _messageBusMock.Object, _loggerMock.Object);
+        _job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
     }
 
     [Fact]

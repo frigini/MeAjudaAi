@@ -308,10 +308,13 @@ public class PaymentsApiTests : BaseApiTest
             var job = ActivatorUtilities.CreateInstance<MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs.ProcessInboxJob>(scope.ServiceProvider);
             var stripeEvent = Stripe.EventUtility.ParseEvent(messages[0].Content, throwOnApiVersionMismatch: false);
             var data = job.MapToStripeEventData(stripeEvent);
+            
+            // Registra manualmente no contexto de DI do escopo para o teste
             var transactionRepo = scope.ServiceProvider.GetRequiredService<IRepository<MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction, Guid>>();
+            var subQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
             var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments);
             
-            await job.ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, dbContext, uow, CancellationToken.None);
+            await job.ProcessStripeEventAsync(data, transactionRepo, subQueries, dbContext, uow, CancellationToken.None);
             
             messages[0].MarkAsProcessed();
             await dbContext.SaveChangesAsync();

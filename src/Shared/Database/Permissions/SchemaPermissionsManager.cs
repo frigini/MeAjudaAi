@@ -77,7 +77,9 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
                  .Replace("{{SCHEMA_NAME}}", QuoteIdentifier(config.SchemaName));
 
         using var command = connection.CreateCommand();
+#pragma warning disable CA2100 // Review if the query string passed to 'string NpgsqlCommand.CommandText' in 'ExecuteScriptAsync', accepts any user input
         command.CommandText = sql;
+#pragma warning restore CA2100
 
         command.Parameters.AddWithValue("role_pwd", config.RolePassword);
         command.Parameters.AddWithValue("app_pwd", config.AppRolePassword);

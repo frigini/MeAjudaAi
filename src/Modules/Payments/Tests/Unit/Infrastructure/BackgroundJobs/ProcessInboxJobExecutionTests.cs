@@ -53,7 +53,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _dbContext.InboxMessages.Add(message);
         await _dbContext.SaveChangesAsync();
 
-        var job = new ProcessInboxJobWrapper(_serviceProvider, _messageBusMock.Object, _loggerMock.Object);
+        var job = new ProcessInboxJobWrapper(_serviceProvider, _loggerMock.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -84,7 +84,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _subscriptionQueriesMock.Setup(q => q.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>())).ReturnsAsync(subscription);
         _subscriptionQueriesMock.Setup(q => q.GetByExternalIdAsync(externalId, It.IsAny<CancellationToken>())).ReturnsAsync(subscription);
 
-        var job = new ProcessInboxJobWrapper(_serviceProvider, _messageBusMock.Object, _loggerMock.Object);
+        var job = new ProcessInboxJobWrapper(_serviceProvider, _loggerMock.Object);
 
         // Act
         await job.DoExecuteStepAsync(CancellationToken.None);
@@ -128,7 +128,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _dbContext.InboxMessages.Add(newMessage);
         await _dbContext.SaveChangesAsync();
 
-        var job = new ProcessInboxJobWrapper(_serviceProvider, _messageBusMock.Object, _loggerMock.Object);
+        var job = new ProcessInboxJobWrapper(_serviceProvider, _loggerMock.Object);
 
         // Act
         await job.DoExecuteStepAsync(CancellationToken.None);
@@ -148,8 +148,8 @@ public class ProcessInboxJobExecutionTests : IDisposable
     }
 
     // Helper class to expose protected methods for testing
-    private class ProcessInboxJobWrapper(IServiceProvider serviceProvider, IMessageBus messageBus, ILogger<ProcessInboxJob> logger) 
-        : ProcessInboxJob(serviceProvider, messageBus, logger)
+    private class ProcessInboxJobWrapper(IServiceProvider serviceProvider, ILogger<ProcessInboxJob> logger) 
+        : ProcessInboxJob(serviceProvider, logger)
     {
         public async Task DoExecuteStepAsync(CancellationToken ct)
         {

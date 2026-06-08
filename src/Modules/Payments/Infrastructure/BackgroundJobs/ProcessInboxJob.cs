@@ -18,7 +18,6 @@ namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 
 public class ProcessInboxJob(
     IServiceProvider sp,
-    IMessageBus messageBus,
     ILogger<ProcessInboxJob> logger) : BackgroundService
 {
     protected readonly IServiceProvider _sp = sp;

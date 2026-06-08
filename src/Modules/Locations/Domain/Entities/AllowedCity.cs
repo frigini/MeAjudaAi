@@ -13,7 +13,7 @@ public sealed class AllowedCity : AggregateRoot<Guid>
     /// <summary>
     /// Identificador único da cidade permitida
     /// </summary>
-    public Guid Id { get; private set; }
+    public new Guid Id { get; private set; }
 
     /// <summary>
     /// Nome da cidade (ex: "Muriaé", "Itaperuna")
@@ -53,12 +53,12 @@ public sealed class AllowedCity : AggregateRoot<Guid>
     /// <summary>
     /// Data de criação do registro
     /// </summary>
-    public DateTime CreatedAt { get; private set; }
+    public new DateTime CreatedAt { get; private set; }
 
     /// <summary>
     /// Data da última atualização
     /// </summary>
-    public DateTime? UpdatedAt { get; private set; }
+    public new DateTime? UpdatedAt { get; private set; }
 
     /// <summary>
     /// Usuário que criou o registro (Admin)
