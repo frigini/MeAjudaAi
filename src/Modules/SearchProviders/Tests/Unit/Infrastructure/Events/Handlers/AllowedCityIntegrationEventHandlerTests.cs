@@ -14,35 +14,50 @@ public class AllowedCityIntegrationEventHandlerTests
     private readonly Mock<ILogger<AllowedCityDeletedIntegrationEventHandler>> _loggerDeletedMock = new();
 
     [Fact]
-    public async Task HandleAsync_WhenAllowedCityCreated_ShouldNotThrow()
+    public async Task HandleAsync_WhenAllowedCityCreated_ShouldLogAndComplete()
     {
         var handler = new AllowedCityCreatedIntegrationEventHandler(_loggerCreatedMock.Object);
         var evt = new AllowedCityCreatedIntegrationEvent("Locations", Guid.NewGuid(), "Muriaé", "MG");
 
-        Func<Task> act = () => handler.HandleAsync(evt);
+        await handler.HandleAsync(evt);
 
-        await act.Should().NotThrowAsync();
+        _loggerCreatedMock.Verify(x => x.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Handling AllowedCityCreated")),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenAllowedCityUpdated_ShouldNotThrow()
+    public async Task HandleAsync_WhenAllowedCityUpdated_ShouldLogAndComplete()
     {
         var handler = new AllowedCityUpdatedIntegrationEventHandler(_loggerUpdatedMock.Object);
         var evt = new AllowedCityUpdatedIntegrationEvent("Locations", Guid.NewGuid(), "Muriaé", "MG");
 
-        Func<Task> act = () => handler.HandleAsync(evt);
+        await handler.HandleAsync(evt);
 
-        await act.Should().NotThrowAsync();
+        _loggerUpdatedMock.Verify(x => x.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Handling AllowedCityUpdated")),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenAllowedCityDeleted_ShouldNotThrow()
+    public async Task HandleAsync_WhenAllowedCityDeleted_ShouldLogAndComplete()
     {
         var handler = new AllowedCityDeletedIntegrationEventHandler(_loggerDeletedMock.Object);
         var evt = new AllowedCityDeletedIntegrationEvent("Locations", Guid.NewGuid());
 
-        Func<Task> act = () => handler.HandleAsync(evt);
+        await handler.HandleAsync(evt);
 
-        await act.Should().NotThrowAsync();
+        _loggerDeletedMock.Verify(x => x.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Handling AllowedCityDeleted")),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
 }
