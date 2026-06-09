@@ -25,7 +25,7 @@ public static class Extensions
         services.AddScoped<IBookingsModuleApi, BookingsModuleApi>();
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
 
-        // Comomands
+        // Comandos
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();
         services.AddScoped<ICommandHandler<SetProviderScheduleCommand, Result>, SetProviderScheduleCommandHandler>();
         services.AddScoped<ICommandHandler<ConfirmBookingCommand, Result>, ConfirmBookingCommandHandler>();
@@ -41,7 +41,7 @@ public static class Extensions
 
         services.AddScoped<ProviderAuthorizationResolver>();
 
-        // Event Handlers (SSE Realtime)
+        // Manipuladores de Eventos (SSE Realtime)
         services.AddScoped<BookingRealtimeEventsHandler>();
         services.AddScoped<IEventHandler<BookingCreatedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
         services.AddScoped<IEventHandler<BookingConfirmedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());

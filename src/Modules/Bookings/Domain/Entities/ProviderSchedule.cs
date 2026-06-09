@@ -34,7 +34,7 @@ public sealed class ProviderSchedule : BaseEntity
         MarkAsUpdated();
     }
 
-    private void ValidateTimeZoneId(string timeZoneId)
+    private static void ValidateTimeZoneId(string timeZoneId)
     {
         try
         {

@@ -23,6 +23,6 @@ public static class ProviderAuthorizationResultExtensions
         EAuthorizationFailureKind.NotLinked =>
             Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound),
         EAuthorizationFailureKind.None => null,
-        _ => null
+        _ => Results.Problem($"Estado de autorização desconhecido: {result.FailureKind}", statusCode: StatusCodes.Status500InternalServerError)
     };
 }

@@ -33,6 +33,7 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
     public async Task GetBookingEvents_ShouldStreamEvents()
     {
         // Arrange
+        var baseUtcNow = DateTime.UtcNow;
         // Autenticar como Admin para criar os recursos iniciais
         AuthenticateAsAdmin();
         
@@ -40,13 +41,13 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
         var providerId = await CreateTestProviderAsync();
         var serviceId = await CreateTestServiceAsync();
         await LinkServiceToProviderAsync(providerId, serviceId);
-        await SetProviderScheduleAsync(providerId);
+        await SetProviderScheduleAsync(providerId, baseUtcNow);
         
         var customerId = await CreateTestUserAsync();
         
         // 2. Criar um agendamento
         AuthenticateAsUser(customerId.ToString());
-        var bookingId = await CreateTestBookingAsync(providerId, customerId, serviceId);
+        var bookingId = await CreateTestBookingAsync(providerId, customerId, serviceId, baseUtcNow);
 
         // 3. Autenticar para acessar o stream de eventos
         AuthenticateAsUser(customerId.ToString());
@@ -71,8 +72,14 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
             using var stream = await response.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(stream);
             
-            var line = await reader.ReadLineAsync();
-            line.Should().StartWith("data:");
+            var readTask = reader.ReadLineAsync();
+            var completedTask = await Task.WhenAny(readTask, Task.Delay(TimeSpan.FromSeconds(5)));
+            
+            if (completedTask != readTask)
+                throw new TimeoutException("Timed out waiting for SSE stream data.");
+                
+            var line = await readTask;
+            line.Should().NotBeNull().And.StartWith("data:");
         }
     }
 
@@ -82,10 +89,10 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
         response.EnsureSuccessStatusCode();
     }
 
-    private async Task SetProviderScheduleAsync(Guid providerId)
+    private async Task SetProviderScheduleAsync(Guid providerId, DateTime baseUtcNow)
     {
         var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-        var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(baseUtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
         int dayOfWeek = (int)localTomorrow.DayOfWeek;
 
@@ -112,10 +119,10 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
         response.EnsureSuccessStatusCode();
     }
 
-    private async Task<Guid> CreateTestBookingAsync(Guid providerId, Guid customerId, Guid serviceId)
+    private async Task<Guid> CreateTestBookingAsync(Guid providerId, Guid customerId, Guid serviceId, DateTime baseUtcNow)
     {
         var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-        var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(baseUtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
 
         var utcStart = TimeZoneInfo.ConvertTimeToUtc(new DateTime(localTomorrow.Year, localTomorrow.Month, localTomorrow.Day, 10, 0, 0), tz);

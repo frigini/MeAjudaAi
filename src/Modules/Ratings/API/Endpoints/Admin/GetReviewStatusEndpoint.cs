@@ -28,7 +28,7 @@ public class GetReviewStatusEndpoint : IEndpoint
             .WithName("GetReviewStatus")
             .Produces<ReviewStatusResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization("AdminPolicy");
     }
 
     private static async Task<IResult> GetReviewStatusAsync(

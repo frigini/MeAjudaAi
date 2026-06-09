@@ -47,6 +47,11 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var localTomorrow = localNow.Date.AddDays(1);
         int dayOfWeek = (int)localTomorrow.DayOfWeek;
         
+        var start1 = new DateTimeOffset(localTomorrow.AddHours(10), TimeSpan.FromHours(-3));
+        var end1 = new DateTimeOffset(localTomorrow.AddHours(11), TimeSpan.FromHours(-3));
+        var start2 = new DateTimeOffset(localTomorrow.AddHours(14), TimeSpan.FromHours(-3));
+        var end2 = new DateTimeOffset(localTomorrow.AddHours(15), TimeSpan.FromHours(-3));
+
         var scheduleRequest = new
         {
             providerId = providerIdClaim,
@@ -57,12 +62,13 @@ public class BookingsEndToEndTests : BaseTestContainerTest
                     dayOfWeek = dayOfWeek,
                     slots = new[]
                     {
-                        new { start = "10:00:00", end = "11:00:00" },
-                        new { start = "14:00:00", end = "15:00:00" }
+                        new { start = start1.ToString("O"), end = end1.ToString("O") },
+                        new { start = start2.ToString("O"), end = end2.ToString("O") }
                     }
                 }
             }
         };
+
 
         // Envia como admin ou provider (Admin pode setar p/ qq um pelo request body, Provider baseia no claim)
         var scheduleResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
