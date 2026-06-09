@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.ModuleApi;

@@ -2,6 +2,9 @@ using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 
 namespace MeAjudaAi.Modules.Bookings.Application.DTOs;
 
+/// <summary>
+/// Representa os dados detalhados de um agendamento.
+/// </summary>
 public record BookingDto(
     Guid Id,
     Guid ProviderId,

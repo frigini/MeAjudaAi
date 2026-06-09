@@ -1,15 +1,14 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Modules.Bookings.Application.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Queries;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -184,6 +183,3 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
     }
 }
-
-
-

@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Events;
 
+/// <summary>
+/// Manipulador de eventos de domínio responsável por publicar atualizações de estado dos agendamentos 
+/// em tempo real via Server-Sent Events (SSE).
+/// </summary>
 public class BookingRealtimeEventsHandler(
     ISseHub<BookingStatusSseDto> sseHub,
     ILogger<BookingRealtimeEventsHandler> logger) :

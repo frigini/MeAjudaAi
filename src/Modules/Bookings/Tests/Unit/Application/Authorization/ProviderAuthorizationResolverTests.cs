@@ -1,19 +1,16 @@
-using System.Security.Claims;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
-using MeAjudaAi.Modules.Bookings.Application.Enums;
-using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
+using System.Security.Claims;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Unit.API;
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Authorization;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Bookings")]
@@ -49,10 +46,10 @@ public class ProviderAuthorizationResolverTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var claims = new[] 
-        { 
+        var claims = new[]
+        {
             new Claim(AuthConstants.Claims.Subject, userId.ToString()),
-            new Claim(AuthConstants.Claims.IsSystemAdmin, "true") 
+            new Claim(AuthConstants.Claims.IsSystemAdmin, "true")
         };
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
@@ -70,10 +67,10 @@ public class ProviderAuthorizationResolverTests
         // Arrange
         var userId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
-        var claims = new[] 
-        { 
+        var claims = new[]
+        {
             new Claim(AuthConstants.Claims.Subject, userId.ToString()),
-            new Claim(AuthConstants.Claims.ProviderId, providerId.ToString()) 
+            new Claim(AuthConstants.Claims.ProviderId, providerId.ToString())
         };
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
@@ -145,10 +142,10 @@ public class ProviderAuthorizationResolverTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var claims = new[] 
-        { 
+        var claims = new[]
+        {
             new Claim(AuthConstants.Claims.Subject, userId.ToString()),
-            new Claim(AuthConstants.Claims.IsSystemAdmin, "true") 
+            new Claim(AuthConstants.Claims.IsSystemAdmin, "true")
         };
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 

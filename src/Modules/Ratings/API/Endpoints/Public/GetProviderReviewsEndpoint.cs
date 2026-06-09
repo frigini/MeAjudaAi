@@ -23,7 +23,7 @@ public class GetProviderReviewsEndpoint : IEndpoint
         Guid providerId,
         [FromServices] IReviewQueries queries,
         [FromQuery] int page = Pagination.DefaultPageNumber,
-        [FromQuery] int pageSize = Pagination.DefaultPageSize,
+        [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         var normalizedPage = page < Pagination.DefaultPageNumber ? Pagination.DefaultPageNumber : page;

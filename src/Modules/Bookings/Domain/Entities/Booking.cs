@@ -6,6 +6,10 @@ using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
 
+/// <summary>
+/// Representa um agendamento (Booking) entre um prestador e um cliente para um serviço específico.
+/// Esta entidade é uma raiz de agregação (Aggregate Root) que gerencia o ciclo de vida do agendamento.
+/// </summary>
 public class Booking : AggregateRoot<Guid>
 {
     public Guid ProviderId { get; private set; }

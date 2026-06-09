@@ -1,12 +1,12 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Shared.Database.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -102,14 +102,17 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Fail_When_Availabilities_Is_Null()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var command = new SetProviderScheduleCommand(providerId, null!, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
+        // Act
         var result = await _sut.HandleAsync(command);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("A lista de disponibilidades não pode ser nula.");
     }
@@ -117,6 +120,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Fail_When_Availabilities_Contains_Null()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var availabilities = new List<AvailabilityDto>
         {
@@ -126,15 +130,16 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
             }),
             null!
         };
-
         
         var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
+        // Act
         var result = await _sut.HandleAsync(command);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Uma das disponibilidades fornecidas é nula.");
     }
@@ -222,6 +227,3 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         result.Error!.Message.Should().Be("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos.");
     }
 }
-
-
-

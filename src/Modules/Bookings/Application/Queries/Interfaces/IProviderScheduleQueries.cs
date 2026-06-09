@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 
-namespace MeAjudaAi.Modules.Bookings.Application.Queries;
+namespace MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 public interface IProviderScheduleQueries
 {

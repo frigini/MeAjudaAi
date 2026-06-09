@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -48,10 +49,10 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Id.Should().Be(booking.Id);
-        result.Value.ProviderId.Should().Be(providerId);
-        result.Value.ClientId.Should().Be(clientId);
-        result.Value.Status.Should().Be(EBookingStatus.Pending);
+        result.Value!.Id.Should().Be(booking.Id);
+        result.Value!.ProviderId.Should().Be(providerId);
+        result.Value!.ClientId.Should().Be(clientId);
+        result.Value!.Status.Should().Be(EBookingStatus.Pending);
     }
 
     [Fact]
@@ -75,8 +76,8 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Id.Should().Be(booking.Id);
-        result.Value.ProviderId.Should().Be(providerId);
+        result.Value!.Id.Should().Be(booking.Id);
+        result.Value!.ProviderId.Should().Be(providerId);
     }
 
     [Fact]
@@ -98,7 +99,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Id.Should().Be(booking.Id);
+        result.Value!.Id.Should().Be(booking.Id);
     }
 
     [Fact]
@@ -121,7 +122,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
+        result.Value!.Should().NotBeNull();
     }
 
     [Fact]
@@ -144,7 +145,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(ExpectedNotFoundStatusCode);
-        result.Error.Message.Should().Be(ExpectedNotFoundMessage);
+        result.Error!.Message.Should().Be(ExpectedNotFoundMessage);
     }
 
     [Fact]
@@ -167,7 +168,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(ExpectedNotFoundStatusCode);
-        result.Error.Message.Should().Be(ExpectedNotFoundMessage);
+        result.Error!.Message.Should().Be(ExpectedNotFoundMessage);
     }
 
     [Fact]
@@ -183,6 +184,6 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(ExpectedNotFoundStatusCode);
-        result.Error.Message.Should().Be(ExpectedNotFoundMessage);
+        result.Error!.Message.Should().Be(ExpectedNotFoundMessage);
     }
 }

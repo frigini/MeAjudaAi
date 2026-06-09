@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Bookings.Application.Events;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Shared.Streaming;
 using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Events;
 
@@ -24,14 +25,17 @@ public class BookingRealtimeEventsHandlerTests
     [Fact]
     public async Task HandleAsync_BookingCreated_ShouldPublishCreatedStatus()
     {
+        // Arrange
         var bookingId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
         var @event = new BookingCreatedDomainEvent(bookingId, 1, providerId, clientId, serviceId, DateOnly.FromDateTime(DateTime.Today));
 
+        // Act
         await _sut.HandleAsync(@event);
 
+        // Assert
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
             It.Is<BookingStatusSseDto>(d => 
@@ -44,13 +48,16 @@ public class BookingRealtimeEventsHandlerTests
     [Fact]
     public async Task HandleAsync_BookingConfirmed_ShouldPublishConfirmedStatus()
     {
+        // Arrange
         var bookingId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var @event = new BookingConfirmedDomainEvent(bookingId, 1, providerId, clientId);
 
+        // Act
         await _sut.HandleAsync(@event);
 
+        // Assert
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
             It.Is<BookingStatusSseDto>(d => 
@@ -63,13 +70,16 @@ public class BookingRealtimeEventsHandlerTests
     [Fact]
     public async Task HandleAsync_BookingCancelled_ShouldPublishCancelledStatus()
     {
+        // Arrange
         var bookingId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var @event = new BookingCancelledDomainEvent(bookingId, 1, providerId, clientId, "Test cancellation");
 
+        // Act
         await _sut.HandleAsync(@event);
 
+        // Assert
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
             It.Is<BookingStatusSseDto>(d => 
@@ -82,13 +92,16 @@ public class BookingRealtimeEventsHandlerTests
     [Fact]
     public async Task HandleAsync_BookingRejected_ShouldPublishRejectedStatus()
     {
+        // Arrange
         var bookingId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var @event = new BookingRejectedDomainEvent(bookingId, 1, providerId, clientId, "Test rejection");
 
+        // Act
         await _sut.HandleAsync(@event);
 
+        // Assert
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
             It.Is<BookingStatusSseDto>(d => 
@@ -101,13 +114,16 @@ public class BookingRealtimeEventsHandlerTests
     [Fact]
     public async Task HandleAsync_BookingCompleted_ShouldPublishCompletedStatus()
     {
+        // Arrange
         var bookingId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var @event = new BookingCompletedDomainEvent(bookingId, 1, providerId, clientId);
 
+        // Act
         await _sut.HandleAsync(@event);
 
+        // Assert
         _sseHubMock.Verify(h => h.PublishAsync(
             SseTopic.ForBooking(bookingId),
             It.Is<BookingStatusSseDto>(d => 
