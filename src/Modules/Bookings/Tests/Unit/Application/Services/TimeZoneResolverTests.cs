@@ -1,9 +1,9 @@
-using MeAjudaAi.Modules.Bookings.Application.Common;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Common;
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Services;
 
 [Trait("Category", "Unit")]
 public class TimeZoneResolverTests

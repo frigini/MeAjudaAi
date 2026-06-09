@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;

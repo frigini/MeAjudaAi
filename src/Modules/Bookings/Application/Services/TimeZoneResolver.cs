@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Application.Common;
+namespace MeAjudaAi.Modules.Bookings.Application.Services;
 
 public static class TimeZoneResolver
 {
@@ -15,7 +15,7 @@ public static class TimeZoneResolver
             {
                 return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
             }
-            catch (Exception ex)
+            catch (TimeZoneNotFoundException ex)
             {
                 if (allowFallback)
                 {
@@ -24,6 +24,31 @@ public static class TimeZoneResolver
                 else
                 {
                     logger.LogError(ex, "Failed to resolve time zone {TimeZoneId}. Strict resolution requested.", timeZoneId);
+                    return null;
+                }
+            }
+            catch (InvalidTimeZoneException ex)
+            {
+                if (allowFallback)
+                {
+                    logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId}. Falling back.", timeZoneId);
+                }
+                else
+                {
+                    logger.LogError(ex, "Failed to resolve time zone {TimeZoneId}. Strict resolution requested.", timeZoneId);
+                    return null;
+                }
+            }
+            catch (System.Security.SecurityException ex)
+            {
+                // Problemas de segurança são esperados em alguns ambientes — trate-os da mesma forma
+                if (allowFallback)
+                {
+                    logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId} due to security. Falling back.", timeZoneId);
+                }
+                else
+                {
+                    logger.LogError(ex, "Failed to resolve time zone {TimeZoneId} due to security. Strict resolution requested.", timeZoneId);
                     return null;
                 }
             }
@@ -39,25 +64,44 @@ public static class TimeZoneResolver
         {
             return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         }
-        catch (Exception ex)
+        catch (TimeZoneNotFoundException ex)
         {
             logger.LogWarning(ex, "Failed to resolve Windows Brazil time zone. Trying IANA.");
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-            }
-            catch (Exception exIana)
-            {
-                logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone. Using local/UTC.");
-                try
-                {
-                    return TimeZoneInfo.Local;
-                }
-                catch
-                {
-                    return TimeZoneInfo.Utc;
-                }
-            }
+        }
+        catch (InvalidTimeZoneException ex)
+        {
+            logger.LogWarning(ex, "Failed to resolve Windows Brazil time zone. Trying IANA.");
+        }
+        catch (System.Security.SecurityException ex)
+        {
+            logger.LogWarning(ex, "Failed to resolve Windows Brazil time zone due to security. Trying IANA.");
+        }
+
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+        }
+        catch (TimeZoneNotFoundException exIana)
+        {
+            logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone. Using local/UTC.");
+        }
+        catch (InvalidTimeZoneException exIana)
+        {
+            logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone. Using local/UTC.");
+        }
+        catch (System.Security.SecurityException exIana)
+        {
+            logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone due to security. Using local/UTC.");
+        }
+
+        try
+        {
+            return TimeZoneInfo.Local;
+        }
+        catch (System.Security.SecurityException ex)
+        {
+            logger.LogWarning(ex, "Failed to access local time zone due to security. Using UTC.");
+            return TimeZoneInfo.Utc;
         }
     }
 

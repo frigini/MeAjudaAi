@@ -3,14 +3,12 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
@@ -49,7 +47,7 @@ public sealed class CreateBookingCommandHandler(
         {
             return Result<BookingDto>.Failure(providerExists.Error);
         }
-        
+
         if (!providerExists.Value)
         {
             return Result<BookingDto>.Failure(Error.NotFound("Prestador não encontrado.", ErrorCodes.Providers.ProviderNotFound));
@@ -60,7 +58,7 @@ public sealed class CreateBookingCommandHandler(
         {
             return Result<BookingDto>.Failure(serviceActive.Error);
         }
-        
+
         if (!serviceActive.Value)
         {
             return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo.", ErrorCodes.Catalogs.ServiceNotFound));
@@ -106,11 +104,11 @@ public sealed class CreateBookingCommandHandler(
 
         var date = DateOnly.FromDateTime(localStartTime);
         var timeSlot = TimeSlot.FromDateTime(localStartTime, localEndTime);
-        
+
         var booking = Booking.Create(
-            command.ProviderId, 
-            command.ClientId, 
-            command.ServiceId, 
+            command.ProviderId,
+            command.ClientId,
+            command.ServiceId,
             date,
             timeSlot);
 
@@ -121,7 +119,7 @@ public sealed class CreateBookingCommandHandler(
         }
 
         var result = await bookingCommandService.AddIfNoOverlapAsync(booking, cancellationToken);
-        
+
         if (result.IsFailure)
         {
             return Result<BookingDto>.Failure(result.Error!);

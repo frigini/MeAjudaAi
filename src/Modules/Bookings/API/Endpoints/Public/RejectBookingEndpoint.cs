@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Bookings.API.Extensions;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities;
@@ -32,8 +32,15 @@ public class RejectBookingEndpoint : IEndpoint
     }
 
     /// <summary>
-    /// Rejeita um agendamento pendente.
+    /// Rejeita um agendamento pendente de aprovação.
     /// </summary>
+    /// <param name="id">O identificador único do agendamento a ser rejeitado.</param>
+    /// <param name="request">O objeto contendo os detalhes da rejeição, como o motivo.</param>
+    /// <param name="dispatcher">O despachante de comandos para processar a rejeição.</param>
+    /// <param name="authResolver">O resolvedor de autorização do prestador.</param>
+    /// <param name="context">O contexto da requisição HTTP.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Retorna 204 No Content se a rejeição for bem-sucedida, ou um problema detalhado caso contrário.</returns>
     private static async Task<IResult> RejectBookingAsync(
         Guid id,
         RejectBookingRequest request,
@@ -43,7 +50,7 @@ public class RejectBookingEndpoint : IEndpoint
         CancellationToken cancellationToken)
     {
         var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
-        if (authResult.FailureKind != AuthorizationFailureKind.None)
+        if (authResult.FailureKind != EAuthorizationFailureKind.None)
         {
             var error = authResult.ToProblemResult();
             if (error != null) return error;

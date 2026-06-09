@@ -1,9 +1,10 @@
-using MeAjudaAi.Modules.Bookings.API.Extensions;
-using MeAjudaAi.Modules.Bookings.Application.Common;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Xunit;
 using FluentAssertions;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
+using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.API.Extensions;
 
@@ -55,7 +56,7 @@ public class ProviderAuthorizationResultExtensionsTests
     [Fact]
     public void ToProblemResult_WhenNoneWithFailureKindNone_ReturnsNull()
     {
-        var result = new ProviderAuthorizationResult { FailureKind = AuthorizationFailureKind.None };
+        var result = new ProviderAuthorizationResult { FailureKind = EAuthorizationFailureKind.None };
 
         var response = result.ToProblemResult();
 

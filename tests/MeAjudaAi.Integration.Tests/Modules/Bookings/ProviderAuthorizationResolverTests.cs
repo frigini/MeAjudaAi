@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Diagnostics.Metrics;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Bookings.Application.Common;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Functional;
@@ -10,6 +10,7 @@ using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Moq;
 using Microsoft.Extensions.Configuration;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Bookings;
 
@@ -128,7 +129,7 @@ public class ProviderAuthorizationResolverTests : BaseApiTest
         var result1 = await sut.ResolveAsync(user);
         
         // Assert 1
-        result1.FailureKind.Should().Be(AuthorizationFailureKind.NotLinked);
+        result1.FailureKind.Should().Be(EAuthorizationFailureKind.NotLinked);
         _providersApiMock.Verify(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
 
         // Aguardar expiração do L1
@@ -138,7 +139,7 @@ public class ProviderAuthorizationResolverTests : BaseApiTest
         var result2 = await sut.ResolveAsync(user);
 
         // Assert 2
-        result2.FailureKind.Should().Be(AuthorizationFailureKind.NotLinked);
+        result2.FailureKind.Should().Be(EAuthorizationFailureKind.NotLinked);
         _providersApiMock.Verify(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

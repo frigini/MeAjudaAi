@@ -1,45 +1,19 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
-using System.Text.Json.Serialization;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
+using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 
 [assembly: InternalsVisibleTo("MeAjudaAi.Modules.Bookings.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
-namespace MeAjudaAi.Modules.Bookings.Application.Common;
-
-public enum AuthorizationFailureKind
-{
-    None,
-    Unauthorized,
-    UpstreamFailure,
-    NotLinked
-}
-
-[ExcludeFromCodeCoverage]
-public sealed class ProviderAuthorizationResult
-{
-    public Guid? UserId { get; init; }
-    public bool IsAdmin { get; init; }
-    public Guid? ProviderId { get; init; }
-    public AuthorizationFailureKind FailureKind { get; init; }
-    public string? ErrorMessage { get; init; }
-    public int? ErrorStatusCode { get; init; }
-
-    public static ProviderAuthorizationResult Admin(Guid userId) => new() { IsAdmin = true, UserId = userId };
-    public static ProviderAuthorizationResult Authorized(Guid userId, Guid providerId) => new() { UserId = userId, ProviderId = providerId };
-    public static ProviderAuthorizationResult NotLinked(Guid userId) => new() { UserId = userId, FailureKind = AuthorizationFailureKind.NotLinked };
-    public static ProviderAuthorizationResult Unauthorized(string? message = null) => 
-        new() { FailureKind = AuthorizationFailureKind.Unauthorized, ErrorMessage = message };
-    public static ProviderAuthorizationResult UpstreamFailure(string message, int statusCode) => 
-        new() { FailureKind = AuthorizationFailureKind.UpstreamFailure, ErrorMessage = message, ErrorStatusCode = statusCode };
-}
+namespace MeAjudaAi.Modules.Bookings.Application.Authorization;
 
 public sealed class ProviderAuthorizationResolver(
     ICacheService cache,
@@ -142,12 +116,12 @@ public sealed class ProviderAuthorizationResolver(
     {
         var authResult = await ResolveAsync(user, cancellationToken);
         
-        if (authResult.FailureKind != AuthorizationFailureKind.None && authResult.FailureKind != AuthorizationFailureKind.NotLinked)
+        if (authResult.FailureKind is not EAuthorizationFailureKind.None and not EAuthorizationFailureKind.NotLinked)
         {
             return authResult.FailureKind switch
             {
-                AuthorizationFailureKind.Unauthorized => Result.Failure(Error.Unauthorized(authResult.ErrorMessage ?? "Acesso não autorizado.")),
-                AuthorizationFailureKind.UpstreamFailure => Result.Failure(new Error(authResult.ErrorMessage ?? "Erro ao validar prestador.", authResult.ErrorStatusCode ?? 502)),
+                EAuthorizationFailureKind.Unauthorized => Result.Failure(Error.Unauthorized(authResult.ErrorMessage ?? "Acesso não autorizado.")),
+                EAuthorizationFailureKind.UpstreamFailure => Result.Failure(new Error(authResult.ErrorMessage ?? "Erro ao validar prestador.", authResult.ErrorStatusCode ?? 502)),
                 _ => Result.Failure(Error.Forbidden(authResult.ErrorMessage ?? "Acesso negado."))
             };
         }
@@ -193,26 +167,4 @@ public sealed class ProviderAuthorizationResolver(
         logger.LogError("Unexpected ProviderResolutionResult for user {UserId}: {@Result}", userId, result);
         return ProviderAuthorizationResult.Unauthorized("Erro interno ao resolver vínculo do prestador.");
     }
-}
-
-[ExcludeFromCodeCoverage]
-internal sealed class UpstreamProviderException(string message, int statusCode) : Exception(message)
-{
-    public int StatusCode { get; } = statusCode;
-}
-
-[ExcludeFromCodeCoverage]
-internal sealed record ProviderResolutionResult
-{
-    public Guid? ProviderId { get; init; }
-    public bool IsNotLinked { get; init; }
-
-    [JsonIgnore]
-    public bool IsFound => ProviderId.HasValue;
-
-    [JsonConstructor]
-    public ProviderResolutionResult() { }
-
-    public static ProviderResolutionResult NotLinked() => new() { IsNotLinked = true };
-    public static ProviderResolutionResult Found(Guid providerId) => new() { ProviderId = providerId };
 }

@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Bookings.API.Extensions;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities;
@@ -50,7 +50,7 @@ public class CancelBookingEndpoint : IEndpoint
         CancellationToken cancellationToken)
     {
         var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
-        if (authResult.FailureKind is not AuthorizationFailureKind.None and not AuthorizationFailureKind.NotLinked)
+        if (authResult.FailureKind is not EAuthorizationFailureKind.None and not EAuthorizationFailureKind.NotLinked)
         {
             var error = authResult.ToProblemResult();
             if (error != null) return error;

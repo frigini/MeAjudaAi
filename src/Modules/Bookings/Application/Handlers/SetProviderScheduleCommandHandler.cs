@@ -1,14 +1,14 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Queries;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
@@ -59,7 +59,12 @@ public sealed class SetProviderScheduleCommandHandler(
                 newAvailabilities.Add(availability);
             }
         }
-        catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+        catch (ArgumentException ex)
+        {
+            logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
+            return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
+        }
+        catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
             return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
@@ -109,6 +114,3 @@ public sealed class SetProviderScheduleCommandHandler(
         return Result.Success();
     }
 }
-
-
-

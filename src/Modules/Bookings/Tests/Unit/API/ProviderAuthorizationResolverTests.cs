@@ -2,11 +2,16 @@ using System.Security.Claims;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Common;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+using FluentAssertions;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
+using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.API;
 
@@ -111,7 +116,7 @@ public class ProviderAuthorizationResolverTests
         var result = await _sut.ResolveAsync(principal);
 
         // Assert
-        result.FailureKind.Should().Be(AuthorizationFailureKind.Unauthorized);
+        result.FailureKind.Should().Be(EAuthorizationFailureKind.Unauthorized);
         result.ErrorMessage.Should().Contain("não encontrada");
     }
 

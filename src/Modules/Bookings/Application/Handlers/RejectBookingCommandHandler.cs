@@ -1,15 +1,15 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
-using MeAjudaAi.Modules.Bookings.Application.Common;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Database.Constants;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 

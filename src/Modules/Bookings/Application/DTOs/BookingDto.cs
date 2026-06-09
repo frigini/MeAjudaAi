@@ -12,4 +12,3 @@ public record BookingDto(
     EBookingStatus Status,
     string? RejectionReason = null,
     string? CancellationReason = null);
-
