@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
@@ -14,6 +15,7 @@ public abstract class BaseInMemoryDatabaseTest<TDbContext> : IDisposable where T
     {
         var options = new DbContextOptionsBuilder<TDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         
         DbContext = contextFactory(options);

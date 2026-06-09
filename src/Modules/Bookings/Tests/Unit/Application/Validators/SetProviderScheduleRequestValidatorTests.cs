@@ -26,10 +26,11 @@ public class SetProviderScheduleRequestValidatorTests
     public void Should_Have_Error_When_DayOfWeek_Is_Duplicated()
     {
         // Arrange
+        var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
         [
-            new AvailabilityDto(DayOfWeek.Monday, [new AvailableSlotDto(DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1))]),
-            new AvailabilityDto(DayOfWeek.Monday, [new AvailableSlotDto(DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1))])
+            new AvailabilityDto(DayOfWeek.Monday, [new AvailableSlotDto(baseDate, baseDate.AddHours(1))]),
+            new AvailabilityDto(DayOfWeek.Monday, [new AvailableSlotDto(baseDate, baseDate.AddHours(1))])
         ]);
 
         // Act
@@ -44,12 +45,13 @@ public class SetProviderScheduleRequestValidatorTests
     public void Should_Have_Error_When_Slots_Overlap()
     {
         // Arrange
+        var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, 
             [
-                new AvailableSlotDto(DateTimeOffset.Now.Date.AddHours(8), DateTimeOffset.Now.Date.AddHours(10)),
-                new AvailableSlotDto(DateTimeOffset.Now.Date.AddHours(9), DateTimeOffset.Now.Date.AddHours(11))
+                new AvailableSlotDto(baseDate.AddHours(8), baseDate.AddHours(10)),
+                new AvailableSlotDto(baseDate.AddHours(9), baseDate.AddHours(11))
             ])
         ]);
 
@@ -64,11 +66,12 @@ public class SetProviderScheduleRequestValidatorTests
     public void Should_Have_Error_When_End_Before_Start()
     {
         // Arrange
+        var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, 
             [
-                new AvailableSlotDto(DateTimeOffset.Now.Date.AddHours(10), DateTimeOffset.Now.Date.AddHours(8))
+                new AvailableSlotDto(baseDate.AddHours(10), baseDate.AddHours(8))
             ])
         ]);
 
@@ -83,12 +86,13 @@ public class SetProviderScheduleRequestValidatorTests
     public void Should_Not_Have_Error_When_Request_Is_Valid()
     {
         // Arrange
+        var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, 
             [
-                new AvailableSlotDto(DateTimeOffset.Now.Date.AddHours(8), DateTimeOffset.Now.Date.AddHours(10)),
-                new AvailableSlotDto(DateTimeOffset.Now.Date.AddHours(11), DateTimeOffset.Now.Date.AddHours(13))
+                new AvailableSlotDto(baseDate.AddHours(8), baseDate.AddHours(10)),
+                new AvailableSlotDto(baseDate.AddHours(11), baseDate.AddHours(13))
             ])
         ]);
 

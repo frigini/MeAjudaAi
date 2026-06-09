@@ -43,14 +43,19 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         // 2. Definir agenda para o prestador
         // Usar lógica de timezone para derivar datas
         var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-        var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(baseUtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
         int dayOfWeek = (int)localTomorrow.DayOfWeek;
-        
-        var start1 = new DateTimeOffset(localTomorrow.AddHours(10), TimeSpan.FromHours(-3));
-        var end1 = new DateTimeOffset(localTomorrow.AddHours(11), TimeSpan.FromHours(-3));
-        var start2 = new DateTimeOffset(localTomorrow.AddHours(14), TimeSpan.FromHours(-3));
-        var end2 = new DateTimeOffset(localTomorrow.AddHours(15), TimeSpan.FromHours(-3));
+
+        var start1Time = localTomorrow.AddHours(10);
+        var end1Time = localTomorrow.AddHours(11);
+        var start2Time = localTomorrow.AddHours(14);
+        var end2Time = localTomorrow.AddHours(15);
+
+        var start1 = new DateTimeOffset(start1Time, tz.GetUtcOffset(start1Time));
+        var end1 = new DateTimeOffset(end1Time, tz.GetUtcOffset(end1Time));
+        var start2 = new DateTimeOffset(start2Time, tz.GetUtcOffset(start2Time));
+        var end2 = new DateTimeOffset(end2Time, tz.GetUtcOffset(end2Time));
 
         var scheduleRequest = new
         {
@@ -68,6 +73,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
                 }
             }
         };
+
 
 
         // Envia como admin ou provider (Admin pode setar p/ qq um pelo request body, Provider baseia no claim)
