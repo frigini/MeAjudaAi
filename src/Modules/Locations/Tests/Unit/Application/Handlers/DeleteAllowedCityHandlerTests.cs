@@ -1,13 +1,11 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
-using MeAjudaAi.Shared.Messaging.Messages.Locations;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;

@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using Microsoft.Extensions.Logging;
 

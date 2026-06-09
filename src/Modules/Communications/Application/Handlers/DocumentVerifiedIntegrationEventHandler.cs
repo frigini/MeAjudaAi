@@ -4,12 +4,13 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 

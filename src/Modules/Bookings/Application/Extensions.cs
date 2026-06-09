@@ -1,9 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
@@ -16,8 +12,17 @@ using System.Reflection;
 
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 
 namespace MeAjudaAi.Modules.Bookings.Application;
+
+using MeAjudaAi.Shared.Behaviors;
+using MeAjudaAi.Shared.Mediator;
+using FluentValidation;
+// ... (outros usings)
 
 public static class Extensions
 {
@@ -25,7 +30,11 @@ public static class Extensions
     {
         services.AddScoped<IBookingsModuleApi, BookingsModuleApi>();
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
-        // Comandos
+        
+        // Registrar ValidationBehavior para todos os IRequest
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        // ...
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();
         services.AddScoped<ICommandHandler<SetProviderScheduleCommand, Result>, SetProviderScheduleCommandHandler>();
         services.AddScoped<ICommandHandler<ConfirmBookingCommand, Result>, ConfirmBookingCommandHandler>();

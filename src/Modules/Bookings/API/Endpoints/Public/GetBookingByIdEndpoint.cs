@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -15,28 +15,7 @@ public class GetBookingByIdEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapGet("/{id}", async (
-            Guid id,
-            [FromServices] IQueryDispatcher dispatcher,
-            HttpContext context,
-            CancellationToken cancellationToken) =>
-        {
-            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
-            var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
-
-            var user = context.User;
-            var userId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.Subject)?.Value, out var uId) ? uId : (Guid?)null;
-            var providerId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.ProviderId)?.Value, out var pId) ? pId : (Guid?)null;
-            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
-
-            var query = new GetBookingByIdQuery(id, userId, providerId, isSystemAdmin, correlationId);
-            var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<BookingDto>>(query, cancellationToken);
-
-            return result.Match(
-                onSuccess: booking => Results.Ok(booking),
-                onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
-            );
-        })
+        app.MapGet("/{id}", GetBookingByIdAsync)
         .RequireAuthorization()
         .Produces<BookingDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -46,6 +25,38 @@ public class GetBookingByIdEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetBookingById")
-        .WithSummary("Obtém os detalhes de um agendamento pelo ID.");
+        .WithSummary("Obtém agendamento")
+        .WithDescription("Obtém os detalhes de um agendamento pelo ID.");
+    }
+
+    /// <summary>
+    /// Obtém os detalhes completos de um agendamento específico.
+    /// </summary>
+    /// <param name="id">ID do agendamento.</param>
+    /// <param name="dispatcher">Disparador de queries.</param>
+    /// <param name="context">Contexto da requisição HTTP para extração de identidade.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Detalhes do agendamento.</returns>
+    private static async Task<IResult> GetBookingByIdAsync(
+        Guid id,
+        [FromServices] IQueryDispatcher dispatcher,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
+        var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+
+        var user = context.User;
+        var userId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.Subject)?.Value, out var uId) ? uId : (Guid?)null;
+        var providerId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.ProviderId)?.Value, out var pId) ? pId : (Guid?)null;
+        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+        var query = new GetBookingByIdQuery(id, userId, providerId, isSystemAdmin, correlationId);
+        var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<BookingDto>>(query, cancellationToken);
+
+        return result.Match(
+            onSuccess: booking => Results.Ok(booking),
+            onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
+        );
     }
 }

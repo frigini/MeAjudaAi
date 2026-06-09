@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;

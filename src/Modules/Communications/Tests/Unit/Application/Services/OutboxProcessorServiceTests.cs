@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
 

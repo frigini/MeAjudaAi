@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Contracts.Shared;
 using DomainOutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 using ECommunicationChannel = MeAjudaAi.Modules.Communications.Domain.Enums.ECommunicationChannel;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure.Persistence;
 

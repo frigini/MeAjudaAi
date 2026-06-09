@@ -71,17 +71,6 @@ public static class ValidationConstants
     }
 
     /// <summary>
-    /// Configurações de paginação (baseadas no uso atual)
-    /// </summary>
-    public static class Pagination
-    {
-        public const int DefaultPageNumber = 1;
-        public const int DefaultPageSize = 20;
-        public const int MaxPageSize = 100;
-        public const int MinPageSize = 1;
-    }
-
-    /// <summary>
     /// Limites para entidades do módulo ServiceCatalogs
     /// </summary>
     public static class CatalogLimits

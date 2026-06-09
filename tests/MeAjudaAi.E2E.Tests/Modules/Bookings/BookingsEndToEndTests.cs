@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 

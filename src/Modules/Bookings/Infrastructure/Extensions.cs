@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
@@ -13,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure;
 

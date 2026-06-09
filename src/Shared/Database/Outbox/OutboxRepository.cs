@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Database.Outbox;

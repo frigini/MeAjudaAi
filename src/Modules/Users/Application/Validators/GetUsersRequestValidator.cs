@@ -1,6 +1,6 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Application.Validators;
 
@@ -16,10 +16,10 @@ public class GetUsersRequestValidator : AbstractValidator<GetUsersRequest>
             .WithMessage("Número da página deve ser maior que 0");
 
         RuleFor(x => x.PageSize)
-            .GreaterThan(ValidationConstants.Pagination.MinPageSize - 1)
-            .WithMessage("Tamanho da página deve ser maior que 0")
-            .LessThanOrEqualTo(ValidationConstants.Pagination.MaxPageSize)
-            .WithMessage("Tamanho da página não pode ser maior que 100");
+            .GreaterThanOrEqualTo(Pagination.MinPageSize)
+            .WithMessage($"Tamanho da página deve ser pelo menos {Pagination.MinPageSize}")
+            .LessThanOrEqualTo(Pagination.MaxPageSize)
+            .WithMessage($"Tamanho da página não pode ser maior que {Pagination.MaxPageSize}");
 
         When(x => !string.IsNullOrWhiteSpace(x.SearchTerm), () =>
         {

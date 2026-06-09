@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Communications.Application.Handlers;
 using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;

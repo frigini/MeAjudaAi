@@ -1,5 +1,4 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using FluentAssertions;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.ModuleApi;
 

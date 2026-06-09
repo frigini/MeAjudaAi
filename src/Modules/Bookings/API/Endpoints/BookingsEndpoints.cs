@@ -1,8 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
+using MeAjudaAi.Modules.Bookings.API.Endpoints.Public.Events;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints;
 
@@ -13,7 +14,7 @@ public static class BookingsEndpoints
 
     public static void Map(IEndpointRouteBuilder app)
     {
-        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Bookings.Base, BookingsEndpoints.Tag);
+        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Bookings.Base, ModuleNames.Bookings);
 
         group.MapEndpoint<CreateBookingEndpoint>()
              .MapEndpoint<ConfirmBookingEndpoint>()
@@ -25,6 +26,6 @@ public static class BookingsEndpoints
              .MapEndpoint<GetProviderBookingsEndpoint>()
              .MapEndpoint<GetProviderAvailabilityEndpoint>()
              .MapEndpoint<SetProviderScheduleEndpoint>()
-             .MapEndpoint<BookingEventsEndpoint>();
+             .MapEndpoint<GetBookingEventsEndpoint>();
     }
 }

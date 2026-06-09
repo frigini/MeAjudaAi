@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Database.Outbox;
-using MeAjudaAi.Contracts.Shared;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database.Outbox;
 
