@@ -156,7 +156,7 @@ public static class ArchitecturalDiscoveryHelper
                            i.Name.Contains("IQuery")) &&
                            !type.GetInterfaces().Any(i => i.Name.Contains("IQueryHandler")) &&
                            !type.Name.EndsWith("Handler") &&
-                           !type.Name.EndsWith("Validator"))))
+                           !type.Name.EndsWith("Validator")))
                 .AsSelf());
         }
 
