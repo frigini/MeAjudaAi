@@ -14,7 +14,7 @@ public class AllowedCityIntegrationEventHandlerTests
     private readonly Mock<ILogger<AllowedCityDeletedIntegrationEventHandler>> _loggerDeletedMock = new();
 
     [Fact]
-    public async Task HandleAsync_WhenAllowedCityCreated_ShouldLogAndComplete()
+    public async Task HandleAsync_WhenAllowedCityCreated_ShouldNotThrow()
     {
         var handler = new AllowedCityCreatedIntegrationEventHandler(_loggerCreatedMock.Object);
         var evt = new AllowedCityCreatedIntegrationEvent("Locations", Guid.NewGuid(), "Muriaé", "MG");
@@ -25,7 +25,7 @@ public class AllowedCityIntegrationEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenAllowedCityUpdated_ShouldLogAndComplete()
+    public async Task HandleAsync_WhenAllowedCityUpdated_ShouldNotThrow()
     {
         var handler = new AllowedCityUpdatedIntegrationEventHandler(_loggerUpdatedMock.Object);
         var evt = new AllowedCityUpdatedIntegrationEvent("Locations", Guid.NewGuid(), "Muriaé", "MG");
@@ -36,7 +36,7 @@ public class AllowedCityIntegrationEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenAllowedCityDeleted_ShouldLogAndComplete()
+    public async Task HandleAsync_WhenAllowedCityDeleted_ShouldNotThrow()
     {
         var handler = new AllowedCityDeletedIntegrationEventHandler(_loggerDeletedMock.Object);
         var evt = new AllowedCityDeletedIntegrationEvent("Locations", Guid.NewGuid());

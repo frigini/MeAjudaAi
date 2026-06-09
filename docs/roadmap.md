@@ -33,7 +33,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
     - **Fase 4**: Automação e Qualidade de Wiring – ✅ Concluído.
     - **Pendências Técnicas (Concluído)**:
         - ✅ Bug: [HasCompletedBookingAsync falha com >100 bookings](https://github.com/MeAjudaAi/MeAjudaAi/issues/1)
-        - ✅ Task: [Aplicar atributos [CriticalEvent]/[HighVolumeEvent] nos eventos](https://github.com/MeAjudaAi/MeAjudaAi/issues/2)
+        - ✅ Task: [Aplicar atributos \[CriticalEvent\]/\[HighVolumeEvent\] nos eventos](https://github.com/MeAjudaAi/MeAjudaAi/issues/2)
     - **Extra**: Auditoria de Comunicação Síncrona vs Assíncrona realizada (Ver `docs/communication-audit.md`) e criação de APIs Públicas.
     - **Infraestrutura e Mensageria**:
         - **Desempenho do Service Bus (Concluído)**: ✅ Ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` via QoS.
