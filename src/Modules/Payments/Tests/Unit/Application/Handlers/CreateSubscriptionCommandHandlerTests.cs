@@ -34,7 +34,6 @@ public class CreateSubscriptionCommandHandlerTests
             _uowMock.Object,
             _gatewayMock.Object,
             _configurationMock.Object,
-            _messageBusMock.Object,
             _loggerMock.Object);
 
         // Configuração de plano válida

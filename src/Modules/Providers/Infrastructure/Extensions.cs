@@ -12,6 +12,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using MeAjudaAi.Shared.Messaging.Messages.Payments;
+using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
+
 namespace MeAjudaAi.Modules.Providers.Infrastructure;
 
 public static class Extensions
@@ -113,9 +116,17 @@ public static class Extensions
         services.AddScoped<IEventHandler<ProviderDeletedDomainEvent>, ProviderDeletedDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>, ProviderVerificationStatusUpdatedDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderProfileUpdatedDomainEvent>, ProviderProfileUpdatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ProviderActivatedDomainEvent>, ProviderActivatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ProviderAwaitingVerificationDomainEvent>, ProviderAwaitingVerificationDomainEventHandler>();
+        services.AddScoped<IEventHandler<ProviderServiceAddedDomainEvent>, ProviderServiceAddedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ProviderServiceRemovedDomainEvent>, ProviderServiceRemovedDomainEventHandler>();
 
         // Integration Event Handlers
         services.AddScoped<IEventHandler<DocumentVerifiedIntegrationEvent>, DocumentVerifiedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<SubscriptionActivatedIntegrationEvent>, SubscriptionActivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<SubscriptionCanceledIntegrationEvent>, SubscriptionCanceledIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<SubscriptionExpiredIntegrationEvent>, SubscriptionExpiredIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ServiceNameUpdatedIntegrationEvent>, ServiceNameUpdatedIntegrationEventHandler>();
 
         return services;
     }

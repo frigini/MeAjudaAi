@@ -158,6 +158,21 @@ public class Subscription : AggregateRoot<Guid>
         AddDomainEvent(new SubscriptionRenewedDomainEvent(Id, ProviderId, ExpiresAt.Value, Version));
     }
 
+    internal void SetStatus(ESubscriptionStatus status)
+    {
+        if (Status == status) return;
+
+        // Regra de transição: não pode sair de estado terminal (Canceled/Expired) para outros estados
+        if (Status == ESubscriptionStatus.Canceled || Status == ESubscriptionStatus.Expired)
+        {
+            throw new InvalidOperationException($"Cannot change status from terminal state {Status} to {status}.");
+        }
+
+        Status = status;
+        Version++;
+        MarkAsUpdated();
+    }
+
     public static string MaskExternalId(string externalId)
     {
         if (string.IsNullOrEmpty(externalId)) return string.Empty;

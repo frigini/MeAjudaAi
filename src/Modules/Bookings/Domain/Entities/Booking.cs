@@ -6,12 +6,12 @@ using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
 
-public sealed class Booking : BaseEntity
+public class Booking : AggregateRoot<Guid>
 {
     public Guid ProviderId { get; private set; }
     public Guid ClientId { get; private set; }
     public Guid ServiceId { get; private set; }
-    public DateOnly Date { get; private set; } // Data do agendamento
+    public DateOnly Date { get; private set; }
     public TimeSlot TimeSlot { get; private set; }
     public EBookingStatus Status { get; private set; }
     public string? RejectionReason { get; private set; }
@@ -20,17 +20,31 @@ public sealed class Booking : BaseEntity
 
     private Booking() { } // Required by EF Core
 
+    public Booking(Guid id, Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot, EBookingStatus status, uint rowVersion)
+    {
+        Id = id;
+        ProviderId = providerId;
+        ClientId = clientId;
+        ServiceId = serviceId;
+        Date = date;
+        TimeSlot = timeSlot;
+        Status = status;
+        RowVersion = rowVersion;
+    }
+
     private Booking(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
     {
+        Id = Guid.NewGuid();
         ProviderId = providerId;
         ClientId = clientId;
         ServiceId = serviceId;
         Date = date;
         TimeSlot = timeSlot;
         Status = EBookingStatus.Pending;
+        RowVersion = 1;
 
         AddDomainEvent(new BookingCreatedDomainEvent(
-            Id, 1, ProviderId, ClientId, ServiceId, Date));
+            Id, (int)RowVersion, ProviderId, ClientId, ServiceId, Date));
     }
 
     public static Booking Create(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
@@ -49,7 +63,7 @@ public sealed class Booking : BaseEntity
         MarkAsUpdated();
 
         AddDomainEvent(new BookingConfirmedDomainEvent(
-            Id, 1, ProviderId, ClientId));
+            Id, (int)RowVersion, ProviderId, ClientId));
     }
 
     public void Reject(string reason)
@@ -64,12 +78,11 @@ public sealed class Booking : BaseEntity
         MarkAsUpdated();
 
         AddDomainEvent(new BookingRejectedDomainEvent(
-            Id, 1, ProviderId, ClientId, reason));
+            Id, (int)RowVersion, ProviderId, ClientId, reason));
     }
 
     public void Cancel(string reason)
     {
-        // Só permite cancelar se estiver pendente ou confirmado
         if (Status != EBookingStatus.Pending && Status != EBookingStatus.Confirmed)
         {
             throw new InvalidBookingStateException("Only pending or confirmed bookings can be cancelled.");
@@ -80,7 +93,7 @@ public sealed class Booking : BaseEntity
         MarkAsUpdated();
 
         AddDomainEvent(new BookingCancelledDomainEvent(
-            Id, 1, ProviderId, ClientId, reason));
+            Id, (int)RowVersion, ProviderId, ClientId, reason));
     }
 
     public void Complete()
@@ -94,7 +107,6 @@ public sealed class Booking : BaseEntity
         MarkAsUpdated();
 
         AddDomainEvent(new BookingCompletedDomainEvent(
-            Id, 1, ProviderId, ClientId));
+            Id, (int)RowVersion, ProviderId, ClientId));
     }
 }
-

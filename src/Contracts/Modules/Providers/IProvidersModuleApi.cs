@@ -114,6 +114,14 @@ public interface IProvidersModuleApi : IModuleApi
     Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(Guid providerId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Obtém IDs dos prestadores que oferecem um serviço específico.
+    /// </summary>
+    /// <param name="serviceId">ID do serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Lista de IDs dos prestadores</returns>
+    Task<Result<IReadOnlyList<Guid>>> GetProvidersByServiceAsync(Guid serviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Verifica se algum provider oferece um serviço específico
     /// </summary>
     /// <param name="serviceId">ID do serviço</param>

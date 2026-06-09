@@ -1,6 +1,7 @@
 using FluentValidation;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 
-namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Validators;
 
 public class RejectBookingCommandValidator : AbstractValidator<RejectBookingCommand>
 {

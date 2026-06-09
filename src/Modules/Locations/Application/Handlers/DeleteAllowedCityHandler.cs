@@ -4,12 +4,17 @@ using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 public sealed class DeleteAllowedCityHandler(
-    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow) : ICommandHandler<DeleteAllowedCityCommand>
+    [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
+    ILogger<DeleteAllowedCityHandler> logger) : ICommandHandler<DeleteAllowedCityCommand>
 {
     public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
@@ -19,6 +24,8 @@ public sealed class DeleteAllowedCityHandler(
 
         repository.Delete(city);
         await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("AllowedCity {CityId} deleted.", city.Id);
     }
 }
 

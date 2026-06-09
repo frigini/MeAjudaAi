@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Modules.Locations.Domain.Events;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.Locations.Domain.Entities;
@@ -6,12 +8,12 @@ namespace MeAjudaAi.Modules.Locations.Domain.Entities;
 /// Entidade que representa uma cidade permitida para operação de prestadores.
 /// Usado para validação geográfica centralizada via banco de dados.
 /// </summary>
-public sealed class AllowedCity
+public sealed class AllowedCity : AggregateRoot<Guid>
 {
     /// <summary>
     /// Identificador único da cidade permitida
     /// </summary>
-    public Guid Id { get; private set; }
+    public new Guid Id { get; private set; }
 
     /// <summary>
     /// Nome da cidade (ex: "Muriaé", "Itaperuna")
@@ -51,12 +53,12 @@ public sealed class AllowedCity
     /// <summary>
     /// Data de criação do registro
     /// </summary>
-    public DateTime CreatedAt { get; private set; }
+    public new DateTime CreatedAt { get; private set; }
 
     /// <summary>
     /// Data da última atualização
     /// </summary>
-    public DateTime? UpdatedAt { get; private set; }
+    public new DateTime? UpdatedAt { get; private set; }
 
     /// <summary>
     /// Usuário que criou o registro (Admin)
@@ -116,6 +118,8 @@ public sealed class AllowedCity
         IsActive = isActive;
         CreatedAt = DateTime.UtcNow;
         CreatedBy = createdBy;
+
+        AddDomainEvent(new AllowedCityCreatedDomainEvent(Id, CityName, StateSigla));
     }
 
     public void Update(
@@ -128,31 +132,24 @@ public sealed class AllowedCity
         bool isActive, 
         string updatedBy)
     {
-        // Trim first
         cityName = cityName?.Trim() ?? string.Empty;
         stateSigla = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
-        updatedBy = updatedBy?.Trim() ?? string.Empty;
-
-        if (string.IsNullOrWhiteSpace(cityName))
-            throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
-
-        if (string.IsNullOrWhiteSpace(stateSigla))
-            throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
-
-        if (stateSigla.Length != 2)
-            throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
-
-        if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
-
-        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude < -90 || latitude > 90)
-            throw new InvalidLocationArgumentException("Latitude inválida");
-
-        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
-            throw new InvalidLocationArgumentException("Longitude inválida");
-
+        
+        if (string.IsNullOrWhiteSpace(cityName)) throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
+        
+        if (string.IsNullOrWhiteSpace(stateSigla)) throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
+        if (stateSigla.Length != 2) throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
+        
+        if (string.IsNullOrWhiteSpace(updatedBy)) throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+        
+        if (double.IsNaN(latitude)) throw new InvalidLocationArgumentException("Latitude inválida");
+        if (latitude < -90 || latitude > 90) throw new InvalidLocationArgumentException("Latitude inválida");
+        
+        if (double.IsNaN(longitude)) throw new InvalidLocationArgumentException("Longitude inválida");
+        if (longitude < -180 || longitude > 180) throw new InvalidLocationArgumentException("Longitude inválida");
+        
         ValidateServiceRadius(serviceRadiusKm);
-
+        
         CityName = cityName;
         StateSigla = stateSigla;
         IbgeCode = ibgeCode;
@@ -162,8 +159,21 @@ public sealed class AllowedCity
         IsActive = isActive;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
+
+        AddDomainEvent(new AllowedCityUpdatedDomainEvent(Id, CityName, StateSigla));
     }
 
+    public void MarkAsDeleted(string updatedBy)
+    {
+        if (string.IsNullOrWhiteSpace(updatedBy)) throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+
+        UpdatedBy = updatedBy;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new AllowedCityDeletedDomainEvent(Id));
+    }
+
+    // ... (rest of methods)
+    
     public void Activate(string updatedBy)
     {
         if (string.IsNullOrWhiteSpace(updatedBy))

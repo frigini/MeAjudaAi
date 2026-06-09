@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Attributes;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -15,6 +16,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
 /// - Manter auditoria de mudanças
 /// </remarks>
 [ExcludeFromCodeCoverage]
+[HighVolumeEvent(20)]
 public sealed record ProviderProfileUpdatedIntegrationEvent(
     string Source,
     Guid ProviderId,

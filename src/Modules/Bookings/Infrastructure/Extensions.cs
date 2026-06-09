@@ -1,9 +1,12 @@
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Events.Handlers;
+using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +52,20 @@ public static class Extensions
         services.AddScoped<IBookingQueries, DbContextBookingQueries>();
         services.AddScoped<IProviderScheduleQueries, DbContextProviderScheduleQueries>();
         services.AddScoped<IBookingCommandService, DbContextBookingCommandService>();
+        
+        services.AddEventHandlers();
 
+        return services;
+    }
+
+    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    {
+        services.AddScoped<IEventHandler<BookingCreatedDomainEvent>, BookingCreatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<BookingConfirmedDomainEvent>, BookingConfirmedDomainEventHandler>();
+        services.AddScoped<IEventHandler<BookingCancelledDomainEvent>, BookingCancelledDomainEventHandler>();
+        services.AddScoped<IEventHandler<BookingCompletedDomainEvent>, BookingCompletedDomainEventHandler>();
+        services.AddScoped<IEventHandler<BookingRejectedDomainEvent>, BookingRejectedDomainEventHandler>();
+        
         return services;
     }
 }

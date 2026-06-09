@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;

@@ -113,6 +113,7 @@ public static class Extensions
         // Registra domain event handlers
         services.AddScoped<IEventHandler<ServiceActivatedDomainEvent>, ServiceActivatedDomainEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedDomainEvent>, ServiceDeactivatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ServiceUpdatedDomainEvent>, ServiceUpdatedDomainEventHandler>();
 
         return services;
     }

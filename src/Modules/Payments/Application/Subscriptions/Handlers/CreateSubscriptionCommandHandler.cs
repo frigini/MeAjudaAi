@@ -10,8 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
@@ -20,7 +18,6 @@ public sealed class CreateSubscriptionCommandHandler(
     [FromKeyedServices(ModuleKeys.Payments)] IUnitOfWork uow,
     IPaymentGateway paymentGateway,
     IConfiguration configuration,
-    IMessageBus messageBus,
     ILogger<CreateSubscriptionCommandHandler> logger) : ICommandHandler<CreateSubscriptionCommand, string>
 {
     public async Task<string> HandleAsync(CreateSubscriptionCommand command, CancellationToken cancellationToken = default)
@@ -78,12 +75,6 @@ public sealed class CreateSubscriptionCommandHandler(
         {
             uow.GetRepository<Subscription, Guid>().Add(subscription);
             await uow.SaveChangesAsync(cancellationToken);
-
-            // Publicar evento de integração
-            await messageBus.PublishAsync(new SubscriptionActivatedIntegrationEvent(
-                ModuleNames.Payments,
-                subscription.Id,
-                command.ProviderId), cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException)
         {

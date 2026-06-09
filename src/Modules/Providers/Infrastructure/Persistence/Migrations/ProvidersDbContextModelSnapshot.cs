@@ -18,10 +18,27 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("providers")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("MeAjudaAi.Modules.Providers.Domain.Entities.ProcessedIntegrationEvent", b =>
+                {
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("correlation_id");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.HasKey("CorrelationId")
+                        .HasName("pk_processed_integration_events");
+
+                    b.ToTable("processed_integration_events", "providers");
+                });
 
             modelBuilder.Entity("MeAjudaAi.Modules.Providers.Domain.Entities.Provider", b =>
                 {
@@ -125,6 +142,22 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VerificationStatus")
                         .HasDatabaseName("ix_providers_verification_status");
+
+                    b.HasIndex("IsDeleted", "CreatedAt")
+                        .HasDatabaseName("ix_providers_deleted_created")
+                        .HasFilter("is_deleted = false");
+
+                    b.HasIndex("IsDeleted", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_providers_deleted_status_created")
+                        .HasFilter("is_deleted = false");
+
+                    b.HasIndex("IsDeleted", "Type", "CreatedAt")
+                        .HasDatabaseName("ix_providers_deleted_type_created")
+                        .HasFilter("is_deleted = false");
+
+                    b.HasIndex("IsDeleted", "VerificationStatus", "CreatedAt")
+                        .HasDatabaseName("ix_providers_deleted_verification_created")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("providers", "providers");
                 });

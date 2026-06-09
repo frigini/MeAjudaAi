@@ -1,11 +1,17 @@
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Handlers;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
+using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,9 +47,13 @@ public static class Extensions
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Ratings, (sp, key) => sp.GetRequiredService<RatingsDbContext>());
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 
-        // Registrar Command Handlers manualmente injetando o DbContext correto como IUnitOfWork
-        services.AddScoped<ICommandHandler<CreateReviewCommand, Guid>>(sp => 
-            ActivatorUtilities.CreateInstance<CreateReviewCommandHandler>(sp, sp.GetRequiredService<RatingsDbContext>()));
+        services.AddScoped<CreateReviewCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateReviewCommand, Guid>>(sp => sp.GetRequiredService<CreateReviewCommandHandler>());
+
+        // Registra Event Handlers
+        services.AddScoped<IEventHandler<ReviewApprovedDomainEvent>, ReviewApprovedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ReviewRejectedDomainEvent>, ReviewRejectedDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserDeletedIntegrationEvent>, UserDeletedIntegrationEventHandler>();
 
         return services;
     }

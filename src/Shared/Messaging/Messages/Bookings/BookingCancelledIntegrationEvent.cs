@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Attributes;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Bookings;
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Bookings;
 /// Evento de integração disparado quando um agendamento é cancelado.
 /// </summary>
 [ExcludeFromCodeCoverage]
+[CriticalEvent]
 public record BookingCancelledIntegrationEvent(
     string Source,
     Guid BookingId,

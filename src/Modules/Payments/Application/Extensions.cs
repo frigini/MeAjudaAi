@@ -7,12 +7,16 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
+using MeAjudaAi.Contracts.Modules.Payments;
+using MeAjudaAi.Modules.Payments.Application.ModuleApi;
+
 namespace MeAjudaAi.Modules.Payments.Application;
 
 public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<IPaymentsModuleApi, PaymentsModuleApi>();
         services.AddScoped<ICommandHandler<CreateSubscriptionCommand, string>, CreateSubscriptionCommandHandler>();
         services.AddScoped<ICommandHandler<GetBillingPortalCommand, string>, GetBillingPortalCommandHandler>();
         services.AddScoped<IQueryHandler<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>, GetActiveSubscriptionByProviderHandler>();

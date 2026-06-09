@@ -26,7 +26,6 @@ public sealed class CreateAllowedCityHandler(
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,
-    IMessageBus messageBus,
     ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
@@ -83,13 +82,6 @@ public sealed class CreateAllowedCityHandler(
         // Persistir
         uow.GetRepository<AllowedCity, Guid>().Add(allowedCity);
         await uow.SaveChangesAsync(cancellationToken);
-
-        // Publicar evento de integração
-        await messageBus.PublishAsync(new AllowedCityCreatedIntegrationEvent(
-            ModuleNames.Locations,
-            allowedCity.Id,
-            allowedCity.CityName,
-            allowedCity.StateSigla), cancellationToken: cancellationToken);
 
         return Result<Guid>.Success(allowedCity.Id);
     }

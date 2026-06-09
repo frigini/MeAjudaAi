@@ -125,7 +125,10 @@ public static class ArchitecturalDiscoveryHelper
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
                     .Where(type => type.GetInterfaces().Any(i =>
-                           i.Name.Contains("ICommand"))))
+                           i.Name.Contains("ICommand")) &&
+                           !type.GetInterfaces().Any(i => i.Name.Contains("ICommandHandler")) &&
+                           !type.Name.EndsWith("Handler") &&
+                           !type.Name.EndsWith("Validator")))
                 .AsSelf());
         }
 
@@ -134,6 +137,7 @@ public static class ArchitecturalDiscoveryHelper
             .Select(sd => sd.ImplementationType!)
             .Distinct();
     }
+
 
     /// <summary>
     /// Descobre todos os Queries usando Scrutor para validar convenções
@@ -149,7 +153,10 @@ public static class ArchitecturalDiscoveryHelper
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
                     .Where(type => type.GetInterfaces().Any(i =>
-                           i.Name.Contains("IQuery"))))
+                           i.Name.Contains("IQuery")) &&
+                           !type.GetInterfaces().Any(i => i.Name.Contains("IQueryHandler")) &&
+                           !type.Name.EndsWith("Handler") &&
+                           !type.Name.EndsWith("Validator")))
                 .AsSelf());
         }
 

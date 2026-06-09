@@ -14,6 +14,9 @@ using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Modules.Locations.Domain.Events;
+using MeAjudaAi.Modules.Locations.Infrastructure.Events.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -187,6 +190,10 @@ public static class Extensions
         {
             services.AddScoped(handler.Interface, handler.Implementation);
         }
+
+        services.AddScoped<IEventHandler<AllowedCityCreatedDomainEvent>, AllowedCityCreatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<AllowedCityUpdatedDomainEvent>, AllowedCityUpdatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<AllowedCityDeletedDomainEvent>, AllowedCityDeletedDomainEventHandler>();
 
         return services;
     }

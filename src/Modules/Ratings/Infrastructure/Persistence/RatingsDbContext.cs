@@ -24,6 +24,7 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
     }
 
     public DbSet<Review> Reviews { get; set; } = null!;
+    public DbSet<ProcessedIntegrationEvent> ProcessedIntegrationEvents => Set<ProcessedIntegrationEvent>();
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {

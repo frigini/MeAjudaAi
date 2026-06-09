@@ -10,7 +10,9 @@ using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Modules.Locations.Domain;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
-
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -47,9 +49,6 @@ public sealed class UpdateAllowedCityHandler(
         double lon = command.Longitude;
 
         // Verificar se precisamos buscar novas coordenadas
-        // 1. Se cidade ou estado mudaram
-        // 2. Ou se as coordenadas atuais são inválidas (0,0)
-        // 3. E se o comando não trouxe novas coordenadas válidas (estão zeradas)
         var cityOrStateChanged = !string.Equals(allowedCity.CityName, command.CityName, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(allowedCity.StateSigla, command.StateSigla, StringComparison.OrdinalIgnoreCase);
 
@@ -58,11 +57,9 @@ public sealed class UpdateAllowedCityHandler(
 
         if (commandCoordsMissing)
         {
-            // Fallback inicial para as coordenadas existentes
             lat = allowedCity.Latitude;
             lon = allowedCity.Longitude;
 
-            // Só tenta geocoding se realmente necessário
             if (cityOrStateChanged || existingCoordsMissing)
             {
                 try
@@ -82,16 +79,13 @@ public sealed class UpdateAllowedCityHandler(
                 }
                 catch (Exception ex)
                 {
-                    // Manter os valores originais (fallback)
                     logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Keeping existing coordinates.", command.CityName, command.StateSigla);
                 }
             }
         }
 
-        // Obter usuário atual (Admin)
         var currentUser = httpContextAccessor.GetAuditIdentity();
 
-        // Atualizar entidade
         allowedCity.Update(
             command.CityName,
             command.StateSigla,
@@ -102,12 +96,10 @@ public sealed class UpdateAllowedCityHandler(
             command.IsActive,
             currentUser);
 
-        // Persistir - entidade está no tracking do EF via queries
         await uow.SaveChangesAsync(cancellationToken);
+        
+        logger.LogInformation("AllowedCity {CityId} updated.", allowedCity.Id);
 
         return Result.Success();
     }
 }
-
-
-

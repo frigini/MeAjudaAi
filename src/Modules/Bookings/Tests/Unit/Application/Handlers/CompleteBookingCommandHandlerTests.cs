@@ -18,7 +18,6 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
-    private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ILogger<CompleteBookingCommandHandler>> _loggerMock = new();
     private readonly CompleteBookingCommandHandler _sut;
 
@@ -29,7 +28,6 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         _sut = new CompleteBookingCommandHandler(
             _bookingQueriesMock.Object,
             _uowMock.Object,
-            _messageBusMock.Object,
             _loggerMock.Object);
     }
 

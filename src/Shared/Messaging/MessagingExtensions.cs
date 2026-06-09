@@ -117,7 +117,7 @@ public static class MessagingExtensions
             });
 
             services.TryAddSingleton<RebusMessageBus>();
-            services.TryAddSingleton<NoOp.NoOpMessageBus>();
+            services.TryAddSingleton<NoOpMessageBus>();
 
             // Registro da infraestrutura de conexão do RabbitMQ
             services.AddSingleton<IConnectionFactory>(provider =>

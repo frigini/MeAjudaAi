@@ -10,8 +10,6 @@ using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +20,6 @@ public sealed class CreateBookingCommandHandler(
     IProviderScheduleQueries scheduleQueries,
     IProvidersModuleApi providersApi,
     IServiceCatalogsModuleApi serviceCatalogsApi,
-    IMessageBus messageBus,
     ILogger<CreateBookingCommandHandler> logger) : ICommandHandler<CreateBookingCommand, Result<BookingDto>>
 {
     public async Task<Result<BookingDto>> HandleAsync(CreateBookingCommand command, CancellationToken cancellationToken = default)
@@ -129,15 +126,6 @@ public sealed class CreateBookingCommandHandler(
         {
             return Result<BookingDto>.Failure(result.Error!);
         }
-
-        // Publicar evento de integração
-        await messageBus.PublishAsync(new BookingCreatedIntegrationEvent(
-            ModuleNames.Bookings,
-            booking.Id,
-            booking.ProviderId,
-            booking.ClientId,
-            booking.ServiceId,
-            booking.Date), cancellationToken: cancellationToken);
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
 

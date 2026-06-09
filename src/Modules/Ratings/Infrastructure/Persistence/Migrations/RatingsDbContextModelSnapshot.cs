@@ -18,10 +18,24 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("ratings")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("MeAjudaAi.Modules.Ratings.Domain.Entities.ProcessedIntegrationEvent", b =>
+                {
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("processed_integration_events", "ratings");
+                });
 
             modelBuilder.Entity("MeAjudaAi.Modules.Ratings.Domain.Entities.Review", b =>
                 {
