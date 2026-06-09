@@ -5,11 +5,12 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
@@ -37,16 +38,16 @@ public class GetBookingEventsEndpoint : IEndpoint
     /// <param name="sseHub">Hub para assinatura de eventos SSE.</param>
     /// <param name="serializer">Serializador de JSON configurado para API.</param>
     /// <param name="ct">Token de cancelamento.</param>
+
     private static async Task GetBookingEventsAsync(
         Guid id,
         HttpContext context,
         [FromServices] IQueryDispatcher dispatcher,
         [FromServices] ISseHub<BookingStatusSseDto> sseHub,
-        [FromServices, FromKeyedServices("Api")] ISerializer serializer,
+        [FromKeyedServices(SerializationTypes.Api)] ISerializer serializer,
         CancellationToken ct)
     {
-        var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
-        var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+        var correlationId = CorrelationHelper.ParseCorrelationId(context);
 
         var user = context.User;
         var userId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.Subject)?.Value, out var uId) ? uId : (Guid?)null;
