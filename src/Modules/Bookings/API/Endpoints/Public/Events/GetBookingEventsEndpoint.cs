@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public.Events;
 
@@ -35,12 +35,14 @@ public class GetBookingEventsEndpoint : IEndpoint
     /// <param name="context">Contexto da requisição HTTP para extração de identidade.</param>
     /// <param name="dispatcher">Disparador de queries.</param>
     /// <param name="sseHub">Hub para assinatura de eventos SSE.</param>
+    /// <param name="serializer">Serializador de JSON configurado para API.</param>
     /// <param name="ct">Token de cancelamento.</param>
     private static async Task GetBookingEventsAsync(
         Guid id,
         HttpContext context,
         [FromServices] IQueryDispatcher dispatcher,
         [FromServices] ISseHub<BookingStatusSseDto> sseHub,
+        [FromServices, FromKeyedServices("Api")] ISerializer serializer,
         CancellationToken ct)
     {
         var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
@@ -57,6 +59,8 @@ public class GetBookingEventsEndpoint : IEndpoint
         if (result.IsFailure)
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync($"{{ \"error\": \"Acesso negado: não foi possível consultar o agendamento. Detalhes: {result.Error.Message}\" }}", ct);
             return;
         }
 
@@ -69,7 +73,7 @@ public class GetBookingEventsEndpoint : IEndpoint
 
         await foreach (var @event in stream.WithCancellation(ct))
         {
-            var json = JsonSerializer.Serialize(@event, SerializationDefaults.Api);
+            var json = serializer.Serialize(@event);
             
             await context.Response.WriteAsync($"data: {json}\n\n", ct);
             await context.Response.Body.FlushAsync(ct);

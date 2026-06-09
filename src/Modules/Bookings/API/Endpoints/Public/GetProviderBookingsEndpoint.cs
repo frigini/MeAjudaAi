@@ -1,11 +1,13 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Bookings.API.Extensions;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
-using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -65,13 +67,13 @@ public class GetProviderBookingsEndpoint : IEndpoint
         }
 
         var normalizedPage = page ?? Pagination.DefaultPageNumber;
-        if (normalizedPage < Pagination.MinPageSize)
+        if (normalizedPage < Pagination.DefaultPageNumber)
         {
-            return Results.Problem($"O parâmetro 'page' deve ser maior ou igual a {Pagination.MinPageSize}.", statusCode: StatusCodes.Status400BadRequest);
+            return Results.Problem($"O parâmetro 'page' deve ser maior ou igual a {Pagination.DefaultPageNumber}.", statusCode: StatusCodes.Status400BadRequest);
         }
 
         var normalizedPageSize = pageSize ?? Pagination.DefaultPageSize;
-        if (normalizedPageSize is < Pagination.MinPageSize or >Pagination.MaxPageSize)
+        if (normalizedPageSize < Pagination.MinPageSize || normalizedPageSize > Pagination.MaxPageSize)
         {
             return Results.Problem($"O parâmetro 'pageSize' deve estar entre {Pagination.MinPageSize} e {Pagination.MaxPageSize}.", statusCode: StatusCodes.Status400BadRequest);
         }
@@ -86,11 +88,10 @@ public class GetProviderBookingsEndpoint : IEndpoint
 
         if (!authResult.IsAdmin && authResult.ProviderId.HasValue && authResult.ProviderId.Value != providerId)
         {
-            return Results.Problem("Forbidden: provider mismatch", statusCode: StatusCodes.Status403Forbidden);
+            return Results.Problem("Proibido: fornecedor incompatível.", statusCode: StatusCodes.Status403Forbidden);
         }
 
-        var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
-        var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+        var correlationId = CorrelationHelper.ParseCorrelationId(context);
 
         var query = new GetBookingsByProviderQuery(providerId, correlationId, normalizedPage, normalizedPageSize, from, to);
         var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);

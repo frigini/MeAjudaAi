@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,14 +22,18 @@ public class GetProviderReviewsEndpoint : IEndpoint
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
         [FromServices] IReviewQueries queries,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         CancellationToken cancellationToken = default)
     {
-        page = page < 1 ? 1 : page;
-        pageSize = pageSize < 1 ? 1 : pageSize > 100 ? 100 : pageSize;
+        var normalizedPage = page ?? Pagination.DefaultPageNumber;
+        if (normalizedPage < Pagination.DefaultPageNumber) normalizedPage = Pagination.DefaultPageNumber;
 
-        var reviews = await queries.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
+        var normalizedPageSize = pageSize ?? Pagination.DefaultPageSize;
+        if (normalizedPageSize < Pagination.MinPageSize) normalizedPageSize = Pagination.MinPageSize;
+        if (normalizedPageSize > Pagination.MaxPageSize) normalizedPageSize = Pagination.MaxPageSize;
+
+        var reviews = await queries.GetByProviderIdAsync(providerId, normalizedPage, normalizedPageSize, cancellationToken);
 
         var result = reviews.Select(r => new ProviderReviewResponse(
             r.Id.Value,

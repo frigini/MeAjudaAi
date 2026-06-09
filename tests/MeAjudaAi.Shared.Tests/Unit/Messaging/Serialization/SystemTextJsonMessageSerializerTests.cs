@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Serialization;
 
@@ -7,7 +8,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Serialization;
 [Trait("Category", "Unit")]
 public class SystemTextJsonMessageSerializerTests
 {
-    private readonly SystemTextJsonSerializer _sut = new();
+    private readonly SystemTextJsonSerializer _sut = new(SerializationDefaults.Default);
 
     [Fact]
     public void Serialize_WithPrimitiveTypes_ShouldReturnValidJson()

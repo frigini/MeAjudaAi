@@ -26,9 +26,11 @@ API.Client/
 | POST | `/api/v1/bookings` | Criar um novo agendamento |
 | GET | `/api/v1/bookings/{id}` | Buscar agendamento por ID |
 | GET | `/api/v1/bookings/my` | Listar meus agendamentos |
+| GET | `/api/v1/bookings/provider/{providerId}` | Listar agendamentos do prestador |
 | PUT | `/api/v1/bookings/{id}/confirm` | Confirmar agendamento |
 | PUT | `/api/v1/bookings/{id}/reject` | Rejeitar agendamento |
 | PUT | `/api/v1/bookings/{id}/cancel` | Cancelar agendamento |
 | PUT | `/api/v1/bookings/{id}/complete` | Concluir agendamento |
 | GET | `/api/v1/bookings/availability/{providerId}` | Consultar disponibilidade |
 | POST | `/api/v1/bookings/schedule` | Definir agenda do prestador |
+| GET | `/api/v1/bookings/{id}/events` | Stream de eventos do agendamento (SSE) |

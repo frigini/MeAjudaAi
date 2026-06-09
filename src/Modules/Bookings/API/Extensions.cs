@@ -11,7 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Bookings.API;
 
 [ExcludeFromCodeCoverage]
-public static class Extensions
+public static class BookingsModuleExtensions
 {
     public static IServiceCollection AddBookingsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {

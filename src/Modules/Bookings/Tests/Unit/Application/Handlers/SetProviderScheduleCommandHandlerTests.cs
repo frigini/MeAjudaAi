@@ -1,7 +1,7 @@
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
@@ -36,11 +36,11 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<ProviderScheduleDto>
+        var availabilities = new List<AvailabilityDto>
         {
-            new(DayOfWeek.Monday, new List<TimeSlotDto> 
+            new(DayOfWeek.Monday, new List<AvailableSlotDto> 
             { 
-                new(new TimeOnly(8, 0), new TimeOnly(12, 0)) 
+                new(DateTimeOffset.UtcNow.Date.AddHours(8), DateTimeOffset.UtcNow.Date.AddHours(12)) 
             })
         };
         
@@ -118,11 +118,15 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_Availabilities_Contains_Null()
     {
         var providerId = Guid.NewGuid();
-        var availabilities = new List<ProviderScheduleDto>
+        var availabilities = new List<AvailabilityDto>
         {
-            new(DayOfWeek.Monday, new List<TimeSlotDto> { new(new TimeOnly(8, 0), new TimeOnly(12, 0)) }),
+            new(DayOfWeek.Monday, new List<AvailableSlotDto> 
+            { 
+                new(DateTimeOffset.UtcNow.Date.AddHours(8), DateTimeOffset.UtcNow.Date.AddHours(12)) 
+            }),
             null!
         };
+
         
         var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
 
@@ -140,11 +144,11 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<ProviderScheduleDto>
+        var availabilities = new List<AvailabilityDto>
         {
-            new(DayOfWeek.Monday, new List<TimeSlotDto> 
+            new(DayOfWeek.Monday, new List<AvailableSlotDto> 
             { 
-                new(new TimeOnly(8, 0), new TimeOnly(12, 0)) 
+                new(DateTimeOffset.UtcNow.Date.AddHours(8), DateTimeOffset.UtcNow.Date.AddHours(12)) 
             })
         };
         
@@ -170,11 +174,11 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<ProviderScheduleDto>
+        var availabilities = new List<AvailabilityDto>
         {
-            new(DayOfWeek.Monday, new List<TimeSlotDto> 
+            new(DayOfWeek.Monday, new List<AvailableSlotDto> 
             { 
-                new(new TimeOnly(12, 0), new TimeOnly(8, 0)) // Início > Fim
+                new(DateTimeOffset.UtcNow.Date.AddHours(12), DateTimeOffset.UtcNow.Date.AddHours(8)) // Início > Fim
             })
         };
         
@@ -196,12 +200,12 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<ProviderScheduleDto>
+        var availabilities = new List<AvailabilityDto>
         {
-            new(DayOfWeek.Monday, new List<TimeSlotDto> 
+            new(DayOfWeek.Monday, new List<AvailableSlotDto> 
             { 
-                new(new TimeOnly(8, 0), new TimeOnly(12, 0)),
-                new(new TimeOnly(11, 0), new TimeOnly(14, 0)) // Sobreposição
+                new(DateTimeOffset.UtcNow.Date.AddHours(8), DateTimeOffset.UtcNow.Date.AddHours(12)),
+                new(DateTimeOffset.UtcNow.Date.AddHours(11), DateTimeOffset.UtcNow.Date.AddHours(14)) // Sobreposição
             })
         };
         

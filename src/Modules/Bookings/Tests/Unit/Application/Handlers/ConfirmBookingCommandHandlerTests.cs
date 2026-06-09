@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Utilities.Constants;

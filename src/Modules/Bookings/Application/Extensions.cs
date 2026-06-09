@@ -30,9 +30,6 @@ public static class Extensions
     {
         services.AddScoped<IBookingsModuleApi, BookingsModuleApi>();
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
-        
-        // Registrar ValidationBehavior para todos os IRequest
-        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         // ...
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();

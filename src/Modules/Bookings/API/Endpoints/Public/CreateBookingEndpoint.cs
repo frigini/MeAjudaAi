@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -50,13 +51,15 @@ public class CreateBookingEndpoint : IEndpoint
             return Results.Unauthorized();
         }
 
+        var correlationId = CorrelationHelper.ParseCorrelationId(context);
+
         var command = new CreateBookingCommand(
             request.ProviderId,
             clientId,
             request.ServiceId,
             request.Start,
             request.End,
-            Guid.NewGuid());
+            correlationId);
 
         var result = await dispatcher.SendAsync<CreateBookingCommand, Result<BookingDto>>(command, cancellationToken);
 

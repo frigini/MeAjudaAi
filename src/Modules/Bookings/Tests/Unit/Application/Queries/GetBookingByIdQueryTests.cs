@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Caching;
 using Xunit;
 
