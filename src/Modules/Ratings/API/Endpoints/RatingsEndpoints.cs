@@ -18,9 +18,7 @@ public static class RatingsEndpoints
         group.MapEndpoint<CreateReviewEndpoint>();
         group.MapEndpoint<GetReviewByIdEndpoint>();
         group.MapEndpoint<GetProviderReviewsEndpoint>();
-        
-        var adminGroup = group.MapGroup("/admin");
-        adminGroup.MapEndpoint<GetReviewStatusEndpoint>();
+        group.MapEndpoint<GetReviewStatusEndpoint>();
     }
 }
 

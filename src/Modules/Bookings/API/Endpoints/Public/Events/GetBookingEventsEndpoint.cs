@@ -44,7 +44,7 @@ public class GetBookingEventsEndpoint : IEndpoint
         HttpContext context,
         [FromServices] IQueryDispatcher dispatcher,
         [FromServices] ISseHub<BookingStatusSseDto> sseHub,
-        [FromKeyedServices(SerializationTypes.Api)] ISerializer serializer,
+        [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
         CancellationToken ct)
     {
         var correlationId = CorrelationHelper.ParseCorrelationId(context);

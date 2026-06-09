@@ -1,6 +1,9 @@
 using MeAjudaAi.Modules.Bookings.API.Extensions;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.API.Extensions;
 
@@ -13,7 +16,8 @@ public class ProviderAuthorizationResultExtensionsTests
 
         var response = result.ToProblemResult();
 
-        response.Should().NotBeNull();
+        response.Should().BeOfType<ProblemHttpResult>()
+            .Which.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
     }
 
     [Fact]
@@ -23,7 +27,8 @@ public class ProviderAuthorizationResultExtensionsTests
 
         var response = result.ToProblemResult();
 
-        response.Should().NotBeNull();
+        response.Should().BeOfType<ProblemHttpResult>()
+            .Which.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
     }
 
     [Fact]
@@ -33,7 +38,8 @@ public class ProviderAuthorizationResultExtensionsTests
 
         var response = result.ToProblemResult();
 
-        response.Should().NotBeNull();
+        response.Should().BeOfType<ProblemHttpResult>()
+            .Which.StatusCode.Should().Be(StatusCodes.Status404NotFound);
     }
 
     [Fact]
@@ -47,12 +53,12 @@ public class ProviderAuthorizationResultExtensionsTests
     }
 
     [Fact]
-    public void ToProblemResult_WhenNoneWithFailureKindNone_ThrowsNotImplementedException()
+    public void ToProblemResult_WhenNoneWithFailureKindNone_ReturnsNull()
     {
         var result = new ProviderAuthorizationResult { FailureKind = AuthorizationFailureKind.None };
 
-        Action act = () => result.ToProblemResult();
+        var response = result.ToProblemResult();
 
-        act.Should().Throw<NotImplementedException>();
+        response.Should().BeNull();
     }
 }

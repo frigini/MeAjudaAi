@@ -3,7 +3,7 @@
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 [ExcludeFromCodeCoverage]
-public static class SerializationTypes
+public static class SerializationKeys
 {
     public const string Api = "Api";
 

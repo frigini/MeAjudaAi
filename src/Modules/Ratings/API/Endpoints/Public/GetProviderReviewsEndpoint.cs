@@ -22,16 +22,12 @@ public class GetProviderReviewsEndpoint : IEndpoint
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
         [FromServices] IReviewQueries queries,
-        [FromQuery] int? page,
-        [FromQuery] int? pageSize,
+        [FromQuery] int page = Pagination.DefaultPageNumber,
+        [FromQuery] int pageSize = Pagination.DefaultPageSize,
         CancellationToken cancellationToken = default)
     {
-        var normalizedPage = page ?? Pagination.DefaultPageNumber;
-        if (normalizedPage < Pagination.DefaultPageNumber) normalizedPage = Pagination.DefaultPageNumber;
-
-        var normalizedPageSize = pageSize ?? Pagination.DefaultPageSize;
-        if (normalizedPageSize < Pagination.MinPageSize) normalizedPageSize = Pagination.MinPageSize;
-        if (normalizedPageSize > Pagination.MaxPageSize) normalizedPageSize = Pagination.MaxPageSize;
+        var normalizedPage = page < Pagination.DefaultPageNumber ? Pagination.DefaultPageNumber : page;
+        var normalizedPageSize = pageSize < Pagination.MinPageSize ? Pagination.MinPageSize : (pageSize > Pagination.MaxPageSize ? Pagination.MaxPageSize : pageSize);
 
         var reviews = await queries.GetByProviderIdAsync(providerId, normalizedPage, normalizedPageSize, cancellationToken);
 
