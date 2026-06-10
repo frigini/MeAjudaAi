@@ -1,10 +1,14 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Services;
 
@@ -57,7 +61,8 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Code.Should().Be("booking_overlap");
+        result.Error!.Code.Should().Be(ErrorCodes.Bookings.Overlap);
+        (await DbContext.Bookings.AnyAsync(b => b.Id == newBooking.Id)).Should().BeFalse();
     }
 
     [Fact]

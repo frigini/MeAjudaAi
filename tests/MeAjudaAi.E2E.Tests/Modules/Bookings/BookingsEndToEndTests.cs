@@ -53,12 +53,12 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var end1Time = localTomorrow.AddHours(11);
         var start2Time = localTomorrow.AddHours(14);
         var end2Time = localTomorrow.AddHours(15);
-
+        
         var start1 = new DateTimeOffset(start1Time, tz.GetUtcOffset(start1Time));
         var end1 = new DateTimeOffset(end1Time, tz.GetUtcOffset(end1Time));
         var start2 = new DateTimeOffset(start2Time, tz.GetUtcOffset(start2Time));
         var end2 = new DateTimeOffset(end2Time, tz.GetUtcOffset(end2Time));
-
+        
         var scheduleRequest = new
         {
             providerId = providerIdClaim,
