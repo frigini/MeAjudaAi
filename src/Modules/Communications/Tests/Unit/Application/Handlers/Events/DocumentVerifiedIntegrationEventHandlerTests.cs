@@ -8,7 +8,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.Extensions.Logging;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Events;
 
 public class DocumentVerifiedIntegrationEventHandlerTests
 {

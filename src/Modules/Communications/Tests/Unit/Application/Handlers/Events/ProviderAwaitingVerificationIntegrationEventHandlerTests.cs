@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Events;
 
 public class ProviderAwaitingVerificationIntegrationEventHandlerTests
 {

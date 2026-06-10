@@ -11,31 +11,30 @@ using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Events;
 
-public class BookingCancelledIntegrationEventHandlerTests
+public class BookingRejectedIntegrationEventHandlerTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly Mock<IUsersModuleApi> _usersModuleApiMock;
-    private readonly Mock<ILogger<BookingCancelledIntegrationEventHandler>> _loggerMock;
+    private readonly Mock<ILogger<BookingRejectedIntegrationEventHandler>> _loggerMock;
     private readonly Mock<ISerializer> _serializerMock;
-    private readonly BookingCancelledIntegrationEventHandler _handler;
+    private readonly BookingRejectedIntegrationEventHandler _handler;
 
-    public BookingCancelledIntegrationEventHandlerTests()
+    public BookingRejectedIntegrationEventHandlerTests()
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
         _usersModuleApiMock = new Mock<IUsersModuleApi>();
-        _loggerMock = new Mock<ILogger<BookingCancelledIntegrationEventHandler>>();
+        _loggerMock = new Mock<ILogger<BookingRejectedIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
-        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>()))
-            .Returns("{\"To\":\"test@test.com\",\"Subject\":\"Subject\",\"HtmlBody\":\"Body\",\"TextBody\":\"Body\",\"TemplateKey\":\"booking_cancelled\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
 
-        _handler = new BookingCancelledIntegrationEventHandler(
+        _handler = new BookingRejectedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
             _providersModuleApiMock.Object,
@@ -45,13 +44,13 @@ public class BookingCancelledIntegrationEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenValidEvent_ShouldEnqueueOutboxMessages()
+    public async Task HandleAsync_WhenValidEvent_ShouldEnqueueOutboxMessage()
     {
         // Arrange
         var bookingId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
-        var integrationEvent = new BookingCancelledIntegrationEvent("Bookings", bookingId, providerId, clientId, "Reason");
+        var integrationEvent = new BookingRejectedIntegrationEvent("Bookings", bookingId, providerId, clientId, "Reason");
 
         _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -68,16 +67,7 @@ public class BookingCancelledIntegrationEventHandlerTests
         await _handler.HandleAsync(integrationEvent);
 
         // Assert
-        _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => 
-            m.CorrelationId.Contains(":provider") && 
-            m.Payload.Contains("To") && 
-            m.Payload.Contains("booking_cancelled")), It.IsAny<CancellationToken>()), Times.Once);
-        
-        _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => 
-            m.CorrelationId.Contains(":client") && 
-            m.Payload.Contains("To") && 
-            m.Payload.Contains("booking_cancelled")), It.IsAny<CancellationToken>()), Times.Once);
-
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

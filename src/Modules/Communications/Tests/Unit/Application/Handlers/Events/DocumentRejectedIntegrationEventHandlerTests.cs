@@ -9,7 +9,7 @@ using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Events;
 
 public class DocumentRejectedIntegrationEventHandlerTests
 {

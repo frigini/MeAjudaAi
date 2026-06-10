@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Events;
 
 public class UserRegisteredIntegrationEventHandlerTests
 {
