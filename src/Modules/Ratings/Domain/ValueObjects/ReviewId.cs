@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 /// <summary>
 /// Identificador único da avaliação.
 /// </summary>
-public class ReviewId : ValueObject
+public sealed class ReviewId : ValueObject
 {
     public Guid Value { get; }
 

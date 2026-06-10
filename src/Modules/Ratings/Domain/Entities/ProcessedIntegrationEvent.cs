@@ -1,3 +1,3 @@
 namespace MeAjudaAi.Modules.Ratings.Domain.Entities;
 
-public record ProcessedIntegrationEvent(string CorrelationId, DateTime ProcessedAt);
+public sealed record ProcessedIntegrationEvent(string CorrelationId, DateTime ProcessedAt);

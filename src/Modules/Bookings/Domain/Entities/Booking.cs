@@ -10,7 +10,7 @@ namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
 /// Representa um agendamento (Booking) entre um prestador e um cliente para um serviço específico.
 /// Esta entidade é uma raiz de agregação (Aggregate Root) que gerencia o ciclo de vida do agendamento.
 /// </summary>
-public class Booking : AggregateRoot<Guid>
+public sealed class Booking : AggregateRoot<Guid>
 {
     public Guid ProviderId { get; private set; }
     public Guid ClientId { get; private set; }

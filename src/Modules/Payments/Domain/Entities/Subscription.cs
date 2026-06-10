@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 /// <remarks>
 /// CreatedAt está definido em BaseEntity.
 /// </remarks>
-public class Subscription : AggregateRoot<Guid>
+public sealed class Subscription : AggregateRoot<Guid>
 {
     private Subscription() { }
 

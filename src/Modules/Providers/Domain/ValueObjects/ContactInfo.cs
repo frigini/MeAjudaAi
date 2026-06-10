@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// <summary>
 /// Informações de contato do prestador de serviços.
 /// </summary>
-public class ContactInfo : ValueObject
+public sealed class ContactInfo : ValueObject
 {
     public string Email { get; private set; }
     public string? PhoneNumber { get; private set; }
