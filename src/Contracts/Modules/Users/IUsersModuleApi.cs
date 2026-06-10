@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Users;
 

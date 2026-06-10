@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Bookings;
 

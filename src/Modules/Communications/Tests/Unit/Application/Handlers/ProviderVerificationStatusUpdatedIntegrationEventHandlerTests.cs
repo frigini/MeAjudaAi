@@ -1,10 +1,11 @@
-using MeAjudaAi.Modules.Communications.Application.Handlers;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
+using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
-using MeAjudaAi.Contracts.Modules.Users.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
@@ -13,6 +14,7 @@ public class ProviderVerificationStatusUpdatedIntegrationEventHandlerTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<IUsersModuleApi> _usersModuleApiMock;
+    private readonly Mock<ISerializer> _serializerMock;
     private readonly Mock<ILogger<ProviderVerificationStatusUpdatedIntegrationEventHandler>> _loggerMock;
     private readonly ProviderVerificationStatusUpdatedIntegrationEventHandler _handler;
 
@@ -20,10 +22,13 @@ public class ProviderVerificationStatusUpdatedIntegrationEventHandlerTests
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _usersModuleApiMock = new Mock<IUsersModuleApi>();
+        _serializerMock = new Mock<ISerializer>();
         _loggerMock = new Mock<ILogger<ProviderVerificationStatusUpdatedIntegrationEventHandler>>();
+
         _handler = new ProviderVerificationStatusUpdatedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _usersModuleApiMock.Object,
+            _serializerMock.Object,
             _loggerMock.Object);
     }
 
@@ -102,3 +107,4 @@ public class ProviderVerificationStatusUpdatedIntegrationEventHandlerTests
             .WithMessage("*API Error*");
     }
 }
+

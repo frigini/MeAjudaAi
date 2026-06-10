@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Communications.Application.Handlers;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
@@ -12,6 +13,7 @@ public class UserRegisteredIntegrationEventHandlerTests
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<ILogger<UserRegisteredIntegrationEventHandler>> _loggerMock;
+    private readonly Mock<ISerializer> _serializerMock;
     private readonly UserRegisteredIntegrationEventHandler _handler;
 
     public UserRegisteredIntegrationEventHandlerTests()
@@ -19,9 +21,11 @@ public class UserRegisteredIntegrationEventHandlerTests
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _loggerMock = new Mock<ILogger<UserRegisteredIntegrationEventHandler>>();
+        _serializerMock = new Mock<ISerializer>();
         _handler = new UserRegisteredIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
+            _serializerMock.Object,
             _loggerMock.Object);
     }
 
@@ -96,7 +100,7 @@ public class UserRegisteredIntegrationEventHandlerTests
 
         // Throw UniqueConstraintException directly
         _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException("Already exists"));
+            .ThrowsAsync(new Shared.Database.Exceptions.UniqueConstraintException("Already exists"));
 
         // Act
         var act = () => _handler.HandleAsync(integrationEvent);
@@ -139,3 +143,4 @@ public class UserRegisteredIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+

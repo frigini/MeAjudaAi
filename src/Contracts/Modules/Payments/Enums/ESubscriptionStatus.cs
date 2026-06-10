@@ -1,6 +1,6 @@
 namespace MeAjudaAi.Contracts.Modules.Payments.Enums;
 
-public enum SubscriptionStatus
+public enum ESubscriptionStatus
 {
     Pending,
     Active,

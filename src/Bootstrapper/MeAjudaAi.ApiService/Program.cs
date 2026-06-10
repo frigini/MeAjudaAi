@@ -160,7 +160,6 @@ public partial class Program
 
         // Endpoints de orquestração cross-módulo (ficam no ApiService)
         app.MapProviderRegistrationEndpoints();
-        app.MapCommunicationsEndpoints();
     }
 
     private static void LogStartupComplete(WebApplication app)

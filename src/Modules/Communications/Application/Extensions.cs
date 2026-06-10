@@ -1,8 +1,10 @@
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Modules.Communications.Application.Handlers;
+using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Application.ModuleApi;
-using MeAjudaAi.Modules.Communications.Application.Services;
 using MeAjudaAi.Modules.Communications.Application.Services.Email;
+using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
+using MeAjudaAi.Modules.Communications.Application.Workers;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
@@ -17,7 +19,7 @@ public static class Extensions
     /// <summary>
     /// Registra os serviços da camada de Application do módulo Communications.
     /// </summary>
-    public static IServiceCollection AddCommunicationsApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Public API
         services.AddScoped<ICommunicationsModuleApi, CommunicationsModuleApi>();

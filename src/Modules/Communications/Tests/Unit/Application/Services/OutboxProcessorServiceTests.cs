@@ -1,12 +1,13 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Communications.Application.Services;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
 
@@ -19,6 +20,7 @@ public class OutboxProcessorServiceTests
     private readonly Mock<ISmsSender> _smsSenderMock;
     private readonly Mock<IPushSender> _pushSenderMock;
     private readonly Mock<ILogger<OutboxProcessorService>> _loggerMock;
+    private readonly Mock<ISerializer> _serializeMock;
     private readonly OutboxProcessorService _service;
 
     public OutboxProcessorServiceTests()
@@ -31,6 +33,7 @@ public class OutboxProcessorServiceTests
         _smsSenderMock = new Mock<ISmsSender>();
         _pushSenderMock = new Mock<IPushSender>();
         _loggerMock = new Mock<ILogger<OutboxProcessorService>>();
+        _serializeMock = new Mock<ISerializer>();
 
         _service = new OutboxProcessorService(
             _outboxRepositoryMock.Object,
@@ -38,6 +41,7 @@ public class OutboxProcessorServiceTests
             _emailSenderMock.Object,
             _smsSenderMock.Object,
             _pushSenderMock.Object,
+            _serializeMock.Object,
             _loggerMock.Object);
     }
 

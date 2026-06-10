@@ -1,15 +1,17 @@
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
-namespace MeAjudaAi.Modules.Communications.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 
 /// <summary>
 /// Handler para notificar o prestador quando seu status de verificação é atualizado.
@@ -17,6 +19,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     IUsersModuleApi usersModuleApi,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<ProviderVerificationStatusUpdatedIntegrationEventHandler> logger)
     : IEventHandler<ProviderVerificationStatusUpdatedIntegrationEvent>
 {
@@ -69,7 +72,7 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
 
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
-            payload: JsonSerializer.Serialize(emailPayload),
+            payload: serializer.Serialize(emailPayload),
             maxRetries: 3,
             priority: ECommunicationPriority.High,
             correlationId: correlationId);
@@ -87,7 +90,7 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
                 ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
 
-            if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+            if ((processedException is Shared.Database.Exceptions.UniqueConstraintException))
             {
                 logger.LogInformation(
                     "Skipping verification status update for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",

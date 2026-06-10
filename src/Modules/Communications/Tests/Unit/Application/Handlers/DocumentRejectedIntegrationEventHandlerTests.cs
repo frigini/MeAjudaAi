@@ -1,13 +1,14 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Modules.Communications.Application.Handlers;
-using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
+using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Shared.Messaging.Messages.Documents;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
+using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 
@@ -16,6 +17,7 @@ public class DocumentRejectedIntegrationEventHandlerTests
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
     private readonly Mock<ILogger<DocumentRejectedIntegrationEventHandler>> _loggerMock;
+    private readonly Mock<ISerializer> _serializerMock;
     private readonly DocumentRejectedIntegrationEventHandler _handler;
 
     public DocumentRejectedIntegrationEventHandlerTests()
@@ -23,10 +25,12 @@ public class DocumentRejectedIntegrationEventHandlerTests
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
         _loggerMock = new Mock<ILogger<DocumentRejectedIntegrationEventHandler>>();
+        _serializerMock = new Mock<ISerializer>();
         
         _handler = new DocumentRejectedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _providersModuleApiMock.Object,
+            _serializerMock.Object,
             _loggerMock.Object);
     }
 
@@ -166,3 +170,4 @@ public class DocumentRejectedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+

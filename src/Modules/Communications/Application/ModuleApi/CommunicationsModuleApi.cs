@@ -1,23 +1,30 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
-using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Application.ModuleApi;
 
-[MeAjudaAi.Contracts.Modules.ModuleApi(ModuleNames.Communications)]
+[ModuleApi(ModuleNames.Communications)]
 public sealed class CommunicationsModuleApi(
     IOutboxMessageRepository outboxRepository,
     IEmailTemplateQueries templateQueries,
-    ICommunicationLogQueries logQueries)
+    ICommunicationLogQueries logQueries,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
+    IServiceProvider serviceProvider,
+    ILogger<CommunicationsModuleApi> logger)
     : ICommunicationsModuleApi
 {
     private readonly IEmailTemplateQueries _templateQueries = templateQueries;
@@ -25,8 +32,69 @@ public sealed class CommunicationsModuleApi(
     public string ModuleName => ModuleNames.Communications;
     public string ApiVersion => "1.0";
 
-    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
-        => Task.FromResult(true);
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            logger.LogDebug("Checking Communications module availability");
+
+            // Verifica health checks registrados do sistema
+            var healthCheckService = serviceProvider.GetService<HealthCheckService>();
+            if (healthCheckService != null)
+            {
+                var healthReport = await healthCheckService.CheckHealthAsync(
+                    check => check.Tags.Contains("communications") || check.Tags.Contains("database"),
+                    cancellationToken);
+
+                if (healthReport.Status == HealthStatus.Unhealthy)
+                {
+                    logger.LogWarning("Communications module unavailable due to health check failures: {FailedChecks}",
+                        string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
+                    return false;
+                }
+            }
+
+            // Testa funcionalidade básica
+            var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
+            if (!canExecuteBasicOperations)
+            {
+                logger.LogWarning("Communications module unavailable - basic operations test failed");
+                return false;
+            }
+
+            logger.LogDebug("Communications module is available and healthy");
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            logger.LogDebug("Communications module availability check canceled");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking Communications module availability");
+            return false;
+        }
+    }
+
+    private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Teste básico: tentar listar templates (operação leve de banco)
+            await _templateQueries.GetAllAsync(cancellationToken);
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Basic operations test failed for Communications module");
+            return false;
+        }
+    }
 
     public async Task<Result<Guid>> SendEmailAsync(
         EmailMessageDto email,
@@ -96,17 +164,9 @@ public sealed class CommunicationsModuleApi(
         CancellationToken ct = default)
     {
         if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("A consulta não pode ser nula."));
-        if (query.PageNumber < 1) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O número da página deve ser pelo menos 1."));
-        if (query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O tamanho da página deve estar entre 1 e 100."));
-
-        var (items, totalCount) = await logQueries.SearchAsync(
-            query.CorrelationId,
-            query.Channel,
-            query.Recipient,
-            query.IsSuccess,
-            query.PageNumber,
-            query.PageSize,
-            ct);
+        // Validações agora são implícitas via PagedRequest ou podem ser mantidas, mas a chamada muda
+        
+        var (items, totalCount) = await logQueries.SearchAsync(query, ct);
 
         var dtos = items.Select(x => new CommunicationLogDto(
             x.Id,
@@ -134,7 +194,7 @@ public sealed class CommunicationsModuleApi(
         ECommunicationPriority priority, 
         CancellationToken ct)
     {
-        var serializedPayload = JsonSerializer.Serialize(payload);
+        var serializedPayload = serializer.Serialize(payload);
         var message = OutboxMessage.Create(
             channel,
             serializedPayload,

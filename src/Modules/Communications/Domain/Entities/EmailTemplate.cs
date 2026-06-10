@@ -81,9 +81,9 @@ public sealed class EmailTemplate : AggregateRoot<Guid>
             TextBody = textBody,
             Language = language.ToLowerInvariant().Trim(),
             IsActive = true,
-            IsSystemTemplate = isSystemTemplate
+            IsSystemTemplate = isSystemTemplate,
+            Version = 1
         };
-        template.Version = 1;
         return template;
     }
 

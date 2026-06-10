@@ -1,12 +1,10 @@
 using MeAjudaAi.Modules.Communications.Application.Handlers;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 
@@ -15,6 +13,7 @@ public class UserProfileUpdatedIntegrationEventHandlerTests
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock = new();
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock = new();
     private readonly Mock<ILogger<UserProfileUpdatedIntegrationEventHandler>> _loggerMock = new();
+    private readonly Mock<ISerializer> _serializerMock = new();
     private readonly UserProfileUpdatedIntegrationEventHandler _handler;
 
     public UserProfileUpdatedIntegrationEventHandlerTests()
@@ -22,6 +21,7 @@ public class UserProfileUpdatedIntegrationEventHandlerTests
         _handler = new UserProfileUpdatedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
+            _serializerMock.Object,
             _loggerMock.Object);
     }
 
@@ -78,3 +78,4 @@ public class UserProfileUpdatedIntegrationEventHandlerTests
         await act.Should().ThrowAsync<Exception>().WithMessage("Database error");
     }
 }
+

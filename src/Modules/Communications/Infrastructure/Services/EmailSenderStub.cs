@@ -15,4 +15,3 @@ public sealed class EmailSenderStub(ILogger<EmailSenderStub> logger) : IEmailSen
         return true;
     }
 }
-

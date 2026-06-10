@@ -15,4 +15,3 @@ public sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
         return true;
     }
 }
-

@@ -1,7 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Shared.Caching;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Queries;
 

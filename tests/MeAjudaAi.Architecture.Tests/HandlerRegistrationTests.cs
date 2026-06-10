@@ -1,10 +1,8 @@
 using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Shared.Events;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using FluentAssertions;
-using Xunit;
 using Moq;
 
 namespace MeAjudaAi.Architecture.Tests;
@@ -30,7 +28,7 @@ public class HandlerRegistrationTests
         services.AddSingleton(Mock.Of<MeAjudaAi.Shared.Messaging.IMessageBus>());
 
         MeAjudaAi.Modules.Bookings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
-        MeAjudaAi.Modules.Communications.Infrastructure.Extensions.AddCommunicationsInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Communications.Infrastructure.Extensions.AddInfrastructure(services, configuration);
         MeAjudaAi.Modules.Documents.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
         MeAjudaAi.Modules.Locations.Infrastructure.Extensions.AddInfrastructure(services, configuration);
         MeAjudaAi.Modules.Payments.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);

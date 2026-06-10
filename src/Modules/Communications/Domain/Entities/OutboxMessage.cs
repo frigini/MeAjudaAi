@@ -7,7 +7,7 @@ namespace MeAjudaAi.Modules.Communications.Domain.Entities;
 /// Representa uma mensagem no Outbox específica do módulo de comunicações.
 /// Herda da base genérica para aproveitar lógica de processamento e retries.
 /// </summary>
-public sealed class OutboxMessage : MeAjudaAi.Shared.Database.Outbox.OutboxMessage
+public sealed class OutboxMessage : Shared.Database.Outbox.OutboxMessage
 {
     private OutboxMessage() { }
 

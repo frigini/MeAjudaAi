@@ -17,4 +17,3 @@ public sealed record ModulePagedSearchResultDto(
     public bool HasNextPage => TotalPages > 0 && PageNumber < TotalPages;
     public bool HasPreviousPage => PageNumber > 1;
 }
-

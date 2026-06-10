@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Modules.Communications.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
@@ -24,26 +25,25 @@ public class DbContextCommunicationLogQueries(CommunicationsDbContext dbContext)
     }
 
     public async Task<(IReadOnlyList<CommunicationLog> Items, int TotalCount)> SearchAsync(
-        string? correlationId = null, string? channel = null, string? recipient = null,
-        bool? isSuccess = null, int pageNumber = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        CommunicationLogQuery queryParams, CancellationToken cancellationToken = default)
     {
-        pageNumber = Math.Max(1, pageNumber);
-        pageSize = Math.Clamp(pageSize, 1, 100);
+        var pageNumber = Math.Max(1, queryParams.PageNumber);
+        var pageSize = Math.Clamp(queryParams.PageSize, 1, 100);
 
         var query = dbContext.CommunicationLogs.AsNoTracking();
-        if (!string.IsNullOrWhiteSpace(correlationId))
-            query = query.Where(x => x.CorrelationId.Contains(correlationId));
-        if (!string.IsNullOrWhiteSpace(channel))
+        if (!string.IsNullOrWhiteSpace(queryParams.CorrelationId))
+            query = query.Where(x => x.CorrelationId.Contains(queryParams.CorrelationId));
+        if (!string.IsNullOrWhiteSpace(queryParams.Channel))
         {
-            if (Enum.TryParse<ECommunicationChannel>(channel, true, out var ch))
+            if (Enum.TryParse<ECommunicationChannel>(queryParams.Channel, true, out var ch))
                 query = query.Where(x => x.Channel == ch);
             else
                 query = query.Where(x => false);
         }
-        if (!string.IsNullOrWhiteSpace(recipient))
-            query = query.Where(x => x.Recipient.Contains(recipient));
-        if (isSuccess.HasValue)
-            query = query.Where(x => x.IsSuccess == isSuccess.Value);
+        if (!string.IsNullOrWhiteSpace(queryParams.Recipient))
+            query = query.Where(x => x.Recipient.Contains(queryParams.Recipient));
+        if (queryParams.IsSuccess.HasValue)
+            query = query.Where(x => x.IsSuccess == queryParams.IsSuccess.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query

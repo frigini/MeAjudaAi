@@ -61,6 +61,3 @@ public partial class CommunicationsDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
-
-
-

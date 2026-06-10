@@ -1,18 +1,21 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
 public sealed class UserProfileUpdatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogQueries logQueries,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<UserProfileUpdatedIntegrationEventHandler> logger)
     : IEventHandler<UserProfileUpdatedIntegrationEvent>
 {
@@ -29,7 +32,7 @@ public sealed class UserProfileUpdatedIntegrationEventHandler(
             return;
         }
 
-        var payload = JsonSerializer.Serialize(new
+        var payload = serializer.Serialize(new
         {
             To = integrationEvent.Email,
             Subject = "Seu perfil foi atualizado",
@@ -37,10 +40,7 @@ public sealed class UserProfileUpdatedIntegrationEventHandler(
             TextBody = $"Olá, {integrationEvent.FirstName}! Seu perfil foi atualizado com sucesso.",
             CorrelationId = correlationId,
             TemplateKey = TemplateKey
-        }, new JsonSerializerOptions { PropertyNamingPolicy = null }); // Force consistent naming if needed, but this is default
-        // The issue is likely that the test expects a specific order or JSON formatting that JsonSerializer changes. 
-        // Let's use a simpler check in the test or make sure the JSON matches.
-        // I will update the test instead to be less fragile.
+        });
 
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,

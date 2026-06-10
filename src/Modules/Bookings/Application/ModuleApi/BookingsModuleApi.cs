@@ -3,16 +3,18 @@ using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 
-[ModuleApi("Bookings", "1.0")]
+[ModuleApi(ModuleNames.Bookings)]
 public sealed class BookingsModuleApi(
     IBookingQueries bookingQueries,
     ILogger<BookingsModuleApi> logger) : IBookingsModuleApi
 {
-    public string ModuleName => "Bookings";
+    public string ModuleName => ModuleNames.Bookings;
     public string ApiVersion => "1.0";
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
@@ -81,7 +83,7 @@ public sealed class BookingsModuleApi(
         }
     }
 
-    private static BookingDto MapToDto(MeAjudaAi.Modules.Bookings.Domain.Entities.Booking booking)
+    private static BookingDto MapToDto(Booking booking)
     {
         var startTime = booking.Date.ToDateTime(booking.TimeSlot.Start);
         var endTime = booking.Date.ToDateTime(booking.TimeSlot.End);

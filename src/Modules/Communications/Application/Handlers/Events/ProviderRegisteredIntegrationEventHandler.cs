@@ -1,18 +1,21 @@
 using MeAjudaAi.Contracts.Enums;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
 public sealed class ProviderRegisteredIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogQueries logQueries,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<ProviderRegisteredIntegrationEventHandler> logger)
     : IEventHandler<ProviderRegisteredIntegrationEvent>
 {
@@ -29,7 +32,7 @@ public sealed class ProviderRegisteredIntegrationEventHandler(
             return;
         }
 
-        var payload = JsonSerializer.Serialize(new
+        var payload = serializer.Serialize(new
         {
             To = integrationEvent.Email,
             Subject = "Bem-vindo ao MeAjudaAi - Cadastro de Prestador",

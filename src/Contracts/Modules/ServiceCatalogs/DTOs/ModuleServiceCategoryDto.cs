@@ -10,4 +10,3 @@ public sealed record ModuleServiceCategoryDto(
     bool IsActive,
     int DisplayOrder
 );
-

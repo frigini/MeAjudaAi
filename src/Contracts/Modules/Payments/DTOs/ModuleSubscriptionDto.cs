@@ -6,6 +6,6 @@ public record ModuleSubscriptionDto(
     Guid SubscriptionId,
     Guid ProviderId,
     string PlanId,
-    SubscriptionStatus Status,
+    ESubscriptionStatus Status,
     DateTime? ExpiresAt
 );

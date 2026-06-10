@@ -1,14 +1,16 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
-using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -17,6 +19,7 @@ public sealed class BookingRejectedIntegrationEventHandler(
     ICommunicationLogQueries logQueries,
     IProvidersModuleApi providersApi,
     IUsersModuleApi usersApi,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<BookingRejectedIntegrationEventHandler> logger)
     : IEventHandler<BookingRejectedIntegrationEvent>
 {
@@ -50,7 +53,7 @@ public sealed class BookingRejectedIntegrationEventHandler(
 
         var reason = string.IsNullOrWhiteSpace(integrationEvent.Reason) ? "Não informado" : integrationEvent.Reason;
 
-        var clientPayload = JsonSerializer.Serialize(new
+        var clientPayload = serializer.Serialize(new
         {
             To = clientEmail,
             Subject = "Agendamento Rejeitado",

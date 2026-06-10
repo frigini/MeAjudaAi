@@ -1,8 +1,11 @@
+using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-namespace MeAjudaAi.Modules.Communications.Application.Services;
+using System.Runtime.InteropServices;
+
+namespace MeAjudaAi.Modules.Communications.Application.Workers;
 
 /// <summary>
 /// Worker de background para processamento periódico do Outbox de comunicações.
@@ -29,6 +32,7 @@ internal sealed class CommunicationsOutboxWorker : BackgroundService
         
         _checkInterval = interval;
     }
+
     private readonly TimeSpan _stuckTimeout = TimeSpan.FromMinutes(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -68,6 +72,14 @@ internal sealed class CommunicationsOutboxWorker : BackgroundService
             }
             catch (Exception ex)
             {
+                // Rethrow truly fatal exceptions so the process can fail fast,
+                // handle/log only non-fatal exceptions to avoid swallowing critical errors (satisfies CA1031).
+                if (IsFatal(ex))
+                {
+                    _logger.LogCritical(ex, "Fatal exception occurred in communications outbox worker; rethrowing.");
+                    throw;
+                }
+
                 _logger.LogError(ex, "Error occurred while processing communications outbox.");
                 
                 try
@@ -83,4 +95,12 @@ internal sealed class CommunicationsOutboxWorker : BackgroundService
 
         _logger.LogInformation("Communications Outbox Worker stopped.");
     }
+
+    private static bool IsFatal(Exception ex) =>
+        ex is OutOfMemoryException
+        or StackOverflowException
+        or ThreadAbortException
+        or AccessViolationException
+        or SEHException
+        or AppDomainUnloadedException;
 }

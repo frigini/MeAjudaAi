@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 
-namespace MeAjudaAi.Modules.Communications.Application.Queries;
+namespace MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 
 public interface IEmailTemplateQueries
 {

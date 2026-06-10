@@ -1,16 +1,18 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
-using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
-using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;
-using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Web;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -24,6 +26,7 @@ public sealed class BookingCompletedIntegrationEventHandler(
     IProvidersModuleApi providersApi,
     IUsersModuleApi usersApi,
     IConfiguration configuration,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<BookingCompletedIntegrationEventHandler> logger)
     : IEventHandler<BookingCompletedIntegrationEvent>
 {
@@ -63,7 +66,7 @@ public sealed class BookingCompletedIntegrationEventHandler(
         }
         var reviewUrl = $"{appBaseUrl.TrimEnd('/')}/reviews/create?bookingId={HttpUtility.UrlEncode(integrationEvent.BookingId.ToString())}";
 
-        var payload = JsonSerializer.Serialize(new
+        var payload = serializer.Serialize(new
         {
             To = clientEmail,
             Subject = $"Como foi sua experiência com {providerName}?",

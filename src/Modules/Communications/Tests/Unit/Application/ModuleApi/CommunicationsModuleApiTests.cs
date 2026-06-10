@@ -1,11 +1,14 @@
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Modules.Communications.Application.ModuleApi;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Shared.Serialization;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.ModuleApi;
 
@@ -14,6 +17,9 @@ public class CommunicationsModuleApiTests
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<IEmailTemplateQueries> _templateQueriesMock;
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
+    private readonly Mock<ISerializer> _serializerMock;
+    private readonly Mock<IServiceProvider> _serviceProviderMock;
+    private readonly Mock<ILogger<CommunicationsModuleApi>> _loggerMock;
     private readonly CommunicationsModuleApi _api;
 
     public CommunicationsModuleApiTests()
@@ -21,11 +27,17 @@ public class CommunicationsModuleApiTests
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _templateQueriesMock = new Mock<IEmailTemplateQueries>();
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
+        _serializerMock = new Mock<ISerializer>();
+        _serviceProviderMock = new Mock<IServiceProvider>();
+        _loggerMock = new Mock<ILogger<CommunicationsModuleApi>>();
 
         _api = new CommunicationsModuleApi(
             _outboxRepositoryMock.Object,
             _templateQueriesMock.Object,
-            _logQueriesMock.Object);
+            _logQueriesMock.Object,
+            _serializerMock.Object,
+            _serviceProviderMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -33,6 +45,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         var dto = new EmailMessageDto("test@test.com", "Subject", "Body");
+        _serializerMock.Setup(x => x.Serialize(dto)).Returns("{}");
 
         // Act
         var result = await _api.SendEmailAsync(dto);
@@ -65,6 +78,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         var dto = new SmsMessageDto("123456", "Body");
+        _serializerMock.Setup(x => x.Serialize(dto)).Returns("{}");
 
         // Act
         var result = await _api.SendSmsAsync(dto);
@@ -79,6 +93,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         var dto = new PushMessageDto("token", "Title", "Body");
+        _serializerMock.Setup(x => x.Serialize(dto)).Returns("{}");
 
         // Act
         var result = await _api.SendPushAsync(dto);
@@ -206,12 +221,7 @@ public class CommunicationsModuleApiTests
 
         result.IsSuccess.Should().BeFalse();
         _logQueriesMock.Verify(x => x.SearchAsync(
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<bool?>(),
-            It.IsAny<int>(),
-            It.IsAny<int>(),
+            It.IsAny<CommunicationLogQuery>(),
             It.IsAny<CancellationToken>()), Times.Never);
         _logQueriesMock.VerifyNoOtherCalls();
     }
@@ -231,12 +241,7 @@ public class CommunicationsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         _logQueriesMock.Verify(x => x.SearchAsync(
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<bool?>(),
-            It.IsAny<int>(),
-            It.IsAny<int>(),
+            It.IsAny<CommunicationLogQuery>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -269,7 +274,7 @@ public class CommunicationsModuleApiTests
         {
             CommunicationLog.CreateSuccess("corr1", ECommunicationChannel.Email, "rec1", 1)
         };
-        _logQueriesMock.Setup(x => x.SearchAsync(null, null, null, null, 1, 10, It.IsAny<CancellationToken>()))
+        _logQueriesMock.Setup(x => x.SearchAsync(It.IsAny<CommunicationLogQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((logs, 1));
 
         // Act
@@ -277,17 +282,89 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().HaveCount(1);
+        result.Value!.Items.Should().HaveCount(1);
         result.Value.TotalItems.Should().Be(1);
     }
 
+    #region IsAvailableAsync Tests
+
     [Fact]
-    public async Task IsAvailableAsync_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenHealthServiceUnavailableAndDbWorks_ShouldReturnTrue()
     {
+        // Arrange
+        _serviceProviderMock.Setup(static x => x.GetService(typeof(HealthCheckService))).Returns(null);
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
+
         // Act
         var result = await _api.IsAvailableAsync();
 
         // Assert
         result.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenHealthServiceReturnsHealthyAndDbWorks_ShouldReturnTrue()
+    {
+        // Arrange
+        var healthCheckServiceMock = new Mock<HealthCheckService>();
+        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Healthy, TimeSpan.Zero));
+
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenHealthServiceReturnsUnhealthy_ShouldReturnFalse()
+    {
+        // Arrange
+        var healthCheckServiceMock = new Mock<HealthCheckService>();
+        var entries = new Dictionary<string, HealthReportEntry>
+        {
+            { "db", new HealthReportEntry(HealthStatus.Unhealthy, "Error", TimeSpan.Zero, null, null) }
+        };
+        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HealthReport(entries, HealthStatus.Unhealthy, TimeSpan.Zero));
+
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenDbOperationFails_ShouldReturnFalse()
+    {
+        // Arrange
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(null);
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("DB Error"));
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenCancelled_ShouldThrowOperationCanceledException()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _api.IsAvailableAsync(cts.Token));
+    }
+
+    #endregion
 }

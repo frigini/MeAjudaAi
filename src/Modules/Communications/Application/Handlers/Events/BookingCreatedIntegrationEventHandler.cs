@@ -1,14 +1,16 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
-using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -17,6 +19,7 @@ public sealed class BookingCreatedIntegrationEventHandler(
     ICommunicationLogQueries logQueries,
     IProvidersModuleApi providersApi,
     IUsersModuleApi usersApi,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<BookingCreatedIntegrationEventHandler> logger)
     : IEventHandler<BookingCreatedIntegrationEvent>
 {
@@ -52,12 +55,12 @@ public sealed class BookingCreatedIntegrationEventHandler(
             return;
         }
 
-        var providerEmail = providerResult.Value.Email; // ModuleProviderDto has Email
+        var providerEmail = providerResult.Value.Email; // ModuleProviderDto possui Email
         var clientEmail = clientResult.Value.Email;
         var clientName = clientResult.Value.FirstName;
 
         // Notificar o Provedor
-        var providerPayload = JsonSerializer.Serialize(new
+        var providerPayload = serializer.Serialize(new
         {
             To = providerEmail,
             Subject = "Novo Agendamento Recebido",
@@ -75,7 +78,7 @@ public sealed class BookingCreatedIntegrationEventHandler(
             correlationId: $"{correlationId}:provider");
 
         // Notificar o Cliente
-        var clientPayload = JsonSerializer.Serialize(new
+        var clientPayload = serializer.Serialize(new
         {
             To = clientEmail,
             Subject = "Agendamento Solicitado",

@@ -15,4 +15,3 @@ public sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
         return true;
     }
 }
-

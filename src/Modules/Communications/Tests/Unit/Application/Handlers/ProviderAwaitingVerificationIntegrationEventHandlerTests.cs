@@ -1,7 +1,8 @@
-using MeAjudaAi.Modules.Communications.Application.Handlers;
+using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +13,7 @@ public class ProviderAwaitingVerificationIntegrationEventHandlerTests
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<ProviderAwaitingVerificationIntegrationEventHandler>> _loggerMock;
+    private readonly Mock<ISerializer> _serializerMock;
     private readonly ProviderAwaitingVerificationIntegrationEventHandler _handler;
 
     public ProviderAwaitingVerificationIntegrationEventHandlerTests()
@@ -19,9 +21,12 @@ public class ProviderAwaitingVerificationIntegrationEventHandlerTests
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<ProviderAwaitingVerificationIntegrationEventHandler>>();
+        _serializerMock = new Mock<ISerializer>();
+
         _handler = new ProviderAwaitingVerificationIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _configurationMock.Object,
+            _serializerMock.Object,
             _loggerMock.Object);
     }
 
@@ -45,3 +50,4 @@ public class ProviderAwaitingVerificationIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+

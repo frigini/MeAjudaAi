@@ -18,4 +18,3 @@ public sealed record ModuleProviderDto(
     DateTime UpdatedAt,
     bool IsActive,
     string? Phone = null);
-

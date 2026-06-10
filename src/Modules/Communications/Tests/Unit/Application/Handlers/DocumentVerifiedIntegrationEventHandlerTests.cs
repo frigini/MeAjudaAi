@@ -1,12 +1,12 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Modules.Communications.Application.Handlers;
-using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
+using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Database.Exceptions;
+using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.Extensions.Logging;
+using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 
@@ -88,7 +88,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             "Documents", Guid.NewGuid(), providerId, "Identity", true, DateTime.UtcNow);
 
         _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ModuleProviderDto?>.Failure(new MeAjudaAi.Contracts.Functional.Error("Failed to fetch provider", 500)));
+            .ReturnsAsync(Result<ModuleProviderDto?>.Failure(new Error("Failed to fetch provider", 500)));
 
         // Act
         var act = () => _handler.HandleAsync(integrationEvent);
@@ -146,3 +146,4 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+

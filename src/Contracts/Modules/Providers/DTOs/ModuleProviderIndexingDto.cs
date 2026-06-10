@@ -20,4 +20,3 @@ public sealed record ModuleProviderIndexingDto(
     string? Description = null,
     string? City = null,
     string? State = null);
-

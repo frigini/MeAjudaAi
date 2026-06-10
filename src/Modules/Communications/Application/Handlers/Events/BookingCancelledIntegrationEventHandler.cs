@@ -1,14 +1,16 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
-using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -17,6 +19,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
     ICommunicationLogQueries logQueries,
     IProvidersModuleApi providersApi,
     IUsersModuleApi usersApi,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<BookingCancelledIntegrationEventHandler> logger)
     : IEventHandler<BookingCancelledIntegrationEvent>
 {
@@ -51,7 +54,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
         // Notificar ambos sobre o cancelamento
         var reason = string.IsNullOrWhiteSpace(integrationEvent.Reason) ? "Não informada" : integrationEvent.Reason;
 
-        var payload = JsonSerializer.Serialize(new
+        var payload = serializer.Serialize(new
         {
             Subject = "Agendamento Cancelado",
             HtmlBody = $"<h1>Agendamento Cancelado</h1><p>O agendamento {integrationEvent.BookingId} foi cancelado.</p><p>Motivo: {reason}</p>",

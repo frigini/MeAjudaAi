@@ -1,14 +1,16 @@
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using MeAjudaAi.Contracts.Enums;
 
-namespace MeAjudaAi.Modules.Communications.Application.Handlers;
+namespace MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 
 /// <summary>
 /// Handler para notificar administradores quando um prestador aguarda verificação.
@@ -16,6 +18,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     IConfiguration configuration,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<ProviderAwaitingVerificationIntegrationEventHandler> logger)
     : IEventHandler<ProviderAwaitingVerificationIntegrationEvent>
 {
@@ -40,7 +43,7 @@ public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
 
         var message = OutboxMessage.Create(
             ECommunicationChannel.Email,
-            JsonSerializer.Serialize(emailPayload),
+            serializer.Serialize(emailPayload),
             maxRetries: 3,
             priority: ECommunicationPriority.Normal,
             correlationId: correlationId);
@@ -58,7 +61,7 @@ public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
             var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
                 ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
 
-            if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+            if ((processedException is Shared.Database.Exceptions.UniqueConstraintException))
             {
                 logger.LogInformation(
                     "Skipping admin notification for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",

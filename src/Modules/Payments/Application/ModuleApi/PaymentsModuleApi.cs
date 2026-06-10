@@ -17,12 +17,12 @@ public sealed class PaymentsModuleApi(
     public string ModuleName => "Payments";
     public string ApiVersion => "1.0";
 
-    private static SubscriptionStatus MapStatus(ESubscriptionStatus status) => status switch
+    private static Contracts.Modules.Payments.Enums.ESubscriptionStatus MapStatus(Domain.Enums.ESubscriptionStatus status) => status switch
     {
-        ESubscriptionStatus.Pending => SubscriptionStatus.Pending,
-        ESubscriptionStatus.Active => SubscriptionStatus.Active,
-        ESubscriptionStatus.Canceled => SubscriptionStatus.Canceled,
-        ESubscriptionStatus.Expired => SubscriptionStatus.Expired,
+        Domain.Enums.ESubscriptionStatus.Pending => Contracts.Modules.Payments.Enums.ESubscriptionStatus.Pending,
+        Domain.Enums.ESubscriptionStatus.Active => Contracts.Modules.Payments.Enums.ESubscriptionStatus.Active,
+        Domain.Enums.ESubscriptionStatus.Canceled => Contracts.Modules.Payments.Enums.ESubscriptionStatus.Canceled,
+        Domain.Enums.ESubscriptionStatus.Expired => Contracts.Modules.Payments.Enums.ESubscriptionStatus.Expired,
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
     };
 

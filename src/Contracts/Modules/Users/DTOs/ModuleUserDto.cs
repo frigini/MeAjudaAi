@@ -11,4 +11,3 @@ public sealed record ModuleUserDto(
     string LastName,
     string FullName
 );
-

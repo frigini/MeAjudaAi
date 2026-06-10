@@ -5,21 +5,15 @@ using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
-namespace MeAjudaAi.Modules.Communications.Application.Services;
-
-public interface IOutboxProcessorService
-{
-    Task<int> ProcessPendingMessagesAsync(
-        int batchSize = 50,
-        CancellationToken cancellationToken = default);
-}
+namespace MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 
 public sealed class OutboxProcessorService(
     IOutboxMessageRepository outboxRepository,
@@ -27,6 +21,7 @@ public sealed class OutboxProcessorService(
     IEmailSender emailSender,
     ISmsSender smsSender,
     IPushSender pushSender,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<OutboxProcessorService> logger) 
     : OutboxProcessorBase<OutboxMessage>(outboxRepository, logger), IOutboxProcessorService
 {
@@ -43,10 +38,16 @@ public sealed class OutboxProcessorService(
         {
             return DispatchResult.Canceled();
         }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "Dispatch internal failure for outbox message {Id} ({Channel}).", message.Id, message.Channel);
+            return DispatchResult.Failure(ex.Message);
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error dispatching outbox message {Id} ({Channel}).", message.Id, message.Channel);
-            return DispatchResult.Failure(ex.Message);
+            // Do not swallow unknown exceptions — log and rethrow so caller can decide how to handle them.
+            logger.LogError(ex, "Unexpected error dispatching outbox message {Id} ({Channel}). Rethrowing.", message.Id, message.Channel);
+            throw;
         }
     }
 
@@ -127,56 +128,55 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchEmailAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var email = JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)
+        var email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
             ?? throw new InvalidOperationException("Invalid email payload.");
 
         var htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
         var textBody = email.TextBody ?? email.Body ?? string.Empty;
 
         return await emailSender.SendAsync(
-            new Domain.Services.EmailMessage(email.To, email.Subject, htmlBody, textBody, email.From),
+            new EmailMessage(email.To, email.Subject, htmlBody, textBody, email.From),
             cancellationToken);
     }
 
     private async Task<bool> DispatchSmsAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var sms = JsonSerializer.Deserialize<SmsOutboxPayload>(message.Payload)
+        var sms = serializer.Deserialize<SmsOutboxPayload>(message.Payload)
             ?? throw new InvalidOperationException("Invalid SMS payload.");
 
         return await smsSender.SendAsync(
-            new Domain.Services.SmsMessage(sms.PhoneNumber, sms.Body),
+            new SmsMessage(sms.PhoneNumber, sms.Body),
             cancellationToken);
     }
 
     private async Task<bool> DispatchPushAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var push = JsonSerializer.Deserialize<PushOutboxPayload>(message.Payload)
+        var push = serializer.Deserialize<PushOutboxPayload>(message.Payload)
             ?? throw new InvalidOperationException("Invalid push payload.");
 
         return await pushSender.SendAsync(
-            new Domain.Services.PushNotification(push.DeviceToken, push.Title, push.Body, push.Data),
+            new PushNotification(push.DeviceToken, push.Title, push.Body, push.Data),
             cancellationToken);
     }
 
-    private string MaskRecipientForChannel(string recipient, ECommunicationChannel channel)
-    {
-        return channel switch
+    private static string MaskRecipientForChannel(string recipient, ECommunicationChannel channel) => channel switch
         {
             ECommunicationChannel.Email => PiiMaskingHelper.MaskEmail(recipient),
             ECommunicationChannel.Sms => PiiMaskingHelper.MaskPhoneNumber(recipient),
             ECommunicationChannel.Push => PiiMaskingHelper.MaskSensitiveData(recipient),
             _ => PiiMaskingHelper.MaskSensitiveData(recipient)
         };
-    }
 
     private string? ExtractTemplateKey(OutboxMessage message)
     {
         if (message.Channel != ECommunicationChannel.Email) return null;
+        if (string.IsNullOrWhiteSpace(message.Payload)) return null;
+
         try
         {
-            return JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)?.TemplateKey;
+            return serializer.Deserialize<EmailOutboxPayload>(message.Payload)?.TemplateKey;
         }
-        catch
+        catch (Exception)
         {
             return null;
         }
@@ -184,22 +184,22 @@ public sealed class OutboxProcessorService(
 
     private string ExtractRecipient(OutboxMessage message)
     {
+        if (string.IsNullOrWhiteSpace(message.Payload))
+            return "unknown";
+
         try
         {
             return message.Channel switch
             {
-                ECommunicationChannel.Email => JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)?.To ?? "unknown",
-                ECommunicationChannel.Sms => JsonSerializer.Deserialize<SmsOutboxPayload>(message.Payload)?.PhoneNumber ?? "unknown",
-                ECommunicationChannel.Push => JsonSerializer.Deserialize<PushOutboxPayload>(message.Payload)?.DeviceToken ?? "unknown",
+                ECommunicationChannel.Email => serializer.Deserialize<EmailOutboxPayload>(message.Payload)?.To ?? "unknown",
+                ECommunicationChannel.Sms => serializer.Deserialize<SmsOutboxPayload>(message.Payload)?.PhoneNumber ?? "unknown",
+                ECommunicationChannel.Push => serializer.Deserialize<PushOutboxPayload>(message.Payload)?.DeviceToken ?? "unknown",
                 _ => "unknown"
             };
         }
-        catch
+        catch (Exception)
         {
             return "error-extracting";
         }
     }
 }
-
-
-

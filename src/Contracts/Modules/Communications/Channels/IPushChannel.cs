@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Communications.Channels;
 

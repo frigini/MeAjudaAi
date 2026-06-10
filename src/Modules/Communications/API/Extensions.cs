@@ -5,27 +5,30 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API;
 
-public static class Extensions
+[ExcludeFromCodeCoverage]
+public static class CommunicationsModuleExtensions
 {
     public static IServiceCollection AddCommunicationsModule(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddCommunicationsApplication();
-        services.AddCommunicationsInfrastructure(configuration);
+        services.AddApplication();
+        services.AddInfrastructure(configuration);
 
         return services;
     }
 
-    public static IApplicationBuilder UseCommunicationsModule(this IApplicationBuilder app)
+    public static WebApplication UseCommunicationsModule(this WebApplication app)
     {
-        // Registro de middlewares específicos do módulo, se houver
+        app.MapCommunicationsEndpoints();
         return app;
     }
 
     public static IEndpointRouteBuilder MapCommunicationsEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapEndpoints();
+        CommunicationsEndpoints.Map(endpoints);
+        return endpoints;
     }
 }

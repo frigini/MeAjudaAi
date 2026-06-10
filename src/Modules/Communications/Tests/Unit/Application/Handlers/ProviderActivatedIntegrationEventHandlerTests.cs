@@ -1,11 +1,12 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Handlers;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
-using MeAjudaAi.Contracts.Modules.Users.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
@@ -16,6 +17,7 @@ public class ProviderActivatedIntegrationEventHandlerTests
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<IUsersModuleApi> _usersModuleApiMock;
     private readonly Mock<ILogger<ProviderActivatedIntegrationEventHandler>> _loggerMock;
+    private readonly Mock<ISerializer> _serializerMock;
     private readonly ProviderActivatedIntegrationEventHandler _handler;
 
     public ProviderActivatedIntegrationEventHandlerTests()
@@ -24,10 +26,13 @@ public class ProviderActivatedIntegrationEventHandlerTests
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _usersModuleApiMock = new Mock<IUsersModuleApi>();
         _loggerMock = new Mock<ILogger<ProviderActivatedIntegrationEventHandler>>();
+        _serializerMock = new Mock<ISerializer>();
+
         _handler = new ProviderActivatedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
             _usersModuleApiMock.Object,
+            _serializerMock.Object,
             _loggerMock.Object);
     }
 
@@ -82,3 +87,4 @@ public class ProviderActivatedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
+

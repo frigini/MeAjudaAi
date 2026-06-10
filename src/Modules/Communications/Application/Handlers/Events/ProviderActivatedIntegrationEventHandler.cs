@@ -1,14 +1,16 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
-using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using System.Text.Encodings.Web;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -16,6 +18,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogQueries logQueries,
     IUsersModuleApi usersModuleApi,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<ProviderActivatedIntegrationEventHandler> logger)
     : IEventHandler<ProviderActivatedIntegrationEvent>
 {
@@ -47,7 +50,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
         var safeName = HtmlEncoder.Default.Encode(integrationEvent.Name);
         var recipientEmail = userResult.Value.Email;
 
-        var payload = JsonSerializer.Serialize(new
+        var payload = serializer.Serialize(new
         {
             To = recipientEmail,
             Subject = "Seu cadastro foi aprovado!",

@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Communications.Application.Services;
+using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
+using MeAjudaAi.Modules.Communications.Application.Workers;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

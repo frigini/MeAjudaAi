@@ -1,5 +1,4 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
@@ -7,6 +6,7 @@ using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 using MeAjudaAi.Modules.Communications.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure;
 
 public static class Extensions
 {
-    public static IServiceCollection AddCommunicationsInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddPostgresContext<CommunicationsDbContext>(builder => 
         {
@@ -41,6 +41,3 @@ public static class Extensions
         return services;
     }
 }
-
-
-

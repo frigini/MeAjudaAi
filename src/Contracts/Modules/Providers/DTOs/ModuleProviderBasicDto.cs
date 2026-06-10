@@ -11,4 +11,3 @@ public sealed record ModuleProviderBasicDto(
     string ProviderType,
     string VerificationStatus,
     bool IsActive);
-

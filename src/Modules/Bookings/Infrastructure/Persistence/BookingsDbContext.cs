@@ -1,10 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using System.Reflection;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Events; 
+using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 
