@@ -4,22 +4,37 @@
 
 O módulo de Bookings é responsável pela gestão completa do ciclo de vida de agendamentos entre clientes e prestadores de serviços na plataforma MeAjudaAi.
 
-**Sprint**: 12 (Concluída em Abr 2026)
-
 ---
 
 ## Arquitetura
 
-O módulo segue a Clean Architecture com separação em 4 camadas:
+O módulo segue a Clean Architecture com separação em 4 camadas, adotando um padrão de Minimal API com manipuladores (handlers) estáticos privados para garantir encapsulamento e injeção de dependência fluida:
 
 ```text
 Bookings/
-├── Domain/           # Entidades, Value Objects, Interfaces de Repositório, Domain Events
-├── Application/      # Commands, Queries, Handlers, DTOs
-├── Infrastructure/   # DbContext, Repositórios EF Core, Migrações
-├── API/              # Minimal API Endpoints, DI Extensions
-└── Tests/            # Unitários (Domain + Application) e Integração (Repositories)
+├── Domain/           # Entidades, Value Objects, Domain Events
+├── Application/      # Commands, Queries, Handlers, DTOs, Validators, Authorization
+├── Infrastructure/   # DbContext, Repositórios, Migrações
+├── API/              # Minimal API Endpoints (Private Static Handlers)
+└── Tests/            # Unitários (AAA Pattern, BaseInMemoryDatabaseTest), Integração (Postgres), E2E
 ```
+
+---
+
+## Testes
+
+Adotamos uma estratégia rigorosa de cobertura com meta > 90%:
+
+| Tipo | Infraestrutura | Objetivo |
+|------|-----------|----------|
+| **Unit (Domain/App)** | `BaseInMemoryDatabaseTest<T>` | Lógica de negócio, Validadores, Handlers (rápido e isolado) |
+| **Integration** | `BaseDatabaseTest` (Postgres) | Queries, Repositórios, Transações reais |
+| **E2E** | `TestContainerTestBase` | Fluxos completos, SSE endpoints, Integração de módulos |
+
+### Padrão de Testes
+- **AAA Pattern**: Todos os testes devem seguir explicitamente as seções `// Arrange`, `// Act`, `// Assert`.
+- **Determinismo**: Testes de validação de datas utilizam datas fixas para evitar flakiness.
+- **Isolamento**: Testes unitários utilizam `InMemoryDatabase` com GUID único por teste.
 
 ---
 
@@ -154,17 +169,6 @@ Todos sob o prefixo `/api/v1/bookings`, com autorização obrigatória.
 - **Verificação Atômica de Sobreposição**: `AddIfNoOverlapAsync` utiliza `IsolationLevel.Serializable` com retry automático (até 3 tentativas) para prevenir double-booking.
 - **Concorrência Otimista**: `UpdateAsync` captura `DbUpdateConcurrencyException` e lança `ConcurrencyConflictException` customizada.
 - **Timezone-aware**: Todas as validações de disponibilidade consideram o fuso horário configurado pelo prestador (`TimeZoneId`).
-
----
-
-## Testes
-
-| Tipo | Cobertura |
-|------|-----------|
-| **Unit (Domain)** | `BookingTests`, `ProviderScheduleTests`, `TimeSlotTests`, `AvailabilityTests` |
-| **Unit (Application)** | Handlers: Create, Confirm, Cancel, Reject, Complete, GetById, GetByClient, GetByProvider, GetAvailability, SetSchedule |
-| **Integration** | `BookingRepositoryTests`, `ProviderScheduleRepositoryTests` |
-| **Architecture** | Coberto automaticamente via `ModuleDiscoveryHelper` (convention-based) |
 
 ---
 
