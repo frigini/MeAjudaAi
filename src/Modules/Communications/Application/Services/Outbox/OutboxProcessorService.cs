@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -130,11 +131,31 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchEmailAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
-            ?? throw new InvalidOperationException("Invalid email payload.");
+        EmailOutboxPayload email;
+        try
+        {
+            var envelope = serializer.Deserialize<MessageEnvelope>(message.Payload);
+            if (envelope?.Version == 1)
+            {
+                email = serializer.Deserialize<EmailOutboxPayload>(envelope.Payload) 
+                    ?? throw new InvalidOperationException("Invalid email payload in envelope.");
+            }
+            else
+            {
+                email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
+                    ?? throw new InvalidOperationException("Invalid email payload (legacy).");
+            }
+        }
+        catch
+        {
+            // Fallback: tenta desserializar diretamente como legacy
+            email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
+                ?? throw new InvalidOperationException("Invalid email payload (fallback).");
+        }
 
         string htmlBody;
         string textBody;
+    // ...
 
         if (!string.IsNullOrWhiteSpace(email.TemplateKey))
         {
@@ -176,8 +197,26 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchSmsAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var sms = serializer.Deserialize<SmsOutboxPayload>(message.Payload)
-            ?? throw new InvalidOperationException("Invalid SMS payload.");
+        SmsOutboxPayload sms;
+        try
+        {
+            var envelope = serializer.Deserialize<MessageEnvelope>(message.Payload);
+            if (envelope?.Version == 1)
+            {
+                sms = serializer.Deserialize<SmsOutboxPayload>(envelope.Payload)
+                    ?? throw new InvalidOperationException("Invalid SMS payload in envelope.");
+            }
+            else
+            {
+                sms = serializer.Deserialize<SmsOutboxPayload>(message.Payload)
+                    ?? throw new InvalidOperationException("Invalid SMS payload (legacy).");
+            }
+        }
+        catch
+        {
+            sms = serializer.Deserialize<SmsOutboxPayload>(message.Payload)
+                ?? throw new InvalidOperationException("Invalid SMS payload (fallback).");
+        }
 
         return await smsSender.SendAsync(
             new SmsMessage(sms.PhoneNumber, sms.Body),
@@ -186,13 +225,32 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchPushAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var push = serializer.Deserialize<PushOutboxPayload>(message.Payload)
-            ?? throw new InvalidOperationException("Invalid push payload.");
+        PushOutboxPayload push;
+        try
+        {
+            var envelope = serializer.Deserialize<MessageEnvelope>(message.Payload);
+            if (envelope?.Version == 1)
+            {
+                push = serializer.Deserialize<PushOutboxPayload>(envelope.Payload)
+                    ?? throw new InvalidOperationException("Invalid Push payload in envelope.");
+            }
+            else
+            {
+                push = serializer.Deserialize<PushOutboxPayload>(message.Payload)
+                    ?? throw new InvalidOperationException("Invalid Push payload (legacy).");
+            }
+        }
+        catch
+        {
+            push = serializer.Deserialize<PushOutboxPayload>(message.Payload)
+                ?? throw new InvalidOperationException("Invalid Push payload (fallback).");
+        }
 
         return await pushSender.SendAsync(
             new PushNotification(push.DeviceToken, push.Title, push.Body, push.Data),
             cancellationToken);
     }
+
 
     private static string MaskRecipientForChannel(string recipient, ECommunicationChannel channel) => channel switch
         {

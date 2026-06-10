@@ -38,18 +38,21 @@ public sealed class UserDeletedIntegrationEventHandler(
         }
 
         var userResult = await usersModuleApi.GetUserByIdAsync(integrationEvent.UserId, cancellationToken);
+        
+        string email = userResult.IsSuccess && userResult.Value != null ? userResult.Value.Email : "desconhecido";
+        string firstName = userResult.IsSuccess && userResult.Value != null ? userResult.Value.FirstName : "Usuário";
+        
         if (!userResult.IsSuccess)
         {
-            logger.LogError("Failed to get user {UserId} for deletion notification.", integrationEvent.UserId);
-            return;
+            logger.LogWarning("Failed to get user {UserId} for deletion notification, falling back to generic data.", integrationEvent.UserId);
         }
 
         var payload = serializer.Serialize(new
         {
-            To = userResult.Value!.Email,
+            To = email,
             Subject = "Conta Excluída",
-            HtmlBody = $"<h1>Olá, {userResult.Value.FirstName}!</h1><p>Sua conta no MeAjudaAi foi excluída com sucesso.</p>",
-            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua conta no MeAjudaAi foi excluída com sucesso.",
+            HtmlBody = $"<h1>Olá, {firstName}!</h1><p>Sua conta no MeAjudaAi foi excluída com sucesso.</p>",
+            TextBody = $"Olá, {firstName}!\nSua conta no MeAjudaAi foi excluída com sucesso.",
             TemplateKey = TemplateKey
         });
 

@@ -38,7 +38,7 @@ public sealed class ProviderDeletedIntegrationEventHandler(
         }
 
         var providerResult = await providersModuleApi.GetProviderByIdAsync(integrationEvent.ProviderId, cancellationToken);
-        if (!providerResult.IsSuccess)
+        if (!providerResult.IsSuccess || providerResult.Value == null)
         {
             logger.LogError("Failed to get provider {ProviderId} for deletion notification.", integrationEvent.ProviderId);
             return;

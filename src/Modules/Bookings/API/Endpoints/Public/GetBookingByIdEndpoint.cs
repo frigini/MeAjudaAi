@@ -15,7 +15,7 @@ public class GetBookingByIdEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapGet("/{id}", GetBookingByIdAsync)
+        app.MapGet(ApiEndpoints.Bookings.GetById, GetBookingByIdAsync)
         .RequireAuthorization()
         .Produces<BookingDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)

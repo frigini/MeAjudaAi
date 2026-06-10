@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
@@ -196,7 +197,10 @@ public sealed class CommunicationsModuleApi(
         ECommunicationPriority priority, 
         CancellationToken ct)
     {
-        var serializedPayload = serializer.Serialize(payload);
+        var payloadData = serializer.Serialize(payload);
+        var envelope = new MessageEnvelope(1, payloadData);
+        var serializedPayload = serializer.Serialize(envelope);
+        
         var message = OutboxMessage.Create(
             channel,
             serializedPayload,

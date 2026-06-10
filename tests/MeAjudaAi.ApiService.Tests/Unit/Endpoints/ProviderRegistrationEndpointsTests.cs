@@ -154,7 +154,7 @@ public class ProviderRegistrationEndpointsTests
     };
 
     private UserDto CreateUserDto(Guid id) => new(
-        id, "username", "test@test.com", "First", "Last", "First Last", id.ToString(), DateTime.UtcNow, null);
+        id, "username", "test@test.com", "First", "Last", "First Last", null, id.ToString(), DateTime.UtcNow, null);
 
     private ProviderDto CreateProviderDto(Guid id, Guid userId, string name) => new(
         id, userId, name, "slug", EProviderType.Individual, null!, EProviderStatus.Active, EVerificationStatus.Verified, EProviderTier.Standard, [], [], [], DateTime.UtcNow, null, false, null, true);

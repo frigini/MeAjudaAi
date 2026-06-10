@@ -40,6 +40,14 @@ public class DeactivateEmailTemplateEndpoint : IEndpoint
         CancellationToken ct)
     {
         var result = await dispatcher.SendAsync<SetEmailTemplateStatusCommand, Result>(new SetEmailTemplateStatusCommand(id, false, Guid.NewGuid()), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
+        
+        if (result.IsSuccess)
+        {
+            return Results.NoContent();
+        }
+
+        return result.Error.StatusCode == StatusCodes.Status404NotFound 
+            ? Results.NotFound(result.Error) 
+            : Results.BadRequest(result.Error);
     }
 }

@@ -18,7 +18,7 @@ public class CreateBookingEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPost("", CreateBookingAsync)
+        app.MapPost(ApiEndpoints.Bookings.Create, CreateBookingAsync)
         .RequireAuthorization()
         .Produces<BookingDto>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -26,7 +26,8 @@ public class CreateBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("CreateBooking")
-        .WithSummary("Cria um novo agendamento.");
+        .WithSummary("Cria um novo agendamento.")
+        .WithDescription("Cria um novo agendamento de serviço.");
     }
 
     /// <summary>

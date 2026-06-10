@@ -87,7 +87,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
             correlationId: $"{correlationId}:client");
 
         // SMS para o cliente
-        var clientSms = clientResult.Value.PhoneNumber != null
+        var clientSms = !string.IsNullOrWhiteSpace(clientResult.Value.PhoneNumber)
             ? OutboxMessage.Create(
                 channel: ECommunicationChannel.Sms,
                 payload: serializer.Serialize(new { 

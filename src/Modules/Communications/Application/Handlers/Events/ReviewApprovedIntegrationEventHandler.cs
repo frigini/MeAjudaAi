@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -40,16 +41,24 @@ public sealed class ReviewApprovedIntegrationEventHandler(
         var providerResult = await providersModuleApi.GetProviderByIdAsync(integrationEvent.ProviderId, cancellationToken);
         if (!providerResult.IsSuccess)
         {
-            logger.LogError("Failed to get provider {ProviderId} for review {ReviewId}.", integrationEvent.ProviderId, integrationEvent.ReviewId);
-            return;
+            if (providerResult.Error?.StatusCode == StatusCodes.Status404NotFound || providerResult.Value == null)
+            {
+                logger.LogWarning("Provider {ProviderId} not found for review {ReviewId}.", integrationEvent.ProviderId, integrationEvent.ReviewId);
+                return;
+            }
+            
+            logger.LogError("Failed to get provider {ProviderId} for review {ReviewId}: {Error}", 
+                integrationEvent.ProviderId, integrationEvent.ReviewId, providerResult.Error?.Message);
+            throw new Exception("Transient provider lookup failure");
         }
-
+        
+        var provider = providerResult.Value!;
         var payload = serializer.Serialize(new
         {
-            To = providerResult.Value!.Email,
+            To = provider.Email,
             Subject = "Nova Avaliação Aprovada!",
-            HtmlBody = $"<h1>Olá, {providerResult.Value.Name}!</h1><p>Uma nova avaliação foi aprovada.</p>",
-            TextBody = $"Olá, {providerResult.Value.Name}!\nUma nova avaliação foi aprovada.",
+            HtmlBody = $"<h1>Olá, {provider.Name}!</h1><p>Uma nova avaliação foi aprovada.</p>",
+            TextBody = $"Olá, {provider.Name}!\nUma nova avaliação foi aprovada.",
             TemplateKey = TemplateKey
         });
 

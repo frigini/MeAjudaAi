@@ -20,7 +20,7 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPost("/schedule", SetProviderScheduleAsync)
+        app.MapPost(ApiEndpoints.Bookings.SetProviderSchedule, SetProviderScheduleAsync)
         .RequireAuthorization()
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)

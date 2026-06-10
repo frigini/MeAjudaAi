@@ -4,10 +4,12 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -38,18 +40,19 @@ public sealed class SubscriptionRenewedIntegrationEventHandler(
         }
 
         var userResult = await usersModuleApi.GetUserByIdAsync(integrationEvent.UserId, cancellationToken);
-        if (!userResult.IsSuccess)
+        if (!userResult.IsSuccess || userResult.Value == null)
         {
             logger.LogError("Failed to get user {UserId} for subscription {SubscriptionId}.", integrationEvent.UserId, integrationEvent.SubscriptionId);
-            return;
+            throw new Exception("Transient user lookup failure");
         }
 
+        var user = userResult.Value;
         var payload = serializer.Serialize(new
         {
-            To = userResult.Value!.Email,
+            To = user.Email,
             Subject = "Assinatura Renovada",
-            HtmlBody = $"<h1>Olá, {userResult.Value.FirstName}!</h1><p>Sua assinatura foi renovada.</p>",
-            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura foi renovada.",
+            HtmlBody = $"<h1>Olá, {user.FirstName}!</h1><p>Sua assinatura foi renovada.</p>",
+            TextBody = $"Olá, {user.FirstName}!\nSua assinatura foi renovada.",
             TemplateKey = TemplateKey
         });
 
@@ -71,6 +74,15 @@ public sealed class SubscriptionRenewedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
+                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+
+            if (processedException is UniqueConstraintException)
+            {
+                logger.LogInformation("Subscription renewed email already enqueued for {UserId} (correlationId: {CorrelationId}).", integrationEvent.UserId, correlationId);
+                return;
+            }
+
             logger.LogError(ex, "Failed to enqueue subscription renewed email for {UserId}.", integrationEvent.UserId);
             throw;
         }
