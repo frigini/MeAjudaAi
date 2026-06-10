@@ -160,7 +160,7 @@ public class DocumentRejectedIntegrationEventHandlerTests
             .ReturnsAsync(Result<ModuleProviderDto?>.Success(providerDto));
 
         // Simular exceção de duplicidade, disparando DbUpdateException processada pelo PostgreSqlExceptionProcessor
-        var innerException = new UniqueConstraintException("IX_outbox_messages_correlation_id", "correlation_id", new Exception());
+        var innerException = new UniqueConstraintException("ix_outbox_messages_correlation_id", "correlation_id", new Exception());
         var dbUpdateException = new Microsoft.EntityFrameworkCore.DbUpdateException("Database error", innerException);
         
         _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))

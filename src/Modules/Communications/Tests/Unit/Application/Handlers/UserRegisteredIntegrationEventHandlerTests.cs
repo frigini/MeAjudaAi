@@ -22,6 +22,9 @@ public class UserRegisteredIntegrationEventHandlerTests
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _loggerMock = new Mock<ILogger<UserRegisteredIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
+
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<It.IsAnyType>())).Returns("{}");
+
         _handler = new UserRegisteredIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,

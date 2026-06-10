@@ -83,9 +83,10 @@ public sealed class DocumentRejectedIntegrationEventHandler(
             if (ex is Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 var processedException = PostgreSqlExceptionProcessor.ProcessException(dbEx);
+            logger.LogWarning("Processed exception type: {Type}", processedException?.GetType().Name);
 
-                if (processedException is UniqueConstraintException || 
-                    dbEx.InnerException is UniqueConstraintException)
+            if (processedException is UniqueConstraintException { ConstraintName: OutboxMessageConstraints.CorrelationIdIndexName } || 
+                (dbEx.InnerException is UniqueConstraintException innerEx && innerEx.ConstraintName == OutboxMessageConstraints.CorrelationIdIndexName))
                 {
                     logger.LogInformation(
                         "Skipping document rejected notification for document {DocumentId} — already enqueued (correlationId: {CorrelationId}).",

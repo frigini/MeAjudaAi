@@ -361,6 +361,11 @@ public class CommunicationsModuleApiTests
         // Arrange
         var cts = new CancellationTokenSource();
         cts.Cancel();
+        
+        var healthCheckServiceMock = new Mock<HealthCheckService>();
+        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
 
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(() => _api.IsAvailableAsync(cts.Token));

@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Modules.Communications;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -13,8 +14,13 @@ public class GetCommunicationLogsEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet(ApiEndpoints.Communications.GetLogs, GetLogsAsync)
-           .Produces(StatusCodes.Status200OK)
+           .Produces<CommunicationLogDto[]>(StatusCodes.Status200OK)
            .ProducesProblem(StatusCodes.Status400BadRequest)
+           .ProducesProblem(StatusCodes.Status404NotFound)
+           .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+           .Produces(StatusCodes.Status401Unauthorized)
+           .Produces(StatusCodes.Status403Forbidden)
+           .ProducesProblem(StatusCodes.Status500InternalServerError)
            .WithTags(CommunicationsEndpoints.Tag)
            .WithName("GetCommunicationLogs")
            .WithSummary("Obtém logs de comunicação")
@@ -41,14 +47,12 @@ public class GetCommunicationLogsEndpoint : IEndpoint
         }
 
         var error = result.Error!;
-        return error.StatusCode switch
-        {
-            StatusCodes.Status404NotFound => Results.NotFound(error),
-            StatusCodes.Status400BadRequest => Results.BadRequest(error),
-            StatusCodes.Status401Unauthorized => Results.Unauthorized(),
-            StatusCodes.Status403Forbidden => Results.Forbid(),
-            StatusCodes.Status409Conflict => Results.Conflict(error),
-            _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
-        };
+        
+        // Preserve status code if within valid HTTP error range (400-599), else fallback to 500
+        var statusCode = (error.StatusCode >= 400 && error.StatusCode < 600) 
+            ? error.StatusCode 
+            : StatusCodes.Status500InternalServerError;
+
+        return Results.Problem(detail: error.Message, statusCode: statusCode);
     }
 }

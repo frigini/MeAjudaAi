@@ -165,11 +165,11 @@ public sealed class CommunicationsModuleApi(
         CancellationToken ct = default)
     {
         if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("A consulta não pode ser nula."));
-        // Validações agora são implícitas via PagedRequest ou podem ser mantidas, mas a chamada muda
+        if (query.PageNumber < 1 || query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Parâmetros de paginação inválidos."));
         
         var (items, totalCount) = await logQueries.SearchAsync(query, ct);
 
-        var dtos = items.Select(x => new CommunicationLogDto(
+        var dtos = (items ?? new List<CommunicationLog>()).Select(x => new CommunicationLogDto(
             x.Id,
             x.CorrelationId,
             x.Channel.ToString(),
