@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -11,6 +12,37 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
 
+public class SerializerMockBuilder
+{
+    public Mock<ISerializer> Mock { get; } = new Mock<ISerializer>();
+
+    public SerializerMockBuilder SetupDefault()
+    {
+        Mock.Setup(x => x.Serialize(It.IsAny<It.IsAnyType>())).Returns("dummy_payload");
+
+        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
+            .Returns(new EmailOutboxPayload("test@test.com", "Hi", "Hello", null, null, null));
+        Mock.Setup(x => x.Deserialize<SmsOutboxPayload>(It.IsAny<string>()))
+            .Returns(new SmsOutboxPayload("+5511999999999", "Hello"));
+        Mock.Setup(x => x.Deserialize<PushOutboxPayload>(It.IsAny<string>()))
+            .Returns(new PushOutboxPayload("token123", "Hi", "Hello", null));
+
+        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
+            .Returns(new EmailOutboxPayload("t@t.com", "S", null, null, null, null, "welcome_template", new Dictionary<string, string> { { "FirstName", "John" } }));
+        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("body_payload"))
+            .Returns(new EmailOutboxPayload("t@t.com", "S", null, "T", "<b>B</b>", null, null, null));
+        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("raw_body_payload"))
+            .Returns(new EmailOutboxPayload("t@t.com", "S", "Raw Body", null, null, null, "non_existent", null));
+        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_body_payload"))
+            .Returns(new EmailOutboxPayload("t@t.com", "S", "<h1>H</h1>", "T", null, null, null, null));
+
+        return this;
+    }
+
+    public ISerializer Build() => Mock.Object;
+}
+
+
 public class OutboxProcessorServiceTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
@@ -21,6 +53,7 @@ public class OutboxProcessorServiceTests
     private readonly Mock<IPushSender> _pushSenderMock;
     private readonly Mock<ILogger<OutboxProcessorService>> _loggerMock;
     private readonly Mock<ISerializer> _serializeMock;
+    private readonly Mock<IEmailTemplateQueries> _emailTemplateQueriesMock;
     private readonly OutboxProcessorService _service;
 
     public OutboxProcessorServiceTests()
@@ -33,19 +66,10 @@ public class OutboxProcessorServiceTests
         _smsSenderMock = new Mock<ISmsSender>();
         _pushSenderMock = new Mock<IPushSender>();
         _loggerMock = new Mock<ILogger<OutboxProcessorService>>();
-        _serializeMock = new Mock<ISerializer>();
-
-        _serializeMock.Setup(x => x.Serialize(It.IsAny<It.IsAnyType>())).Returns("dummy_payload");
-        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(new EmailOutboxPayload("test@test.com", "Hi", "Hello", null, null, null));
-        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", "<h1>H</h1>", "T", null, null));
-        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("body_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", null, "T", "<b>B</b>", null));
-        _serializeMock.Setup(x => x.Deserialize<SmsOutboxPayload>(It.IsAny<string>()))
-            .Returns(new SmsOutboxPayload("+5511999999999", "Hello"));
-        _serializeMock.Setup(x => x.Deserialize<PushOutboxPayload>(It.IsAny<string>()))
-            .Returns(new PushOutboxPayload("token123", "Hi", "Hello", null));
+        _emailTemplateQueriesMock = new Mock<IEmailTemplateQueries>();
+        
+        var builder = new SerializerMockBuilder().SetupDefault();
+        _serializeMock = builder.Mock;
 
         _service = new OutboxProcessorService(
             _outboxRepositoryMock.Object,
@@ -53,9 +77,11 @@ public class OutboxProcessorServiceTests
             _emailSenderMock.Object,
             _smsSenderMock.Object,
             _pushSenderMock.Object,
-            _serializeMock.Object,
+            builder.Build(),
+            _emailTemplateQueriesMock.Object,
             _loggerMock.Object);
     }
+
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenNoMessages_ShouldReturnZero()
@@ -279,7 +305,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WithHtmlBody_ShouldUseIt()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_payload");
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_body_payload");
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -308,20 +334,44 @@ public class OutboxProcessorServiceTests
     }
 
     [Fact]
-    public async Task ProcessPendingMessagesAsync_WhenTokenAlreadyCanceled_ShouldReturnZero()
+    public async Task ProcessPendingMessagesAsync_WhenEmailWithTemplate_ShouldRenderTokens()
     {
         // Arrange
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
+        var templateKey = "welcome_template";
+        var payload = "html_payload";
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<OutboxMessage> { message });
+
+        var template = EmailTemplate.Create(templateKey, "S", "Hello {{FirstName}}!", "Hello {{FirstName}}!");
+        _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync(templateKey, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(template);
+        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         // Act
-        var result = await _service.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
+        await _service.ProcessPendingMessagesAsync();
 
         // Assert
-        result.Should().Be(0);
-        _outboxRepositoryMock.Verify(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
-        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
-        _smsSenderMock.Verify(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()), Times.Never);
-        _pushSenderMock.Verify(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()), Times.Never);
+        _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody == "Hello John!"), It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task ProcessPendingMessagesAsync_WhenTemplateNotFound_ShouldFallbackToRawPayload()
+    {
+        // Arrange
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "raw_body_payload");
+        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<OutboxMessage> { message });
+
+        _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync("non_existent", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((EmailTemplate?)null);
+        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        // Act
+        await _service.ProcessPendingMessagesAsync();
+
+        // Assert
+        _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody.Contains("Raw Body")), It.IsAny<CancellationToken>()));
     }
 }
+

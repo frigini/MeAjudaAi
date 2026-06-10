@@ -84,7 +84,7 @@ public sealed class CommunicationsModuleApi(
         {
             // Teste básico: verificar se existem templates (operação leve de banco)
             var templates = await _templateQueries.GetAllAsync(cancellationToken);
-            return templates.Count >= 0;
+            return templates.Count > 0;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -124,7 +124,8 @@ public sealed class CommunicationsModuleApi(
             x.HtmlBody,
             x.TextBody,
             x.IsSystemTemplate,
-            x.Language)).ToList();
+            x.Language,
+            x.Version)).ToList();
 
         return Result<IReadOnlyList<EmailTemplateDto>>.Success(dtos);
     }

@@ -10,5 +10,6 @@ public sealed record EmailTemplateDto(
     string HtmlBody,
     string TextBody,
     bool IsSystemTemplate,
-    string Language
+    string Language,
+    int Version
 );

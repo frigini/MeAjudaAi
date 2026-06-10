@@ -1,14 +1,15 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
+using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
-using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
@@ -22,6 +23,7 @@ public sealed class OutboxProcessorService(
     ISmsSender smsSender,
     IPushSender pushSender,
     [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
+    IEmailTemplateQueries templateQueries,
     ILogger<OutboxProcessorService> logger) 
     : OutboxProcessorBase<OutboxMessage>(outboxRepository, logger), IOutboxProcessorService
 {
@@ -131,12 +133,45 @@ public sealed class OutboxProcessorService(
         var email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
             ?? throw new InvalidOperationException("Invalid email payload.");
 
-        var htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
-        var textBody = email.TextBody ?? email.Body ?? string.Empty;
+        string htmlBody;
+        string textBody;
+
+        if (!string.IsNullOrWhiteSpace(email.TemplateKey))
+        {
+            var template = await templateQueries.GetActiveByKeyAsync(email.TemplateKey, cancellationToken: cancellationToken);
+            if (template != null)
+            {
+                htmlBody = RenderTemplate(template.HtmlBody, email.TemplateData);
+                textBody = RenderTemplate(template.TextBody, email.TemplateData);
+            }
+            else
+            {
+                logger.LogWarning("Template {TemplateKey} not found for outbox message {Id}.", email.TemplateKey, message.Id);
+                htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
+                textBody = email.TextBody ?? email.Body ?? string.Empty;
+            }
+        }
+        else
+        {
+            htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
+            textBody = email.TextBody ?? email.Body ?? string.Empty;
+        }
 
         return await emailSender.SendAsync(
             new EmailMessage(email.To, email.Subject, htmlBody, textBody, email.From),
             cancellationToken);
+    }
+
+    private static string RenderTemplate(string template, IDictionary<string, string>? data)
+    {
+        if (data == null || data.Count == 0) return template;
+        
+        var result = template;
+        foreach (var entry in data)
+        {
+            result = result.Replace($"{{{{{entry.Key}}}}}", entry.Value);
+        }
+        return result;
     }
 
     private async Task<bool> DispatchSmsAsync(OutboxMessage message, CancellationToken cancellationToken)

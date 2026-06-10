@@ -293,7 +293,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         _serviceProviderMock.Setup(static x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { EmailTemplate.Create("t", "s", "h", "t") });
 
         // Act
         var result = await _api.IsAvailableAsync();
@@ -311,7 +311,7 @@ public class CommunicationsModuleApiTests
             .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Healthy, TimeSpan.Zero));
 
         _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { EmailTemplate.Create("t", "s", "h", "t") });
 
         // Act
         var result = await _api.IsAvailableAsync();

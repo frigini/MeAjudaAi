@@ -50,6 +50,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
     {
         return await dbContext.EmailTemplates
             .AsNoTracking()
+            .Where(x => x.IsActive)
             .OrderBy(x => x.TemplateKey)
             .ThenBy(x => x.Language)
             .ToListAsync(cancellationToken);
