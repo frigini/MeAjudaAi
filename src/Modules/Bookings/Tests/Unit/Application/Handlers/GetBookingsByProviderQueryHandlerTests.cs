@@ -1,5 +1,6 @@
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -51,8 +52,8 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().HaveCount(2);
-        result.Value.Items.Should().AllSatisfy(b => b.ProviderId.Should().Be(providerId));
+        result.Value!.Items.Should().HaveCount(2);
+        result.Value!.Items.Should().AllSatisfy(b => b.ProviderId.Should().Be(providerId));
     }
 
     [Fact]
@@ -71,7 +72,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().BeEmpty();
+        result.Value!.Items.Should().BeEmpty();
     }
 
     [Fact]
@@ -137,7 +138,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var dto = result.Value?.Items.First();
+        var dto = result.Value!.Items.First();
         
         dto.Should().NotBeNull();
         dto!.Start.Hour.Should().Be(10);
@@ -168,6 +169,6 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().NotBeEmpty();
+        result.Value!.Items.Should().NotBeEmpty();
     }
 }

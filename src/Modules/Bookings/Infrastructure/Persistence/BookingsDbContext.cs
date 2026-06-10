@@ -3,7 +3,7 @@ using System.Reflection;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Events; 
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
@@ -66,6 +66,3 @@ public partial class BookingsDbContext : BaseDbContext, IUnitOfWork
         }
     }
 }
-
-
-

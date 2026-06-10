@@ -1,12 +1,12 @@
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Communications.Application.Services;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Communications;
 

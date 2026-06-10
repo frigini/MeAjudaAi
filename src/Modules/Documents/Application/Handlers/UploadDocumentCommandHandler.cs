@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -17,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MeAjudaAi.Contracts.Enums;
 
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;

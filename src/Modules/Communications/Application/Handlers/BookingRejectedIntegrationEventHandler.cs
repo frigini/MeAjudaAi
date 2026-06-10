@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -9,6 +8,7 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Users;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 

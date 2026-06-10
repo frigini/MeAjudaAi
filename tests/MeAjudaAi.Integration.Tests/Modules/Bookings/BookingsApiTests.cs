@@ -4,7 +4,7 @@ using FluentAssertions;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -13,6 +13,7 @@ using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Bookings;
 
@@ -73,17 +74,17 @@ public class BookingsApiTests : BaseApiTest
     public async Task SetProviderSchedule_ShouldReturnNoContent_WhenRequestIsValid()
     {
         var providerId = await CreateTestProviderAsync();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var availabilities = new[]
         {
-            new ProviderScheduleDto(
+            new AvailabilityDto(
                 DayOfWeek.Monday,
-                new[] { 
-                    new TimeSlotDto(new TimeOnly(8, 0), new TimeOnly(12, 0)), 
-                    new TimeSlotDto(new TimeOnly(13, 0), new TimeOnly(17, 0)) 
+                new List<AvailableSlotDto> {
+                    new(new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(8, 0)), TimeSpan.Zero), new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(12, 0)), TimeSpan.Zero)),
+                    new(new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(13, 0)), TimeSpan.Zero), new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(17, 0)), TimeSpan.Zero))
                 })
         };
         var request = new SetProviderScheduleRequest(providerId, availabilities);
-
         AuthConfig.ConfigureProvider(providerId, Guid.NewGuid().ToString());
 
         var response = await Client.PostAsJsonAsync("/api/v1/bookings/schedule", request);

@@ -5,7 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 
-public class PaymentTransaction : BaseEntity
+public sealed class PaymentTransaction
+ : BaseEntity
 {
     private PaymentTransaction() { }
 

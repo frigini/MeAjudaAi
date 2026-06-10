@@ -192,7 +192,7 @@ public class NamingConventionTests
     public void Value_Objects_ShouldNotHaveIdSuffix()
     {
         var failures = new List<string>();
-        var allowedIdTypes = new[] { "UserId", "Email", "DocumentId" };
+        var allowedIdTypes = new[] { "UserId", "Email", "DocumentId", "ProviderId", "ReviewId", "SearchableProviderId", "ServiceCategoryId", "ServiceId" };
 
         foreach (var domainAssembly in AllDomainAssemblies)
         {

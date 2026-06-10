@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Communications.Domain.Enums;
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Domain.Entities;
 

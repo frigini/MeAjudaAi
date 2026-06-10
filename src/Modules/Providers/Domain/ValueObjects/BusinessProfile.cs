@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// Perfil empresarial do prestador de serviços.
 /// Encapsula informações de identidade empresarial e contato primário.
 /// </summary>
-public class BusinessProfile : ValueObject
+public sealed class BusinessProfile : ValueObject
 {
     public string LegalName { get; private set; }
     public string? FantasyName { get; private set; }

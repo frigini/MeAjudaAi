@@ -1,7 +1,7 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Application.Validators;
 
@@ -17,10 +17,10 @@ public class GetProvidersRequestValidator : AbstractValidator<GetProvidersReques
             .WithMessage("Número da página deve ser maior que 0");
 
         RuleFor(x => x.PageSize)
-            .GreaterThanOrEqualTo(ValidationConstants.Pagination.MinPageSize)
-            .WithMessage($"Tamanho da página deve ser pelo menos {ValidationConstants.Pagination.MinPageSize}")
-            .LessThanOrEqualTo(ValidationConstants.Pagination.MaxPageSize)
-            .WithMessage($"Tamanho da página não pode ser maior que {ValidationConstants.Pagination.MaxPageSize}");
+            .GreaterThanOrEqualTo(Pagination.MinPageSize)
+            .WithMessage($"Tamanho da página deve ser pelo menos {Pagination.MinPageSize}")
+            .LessThanOrEqualTo(Pagination.MaxPageSize)
+            .WithMessage($"Tamanho da página não pode ser maior que {Pagination.MaxPageSize}");
 
         When(x => !string.IsNullOrWhiteSpace(x.Name), () =>
         {

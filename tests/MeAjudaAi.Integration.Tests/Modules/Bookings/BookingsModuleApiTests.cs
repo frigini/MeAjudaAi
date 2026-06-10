@@ -1,5 +1,7 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -32,18 +34,18 @@ public class BookingsModuleApiTests : BaseApiTest
             await bookingsDb.SaveChangesAsync();
         }
 
+        // Act
+        var result = default(Result<BookingDto>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
-            
-            // Act
-            var result = await bookingsApi.GetBookingByIdAsync(bookingId);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().NotBeNull();
-            result.Value!.Id.Should().Be(bookingId);
+            result = await bookingsApi.GetBookingByIdAsync(bookingId);
         }
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(bookingId);
     }
 
     [Fact]
@@ -52,17 +54,17 @@ public class BookingsModuleApiTests : BaseApiTest
         // Arrange
         var bookingId = Guid.NewGuid();
 
+        // Act
+        var result = default(Result<BookingDto>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
-            
-            // Act
-            var result = await bookingsApi.GetBookingByIdAsync(bookingId);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeNull();
+            result = await bookingsApi.GetBookingByIdAsync(bookingId);
         }
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     [Fact]
@@ -82,21 +84,22 @@ public class BookingsModuleApiTests : BaseApiTest
             await bookingsDb.SaveChangesAsync();
         }
 
+        // Act
+        var result = default(Result<IReadOnlyList<BookingDto>>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
             
-            // Act
             var start = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
             var end = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
-            var result = await bookingsApi.GetProviderBookingsAsync(providerId, start, end);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().HaveCount(1);
-            result.Value[0].ProviderId.Should().Be(providerId);
-            result.Value[0].Status.Should().Be(EBookingStatus.Confirmed);
+            result = await bookingsApi.GetProviderBookingsAsync(providerId, start, end);
         }
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
+        result.Value![0].ProviderId.Should().Be(providerId);
+        result.Value![0].Status.Should().Be(EBookingStatus.Confirmed);
     }
 
     [Fact]
@@ -116,17 +119,17 @@ public class BookingsModuleApiTests : BaseApiTest
             await bookingsDb.SaveChangesAsync();
         }
 
+        // Act
+        var result = default(Result<bool>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
-            
-            // Act
-            var result = await bookingsApi.HasCompletedBookingAsync(clientId, providerId);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeTrue();
+            result = await bookingsApi.HasCompletedBookingAsync(clientId, providerId);
         }
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
     }
 
     [Fact]
@@ -150,17 +153,17 @@ public class BookingsModuleApiTests : BaseApiTest
             await bookingsDb.SaveChangesAsync();
         }
 
+        // Act
+        var result = default(Result<bool>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
-            
-            // Act
-            var result = await bookingsApi.HasCompletedBookingAsync(clientId, providerId);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeFalse();
+            result = await bookingsApi.HasCompletedBookingAsync(clientId, providerId);
         }
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
     }
 
     [Fact]
@@ -184,18 +187,19 @@ public class BookingsModuleApiTests : BaseApiTest
             await bookingsDb.SaveChangesAsync();
         }
 
+        // Act
+        var result = default(Result<IReadOnlyList<BookingDto>>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
             
-            // Act
             var start = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
             var end = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
-            var result = await bookingsApi.GetProviderBookingsAsync(providerId, start, end);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().HaveCount(bookingsCount);
+            result = await bookingsApi.GetProviderBookingsAsync(providerId, start, end);
         }
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(bookingsCount);
     }
 }

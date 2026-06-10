@@ -1,21 +1,20 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
-using MeAjudaAi.Modules.Bookings.Application.Common;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Contracts.Modules.Bookings;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Events;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-
-using MeAjudaAi.Contracts.Modules.Bookings;
-using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 
 namespace MeAjudaAi.Modules.Bookings.Application;
 
@@ -25,6 +24,7 @@ public static class Extensions
     {
         services.AddScoped<IBookingsModuleApi, BookingsModuleApi>();
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
+
         // Comandos
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();
         services.AddScoped<ICommandHandler<SetProviderScheduleCommand, Result>, SetProviderScheduleCommandHandler>();
@@ -41,7 +41,7 @@ public static class Extensions
 
         services.AddScoped<ProviderAuthorizationResolver>();
 
-        // Event Handlers (SSE Realtime)
+        // Manipuladores de Eventos (SSE Realtime)
         services.AddScoped<BookingRealtimeEventsHandler>();
         services.AddScoped<IEventHandler<BookingCreatedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
         services.AddScoped<IEventHandler<BookingConfirmedDomainEvent>>(sp => sp.GetRequiredService<BookingRealtimeEventsHandler>());
@@ -52,4 +52,3 @@ public static class Extensions
         return services;
     }
 }
-

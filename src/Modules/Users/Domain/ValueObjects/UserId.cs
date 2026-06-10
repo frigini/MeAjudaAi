@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 /// <summary>
 /// Id do usuário.
 /// </summary>
-public class UserId : ValueObject
+public sealed class UserId : ValueObject
 {
     public Guid Value { get; }
 

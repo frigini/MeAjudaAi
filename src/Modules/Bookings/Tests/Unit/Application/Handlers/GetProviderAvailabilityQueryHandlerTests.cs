@@ -1,5 +1,6 @@
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_ReturnAvailableSlots_When_NoBookingsExist()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
@@ -41,10 +43,12 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking>());
 
+        // Act
         var result = await _sut.HandleAsync(query);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Slots.Should().HaveCount(1);
+        result.Value!.Slots.Should().HaveCount(1);
         
         var returnedSlot = result.Value.Slots.First();
         returnedSlot.Start.Offset.Should().Be(TimeSpan.Zero);
@@ -56,6 +60,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_FilterOut_BookedSlots()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
@@ -72,10 +77,12 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { existingBooking });
 
+        // Act
         var result = await _sut.HandleAsync(query);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Slots.Should().HaveCount(2);
+        result.Value!.Slots.Should().HaveCount(2);
         var slots = result.Value.Slots.ToList();
         
         slots[0].Start.Offset.Should().Be(TimeSpan.Zero);
@@ -90,6 +97,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Handle_NullSchedule()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
@@ -97,8 +105,10 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
+        // Act
         var result = await _sut.HandleAsync(query);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(404);
     }
@@ -106,6 +116,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_ReturnNoSlots_When_BookingCoversEntireSlot()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
@@ -124,15 +135,18 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { existingBooking });
 
+        // Act
         var result = await _sut.HandleAsync(query);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Slots.Should().BeEmpty();
+        result.Value!.Slots.Should().BeEmpty();
     }
 
     [Fact]
     public async Task HandleAsync_Should_Ignore_BookingsOnDifferentDate()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
@@ -154,9 +168,11 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingQueriesMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == otherDate), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { bookingOnOtherDate });
 
+        // Act
         var result = await _sut.HandleAsync(query);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Slots.Should().HaveCount(1);
+        result.Value!.Slots.Should().HaveCount(1);
     }
 }

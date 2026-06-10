@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
@@ -31,6 +31,8 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         // Centraliza autenticação como admin no início do teste
         AuthenticateAsAdmin();
 
+        var baseUtcNow = DateTime.UtcNow;
+
         // 1. Criar um prestador feito com um providerId gerado
         var providerIdClaim = await CreateTestProviderAsync();
 
@@ -43,9 +45,19 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         // 2. Definir agenda para o prestador
         // Usar lógica de timezone para derivar datas
         var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-        var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(baseUtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
         int dayOfWeek = (int)localTomorrow.DayOfWeek;
+
+        var start1Time = localTomorrow.AddHours(10);
+        var end1Time = localTomorrow.AddHours(11);
+        var start2Time = localTomorrow.AddHours(14);
+        var end2Time = localTomorrow.AddHours(15);
+        
+        var start1 = new DateTimeOffset(start1Time, tz.GetUtcOffset(start1Time));
+        var end1 = new DateTimeOffset(end1Time, tz.GetUtcOffset(end1Time));
+        var start2 = new DateTimeOffset(start2Time, tz.GetUtcOffset(start2Time));
+        var end2 = new DateTimeOffset(end2Time, tz.GetUtcOffset(end2Time));
         
         var scheduleRequest = new
         {
@@ -57,12 +69,14 @@ public class BookingsEndToEndTests : BaseTestContainerTest
                     dayOfWeek = dayOfWeek,
                     slots = new[]
                     {
-                        new { start = "10:00:00", end = "11:00:00" },
-                        new { start = "14:00:00", end = "15:00:00" }
+                        new { start = start1.ToString("O"), end = end1.ToString("O") },
+                        new { start = start2.ToString("O"), end = end2.ToString("O") }
                     }
                 }
             }
         };
+
+
 
         // Envia como admin ou provider (Admin pode setar p/ qq um pelo request body, Provider baseia no claim)
         var scheduleResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);

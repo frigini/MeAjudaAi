@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 /// <summary>
 /// Perfil do usuário.
 /// </summary>
-public class UserProfile : ValueObject
+public sealed class UserProfile : ValueObject
 {
     public string FirstName { get; }
     public string LastName { get; }

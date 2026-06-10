@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Contracts.Modules.Communications;
 

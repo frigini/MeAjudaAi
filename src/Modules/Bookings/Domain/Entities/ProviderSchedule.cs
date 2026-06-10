@@ -3,6 +3,9 @@ using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
 
+/// <summary>
+/// Define a grade de horários de disponibilidade de um prestador.
+/// </summary>
 public sealed class ProviderSchedule : BaseEntity
 {
     private readonly List<Availability> _availabilities = [];
@@ -34,7 +37,7 @@ public sealed class ProviderSchedule : BaseEntity
         MarkAsUpdated();
     }
 
-    private void ValidateTimeZoneId(string timeZoneId)
+    private static void ValidateTimeZoneId(string timeZoneId)
     {
         try
         {

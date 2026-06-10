@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 /// <summary>
 /// Número de telefone.
 /// </summary>
-public class PhoneNumber : ValueObject
+public sealed class PhoneNumber : ValueObject
 {
     public string Value { get; private set; } = string.Empty;
     public string CountryCode { get; private set; } = "BR";

@@ -1,4 +1,4 @@
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;

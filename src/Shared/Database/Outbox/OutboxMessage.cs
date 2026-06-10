@@ -1,5 +1,5 @@
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Shared.Database.Outbox;
 

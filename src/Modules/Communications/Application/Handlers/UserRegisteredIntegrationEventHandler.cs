@@ -4,9 +4,9 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
-using MeAjudaAi.Contracts.Shared;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 

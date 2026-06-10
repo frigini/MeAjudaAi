@@ -1,5 +1,6 @@
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
-using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -49,8 +50,8 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().HaveCount(2);
-        result.Value.Items.Should().AllSatisfy(b => b.ClientId.Should().Be(clientId));
+        result.Value!.Items.Should().HaveCount(2);
+        result.Value!.Items.Should().AllSatisfy(b => b.ClientId.Should().Be(clientId));
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().BeEmpty();
+        result.Value!.Items.Should().BeEmpty();
     }
 
     [Fact]
@@ -88,9 +89,9 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.PageNumber.Should().Be(2);
-        result.Value.PageSize.Should().Be(5);
-        result.Value.TotalItems.Should().Be(15);
+        result.Value!.PageNumber.Should().Be(2);
+        result.Value!.PageSize.Should().Be(5);
+        result.Value!.TotalItems.Should().Be(15);
     }
 
     [Fact]

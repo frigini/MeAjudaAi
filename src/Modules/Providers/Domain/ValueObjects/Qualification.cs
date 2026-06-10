@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// 2. É uma propriedade de conveniência calculada, não parte do modelo de domínio
 /// 3. Para lógica de negócio crítica, use métodos de domínio que recebem a data como parâmetro
 /// </summary>
-public class Qualification : ValueObject
+public sealed class Qualification : ValueObject
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }

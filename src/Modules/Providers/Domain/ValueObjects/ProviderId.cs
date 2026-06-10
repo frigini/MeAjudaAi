@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// <summary>
 /// Identificador único do prestador de serviços.
 /// </summary>
-public class ProviderId : ValueObject
+public sealed class ProviderId : ValueObject
 {
     public Guid Value { get; }
 

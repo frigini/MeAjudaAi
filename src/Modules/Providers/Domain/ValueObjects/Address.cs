@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// <summary>
 /// Endereço do prestador de serviços.
 /// </summary>
-public class Address : ValueObject
+public sealed class Address : ValueObject
 {
     public string Street { get; private set; }
     public string Number { get; private set; }

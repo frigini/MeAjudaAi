@@ -1,6 +1,6 @@
 namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 
-public class InboxMessage
+public sealed class InboxMessage
 {
     public Guid Id { get; private set; }
     public string? ExternalEventId { get; private set; }

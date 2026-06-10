@@ -3,9 +3,6 @@ using MeAjudaAi.Modules.Bookings.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Events.Handlers;
 
@@ -23,11 +20,14 @@ public class BookingCreatedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_WhenCalled_ShouldPublishIntegrationEvent()
     {
+        // Arrange
         var domainEvent = new BookingCreatedDomainEvent(
             Guid.NewGuid(), 1, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.Today));
 
+        // Act
         await _handler.HandleAsync(domainEvent);
 
+        // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(It.IsAny<BookingCreatedIntegrationEvent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -36,6 +36,7 @@ public class BookingCreatedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_WhenPublishFails_ShouldRethrowException()
     {
+        // Arrange
         var domainEvent = new BookingCreatedDomainEvent(
             Guid.NewGuid(), 1, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.Today));
         
@@ -43,8 +44,10 @@ public class BookingCreatedDomainEventHandlerTests
             .Setup(x => x.PublishAsync(It.IsAny<BookingCreatedIntegrationEvent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Bus unavailable"));
 
+        // Act
         Func<Task> act = () => _handler.HandleAsync(domainEvent);
 
+        // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Bus unavailable");
     }
 }

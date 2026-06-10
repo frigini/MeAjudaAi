@@ -10,8 +10,9 @@ public class SystemTextJsonSerializerTests
 
     public SystemTextJsonSerializerTests()
     {
-        _sut = new SystemTextJsonSerializer();
+        _sut = new SystemTextJsonSerializer(SerializationDefaults.Default);
     }
+
 
     [Fact]
     public void RoundTrip_ShouldSerializeAndDeserializeCorrectly()

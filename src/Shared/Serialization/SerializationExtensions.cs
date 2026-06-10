@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -22,6 +24,10 @@ public static class SerializationExtensions
                 options.SerializerOptions.Converters.Add(converter);
             }
         });
+
+        // Registro de ISerializer como Keyed Services
+        services.AddKeyedScoped<ISerializer>(SerializationKeys.Default, (_, _) => new SystemTextJsonSerializer(SerializationDefaults.Default));
+        services.AddKeyedScoped<ISerializer>(SerializationKeys.Api, (_, _) => new SystemTextJsonSerializer(SerializationDefaults.Api));
 
         return services;
     }

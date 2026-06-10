@@ -214,7 +214,47 @@ Error: Container failed to start within timeout
 2. Reduzir número de dados criados
 3. Usar `InlineData` para testes parametrizados
 
-## Estrutura de Testes
+## Testes Unitários com InMemoryDatabase
+
+Para testes unitários que não exigem a infraestrutura completa do PostgreSQL (ex: testes de lógica de negócio em Handlers, Query Handlers ou Services), utilizamos `InMemoryDatabase`.
+
+### BaseInMemoryDatabaseTest
+
+Para reduzir o boilerplate, utilizamos a classe base `BaseInMemoryDatabaseTest<TDbContext>`. Ela automatiza a configuração do `DbContextOptions` e garante a limpeza dos recursos ao final de cada teste.
+
+#### Como usar
+
+Herde sua classe de teste de `BaseInMemoryDatabaseTest<TDbContext>` e chame o construtor base passando a factory do contexto:
+
+```csharp
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+
+public class MeuTesteUnitario : BaseInMemoryDatabaseTest<MeuDbContext>
+{
+    public MeuTesteUnitario() : base(options => new MeuDbContext(options))
+    {
+    }
+
+    [Fact]
+    public async Task TesteExemplo()
+    {
+        // 'DbContext' já está disponível e configurado
+        DbContext.MinhasEntidades.Add(new Entidade());
+        await DbContext.SaveChangesAsync();
+    }
+}
+```
+
+### Quando usar
+
+| Estratégia | Cenário | Vantagens |
+| :--- | :--- | :--- |
+| **InMemoryDatabase** | Testes Unitários de Lógica de Negócio, Handlers, Services | Rápido, determinístico, sem Docker |
+| **BaseDatabaseTest** (Postgres) | Testes de Integração, Repositories, Queries complexas | Validação de SQL real, Transações, Constraints |
+
+### Dicas de Implementação
+- **Isolamento**: O `InMemoryDatabase` usa `Guid.NewGuid().ToString()` para garantir que cada classe de teste (ou instância de teste) tenha seu próprio banco isolado.
+- **Transações**: O EF Core `InMemory` não suporta transações. A `BaseInMemoryDatabaseTest` já está configurada para ignorar o warning `InMemoryEventId.TransactionIgnoredWarning`.
 
 ```text
 tests/MeAjudaAi.E2E.Tests/

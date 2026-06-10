@@ -28,7 +28,6 @@ public class BookingTests : BaseUnitTest
         booking.ServiceId.Should().Be(serviceId);
         booking.Date.Should().Be(date);
         booking.TimeSlot.Should().Be(timeSlot);
-
         booking.DomainEvents.Should().ContainSingle(e => e is BookingCreatedDomainEvent);
     }
 
