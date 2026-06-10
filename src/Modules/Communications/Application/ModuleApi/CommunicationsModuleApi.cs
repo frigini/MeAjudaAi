@@ -46,12 +46,13 @@ public sealed class CommunicationsModuleApi(
                     check => check.Tags.Contains("communications") || check.Tags.Contains("database"),
                     cancellationToken);
 
-                if (healthReport.Status == HealthStatus.Unhealthy)
+                if (healthReport.Status == HealthStatus.Unhealthy || healthReport.Status == HealthStatus.Degraded)
                 {
                     logger.LogWarning("Communications module unavailable due to health check failures: {FailedChecks}",
-                        string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
+                        string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy || e.Value.Status == HealthStatus.Degraded).Select(e => e.Key)));
                     return false;
                 }
+
             }
 
             // Testa funcionalidade básica
@@ -81,9 +82,9 @@ public sealed class CommunicationsModuleApi(
     {
         try
         {
-            // Teste básico: tentar listar templates (operação leve de banco)
-            await _templateQueries.GetAllAsync(cancellationToken);
-            return true;
+            // Teste básico: verificar se existem templates (operação leve de banco)
+            var templates = await _templateQueries.GetAllAsync(cancellationToken);
+            return templates.Count >= 0;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

@@ -32,6 +32,8 @@ public class BookingCreatedIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<BookingCreatedIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new BookingCreatedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
@@ -107,4 +109,3 @@ public class BookingCreatedIntegrationEventHandlerTests
         _loggerMock.Verify(x => x.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.AtLeastOnce);
     }
 }
-

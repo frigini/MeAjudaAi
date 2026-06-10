@@ -3,6 +3,7 @@ using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Serialization;
@@ -87,10 +88,10 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
-            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
                 ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
 
-            if ((processedException is Shared.Database.Exceptions.UniqueConstraintException))
+            if (processedException is UniqueConstraintException)
             {
                 logger.LogInformation(
                     "Skipping verification status update for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",

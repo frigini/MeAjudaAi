@@ -10,14 +10,21 @@ namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 
 public class UserProfileUpdatedIntegrationEventHandlerTests
 {
-    private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock = new();
-    private readonly Mock<ICommunicationLogQueries> _logQueriesMock = new();
-    private readonly Mock<ILogger<UserProfileUpdatedIntegrationEventHandler>> _loggerMock = new();
-    private readonly Mock<ISerializer> _serializerMock = new();
+    private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
+    private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
+    private readonly Mock<ILogger<UserProfileUpdatedIntegrationEventHandler>> _loggerMock;
+    private readonly Mock<ISerializer> _serializerMock;
     private readonly UserProfileUpdatedIntegrationEventHandler _handler;
 
     public UserProfileUpdatedIntegrationEventHandlerTests()
     {
+        _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
+        _logQueriesMock = new Mock<ICommunicationLogQueries>();
+        _loggerMock = new Mock<ILogger<UserProfileUpdatedIntegrationEventHandler>>();
+        _serializerMock = new Mock<ISerializer>();
+
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new UserProfileUpdatedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
@@ -78,4 +85,3 @@ public class UserProfileUpdatedIntegrationEventHandlerTests
         await act.Should().ThrowAsync<Exception>().WithMessage("Database error");
     }
 }
-

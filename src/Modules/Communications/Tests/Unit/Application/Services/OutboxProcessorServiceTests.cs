@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -7,7 +8,6 @@ using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
 
@@ -34,6 +34,18 @@ public class OutboxProcessorServiceTests
         _pushSenderMock = new Mock<IPushSender>();
         _loggerMock = new Mock<ILogger<OutboxProcessorService>>();
         _serializeMock = new Mock<ISerializer>();
+
+        _serializeMock.Setup(x => x.Serialize(It.IsAny<It.IsAnyType>())).Returns("dummy_payload");
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
+            .Returns(new EmailOutboxPayload("test@test.com", "Hi", "Hello", null, null, null));
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
+            .Returns(new EmailOutboxPayload("t@t.com", "S", "<h1>H</h1>", "T", null, null));
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("body_payload"))
+            .Returns(new EmailOutboxPayload("t@t.com", "S", null, "T", "<b>B</b>", null));
+        _serializeMock.Setup(x => x.Deserialize<SmsOutboxPayload>(It.IsAny<string>()))
+            .Returns(new SmsOutboxPayload("+5511999999999", "Hello"));
+        _serializeMock.Setup(x => x.Deserialize<PushOutboxPayload>(It.IsAny<string>()))
+            .Returns(new PushOutboxPayload("token123", "Hi", "Hello", null));
 
         _service = new OutboxProcessorService(
             _outboxRepositoryMock.Object,
@@ -64,9 +76,9 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenEmailSuccess_ShouldMarkAsSentAndLog()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
+        var payload = "serialized-email-payload";
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
-        
+
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
 
@@ -84,11 +96,12 @@ public class OutboxProcessorServiceTests
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenDispatchFails_ShouldMarkAsFailedAndRetryLater()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
+        var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 3);
 
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
@@ -110,7 +123,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenMaxRetriesReached_ShouldMarkAsFailedAndLog()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
+        var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
 
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
@@ -133,7 +146,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenOperationCanceledDuringDispatch_ShouldReturnZeroAndStayPending()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
+        var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
         var cts = new CancellationTokenSource();
 
@@ -193,7 +206,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenSmsSuccess_ShouldMarkAsSentAndLog()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { PhoneNumber = "+5511999999999", Body = "Hello" });
+        var payload = _serializeMock.Object.Serialize(new { PhoneNumber = "+5511999999999", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Sms, payload);
         
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
@@ -217,7 +230,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenPushSuccess_ShouldMarkAsSentAndLog()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { DeviceToken = "token123", Title = "Hi", Body = "Hello" });
+        var payload = _serializeMock.Object.Serialize(new { DeviceToken = "token123", Title = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Push, payload);
         
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
@@ -241,7 +254,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenExceptionInDispatch_ShouldFailAndLog()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
+        var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         // Usar maxRetries: 1 para que a falha atinja o limite e gere o log
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
 
@@ -266,8 +279,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WithHtmlBody_ShouldUseIt()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "t@t.com", Subject = "S", HtmlBody = "<h1>H</h1>", TextBody = "T" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_payload");
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -283,8 +295,7 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldHtmlEncodeIt()
     {
         // Arrange
-        var payload = JsonSerializer.Serialize(new { To = "t@t.com", Subject = "S", Body = "<b>B</b>" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "body_payload");
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -314,6 +325,3 @@ public class OutboxProcessorServiceTests
         _pushSenderMock.Verify(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
-
-
-

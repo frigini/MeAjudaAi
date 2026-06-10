@@ -28,11 +28,11 @@ public abstract class BaseInMemoryDatabaseTest<TDbContext> : IDisposable where T
 
         if (disposing)
         {
-            // dispose managed resources
+            // liberar recursos gerenciados
             DbContext?.Dispose();
         }
 
-        // no unmanaged resources to release
+        // sem recursos não gerenciados para liberar
 
         _disposed = true;
     }

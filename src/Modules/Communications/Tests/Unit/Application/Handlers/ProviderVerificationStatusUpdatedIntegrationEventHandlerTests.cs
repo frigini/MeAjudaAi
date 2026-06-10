@@ -25,6 +25,8 @@ public class ProviderVerificationStatusUpdatedIntegrationEventHandlerTests
         _serializerMock = new Mock<ISerializer>();
         _loggerMock = new Mock<ILogger<ProviderVerificationStatusUpdatedIntegrationEventHandler>>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new ProviderVerificationStatusUpdatedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _usersModuleApiMock.Object,
@@ -107,4 +109,3 @@ public class ProviderVerificationStatusUpdatedIntegrationEventHandlerTests
             .WithMessage("*API Error*");
     }
 }
-

@@ -23,6 +23,8 @@ public class ProviderAwaitingVerificationIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<ProviderAwaitingVerificationIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new ProviderAwaitingVerificationIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _configurationMock.Object,
@@ -50,4 +52,3 @@ public class ProviderAwaitingVerificationIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

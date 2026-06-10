@@ -35,6 +35,7 @@ public class BookingCompletedIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<BookingCompletedIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("http://localhost:5165");
 
         _handler = new BookingCompletedIntegrationEventHandler(
@@ -75,4 +76,3 @@ public class BookingCompletedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

@@ -4,6 +4,7 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
@@ -81,10 +82,10 @@ public sealed class DocumentRejectedIntegrationEventHandler(
         {
             if (ex is Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(dbEx);
+                var processedException = PostgreSqlExceptionProcessor.ProcessException(dbEx);
 
-                if (processedException is Shared.Database.Exceptions.UniqueConstraintException uniqueEx &&
-                    uniqueEx.ConstraintName == OutboxMessageConstraints.CorrelationIdIndexName)
+                if (processedException is UniqueConstraintException || 
+                    dbEx.InnerException is UniqueConstraintException)
                 {
                     logger.LogInformation(
                         "Skipping document rejected notification for document {DocumentId} — already enqueued (correlationId: {CorrelationId}).",

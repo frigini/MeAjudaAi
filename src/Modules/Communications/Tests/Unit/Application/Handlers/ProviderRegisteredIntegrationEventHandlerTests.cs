@@ -23,6 +23,8 @@ public class ProviderRegisteredIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<ProviderRegisteredIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new ProviderRegisteredIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
@@ -48,4 +50,3 @@ public class ProviderRegisteredIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

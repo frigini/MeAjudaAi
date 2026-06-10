@@ -146,4 +146,3 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

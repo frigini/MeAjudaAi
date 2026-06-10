@@ -32,6 +32,9 @@ public class BookingCancelledIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<BookingCancelledIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>()))
+            .Returns("{\"To\":\"test@test.com\",\"Subject\":\"Subject\",\"HtmlBody\":\"Body\",\"TextBody\":\"Body\",\"TemplateKey\":\"booking_cancelled\"}");
+
         _handler = new BookingCancelledIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
@@ -78,4 +81,3 @@ public class BookingCancelledIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

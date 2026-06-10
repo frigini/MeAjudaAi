@@ -4,7 +4,6 @@ using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Database.Exceptions;
-using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
@@ -27,6 +26,8 @@ public class DocumentRejectedIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<DocumentRejectedIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
         
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new DocumentRejectedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _providersModuleApiMock.Object,
@@ -158,9 +159,12 @@ public class DocumentRejectedIntegrationEventHandlerTests
         _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderDto?>.Success(providerDto));
 
-        // Simular exceção de duplicidade
+        // Simular exceção de duplicidade, disparando DbUpdateException processada pelo PostgreSqlExceptionProcessor
+        var innerException = new UniqueConstraintException("IX_outbox_messages_correlation_id", "correlation_id", new Exception());
+        var dbUpdateException = new Microsoft.EntityFrameworkCore.DbUpdateException("Database error", innerException);
+        
         _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new UniqueConstraintException(OutboxMessageConstraints.CorrelationIdIndexName, "correlation_id", new Exception()));
+            .ThrowsAsync(dbUpdateException);
 
         // Act
         var act = () => _handler.HandleAsync(integrationEvent);
@@ -170,4 +174,3 @@ public class DocumentRejectedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

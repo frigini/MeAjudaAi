@@ -32,6 +32,8 @@ public class BookingConfirmedIntegrationEventHandlerTests
         _loggerMock = new Mock<ILogger<BookingConfirmedIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<object>())).Returns("{}");
+
         _handler = new BookingConfirmedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
@@ -69,4 +71,3 @@ public class BookingConfirmedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

@@ -34,6 +34,21 @@ public class GetCommunicationLogsEndpoint : IEndpoint
         CancellationToken ct)
     {
         var result = await api.GetLogsAsync(query, ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+        
+        if (result.IsSuccess)
+        {
+            return Results.Ok(result.Value);
+        }
+
+        var error = result.Error!;
+        return error.StatusCode switch
+        {
+            StatusCodes.Status404NotFound => Results.NotFound(error),
+            StatusCodes.Status400BadRequest => Results.BadRequest(error),
+            StatusCodes.Status401Unauthorized => Results.Unauthorized(),
+            StatusCodes.Status403Forbidden => Results.Forbid(),
+            StatusCodes.Status409Conflict => Results.Conflict(error),
+            _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+        };
     }
 }

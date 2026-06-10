@@ -292,7 +292,7 @@ public class CommunicationsModuleApiTests
     public async Task IsAvailableAsync_WhenHealthServiceUnavailableAndDbWorks_ShouldReturnTrue()
     {
         // Arrange
-        _serviceProviderMock.Setup(static x => x.GetService(typeof(HealthCheckService))).Returns(null);
+        _serviceProviderMock.Setup(static x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
         _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
 
         // Act
@@ -345,7 +345,7 @@ public class CommunicationsModuleApiTests
     public async Task IsAvailableAsync_WhenDbOperationFails_ShouldReturnFalse()
     {
         // Arrange
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(null);
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
         _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("DB Error"));
 
         // Act
