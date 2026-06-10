@@ -9,5 +9,7 @@ public sealed record ModuleUserDto(
     string Email,
     string FirstName,
     string LastName,
-    string FullName
+    string FullName,
+    string? DeviceToken = null,
+    string? PhoneNumber = null
 );

@@ -95,6 +95,11 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public IReadOnlyCollection<ProviderService> Services => _services.AsReadOnly();
 
     /// <summary>
+    /// Token do dispositivo para notificações push (opcional).
+    /// </summary>
+    public string? DeviceToken { get; private set; }
+
+    /// <summary>
     /// Indica se o prestador de serviços foi excluído logicamente do sistema.
     /// </summary>
     public bool IsDeleted { get; private set; }

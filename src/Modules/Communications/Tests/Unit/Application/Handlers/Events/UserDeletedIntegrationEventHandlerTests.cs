@@ -1,10 +1,10 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
@@ -49,7 +49,7 @@ public class UserDeletedIntegrationEventHandlerTests
             .ReturnsAsync(false);
 
         _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(new UserDto(userId, "john_doe", "john@example.com", "John", "Doe", "John Doe", "keycloak-id", DateTime.UtcNow, null)));
+            .ReturnsAsync(Result<ModuleUserDto?>.Success(new ModuleUserDto(userId, "john_doe", "john@example.com", "John", "Doe", "John Doe")));
 
         // Act
         await _handler.HandleAsync(integrationEvent);

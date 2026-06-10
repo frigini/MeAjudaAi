@@ -55,6 +55,11 @@ public sealed class User : AggregateRoot<UserId>
     public PhoneNumber? PhoneNumber { get; private set; }
 
     /// <summary>
+    /// Token do dispositivo para notificações push (opcional).
+    /// </summary>
+    public string? DeviceToken { get; private set; }
+
+    /// <summary>
     /// Identificador único do usuário no Keycloak (sistema de autenticação externo).
     /// </summary>
     /// <remarks>
@@ -263,6 +268,21 @@ public sealed class User : AggregateRoot<UserId>
             lastName, 
             emailChanged ? Email.Value : null, 
             phoneChanged ? PhoneNumber?.Value : null));
+    }
+
+    /// <summary>
+    /// Atualiza o token do dispositivo para notificações push.
+    /// </summary>
+    public void UpdateDeviceToken(string deviceToken)
+    {
+        if (IsDeleted)
+            throw new UserDomainException("Cannot update device token of deleted user");
+        
+        if (string.IsNullOrWhiteSpace(deviceToken))
+            throw new UserDomainException("Device token cannot be empty");
+
+        DeviceToken = deviceToken;
+        MarkAsUpdated();
     }
 
     /// <summary>

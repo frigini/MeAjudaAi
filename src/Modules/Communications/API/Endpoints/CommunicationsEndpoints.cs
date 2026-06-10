@@ -18,6 +18,10 @@ public static class CommunicationsEndpoints
             .RequireAuthorization();
 
         group.MapEndpoint<GetCommunicationLogsEndpoint>()
-             .MapEndpoint<GetEmailTemplatesEndpoint>();
+             .MapEndpoint<GetEmailTemplatesEndpoint>()
+             .MapEndpoint<CreateEmailTemplateEndpoint>()
+             .MapEndpoint<UpdateEmailTemplateEndpoint>()
+             .MapEndpoint<ActivateEmailTemplateEndpoint>()
+             .MapEndpoint<DeactivateEmailTemplateEndpoint>();
     }
 }

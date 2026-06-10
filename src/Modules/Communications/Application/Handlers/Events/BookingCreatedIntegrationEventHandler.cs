@@ -77,6 +77,20 @@ public sealed class BookingCreatedIntegrationEventHandler(
             priority: ECommunicationPriority.High,
             correlationId: $"{correlationId}:provider");
 
+        // Push para o provedor
+        var providerPush = providerResult.Value.DeviceToken != null
+            ? OutboxMessage.Create(
+                channel: ECommunicationChannel.Push,
+                payload: serializer.Serialize(new { 
+                    DeviceToken = providerResult.Value.DeviceToken, 
+                    Title = "Novo Agendamento!", 
+                    Body = $"Novo agendamento de {clientName} para o dia {integrationEvent.Date}." 
+                }),
+                maxRetries: 3,
+                priority: ECommunicationPriority.High,
+                correlationId: $"{correlationId}:provider:push")
+            : null;
+
         // Notificar o Cliente
         var clientPayload = serializer.Serialize(new
         {
@@ -95,10 +109,26 @@ public sealed class BookingCreatedIntegrationEventHandler(
             priority: ECommunicationPriority.Normal,
             correlationId: $"{correlationId}:client");
 
+        // SMS para o cliente
+        var clientSms = clientResult.Value.PhoneNumber != null
+            ? OutboxMessage.Create(
+                channel: ECommunicationChannel.Sms,
+                payload: serializer.Serialize(new { 
+                    PhoneNumber = clientResult.Value.PhoneNumber, 
+                    Body = $"Agendamento solicitado com sucesso para o dia {integrationEvent.Date}." 
+                }),
+                maxRetries: 3,
+                priority: ECommunicationPriority.Normal,
+                correlationId: $"{correlationId}:client:sms")
+            : null;
+
         try
         {
             await outboxRepository.AddAsync(providerMessage, cancellationToken);
+            if (providerPush != null) await outboxRepository.AddAsync(providerPush, cancellationToken);
             await outboxRepository.AddAsync(clientMessage, cancellationToken);
+            if (clientSms != null) await outboxRepository.AddAsync(clientSms, cancellationToken);
+            
             await outboxRepository.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
@@ -108,6 +138,7 @@ public sealed class BookingCreatedIntegrationEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error enqueuing booking created notifications for {BookingId}.", integrationEvent.BookingId);
+            throw;
         }
     }
 }

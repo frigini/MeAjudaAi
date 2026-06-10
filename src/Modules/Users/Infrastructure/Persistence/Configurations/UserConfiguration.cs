@@ -78,6 +78,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(ValidationConstants.UserLimits.LastNameMaxLength)
             .IsRequired();
 
+        builder.Property(u => u.DeviceToken)
+            .HasColumnName("device_token")
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         builder.Property(u => u.KeycloakId)
             .HasColumnName("keycloak_id")
             .HasMaxLength(ValidationConstants.UserLimits.KeycloakIdMaxLength)

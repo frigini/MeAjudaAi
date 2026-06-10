@@ -51,6 +51,7 @@ public sealed class BookingConfirmedIntegrationEventHandler(
         var providerName = providerResult.Value.Name;
         var clientEmail = clientResult.Value.Email;
 
+        // E-mail payload
         var clientPayload = serializer.Serialize(new
         {
             To = clientEmail,
@@ -68,16 +69,46 @@ public sealed class BookingConfirmedIntegrationEventHandler(
             priority: ECommunicationPriority.Normal,
             correlationId: correlationId);
 
+        // Push payload
+        var pushMessage = clientResult.Value.DeviceToken != null 
+            ? OutboxMessage.Create(
+                channel: ECommunicationChannel.Push,
+                payload: serializer.Serialize(new { 
+                    DeviceToken = clientResult.Value.DeviceToken, 
+                    Title = "Agendamento Confirmado!", 
+                    Body = $"Seu agendamento com {providerName} foi confirmado." 
+                }),
+                maxRetries: 3,
+                priority: ECommunicationPriority.Normal,
+                correlationId: $"{correlationId}:push")
+            : null;
+
+        // SMS para o cliente
+        var clientSms = clientResult.Value.PhoneNumber != null
+            ? OutboxMessage.Create(
+                channel: ECommunicationChannel.Sms,
+                payload: serializer.Serialize(new { 
+                    PhoneNumber = clientResult.Value.PhoneNumber, 
+                    Body = $"Seu agendamento com {providerName} foi confirmado." 
+                }),
+                maxRetries: 3,
+                priority: ECommunicationPriority.Normal,
+                correlationId: $"{correlationId}:client:sms")
+            : null;
+
         try
         {
             await outboxRepository.AddAsync(clientMessage, cancellationToken);
+            if (pushMessage != null) await outboxRepository.AddAsync(pushMessage, cancellationToken);
+            if (clientSms != null) await outboxRepository.AddAsync(clientSms, cancellationToken);
             await outboxRepository.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Booking confirmed notification enqueued for {BookingId}.", integrationEvent.BookingId);
+            logger.LogInformation("Booking confirmed notification (email, push, and sms) enqueued for {BookingId}.", integrationEvent.BookingId);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error enqueuing booking confirmed notification for {BookingId}.", integrationEvent.BookingId);
+            throw;
         }
     }
 }

@@ -452,6 +452,7 @@ public class UsersModuleApiTests
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
+            DeviceToken: null,
             KeycloakId: Guid.NewGuid().ToString(),
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null);

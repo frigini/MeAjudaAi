@@ -43,6 +43,7 @@ public class GetUserByIdQueryHandlerTests
             "Test",
             "User",
             "Test User",
+            null,
             Guid.NewGuid().ToString(),
             DateTime.UtcNow,
             DateTime.UtcNow

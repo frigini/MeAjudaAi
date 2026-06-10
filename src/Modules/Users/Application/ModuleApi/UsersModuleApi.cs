@@ -35,7 +35,7 @@ public sealed class UsersModuleApi(
     private static readonly Guid HealthCheckUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
     private static ModuleUserDto MapToModuleUserDto(UserDto user) =>
-        new(user.Id, user.Username, user.Email, user.FirstName, user.LastName, user.FullName);
+        new(user.Id, user.Username, user.Email, user.FirstName, user.LastName, user.FullName, user.DeviceToken);
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {

@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
 
+/// <summary>
+/// Endpoint para busca dos logs de comunicação.
+/// </summary>
 public class GetCommunicationLogsEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

@@ -10,6 +10,7 @@ public sealed record UserDto(
     string FirstName,
     string LastName,
     string FullName,
+    string? DeviceToken,
     string KeycloakId,
     DateTime CreatedAt,
     DateTime? UpdatedAt

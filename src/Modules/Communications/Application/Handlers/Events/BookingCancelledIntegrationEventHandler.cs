@@ -54,8 +54,18 @@ public sealed class BookingCancelledIntegrationEventHandler(
         // Notificar ambos sobre o cancelamento
         var reason = string.IsNullOrWhiteSpace(integrationEvent.Reason) ? "Não informada" : integrationEvent.Reason;
 
-        var payload = serializer.Serialize(new
+        var providerPayload = serializer.Serialize(new
         {
+            To = providerEmail,
+            Subject = "Agendamento Cancelado",
+            HtmlBody = $"<h1>Agendamento Cancelado</h1><p>O agendamento {integrationEvent.BookingId} foi cancelado.</p><p>Motivo: {reason}</p>",
+            TextBody = $"Agendamento Cancelado. O agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}",
+            TemplateKey = TemplateKey
+        });
+
+        var clientPayload = serializer.Serialize(new
+        {
+            To = clientEmail,
             Subject = "Agendamento Cancelado",
             HtmlBody = $"<h1>Agendamento Cancelado</h1><p>O agendamento {integrationEvent.BookingId} foi cancelado.</p><p>Motivo: {reason}</p>",
             TextBody = $"Agendamento Cancelado. O agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}",
@@ -64,22 +74,36 @@ public sealed class BookingCancelledIntegrationEventHandler(
 
         var providerMessage = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
-            payload: payload.Replace("Subject\":", $"To\":\"{providerEmail}\",\"Subject\":"),
+            payload: providerPayload,
             maxRetries: 3,
             priority: ECommunicationPriority.Normal,
             correlationId: $"{correlationId}:provider");
 
         var clientMessage = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
-            payload: payload.Replace("Subject\":", $"To\":\"{clientEmail}\",\"Subject\":"),
+            payload: clientPayload,
             maxRetries: 3,
             priority: ECommunicationPriority.Normal,
             correlationId: $"{correlationId}:client");
+
+        // SMS para o cliente
+        var clientSms = clientResult.Value.PhoneNumber != null
+            ? OutboxMessage.Create(
+                channel: ECommunicationChannel.Sms,
+                payload: serializer.Serialize(new { 
+                    PhoneNumber = clientResult.Value.PhoneNumber, 
+                    Body = $"Seu agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}" 
+                }),
+                maxRetries: 3,
+                priority: ECommunicationPriority.Normal,
+                correlationId: $"{correlationId}:client:sms")
+            : null;
 
         try
         {
             await outboxRepository.AddAsync(providerMessage, cancellationToken);
             await outboxRepository.AddAsync(clientMessage, cancellationToken);
+            if (clientSms != null) await outboxRepository.AddAsync(clientSms, cancellationToken);
             await outboxRepository.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Booking cancelled notifications enqueued for {BookingId}.", integrationEvent.BookingId);
@@ -87,6 +111,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error enqueuing booking cancelled notifications for {BookingId}.", integrationEvent.BookingId);
+            throw;
         }
     }
 }

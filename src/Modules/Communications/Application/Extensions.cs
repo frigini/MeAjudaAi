@@ -2,7 +2,6 @@ using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Modules.Communications.Application.Handlers;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Application.ModuleApi;
-using MeAjudaAi.Modules.Communications.Application.Services.Email;
 using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Application.Workers;
 using MeAjudaAi.Shared.Events;
@@ -26,7 +25,6 @@ public static class Extensions
 
         // Serviços de aplicação
         services.AddScoped<IOutboxProcessorService, OutboxProcessorService>();
-        services.AddScoped<IEmailService, StubEmailService>();
 
         // Integration Event Handlers
         services.AddScoped<IEventHandler<UserRegisteredIntegrationEvent>, UserRegisteredIntegrationEventHandler>();

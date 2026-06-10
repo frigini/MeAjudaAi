@@ -83,6 +83,11 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .HasMaxLength(1000)
             .HasColumnName("rejection_reason");
 
+        builder.Property(p => p.DeviceToken)
+            .HasMaxLength(500)
+            .HasColumnName("device_token")
+            .IsRequired(false);
+
         // Configuração das propriedades de auditoria da BaseEntity
         builder.Property(p => p.CreatedAt)
             .IsRequired()
