@@ -31,6 +31,8 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         // Centraliza autenticação como admin no início do teste
         AuthenticateAsAdmin();
 
+        var baseUtcNow = DateTime.UtcNow;
+
         // 1. Criar um prestador feito com um providerId gerado
         var providerIdClaim = await CreateTestProviderAsync();
 
