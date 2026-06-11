@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 /// <summary>
 /// Stub para envio de notificaÃ§Ãµes push na infraestrutura.
 /// </summary>
-public sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
+internal sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
 {
     public async Task<bool> SendAsync(PushNotification notification, CancellationToken cancellationToken = default)
     {

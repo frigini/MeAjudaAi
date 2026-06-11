@@ -362,7 +362,7 @@ public sealed class User : AggregateRoot<UserId>
         MarkAsUpdated();
 
         // Adiciona evento de domínio para sincronização com sistemas externos
-        AddDomainEvent(new UserEmailChangedEvent(Id.Value, 1, oldEmail, newEmail));
+        AddDomainEvent(new UserEmailChangedDomainEvent(Id.Value, 1, oldEmail, newEmail));
     }
 
     /// <summary>
@@ -391,7 +391,7 @@ public sealed class User : AggregateRoot<UserId>
         MarkAsUpdated();
 
         // Adiciona evento de domínio para sincronização com sistemas externos
-        AddDomainEvent(new UserUsernameChangedEvent(Id.Value, 1, oldUsername, newUsername));
+        AddDomainEvent(new UserUsernameChangedDomainEvent(Id.Value, 1, oldUsername, newUsername));
     }
 
     /// <summary>

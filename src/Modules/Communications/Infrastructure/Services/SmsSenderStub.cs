@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 /// <summary>
 /// Stub para envio de SMS na infraestrutura.
 /// </summary>
-public sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
+internal sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
 {
     public async Task<bool> SendAsync(SmsMessage message, CancellationToken cancellationToken = default)
     {

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,7 @@ public class SchemaMappingTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test",
+                ["ConnectionStrings:DefaultConnection"] = DatabaseConstants.DefaultTestConnectionString,
                 ["Stripe:ApiKey"] = "sk_test_dummy",
                 ["Messaging:Enabled"] = "false"
             })
@@ -27,7 +28,18 @@ public class SchemaMappingTests
         var hostingEnv = Mock.Of<IHostEnvironment>(e => e.EnvironmentName == "Testing");
 
         var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddLogging();
+
+        // Register PostgresOptions (required by some modules' persistence registration)
+        services.AddSingleton(new MeAjudaAi.Shared.Database.PostgresOptions
+        {
+            ConnectionString = configuration.GetConnectionString("DefaultConnection") ?? DatabaseConstants.DefaultTestConnectionString
+        });
+
+        // Register Database Monitoring services (required by DatabaseExtensions)
+        services.AddSingleton<MeAjudaAi.Shared.Database.DatabaseMetrics>();
+        services.AddSingleton<MeAjudaAi.Shared.Database.DatabaseMetricsInterceptor>();
 
         // Register all modules
         MeAjudaAi.Modules.Users.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);

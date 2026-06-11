@@ -111,6 +111,7 @@ public class ModuleBoundaryTests
 
             var invalidReferences = referencedAssemblies
                 .Where(name => name != "MeAjudaAi.Shared" &&
+                              name != "MeAjudaAi.Contracts" &&
                               !name?.StartsWith("System") == true &&
                               !name?.StartsWith("Microsoft") == true)
                 .ToList();

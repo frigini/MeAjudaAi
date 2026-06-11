@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Events;
 /// <param name="OldEmail">Endereço de email anterior</param>
 /// <param name="NewEmail">Novo endereço de email</param>
 [ExcludeFromCodeCoverage]
-public record UserEmailChangedEvent(
+public record UserEmailChangedDomainEvent(
     Guid AggregateId,
     int Version,
     string OldEmail,

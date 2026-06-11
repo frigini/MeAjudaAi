@@ -265,7 +265,7 @@ public class UserTests
 
         // Assert
         user.Email.Value.Should().Be(newEmail);
-        user.DomainEvents.Should().ContainSingle(e => e.GetType().Name == "UserEmailChangedEvent");
+        user.DomainEvents.Should().ContainSingle(e => e.GetType().Name == "UserEmailChangedDomainEvent");
     }
 
     [Fact]

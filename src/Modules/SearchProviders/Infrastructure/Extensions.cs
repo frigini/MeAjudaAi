@@ -67,6 +67,7 @@ public static class Extensions
                 {
                     npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
                     npgsqlOptions.EnableRetryOnFailure(3);
+                    npgsqlOptions.UseNetTopologySuite();
                 });
             }
 

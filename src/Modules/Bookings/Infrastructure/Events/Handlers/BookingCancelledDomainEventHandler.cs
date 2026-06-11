@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Events.Handlers;
 
-public sealed class BookingCancelledDomainEventHandler(
+internal sealed class BookingCancelledDomainEventHandler(
     IMessageBus messageBus,
     ILogger<BookingCancelledDomainEventHandler> logger)
     : IEventHandler<BookingCancelledDomainEvent>

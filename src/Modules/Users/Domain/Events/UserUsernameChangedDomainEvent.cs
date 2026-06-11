@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Events;
 /// <param name="OldUsername">Username anterior</param>
 /// <param name="NewUsername">Novo username</param>
 [ExcludeFromCodeCoverage]
-public record UserUsernameChangedEvent(
+public record UserUsernameChangedDomainEvent(
     Guid AggregateId,
     int Version,
     Username OldUsername,
