@@ -153,15 +153,16 @@ public sealed class OutboxProcessorService(
                 ?? throw new InvalidOperationException("Invalid email payload (fallback).");
         }
 
+        string subject = email.Subject;
         string htmlBody;
         string textBody;
-    // ...
 
         if (!string.IsNullOrWhiteSpace(email.TemplateKey))
         {
             var template = await templateQueries.GetActiveByKeyAsync(email.TemplateKey, cancellationToken: cancellationToken);
             if (template != null)
             {
+                subject = RenderTemplate(template.Subject, email.TemplateData);
                 htmlBody = RenderTemplate(template.HtmlBody, email.TemplateData);
                 textBody = RenderTemplate(template.TextBody, email.TemplateData);
             }
@@ -179,7 +180,7 @@ public sealed class OutboxProcessorService(
         }
 
         return await emailSender.SendAsync(
-            new EmailMessage(email.To, email.Subject, htmlBody, textBody, email.From),
+            new EmailMessage(email.To, subject, htmlBody, textBody, email.From),
             cancellationToken);
     }
 

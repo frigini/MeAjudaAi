@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
@@ -26,6 +27,9 @@ public static class Extensions
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<CommunicationsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Communications, (sp, key) => sp.GetRequiredService<CommunicationsDbContext>());
+
+        services.AddScoped<IRepository<EmailTemplate, Guid>>(sp => sp.GetRequiredService<CommunicationsDbContext>());
+        services.AddScoped<IRepository<CommunicationLog, Guid>>(sp => sp.GetRequiredService<CommunicationsDbContext>());
 
         services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
         services.AddScoped<IEmailTemplateQueries, DbContextEmailTemplateQueries>();

@@ -75,6 +75,7 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
                 It.Is<MeAjudaAi.Shared.Messaging.Messages.Providers.ProviderDeletedIntegrationEvent>(e =>
                     e.ProviderId == providerId.Value &&
                     e.Name == "Provider Test" &&
+                    e.Email == "test@provider.com" &&
                     e.DeletedBy == "admin@test.com"),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),

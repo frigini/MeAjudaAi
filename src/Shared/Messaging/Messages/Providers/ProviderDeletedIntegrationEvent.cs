@@ -19,6 +19,7 @@ public sealed record ProviderDeletedIntegrationEvent(
     string Source,
     Guid ProviderId,
     Guid UserId,
+    string Email,
     string Name,
     string Reason,
     DateTime DeletedAt,

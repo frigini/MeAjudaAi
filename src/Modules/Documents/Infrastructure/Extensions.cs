@@ -1,6 +1,6 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Events;
 using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
@@ -8,14 +8,15 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using MeAjudaAi.Shared.Database.Constants;
-
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure;
 
@@ -31,23 +32,21 @@ public static class Extensions
         return services;
     }
 
-    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                               ?? configuration.GetConnectionString("Documents")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
         // In test environments, allow placeholder connection string since tests will replace the DbContext
-        var isTestEnvironment = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+        var isTestEnvironment = EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (string.IsNullOrEmpty(connectionString))
         {
             if (isTestEnvironment)
             {
                 // Use placeholder for integration tests - will be replaced by test infrastructure
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
+                connectionString = DatabaseConstants.DefaultTestConnectionString;
             }
             else
             {
@@ -88,12 +87,14 @@ public static class Extensions
         // Unit of Work e Consultas
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Documents, (sp, key) => sp.GetRequiredService<DocumentsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DocumentsDbContext>());
-        services.AddScoped<IDocumentQueries, DbContextDocumentQueries>();
+        
+        // Repositories
+        services.AddScoped<IRepository<Document, Guid>>(sp => sp.GetRequiredService<DocumentsDbContext>());
 
-        return services;
+        services.AddScoped<IDocumentQueries, DbContextDocumentQueries>();
     }
 
-    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    private static void AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Registrar Azure clients
         var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
@@ -125,7 +126,7 @@ public static class Extensions
         // Registrar implementações no-op como fallback apenas em ambientes de bypass (dev/test).
         // Em produção, a ausência das credenciais do Azure é um erro de configuração e causa
         // fail-fast para evitar que o serviço inicie sem dependências essenciais.
-        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        if (EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
             services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();
@@ -143,32 +144,20 @@ public static class Extensions
                 throw new InvalidOperationException(
                     "IDocumentIntelligenceService is not configured. Set 'Azure:DocumentIntelligence:Endpoint' and 'Azure:DocumentIntelligence:ApiKey' to enable OCR.");
         }
-
-        return services;
     }
 
-    private static IServiceCollection AddJobs(this IServiceCollection services)
+    private static void AddJobs(this IServiceCollection services)
     {
         // Document verification job
         services.AddScoped<IDocumentVerificationService, DocumentVerificationJob>();
-
-        return services;
     }
 
     /// <summary>
     /// Adiciona os Event Handlers do módulo Documents.
     /// </summary>
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    private static void AddEventHandlers(this IServiceCollection services)
     {
         // Domain Event Handlers
         services.AddScoped<IEventHandler<DocumentVerifiedDomainEvent>, DocumentVerifiedDomainEventHandler>();
-
-        return services;
     }
 }
-
-
-
-
-
-

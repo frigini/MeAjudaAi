@@ -821,6 +821,22 @@ public sealed class Provider : AggregateRoot<ProviderId>
     }
 
     /// <summary>
+    /// Atualiza o token do dispositivo para notificações push.
+    /// </summary>
+    /// <param name="deviceToken">Token do dispositivo</param>
+    public void UpdateDeviceToken(string deviceToken)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update device token of deleted provider");
+
+        if (string.IsNullOrWhiteSpace(deviceToken))
+            throw new ProviderDomainException("Device token cannot be empty");
+
+        DeviceToken = deviceToken;
+        MarkAsUpdated();
+    }
+
+    /// <summary>
     /// Valida que os motivos obrigatórios estejam preenchidos ao transicionar para Suspended ou Rejected.
     /// </summary>
     /// <param name="newStatus">Novo status do prestador</param>

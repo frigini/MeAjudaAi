@@ -13,6 +13,7 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Application.ModuleApi;
 
@@ -32,7 +33,7 @@ public sealed class ProvidersModuleApi(
 {
     private static class ModuleMetadata
     {
-        public const string Name = "Providers";
+        public const string Name = ModuleNames.Providers;
         public const string Version = "1.0";
     }
 
@@ -332,7 +333,8 @@ public sealed class ProvidersModuleApi(
             CreatedAt: providerDto.CreatedAt,
             UpdatedAt: providerDto.UpdatedAt ?? providerDto.CreatedAt,
             IsActive: providerDto.IsActive,
-            Phone: providerDto.BusinessProfile?.ContactInfo?.PhoneNumber);
+            Phone: providerDto.BusinessProfile?.ContactInfo?.PhoneNumber,
+            DeviceToken: providerDto.DeviceToken);
     }
 
     private static ModuleProviderBasicDto MapDtoToBasicDto(ProviderDto providerDto)

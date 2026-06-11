@@ -30,12 +30,13 @@ public static class ProviderEventMappers
     /// <summary>
     /// Converte ProviderDeletedDomainEvent para ProviderDeletedIntegrationEvent.
     /// </summary>
-    public static ProviderDeletedIntegrationEvent ToIntegrationEvent(this ProviderDeletedDomainEvent domainEvent, Guid userId)
+    public static ProviderDeletedIntegrationEvent ToIntegrationEvent(this ProviderDeletedDomainEvent domainEvent, Guid userId, string email)
     {
         return new ProviderDeletedIntegrationEvent(
             Source: ModuleName,
             ProviderId: domainEvent.AggregateId,
             UserId: userId,
+            Email: email,
             Name: domainEvent.Name,
             Reason: "Provider deleted",
             DeletedAt: DateTime.UtcNow,

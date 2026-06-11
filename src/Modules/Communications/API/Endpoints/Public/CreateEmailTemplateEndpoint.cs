@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -42,6 +43,6 @@ public class CreateEmailTemplateEndpoint : IEndpoint
         var result = await dispatcher.SendAsync<CreateEmailTemplateCommand, Result<Guid>>(command, ct);
         return result.IsSuccess 
             ? Results.Created($"/communications/templates/{result.Value}", result.Value) 
-            : Results.BadRequest(result.Error);
+            : result.Error.ToProblem();
     }
 }

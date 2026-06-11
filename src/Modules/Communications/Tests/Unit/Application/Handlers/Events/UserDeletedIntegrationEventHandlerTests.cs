@@ -1,6 +1,3 @@
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Modules.Users;
-using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
@@ -15,7 +12,6 @@ public class UserDeletedIntegrationEventHandlerTests
 {
     private readonly Mock<IOutboxMessageRepository> _outboxRepositoryMock;
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
-    private readonly Mock<IUsersModuleApi> _usersModuleApiMock;
     private readonly Mock<ILogger<UserDeletedIntegrationEventHandler>> _loggerMock;
     private readonly Mock<ISerializer> _serializerMock;
     private readonly UserDeletedIntegrationEventHandler _handler;
@@ -24,7 +20,6 @@ public class UserDeletedIntegrationEventHandlerTests
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
-        _usersModuleApiMock = new Mock<IUsersModuleApi>();
         _loggerMock = new Mock<ILogger<UserDeletedIntegrationEventHandler>>();
         _serializerMock = new Mock<ISerializer>();
 
@@ -33,7 +28,6 @@ public class UserDeletedIntegrationEventHandlerTests
         _handler = new UserDeletedIntegrationEventHandler(
             _outboxRepositoryMock.Object,
             _logQueriesMock.Object,
-            _usersModuleApiMock.Object,
             _serializerMock.Object,
             _loggerMock.Object);
     }
@@ -43,13 +37,10 @@ public class UserDeletedIntegrationEventHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var integrationEvent = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
-        
+        var integrationEvent = new UserDeletedIntegrationEvent("Users", userId, "john@example.com", "John", DateTime.UtcNow);
+
         _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-
-        _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ModuleUserDto?>.Success(new ModuleUserDto(userId, "john_doe", "john@example.com", "John", "Doe", "John Doe")));
 
         // Act
         await _handler.HandleAsync(integrationEvent);

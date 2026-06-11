@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -46,8 +47,6 @@ public class ActivateEmailTemplateEndpoint : IEndpoint
             return Results.NoContent();
         }
 
-        return result.Error.StatusCode == StatusCodes.Status404NotFound 
-            ? Results.NotFound(result.Error) 
-            : Results.BadRequest(result.Error);
+        return result.Error.ToProblem();
     }
 }

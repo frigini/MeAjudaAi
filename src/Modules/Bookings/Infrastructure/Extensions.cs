@@ -20,6 +20,14 @@ public static class Extensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
+        services.AddPersistence(configuration, environment);
+        services.AddEventHandlers();
+
+        return services;
+    }
+
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    {
         services.AddDbContext<BookingsDbContext>(options =>
         {
             var connStr = configuration.GetConnectionString("Bookings") ??
@@ -47,13 +55,14 @@ public static class Extensions
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Bookings, (sp, key) => sp.GetRequiredService<BookingsDbContext>());
 
+        // Repositories
+        services.AddScoped<IRepository<MeAjudaAi.Modules.Bookings.Domain.Entities.Booking, Guid>>(sp => sp.GetRequiredService<BookingsDbContext>());
+        services.AddScoped<IRepository<MeAjudaAi.Modules.Bookings.Domain.Entities.ProviderSchedule, Guid>>(sp => sp.GetRequiredService<BookingsDbContext>());
+
+        // Queries
         services.AddScoped<IBookingQueries, DbContextBookingQueries>();
         services.AddScoped<IProviderScheduleQueries, DbContextProviderScheduleQueries>();
         services.AddScoped<IBookingCommandService, DbContextBookingCommandService>();
-        
-        services.AddEventHandlers();
-
-        return services;
     }
 
     private static void AddEventHandlers(this IServiceCollection services)

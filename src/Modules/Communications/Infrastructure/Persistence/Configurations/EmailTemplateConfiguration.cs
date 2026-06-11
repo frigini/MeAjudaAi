@@ -12,6 +12,9 @@ internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<Emai
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Version)
+            .IsRequired();
+
         builder.Property(x => x.TemplateKey)
             .HasMaxLength(100)
             .IsRequired();

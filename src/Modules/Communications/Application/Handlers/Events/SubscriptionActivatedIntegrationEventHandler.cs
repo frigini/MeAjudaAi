@@ -4,10 +4,12 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -71,7 +73,17 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
-            // Note: In a real scenario, use PostgreSqlExceptionProcessor as in other handlers.
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
+                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+
+            if (processedException is UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping subscription activated email for user {UserId} — already enqueued or sent (correlationId: {CorrelationId}).",
+                    integrationEvent.UserId, correlationId);
+                return;
+            }
+
             logger.LogError(ex, "Failed to enqueue subscription activated email for {UserId}.", integrationEvent.UserId);
             throw;
         }

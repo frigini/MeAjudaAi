@@ -55,14 +55,19 @@ public static class DomainEventMapperExtensions
     /// Mapeia UserDeletedDomainEvent para UserDeletedIntegrationEvent
     /// </summary>
     /// <param name="domainEvent">O evento de domínio a ser mapeado</param>
+    /// <param name="email">O email do usuário (deve ser fornecido pelo repositório de usuários)</param>
+    /// <param name="firstName">O primeiro nome do usuário (deve ser fornecido pelo repositório de usuários)</param>
     /// <returns>Evento de integração para comunicação entre módulos</returns>
-    public static UserDeletedIntegrationEvent ToIntegrationEvent(this UserDeletedDomainEvent domainEvent)
+    public static UserDeletedIntegrationEvent ToIntegrationEvent(this UserDeletedDomainEvent domainEvent, string email, string firstName)
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
         return new UserDeletedIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,
+            Email: email,
+            FirstName: firstName,
             DeletedAt: DateTime.UtcNow
         );
     }

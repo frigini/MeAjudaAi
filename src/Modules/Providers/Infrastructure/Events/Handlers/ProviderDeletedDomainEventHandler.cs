@@ -25,17 +25,18 @@ public sealed class ProviderDeletedDomainEventHandler(
         {
             logger.LogInformation("Handling ProviderDeletedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
 
-            // Buscar apenas o UserId do provider, mesmo se soft-deleted ou removido
-            var userId = await context.Providers
+            var providerData = await context.Providers
                 .AsNoTracking()
                 .IgnoreQueryFilters()
                 .Where(p => p.Id.Value == domainEvent.AggregateId)
-                .Select(p => (Guid?)p.UserId)
+                .Select(p => new { p.UserId, p.BusinessProfile.ContactInfo.Email })
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (userId.HasValue)
+            if (providerData is not null)
             {
-                var integrationEvent = domainEvent.ToIntegrationEvent(userId.Value);
+                var integrationEvent = domainEvent.ToIntegrationEvent(
+                    userId: providerData.UserId,
+                    email: providerData.Email ?? "desconhecido");
                 await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 
                 logger.LogInformation("Successfully published ProviderDeleted integration event for provider {ProviderId}", domainEvent.AggregateId);

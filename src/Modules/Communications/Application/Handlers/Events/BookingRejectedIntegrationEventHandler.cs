@@ -5,10 +5,12 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -79,7 +81,19 @@ public sealed class BookingRejectedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
+                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+
+            if (processedException is UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping booking rejected notification for {BookingId} — already enqueued (correlationId: {CorrelationId}).",
+                    integrationEvent.BookingId, correlationId);
+                return;
+            }
+
             logger.LogError(ex, "Error enqueuing booking rejected notification for {BookingId}.", integrationEvent.BookingId);
+            throw;
         }
     }
 }

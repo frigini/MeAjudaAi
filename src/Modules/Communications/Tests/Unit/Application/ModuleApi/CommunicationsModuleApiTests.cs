@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,11 @@ public class CommunicationsModuleApiTests
         _serializerMock = new Mock<ISerializer>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<CommunicationsModuleApi>>();
+
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailMessageDto>())).Returns("{\"to\":\"test@test.com\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsMessageDto>())).Returns("{\"phone\":\"123456\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<PushMessageDto>())).Returns("{\"token\":\"token\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<MessageEnvelope>())).Returns("{\"v\":1,\"p\":\"{}\"}");
 
         _api = new CommunicationsModuleApi(
             _outboxRepositoryMock.Object,

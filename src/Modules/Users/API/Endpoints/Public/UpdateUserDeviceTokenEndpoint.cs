@@ -1,6 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +11,12 @@ using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints.Public;
 
-public static class UpdateUserDeviceTokenEndpoint
+public class UpdateUserDeviceTokenEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapPut("/users/{id:guid}/device-token", UpdateDeviceTokenAsync)
+           .RequireSelfOrAdmin()
            .Produces(StatusCodes.Status204NoContent)
            .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
@@ -35,7 +39,7 @@ public static class UpdateUserDeviceTokenEndpoint
             return Results.NoContent();
         }
 
-        return Results.BadRequest(result.Error);
+        return result.Error.ToProblem();
     }
 }
 

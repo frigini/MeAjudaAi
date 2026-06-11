@@ -18,6 +18,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
 
         var overrideTemplate = await dbContext.EmailTemplates
             .AsNoTracking()
+            .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync(x => x.OverrideKey == templateKeyLower
                                 && x.Language == languageLower
                                 && x.IsActive, cancellationToken);
@@ -25,6 +26,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
 
         return await dbContext.EmailTemplates
             .AsNoTracking()
+            .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync(x => x.TemplateKey == templateKeyLower
                                 && x.OverrideKey == null
                                 && x.Language == languageLower

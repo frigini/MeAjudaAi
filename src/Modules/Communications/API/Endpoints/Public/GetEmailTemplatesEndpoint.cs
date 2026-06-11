@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Modules.Communications;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
@@ -34,6 +35,6 @@ public class GetEmailTemplatesEndpoint : IEndpoint
         CancellationToken ct)
     {
         var result = await api.GetTemplatesAsync(ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+        return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToProblem();
     }
 }

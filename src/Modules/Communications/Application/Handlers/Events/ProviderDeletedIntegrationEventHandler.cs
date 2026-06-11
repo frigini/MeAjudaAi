@@ -1,13 +1,14 @@
 using MeAjudaAi.Contracts.Enums;
-using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,6 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 public sealed class ProviderDeletedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogQueries logQueries,
-    IProvidersModuleApi providersModuleApi,
     [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<ProviderDeletedIntegrationEventHandler> logger)
     : IEventHandler<ProviderDeletedIntegrationEvent>
@@ -37,19 +37,15 @@ public sealed class ProviderDeletedIntegrationEventHandler(
             return;
         }
 
-        var providerResult = await providersModuleApi.GetProviderByIdAsync(integrationEvent.ProviderId, cancellationToken);
-        if (!providerResult.IsSuccess || providerResult.Value == null)
-        {
-            logger.LogError("Failed to get provider {ProviderId} for deletion notification.", integrationEvent.ProviderId);
-            return;
-        }
+        var email = integrationEvent.Email;
+        var name = integrationEvent.Name;
 
         var payload = serializer.Serialize(new
         {
-            To = providerResult.Value!.Email,
+            To = email,
             Subject = "Conta de Prestador Excluída",
-            HtmlBody = $"<h1>Olá, {providerResult.Value.Name}!</h1><p>Sua conta de prestador no MeAjudaAi foi excluída com sucesso.</p>",
-            TextBody = $"Olá, {providerResult.Value.Name}!\nSua conta de prestador no MeAjudaAi foi excluída com sucesso.",
+            HtmlBody = $"<h1>Olá, {name}!</h1><p>Sua conta de prestador no MeAjudaAi foi excluída com sucesso.</p>",
+            TextBody = $"Olá, {name}!\nSua conta de prestador no MeAjudaAi foi excluída com sucesso.",
             TemplateKey = TemplateKey
         });
 
@@ -71,6 +67,17 @@ public sealed class ProviderDeletedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
+                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+
+            if (processedException is UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping provider deleted email for {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
+                    integrationEvent.ProviderId, correlationId);
+                return;
+            }
+
             logger.LogError(ex, "Failed to enqueue provider deleted email for {ProviderId}.", integrationEvent.ProviderId);
             throw;
         }

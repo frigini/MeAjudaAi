@@ -7,15 +7,17 @@ namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Comma
 
 public class EmailTemplateCommandHandlerTests
 {
-    private readonly Mock<IRepository<EmailTemplate, Guid>> _templateRepositoryMock;
     private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IRepository<EmailTemplate, Guid>> _repositoryMock;
     private readonly EmailTemplateCommandHandler _handler;
 
     public EmailTemplateCommandHandlerTests()
     {
-        _templateRepositoryMock = new Mock<IRepository<EmailTemplate, Guid>>();
         _uowMock = new Mock<IUnitOfWork>();
-        _handler = new EmailTemplateCommandHandler(_templateRepositoryMock.Object, _uowMock.Object);
+        _repositoryMock = new Mock<IRepository<EmailTemplate, Guid>>();
+        _uowMock.Setup(x => x.GetRepository<EmailTemplate, Guid>()).Returns(_repositoryMock.Object);
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _handler = new EmailTemplateCommandHandler(_uowMock.Object);
     }
 
     [Fact]
@@ -29,7 +31,7 @@ public class EmailTemplateCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _templateRepositoryMock.Verify(x => x.Add(It.IsAny<EmailTemplate>()), Times.Once);
+        _repositoryMock.Verify(x => x.Add(It.IsAny<EmailTemplate>()), Times.Once);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -39,9 +41,8 @@ public class EmailTemplateCommandHandlerTests
         // Arrange
         var templateId = Guid.NewGuid();
         var template = EmailTemplate.Create("welcome", "OldSub", "OldHtml", "OldText");
-        _templateRepositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(template);
-            
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
 
         // Act
@@ -58,9 +59,8 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        _templateRepositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((EmailTemplate?)null);
-            
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync((EmailTemplate?)null);
+
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
 
         // Act
@@ -77,9 +77,8 @@ public class EmailTemplateCommandHandlerTests
         // Arrange
         var templateId = Guid.NewGuid();
         var template = EmailTemplate.Create("welcome", "Sub", "Html", "Text");
-        _templateRepositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(template);
-            
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+
         var command = new SetEmailTemplateStatusCommand(templateId, false, Guid.NewGuid());
 
         // Act

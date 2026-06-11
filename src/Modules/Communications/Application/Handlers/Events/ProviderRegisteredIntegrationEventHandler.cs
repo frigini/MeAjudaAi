@@ -3,10 +3,12 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -58,7 +60,19 @@ public sealed class ProviderRegisteredIntegrationEventHandler(
         }
         catch (Exception ex)
         {
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
+                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+
+            if (processedException is UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping provider welcome email for {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
+                    integrationEvent.ProviderId, correlationId);
+                return;
+            }
+
             logger.LogError(ex, "Error enqueuing provider welcome email for {ProviderId}.", integrationEvent.ProviderId);
+            throw;
         }
     }
 }

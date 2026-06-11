@@ -151,6 +151,7 @@ public class ProviderIntegrationEventHandlersTests
             Source: "Providers",
             ProviderId: providerId,
             UserId: Guid.NewGuid(),
+            Email: "test@provider.com",
             Name: "Test Provider",
             Reason: "Deleted",
             DeletedAt: DateTime.UtcNow,

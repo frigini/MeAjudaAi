@@ -36,7 +36,7 @@ public class UserDeletedIntegrationEventHandlerTests
         _dbContext.Reviews.Add(Review.Create(Guid.NewGuid(), userId, 4, "Nice"));
         await _dbContext.SaveChangesAsync();
 
-        var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
+        var evt = new UserDeletedIntegrationEvent("Users", userId, "user@test.com", "Test", DateTime.UtcNow);
 
         await _handler.HandleAsync(evt);
 
@@ -48,7 +48,7 @@ public class UserDeletedIntegrationEventHandlerTests
     public async Task HandleAsync_WhenNoReviewsExist_ShouldStillRecordProcessedEventAndSaveChanges()
     {
         var userId = Guid.NewGuid();
-        var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow);
+        var evt = new UserDeletedIntegrationEvent("Users", userId, "user@test.com", "Test", DateTime.UtcNow);
 
         await _handler.HandleAsync(evt);
 
@@ -62,7 +62,7 @@ public class UserDeletedIntegrationEventHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid(); // Id do usuário
-        var evt = new UserDeletedIntegrationEvent("Users", userId, DateTime.UtcNow); // Evento de exclusão
+        var evt = new UserDeletedIntegrationEvent("Users", userId, "user@test.com", "Test", DateTime.UtcNow); // Evento de exclusão
 
         // Configura DbContext em memória
         var options = new DbContextOptionsBuilder<RatingsDbContext>()

@@ -1,13 +1,14 @@
 using MeAjudaAi.Contracts.Enums;
-using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,6 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 public sealed class UserDeletedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogQueries logQueries,
-    IUsersModuleApi usersModuleApi,
     [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
     ILogger<UserDeletedIntegrationEventHandler> logger)
     : IEventHandler<UserDeletedIntegrationEvent>
@@ -37,15 +37,8 @@ public sealed class UserDeletedIntegrationEventHandler(
             return;
         }
 
-        var userResult = await usersModuleApi.GetUserByIdAsync(integrationEvent.UserId, cancellationToken);
-        
-        string email = userResult.IsSuccess && userResult.Value != null ? userResult.Value.Email : "desconhecido";
-        string firstName = userResult.IsSuccess && userResult.Value != null ? userResult.Value.FirstName : "Usuário";
-        
-        if (!userResult.IsSuccess)
-        {
-            logger.LogWarning("Failed to get user {UserId} for deletion notification, falling back to generic data.", integrationEvent.UserId);
-        }
+        var email = integrationEvent.Email;
+        var firstName = integrationEvent.FirstName;
 
         var payload = serializer.Serialize(new
         {
@@ -74,6 +67,17 @@ public sealed class UserDeletedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(
+                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+
+            if (processedException is UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping user deleted email for user {UserId} — already enqueued (correlationId: {CorrelationId}).",
+                    integrationEvent.UserId, correlationId);
+                return;
+            }
+
             logger.LogError(ex, "Failed to enqueue user deleted email for {UserId}.", integrationEvent.UserId);
             throw;
         }

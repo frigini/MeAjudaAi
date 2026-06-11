@@ -1,7 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Commands;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -48,10 +50,6 @@ public class UpdateEmailTemplateEndpoint : IEndpoint
             return Results.NoContent();
         }
 
-        return result.Error.StatusCode == StatusCodes.Status404NotFound 
-            ? Results.NotFound(result.Error) 
-            : Results.BadRequest(result.Error);
+        return result.Error.ToProblem();
     }
 }
-
-public sealed record UpdateEmailTemplateBody(string Subject, string HtmlBody, string TextBody);
