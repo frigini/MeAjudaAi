@@ -532,13 +532,6 @@ public class DevelopmentDataSeeder(
 
         foreach (var provider in providers)
         {
-            if (string.IsNullOrEmpty(provider.FantasyName))
-                return;
-            if (string.IsNullOrEmpty(provider.Website))
-                return;
-            if (string.IsNullOrEmpty(provider.Complement))
-                return;
-
             // Inserir Provedor
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.providers (
@@ -850,7 +843,7 @@ public class DevelopmentDataSeeder(
                     is_active, is_system_template, language, version, created_at, updated_at
                   )
                   VALUES ({0}, {1}, NULL, {2}, {3}, {4}, true, true, 'pt-BR', 1, {5}, {5})
-                  ON CONFLICT DO NOTHING",
+                  ON CONFLICT (template_key, language, override_key, version) DO NOTHING",
                 new object[] { t.Id, t.TemplateKey, t.Subject, t.HtmlBody, t.TextBody, now },
                 cancellationToken);
         }

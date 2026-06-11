@@ -13,16 +13,16 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddLocationsModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, environment);
 
         return services;
     }
 
     /// <summary>
     /// Configura os endpoints do módulo Locations.
-    /// Registra endpoints administrativos para gerenciamento de cidades permitidas.
     /// </summary>
     public static WebApplication UseLocationsModule(this WebApplication app)
     {

@@ -5,8 +5,8 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 
 /// <summary>
-/// Validates that all required communication services are registered at startup.
-/// Throws a clear error if EnableStubs=false and no real providers are registered.
+/// Valida se todos os serviços de comunicação obrigatórios estão registrados no startup.
+/// Lança um erro claro se EnableStubs=false e nenhum provedor real estiver registrado.
 /// </summary>
 internal sealed class CommunicationsStartupValidator(
     bool stubsEnabled,

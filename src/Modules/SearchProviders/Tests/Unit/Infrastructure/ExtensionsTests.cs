@@ -33,7 +33,7 @@ public class ExtensionsTests
         services.AddScoped(sp => new Mock<MeAjudaAi.Contracts.Modules.SearchProviders.ISearchProvidersModuleApi>().Object);
         services.AddScoped(sp => new Mock<MeAjudaAi.Contracts.Modules.Providers.IProvidersModuleApi>().Object);
 
-        MeAjudaAi.Modules.SearchProviders.Infrastructure.Extensions.AddSearchProvidersInfrastructure(services, configuration, hostEnv.Object);
+        MeAjudaAi.Modules.SearchProviders.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostEnv.Object);
 
         var provider = services.BuildServiceProvider();
 

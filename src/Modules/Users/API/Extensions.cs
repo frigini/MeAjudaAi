@@ -6,18 +6,19 @@ using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Users.API;
 
 public static class Extensions
 {
-    public static IServiceCollection AddUsersModule(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddUsersModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, environment);
         
         // Registrar validadores FluentValidation do módulo Users
         services.AddValidatorsFromAssemblyContaining<Application.Validators.CreateUserRequestValidator>();
@@ -27,11 +28,11 @@ public static class Extensions
 
     /// <summary>
     /// Configura isolamento de schema para o módulo Users (opcional - para produção)
-    /// Usa os scripts existentes em infrastructure/database/schemas
     /// </summary>
     public static async Task<IServiceCollection> AddUsersModuleWithSchemaIsolationAsync(
         this IServiceCollection services,
         IConfiguration configuration,
+        IHostEnvironment environment,
         string? usersRolePassword = null,
         string? appRolePassword = null)
     {
@@ -39,7 +40,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         // Configurar serviços do módulo
-        services.AddUsersModule(configuration);
+        services.AddUsersModule(configuration, environment);
 
         // Configurar permissões de schema (apenas se habilitado)
         if (configuration.GetValue("Database:EnableSchemaIsolation", false))
@@ -57,5 +58,3 @@ public static class Extensions
         return app;
     }
 }
-
-

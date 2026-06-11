@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Services;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
@@ -56,8 +57,8 @@ public static class Extensions
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Bookings, (sp, key) => sp.GetRequiredService<BookingsDbContext>());
 
         // Repositories
-        services.AddScoped<IRepository<MeAjudaAi.Modules.Bookings.Domain.Entities.Booking, Guid>>(sp => sp.GetRequiredService<BookingsDbContext>());
-        services.AddScoped<IRepository<MeAjudaAi.Modules.Bookings.Domain.Entities.ProviderSchedule, Guid>>(sp => sp.GetRequiredService<BookingsDbContext>());
+        services.AddScoped<IRepository<Booking, Guid>>(sp => sp.GetRequiredService<BookingsDbContext>());
+        services.AddScoped<IRepository<ProviderSchedule, Guid>>(sp => sp.GetRequiredService<BookingsDbContext>());
 
         // Queries
         services.AddScoped<IBookingQueries, DbContextBookingQueries>();

@@ -17,7 +17,7 @@ public class UserDeviceTokenEndToEndTests : BaseTestContainerTest
         var request = new DeviceTokenRequest("test-device-token");
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/users/{nonExistentUserId}/device-token", request);
+        var response = await ApiClient.PutAsJsonAsync($"/api/v1/users/{nonExistentUserId}/device-token", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -32,7 +32,7 @@ public class UserDeviceTokenEndToEndTests : BaseTestContainerTest
         var request = new DeviceTokenRequest($"device-token-{Guid.NewGuid():N}");
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/users/{userId}/device-token", request);
+        var response = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/device-token", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -49,13 +49,13 @@ public class UserDeviceTokenEndToEndTests : BaseTestContainerTest
 
         // Act - First update
         var firstResponse = await ApiClient.PutAsJsonAsync(
-            $"/users/{userId}/device-token",
+            $"/api/v1/users/{userId}/device-token",
             new DeviceTokenRequest(firstToken));
         firstResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act - Second update (overwrite)
         var secondResponse = await ApiClient.PutAsJsonAsync(
-            $"/users/{userId}/device-token",
+            $"/api/v1/users/{userId}/device-token",
             new DeviceTokenRequest(secondToken));
         secondResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 

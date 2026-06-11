@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -31,7 +32,8 @@ public class ExtensionsTests
             .Options;
         services.AddScoped(sp => new MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext(options));
 
-        MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Extensions.AddServiceCatalogsInfrastructure(services, configuration);
+        var environment = new Mock<IHostEnvironment>();
+        MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Extensions.AddInfrastructure(services, configuration, environment.Object);
         var provider = services.BuildServiceProvider();
 
         provider.GetService<IEventHandler<ServiceActivatedDomainEvent>>().Should().NotBeNull();

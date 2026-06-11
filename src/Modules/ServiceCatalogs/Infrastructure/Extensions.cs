@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
@@ -6,18 +6,21 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,23 +28,32 @@ using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure;
 
+/// <summary>
+/// Métodos de extensão para registrar serviços de infraestrutura do módulo ServiceCatalogs.
+/// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Adiciona os serviços de infraestrutura do módulo ServiceCatalogs.
+    /// Registra todos os serviços de infraestrutura do módulo ServiceCatalogs.
     /// </summary>
-    public static IServiceCollection AddServiceCatalogsInfrastructure(
+    public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        // ... rest of DB configuration ...
+        services.AddPersistence(configuration, environment);
+        services.AddEventHandlers();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Configura a persistência do banco de dados e repositórios do módulo.
+    /// </summary>
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    {
         services.AddDbContext<ServiceCatalogsDbContext>((serviceProvider, options) =>
         {
-            var environment = serviceProvider.GetService<IHostEnvironment>();
-            var isTestEnvironment = environment?.EnvironmentName == "Testing";
-
-            // Use shared connection string resolution logic (same precedence as DapperConnection)
             var connectionString = configuration["Postgres:ConnectionString"]
                                   ?? configuration.GetConnectionString("DefaultConnection")
                                   ?? configuration.GetConnectionString("ServiceCatalogs")
@@ -49,12 +61,10 @@ public static class Extensions
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+                if (EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
+                    connectionString = DatabaseConstants.DefaultTestConnectionString;
                 }
                 else
                 {
@@ -74,22 +84,28 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            if (environment?.IsDevelopment() == true)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             }
         });
 
+        // Processador de eventos de domínio
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
+
+        // Unit of Work e Repositórios
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.ServiceCatalogs, (sp, key) => sp.GetRequiredService<ServiceCatalogsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
 
+        services.AddScoped<IRepository<Service, ServiceId>>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+        services.AddScoped<IRepository<ServiceCategory, ServiceCategoryId>>(sp => sp.GetRequiredService<ServiceCatalogsDbContext>());
+
+        // Consultas otimizadas
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
 
-
-        // Registra command handlers
+        // Command Handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateServiceCommand, Result<ServiceDto>>, CreateServiceCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateServiceCategoryCommand, Result>, UpdateServiceCategoryCommandHandler>();
@@ -102,25 +118,22 @@ public static class Extensions
         services.AddScoped<ICommandHandler<DeactivateServiceCommand, Result>, DeactivateServiceCommandHandler>();
         services.AddScoped<ICommandHandler<ChangeServiceCategoryCommand, Result>, ChangeServiceCategoryCommandHandler>();
 
-        // Registra query handlers
+        // Query Handlers
         services.AddScoped<IQueryHandler<GetAllServiceCategoriesQuery, Result<IReadOnlyList<ServiceCategoryDto>>>, GetAllServiceCategoriesQueryHandler>();
         services.AddScoped<IQueryHandler<GetServiceCategoryByIdQuery, Result<ServiceCategoryDto?>>, GetServiceCategoryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetServiceCategoriesWithCountQuery, Result<IReadOnlyList<ServiceCategoryWithCountDto>>>, GetServiceCategoriesWithCountQueryHandler>();
         services.AddScoped<IQueryHandler<GetAllServicesQuery, Result<IReadOnlyList<ServiceListDto>>>, GetAllServicesQueryHandler>();
         services.AddScoped<IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>, GetServiceByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>, GetServicesByCategoryQueryHandler>();
+    }
 
-        // Registra domain event handlers
+    /// <summary>
+    /// Adiciona os Event Handlers do módulo ServiceCatalogs.
+    /// </summary>
+    private static void AddEventHandlers(this IServiceCollection services)
+    {
         services.AddScoped<IEventHandler<ServiceActivatedDomainEvent>, ServiceActivatedDomainEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedDomainEvent>, ServiceDeactivatedDomainEventHandler>();
         services.AddScoped<IEventHandler<ServiceUpdatedDomainEvent>, ServiceUpdatedDomainEventHandler>();
-
-        return services;
     }
 }
-
-
-
-
-
-

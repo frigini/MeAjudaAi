@@ -373,7 +373,7 @@ Design inseguro refere-se a falhas arquiteturais onde controles de segurança n�
 
 Antes de implementar qualquer funcionalidade nova, realize modelagem de ameaças (ex.: STRIDE) para identificar vetores de ataque potenciais.
 
-```
+```text
 Para cada funcionalidade, responda:
 - Quem são os atores (internos e externos)?
 - Quais dados são processados ou transmitidos?
@@ -400,7 +400,7 @@ builder.Services.AddCors(options =>
 
 Não dependa de uma única camada de segurança. Combine: validação de input, autorização, auditoria de logs, e monitoramento.
 
-```
+```text
 Camadas de segurança recomendadas:
 1. WAF (Web Application Firewall) — filtragem de tráfego externo
 2. Rate Limiting — proteção contra abuso e brute-force
@@ -1383,7 +1383,7 @@ public async Task<IActionResult> FetchContent([FromBody] FetchRequest request)
 
 Configure regras de firewall para que o servidor de aplicação **não possa** iniciar conexões para redes internas de dentro de uma requisição web. Isso é uma camada de defesa em profundidade.
 
-```
+```bash
 # iptables — bloquear saída para redes privadas a partir do processo da aplicação
 iptables -A OUTPUT -d 10.0.0.0/8 -j DROP
 iptables -A OUTPUT -d 172.16.0.0/12 -j DROP

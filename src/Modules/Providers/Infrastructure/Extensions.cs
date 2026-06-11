@@ -1,54 +1,63 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
+using MeAjudaAi.Shared.Messaging.Messages.Payments;
+using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using MeAjudaAi.Shared.Messaging.Messages.Payments;
-using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
-
 namespace MeAjudaAi.Modules.Providers.Infrastructure;
 
+/// <summary>
+/// Métodos de extensão para registrar serviços de infraestrutura do módulo Providers.
+/// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Adiciona os serviços de infraestrutura do módulo Providers.
+    /// Registra todos os serviços de infraestrutura do módulo Providers.
     /// </summary>
-    /// <param name="services">Coleção de serviços</param>
-    /// <param name="configuration">Configuração da aplicação</param>
-    /// <returns>Coleção de serviços para encadeamento</returns>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        // Configuração do DbContext - mais tolerante para ambientes de teste
+        services.AddPersistence(configuration, environment);
+        services.AddEventHandlers();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configura a persistência do banco de dados e repositórios do módulo.
+    /// </summary>
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    {
         services.AddDbContext<ProvidersDbContext>((serviceProvider, options) =>
         {
-            // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                                   ?? configuration.GetConnectionString("Providers")
                                   ?? configuration.GetConnectionString("meajudaai-db");
 
             // Em ambiente de teste, permitir inicialização sem connection string
-            // (útil para testes unitários que não acessam o banco)
-            var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment();
+            var isTesting = EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
             if (string.IsNullOrEmpty(connectionString))
             {
                 if (isTesting)
                 {
                     // Para testes, usar uma connection string temporária que será substituída
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
+                    connectionString = DatabaseConstants.DefaultTestConnectionString;
                 }
                 else
                 {
@@ -63,18 +72,14 @@ public static class Extensions
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ProvidersDbContext).Assembly.FullName);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
-
-                // PERFORMANCE: Timeout mais longo para permitir criação do banco de dados
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()
-            // Configurações consistentes para evitar problemas com compiled queries
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = serviceProvider.GetService<IHostEnvironment>();
-            if (environment?.IsDevelopment() == true)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -93,23 +98,21 @@ public static class Extensions
         // Registro do processador de eventos de domínio
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
-        // Registro do DbContext como IUnitOfWork
+        // Unit of Work e Repositórios
         services.AddScoped<IProviderUnitOfWork>(sp => (IProviderUnitOfWork)sp.GetRequiredService<ProvidersDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Providers, (sp, key) => sp.GetRequiredService<ProvidersDbContext>());
 
-        // Registro das Queries otimizadas
+        services.AddScoped<IRepository<Provider, Guid>>(sp => sp.GetRequiredService<ProvidersDbContext>());
+
+        // Consultas otimizadas
         services.AddScoped<IProviderQueries, DbContextProviderQueries>();
-
-        // Registro dos Event Handlers
-        services.AddEventHandlers();
-
-        return services;
     }
 
     /// <summary>
     /// Adiciona os Event Handlers do módulo Providers.
     /// </summary>
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    private static void AddEventHandlers(this IServiceCollection services)
     {
         // Domain Event Handlers
         services.AddScoped<IEventHandler<ProviderRegisteredDomainEvent>, ProviderRegisteredDomainEventHandler>();
@@ -127,14 +130,5 @@ public static class Extensions
         services.AddScoped<IEventHandler<SubscriptionCanceledIntegrationEvent>, SubscriptionCanceledIntegrationEventHandler>();
         services.AddScoped<IEventHandler<SubscriptionExpiredIntegrationEvent>, SubscriptionExpiredIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceNameUpdatedIntegrationEvent>, ServiceNameUpdatedIntegrationEventHandler>();
-
-        return services;
     }
 }
-
-
-
-
-
-
-

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API;
@@ -12,10 +13,10 @@ namespace MeAjudaAi.Modules.Communications.API;
 [ExcludeFromCodeCoverage]
 public static class CommunicationsModuleExtensions
 {
-    public static IServiceCollection AddCommunicationsModule(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCommunicationsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, environment);
 
         return services;
     }

@@ -22,7 +22,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
     }
 
     [Fact]
-    public async Task Put_DeviceToken_ShouldReturnOk_WhenTokenIsEmpty()
+    public async Task Put_DeviceToken_ShouldReturnNotFound_WhenProviderDoesNotExist_WithEmptyToken()
     {
         // Arrange - Empty token is valid and clears the device token
         TestContainerFixture.AuthenticateAsAdmin();
@@ -48,7 +48,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var response = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     private async Task<Guid> CreateTestProviderAsync()

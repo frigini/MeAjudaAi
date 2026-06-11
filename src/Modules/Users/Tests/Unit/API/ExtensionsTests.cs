@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Users.API;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Moq;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -15,6 +17,8 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 [Trait("Layer", "API")]
 public class ExtensionsTests
 {
+    private readonly IHostEnvironment _environment = new Mock<IHostEnvironment>().Object;
+
     private static IConfiguration BuildTestConfiguration_Minimal()
     {
         return new ConfigurationBuilder()
@@ -47,7 +51,7 @@ public class ExtensionsTests
         var configuration = BuildTestConfiguration_Minimal();
 
         // Act & Assert
-        var act = () => services.AddUsersModule(configuration);
+        var act = () => services.AddUsersModule(configuration, _environment);
         
         act.Should().Throw<ArgumentNullException>().WithParameterName("services");
     }
@@ -60,7 +64,7 @@ public class ExtensionsTests
         IConfiguration configuration = null!;
 
         // Act & Assert
-        var act = () => services.AddUsersModule(configuration);
+        var act = () => services.AddUsersModule(configuration, _environment);
         
         act.Should().Throw<ArgumentNullException>().WithParameterName("configuration");
     }
@@ -73,7 +77,7 @@ public class ExtensionsTests
         var configuration = BuildTestConfiguration_Full();
 
         // Act
-        var result = services.AddUsersModule(configuration);
+        var result = services.AddUsersModule(configuration, _environment);
 
         // Assert
         Assert.NotNull(result);
@@ -97,7 +101,7 @@ public class ExtensionsTests
         var configuration = BuildTestConfiguration_Minimal();
 
         // Act
-        var result = services.AddUsersModule(configuration);
+        var result = services.AddUsersModule(configuration, _environment);
 
         // Assert
         Assert.Same(services, result);
@@ -111,7 +115,7 @@ public class ExtensionsTests
         var configuration = BuildTestConfiguration_Full();
 
         // Act
-        services.AddUsersModule(configuration);
+        services.AddUsersModule(configuration, _environment);
 
         // Assert
         var serviceProvider = services.BuildServiceProvider();
@@ -131,7 +135,7 @@ public class ExtensionsTests
         var configuration = BuildTestConfiguration_Minimal();
 
         // Act
-        var result = services.AddUsersModule(configuration);
+        var result = services.AddUsersModule(configuration, _environment);
 
         // Assert
         Assert.NotNull(result);
@@ -160,7 +164,7 @@ public class ExtensionsTests
             .Build();
 
         // Act
-        var result = services.AddUsersModule(configuration);
+        var result = services.AddUsersModule(configuration, _environment);
 
         // Assert
         Assert.NotNull(result);
@@ -190,7 +194,7 @@ public class ExtensionsTests
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
 
         // Act
-        services.AddUsersModule(configuration);
+        services.AddUsersModule(configuration, _environment);
 
         // Assert
         var serviceProvider = services.BuildServiceProvider();

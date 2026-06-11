@@ -50,7 +50,7 @@ public abstract class BaseTestAuthenticationHandler(
             // Add permissions based on role for test environment
             if (role.Equals("admin", StringComparison.OrdinalIgnoreCase))
             {
-                // Add all admin permissions for Users
+                // Permissões administrativas para Users
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersList.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersCreate.GetValue()));
@@ -58,7 +58,7 @@ public abstract class BaseTestAuthenticationHandler(
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersDelete.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.AdminUsers.GetValue()));
 
-                // Add all admin permissions for Providers
+                // Permissões administrativas para Providers
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersList.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersRead.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersCreate.GetValue()));
@@ -66,13 +66,51 @@ public abstract class BaseTestAuthenticationHandler(
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersDelete.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersApprove.GetValue()));
 
-                // Adicionar todas as permissões administrativas para Catálogos de Serviço
+                // Permissões administrativas para Service Catalogs
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ServiceCatalogsRead.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ServiceCatalogsManage.GetValue()));
 
-                // Adicionar todas as permissões administrativas para Localizações
+                // Permissões administrativas para Locations
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.LocationsRead.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.LocationsManage.GetValue()));
+
+                // Permissões administrativas para Communications
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.CommunicationsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.CommunicationsManage.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.CommunicationsSend.GetValue()));
+
+                // Permissões administrativas para Bookings
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.BookingsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.BookingsManage.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.BookingsCreate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.BookingsUpdate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.BookingsCancel.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.BookingsList.GetValue()));
+
+                // Permissões administrativas para Payments
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.PaymentsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.PaymentsManage.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.PaymentsCheckout.GetValue()));
+
+                // Permissões administrativas para Ratings
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.RatingsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.RatingsCreate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.RatingsModerate.GetValue()));
+
+                // Permissões administrativas para Documents
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.DocumentsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.DocumentsUpload.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.DocumentsVerify.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.DocumentsDelete.GetValue()));
+
+                // Permissões administrativas para Search
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.SearchRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.SearchManage.GetValue()));
+
+                // Permissões administrativas de sistema
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.SystemRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.SystemWrite.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.SystemAdmin.GetValue()));
 
                 claims.Add(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }

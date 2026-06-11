@@ -15,7 +15,7 @@ public class UpdateUserDeviceTokenEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPut("/users/{id:guid}/device-token", UpdateDeviceTokenAsync)
+        app.MapPut("/{id:guid}/device-token", UpdateDeviceTokenAsync)
            .RequireSelfOrAdmin()
            .Produces(StatusCodes.Status204NoContent)
            .ProducesProblem(StatusCodes.Status400BadRequest)

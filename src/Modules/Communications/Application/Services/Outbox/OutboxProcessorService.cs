@@ -179,6 +179,11 @@ public sealed class OutboxProcessorService(
             textBody = email.TextBody ?? email.Body ?? string.Empty;
         }
 
+        if (string.IsNullOrWhiteSpace(subject))
+        {
+            subject = "(no subject)";
+        }
+
         return await emailSender.SendAsync(
             new EmailMessage(email.To, subject, htmlBody, textBody, email.From),
             cancellationToken);

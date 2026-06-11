@@ -29,15 +29,15 @@ public class HandlerRegistrationTests
         services.AddSingleton(Mock.Of<MeAjudaAi.Shared.Messaging.IMessageBus>());
 
         MeAjudaAi.Modules.Bookings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
-        MeAjudaAi.Modules.Communications.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Communications.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
         MeAjudaAi.Modules.Documents.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
-        MeAjudaAi.Modules.Locations.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Locations.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
         MeAjudaAi.Modules.Payments.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
-        MeAjudaAi.Modules.Providers.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Providers.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
         MeAjudaAi.Modules.Ratings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
-        MeAjudaAi.Modules.SearchProviders.Infrastructure.Extensions.AddSearchProvidersInfrastructure(services, configuration, hostingEnv);
-        MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Extensions.AddServiceCatalogsInfrastructure(services, configuration);
-        MeAjudaAi.Modules.Users.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.SearchProviders.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
+        MeAjudaAi.Modules.Users.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostingEnv);
 
         // Register Application layer services for modules that have handlers there
         MeAjudaAi.Modules.Bookings.Application.Extensions.AddApplication(services);

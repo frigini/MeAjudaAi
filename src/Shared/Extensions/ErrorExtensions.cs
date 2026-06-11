@@ -21,9 +21,19 @@ public static class ErrorExtensions
             _ => "https://tools.ietf.org/html/rfc9110#section-15.6.1"
         };
 
+        var title = statusCode switch
+        {
+            400 => "Bad Request",
+            401 => "Unauthorized",
+            403 => "Forbidden",
+            404 => "Not Found",
+            409 => "Conflict",
+            _ => "Internal Server Error"
+        };
+
         return Results.Problem(
             detail: error.Message,
-            title: error.Message,
+            title: title,
             type: type,
             statusCode: statusCode);
     }

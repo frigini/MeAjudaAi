@@ -1,10 +1,11 @@
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
 using MeAjudaAi.Modules.ServiceCatalogs.Application;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure;
-using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API;
 
@@ -15,12 +16,13 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddServiceCatalogsModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddApplication();
-        services.AddServiceCatalogsInfrastructure(configuration);
+        services.AddInfrastructure(configuration, environment);
 
-        // Register module public API for cross-module communication
+        // Registrar API pública do módulo para comunicação entre módulos
         services.AddScoped<IServiceCatalogsModuleApi, Application.ModuleApi.ServiceCatalogsModuleApi>();
 
         return services;
