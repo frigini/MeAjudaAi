@@ -312,7 +312,7 @@ public class UserTests
         // Assert
         user.Username.Value.Should().Be(newUsername);
         user.LastUsernameChangeAt.Should().Be(new DateTime(2023, 10, 15, 12, 0, 0, DateTimeKind.Utc));
-        user.DomainEvents.Should().ContainSingle(e => e.GetType().Name == "UserUsernameChangedEvent");
+        user.DomainEvents.Should().ContainSingle(e => e is UserUsernameChangedDomainEvent);
     }
 
     [Fact]

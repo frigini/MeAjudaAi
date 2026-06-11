@@ -11,7 +11,7 @@ using System.Data;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Services;
 
-internal class DbContextBookingCommandService(
+internal sealed class DbContextBookingCommandService(
     BookingsDbContext context,
     ILogger<DbContextBookingCommandService> logger) : IBookingCommandService
 {
