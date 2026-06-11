@@ -13,11 +13,28 @@ public static class CommunicationsTestDb
 
         var options = new DbContextOptionsBuilder<CommunicationsDbContext>()
             .UseSqlite(connection)
+            .UseSnakeCaseNamingConvention()
             .Options;
 
-        var context = new CommunicationsDbContext(options);
+        var context = new TestCommunicationsDbContext(options);
         context.Database.EnsureCreated();
 
         return context;
+    }
+
+    private sealed class TestCommunicationsDbContext(DbContextOptions<CommunicationsDbContext> options) : CommunicationsDbContext(options)
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var index in entityType.GetIndexes().Where(i => i.GetFilter() != null).ToList())
+                {
+                    entityType.RemoveIndex(index);
+                }
+            }
+        }
     }
 }

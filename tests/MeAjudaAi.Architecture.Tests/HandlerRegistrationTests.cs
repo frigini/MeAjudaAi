@@ -226,7 +226,11 @@ public class HandlerRegistrationTests
         }
         catch
         {
-            // If resolution fails (missing dependencies), fall back to metadata check
+            // If resolution fails (missing dependencies), fall back to metadata check.
+            // NOTE: factories are treated as ambiguous matches — a ServiceDescriptor with
+            // ImplementationFactory != null may target a different implementation than the
+            // one we're looking for. This is an acceptable trade-off for architecture tests
+            // where exact resolution isn't possible due to transitive dependencies.
             return services.Any(sd =>
                 sd.ServiceType == serviceType &&
                 (sd.ImplementationType == implementationType || sd.ImplementationFactory != null));

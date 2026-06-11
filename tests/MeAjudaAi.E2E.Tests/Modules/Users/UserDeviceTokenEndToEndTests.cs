@@ -1,5 +1,6 @@
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Users.API.Endpoints.Public;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -140,14 +141,5 @@ public class UserDeviceTokenEndToEndTests : BaseTestContainerTest
         (deviceToken.ValueKind == JsonValueKind.Null || 
          string.IsNullOrEmpty(deviceToken.GetString())).Should().BeTrue(
             "empty string should clear the device token");
-    }
-
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        if (response.TryGetProperty("value", out var value))
-            return value;
-        if (response.TryGetProperty("data", out var data))
-            return data;
-        return response;
     }
 }

@@ -278,8 +278,12 @@ public sealed class User : AggregateRoot<UserId>
     {
         if (IsDeleted)
             throw new UserDomainException("Cannot update device token of deleted user");
-        
-        DeviceToken = string.IsNullOrWhiteSpace(deviceToken) ? null : deviceToken;
+
+        var normalized = string.IsNullOrWhiteSpace(deviceToken) ? null : deviceToken;
+        if (normalized == DeviceToken)
+            return;
+
+        DeviceToken = normalized;
         MarkAsUpdated();
     }
 

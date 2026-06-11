@@ -1,5 +1,6 @@
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -25,7 +26,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
     [Fact]
     public async Task Put_DeviceToken_ShouldReturnNotFound_WhenProviderDoesNotExist_WithEmptyToken()
     {
-        // Arrange - Empty token is valid and clears the device token
+        // Arrange - Provider doesn't exist, expect NotFound regardless of token content
         TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid();
         var request = new ProviderDeviceTokenRequest("");
@@ -205,14 +206,5 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         }
 
         return ExtractIdFromLocation(location);
-    }
-
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        if (response.TryGetProperty("value", out var value))
-            return value;
-        if (response.TryGetProperty("data", out var data))
-            return data;
-        return response;
     }
 }

@@ -27,6 +27,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -712,6 +713,18 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
         var newDescriptor = new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime);
         services.Add(newDescriptor);
+    }
+
+    /// <summary>
+    /// Extrai o objeto de dados de uma resposta JSON, suportando formatos { "value": {...} }, { "data": {...} } ou objeto direto.
+    /// </summary>
+    protected static JsonElement GetResponseData(JsonElement response)
+    {
+        if (response.TryGetProperty("value", out var value))
+            return value;
+        if (response.TryGetProperty("data", out var data))
+            return data;
+        return response;
     }
 }
 

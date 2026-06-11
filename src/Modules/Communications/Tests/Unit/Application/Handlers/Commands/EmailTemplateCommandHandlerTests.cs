@@ -45,12 +45,21 @@ public class EmailTemplateCommandHandlerTests
 
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
 
+        EmailTemplate? capturedNewVersion = null;
+        _repositoryMock.Setup(x => x.Add(It.IsAny<EmailTemplate>()))
+            .Callback<EmailTemplate>(t => capturedNewVersion = t);
+
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        template.Subject.Should().Be("NewSub");
+        template.IsActive.Should().BeFalse("old version should be deactivated");
+        capturedNewVersion.Should().NotBeNull("a new version should have been created");
+        capturedNewVersion!.Subject.Should().Be("NewSub");
+        capturedNewVersion.HtmlBody.Should().Be("NewHtml");
+        capturedNewVersion.TextBody.Should().Be("NewText");
+        capturedNewVersion.Version.Should().Be(2);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -67,7 +67,10 @@ public class TemplateKeyCoverageTests
         var projectDir = FindCommunicationsHandlersDirectory();
 
         if (projectDir == null || !Directory.Exists(projectDir))
-            return keys;
+            throw new InvalidOperationException(
+                $"Could not locate Communications Handlers directory. " +
+                $"FindCommunicationsHandlersDirectory() returned: {projectDir ?? "null"}. " +
+                $"Ensure the source tree is intact and the test is running from a valid location.");
 
         var handlerFiles = Directory.GetFiles(projectDir, "*IntegrationEventHandler.cs", SearchOption.AllDirectories);
 
@@ -103,7 +106,10 @@ public class TemplateKeyCoverageTests
         var seederFile = FindDevelopmentDataSeederFile();
 
         if (seederFile == null || !File.Exists(seederFile))
-            return keys;
+            throw new InvalidOperationException(
+                $"Could not locate DevelopmentDataSeeder file. " +
+                $"FindDevelopmentDataSeederFile() returned: {seederFile ?? "null"}. " +
+                $"Ensure the source tree is intact and the test is running from a valid location.");
 
         var content = File.ReadAllText(seederFile);
 
