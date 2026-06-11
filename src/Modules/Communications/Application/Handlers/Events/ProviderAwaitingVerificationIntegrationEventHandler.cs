@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -24,20 +25,20 @@ public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
 {
     public async Task HandleAsync(ProviderAwaitingVerificationIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
-        var adminEmail = configuration["Communications:AdminEmail"];
+        var adminEmail = configuration[CommunicationConstants.AdminEmailConfigKey];
         if (string.IsNullOrWhiteSpace(adminEmail))
         {
-            adminEmail = "suporte@meajudaai.com.br";
+            adminEmail = CommunicationConstants.DefaultAdminEmail;
         }
         
-        var correlationId = $"admin_verification_alert:{integrationEvent.ProviderId}";
+        var correlationId = $"{CommunicationTemplateKeys.ProviderAwaitingVerification}{CommunicationConstants.CorrelationSeparator}{integrationEvent.ProviderId}";
 
         var emailPayload = new
         {
             To = adminEmail,
             Subject = "Novo prestador aguardando verificação",
             Body = $"O prestador {integrationEvent.Name} (ID: {integrationEvent.ProviderId}) enviou documentos para análise.",
-            TemplateKey = "admin-provider-verification-alert",
+            TemplateKey = CommunicationTemplateKeys.ProviderAwaitingVerification,
             CorrelationId = correlationId
         };
 

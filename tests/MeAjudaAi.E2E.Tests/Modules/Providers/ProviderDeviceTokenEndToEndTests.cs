@@ -1,6 +1,7 @@
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
@@ -49,6 +50,109 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task Put_DeviceToken_ShouldPersistToken()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var providerId = await CreateTestProviderAsync();
+        var token = $"device-token-{Guid.NewGuid():N}";
+
+        // Act - Set token
+        var setResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/device-token",
+            new ProviderDeviceTokenRequest(token));
+        setResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Act - Get provider to verify persistence
+        var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var providerJson = await getResponse.Content.ReadAsStringAsync();
+        var providerResponse = JsonSerializer.Deserialize<JsonElement>(providerJson, JsonOptions);
+        var providerData = GetResponseData(providerResponse);
+
+        // Assert - Token was persisted
+        var deviceToken = providerData.GetProperty("deviceToken").GetString();
+        deviceToken.Should().Be(token, "device token should be persisted after update");
+    }
+
+    [Fact]
+    public async Task Put_DeviceToken_ShouldReplacePreviousToken()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var providerId = await CreateTestProviderAsync();
+        var firstToken = $"first-token-{Guid.NewGuid():N}";
+        var secondToken = $"second-token-{Guid.NewGuid():N}";
+
+        // Act - Set first token
+        var firstResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/device-token",
+            new ProviderDeviceTokenRequest(firstToken));
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Act - Replace with second token
+        var secondResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/device-token",
+            new ProviderDeviceTokenRequest(secondToken));
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Act - Get provider to verify replacement
+        var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var providerJson = await getResponse.Content.ReadAsStringAsync();
+        var providerResponse = JsonSerializer.Deserialize<JsonElement>(providerJson, JsonOptions);
+        var providerData = GetResponseData(providerResponse);
+
+        // Assert - Second token replaced the first
+        var deviceToken = providerData.GetProperty("deviceToken").GetString();
+        deviceToken.Should().Be(secondToken, "second update should replace the first token");
+    }
+
+    [Fact]
+    public async Task Put_DeviceToken_ShouldClearToken_WhenEmpty()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var providerId = await CreateTestProviderAsync();
+        var token = $"device-token-{Guid.NewGuid():N}";
+
+        // Act - Set token
+        var setResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/device-token",
+            new ProviderDeviceTokenRequest(token));
+        setResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify token was set
+        var getResponse1 = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        var providerResponse1 = JsonSerializer.Deserialize<JsonElement>(
+            await getResponse1.Content.ReadAsStringAsync(), JsonOptions);
+        var provider1 = GetResponseData(providerResponse1);
+        provider1.GetProperty("deviceToken").GetString().Should().Be(token);
+
+        // Act - Clear token with empty string
+        var clearResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/device-token",
+            new ProviderDeviceTokenRequest(""));
+        clearResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Act - Get provider to verify token was cleared
+        var getResponse2 = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        getResponse2.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var providerResponse2 = JsonSerializer.Deserialize<JsonElement>(
+            await getResponse2.Content.ReadAsStringAsync(), JsonOptions);
+        var provider2 = GetResponseData(providerResponse2);
+
+        // Assert - Token should be null/empty after clearing
+        var deviceToken = provider2.GetProperty("deviceToken");
+        (deviceToken.ValueKind == JsonValueKind.Null || 
+         string.IsNullOrEmpty(deviceToken.GetString())).Should().BeTrue(
+            "empty string should clear the device token");
     }
 
     private async Task<Guid> CreateTestProviderAsync()
@@ -101,5 +205,14 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         }
 
         return ExtractIdFromLocation(location);
+    }
+
+    private static JsonElement GetResponseData(JsonElement response)
+    {
+        if (response.TryGetProperty("value", out var value))
+            return value;
+        if (response.TryGetProperty("data", out var data))
+            return data;
+        return response;
     }
 }

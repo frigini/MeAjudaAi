@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -32,7 +33,7 @@ public sealed class BookingCompletedIntegrationEventHandler(
     ILogger<BookingCompletedIntegrationEventHandler> logger)
     : IEventHandler<BookingCompletedIntegrationEvent>
 {
-    private const string TemplateKey = "booking_completed_rating_invite";
+    private const string TemplateKey = CommunicationTemplateKeys.BookingCompleted;
 
     public async Task HandleAsync(
         BookingCompletedIntegrationEvent integrationEvent,
@@ -61,10 +62,10 @@ public sealed class BookingCompletedIntegrationEventHandler(
         var clientEmail = clientResult.Value.Email;
         var clientFirstName = HttpUtility.HtmlEncode(clientResult.Value.FirstName);
 
-        var appBaseUrl = configuration["ClientBaseUrl"];
+        var appBaseUrl = configuration[CommunicationConstants.ClientBaseUrlConfigKey];
         if (string.IsNullOrWhiteSpace(appBaseUrl))
         {
-            throw new InvalidOperationException("Configuration 'ClientBaseUrl' is missing.");
+            throw new InvalidOperationException($"Configuration '{CommunicationConstants.ClientBaseUrlConfigKey}' is missing.");
         }
         var reviewUrl = $"{appBaseUrl.TrimEnd('/')}/reviews/create?bookingId={HttpUtility.UrlEncode(integrationEvent.BookingId.ToString())}";
 

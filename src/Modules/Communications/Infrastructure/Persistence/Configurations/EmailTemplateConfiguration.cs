@@ -37,8 +37,13 @@ internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<Emai
             .IsRequired()
             .HasDefaultValue("pt-BR");
 
-        builder.HasIndex(x => new { x.TemplateKey, x.Language, x.OverrideKey, x.Version })
+        // Índice único: apenas uma versão ativa por combinação de template_key + language + override_key
+        // Permite múltiplas versões inativas para histórico/auditoria
+        builder.HasIndex(x => new { x.TemplateKey, x.Language, x.OverrideKey })
             .IsUnique()
-            .AreNullsDistinct(false);
+            .HasFilter("is_active = true");
+
+        // Índice para buscar todas as versões de um template específico
+        builder.HasIndex(x => new { x.TemplateKey, x.Language, x.Version });
     }
 }

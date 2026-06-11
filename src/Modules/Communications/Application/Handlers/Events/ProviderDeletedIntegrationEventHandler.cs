@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -21,7 +22,7 @@ public sealed class ProviderDeletedIntegrationEventHandler(
     ILogger<ProviderDeletedIntegrationEventHandler> logger)
     : IEventHandler<ProviderDeletedIntegrationEvent>
 {
-    private const string TemplateKey = "provider_deleted";
+    private const string TemplateKey = CommunicationTemplateKeys.ProviderDeleted;
 
     public async Task HandleAsync(
         ProviderDeletedIntegrationEvent integrationEvent,

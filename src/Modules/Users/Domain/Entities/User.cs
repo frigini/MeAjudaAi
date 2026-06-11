@@ -273,15 +273,13 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Atualiza o token do dispositivo para notificações push.
     /// </summary>
-    public void UpdateDeviceToken(string deviceToken)
+    /// <param name="deviceToken">Token do dispositivo. Passar null ou vazio para limpar o token.</param>
+    public void UpdateDeviceToken(string? deviceToken)
     {
         if (IsDeleted)
             throw new UserDomainException("Cannot update device token of deleted user");
         
-        if (string.IsNullOrWhiteSpace(deviceToken))
-            throw new UserDomainException("Device token cannot be empty");
-
-        DeviceToken = deviceToken;
+        DeviceToken = string.IsNullOrWhiteSpace(deviceToken) ? null : deviceToken;
         MarkAsUpdated();
     }
 

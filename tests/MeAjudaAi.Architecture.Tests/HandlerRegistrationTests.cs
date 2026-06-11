@@ -216,10 +216,20 @@ public class HandlerRegistrationTests
     private static bool CanResolve(IServiceCollection services, Type serviceType, Type implementationType)
     {
         // Check if the service type is registered with a factory that targets this implementation.
-        // We avoid calling GetServices() on the provider because it triggers factory execution
-        // which may fail when not all dependencies are registered (acceptable in architecture tests).
-        return services.Any(sd =>
-            sd.ServiceType == serviceType &&
-            (sd.ImplementationType == implementationType || sd.ImplementationFactory != null));
+        // Build a temporary provider to actually resolve and verify the instance type.
+        try
+        {
+            using var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            var resolved = scope.ServiceProvider.GetService(serviceType);
+            return resolved != null && implementationType.IsInstanceOfType(resolved);
+        }
+        catch
+        {
+            // If resolution fails (missing dependencies), fall back to metadata check
+            return services.Any(sd =>
+                sd.ServiceType == serviceType &&
+                (sd.ImplementationType == implementationType || sd.ImplementationFactory != null));
+        }
     }
 }

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -25,7 +26,7 @@ public sealed class BookingConfirmedIntegrationEventHandler(
     ILogger<BookingConfirmedIntegrationEventHandler> logger)
     : IEventHandler<BookingConfirmedIntegrationEvent>
 {
-    private const string TemplateKey = "booking_confirmed";
+    private const string TemplateKey = CommunicationTemplateKeys.BookingConfirmed;
 
     public async Task HandleAsync(
         BookingConfirmedIntegrationEvent integrationEvent,

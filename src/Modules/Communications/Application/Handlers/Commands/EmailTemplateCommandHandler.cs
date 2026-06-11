@@ -28,7 +28,13 @@ public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Co
         var template = await repository.TryFindAsync(command.Id, cancellationToken);
         if (template == null) return Result.Failure(Error.NotFound("Template não encontrado."));
 
-        template.UpdateContent(command.Subject, command.HtmlBody, command.TextBody);
+        // Desativa a versão atual
+        template.Deactivate();
+
+        // Cria nova versão com o conteúdo atualizado
+        var newVersion = template.CreateNewVersion(command.Subject, command.HtmlBody, command.TextBody);
+        repository.Add(newVersion);
+
         await uow.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

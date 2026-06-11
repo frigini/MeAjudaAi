@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -46,10 +47,10 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
         
         var templateKey = normalizedStatus switch
         {
-            "verified" or "approved" => "provider-verification-approved",
-            "rejected" or "denied" => "provider-verification-rejected",
-            "pending" or "awaiting" => "provider-verification-pending",
-            _ => "provider-verification-status-update" // default/fallback
+            "verified" or "approved" => CommunicationTemplateKeys.ProviderVerificationApproved,
+            "rejected" or "denied" => CommunicationTemplateKeys.ProviderVerificationRejected,
+            "pending" or "awaiting" => CommunicationTemplateKeys.ProviderVerificationPending,
+            _ => CommunicationTemplateKeys.ProviderVerificationStatusUpdate
         };
 
         var displayStatus = normalizedStatus switch
@@ -60,7 +61,7 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             _ => normalizedStatus
         };
 
-        var correlationId = $"verification_status_update:{integrationEvent.Id}:{integrationEvent.ProviderId}:{normalizedStatus}";
+        var correlationId = $"{CommunicationTemplateKeys.ProviderVerificationStatusUpdate}{CommunicationConstants.CorrelationSeparator}{integrationEvent.Id}{CommunicationConstants.CorrelationSeparator}{integrationEvent.ProviderId}{CommunicationConstants.CorrelationSeparator}{normalizedStatus}";
 
         var emailPayload = new
         {

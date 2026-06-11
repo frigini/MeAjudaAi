@@ -32,7 +32,7 @@ public class UpdateUserDeviceTokenEndpoint : IEndpoint
         [FromServices] ICommandDispatcher dispatcher,
         CancellationToken ct)
     {
-        var result = await dispatcher.SendAsync<UpdateUserDeviceTokenCommand, Result>(new UpdateUserDeviceTokenCommand(id, request.DeviceToken ?? string.Empty, Guid.NewGuid()), ct);
+        var result = await dispatcher.SendAsync<UpdateUserDeviceTokenCommand, Result>(new UpdateUserDeviceTokenCommand(id, request.DeviceToken, Guid.NewGuid()), ct);
 
         if (result.IsSuccess)
         {
@@ -44,4 +44,4 @@ public class UpdateUserDeviceTokenEndpoint : IEndpoint
 }
 
 
-public sealed record DeviceTokenRequest(string DeviceToken);
+public sealed record DeviceTokenRequest(string? DeviceToken);

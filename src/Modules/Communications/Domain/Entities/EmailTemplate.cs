@@ -88,9 +88,10 @@ public sealed class EmailTemplate : AggregateRoot<Guid>
     }
 
     /// <summary>
-    /// Atualiza o conteúdo do template e incrementa a versão.
+    /// Cria uma nova versão do template com conteúdo atualizado.
+    /// A versão anterior deve ser desativada pelo chamador.
     /// </summary>
-    public void UpdateContent(string subject, string htmlBody, string textBody)
+    public EmailTemplate CreateNewVersion(string subject, string htmlBody, string textBody)
     {
         if (IsSystemTemplate)
         {
@@ -101,11 +102,18 @@ public sealed class EmailTemplate : AggregateRoot<Guid>
         ArgumentException.ThrowIfNullOrWhiteSpace(htmlBody);
         ArgumentException.ThrowIfNullOrWhiteSpace(textBody);
 
-        Subject = subject;
-        HtmlBody = htmlBody;
-        TextBody = textBody;
-        Version++;
-        MarkAsUpdated();
+        return new EmailTemplate
+        {
+            TemplateKey = TemplateKey,
+            OverrideKey = OverrideKey,
+            Subject = subject,
+            HtmlBody = htmlBody,
+            TextBody = textBody,
+            Language = Language,
+            IsActive = true,
+            IsSystemTemplate = IsSystemTemplate,
+            Version = Version + 1
+        };
     }
 
     /// <summary>

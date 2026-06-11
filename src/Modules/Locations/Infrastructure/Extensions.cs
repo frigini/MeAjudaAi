@@ -74,10 +74,7 @@ public static class Extensions
             options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var hostEnvironment = serviceProvider.GetService<IHostEnvironment>();
-            var isDevelopment = hostEnvironment?.IsDevelopment() == true;
-            
-            if (isDevelopment)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));

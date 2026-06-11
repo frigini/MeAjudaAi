@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -24,7 +25,7 @@ public sealed class ReviewApprovedIntegrationEventHandler(
     ILogger<ReviewApprovedIntegrationEventHandler> logger)
     : IEventHandler<ReviewApprovedIntegrationEvent>
 {
-    private const string TemplateKey = "review_approved";
+    private const string TemplateKey = CommunicationTemplateKeys.ReviewApproved;
 
     public async Task HandleAsync(
         ReviewApprovedIntegrationEvent integrationEvent,

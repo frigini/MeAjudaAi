@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -22,7 +23,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
     ILogger<ProviderActivatedIntegrationEventHandler> logger)
     : IEventHandler<ProviderActivatedIntegrationEvent>
 {
-    private const string TemplateKey = "provider_activated";
+    private const string TemplateKey = CommunicationTemplateKeys.ProviderActivated;
 
     public async Task HandleAsync(
         ProviderActivatedIntegrationEvent integrationEvent,

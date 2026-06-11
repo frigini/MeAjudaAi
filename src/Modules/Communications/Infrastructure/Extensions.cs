@@ -65,14 +65,30 @@ public static class Extensions
     /// </summary>
     private static void AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        var stubsEnabled = configuration.GetValue("Communications:EnableStubs", true);
+        var stubsEnabled = configuration.GetValue<bool?>("Communications:EnableStubs")
+            ?? (environment.IsDevelopment() || environment.IsEnvironment("Testing"));
 
         if (stubsEnabled)
         {
-            // Usa TryAdd para permitir que provedores reais registrados depois substituam estes
+            // Stubs para desenvolvimento/teste — usa TryAdd para permitir substituição
             services.TryAddScoped<IEmailSender, EmailSenderStub>();
             services.TryAddScoped<ISmsSender, SmsSenderStub>();
             services.TryAddScoped<IPushSender, PushSenderStub>();
+        }
+        else
+        {
+            // Provedores reais para produção
+            // IMPORTANTE: Registre aqui suas implementações reais quando disponíveis.
+            // Exemplo:
+            //   services.AddScoped<IEmailSender, SendGridEmailSender>();
+            //   services.AddScoped<ISmsSender, TwilioSmsSender>();
+            //   services.AddScoped<IPushSender, FirebasePushSender>();
+            //
+            // Ou use um método de extensão dedicado:
+            //   services.AddRealCommunicationProviders(configuration);
+            //
+            // Se nenhum provedor for registrado, o CommunicationsStartupValidator
+            // irá falhar na inicialização com mensagem clara.
         }
 
         // Registrа validador de inicialização como hosted service para fail-fast com erro claro

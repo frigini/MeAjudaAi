@@ -72,7 +72,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
 
         var templateId = ExtractIdFromLocation(locationHeader);
 
-        // Act 2 - Update template
+        // Act 2 - Update template (creates version 2, deactivates version 1)
         var updateBody = new
         {
             Subject = "Updated Subject",
@@ -83,7 +83,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
         var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", updateBody);
         updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Act 3 - List templates and verify update
+        // Act 3 - List templates and verify update (should show version 2)
         var listResponse = await ApiClient.GetAsync("/api/v1/communications/templates");
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -103,9 +103,12 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
         updatedTemplate.GetProperty("version").GetInt32().Should().Be(2,
             "Version should increment after update");
 
-        // Act 4 - Deactivate template
+        // Get the new template ID (version 2)
+        var newTemplateId = Guid.Parse(updatedTemplate.GetProperty("id").GetString()!);
+
+        // Act 4 - Deactivate the NEW template (version 2)
         var deactivateResponse = await ApiClient.PatchAsync(
-            $"/api/v1/communications/templates/{templateId}/deactivate", null);
+            $"/api/v1/communications/templates/{newTemplateId}/deactivate", null);
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act 5 - List templates and verify deactivated template is not returned
@@ -119,7 +122,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
 
         // Act 6 - Activate template
         var activateResponse = await ApiClient.PatchAsync(
-            $"/api/v1/communications/templates/{templateId}/activate", null);
+            $"/api/v1/communications/templates/{newTemplateId}/activate", null);
         activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act 7 - List templates and verify activated template is returned

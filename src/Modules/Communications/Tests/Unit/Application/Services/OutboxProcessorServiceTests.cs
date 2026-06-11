@@ -343,7 +343,7 @@ public class OutboxProcessorServiceTests
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
 
-        var template = EmailTemplate.Create(templateKey, "S", "Hello {{FirstName}}!", "Hello {{FirstName}}!");
+        var template = EmailTemplate.Create(templateKey, "Olá {{FirstName}}!", "Hello {{FirstName}}!", "Olá {{FirstName}}!");
         _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync(templateKey, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(template);
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -351,8 +351,11 @@ public class OutboxProcessorServiceTests
         // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
-        _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody == "Hello John!"), It.IsAny<CancellationToken>()));
+        // Assert - Subject, HtmlBody e TextBody devem ser renderizados
+        _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m =>
+            m.Subject == "Olá John!" &&
+            m.HtmlBody == "Hello John!" &&
+            m.TextBody == "Olá John!"), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

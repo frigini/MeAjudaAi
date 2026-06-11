@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -21,7 +22,7 @@ public sealed class UserDeletedIntegrationEventHandler(
     ILogger<UserDeletedIntegrationEventHandler> logger)
     : IEventHandler<UserDeletedIntegrationEvent>
 {
-    private const string TemplateKey = "user_deleted";
+    private const string TemplateKey = CommunicationTemplateKeys.UserDeleted;
 
     public async Task HandleAsync(
         UserDeletedIntegrationEvent integrationEvent,

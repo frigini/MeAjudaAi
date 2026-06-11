@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
@@ -25,7 +26,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
     ILogger<BookingCancelledIntegrationEventHandler> logger)
     : IEventHandler<BookingCancelledIntegrationEvent>
 {
-    private const string TemplateKey = "booking_cancelled";
+    private const string TemplateKey = CommunicationTemplateKeys.BookingCancelled;
 
     public async Task HandleAsync(
         BookingCancelledIntegrationEvent integrationEvent,

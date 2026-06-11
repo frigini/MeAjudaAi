@@ -42,7 +42,7 @@ public class CreateEmailTemplateEndpoint : IEndpoint
     {
         var result = await dispatcher.SendAsync<CreateEmailTemplateCommand, Result<Guid>>(command, ct);
         return result.IsSuccess 
-            ? Results.Created($"/communications/templates/{result.Value}", result.Value) 
+            ? Results.Created($"/api/v1/{ApiEndpoints.Communications.Base}/templates/{result.Value}", result.Value) 
             : result.Error.ToProblem();
     }
 }

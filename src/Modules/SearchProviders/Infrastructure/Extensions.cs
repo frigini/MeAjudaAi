@@ -46,14 +46,16 @@ public static class Extensions
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? configuration.GetConnectionString("Search")
+            ?? configuration.GetConnectionString("meajudaai-db");
 
         if (string.IsNullOrWhiteSpace(connectionString) && !EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             throw new InvalidOperationException(
                 "Database connection string is not configured. " +
                 "Please set one of the following configuration keys: " +
-                "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Search', or 'ConnectionStrings:meajudaai-db'");
+                "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Search', or 'ConnectionStrings:meajudaai-db'.");
         }
 
         // DbContext principal para escrita/comandos (EF Core)

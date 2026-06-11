@@ -42,7 +42,7 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
 
         var recipientEmail = providerResult.Value.Email;
         var templateKey = CommunicationTemplateKeys.DocumentVerified;
-        var correlationId = $"document_verified:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
+        var correlationId = $"{CommunicationTemplateKeys.DocumentVerified}{CommunicationConstants.CorrelationSeparator}{integrationEvent.DocumentId}{CommunicationConstants.CorrelationSeparator}{integrationEvent.ProviderId}";
 
         var templateData = new Dictionary<string, string>
         {
