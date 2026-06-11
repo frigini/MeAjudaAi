@@ -37,6 +37,16 @@ public sealed class UserDeletedIntegrationEventHandler(
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(integrationEvent.Email) || string.IsNullOrWhiteSpace(integrationEvent.FirstName))
+        {
+            logger.LogWarning(
+                "Skipping user deleted email for user {UserId} — missing required fields (Email: {HasEmail}, FirstName: {HasFirstName}).",
+                integrationEvent.UserId,
+                !string.IsNullOrWhiteSpace(integrationEvent.Email),
+                !string.IsNullOrWhiteSpace(integrationEvent.FirstName));
+            return;
+        }
+
         var email = integrationEvent.Email;
         var firstName = integrationEvent.FirstName;
 

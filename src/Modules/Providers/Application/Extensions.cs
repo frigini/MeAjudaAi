@@ -50,6 +50,12 @@ public static class Extensions
         services.AddScoped<ICommandHandler<ActivateProviderProfileCommand, Result>, ActivateProviderProfileCommandHandler>();
         services.AddScoped<ICommandHandler<DeactivateProviderProfileCommand, Result>, DeactivateProviderProfileCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateProviderDeviceTokenCommand, Result>, UpdateProviderDeviceTokenCommandHandler>();
+        services.AddScoped<ICommandHandler<ActivateProviderCommand, Result>, ActivateProviderCommandHandler>();
+        services.AddScoped<ICommandHandler<CompleteBasicInfoCommand, Result>, CompleteBasicInfoCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteMyProviderProfileCommand, Result>, DeleteMyProviderProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<RejectProviderCommand, Result>, RejectProviderCommandHandler>();
+        services.AddScoped<ICommandHandler<RequireBasicInfoCorrectionCommand, Result>, RequireBasicInfoCorrectionCommandHandler>();
+        services.AddScoped<ICommandHandler<SuspendProviderCommand, Result>, SuspendProviderCommandHandler>();
 
         // Module API - registro da API pública para comunicação entre módulos
         services.AddScoped<IProvidersModuleApi, ProvidersModuleApi>();

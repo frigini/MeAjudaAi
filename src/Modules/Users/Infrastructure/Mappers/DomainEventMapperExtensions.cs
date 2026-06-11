@@ -62,6 +62,7 @@ public static class DomainEventMapperExtensions
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
 
         return new UserDeletedIntegrationEvent(
             Source: "Users",

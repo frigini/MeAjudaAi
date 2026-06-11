@@ -57,9 +57,9 @@ public sealed class BookingCompletedIntegrationEventHandler(
             return;
         }
 
-        var providerName = providerResult.Value.Name;
+        var providerName = HttpUtility.HtmlEncode(providerResult.Value.Name);
         var clientEmail = clientResult.Value.Email;
-        var clientFirstName = clientResult.Value.FirstName;
+        var clientFirstName = HttpUtility.HtmlEncode(clientResult.Value.FirstName);
 
         var appBaseUrl = configuration["ClientBaseUrl"];
         if (string.IsNullOrWhiteSpace(appBaseUrl))

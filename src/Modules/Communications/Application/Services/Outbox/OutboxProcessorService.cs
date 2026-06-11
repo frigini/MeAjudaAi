@@ -268,7 +268,23 @@ public sealed class OutboxProcessorService(
 
         try
         {
-            return serializer.Deserialize<EmailOutboxPayload>(message.Payload)?.TemplateKey;
+            string payload = message.Payload;
+            
+            // Try to unwrap MessageEnvelope if present
+            try
+            {
+                var envelope = serializer.Deserialize<MessageEnvelope>(payload);
+                if (envelope?.Version == 1 && !string.IsNullOrWhiteSpace(envelope.Payload))
+                {
+                    payload = envelope.Payload;
+                }
+            }
+            catch
+            {
+                // Not an envelope, use raw payload
+            }
+
+            return serializer.Deserialize<EmailOutboxPayload>(payload)?.TemplateKey;
         }
         catch (Exception)
         {
@@ -283,11 +299,27 @@ public sealed class OutboxProcessorService(
 
         try
         {
+            string payload = message.Payload;
+            
+            // Try to unwrap MessageEnvelope if present
+            try
+            {
+                var envelope = serializer.Deserialize<MessageEnvelope>(payload);
+                if (envelope?.Version == 1 && !string.IsNullOrWhiteSpace(envelope.Payload))
+                {
+                    payload = envelope.Payload;
+                }
+            }
+            catch
+            {
+                // Not an envelope, use raw payload
+            }
+
             return message.Channel switch
             {
-                ECommunicationChannel.Email => serializer.Deserialize<EmailOutboxPayload>(message.Payload)?.To ?? "unknown",
-                ECommunicationChannel.Sms => serializer.Deserialize<SmsOutboxPayload>(message.Payload)?.PhoneNumber ?? "unknown",
-                ECommunicationChannel.Push => serializer.Deserialize<PushOutboxPayload>(message.Payload)?.DeviceToken ?? "unknown",
+                ECommunicationChannel.Email => serializer.Deserialize<EmailOutboxPayload>(payload)?.To ?? "unknown",
+                ECommunicationChannel.Sms => serializer.Deserialize<SmsOutboxPayload>(payload)?.PhoneNumber ?? "unknown",
+                ECommunicationChannel.Push => serializer.Deserialize<PushOutboxPayload>(payload)?.DeviceToken ?? "unknown",
                 _ => "unknown"
             };
         }

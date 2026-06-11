@@ -58,6 +58,7 @@ psql -h localhost -U meajudaai_user -d meajudaai_service_catalogs -f infrastruct
 | Módulo | Precisa Seed? | Motivo |
 |--------|---------------|--------|
 | **ServiceCatalogs** | ✅ Sim | Categorias e serviços padrão do sistema |
+| **Communications** | ✅ Sim | Templates de email do sistema |
 | Users | ❌ Não | Usuários são cadastrados via Keycloak |
 | Providers | ❌ Não | Prestadores se cadastram via API |
 | Documents | ❌ Não | Documentos são upload de usuários |

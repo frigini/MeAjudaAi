@@ -28,6 +28,15 @@ public sealed class UpdateProviderDeviceTokenCommandHandler(
                 return Result.Failure(Error.NotFound("Provider not found"));
             }
 
+            var normalizedToken = string.IsNullOrWhiteSpace(command.DeviceToken) ? null : command.DeviceToken;
+            var currentToken = string.IsNullOrWhiteSpace(provider.DeviceToken) ? null : provider.DeviceToken;
+
+            if (normalizedToken == currentToken)
+            {
+                logger.LogInformation("Device token unchanged for provider {ProviderId}, skipping update.", command.ProviderId);
+                return Result.Success();
+            }
+
             provider.UpdateDeviceToken(command.DeviceToken);
             await uow.SaveChangesAsync(cancellationToken);
 

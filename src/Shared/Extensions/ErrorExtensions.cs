@@ -11,6 +11,20 @@ public static class ErrorExtensions
             ? error.StatusCode
             : StatusCodes.Status500InternalServerError;
 
-        return Results.Problem(detail: error.Message, statusCode: statusCode);
+        var type = statusCode switch
+        {
+            400 => "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+            401 => "https://tools.ietf.org/html/rfc9110#section-15.5.2",
+            403 => "https://tools.ietf.org/html/rfc9110#section-15.5.4",
+            404 => "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+            409 => "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+            _ => "https://tools.ietf.org/html/rfc9110#section-15.6.1"
+        };
+
+        return Results.Problem(
+            detail: error.Message,
+            title: error.Message,
+            type: type,
+            statusCode: statusCode);
     }
 }

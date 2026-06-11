@@ -36,7 +36,7 @@ public sealed class ProviderDeletedDomainEventHandler(
             {
                 var integrationEvent = domainEvent.ToIntegrationEvent(
                     userId: providerData.UserId,
-                    email: providerData.Email ?? "desconhecido");
+                    email: providerData.Email ?? "unknown");
                 await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 
                 logger.LogInformation("Successfully published ProviderDeleted integration event for provider {ProviderId}", domainEvent.AggregateId);

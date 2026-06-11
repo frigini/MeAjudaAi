@@ -232,6 +232,9 @@ public class DevelopmentDataSeeder(
             logger.LogInformation("🔍 Ensuring search providers read model...");
             await SeedSearchProvidersAsync(cancellationToken);
 
+            logger.LogInformation("📧 Ensuring Communications email templates...");
+            await SeedCommunicationsAsync(cancellationToken);
+
             logger.LogInformation("✅ Data seed completed successfully!");
         }
         catch (Exception ex)
@@ -800,5 +803,58 @@ public class DevelopmentDataSeeder(
             logger.LogError(ex, "❌ Error obtaining DbContext for {ModuleName}", moduleName);
             throw;
         }
+    }
+
+    private async Task SeedCommunicationsAsync(CancellationToken cancellationToken)
+    {
+        logger.LogInformation("📧 Seeding Communications (EmailTemplates)...");
+
+        var context = GetDbContext("Communications");
+        if (context == null)
+        {
+            logger.LogWarning("⚠️ CommunicationsDbContext not found, skipping seed");
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        var templates = new[]
+        {
+            new { Id = Guid.Parse("cccccccc-0001-0000-0000-000000000000"), TemplateKey = "user_registered", Subject = "Bem-vindo ao MeAjudaAi!", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Seja bem-vindo(a) ao MeAjudaAi.</p>", TextBody = "Olá, {{FirstName}}!\nSeja bem-vindo(a) ao MeAjudaAi." },
+            new { Id = Guid.Parse("cccccccc-0002-0000-0000-000000000000"), TemplateKey = "user_profile_updated", Subject = "Seu perfil foi atualizado", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Seu perfil foi atualizado com sucesso.</p>", TextBody = "Olá, {{FirstName}}! Seu perfil foi atualizado com sucesso." },
+            new { Id = Guid.Parse("cccccccc-0003-0000-0000-000000000000"), TemplateKey = "user_deleted", Subject = "Conta Excluída", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Sua conta no MeAjudaAi foi excluída com sucesso.</p>", TextBody = "Olá, {{FirstName}}!\nSua conta no MeAjudaAi foi excluída com sucesso." },
+            new { Id = Guid.Parse("cccccccc-0004-0000-0000-000000000000"), TemplateKey = "provider_registered", Subject = "Bem-vindo ao MeAjudaAi - Cadastro de Prestador", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu cadastro como prestador foi recebido e está em análise.</p>", TextBody = "Olá, {{Name}}! Seu cadastro como prestador foi recebido e está em análise." },
+            new { Id = Guid.Parse("cccccccc-0005-0000-0000-000000000000"), TemplateKey = "provider_activated", Subject = "Seu cadastro foi aprovado!", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu cadastro foi aprovado. Você já pode receber solicitações de serviço.</p>", TextBody = "Olá, {{Name}}!\nSeu cadastro foi aprovado. Você já pode receber solicitações de serviço." },
+            new { Id = Guid.Parse("cccccccc-0006-0000-0000-000000000000"), TemplateKey = "provider_deleted", Subject = "Conta de Prestador Excluída", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Sua conta de prestador no MeAjudaAi foi excluída com sucesso.</p>", TextBody = "Olá, {{Name}}!\nSua conta de prestador no MeAjudaAi foi excluída com sucesso." },
+            new { Id = Guid.Parse("cccccccc-0007-0000-0000-000000000000"), TemplateKey = "provider_awaiting_verification", Subject = "Novo prestador aguardando verificação", HtmlBody = "<h1>Novo prestador cadastrado</h1><p>O prestador <strong>{{Name}}</strong> (ID: {{ProviderId}}) aguarda verificação.</p>", TextBody = "Novo prestador cadastrado: {{Name}} (ID: {{ProviderId}}) aguarda verificação." },
+            new { Id = Guid.Parse("cccccccc-0008-0000-0000-000000000000"), TemplateKey = "provider_verification_status_updated", Subject = "Status de verificação atualizado", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu status de verificação foi atualizado para: <strong>{{Status}}</strong>.</p>", TextBody = "Olá, {{Name}}!\nSeu status de verificação foi atualizado para: {{Status}}." },
+            new { Id = Guid.Parse("cccccccc-0009-0000-0000-000000000000"), TemplateKey = "document_verified", Subject = "Documento verificado: {{DocumentType}}", HtmlBody = "<h1>Olá, {{ProviderName}}!</h1><p>Seu documento ({{DocumentType}}) foi verificado com sucesso.</p>", TextBody = "Olá, {{ProviderName}}! Seu documento ({{DocumentType}}) foi verificado com sucesso." },
+            new { Id = Guid.Parse("cccccccc-0010-0000-0000-000000000000"), TemplateKey = "document_rejected", Subject = "Documento rejeitado: {{DocumentType}}", HtmlBody = "<h1>Olá, {{ProviderName}}!</h1><p>Seu documento ({{DocumentType}}) foi rejeitado. Motivo: {{Reason}}</p>", TextBody = "Olá, {{ProviderName}}! Seu documento ({{DocumentType}}) foi rejeitado. Motivo: {{Reason}}" },
+            new { Id = Guid.Parse("cccccccc-0011-0000-0000-000000000000"), TemplateKey = "booking_created", Subject = "Novo Agendamento Recebido", HtmlBody = "<h1>Novo Agendamento!</h1><p>Você recebeu um novo agendamento de {{ClientName}} para o dia {{Date}}.</p>", TextBody = "Novo Agendamento! Você recebeu um novo agendamento de {{ClientName}} para o dia {{Date}}." },
+            new { Id = Guid.Parse("cccccccc-0012-0000-0000-000000000000"), TemplateKey = "booking_confirmed", Subject = "Agendamento Confirmado!", HtmlBody = "<h1>Tudo certo!</h1><p>Seu agendamento com {{ProviderName}} foi confirmado.</p>", TextBody = "Tudo certo! Seu agendamento com {{ProviderName}} foi confirmado." },
+            new { Id = Guid.Parse("cccccccc-0013-0000-0000-000000000000"), TemplateKey = "booking_cancelled", Subject = "Agendamento Cancelado", HtmlBody = "<h1>Agendamento Cancelado</h1><p>O agendamento {{BookingId}} foi cancelado.</p><p>Motivo: {{Reason}}</p>", TextBody = "Agendamento Cancelado. O agendamento {{BookingId}} foi cancelado. Motivo: {{Reason}}" },
+            new { Id = Guid.Parse("cccccccc-0014-0000-0000-000000000000"), TemplateKey = "booking_rejected", Subject = "Agendamento Rejeitado", HtmlBody = "<h1>Agendamento Rejeitado</h1><p>Seu agendamento com {{ProviderName}} foi rejeitado.</p><p>Motivo: {{Reason}}</p>", TextBody = "Agendamento Rejeitado. Seu agendamento com {{ProviderName}} foi rejeitado. Motivo: {{Reason}}" },
+            new { Id = Guid.Parse("cccccccc-0015-0000-0000-000000000000"), TemplateKey = "booking_completed", Subject = "Como foi sua experiência com {{ProviderName}}?", HtmlBody = "<h1>Olá, {{ClientFirstName}}!</h1><p>Seu agendamento com {{ProviderName}} foi concluído. Que tal deixar uma avaliação?</p><p><a href='{{ReviewUrl}}'>Avaliar agora</a></p>", TextBody = "Olá, {{ClientFirstName}}! Seu agendamento com {{ProviderName}} foi concluído. Deixe sua avaliação em nosso app: {{ReviewUrl}}" },
+            new { Id = Guid.Parse("cccccccc-0016-0000-0000-000000000000"), TemplateKey = "review_approved", Subject = "Nova Avaliação Aprovada!", HtmlBody = "<h1>Olá, {{ProviderName}}!</h1><p>Uma nova avaliação foi aprovada.</p>", TextBody = "Olá, {{ProviderName}}!\nUma nova avaliação foi aprovada." },
+            new { Id = Guid.Parse("cccccccc-0017-0000-0000-000000000000"), TemplateKey = "subscription_activated", Subject = "Assinatura Ativada!", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Sua assinatura foi ativada com sucesso.</p>", TextBody = "Olá, {{FirstName}}!\nSua assinatura foi ativada com sucesso." },
+            new { Id = Guid.Parse("cccccccc-0018-0000-0000-000000000000"), TemplateKey = "subscription_canceled", Subject = "Assinatura Cancelada", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Sua assinatura foi cancelada.</p>", TextBody = "Olá, {{FirstName}}!\nSua assinatura foi cancelada." },
+            new { Id = Guid.Parse("cccccccc-0019-0000-0000-000000000000"), TemplateKey = "subscription_expired", Subject = "Assinatura Expirada", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Sua assinatura expirou.</p>", TextBody = "Olá, {{FirstName}}!\nSua assinatura expirou." },
+            new { Id = Guid.Parse("cccccccc-0020-0000-0000-000000000000"), TemplateKey = "subscription_renewed", Subject = "Assinatura Renovada", HtmlBody = "<h1>Olá, {{FirstName}}!</h1><p>Sua assinatura foi renovada.</p>", TextBody = "Olá, {{FirstName}}!\nSua assinatura foi renovada." }
+        };
+
+        foreach (var t in templates)
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                @"INSERT INTO communications.email_templates (
+                    id, template_key, override_key, subject, html_body, text_body,
+                    is_active, is_system_template, language, version, created_at, updated_at
+                  )
+                  VALUES ({0}, {1}, NULL, {2}, {3}, {4}, true, true, 'pt-BR', 1, {5}, {5})
+                  ON CONFLICT DO NOTHING",
+                new object[] { t.Id, t.TemplateKey, t.Subject, t.HtmlBody, t.TextBody, now },
+                cancellationToken);
+        }
+
+        logger.LogInformation("✅ Communications: {Count} email templates seeded", templates.Length);
     }
 }

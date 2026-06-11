@@ -823,16 +823,13 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <summary>
     /// Atualiza o token do dispositivo para notificações push.
     /// </summary>
-    /// <param name="deviceToken">Token do dispositivo</param>
-    public void UpdateDeviceToken(string deviceToken)
+    /// <param name="deviceToken">Token do dispositivo. Passar null ou vazio para limpar o token.</param>
+    public void UpdateDeviceToken(string? deviceToken)
     {
         if (IsDeleted)
             throw new ProviderDomainException("Cannot update device token of deleted provider");
 
-        if (string.IsNullOrWhiteSpace(deviceToken))
-            throw new ProviderDomainException("Device token cannot be empty");
-
-        DeviceToken = deviceToken;
+        DeviceToken = string.IsNullOrWhiteSpace(deviceToken) ? null : deviceToken;
         MarkAsUpdated();
     }
 

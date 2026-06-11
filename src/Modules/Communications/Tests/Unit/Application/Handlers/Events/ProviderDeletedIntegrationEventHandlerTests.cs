@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
@@ -48,5 +49,94 @@ public class ProviderDeletedIntegrationEventHandlerTests
         // Assert
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenCorrelationExists_ShouldSkipAndLog()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var integrationEvent = new ProviderDeletedIntegrationEvent("Providers", providerId, Guid.NewGuid(), "provider@test.com", "Provider Name", "Reason", DateTime.UtcNow);
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenMissingEmail_ShouldSkip()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var integrationEvent = new ProviderDeletedIntegrationEvent("Providers", providerId, Guid.NewGuid(), null!, "Provider Name", "Reason", DateTime.UtcNow);
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenMissingName_ShouldSkip()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var integrationEvent = new ProviderDeletedIntegrationEvent("Providers", providerId, Guid.NewGuid(), "provider@test.com", null!, "Reason", DateTime.UtcNow);
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenUniqueConstraintViolation_ShouldSkipAndLog()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var integrationEvent = new ProviderDeletedIntegrationEvent("Providers", providerId, Guid.NewGuid(), "provider@test.com", "Provider Name", "Reason", DateTime.UtcNow);
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _outboxRepositoryMock.Setup(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UniqueConstraintException("ix_outbox_messages_correlation_id", "correlation_id", new Exception()));
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert - Should not throw, should be handled gracefully
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenOtherException_ShouldRethrow()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var integrationEvent = new ProviderDeletedIntegrationEvent("Providers", providerId, Guid.NewGuid(), "provider@test.com", "Provider Name", "Reason", DateTime.UtcNow);
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _outboxRepositoryMock.Setup(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Unexpected error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(integrationEvent));
     }
 }

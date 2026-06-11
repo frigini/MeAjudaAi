@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure;
 
@@ -35,12 +36,24 @@ public static class Extensions
         services.AddScoped<IEmailTemplateQueries, DbContextEmailTemplateQueries>();
         services.AddScoped<ICommunicationLogQueries, DbContextCommunicationLogQueries>();
 
-        if (configuration.GetValue("Communications:EnableStubs", true))
+        var stubsEnabled = configuration.GetValue("Communications:EnableStubs", true);
+        
+        if (stubsEnabled)
         {
+            // Use TryAdd to allow real providers registered later to override these
             services.TryAddScoped<IEmailSender, EmailSenderStub>();
             services.TryAddScoped<ISmsSender, SmsSenderStub>();
             services.TryAddScoped<IPushSender, PushSenderStub>();
         }
+
+        // Register startup validator as hosted service to fail fast with clear error
+        services.AddHostedService(sp => 
+            new CommunicationsStartupValidator(
+                stubsEnabled,
+                sp.GetService<IEmailSender>(),
+                sp.GetService<ISmsSender>(),
+                sp.GetService<IPushSender>(),
+                sp.GetRequiredService<ILogger<CommunicationsStartupValidator>>()));
 
         return services;
     }

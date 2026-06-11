@@ -37,6 +37,16 @@ public sealed class ProviderDeletedIntegrationEventHandler(
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(integrationEvent.Email) || string.IsNullOrWhiteSpace(integrationEvent.Name))
+        {
+            logger.LogWarning(
+                "Skipping provider deleted email for provider {ProviderId} — missing required fields (Email: {HasEmail}, Name: {HasName}).",
+                integrationEvent.ProviderId,
+                !string.IsNullOrWhiteSpace(integrationEvent.Email),
+                !string.IsNullOrWhiteSpace(integrationEvent.Name));
+            return;
+        }
+
         var email = integrationEvent.Email;
         var name = integrationEvent.Name;
 

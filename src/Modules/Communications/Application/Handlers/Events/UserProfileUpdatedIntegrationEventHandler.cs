@@ -31,6 +31,9 @@ public sealed class UserProfileUpdatedIntegrationEventHandler(
 
         if (await logQueries.ExistsByCorrelationIdAsync(correlationId, cancellationToken))
         {
+            logger.LogInformation(
+                "Skipping profile update notification for user {UserId} — already sent (correlationId: {CorrelationId}).",
+                integrationEvent.UserId, correlationId);
             return;
         }
 

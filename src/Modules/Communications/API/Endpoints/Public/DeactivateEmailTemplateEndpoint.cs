@@ -21,6 +21,7 @@ public class DeactivateEmailTemplateEndpoint : IEndpoint
     {
         app.MapPatch(ApiEndpoints.Communications.DeactivateTemplate, HandleAsync)
            .Produces(StatusCodes.Status204NoContent)
+           .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags(CommunicationsEndpoints.Tag)
            .WithName("DeactivateEmailTemplate")
