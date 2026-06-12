@@ -19,7 +19,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             HtmlBody = "<p>Test</p>",
             TextBody = "Test",
             IsSystemTemplate = false,
-            Language = "pt-BR",
+            Language = "pt-br",
             CorrelationId = Guid.NewGuid()
         };
 
@@ -60,7 +60,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             HtmlBody = "<p>Original body</p>",
             TextBody = "Original text",
             IsSystemTemplate = false,
-            Language = "pt-BR",
+            Language = "pt-br",
             CorrelationId = Guid.NewGuid()
         };
 
@@ -160,7 +160,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             HtmlBody = "...",
             TextBody = "...",
             IsSystemTemplate = true, // System template
-            Language = "pt-BR",
+            Language = "pt-br",
             CorrelationId = Guid.NewGuid()
         };
 

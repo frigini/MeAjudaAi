@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class ChangeUserEmailCommandHandlerTests
 {
-    private readonly Mock<IUserUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<ChangeUserEmailCommandHandler>> _loggerMock;
@@ -22,7 +22,7 @@ public class ChangeUserEmailCommandHandlerTests
 
     public ChangeUserEmailCommandHandlerTests()
     {
-        _unitOfWorkMock = new Mock<IUserUnitOfWork>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<ChangeUserEmailCommandHandler>>();

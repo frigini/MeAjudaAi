@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
@@ -14,14 +13,14 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
 public class UpdateUserDeviceTokenCommandHandlerTests
 {
-    private readonly Mock<IUserUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<User, UserId>> _repositoryMock;
     private readonly Mock<IUsersCacheService> _cacheServiceMock;
     private readonly UpdateUserDeviceTokenCommandHandler _handler;
 
     public UpdateUserDeviceTokenCommandHandlerTests()
     {
-        _uowMock = new Mock<IUserUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<User, UserId>>();
         _cacheServiceMock = new Mock<IUsersCacheService>();
 

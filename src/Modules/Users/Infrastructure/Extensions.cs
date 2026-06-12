@@ -103,7 +103,6 @@ public static class Extensions
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
         // Unit of Work e Repositórios
-        services.AddScoped<IUserUnitOfWork>(sp => (IUserUnitOfWork)sp.GetRequiredService<UsersDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Users, (sp, key) => sp.GetRequiredService<UsersDbContext>());
 

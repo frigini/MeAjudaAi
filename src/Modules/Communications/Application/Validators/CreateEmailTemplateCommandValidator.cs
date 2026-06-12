@@ -24,6 +24,8 @@ public class CreateEmailTemplateCommandValidator : AbstractValidator<CreateEmail
 
         RuleFor(x => x.Language)
             .NotEmpty().WithMessage("O idioma do template é obrigatório.")
-            .Matches("^[a-z]{2}(-[a-z]{2})?$").WithMessage("O idioma deve estar no formato 'pt', 'pt-br', 'en', etc.");
+            .Matches(new System.Text.RegularExpressions.Regex("^[a-z]{2}(-[a-z]{2})?$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            .WithMessage("O idioma deve estar no formato 'pt', 'pt-BR', 'en', etc.");
     }
 }

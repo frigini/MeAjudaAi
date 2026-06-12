@@ -216,6 +216,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
 
+                    // Replace the last non-keyed IUnitOfWork (LocationsDbContext) with CompositeTestUnitOfWork
+                    // to resolve the correct DbContext per aggregate type
+                    TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
+                    services.AddScoped<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>(sp =>
+                        new CompositeTestUnitOfWork(sp));
+
                     // Configurar PostgresOptions e Dapper para SearchProviders
                     var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
                     if (postgresOptionsDescriptor != null)

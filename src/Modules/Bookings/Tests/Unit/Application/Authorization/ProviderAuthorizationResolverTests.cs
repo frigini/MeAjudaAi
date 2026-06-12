@@ -210,7 +210,7 @@ public class ProviderAuthorizationResolverTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(403);
+        result.Error!.StatusCode.Should().Be(403);
     }
 
     [Fact]

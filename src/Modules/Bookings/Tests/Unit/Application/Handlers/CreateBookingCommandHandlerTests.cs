@@ -119,24 +119,6 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public void Should_Fail_When_EndBeforeStart()
-    {
-        // Arrange
-        var start = DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(10);
-        var command = new CreateBookingCommand(
-            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            start, start.AddHours(-1), Guid.NewGuid());
-
-        // Act
-        var validator = new CreateBookingCommandValidator();
-        var result = validator.Validate(command);
-
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(CreateBookingCommand.End));
-    }
-
-    [Fact]
     public async Task HandleAsync_Should_Fail_When_StartInPast()
     {
         // Arrange

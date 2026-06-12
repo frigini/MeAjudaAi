@@ -3,8 +3,6 @@ using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Authorization;
 

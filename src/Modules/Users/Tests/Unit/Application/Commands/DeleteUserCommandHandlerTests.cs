@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
@@ -16,7 +15,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Category", "Unit")]
 public class DeleteUserCommandHandlerTests
 {
-    private readonly Mock<IUserUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
@@ -26,7 +25,7 @@ public class DeleteUserCommandHandlerTests
 
     public DeleteUserCommandHandlerTests()
     {
-        _uowMock = new Mock<IUserUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userDomainServiceMock = new Mock<IUserDomainService>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();

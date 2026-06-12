@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 public class RegisterCustomerCommandHandlerTests
 {
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
-    private readonly Mock<IUserUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<RegisterCustomerCommandHandler>> _loggerMock;
@@ -23,7 +23,7 @@ public class RegisterCustomerCommandHandlerTests
     public RegisterCustomerCommandHandlerTests()
     {
         _userDomainServiceMock = new Mock<IUserDomainService>();
-        _unitOfWorkMock = new Mock<IUserUnitOfWork>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<RegisterCustomerCommandHandler>>();

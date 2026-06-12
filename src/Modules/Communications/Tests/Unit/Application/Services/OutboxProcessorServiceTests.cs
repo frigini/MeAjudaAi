@@ -172,6 +172,9 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenInvalidPayload_ShouldFail()
     {
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("invalid-json"))
+            .Throws(new System.Text.Json.JsonException("Invalid JSON"));
+
         var message = OutboxMessage.Create(ECommunicationChannel.Email, "invalid-json");
         SetupPendingMessages(message);
 
@@ -245,7 +248,7 @@ public class OutboxProcessorServiceTests
     }
 
     [Fact]
-    public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldUseItDirectly()
+    public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldConvertToHtml()
     {
         var message = OutboxMessage.Create(ECommunicationChannel.Email, "body_payload");
         SetupPendingMessages(message);

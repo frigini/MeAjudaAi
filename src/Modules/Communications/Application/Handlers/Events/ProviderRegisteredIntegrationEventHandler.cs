@@ -60,8 +60,13 @@ public sealed class ProviderRegisteredIntegrationEventHandler(
         }
         catch (Exception ex)
         {
-            var processedException = PostgreSqlExceptionProcessor.ProcessException(
-                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+            if (ex is not DbUpdateException dbEx)
+            {
+                logger.LogError(ex, "Error enqueuing provider welcome email for {ProviderId}.", integrationEvent.ProviderId);
+                throw;
+            }
+
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(dbEx);
 
             if (processedException is UniqueConstraintException)
             {

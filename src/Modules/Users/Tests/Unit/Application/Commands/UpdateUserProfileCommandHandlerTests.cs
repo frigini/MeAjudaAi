@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
@@ -15,7 +14,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class UpdateUserProfileCommandHandlerTests
 {
-    private readonly Mock<IUserUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly Mock<ILogger<UpdateUserProfileCommandHandler>> _loggerMock;
@@ -23,7 +22,7 @@ public class UpdateUserProfileCommandHandlerTests
 
     public UpdateUserProfileCommandHandlerTests()
     {
-        _unitOfWorkMock = new Mock<IUserUnitOfWork>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _loggerMock = new Mock<ILogger<UpdateUserProfileCommandHandler>>();

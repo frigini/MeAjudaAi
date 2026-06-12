@@ -138,8 +138,13 @@ public sealed class BookingCreatedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
-            var processedException = PostgreSqlExceptionProcessor.ProcessException(
-                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+            if (ex is not DbUpdateException dbEx)
+            {
+                logger.LogError(ex, "Error enqueuing booking created notifications for {BookingId}.", integrationEvent.BookingId);
+                throw;
+            }
+
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(dbEx);
 
             if (processedException is UniqueConstraintException)
             {

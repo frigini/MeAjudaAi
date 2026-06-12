@@ -1,5 +1,7 @@
 using Bogus;
 using MeAjudaAi.ApiService;
+using MeAjudaAi.E2E.Tests.Base.Helpers;
+using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
@@ -10,16 +12,13 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.E2E.Tests.Base.Helpers;
-using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -297,10 +296,23 @@ public class TestContainerFixture : IAsyncLifetime
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
-        ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services, ModuleKeys.Communications);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services, ModuleKeys.SearchProviders);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services, ModuleKeys.Ratings);
-        ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services, ModuleKeys.Payments);
+
+        // Remove ALL non-keyed IUnitOfWork registrations (production modules each register their own,
+        // but only the last one wins in MS DI — Payments. This causes handlers to use the wrong DbContext.)
+        var nonKeyedUowDescriptors = services.Where(d =>
+            d.ServiceType == typeof(IUnitOfWork) && d.ServiceKey == null).ToList();
+        foreach (var descriptor in nonKeyedUowDescriptors)
+            services.Remove(descriptor);
+
+        // Register a CompositeUnitOfWork as the single non-keyed IUnitOfWork.
+        // It resolves the correct DbContext per aggregate by finding which registered DbContext
+        // implements IRepository<TAggregate, TKey>.
+        services.AddScoped<IUnitOfWork>(sp =>
+            new CompositeTestUnitOfWork(sp));
 
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
         if (postgresOptionsDescriptor != null)
@@ -327,15 +339,6 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Registra o serviço por chave para o módulo usando o tipo do contexto diretamente
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
-
-        // Somente o módulo de Usuários deve definir IUserUnitOfWork (que estende IUnitOfWork)
-        // Todos os outros módulos usam apenas o registro por chave de IUnitOfWork
-        // Os handlers de usuário agora usam IUserUnitOfWork diretamente, então não é necessária a substituição global de IUnitOfWork
-        if (typeof(TContext).Name == "UsersDbContext")
-        {
-            services.Replace(ServiceDescriptor.Scoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(
-                sp => (MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork)sp.GetRequiredService<TContext>()));
-        }
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
