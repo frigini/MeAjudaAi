@@ -9,6 +9,5 @@ public sealed record EmailMessageDto(
     string Body,
     bool IsHtml = true,
     string? TemplateKey = null,
-    IDictionary<string, string>? TemplateData = null,
-    IEnumerable<string>? AttachmentUrls = null
+    IDictionary<string, string>? TemplateData = null
 );

@@ -58,6 +58,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 - **Evolução de APIs Públicas**:
     - `IPaymentsModuleApi`: Avaliar `GetSubscriptionStatusAsync` caso surja consumidor específico para apenas o status.
     - `ICommunicationsModuleApi`: Melhorar documentação de finalidade (uso interno vs admin).
+    - `IUsersApi`: Implementar SDK para gestão de usuários (CRUD, perfil, autenticação).
 - **Analytics & Reports (Novo)**: 
     - **Provedores**: Dashboards de conversão (cliques vs. agendamentos), métricas de faturamento e avaliação média temporal.
     - **Administração**: Relatórios de crescimento da plataforma, hotspots geográficos de demanda e exportação de dados para contabilidade (CSV/PDF).

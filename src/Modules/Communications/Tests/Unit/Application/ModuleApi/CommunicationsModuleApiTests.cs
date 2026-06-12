@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Application.ModuleApi;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
@@ -32,9 +33,9 @@ public class CommunicationsModuleApiTests
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<CommunicationsModuleApi>>();
 
-        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailMessageDto>())).Returns("{\"to\":\"test@test.com\"}");
-        _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsMessageDto>())).Returns("{\"phone\":\"123456\"}");
-        _serializerMock.Setup(x => x.Serialize(It.IsAny<PushMessageDto>())).Returns("{\"token\":\"token\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{\"to\":\"test@test.com\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsOutboxPayload>())).Returns("{\"phone\":\"123456\"}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<PushOutboxPayload>())).Returns("{\"token\":\"token\"}");
         _serializerMock.Setup(x => x.Serialize(It.IsAny<MessageEnvelope>())).Returns("{\"v\":1,\"p\":\"{}\"}");
 
         _api = new CommunicationsModuleApi(
@@ -51,7 +52,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         var dto = new EmailMessageDto("test@test.com", "Subject", "Body");
-        _serializerMock.Setup(x => x.Serialize(dto)).Returns("{}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{}");
 
         // Act
         var result = await _api.SendEmailAsync(dto);
@@ -84,7 +85,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         var dto = new SmsMessageDto("123456", "Body");
-        _serializerMock.Setup(x => x.Serialize(dto)).Returns("{}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsOutboxPayload>())).Returns("{}");
 
         // Act
         var result = await _api.SendSmsAsync(dto);
@@ -99,7 +100,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         var dto = new PushMessageDto("token", "Title", "Body");
-        _serializerMock.Setup(x => x.Serialize(dto)).Returns("{}");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<PushOutboxPayload>())).Returns("{}");
 
         // Act
         var result = await _api.SendPushAsync(dto);

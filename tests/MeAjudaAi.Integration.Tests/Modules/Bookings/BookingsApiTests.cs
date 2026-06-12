@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
@@ -47,7 +48,7 @@ public class BookingsApiTests : BaseApiTest
             response.StatusCode.Should().Be(HttpStatusCode.Created, $"Error detail: {error}");
         }
 
-        var result = await ReadJsonAsync<BookingDto>(response.Content);
+        var result = await ReadJsonAsync<ModuleBookingDto>(response.Content);
         result.Should().NotBeNull();
         result!.ProviderId.Should().Be(providerId);
     }
@@ -108,7 +109,7 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/bookings/provider/{providerId}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty(); // Não deve ver agendamentos de outros provedores
     }
@@ -129,7 +130,7 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/bookings/{bookingId}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var booking = await ReadJsonAsync<BookingDto>(response.Content);
+        var booking = await ReadJsonAsync<ModuleBookingDto>(response.Content);
         booking.Should().NotBeNull();
         booking!.Id.Should().Be(bookingId);
     }
@@ -195,7 +196,7 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.GetAsync("/api/v1/bookings/my");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
     }

@@ -1,4 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;

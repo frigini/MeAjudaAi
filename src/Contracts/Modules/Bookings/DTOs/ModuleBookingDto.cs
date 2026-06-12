@@ -2,13 +2,17 @@ using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 
 namespace MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 
-public record BookingDto(
+/// <summary>
+/// DTO de agendamento para uso entre módulos.
+/// </summary>
+public record ModuleBookingDto(
     Guid Id,
     Guid ProviderId,
     Guid ClientId,
     Guid ServiceId,
-    DateTimeOffset Start,
-    DateTimeOffset End,
+    DateOnly Date,
+    TimeOnly StartTime,
+    TimeOnly EndTime,
     EBookingStatus Status,
     string? RejectionReason = null,
     string? CancellationReason = null);

@@ -22,14 +22,14 @@ public sealed class BookingsModuleApi(
         return await Task.FromResult(true);
     }
 
-    public async Task<Result<BookingDto?>> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleBookingDto?>> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
         try
         {
             var booking = await bookingQueries.GetByIdAsync(bookingId, cancellationToken);
-            if (booking == null) return Result<BookingDto?>.Success(null);
+            if (booking == null) return Result<ModuleBookingDto?>.Success(null);
 
-            return Result<BookingDto?>.Success(MapToDto(booking));
+            return Result<ModuleBookingDto?>.Success(MapToDto(booking));
         }
         catch (OperationCanceledException)
         {
@@ -38,7 +38,7 @@ public sealed class BookingsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting booking {BookingId}", bookingId);
-            return Result<BookingDto?>.Failure("Error retrieving booking data.");
+            return Result<ModuleBookingDto?>.Failure("Error retrieving booking data.");
         }
     }
 
@@ -60,7 +60,7 @@ public sealed class BookingsModuleApi(
         }
     }
 
-    public async Task<Result<IReadOnlyList<BookingDto>>> GetProviderBookingsAsync(Guid providerId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<ModuleBookingDto>>> GetProviderBookingsAsync(Guid providerId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -70,7 +70,7 @@ public sealed class BookingsModuleApi(
             var bookings = await bookingQueries.GetByProviderAndPeriodAsync(providerId, fromDate, toDate, cancellationToken);
             
             var dtos = bookings.Select(MapToDto).ToList();
-            return Result<IReadOnlyList<BookingDto>>.Success(dtos);
+            return Result<IReadOnlyList<ModuleBookingDto>>.Success(dtos);
         }
         catch (OperationCanceledException)
         {
@@ -79,25 +79,20 @@ public sealed class BookingsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting bookings for provider {ProviderId}", providerId);
-            return Result<IReadOnlyList<BookingDto>>.Failure("Error retrieving bookings.");
+            return Result<IReadOnlyList<ModuleBookingDto>>.Failure("Error retrieving bookings.");
         }
     }
 
-    private static BookingDto MapToDto(Booking booking)
+    private static ModuleBookingDto MapToDto(Booking booking)
     {
-        var startTime = booking.Date.ToDateTime(booking.TimeSlot.Start);
-        var endTime = booking.Date.ToDateTime(booking.TimeSlot.End);
-        
-        var startOffset = new DateTimeOffset(DateTime.SpecifyKind(startTime, DateTimeKind.Utc), TimeSpan.Zero);
-        var endOffset = new DateTimeOffset(DateTime.SpecifyKind(endTime, DateTimeKind.Utc), TimeSpan.Zero);
-        
-        return new BookingDto(
+        return new ModuleBookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            startOffset,
-            endOffset,
+            booking.Date,
+            booking.TimeSlot.Start,
+            booking.TimeSlot.End,
             booking.Status,
             booking.RejectionReason,
             booking.CancellationReason);

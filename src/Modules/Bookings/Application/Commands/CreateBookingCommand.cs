@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Commands;
@@ -10,4 +10,4 @@ public record CreateBookingCommand(
     Guid ServiceId,
     DateTimeOffset Start,
     DateTimeOffset End,
-    Guid CorrelationId) : ICommand<Result<BookingDto>>;
+    Guid CorrelationId) : ICommand<Result<ModuleBookingDto>>;

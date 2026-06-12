@@ -5,6 +5,7 @@ using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
@@ -111,7 +112,11 @@ public sealed class CommunicationsModuleApi(
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        return await EnqueueOutboxAsync(ECommunicationChannel.Email, email, priority, ct);
+        var payload = email.IsHtml
+            ? new EmailOutboxPayload(email.To, email.Subject, HtmlBody: email.Body, TemplateKey: email.TemplateKey, TemplateData: email.TemplateData)
+            : new EmailOutboxPayload(email.To, email.Subject, Body: email.Body, TemplateKey: email.TemplateKey, TemplateData: email.TemplateData);
+
+        return await EnqueueOutboxAsync(ECommunicationChannel.Email, payload, priority, ct);
     }
 
     public async Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default)
@@ -124,9 +129,11 @@ public sealed class CommunicationsModuleApi(
             x.Subject,
             x.HtmlBody,
             x.TextBody,
+            x.IsActive,
             x.IsSystemTemplate,
             x.Language,
-            x.Version)).ToList();
+            x.Version,
+            x.OverrideKey)).ToList();
 
         return Result<IReadOnlyList<EmailTemplateDto>>.Success(dtos);
     }
@@ -143,7 +150,8 @@ public sealed class CommunicationsModuleApi(
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        return await EnqueueOutboxAsync(ECommunicationChannel.Sms, sms, priority, ct);
+        var payload = new SmsOutboxPayload(sms.PhoneNumber, sms.Message);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Sms, payload, priority, ct);
     }
 
     public async Task<Result<Guid>> SendPushAsync(
@@ -159,7 +167,8 @@ public sealed class CommunicationsModuleApi(
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        return await EnqueueOutboxAsync(ECommunicationChannel.Push, push, priority, ct);
+        var payload = new PushOutboxPayload(push.DeviceToken, push.Title, push.Body, push.ExtraData);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Push, payload, priority, ct);
     }
 
     public async Task<Result<PagedResult<CommunicationLogDto>>> GetLogsAsync(
@@ -180,7 +189,8 @@ public sealed class CommunicationsModuleApi(
             x.IsSuccess,
             x.ErrorMessage,
             x.AttemptCount,
-            x.CreatedAt)).ToList();
+            x.CreatedAt,
+            x.OutboxMessageId)).ToList();
 
         return Result<PagedResult<CommunicationLogDto>>.Success(new PagedResult<CommunicationLogDto>
         {

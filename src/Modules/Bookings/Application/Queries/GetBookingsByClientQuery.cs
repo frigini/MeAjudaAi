@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
+using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Queries;
 
@@ -11,4 +11,4 @@ public record GetBookingsByClientQuery(
     int? Page = 1,
     int? PageSize = 10,
     DateTime? From = null,
-    DateTime? To = null) : IQuery<Result<PagedResult<BookingDto>>>;
+    DateTime? To = null) : IQuery<Result<PagedResult<ModuleBookingDto>>>;

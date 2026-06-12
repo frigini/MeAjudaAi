@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
@@ -22,7 +22,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
     {
         app.MapGet(ApiEndpoints.Bookings.GetProviderBookings, GetProviderBookingsAsync)
         .RequireAuthorization()
-        .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
+        .Produces<PagedResult<ModuleBookingDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -93,7 +93,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
         var correlationId = CorrelationHelper.ParseCorrelationId(context);
 
         var query = new GetBookingsByProviderQuery(providerId, correlationId, normalizedPage, normalizedPageSize, from, to);
-        var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
+        var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>(query, cancellationToken);
 
         return result.IsSuccess 
             ? Results.Ok(result.Value) 

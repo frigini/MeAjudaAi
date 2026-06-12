@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
@@ -17,7 +17,7 @@ public class GetBookingByIdEndpoint : IEndpoint
     {
         app.MapGet(ApiEndpoints.Bookings.GetById, GetBookingByIdAsync)
         .RequireAuthorization()
-        .Produces<BookingDto>(StatusCodes.Status200OK)
+        .Produces<ModuleBookingDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -52,7 +52,7 @@ public class GetBookingByIdEndpoint : IEndpoint
         var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
 
         var query = new GetBookingByIdQuery(id, userId, providerId, isSystemAdmin, correlationId);
-        var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<BookingDto>>(query, cancellationToken);
+        var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<ModuleBookingDto>>(query, cancellationToken);
 
         return result.Match(
             onSuccess: booking => Results.Ok(booking),

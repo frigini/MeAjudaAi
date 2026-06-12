@@ -4,7 +4,9 @@
 
 ## 📦 O que é este projeto?
 
-Este é o **SDK (Software Development Kit) oficial** do MeAjudaAi, semelhante ao AWS SDK, Stripe SDK, ou Azure SDK. Ele facilita o consumo da API REST através de **clientes HTTP tipados** gerados automaticamente pelo **Refit**.
+Este é o **SDK (Software Development Kit) oficial** do MeAjudaAi para consumo em projetos .NET. Ele facilita o consumo da API REST através de **interfaces Refit** geradas automaticamente.
+
+> **Nota**: Para o frontend React/Next.js, utilize os clientes gerados via OpenAPI (gerado automaticamente pelo `openapi-generator`).
 
 ### Por que usar um SDK?
 
@@ -15,11 +17,11 @@ Este é o **SDK (Software Development Kit) oficial** do MeAjudaAi, semelhante ao
 | Query parameters manual | ✅ Atributo `[Query]` |
 | Tratamento de erros HTTP manual | ✅ `Result<T>` tipado |
 | Sem IntelliSense/autocomplete | ✅ Type-safe com documentação XML |
-| Código duplicado entre projetos | ✅ Reutilizável (Blazor WASM, MAUI, Console) |
+| Código duplicado entre projetos | ✅ Reutilizável entre projetos .NET |
 
 ## 🎯 Propósito
 
-Este projeto contém **interfaces Refit** que definem endpoints da API REST do MeAjudaAi. Os DTOs são compartilhados de `MeAjudaAi.Shared.Contracts`.
+Este projeto contém **interfaces Refit** que definem endpoints da API REST do MeAjudaAi. Os DTOs são compartilhados de `MeAjudaAi.Contracts.Modules.*`.
 
 ## 🏗️ Arquitetura do SDK
 
@@ -27,8 +29,8 @@ Este projeto contém **interfaces Refit** que definem endpoints da API REST do M
 
 ```text
 ┌─────────────────────────────────────┐
-│  Blazor Component / MAUI Page       │
-│  @inject IProvidersApi _api         │
+│  Serviço .NET (API, Worker, etc.)   │
+│  _api.GetProviderByIdAsync(id)      │
 └──────────────┬──────────────────────┘
                │ (interface tipada)
 ┌──────────────▼──────────────────────┐
@@ -58,7 +60,7 @@ Este projeto contém **interfaces Refit** que definem endpoints da API REST do M
 public interface IProvidersApi
 {
     [Get("/api/v1/providers/{id}")]
-    Task<Result<ProviderDto>> GetProviderAsync(Guid id);
+    Task<ModuleProviderDto> GetProviderByIdAsync(Guid id, CancellationToken cancellationToken = default);
 }
 ```
 
@@ -69,10 +71,10 @@ public class ProvidersApiGenerated : IProvidersApi
 {
     private readonly HttpClient _httpClient;
     
-    public async Task<Result<ProviderDto>> GetProviderAsync(Guid id)
+    public async Task<ModuleProviderDto> GetProviderByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var response = await _httpClient.GetAsync($"/api/v1/providers/{id}");
-        return await response.Content.ReadFromJsonAsync<Result<ProviderDto>>();
+        return await response.Content.ReadFromJsonAsync<ModuleProviderDto>(cancellationToken);
     }
 }
 ```
@@ -86,10 +88,10 @@ public class ProvidersApiGenerated : IProvidersApi
 
 ## 🚫 O que NÃO incluir
 
-- ❌ DTOs (usar `MeAjudaAi.Shared.Contracts`)
 - ❌ Lógica de negócio
-- ❌ Validadores FluentValidation (usar Shared.Contracts)
 - ❌ Implementações concretas (Refit gera automaticamente)
+
+**Nota**: DTOs são compartilhados de `MeAjudaAi.Contracts.Modules.*` (não `MeAjudaAi.Shared.Contracts`).
 
 ## 📂 Estrutura
 
@@ -100,6 +102,7 @@ MeAjudaAi.Client.Contracts/
 │   ├── IDocumentsApi.cs          # Upload e validação de documentos
 │   ├── IServiceCatalogsApi.cs    # Catálogo de serviços (categorias + serviços)
 │   ├── ILocationsApi.cs          # Restrições geográficas (cidades permitidas)
+│   ├── IBookingsApi.cs           # Agendamentos de serviços
 │   └── IUsersApi.cs              # (FUTURO) Gestão de usuários
 └── Models/
     └── PagedResult.cs            # Modelo de paginação genérico
@@ -113,12 +116,13 @@ MeAjudaAi.Client.Contracts/
 | **Documents** | ✅ IDocumentsApi | Admin Portal (Sprint 7) | Completo |
 | **ServiceCatalogs** | ✅ IServiceCatalogsApi | Admin Portal (Sprint 6-7) | Completo |
 | **Locations** | ✅ ILocationsApi | Admin Portal (Sprint 7) | Completo |
+| **Bookings** | ✅ IBookingsApi | Customer App | Completo |
 | **Users** | ⏳ Planejado | Admin Portal (Sprint 8+) | Pendente |
 | **SearchProviders** | ❌ Não necessário | Customer App (API interna) | N/A |
 
-## 🔧 Uso no Admin Portal
+## 🔧 Uso em Projetos .NET
 
-### 1. Instalar dependência (já configurado)
+### 1. Instalar dependência
 ```bash
 dotnet add reference ../../Client/MeAjudaAi.Client.Contracts
 ```
@@ -128,114 +132,48 @@ dotnet add reference ../../Client/MeAjudaAi.Client.Contracts
 using Refit;
 using MeAjudaAi.Client.Contracts.Api;
 
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7001";
+var apiBaseUrl = configuration["ApiBaseUrl"] ?? "https://localhost:7001";
 
-// Registrar todos os SDKs necessários para o Admin Portal
-builder.Services.AddRefitClient<IProvidersApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+// Registrar SDKs necessários
+services.AddRefitClient<IProvidersApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
 
-builder.Services.AddRefitClient<IDocumentsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<IServiceCatalogsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<ILocationsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+services.AddRefitClient<IBookingsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
 ```
 
-**Nota**: `BaseAddressAuthorizationMessageHandler` é uma classe **built-in** do pacote `Microsoft.AspNetCore.Components.WebAssembly.Authentication`. Ela é automaticamente registrada no DI quando você configura autenticação OIDC com `.AddOidcAuthentication()`. Não é necessário implementá-la manualmente.
-
-### 3. Injetar em páginas Blazor
+### 3. Injetar e usar
 ```csharp
-@page "/providers"
-@inject IProvidersApi ProvidersApi
-@inject ISnackbar Snackbar
-
-<MudDataGrid Items="@_providers" Loading="@_isLoading">
-    <Columns>
-        <PropertyColumn Property="x => x.Name" Title="Nome" />
-        <PropertyColumn Property="x => x.Email" Title="Email" />
-    </Columns>
-</MudDataGrid>
-
-@code {
-    private IReadOnlyList<ModuleProviderDto> _providers = [];
-    private bool _isLoading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isLoading = true;
-        var result = await ProvidersApi.GetProvidersAsync(pageNumber: 1, pageSize: 20);
-        
-        if (result.IsSuccess)
-        {
-            _providers = result.Value.Items;
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error.Message}", Severity.Error);
-        }
-        
-        _isLoading = false;
-    }
-}
-```
-
-### 4. Usar com Fluxor (State Management - Recomendado)
-```csharp
-public class LoadProvidersEffect : Effect<LoadProvidersAction>
+public class ProviderService
 {
-    private readonly IProvidersApi _api;
+    private readonly IProvidersApi _providersApi;
 
-    public LoadProvidersEffect(IProvidersApi api)
+    public ProviderService(IProvidersApi providersApi)
     {
-        _api = api;
+        _providersApi = providersApi;
     }
 
-    public override async Task HandleAsync(LoadProvidersAction action, IDispatcher dispatcher)
+    public async Task<ModuleProviderDto?> GetProviderAsync(Guid id)
     {
-        var result = await _api.GetProvidersAsync(action.PageNumber, action.PageSize);
-        
-        if (result.IsSuccess)
-        {
-            dispatcher.Dispatch(new LoadProvidersSuccessAction(result.Value.Items));
-        }
-        else
-        {
-            dispatcher.Dispatch(new LoadProvidersFailureAction(result.Error));
-        }
+        return await _providersApi.GetProviderByIdAsync(id);
     }
 }
 ```
 
 ## 💡 Exemplos Práticos por Módulo
 
-### IDocumentsApi - Upload de Documento
+### IBookingsApi - Criar Agendamento
 ```csharp
-@inject IDocumentsApi DocumentsApi
-
-private async Task UploadDocumentAsync(IBrowserFile file, Guid providerId)
+public async Task<ModuleBookingDto> CreateBookingAsync(Guid providerId, Guid serviceId, DateTimeOffset start, DateTimeOffset end)
 {
-    using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-    var streamPart = new StreamPart(stream, file.Name, file.ContentType);
-    
-    var result = await DocumentsApi.UploadDocumentAsync(providerId, streamPart, "RG");
-    
-    if (result.IsSuccess)
-        Snackbar.Add($"✅ Documento {result.Value.DocumentId} enviado", Severity.Success);
+    var request = new CreateBookingRequestDto(providerId, serviceId, start, end);
+    return await _bookingsApi.CreateBookingAsync(request);
 }
 ```
 
 ### ILocationsApi - CRUD de Cidades
 ```csharp
-@inject ILocationsApi LocationsApi
-
-private async Task CreateCityAsync()
+public async Task CreateCityAsync()
 {
     var request = new CreateAllowedCityRequestDto
     {
@@ -243,8 +181,7 @@ private async Task CreateCityAsync()
         Latitude = -23.5505, Longitude = -46.6333, ServiceRadiusKm = 50
     };
     
-    var result = await LocationsApi.CreateAllowedCityAsync(request);
-    if (result.IsSuccess) await RefreshCitiesAsync();
+    await _locationsApi.CreateAllowedCityAsync(request);
 }
 ```
 
@@ -292,11 +229,10 @@ Task<Result<T>> GetAsync([Header("X-Custom")] string customHeader);
 
 - **Refit mocks**: Usar `RestService.For<IProvidersApi>(mockHttpMessageHandler)`
 - **WireMock.NET**: Simular API real para testes de integração
-- **bUnit**: Testar componentes Blazor que injetam APIs
 
 ## 🔗 Dependências
 
-- **MeAjudaAi.Shared.Contracts** - DTOs compartilhados
+- **MeAjudaAi.Contracts.Modules.*** - DTOs de módulos (Bookings, Communications, etc.)
 - **Refit** - Geração automática de clientes HTTP
 
 ## 📚 Referências

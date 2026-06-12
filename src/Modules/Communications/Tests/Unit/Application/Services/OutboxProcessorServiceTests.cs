@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Enums;
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Domain.Entities;

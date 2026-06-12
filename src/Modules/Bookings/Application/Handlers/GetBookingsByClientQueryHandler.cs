@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Queries;
@@ -12,9 +12,9 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 public sealed class GetBookingsByClientQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,
-    ILogger<GetBookingsByClientQueryHandler> logger) : IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>
+    ILogger<GetBookingsByClientQueryHandler> logger) : IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<ModuleBookingDto>>>
 {
-    public async Task<Result<PagedResult<BookingDto>>> HandleAsync(GetBookingsByClientQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<PagedResult<ModuleBookingDto>>> HandleAsync(GetBookingsByClientQuery query, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Getting bookings for client {ClientId}", query.ClientId);
 
@@ -31,7 +31,7 @@ public sealed class GetBookingsByClientQueryHandler(
             pageSize,
             cancellationToken);
 
-        var dtos = new List<BookingDto>();
+        var dtos = new List<ModuleBookingDto>();
         var scheduleCache = new Dictionary<Guid, Domain.Entities.ProviderSchedule?>();
 
         foreach (var booking in bookings)
@@ -47,13 +47,13 @@ public sealed class GetBookingsByClientQueryHandler(
 
             if (dtoResult.IsFailure)
             {
-                return Result<PagedResult<BookingDto>>.Failure(dtoResult.Error);
+                return Result<PagedResult<ModuleBookingDto>>.Failure(dtoResult.Error);
             }
 
             dtos.Add(dtoResult.Value!);
         }
 
-        return Result<PagedResult<BookingDto>>.Success(new PagedResult<BookingDto>
+        return Result<PagedResult<ModuleBookingDto>>.Success(new PagedResult<ModuleBookingDto>
         {
             Items = dtos.AsReadOnly(),
             PageNumber = pageNumber,

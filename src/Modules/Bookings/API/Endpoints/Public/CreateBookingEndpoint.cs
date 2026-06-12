@@ -1,7 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities;
@@ -20,7 +19,7 @@ public class CreateBookingEndpoint : IEndpoint
     {
         app.MapPost(ApiEndpoints.Bookings.Create, CreateBookingAsync)
         .RequireAuthorization()
-        .Produces<BookingDto>(StatusCodes.Status201Created)
+        .Produces<ModuleBookingDto>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status409Conflict)
@@ -39,7 +38,7 @@ public class CreateBookingEndpoint : IEndpoint
     /// <param name="cancellationToken">Token de cancelamento da requisição.</param>
     /// <returns>O agendamento criado com status 201.</returns>
     private static async Task<IResult> CreateBookingAsync(
-        CreateBookingRequest request,
+        CreateBookingRequestDto request,
         [FromServices] ICommandDispatcher dispatcher,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -62,7 +61,7 @@ public class CreateBookingEndpoint : IEndpoint
             request.End,
             correlationId);
 
-        var result = await dispatcher.SendAsync<CreateBookingCommand, Result<BookingDto>>(command, cancellationToken);
+        var result = await dispatcher.SendAsync<CreateBookingCommand, Result<ModuleBookingDto>>(command, cancellationToken);
 
         return result.Match(
             onSuccess: booking => Results.Created($"/api/v1/bookings/{booking.Id}", booking),

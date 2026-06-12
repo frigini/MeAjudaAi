@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Enums;
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Database.Exceptions;

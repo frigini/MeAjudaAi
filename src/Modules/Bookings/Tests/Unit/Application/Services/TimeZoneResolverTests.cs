@@ -34,11 +34,9 @@ public class TimeZoneResolverTests
     }
 
     [Fact]
-    public void CreateValidatedBookingDto_WithAmbiguousDSTTime_ShouldReturnSuccessWithMaxOffset()
+    public void CreateValidatedBookingDto_WithAmbiguousDSTTime_ShouldReturnSuccessWithCorrectDateAndTime()
     {
         // Arrange
-        // Em 2024, PST (Pacific) volta o relógio em 3 de Novembro (ambiguidade 01:00-02:00)
-        // O horário 01:30 AM acontece duas vezes (PDT depois PST).
         TimeZoneInfo? pst = TestTimeZones.GetPacific();
         if (pst == null) return;
 
@@ -46,10 +44,7 @@ public class TimeZoneResolverTests
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
         var date = new DateOnly(2024, 11, 3);
-        // O início é ambíguo (01:30 AM)
         var start = new TimeOnly(1, 30);
-        // O fim NÃO é ambíguo (02:30 AM). Em 03/11/2024, o relógio volta de 02:00 PDT para 01:00 PST.
-        // Isso torna 01:00-02:00 ambíguo. 02:00 e 02:30 ocorrem apenas uma vez como PST (-08:00).
         var end = new TimeOnly(2, 30);
         var slot = TimeSlot.Create(start, end);
         var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
@@ -59,21 +54,13 @@ public class TimeZoneResolverTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        
-        // O offset de início deve ser o máximo dos dois offsets ambíguos (PDT -07:00 > PST -08:00)
-        var startDateTime = booking.Date.ToDateTime(booking.TimeSlot.Start);
-        var startOffsets = pst.GetAmbiguousTimeOffsets(startDateTime);
-        var expectedStartOffset = startOffsets.Max();
-        result.Value!.Start.Offset.Should().Be(expectedStartOffset);
-
-        // O offset de fim deve ser o offset não ambíguo para 02:30 AM PST (-08:00)
-        var endDateTime = booking.Date.ToDateTime(booking.TimeSlot.End);
-        var expectedEndOffset = pst.GetUtcOffset(endDateTime);
-        result.Value.End.Offset.Should().Be(expectedEndOffset);
+        result.Value!.Date.Should().Be(date);
+        result.Value!.StartTime.Should().Be(start);
+        result.Value!.EndTime.Should().Be(end);
     }
 
     [Fact]
-    public void CreateValidatedBookingDto_WithStandardTime_ShouldReturnSuccessWithCorrectOffset()
+    public void CreateValidatedBookingDto_WithStandardTime_ShouldReturnSuccessWithCorrectDateAndTime()
     {
         // Arrange
         TimeZoneInfo? pst = TestTimeZones.GetPacific();
@@ -82,7 +69,7 @@ public class TimeZoneResolverTests
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var date = new DateOnly(2024, 6, 10); // Horário de verão (PDT: -7)
+        var date = new DateOnly(2024, 6, 10);
         var slot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
         var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
 
@@ -91,8 +78,9 @@ public class TimeZoneResolverTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Start.Offset.Should().Be(TimeSpan.FromHours(-7));
-        result.Value!.End.Offset.Should().Be(TimeSpan.FromHours(-7));
+        result.Value!.Date.Should().Be(date);
+        result.Value!.StartTime.Should().Be(new TimeOnly(10, 0));
+        result.Value!.EndTime.Should().Be(new TimeOnly(11, 0));
     }
 
     [Fact]

@@ -11,7 +11,7 @@ public interface IBookingsModuleApi : IModuleApi
     /// <summary>
     /// Obtém detalhes de um agendamento.
     /// </summary>
-    Task<Result<BookingDto?>> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleBookingDto?>> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Verifica se existe um agendamento concluído entre um cliente e um prestador.
@@ -22,5 +22,5 @@ public interface IBookingsModuleApi : IModuleApi
     /// <summary>
     /// Obtém os agendamentos de um prestador em um período.
     /// </summary>
-    Task<Result<IReadOnlyList<BookingDto>>> GetProviderBookingsAsync(Guid providerId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ModuleBookingDto>>> GetProviderBookingsAsync(Guid providerId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default);
 }

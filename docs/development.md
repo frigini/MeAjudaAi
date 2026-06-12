@@ -144,31 +144,34 @@ O projeto fornece **SDKs .NET tipados** para consumir a API REST, eliminando có
 | **IDocumentsApi** | Documents | Upload, verificação, status |
 | **IServiceCatalogsApi** | ServiceCatalogs | Listagem serviços/categorias |
 | **ILocationsApi** | Locations | CRUD AllowedCities |
+| **IBookingsApi** | Bookings | Criação, consulta de agendamentos |
 | **IUsersApi** | Users | ⏳ Planejado (Sprint 8+) |
 
-**Exemplo de uso no Blazor WASM**:
+**Exemplo de uso em serviço .NET**:
 
 ```csharp
 // 1. Registrar SDK no DI (Program.cs)
-builder.Services.AddRefitClient<IProvidersApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+services.AddRefitClient<IProvidersApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
 
-// 2. Injetar em componente Blazor
-@inject IProvidersApi ProvidersApi
+// 2. Injetar e usar
+public class ProviderService
+{
+    private readonly IProvidersApi _providersApi;
 
-@code {
-    private async Task LoadProvidersAsync()
+    public ProviderService(IProvidersApi providersApi)
     {
-        var result = await ProvidersApi.GetProvidersAsync(pageNumber: 1, pageSize: 20);
-        
-        if (result.IsSuccess)
-            _providers = result.Value.Items;
-        else
-            Snackbar.Add(result.Error.Message, Severity.Error);
+        _providersApi = providersApi;
+    }
+
+    public async Task<ModuleProviderDto?> GetProviderAsync(Guid id)
+    {
+        return await _providersApi.GetProviderByIdAsync(id);
     }
 }
 ```
+
+> **Nota**: Para o frontend React/Next.js, utilize os clientes gerados via OpenAPI.
 
 **Documentação completa**: `src/Client/MeAjudaAi.Client.Contracts/README.md`
 

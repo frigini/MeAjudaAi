@@ -1,9 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -18,22 +18,22 @@ public sealed class CreateBookingCommandHandler(
     IProviderScheduleQueries scheduleQueries,
     IProvidersModuleApi providersApi,
     IServiceCatalogsModuleApi serviceCatalogsApi,
-    ILogger<CreateBookingCommandHandler> logger) : ICommandHandler<CreateBookingCommand, Result<BookingDto>>
+    ILogger<CreateBookingCommandHandler> logger) : ICommandHandler<CreateBookingCommand, Result<ModuleBookingDto>>
 {
-    public async Task<Result<BookingDto>> HandleAsync(CreateBookingCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleBookingDto>> HandleAsync(CreateBookingCommand command, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Creating booking for Provider {ProviderId}", command.ProviderId);
         logger.LogDebug("Creating booking for Client {ClientId}", command.ClientId);
 
         if (command.End <= command.Start)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("O horário de término deve ser após o horário de início.", ErrorCodes.Bookings.InvalidTime));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("O horário de término deve ser após o horário de início.", ErrorCodes.Bookings.InvalidTime));
         }
 
         var minimumLead = TimeSpan.FromMinutes(1);
         if (command.Start < DateTimeOffset.UtcNow.Add(minimumLead))
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro (mínimo 1 minuto de antecedência).", ErrorCodes.Bookings.StartNotInFuture));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro (mínimo 1 minuto de antecedência).", ErrorCodes.Bookings.StartNotInFuture));
         }
 
         var providerExistsTask = providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
@@ -45,46 +45,46 @@ public sealed class CreateBookingCommandHandler(
         var providerExists = await providerExistsTask;
         if (providerExists.IsFailure)
         {
-            return Result<BookingDto>.Failure(providerExists.Error);
+            return Result<ModuleBookingDto>.Failure(providerExists.Error);
         }
 
         if (!providerExists.Value)
         {
-            return Result<BookingDto>.Failure(Error.NotFound("Prestador não encontrado.", ErrorCodes.Providers.ProviderNotFound));
+            return Result<ModuleBookingDto>.Failure(Error.NotFound("Prestador não encontrado.", ErrorCodes.Providers.ProviderNotFound));
         }
 
         var serviceActive = await serviceActiveTask;
         if (serviceActive.IsFailure)
         {
-            return Result<BookingDto>.Failure(serviceActive.Error);
+            return Result<ModuleBookingDto>.Failure(serviceActive.Error);
         }
 
         if (!serviceActive.Value)
         {
-            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo.", ErrorCodes.Catalogs.ServiceNotFound));
+            return Result<ModuleBookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo.", ErrorCodes.Catalogs.ServiceNotFound));
         }
 
         var schedule = await scheduleTask;
         if (schedule == null)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Prestador não possui agenda configurada.", ErrorCodes.Providers.ScheduleNotFound));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("Prestador não possui agenda configurada.", ErrorCodes.Providers.ScheduleNotFound));
         }
 
         var serviceOffered = await providersApi.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, cancellationToken);
         if (serviceOffered.IsFailure)
         {
-            return Result<BookingDto>.Failure(serviceOffered.Error);
+            return Result<ModuleBookingDto>.Failure(serviceOffered.Error);
         }
 
         if (!serviceOffered.Value)
         {
-            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou não oferecido por este prestador.", ErrorCodes.Providers.ServiceNotOffered));
+            return Result<ModuleBookingDto>.Failure(Error.NotFound("Serviço não encontrado ou não oferecido por este prestador.", ErrorCodes.Providers.ServiceNotOffered));
         }
 
         var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger, allowFallback: false);
         if (tz == null)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido.", ErrorCodes.Bookings.InvalidTime));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido.", ErrorCodes.Bookings.InvalidTime));
         }
 
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
@@ -92,14 +92,14 @@ public sealed class CreateBookingCommandHandler(
         var duration = command.End - command.Start;
         if (!schedule.IsAvailable(localStartTime, duration))
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado.", ErrorCodes.Providers.ProviderUnavailable));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado.", ErrorCodes.Providers.ProviderUnavailable));
         }
 
         var localEndTime = localStartTime.Add(duration);
 
         if (localStartTime.Date != localEndTime.Date)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Agendamentos não podem cruzar a meia-noite. Por favor, divida em dois agendamentos distintos.", ErrorCodes.Bookings.MidnightSpanning));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("Agendamentos não podem cruzar a meia-noite. Por favor, divida em dois agendamentos distintos.", ErrorCodes.Bookings.MidnightSpanning));
         }
 
         var date = DateOnly.FromDateTime(localStartTime);
@@ -115,14 +115,14 @@ public sealed class CreateBookingCommandHandler(
         var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
         if (dtoResult.IsFailure)
         {
-            return Result<BookingDto>.Failure(dtoResult.Error);
+            return Result<ModuleBookingDto>.Failure(dtoResult.Error);
         }
 
         var result = await bookingCommandService.AddIfNoOverlapAsync(booking, cancellationToken);
 
         if (result.IsFailure)
         {
-            return Result<BookingDto>.Failure(result.Error!);
+            return Result<ModuleBookingDto>.Failure(result.Error!);
         }
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);

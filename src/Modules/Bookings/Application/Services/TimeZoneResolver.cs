@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -105,7 +105,7 @@ public static class TimeZoneResolver
         }
     }
 
-    public static Result<BookingDto> CreateValidatedBookingDto(Booking booking, TimeZoneInfo tz, ILogger logger)
+    public static Result<ModuleBookingDto> CreateValidatedBookingDto(Booking booking, TimeZoneInfo tz, ILogger logger)
     {
         var startDate = booking.Date.ToDateTime(booking.TimeSlot.Start);
         var endDate = booking.Date.ToDateTime(booking.TimeSlot.End);
@@ -113,44 +113,17 @@ public static class TimeZoneResolver
         if (tz.IsInvalidTime(startDate) || tz.IsInvalidTime(endDate))
         {
             logger.LogWarning("Invalid time detected for booking {BookingId} in time zone {TimeZoneId}", booking.Id, tz.Id);
-            return Result<BookingDto>.Failure(Error.BadRequest("Horário inválido para o fuso horário selecionado (possível transição de horário de verão)."));
+            return Result<ModuleBookingDto>.Failure(Error.BadRequest("Horário inválido para o fuso horário selecionado (possível transição de horário de verão)."));
         }
 
-        TimeSpan startOffset;
-        if (tz.IsAmbiguousTime(startDate))
-        {
-            var offsets = tz.GetAmbiguousTimeOffsets(startDate);
-            // Escolha determinística: o maior offset (geralmente o de horário de verão)
-            startOffset = offsets.Max();
-            logger.LogInformation("Ambiguous start time detected for booking {BookingId}. Offsets: {Offsets}. Chosen: {Offset}.", 
-                booking.Id, string.Join(", ", offsets), startOffset);
-        }
-        else
-        {
-            startOffset = tz.GetUtcOffset(startDate);
-        }
-
-        TimeSpan endOffset;
-        if (tz.IsAmbiguousTime(endDate))
-        {
-            var offsets = tz.GetAmbiguousTimeOffsets(endDate);
-            // Escolha determinística: o maior offset
-            endOffset = offsets.Max();
-            logger.LogInformation("Ambiguous end time detected for booking {BookingId}. Offsets: {Offsets}. Chosen: {Offset}.", 
-                booking.Id, string.Join(", ", offsets), endOffset);
-        }
-        else
-        {
-            endOffset = tz.GetUtcOffset(endDate);
-        }
-
-        return Result<BookingDto>.Success(new BookingDto(
+        return Result<ModuleBookingDto>.Success(new ModuleBookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(startDate, startOffset),
-            new DateTimeOffset(endDate, endOffset),
+            booking.Date,
+            booking.TimeSlot.Start,
+            booking.TimeSlot.End,
             booking.Status,
             booking.RejectionReason,
             booking.CancellationReason));

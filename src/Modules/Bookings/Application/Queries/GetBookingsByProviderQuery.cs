@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 
@@ -12,7 +12,7 @@ public record GetBookingsByProviderQuery(
     int Page = 1,
     int PageSize = 10,
     DateTime? From = null,
-    DateTime? To = null) : IQuery<Result<PagedResult<BookingDto>>>, ICacheableQuery
+    DateTime? To = null) : IQuery<Result<PagedResult<ModuleBookingDto>>>, ICacheableQuery
 {
     public string GetCacheKey() => $"bookings-provider:{ProviderId}:{Page}:{PageSize}:{From}:{To}";
     public TimeSpan GetCacheExpiration() => TimeSpan.FromMinutes(5);

@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
@@ -122,7 +122,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         }
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
-        var bookingResponseData = await ReadJsonAsync<BookingDto>(createResponse);
+        var bookingResponseData = await ReadJsonAsync<ModuleBookingDto>(createResponse);
         bookingResponseData.Should().NotBeNull();
         var bookingId = bookingResponseData!.Id;
         
@@ -140,7 +140,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var getResponse = await ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
+        var updatedBooking = await ReadJsonAsync<ModuleBookingDto>(getResponse);
         updatedBooking.Should().NotBeNull();
         updatedBooking!.Status.Should().Be(MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Confirmed);
     }

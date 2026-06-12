@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 
@@ -10,7 +10,7 @@ public record GetBookingByIdQuery(
     Guid? UserId,
     Guid? ProviderId,
     bool IsSystemAdmin,
-    Guid CorrelationId) : IQuery<Result<BookingDto>>, ICacheableQuery
+    Guid CorrelationId) : IQuery<Result<ModuleBookingDto>>, ICacheableQuery
 {
     public string GetCacheKey() => $"booking:{BookingId}";
     public TimeSpan GetCacheExpiration() => TimeSpan.FromMinutes(15);
