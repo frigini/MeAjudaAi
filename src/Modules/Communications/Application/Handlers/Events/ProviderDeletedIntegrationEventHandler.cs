@@ -56,8 +56,7 @@ public sealed class ProviderDeletedIntegrationEventHandler(
             To = email,
             Subject = "Conta de Prestador Excluída",
             HtmlBody = $"<h1>Olá, {name}!</h1><p>Sua conta de prestador no MeAjudaAi foi excluída com sucesso.</p>",
-            TextBody = $"Olá, {name}!\nSua conta de prestador no MeAjudaAi foi excluída com sucesso.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {name}!\nSua conta de prestador no MeAjudaAi foi excluída com sucesso."
         });
 
         var message = OutboxMessage.Create(

@@ -44,8 +44,7 @@ public sealed class UserProfileUpdatedIntegrationEventHandler(
             Subject = "Seu perfil foi atualizado",
             HtmlBody = $"<h1>Olá, {integrationEvent.FirstName}!</h1><p>Seu perfil foi atualizado com sucesso.</p>",
             TextBody = $"Olá, {integrationEvent.FirstName}! Seu perfil foi atualizado com sucesso.",
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var message = OutboxMessage.Create(

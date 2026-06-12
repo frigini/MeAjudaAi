@@ -81,7 +81,7 @@ public class EmailTemplateCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_UpdateTemplate_WhenSystemTemplate_ShouldThrowException()
+    public async Task HandleAsync_UpdateTemplate_WhenSystemTemplate_ShouldReturnBadRequest()
     {
         // Arrange
         var templateId = Guid.NewGuid();
@@ -90,8 +90,12 @@ public class EmailTemplateCommandHandlerTests
 
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     [Fact]

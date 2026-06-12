@@ -61,8 +61,7 @@ public sealed class BookingConfirmedIntegrationEventHandler(
             Subject = "Agendamento Confirmado!",
             HtmlBody = $"<h1>Tudo certo!</h1><p>Seu agendamento com {providerName} foi confirmado.</p>",
             TextBody = $"Tudo certo! Seu agendamento com {providerName} foi confirmado.",
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var clientMessage = OutboxMessage.Create(

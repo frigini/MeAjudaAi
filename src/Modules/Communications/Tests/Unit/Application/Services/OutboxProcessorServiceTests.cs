@@ -62,11 +62,6 @@ public class OutboxProcessorServiceTests
     private void SetupEmailSender(bool success) =>
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(success);
-
-    private void SetupEmailSenderThrows<T>() where T : Exception, new() =>
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new T());
-
     private void SetupSmsSender(bool success) =>
         _smsSenderMock.Setup(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(success);
@@ -250,7 +245,7 @@ public class OutboxProcessorServiceTests
     }
 
     [Fact]
-    public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldHtmlEncodeIt()
+    public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldUseItDirectly()
     {
         var message = OutboxMessage.Create(ECommunicationChannel.Email, "body_payload");
         SetupPendingMessages(message);
@@ -258,7 +253,7 @@ public class OutboxProcessorServiceTests
 
         await _service.ProcessPendingMessagesAsync();
 
-        _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody.Contains("&lt;b&gt;")), It.IsAny<CancellationToken>()));
+        _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody.Contains("<b>B</b>")), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

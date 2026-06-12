@@ -69,8 +69,7 @@ public sealed class BookingCreatedIntegrationEventHandler(
             Subject = "Novo Agendamento Recebido",
             HtmlBody = $"<h1>Novo Agendamento!</h1><p>Você recebeu um novo agendamento de {clientName} para o dia {integrationEvent.Date}.</p>",
             TextBody = $"Novo Agendamento! Você recebeu um novo agendamento de {clientName} para o dia {integrationEvent.Date}.",
-            CorrelationId = $"{correlationId}:provider",
-            TemplateKey = TemplateKey
+            CorrelationId = $"{correlationId}:provider"
         });
 
         var providerMessage = OutboxMessage.Create(
@@ -101,8 +100,7 @@ public sealed class BookingCreatedIntegrationEventHandler(
             Subject = "Agendamento Solicitado",
             HtmlBody = $"<h1>Solicitação Enviada!</h1><p>Seu agendamento para o dia {integrationEvent.Date} foi enviado e aguarda confirmação do prestador.</p>",
             TextBody = $"Solicitação Enviada! Seu agendamento para o dia {integrationEvent.Date} foi enviado e aguarda confirmação do prestador.",
-            CorrelationId = $"{correlationId}:client",
-            TemplateKey = TemplateKey
+            CorrelationId = $"{correlationId}:client"
         });
 
         var clientMessage = OutboxMessage.Create(

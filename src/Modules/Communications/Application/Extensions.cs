@@ -15,7 +15,9 @@ using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.Communications.Application;
 
@@ -26,6 +28,8 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddModuleValidators(Assembly.GetExecutingAssembly());
+
         // Public API
         services.AddScoped<ICommunicationsModuleApi, CommunicationsModuleApi>();
 

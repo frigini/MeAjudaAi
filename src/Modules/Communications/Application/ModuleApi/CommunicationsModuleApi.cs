@@ -73,7 +73,7 @@ public sealed class CommunicationsModuleApi(
             logger.LogDebug("Communications module availability check canceled");
             throw;
         }
-        catch (Exception ex)
+       catch (Exception ex)
         {
             logger.LogError(ex, "Error checking Communications module availability");
             return false;
@@ -84,9 +84,10 @@ public sealed class CommunicationsModuleApi(
     {
         try
         {
-            // Teste básico: verificar se existem templates (operação leve de banco)
             var templates = await _templateQueries.GetAllAsync(cancellationToken);
-            return templates.Count > 0;
+            if (templates.Count == 0)
+                logger.LogWarning("No email templates found — Communications module may not be fully configured.");
+            return true;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

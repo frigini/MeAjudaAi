@@ -25,11 +25,6 @@ public sealed class CreateBookingCommandHandler(
         logger.LogInformation("Creating booking for Provider {ProviderId}", command.ProviderId);
         logger.LogDebug("Creating booking for Client {ClientId}", command.ClientId);
 
-        if (command.End <= command.Start)
-        {
-            return Result<ModuleBookingDto>.Failure(Error.BadRequest("O horário de término deve ser após o horário de início.", ErrorCodes.Bookings.InvalidTime));
-        }
-
         var minimumLead = TimeSpan.FromMinutes(1);
         if (command.Start < DateTimeOffset.UtcNow.Add(minimumLead))
         {

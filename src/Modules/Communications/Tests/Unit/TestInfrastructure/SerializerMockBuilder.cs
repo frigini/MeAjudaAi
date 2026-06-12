@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Communications.Application.DTOs;
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Serialization; 
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.TestInfrastructure;
 
@@ -21,11 +20,11 @@ public class SerializerMockBuilder
         Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
             .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", templateKey: "welcome_template", templateData: new Dictionary<string, string> { { "FirstName", "John" } }));
         Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("body_payload"))
-            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", textBody: "T", htmlBody: "<b>B</b>"));
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<b>B</b>"));
         Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("raw_body_payload"))
-            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", textBody: "Raw Body", templateKey: "non_existent"));
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<b>Raw Body</b>"));
         Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_body_payload"))
-            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<h1>H</h1>", textBody: "T"));
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<h1>H</h1>"));
 
         return this;
     }

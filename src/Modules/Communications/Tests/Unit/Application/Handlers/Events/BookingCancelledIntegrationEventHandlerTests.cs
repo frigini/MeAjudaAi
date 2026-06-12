@@ -33,7 +33,7 @@ public class BookingCancelledIntegrationEventHandlerTests
         _serializerMock = new Mock<ISerializer>();
 
         _serializerMock.Setup(x => x.Serialize(It.IsAny<object>()))
-            .Returns("{\"To\":\"test@test.com\",\"Subject\":\"Subject\",\"HtmlBody\":\"Body\",\"TextBody\":\"Body\",\"TemplateKey\":\"booking_cancelled\"}");
+            .Returns("{\"To\":\"test@test.com\",\"Subject\":\"Subject\",\"HtmlBody\":\"Body\",\"TextBody\":\"Body\"}");
 
         _handler = new BookingCancelledIntegrationEventHandler(
             _outboxRepositoryMock.Object,
@@ -70,13 +70,11 @@ public class BookingCancelledIntegrationEventHandlerTests
         // Assert
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => 
             m.CorrelationId.Contains(":provider") && 
-            m.Payload.Contains("To") && 
-            m.Payload.Contains("booking_cancelled")), It.IsAny<CancellationToken>()), Times.Once);
+            m.Payload.Contains("To")), It.IsAny<CancellationToken>()), Times.Once);
         
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => 
             m.CorrelationId.Contains(":client") && 
-            m.Payload.Contains("To") && 
-            m.Payload.Contains("booking_cancelled")), It.IsAny<CancellationToken>()), Times.Once);
+            m.Payload.Contains("To")), It.IsAny<CancellationToken>()), Times.Once);
 
         _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

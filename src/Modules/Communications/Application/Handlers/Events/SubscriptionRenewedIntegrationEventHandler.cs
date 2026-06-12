@@ -53,8 +53,7 @@ public sealed class SubscriptionRenewedIntegrationEventHandler(
             To = user.Email,
             Subject = "Assinatura Renovada",
             HtmlBody = $"<h1>Olá, {user.FirstName}!</h1><p>Sua assinatura foi renovada.</p>",
-            TextBody = $"Olá, {user.FirstName}!\nSua assinatura foi renovada.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {user.FirstName}!\nSua assinatura foi renovada."
         });
 
         var message = OutboxMessage.Create(

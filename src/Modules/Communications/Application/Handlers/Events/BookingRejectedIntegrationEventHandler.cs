@@ -62,8 +62,7 @@ public sealed class BookingRejectedIntegrationEventHandler(
             Subject = "Agendamento Rejeitado",
             HtmlBody = $"<h1>Agendamento Rejeitado</h1><p>Seu agendamento com {providerName} foi rejeitado.</p><p>Motivo: {reason}</p>",
             TextBody = $"Agendamento Rejeitado. Seu agendamento com {providerName} foi rejeitado. Motivo: {reason}",
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var clientMessage = OutboxMessage.Create(

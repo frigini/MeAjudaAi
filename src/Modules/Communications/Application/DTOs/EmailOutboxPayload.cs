@@ -16,8 +16,8 @@ namespace MeAjudaAi.Modules.Communications.Application.DTOs;
 ///   </description></item>
 ///   <item><description>
 ///     <strong>Direct body mode</strong>: defina <see cref="HtmlBody"/> (HTML) ou
-///     <see cref="TextBody"/> (texto puro). <c>HtmlBody</c> tem precedência sobre
-///     <c>TextBody</c> quando ambos são fornecidos.
+///     <see cref="TextBody"/> (texto puro). São mutuamente exclusivos —
+///     ambos não podem ser fornecidos.
 ///   </description></item>
 /// </list>
 /// <para>
@@ -33,7 +33,7 @@ public sealed record EmailOutboxPayload
     /// <summary>Assunto do e-mail.</summary>
     public string Subject { get; init; } = string.Empty;
 
-    /// <summary>Corpo em formato HTML. Usado no modo direto. Tem precedência sobre <c>TextBody</c>.</summary>
+    /// <summary>Corpo em formato HTML. Usado no modo direto. Mutuamente exclusivo com <c>TextBody</c>.</summary>
     public string? HtmlBody { get; init; }
 
     /// <summary>Corpo em texto puro. Usado no modo direto quando <c>HtmlBody</c> não é fornecido.</summary>
@@ -69,6 +69,9 @@ public sealed record EmailOutboxPayload
 
         if (!string.IsNullOrEmpty(htmlBody) && !string.IsNullOrEmpty(textBody))
             throw new ArgumentException("HtmlBody e TextBody não podem ser definidos simultaneamente. Prefira HtmlBody para HTML ou TextBody para texto puro.", nameof(htmlBody));
+
+        if (!hasTemplate && templateData is { Count: > 0 })
+            throw new ArgumentException("TemplateData requer que TemplateKey seja informado.", nameof(templateData));
 
         return new EmailOutboxPayload
         {

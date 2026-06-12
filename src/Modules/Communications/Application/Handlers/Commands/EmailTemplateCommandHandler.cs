@@ -28,13 +28,10 @@ public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Co
         var template = await repository.TryFindAsync(command.Id, cancellationToken);
         if (template == null) return Result.Failure(Error.NotFound("Template não encontrado."));
 
-        // Desativa a versão atual
-        template.Deactivate();
-
-        // Cria nova versão com o conteúdo atualizado
         EmailTemplate newVersion;
         try
         {
+            template.Deactivate();
             newVersion = template.CreateNewVersion(command.Subject, command.HtmlBody, command.TextBody);
         }
         catch (InvalidOperationException ex)

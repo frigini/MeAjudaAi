@@ -56,8 +56,7 @@ public sealed class UserDeletedIntegrationEventHandler(
             To = email,
             Subject = "Conta Excluída",
             HtmlBody = $"<h1>Olá, {firstName}!</h1><p>Sua conta no MeAjudaAi foi excluída com sucesso.</p>",
-            TextBody = $"Olá, {firstName}!\nSua conta no MeAjudaAi foi excluída com sucesso.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {firstName}!\nSua conta no MeAjudaAi foi excluída com sucesso."
         });
 
         var message = OutboxMessage.Create(

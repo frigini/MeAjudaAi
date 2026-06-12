@@ -52,8 +52,7 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
             To = userResult.Value!.Email,
             Subject = "Assinatura Ativada!",
             HtmlBody = $"<h1>Olá, {userResult.Value.FirstName}!</h1><p>Sua assinatura foi ativada com sucesso.</p>",
-            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura foi ativada com sucesso.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura foi ativada com sucesso."
         });
 
         var message = OutboxMessage.Create(

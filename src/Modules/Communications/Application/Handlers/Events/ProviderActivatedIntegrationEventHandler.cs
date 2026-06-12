@@ -58,8 +58,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
             HtmlBody = $"<h1>Olá, {safeName}!</h1><p>Seu cadastro foi aprovado. Você já pode receber solicitações de serviço.</p>",
             TextBody = $"Olá, {integrationEvent.Name}!\nSeu cadastro foi aprovado. Você já pode receber solicitações de serviço.",
             From = (string?)null,
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var message = OutboxMessage.Create(

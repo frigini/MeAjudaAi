@@ -62,8 +62,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
             To = providerEmail,
             Subject = "Agendamento Cancelado",
             HtmlBody = $"<h1>Agendamento Cancelado</h1><p>O agendamento {integrationEvent.BookingId} foi cancelado.</p><p>Motivo: {reason}</p>",
-            TextBody = $"Agendamento Cancelado. O agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}",
-            TemplateKey = TemplateKey
+            TextBody = $"Agendamento Cancelado. O agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}"
         });
 
         var clientPayload = serializer.Serialize(new
@@ -71,8 +70,7 @@ public sealed class BookingCancelledIntegrationEventHandler(
             To = clientEmail,
             Subject = "Agendamento Cancelado",
             HtmlBody = $"<h1>Agendamento Cancelado</h1><p>O agendamento {integrationEvent.BookingId} foi cancelado.</p><p>Motivo: {reason}</p>",
-            TextBody = $"Agendamento Cancelado. O agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}",
-            TemplateKey = TemplateKey
+            TextBody = $"Agendamento Cancelado. O agendamento {integrationEvent.BookingId} foi cancelado. Motivo: {reason}"
         });
 
         var providerMessage = OutboxMessage.Create(

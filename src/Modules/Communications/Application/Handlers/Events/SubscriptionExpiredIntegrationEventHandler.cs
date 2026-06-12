@@ -52,8 +52,7 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
             To = userResult.Value!.Email,
             Subject = "Assinatura Expirada",
             HtmlBody = $"<h1>Olá, {userResult.Value.FirstName}!</h1><p>Sua assinatura expirou.</p>",
-            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura expirou.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura expirou."
         });
 
         var message = OutboxMessage.Create(

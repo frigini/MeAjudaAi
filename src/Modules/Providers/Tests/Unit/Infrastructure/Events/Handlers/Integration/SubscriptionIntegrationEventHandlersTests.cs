@@ -30,7 +30,7 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
         await DbContext.SaveChangesAsync();
 
         var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.NewGuid(), provider.UserId);
-        var correlationId = evt.SubscriptionId.ToString();
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
         _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -46,16 +46,17 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
     [Fact]
     public async Task ActivatedHandler_WhenEventProcessed_ShouldNotReprocess()
     {
-        var correlationId = Guid.NewGuid().ToString();
+        var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.NewGuid(), Guid.NewGuid());
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
         _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var handler = new SubscriptionActivatedIntegrationEventHandler(DbContext, _idempotencyRepositoryMock.Object, _loggerActivated.Object);
-        var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.Parse(correlationId), Guid.NewGuid());
 
         await handler.HandleAsync(evt);
 
         _idempotencyRepositoryMock.Verify(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
+        _idempotencyRepositoryMock.Verify(x => x.MarkAsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Never);
         DbContext.ChangeTracker.HasChanges().Should().BeFalse();
     }
 
@@ -70,7 +71,7 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
         await DbContext.SaveChangesAsync();
 
         var evt = new SubscriptionCanceledIntegrationEvent("Payments", Guid.NewGuid(), provider.UserId);
-        var correlationId = evt.SubscriptionId.ToString();
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
         _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -94,7 +95,7 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
         await DbContext.SaveChangesAsync();
 
         var evt = new SubscriptionExpiredIntegrationEvent("Payments", Guid.NewGuid(), provider.UserId);
-        var correlationId = evt.SubscriptionId.ToString();
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
         _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 

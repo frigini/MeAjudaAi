@@ -52,8 +52,7 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
             To = userResult.Value!.Email,
             Subject = "Assinatura Cancelada",
             HtmlBody = $"<h1>Olá, {userResult.Value.FirstName}!</h1><p>Sua assinatura foi cancelada.</p>",
-            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura foi cancelada.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {userResult.Value.FirstName}!\nSua assinatura foi cancelada."
         });
 
         var message = OutboxMessage.Create(

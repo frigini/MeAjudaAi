@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
@@ -92,8 +92,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request);
 
         // Assert
-        // TODO: Endpoint pode não existir ainda (404)
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
     }
 
     [Fact]

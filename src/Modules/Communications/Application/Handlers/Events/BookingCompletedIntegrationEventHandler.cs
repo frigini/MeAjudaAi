@@ -75,8 +75,7 @@ public sealed class BookingCompletedIntegrationEventHandler(
             Subject = $"Como foi sua experiência com {providerName}?",
             HtmlBody = $"<h1>Olá, {clientFirstName}!</h1><p>Seu agendamento com {providerName} foi concluído. Que tal deixar uma avaliação?</p><p><a href='{reviewUrl}'>Avaliar agora</a></p>",
             TextBody = $"Olá, {clientFirstName}! Seu agendamento com {providerName} foi concluído. Deixe sua avaliação em nosso app: {reviewUrl}",
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var message = OutboxMessage.Create(

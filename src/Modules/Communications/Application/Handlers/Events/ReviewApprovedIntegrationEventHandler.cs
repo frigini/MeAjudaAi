@@ -61,8 +61,7 @@ public sealed class ReviewApprovedIntegrationEventHandler(
             To = provider.Email,
             Subject = "Nova Avaliação Aprovada!",
             HtmlBody = $"<h1>Olá, {provider.Name}!</h1><p>Uma nova avaliação foi aprovada.</p>",
-            TextBody = $"Olá, {provider.Name}!\nUma nova avaliação foi aprovada.",
-            TemplateKey = TemplateKey
+            TextBody = $"Olá, {provider.Name}!\nUma nova avaliação foi aprovada."
         });
 
         var message = OutboxMessage.Create(

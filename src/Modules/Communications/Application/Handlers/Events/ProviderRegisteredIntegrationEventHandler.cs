@@ -41,8 +41,7 @@ public sealed class ProviderRegisteredIntegrationEventHandler(
             Subject = "Bem-vindo ao MeAjudaAi - Cadastro de Prestador",
             HtmlBody = $"<h1>Olá, {integrationEvent.Name}!</h1><p>Seu cadastro como prestador foi recebido e está em análise.</p>",
             TextBody = $"Olá, {integrationEvent.Name}! Seu cadastro como prestador foi recebido e está em análise.",
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var message = OutboxMessage.Create(

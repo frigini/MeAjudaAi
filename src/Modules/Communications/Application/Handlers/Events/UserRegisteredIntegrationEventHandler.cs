@@ -43,8 +43,7 @@ public sealed class UserRegisteredIntegrationEventHandler(
             HtmlBody = $"<h1>Olá, {integrationEvent.FirstName}!</h1><p>Seja bem-vindo(a) ao MeAjudaAi.</p>",
             TextBody = $"Olá, {integrationEvent.FirstName}!\nSeja bem-vindo(a) ao MeAjudaAi.",
             From = (string?)null,
-            CorrelationId = correlationId,
-            TemplateKey = TemplateKey
+            CorrelationId = correlationId
         });
 
         var message = OutboxMessage.Create(
