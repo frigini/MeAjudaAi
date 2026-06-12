@@ -30,14 +30,14 @@ public sealed class SetPrimaryDocumentCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(Error.NotFound($"Provider with ID {command.ProviderId} not found"));
+                return Result<ProviderDto>.Failure(Error.NotFound($"Provedor com ID {command.ProviderId} não encontrado"));
             }
 
             // Verifica se o documento existe antes de definir como primário
             if (!provider.Documents.Any(d => d.DocumentType == command.DocumentType))
             {
                 logger.LogWarning("Document {DocumentType} not found for provider {ProviderId}", command.DocumentType, command.ProviderId);
-                return Result<ProviderDto>.Failure(Error.NotFound($"Document of type {command.DocumentType} not found for provider {command.ProviderId}"));
+                return Result<ProviderDto>.Failure(Error.NotFound($"Documento do tipo {command.DocumentType} não encontrado para o provedor {command.ProviderId}"));
             }
 
             // Define o documento como primário
@@ -59,7 +59,7 @@ public sealed class SetPrimaryDocumentCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error setting primary document for provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure(Error.Internal($"Error setting primary document: {ex.Message}"));
+            return Result<ProviderDto>.Failure(Error.Internal("Ocorreu um erro interno ao definir documento primário"));
         }
     }
 }

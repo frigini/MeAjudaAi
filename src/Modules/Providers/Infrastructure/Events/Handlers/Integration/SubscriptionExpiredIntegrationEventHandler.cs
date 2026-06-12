@@ -19,6 +19,7 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
 {
     public async Task HandleAsync(SubscriptionExpiredIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var correlationId = integrationEvent.SubscriptionId.ToString();
@@ -46,11 +47,13 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
             await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
             
             await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             
             logger.LogInformation("Demoted provider {ProviderId} to Standard tier.", provider.Id);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Error handling SubscriptionExpiredIntegrationEvent for user {UserId}", integrationEvent.UserId);
             throw;
         }

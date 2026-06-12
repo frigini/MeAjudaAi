@@ -21,9 +21,10 @@ public sealed class UserDeletedIntegrationEventHandler(
         UserDeletedIntegrationEvent integrationEvent,
         CancellationToken cancellationToken = default)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var correlationId = integrationEvent.Id.ToString(); // Using the Event ID as correlation ID
+            var correlationId = integrationEvent.Id.ToString();
             logger.LogInformation("Handling UserDeletedIntegrationEvent for user {UserId}", integrationEvent.UserId);
 
             // Verificar idempotência
@@ -46,11 +47,13 @@ public sealed class UserDeletedIntegrationEventHandler(
             await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
             logger.LogInformation("Successfully removed {Count} reviews for deleted user {UserId} and recorded event.", reviewsToRemove.Count, integrationEvent.UserId);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Error removing reviews for deleted user {UserId}", integrationEvent.UserId);
             throw;
         }

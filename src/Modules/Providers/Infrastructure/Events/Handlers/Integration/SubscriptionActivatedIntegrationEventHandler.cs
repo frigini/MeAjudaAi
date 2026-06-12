@@ -19,6 +19,7 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
 {
     public async Task HandleAsync(SubscriptionActivatedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var correlationId = integrationEvent.SubscriptionId.ToString();
@@ -49,11 +50,13 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
             await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
             
             await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             
             logger.LogInformation("Promoted provider {ProviderId} to Gold tier.", provider.Id);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Error handling SubscriptionActivatedIntegrationEvent for user {UserId}", integrationEvent.UserId);
             throw;
         }

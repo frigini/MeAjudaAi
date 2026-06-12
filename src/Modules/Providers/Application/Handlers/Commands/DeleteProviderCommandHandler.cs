@@ -30,7 +30,7 @@ public sealed class DeleteProviderCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Provider not found"));
+                return Result.Failure(Error.NotFound("Fornecedor não encontrado"));
             }
 
             provider.Delete(dateTimeProvider, command.DeletedBy);
@@ -42,7 +42,7 @@ public sealed class DeleteProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error deleting provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Error deleting provider");
+            return Result.Failure("Erro ao excluir fornecedor");
         }
     }
 }

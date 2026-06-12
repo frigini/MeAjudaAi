@@ -1,22 +1,21 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Testcontainers.PostgreSql;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
+using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 
@@ -100,7 +99,6 @@ public static class ProvidersTestInfrastructureExtensions
 
         // Adicionar IUnitOfWork e IProviderQueries
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
         services.AddScoped<IProviderQueries, DbContextProviderQueries>();
 
         // Adicionar Dispatcher de Queries e Commands
@@ -117,8 +115,3 @@ public static class ProvidersTestInfrastructureExtensions
         return services;
     }
 }
-
-
-
-
-

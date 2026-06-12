@@ -41,8 +41,8 @@ public sealed class DeleteMyProviderProfileCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao excluir o perfil do prestador {ProviderId}", command.ProviderId);
-            return Result.Failure("Erro ao excluir o perfil do prestador");
+            logger.LogError(ex, "Error deleting provider profile {ProviderId}", command.ProviderId);
+            return Result.Failure("Error deleting provider profile");
         }
     }
 }

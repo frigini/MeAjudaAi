@@ -36,10 +36,17 @@ public sealed class RemoveQualificationCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Provider not found");
+                return Result<ProviderDto>.Failure("Fornecedor não encontrado");
             }
 
-            provider.RemoveQualification(command.QualificationName);
+            try 
+            {
+                provider.RemoveQualification(command.QualificationName);
+            }
+            catch (MeAjudaAi.Modules.Providers.Domain.Exceptions.ProviderDomainException)
+            {
+                return Result<ProviderDto>.Failure("Qualificação não encontrada");
+            }
 
             await uow.SaveChangesAsync(cancellationToken);
 
@@ -49,7 +56,7 @@ public sealed class RemoveQualificationCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing qualification from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("An error occurred while removing the qualification");
+            return Result<ProviderDto>.Failure("Erro ao remover qualificação");
         }
     }
 }
