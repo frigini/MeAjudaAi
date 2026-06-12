@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class UpdateVerificationStatusCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<UpdateVerificationStatusCommandHandler>> _loggerMock;
     private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
@@ -25,7 +25,7 @@ public class UpdateVerificationStatusCommandHandlerTests
 
     public UpdateVerificationStatusCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<UpdateVerificationStatusCommandHandler>>();
         _localizerMock = new Mock<IStringLocalizer<Strings>>();
@@ -243,5 +243,6 @@ public class UpdateVerificationStatusCommandHandlerTests
             Times.Exactly(2));
     }
 }
+
 
 

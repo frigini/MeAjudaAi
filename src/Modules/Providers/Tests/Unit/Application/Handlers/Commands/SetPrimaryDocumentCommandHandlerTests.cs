@@ -13,14 +13,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Category", "Unit")]
 public class SetPrimaryDocumentCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<SetPrimaryDocumentCommandHandler>> _loggerMock;
     private readonly SetPrimaryDocumentCommandHandler _handler;
 
     public SetPrimaryDocumentCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<SetPrimaryDocumentCommandHandler>>();
 
@@ -132,5 +132,6 @@ public class SetPrimaryDocumentCommandHandlerTests
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
+
 
 

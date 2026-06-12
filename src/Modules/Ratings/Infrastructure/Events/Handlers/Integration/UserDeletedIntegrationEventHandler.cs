@@ -1,6 +1,5 @@
-using MeAjudaAi.Modules.Ratings.Domain.Entities;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +13,7 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
 /// </summary>
 public sealed class UserDeletedIntegrationEventHandler(
     RatingsDbContext dbContext,
+    IIdempotencyRepository idempotencyRepository,
     ILogger<UserDeletedIntegrationEventHandler> logger)
     : IEventHandler<UserDeletedIntegrationEvent>
 {
@@ -27,7 +27,7 @@ public sealed class UserDeletedIntegrationEventHandler(
             logger.LogInformation("Handling UserDeletedIntegrationEvent for user {UserId}", integrationEvent.UserId);
 
             // Verificar idempotência
-            if (await dbContext.ProcessedIntegrationEvents.AnyAsync(e => e.CorrelationId == correlationId, cancellationToken))
+            if (await idempotencyRepository.IsProcessedAsync(correlationId, cancellationToken))
             {
                 logger.LogInformation("Event {CorrelationId} already processed.", correlationId);
                 return;
@@ -43,7 +43,7 @@ public sealed class UserDeletedIntegrationEventHandler(
             }
 
             // Registrar processamento
-            dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
+            await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken);
 

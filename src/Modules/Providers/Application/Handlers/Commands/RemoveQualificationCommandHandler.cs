@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -16,7 +17,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado</param>
 public sealed class RemoveQualificationCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<RemoveQualificationCommandHandler> logger
 ) : ICommandHandler<RemoveQualificationCommand, Result<ProviderDto>>
 {
@@ -52,3 +53,5 @@ public sealed class RemoveQualificationCommandHandler(
         }
     }
 }
+
+

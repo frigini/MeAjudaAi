@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -19,7 +20,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class SuspendProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<SuspendProviderCommandHandler> logger
 ) : ICommandHandler<SuspendProviderCommand, Result>
 {
@@ -74,3 +75,5 @@ public sealed class SuspendProviderCommandHandler(
         }
     }
 }
+
+

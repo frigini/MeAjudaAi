@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -22,7 +23,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="providerQueries">Serviço de consulta de prestadores</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class CreateProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     IProviderQueries providerQueries,
     ILogger<CreateProviderCommandHandler> logger
 ) : ICommandHandler<CreateProviderCommand, Result<ProviderDto>>
@@ -81,5 +82,7 @@ public sealed class CreateProviderCommandHandler(
         }
     }
 }
+
+
 
 

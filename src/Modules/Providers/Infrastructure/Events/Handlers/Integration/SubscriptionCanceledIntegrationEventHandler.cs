@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// </summary>
 public sealed class SubscriptionCanceledIntegrationEventHandler(
     ProvidersDbContext dbContext,
+    IIdempotencyRepository idempotencyRepository,
     ILogger<SubscriptionCanceledIntegrationEventHandler> logger) : IEventHandler<SubscriptionCanceledIntegrationEvent>
 {
     public async Task HandleAsync(SubscriptionCanceledIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
@@ -24,7 +25,7 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
             logger.LogInformation("Handling SubscriptionCanceledIntegrationEvent for user {UserId}", integrationEvent.UserId);
 
             // Verificar idempotência
-            if (await dbContext.ProcessedIntegrationEvents.AnyAsync(e => e.CorrelationId == correlationId, cancellationToken))
+            if (await idempotencyRepository.IsProcessedAsync(correlationId, cancellationToken))
             {
                 logger.LogInformation("Event {CorrelationId} already processed.", correlationId);
                 return;
@@ -42,7 +43,7 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
             provider.DemoteTier(EProviderTier.Standard, "payments-integration-canceled");
             
             // Registrar processamento
-            dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
+            await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
             
             await dbContext.SaveChangesAsync(cancellationToken);
             
@@ -55,3 +56,8 @@ public sealed class SubscriptionCanceledIntegrationEventHandler(
         }
     }
 }
+
+
+
+
+

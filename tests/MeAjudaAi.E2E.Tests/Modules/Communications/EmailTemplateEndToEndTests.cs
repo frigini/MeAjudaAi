@@ -146,4 +146,41 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
         finalTemplate.GetProperty("version").GetInt32().Should().Be(2,
             "Version should remain the same after activate/deactivate cycle");
     }
+
+    [Fact]
+    public async Task Put_UpdateSystemTemplate_ShouldReturnBadRequest()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueKey = $"sys_template_{Guid.NewGuid():N}";
+        var createCommand = new
+        {
+            Key = uniqueKey,
+            Subject = "System Template",
+            HtmlBody = "...",
+            TextBody = "...",
+            IsSystemTemplate = true, // System template
+            Language = "pt-BR",
+            CorrelationId = Guid.NewGuid()
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/communications/templates", createCommand);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var templateId = ExtractIdFromLocation(createResponse.Headers.Location?.ToString());
+
+        // Act - Try to update the system template
+        var updateBody = new { Subject = "Updated", HtmlBody = "...", TextBody = "..." };
+        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", updateBody);
+
+        // Assert
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "System templates are immutable and should return BadRequest on update");
+    }
+
+    private new Guid ExtractIdFromLocation(string? location)
+    {
+        if (location == null) return Guid.Empty;
+        var parts = location.Split('/');
+        return Guid.Parse(parts[^1]);
+    }
 }

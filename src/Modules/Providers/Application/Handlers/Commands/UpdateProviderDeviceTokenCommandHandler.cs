@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -13,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por atualizar o device token do prestador de serviços.
 /// </summary>
 public sealed class UpdateProviderDeviceTokenCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<UpdateProviderDeviceTokenCommandHandler> logger
 ) : ICommandHandler<UpdateProviderDeviceTokenCommand, Result>
 {
@@ -60,3 +61,5 @@ public sealed class UpdateProviderDeviceTokenCommandHandler(
         }
     }
 }
+
+

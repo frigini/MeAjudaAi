@@ -22,7 +22,6 @@ public static class CommunicationTemplateKeys
     public const string ProviderVerificationRejected = "provider_verification_rejected";
     public const string ProviderVerificationPending = "provider_verification_pending";
     public const string ProviderVerificationStatusUpdate = "provider_verification_status_update";
-    public const string ProviderVerificationStatusUpdated = "provider_verification_status_updated";
 
     // --- Document ---
     public const string DocumentVerified = "document_verified";

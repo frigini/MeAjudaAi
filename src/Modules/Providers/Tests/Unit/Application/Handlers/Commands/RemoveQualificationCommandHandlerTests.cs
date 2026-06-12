@@ -14,14 +14,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class RemoveQualificationCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RemoveQualificationCommandHandler>> _loggerMock;
     private readonly RemoveQualificationCommandHandler _handler;
 
     public RemoveQualificationCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveQualificationCommandHandler>>();
 
@@ -255,5 +255,6 @@ public class RemoveQualificationCommandHandlerTests
             Times.Once);
     }
 }
+
 
 

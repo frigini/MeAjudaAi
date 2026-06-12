@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
@@ -99,10 +100,11 @@ public static class Extensions
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
         // Unit of Work e Repositórios
-        services.AddScoped<IProviderUnitOfWork>(sp => (IProviderUnitOfWork)sp.GetRequiredService<ProvidersDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Providers, (sp, key) => sp.GetRequiredService<ProvidersDbContext>());
 
+        services.AddScoped<IIdempotencyRepository>(sp => new ProviderIdempotencyRepository(sp.GetRequiredService<ProvidersDbContext>()));
+        
         services.AddScoped<IRepository<Provider, Guid>>(sp => sp.GetRequiredService<ProvidersDbContext>());
 
         // Consultas otimizadas
@@ -132,3 +134,4 @@ public static class Extensions
         services.AddScoped<IEventHandler<ServiceNameUpdatedIntegrationEvent>, ServiceNameUpdatedIntegrationEventHandler>();
     }
 }
+

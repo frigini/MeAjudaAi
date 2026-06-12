@@ -1,8 +1,8 @@
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Seeding;
 
@@ -572,9 +572,9 @@ public class DevelopmentDataSeeder(
                     updated_at = EXCLUDED.updated_at",
                 new object[] {
                     provider.Id, provider.UserId, provider.Name, provider.Type, provider.Status, provider.VerificationStatus,
-                    provider.LegalName!, provider.FantasyName, provider.Description!,
-                    provider.Email!, provider.PhoneNumber!, provider.Website,
-                    provider.Street!, provider.Number!, provider.Complement, provider.Neighborhood!, provider.City!, provider.State!, provider.ZipCode!, provider.Country!,
+                    provider.LegalName ?? string.Empty, provider.FantasyName ?? string.Empty, provider.Description ?? string.Empty,
+                    provider.Email ?? string.Empty, provider.PhoneNumber ?? string.Empty, provider.Website ?? string.Empty,
+                    provider.Street ?? string.Empty, provider.Number ?? string.Empty, provider.Complement ?? string.Empty, provider.Neighborhood ?? string.Empty, provider.City ?? string.Empty, provider.State ?? string.Empty, provider.ZipCode ?? string.Empty, provider.Country ?? string.Empty,
                     DateTime.UtcNow, DateTime.UtcNow,
                     JsonSerializer.Serialize(provider.AdditionalPhoneNumbers)
                 },
@@ -820,7 +820,6 @@ public class DevelopmentDataSeeder(
             new { Id = Guid.Parse("cccccccc-0005-0000-0000-000000000000"), TemplateKey = "provider_activated", Subject = "Seu cadastro foi aprovado!", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu cadastro foi aprovado. Você já pode receber solicitações de serviço.</p>", TextBody = "Olá, {{Name}}!\nSeu cadastro foi aprovado. Você já pode receber solicitações de serviço." },
             new { Id = Guid.Parse("cccccccc-0006-0000-0000-000000000000"), TemplateKey = "provider_deleted", Subject = "Conta de Prestador Excluída", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Sua conta de prestador no MeAjudaAi foi excluída com sucesso.</p>", TextBody = "Olá, {{Name}}!\nSua conta de prestador no MeAjudaAi foi excluída com sucesso." },
             new { Id = Guid.Parse("cccccccc-0007-0000-0000-000000000000"), TemplateKey = "provider_awaiting_verification", Subject = "Novo prestador aguardando verificação", HtmlBody = "<h1>Novo prestador cadastrado</h1><p>O prestador <strong>{{Name}}</strong> (ID: {{ProviderId}}) aguarda verificação.</p>", TextBody = "Novo prestador cadastrado: {{Name}} (ID: {{ProviderId}}) aguarda verificação." },
-            new { Id = Guid.Parse("cccccccc-0008-0000-0000-000000000000"), TemplateKey = "provider_verification_status_updated", Subject = "Status de verificação atualizado", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu status de verificação foi atualizado para: <strong>{{Status}}</strong>.</p>", TextBody = "Olá, {{Name}}!\nSeu status de verificação foi atualizado para: {{Status}}." },
             new { Id = Guid.Parse("cccccccc-0021-0000-0000-000000000000"), TemplateKey = "provider_verification_approved", Subject = "Verificação Aprovada!", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu cadastro foi verificado com sucesso. Você já pode receber solicitações de serviço.</p>", TextBody = "Olá, {{Name}}!\nSeu cadastro foi verificado com sucesso. Você já pode receber solicitações de serviço." },
             new { Id = Guid.Parse("cccccccc-0022-0000-0000-000000000000"), TemplateKey = "provider_verification_rejected", Subject = "Verificação Rejeitada", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu cadastro não foi aprovado na verificação. Motivo: {{Comments}}</p>", TextBody = "Olá, {{Name}}!\nSeu cadastro não foi aprovado na verificação. Motivo: {{Comments}}" },
             new { Id = Guid.Parse("cccccccc-0023-0000-0000-000000000000"), TemplateKey = "provider_verification_pending", Subject = "Verificação Pendente", HtmlBody = "<h1>Olá, {{Name}}!</h1><p>Seu cadastro está em análise. Aguarde a conclusão da verificação.</p>", TextBody = "Olá, {{Name}}!\nSeu cadastro está em análise. Aguarde a conclusão da verificação." },
@@ -846,8 +845,8 @@ public class DevelopmentDataSeeder(
                     id, template_key, override_key, subject, html_body, text_body,
                     is_active, is_system_template, language, version, created_at, updated_at
                   )
-                  VALUES ({0}, {1}, NULL, {2}, {3}, {4}, true, true, 'pt-BR', 1, {5}, {5})
-                  ON CONFLICT (template_key, language, override_key, version) DO NOTHING",
+                  VALUES ({0}, {1}, NULL, {2}, {3}, {4}, true, true, 'pt-br', 1, {5}, {5})
+                  ON CONFLICT (template_key, language, override_key) WHERE is_active = true DO NOTHING",
                 new object[] { t.Id, t.TemplateKey, t.Subject, t.HtmlBody, t.TextBody, now },
                 cancellationToken);
         }

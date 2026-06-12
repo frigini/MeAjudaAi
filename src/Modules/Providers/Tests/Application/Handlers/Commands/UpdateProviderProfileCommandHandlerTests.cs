@@ -13,14 +13,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
 
 public class UpdateProviderProfileCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<UpdateProviderProfileCommandHandler>> _loggerMock;
     private readonly UpdateProviderProfileCommandHandler _handler;
 
     public UpdateProviderProfileCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<UpdateProviderProfileCommandHandler>>();
 
@@ -126,5 +126,6 @@ public class UpdateProviderProfileCommandHandlerTests
         result.Error.Message.Should().Contain("Error updating provider profile");
     }
 }
+
 
 

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -15,7 +16,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler para o comando de definir documento como primário
 /// </summary>
 public sealed class SetPrimaryDocumentCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<SetPrimaryDocumentCommandHandler> logger) : ICommandHandler<SetPrimaryDocumentCommand, Result<ProviderDto>>
 {
     public async Task<Result<ProviderDto>> HandleAsync(SetPrimaryDocumentCommand command, CancellationToken cancellationToken = default)
@@ -62,3 +63,5 @@ public sealed class SetPrimaryDocumentCommandHandler(
         }
     }
 }
+
+

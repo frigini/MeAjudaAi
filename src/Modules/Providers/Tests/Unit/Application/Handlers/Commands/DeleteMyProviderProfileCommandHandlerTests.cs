@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 /// </summary>
 public class DeleteMyProviderProfileCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<TimeProvider> _timeProviderMock;
     private readonly Mock<ILogger<DeleteMyProviderProfileCommandHandler>> _loggerMock;
@@ -22,7 +22,7 @@ public class DeleteMyProviderProfileCommandHandlerTests
 
     public DeleteMyProviderProfileCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _timeProviderMock = new Mock<TimeProvider>();
         _loggerMock = new Mock<ILogger<DeleteMyProviderProfileCommandHandler>>();
@@ -77,5 +77,6 @@ public class DeleteMyProviderProfileCommandHandlerTests
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
+
 
 

@@ -11,6 +11,8 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Database.Idempotency;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Utilities;
@@ -64,6 +66,8 @@ public static class Extensions
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Ratings, (sp, key) => sp.GetRequiredService<RatingsDbContext>());
 
+        services.AddScoped<IIdempotencyRepository>(sp => new RatingsIdempotencyRepository(sp.GetRequiredService<RatingsDbContext>()));
+        
         services.AddScoped<IRepository<Review, ReviewId>>(sp => sp.GetRequiredService<RatingsDbContext>());
 
         // Consultas otimizadas

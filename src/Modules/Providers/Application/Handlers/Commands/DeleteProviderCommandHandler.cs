@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
 public sealed class DeleteProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     TimeProvider dateTimeProvider,
     ILogger<DeleteProviderCommandHandler> logger
 ) : ICommandHandler<DeleteProviderCommand, Result>
@@ -45,3 +46,5 @@ public sealed class DeleteProviderCommandHandler(
         }
     }
 }
+
+

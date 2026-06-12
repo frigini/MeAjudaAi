@@ -81,21 +81,57 @@ public class EmailTemplateCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_SetStatus_WhenFound_ShouldUpdateStatusAndSave()
+    public async Task HandleAsync_UpdateTemplate_WhenSystemTemplate_ShouldThrowException()
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("welcome", "Sub", "Html", "Text");
+        var template = EmailTemplate.Create("welcome", "OldSub", "OldHtml", "OldText", "pt-br", null, true);
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
-        var command = new SetEmailTemplateStatusCommand(templateId, false, Guid.NewGuid());
+        var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task HandleAsync_UpdateTemplate_ShouldPreserveProperties()
+    {
+        // Arrange
+        var templateId = Guid.NewGuid();
+        var template = EmailTemplate.Create("welcome", "OldSub", "OldHtml", "OldText", "en-US", "custom-override");
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+
+        var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
+
+        EmailTemplate? capturedNewVersion = null;
+        _repositoryMock.Setup(x => x.Add(It.IsAny<EmailTemplate>()))
+            .Callback<EmailTemplate>(t => capturedNewVersion = t);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        template.IsActive.Should().BeFalse();
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        capturedNewVersion!.TemplateKey.Should().Be("welcome");
+        capturedNewVersion.Language.Should().Be("en-us");
+        capturedNewVersion.OverrideKey.Should().Be("custom-override");
+    }
+
+    [Fact]
+    public async Task HandleAsync_SetStatus_WhenNotFound_ShouldReturnFailure()
+    {
+        // Arrange
+        var templateId = Guid.NewGuid();
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync((EmailTemplate?)null);
+
+        var command = new SetEmailTemplateStatusCommand(templateId, true, Guid.NewGuid());
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.StatusCode.Should().Be(404);
     }
 }

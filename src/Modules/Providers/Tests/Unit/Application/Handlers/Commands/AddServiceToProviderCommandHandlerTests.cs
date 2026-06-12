@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Category", "Unit")]
 public class AddServiceToProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<IServiceCatalogsModuleApi> _serviceCatalogsMock;
     private readonly Mock<ILogger<AddServiceToProviderCommandHandler>> _loggerMock;
@@ -23,7 +23,7 @@ public class AddServiceToProviderCommandHandlerTests
 
     public AddServiceToProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _serviceCatalogsMock = new Mock<IServiceCatalogsModuleApi>();
         _loggerMock = new Mock<ILogger<AddServiceToProviderCommandHandler>>();
@@ -261,5 +261,6 @@ public class AddServiceToProviderCommandHandlerTests
         result.Error.Message.Should().Contain("Database error");
     }
 }
+
 
 
