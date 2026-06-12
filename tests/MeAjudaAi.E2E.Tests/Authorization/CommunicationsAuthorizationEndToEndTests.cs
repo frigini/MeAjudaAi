@@ -18,7 +18,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
             permissions: [] // SEM permissão CommunicationsRead
         );
 
-        var response = await fixture.ApiClient.GetAsync("/api/v1/communication-logs");
+        var response = await fixture.ApiClient.GetAsync("/api/v1/communications/logs");
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -34,7 +34,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
             permissions: [] // SEM permissão CommunicationsRead
         );
 
-        var response = await fixture.ApiClient.GetAsync("/api/v1/email-templates");
+        var response = await fixture.ApiClient.GetAsync("/api/v1/communications/templates");
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -50,7 +50,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
             permissions: [EPermission.CommunicationsRead.ToString()] // Tem Read mas NÃO Manage
         );
 
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/email-templates", new { });
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", new { });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -66,7 +66,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
             permissions: [EPermission.CommunicationsRead.ToString()] // Tem Read mas NÃO Manage
         );
 
-        var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/email-templates/{Guid.NewGuid()}", new { });
+        var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{Guid.NewGuid()}", new { });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }

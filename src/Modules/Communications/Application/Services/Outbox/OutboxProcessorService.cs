@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
@@ -170,14 +169,14 @@ public sealed class OutboxProcessorService(
             else
             {
                 logger.LogWarning("Template {TemplateKey} not found for outbox message {Id}.", email.TemplateKey, message.Id);
-                htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
-                textBody = email.TextBody ?? email.Body ?? string.Empty;
+                htmlBody = email.HtmlBody ?? string.Empty;
+                textBody = email.TextBody ?? string.Empty;
             }
         }
         else
         {
-            htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
-            textBody = email.TextBody ?? email.Body ?? string.Empty;
+            htmlBody = email.HtmlBody ?? string.Empty;
+            textBody = email.TextBody ?? string.Empty;
         }
 
         if (string.IsNullOrWhiteSpace(subject))
@@ -190,7 +189,7 @@ public sealed class OutboxProcessorService(
             cancellationToken);
     }
 
-    private static string RenderTemplate(string template, IDictionary<string, string>? data)
+    private static string RenderTemplate(string template, IReadOnlyDictionary<string, string>? data)
     {
         if (data == null || data.Count == 0) return template;
         

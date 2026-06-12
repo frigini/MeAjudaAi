@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
@@ -72,13 +71,10 @@ public class DeleteProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Contain("Fornecedor não encontrado");
 
         _uowMock.Verify(
             u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }
-
-
-

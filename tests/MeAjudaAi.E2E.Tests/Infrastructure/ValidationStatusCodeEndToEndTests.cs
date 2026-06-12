@@ -89,7 +89,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/services", request);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request);
 
         // Assert
         // TODO: Endpoint pode não existir ainda (404)
@@ -267,10 +267,10 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             description = _fixture.Faker.Lorem.Sentence()
         };
 
-        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/categories", request);
+        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request);
 
         // Act - Tentar criar categoria com mesmo nome
-        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/categories", request);
+        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request);
 
         // Assert - Should return 409 conflict for duplicate category name
         // TODO: Endpoint pode não existir (404) ou retornar 400/409 para duplicatas
@@ -402,5 +402,3 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
 
     #endregion
 }
-
-

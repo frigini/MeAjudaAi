@@ -32,7 +32,16 @@ public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Co
         template.Deactivate();
 
         // Cria nova versão com o conteúdo atualizado
-        var newVersion = template.CreateNewVersion(command.Subject, command.HtmlBody, command.TextBody);
+        EmailTemplate newVersion;
+        try
+        {
+            newVersion = template.CreateNewVersion(command.Subject, command.HtmlBody, command.TextBody);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Result.Failure(Error.BadRequest(ex.Message));
+        }
+
         repository.Add(newVersion);
 
         await uow.SaveChangesAsync(cancellationToken);
@@ -45,8 +54,15 @@ public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Co
         var template = await repository.TryFindAsync(command.Id, cancellationToken);
         if (template == null) return Result.Failure(Error.NotFound("Template não encontrado."));
 
-        if (command.IsActive) template.Activate();
-        else template.Deactivate();
+        try
+        {
+            if (command.IsActive) template.Activate();
+            else template.Deactivate();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Result.Failure(Error.BadRequest(ex.Message));
+        }
         
         await uow.SaveChangesAsync(cancellationToken);
         return Result.Success();

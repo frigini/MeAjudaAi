@@ -73,7 +73,7 @@ public class ProvidersApiGenerated : IProvidersApi
     
     public async Task<ModuleProviderDto> GetProviderByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var response = await _httpClient.GetAsync($"/api/v1/providers/{id}");
+        var response = await _httpClient.GetAsync($"/api/v1/providers/{id}", cancellationToken);
         return await response.Content.ReadFromJsonAsync<ModuleProviderDto>(cancellationToken);
     }
 }

@@ -55,12 +55,12 @@ public sealed class DocumentRejectedIntegrationEventHandler(
             ["Reason"] = integrationEvent.Reason
         };
 
-        var emailPayload = new EmailOutboxPayload(
-            To: recipientEmail,
-            Subject: $"Documento rejeitado: {integrationEvent.DocumentType}",
-            Body: $"Olá {providerResult.Value.Name}, seu documento ({integrationEvent.DocumentType}) foi rejeitado. Motivo: {integrationEvent.Reason}",
-            TemplateKey: templateKey,
-            TemplateData: templateData
+        var emailPayload = EmailOutboxPayload.Create(
+            to: recipientEmail,
+            subject: $"Documento rejeitado: {integrationEvent.DocumentType}",
+            textBody: $"Olá {providerResult.Value.Name}, seu documento ({integrationEvent.DocumentType}) foi rejeitado. Motivo: {integrationEvent.Reason}",
+            templateKey: templateKey,
+            templateData: templateData
         );
 
         var message = OutboxMessage.Create(

@@ -22,7 +22,7 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var correlationId = integrationEvent.SubscriptionId.ToString();
+            var correlationId = $"{integrationEvent.SubscriptionId}_{integrationEvent.Id}";
             logger.LogInformation(
                 "Handling SubscriptionActivatedIntegrationEvent for user {UserId}, subscription {SubscriptionId}",
                 integrationEvent.UserId,
@@ -62,8 +62,3 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
         }
     }
 }
-
-
-
-
-

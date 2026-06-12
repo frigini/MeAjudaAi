@@ -50,12 +50,12 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
             ["DocumentType"] = integrationEvent.DocumentType
         };
 
-        var emailPayload = new EmailOutboxPayload(
-            To: recipientEmail,
-            Subject: $"Documento verificado: {integrationEvent.DocumentType}",
-            Body: $"Olá {providerResult.Value.Name}, seu documento ({integrationEvent.DocumentType}) foi verificado com sucesso.",
-            TemplateKey: templateKey,
-            TemplateData: templateData
+        var emailPayload = EmailOutboxPayload.Create(
+            to: recipientEmail,
+            subject: $"Documento verificado: {integrationEvent.DocumentType}",
+            textBody: $"Olá {providerResult.Value.Name}, seu documento ({integrationEvent.DocumentType}) foi verificado com sucesso.",
+            templateKey: templateKey,
+            templateData: templateData
         );
 
         var message = OutboxMessage.Create(

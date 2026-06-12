@@ -9,6 +9,16 @@ using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
+/// <summary>
+/// Handler responsável por processar consultas de bookings de um prestador de serviços.
+/// </summary>
+/// <param name="bookingQueries">Queries de acesso a dados de bookings.</param>
+/// <param name="scheduleQueries">Queries de acesso a dados de agenda do prestador.</param>
+/// <param name="logger">Logger estruturado.</param>
+/// <returns>
+/// Um <see cref="Result{PagedResult}"/> contendo a lista paginada de <see cref="ModuleBookingDto"/>
+/// em caso de sucesso, ou um <see cref="Error"/> descritivo em caso de falha.
+/// </returns>
 public sealed class GetBookingsByProviderQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,

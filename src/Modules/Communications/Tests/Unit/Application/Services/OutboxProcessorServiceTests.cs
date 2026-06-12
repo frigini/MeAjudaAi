@@ -6,42 +6,13 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
+using MeAjudaAi.Modules.Communications.Tests.Unit.TestInfrastructure;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
-
-public class SerializerMockBuilder
-{
-    public Mock<ISerializer> Mock { get; } = new Mock<ISerializer>();
-
-    public SerializerMockBuilder SetupDefault()
-    {
-        Mock.Setup(x => x.Serialize(It.IsAny<It.IsAnyType>())).Returns("dummy_payload");
-
-        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(new EmailOutboxPayload("test@test.com", "Hi", "Hello", null, null, null));
-        Mock.Setup(x => x.Deserialize<SmsOutboxPayload>(It.IsAny<string>()))
-            .Returns(new SmsOutboxPayload("+5511999999999", "Hello"));
-        Mock.Setup(x => x.Deserialize<PushOutboxPayload>(It.IsAny<string>()))
-            .Returns(new PushOutboxPayload("token123", "Hi", "Hello", null));
-        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", null, null, null, null, "welcome_template", new Dictionary<string, string> { { "FirstName", "John" } }));
-        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("body_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", null, "T", "<b>B</b>", null, null, null));
-        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("raw_body_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", "Raw Body", null, null, null, "non_existent", null));
-        Mock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_body_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", "<h1>H</h1>", "T", null, null, null, null));
-
-        return this;
-    }
-
-    public ISerializer Build() => Mock.Object;
-}
-
 
 public class OutboxProcessorServiceTests
 {
@@ -67,7 +38,7 @@ public class OutboxProcessorServiceTests
         _pushSenderMock = new Mock<IPushSender>();
         _loggerMock = new Mock<ILogger<OutboxProcessorService>>();
         _emailTemplateQueriesMock = new Mock<IEmailTemplateQueries>();
-        
+
         var builder = new SerializerMockBuilder().SetupDefault();
         _serializeMock = builder.Mock;
 
@@ -82,64 +53,72 @@ public class OutboxProcessorServiceTests
             _loggerMock.Object);
     }
 
+    private void SetupPendingMessages(params OutboxMessage[] messages)
+    {
+        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<OutboxMessage>(messages));
+    }
+
+    private void SetupEmailSender(bool success) =>
+        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(success);
+
+    private void SetupEmailSenderThrows<T>() where T : Exception, new() =>
+        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new T());
+
+    private void SetupSmsSender(bool success) =>
+        _smsSenderMock.Setup(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(success);
+
+    private void SetupPushSender(bool success) =>
+        _pushSenderMock.Setup(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(success);
+
+    private void VerifySaveChanges() =>
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+    private void VerifySuccessLog() =>
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
+
+    private void VerifyFailureLog() =>
+        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Once);
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenNoMessages_ShouldReturnZero()
     {
-        // Arrange
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage>());
+        SetupPendingMessages();
 
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(0);
-        _outboxRepositoryMock.Verify(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenEmailSuccess_ShouldMarkAsSentAndLog()
     {
-        // Arrange
-        var payload = "serialized-email-payload";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload");
+        SetupPendingMessages(message);
+        SetupEmailSender(true);
 
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
-        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        VerifySuccessLog();
+        VerifySaveChanges();
     }
-
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenDispatchFails_ShouldMarkAsFailedAndRetryLater()
     {
-        // Arrange
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 3);
+        SetupPendingMessages(message);
+        SetupEmailSender(false);
 
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Pending);
         message.RetryCount.Should().Be(1);
@@ -148,66 +127,49 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenMaxRetriesReached_ShouldMarkAsFailedAndLog()
     {
-        // Arrange
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
+        SetupPendingMessages(message);
+        SetupEmailSender(false);
 
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Failed);
-        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Once);
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        VerifyFailureLog();
+        VerifySaveChanges();
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenOperationCanceledDuringDispatch_ShouldReturnZeroAndStayPending()
     {
-        // Arrange
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
         var cts = new CancellationTokenSource();
 
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
+        SetupPendingMessages(message);
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .Returns(async (EmailMessage msg, CancellationToken ct) => 
+            .Returns(async (EmailMessage msg, CancellationToken ct) =>
             {
-                cts.Cancel(); // Cancel while dispatching
+                cts.Cancel();
                 await Task.Yield();
                 throw new OperationCanceledException(ct);
             });
 
-        // Act
         var result = await _service.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
 
-        // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Pending);
-        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenUnknownChannel_ShouldFail()
     {
-        // Arrange
         var message = OutboxMessage.Create((ECommunicationChannel)99, "{}");
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        SetupPendingMessages(message);
 
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(0);
         message.ErrorMessage.Should().Contain("Unknown channel");
     }
@@ -215,15 +177,11 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenInvalidPayload_ShouldFail()
     {
-        // Arrange
         var message = OutboxMessage.Create(ECommunicationChannel.Email, "invalid-json");
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        SetupPendingMessages(message);
 
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Pending);
     }
@@ -231,127 +189,92 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenSmsSuccess_ShouldMarkAsSentAndLog()
     {
-        // Arrange
         var payload = _serializeMock.Object.Serialize(new { PhoneNumber = "+5511999999999", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Sms, payload);
-        
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        SetupPendingMessages(message);
+        SetupSmsSender(true);
 
-        _smsSenderMock.Setup(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _smsSenderMock.Verify(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        VerifySuccessLog();
+        VerifySaveChanges();
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenPushSuccess_ShouldMarkAsSentAndLog()
     {
-        // Arrange
         var payload = _serializeMock.Object.Serialize(new { DeviceToken = "token123", Title = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Push, payload);
-        
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        SetupPendingMessages(message);
+        SetupPushSender(true);
 
-        _pushSenderMock.Setup(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _pushSenderMock.Verify(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => l.IsSuccess)), Times.Once);
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        VerifySuccessLog();
+        VerifySaveChanges();
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenExceptionInDispatch_ShouldFailAndLog()
     {
-        // Arrange
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
-        // Usar maxRetries: 1 para que a falha atinja o limite e gere o log
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
-
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
+        SetupPendingMessages(message);
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Network error"));
 
-        // Act
         var result = await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Failed);
-        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Once);
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        VerifyFailureLog();
+        VerifySaveChanges();
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WithHtmlBody_ShouldUseIt()
     {
-        // Arrange
         var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_body_payload");
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        SetupPendingMessages(message);
+        SetupEmailSender(true);
 
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody == "<h1>H</h1>"), It.IsAny<CancellationToken>()));
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldHtmlEncodeIt()
     {
-        // Arrange
         var message = OutboxMessage.Create(ECommunicationChannel.Email, "body_payload");
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        SetupPendingMessages(message);
+        SetupEmailSender(true);
 
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.HtmlBody.Contains("&lt;b&gt;")), It.IsAny<CancellationToken>()));
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenEmailWithTemplate_ShouldRenderTokens()
     {
-        // Arrange
         var templateKey = "welcome_template";
-        var payload = "html_payload";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_payload");
+        SetupPendingMessages(message);
 
         var template = EmailTemplate.Create(templateKey, "Olá {{FirstName}}!", "Hello {{FirstName}}!", "Olá {{FirstName}}!");
         _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync(templateKey, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(template);
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        SetupEmailSender(true);
 
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert - Subject, HtmlBody e TextBody devem ser renderizados
         _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m =>
             m.Subject == "Olá John!" &&
             m.HtmlBody == "Hello John!" &&
@@ -361,26 +284,19 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenTemplateDataMissing_ShouldRenderWithoutTokens()
     {
-        // Arrange
         var templateKey = "welcome_template";
-        var payload = "html_payload"; // Assuming this maps to templateKey
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_payload");
+        SetupPendingMessages(message);
 
         var template = EmailTemplate.Create(templateKey, "Olá {{Name}}!", "Hello {{Name}}!", "Olá {{Name}}!");
         _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync(templateKey, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(template);
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
-
-        // Inject a payload with null TemplateData for this specific test
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
-            .Returns(new EmailOutboxPayload("t@t.com", "S", null, null, null, null, templateKey, null));
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", templateKey: templateKey));
+        SetupEmailSender(true);
 
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m =>
             m.Subject == "Olá {{Name}}!" &&
             m.HtmlBody == "Hello {{Name}}!" &&
@@ -390,43 +306,26 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenFinalRetryFails_ShouldCreateFailureCommunicationLog()
     {
-        // Arrange
-        var payload = "{}";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1); // One allowed attempt
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "{}", maxRetries: 1);
+        SetupPendingMessages(message);
+        SetupEmailSender(false);
 
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         message.Status.Should().Be(EOutboxMessageStatus.Failed);
-        _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Once);
+        VerifyFailureLog();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenNonFinalRetryFails_ShouldNotCreateFailureCommunicationLog()
     {
-        // Arrange
-        var payload = "{}";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 3); 
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, "{}", maxRetries: 3);
+        SetupPendingMessages(message);
+        SetupEmailSender(false);
 
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
-
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
-        // After 1 attempt, RetryCount is 1. MaxRetries is 3. Status should be Pending (1 < 3).
         message.Status.Should().Be(EOutboxMessageStatus.Pending);
         _logRepositoryMock.Verify(x => x.Add(It.Is<CommunicationLog>(l => !l.IsSuccess)), Times.Never);
     }
@@ -434,26 +333,18 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenInvalidEnvelope_ShouldFallbackToLegacyPayload()
     {
-        // Arrange
         var legacyPayload = "{\"To\":\"test@test.com\",\"Subject\":\"Hi\",\"Body\":\"Hello\"}";
         var message = OutboxMessage.Create(ECommunicationChannel.Email, legacyPayload);
-        
-        _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<OutboxMessage> { message });
+        SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
             .Throws(new Exception("Invalid envelope"));
-
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(legacyPayload))
-            .Returns(new EmailOutboxPayload("test@test.com", "Hi", "Hello", null, null, null));
+            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Hi", htmlBody: "Hello"));
+        SetupEmailSender(true);
 
-        _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        // Act
         await _service.ProcessPendingMessagesAsync();
 
-        // Assert
         _emailSenderMock.Verify(x => x.SendAsync(It.Is<EmailMessage>(m => m.Subject == "Hi"), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

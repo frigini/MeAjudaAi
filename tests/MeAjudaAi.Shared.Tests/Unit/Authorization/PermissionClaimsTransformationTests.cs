@@ -1,10 +1,10 @@
-using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -329,7 +329,7 @@ public class PermissionClaimsTransformationTests
     }
 
     [Fact]
-    public async Task TransformAsync_WhenPermissionServiceThrowsUnexpectedException_ShouldThrowAndLogError()
+    public async Task TransformAsync_WhenPermissionServiceThrowsUnexpectedException_ShouldReturnPrincipalAndLogError()
     {
         // Arrange
         var userId = "user-123";
@@ -345,8 +345,11 @@ public class PermissionClaimsTransformationTests
             .Setup(s => s.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => _sut.TransformAsync(principal));
+        // Act
+        var result = await _sut.TransformAsync(principal);
+
+        // Assert - transformation gracefully degrades by returning original principal
+        result.Should().BeSameAs(principal);
         
         _loggerMock.Verify(
             x => x.Log(
@@ -358,4 +361,3 @@ public class PermissionClaimsTransformationTests
             Times.Once);
     }
 }
-

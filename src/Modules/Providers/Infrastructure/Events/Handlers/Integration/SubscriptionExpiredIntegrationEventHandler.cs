@@ -22,7 +22,7 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var correlationId = integrationEvent.SubscriptionId.ToString();
+            var correlationId = $"{integrationEvent.SubscriptionId}_{integrationEvent.Id}";
             logger.LogInformation("Handling SubscriptionExpiredIntegrationEvent for user {UserId}", integrationEvent.UserId);
 
             // Verificar idempotência
@@ -59,8 +59,3 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
         }
     }
 }
-
-
-
-
-

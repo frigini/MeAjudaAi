@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Database.Idempotency;
-using MeAjudaAi.Shared.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -19,8 +18,8 @@ internal sealed class ProviderIdempotencyRepository(ProvidersDbContext context) 
 
     public async Task MarkAsProcessedAsync(string correlationId, CancellationToken cancellationToken = default)
     {
-        await context.Database.ExecuteSqlRawAsync(
-            "INSERT INTO providers.processed_integration_events (correlation_id, processed_at) VALUES ({0}, {1}) ON CONFLICT (correlation_id) DO NOTHING",
-            correlationId, DateTime.UtcNow, cancellationToken);
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO providers.processed_integration_events (correlation_id, processed_at) VALUES ({correlationId}, {DateTime.UtcNow}) ON CONFLICT (correlation_id) DO NOTHING",
+            cancellationToken);
     }
 }

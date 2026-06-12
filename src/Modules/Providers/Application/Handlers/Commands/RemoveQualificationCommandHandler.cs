@@ -53,6 +53,10 @@ public sealed class RemoveQualificationCommandHandler(
             logger.LogInformation("Qualification removed successfully from provider {ProviderId}", command.ProviderId);
             return Result<ProviderDto>.Success(provider.ToDto());
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing qualification from provider {ProviderId}", command.ProviderId);

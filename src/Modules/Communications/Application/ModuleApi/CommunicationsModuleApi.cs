@@ -113,8 +113,8 @@ public sealed class CommunicationsModuleApi(
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
         var payload = email.IsHtml
-            ? new EmailOutboxPayload(email.To, email.Subject, HtmlBody: email.Body, TemplateKey: email.TemplateKey, TemplateData: email.TemplateData)
-            : new EmailOutboxPayload(email.To, email.Subject, Body: email.Body, TemplateKey: email.TemplateKey, TemplateData: email.TemplateData);
+            ? EmailOutboxPayload.Create(to: email.To, subject: email.Subject, htmlBody: email.Body, templateKey: email.TemplateKey, templateData: email.TemplateData?.AsReadOnly())
+            : EmailOutboxPayload.Create(to: email.To, subject: email.Subject, textBody: email.Body, templateKey: email.TemplateKey, templateData: email.TemplateData?.AsReadOnly());
 
         return await EnqueueOutboxAsync(ECommunicationChannel.Email, payload, priority, ct);
     }

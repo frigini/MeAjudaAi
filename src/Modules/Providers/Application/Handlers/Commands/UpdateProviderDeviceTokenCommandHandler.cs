@@ -54,10 +54,10 @@ public sealed class UpdateProviderDeviceTokenCommandHandler(
             logger.LogInformation("Device token updated successfully for provider {ProviderId}.", command.ProviderId);
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
-            logger.LogError(ex, "Database error updating device token for provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Erro ao persistir device token no banco de dados");
+            logger.LogError(ex, "Error updating device token for provider {ProviderId}", command.ProviderId);
+            return Result.Failure("Erro ao atualizar device token");
         }
     }
 }
