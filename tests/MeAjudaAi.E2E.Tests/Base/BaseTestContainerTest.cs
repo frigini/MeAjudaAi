@@ -28,7 +28,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -48,7 +47,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     // Static containers shared across all tests
     private static PostgreSqlContainer? _postgresContainer;
     private static RedisContainer? _redisContainer;
-    private static AzuriteContainer? _azuriteContainer;
 
     /// <summary>
     /// Sobrescreva em classes derivadas para habilitar o message bus em memória síncrono e eventos de domínio.
@@ -98,18 +96,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                             .Build();
                     }
 
-                    if (_azuriteContainer == null)
-                    {
-                        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
-                            .WithCleanUp(true)
-                            .Build();
-                    }
-
                     // Start containers in parallel
                     var tasks = new List<Task>();
                     tasks.Add(_postgresContainer.StartAsync());
                     tasks.Add(_redisContainer.StartAsync());
-                    tasks.Add(_azuriteContainer.StartAsync());
 
                     await Task.WhenAll(tasks);
 
@@ -156,7 +146,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ConnectionStrings:RatingsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:DocumentsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer!.GetConnectionString(),
-                        ["Azure:Storage:ConnectionString"] = _azuriteContainer!.GetConnectionString(),
+                        ["Azure:Storage:ConnectionString"] = "UseDevelopmentStorage=true",
                         ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",

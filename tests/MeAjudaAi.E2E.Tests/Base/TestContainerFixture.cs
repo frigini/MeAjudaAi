@@ -19,7 +19,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -34,7 +33,6 @@ public class TestContainerFixture : IAsyncLifetime
 {
     private static PostgreSqlContainer? _postgresContainer;
     private static RedisContainer? _redisContainer;
-    private static AzuriteContainer? _azuriteContainer;
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
     private static bool _containersInitialized = false;
     private static bool _migrationsApplied = false;
@@ -45,7 +43,6 @@ public class TestContainerFixture : IAsyncLifetime
     public IServiceProvider Services { get; private set; } = null!;
     public string PostgresConnectionString { get; private set; } = null!;
     public string RedisConnectionString { get; private set; } = null!;
-    public string AzuriteConnectionString { get; private set; } = null!;
     public Faker Faker { get; } = new();
 
     /// <summary>
@@ -79,7 +76,6 @@ public class TestContainerFixture : IAsyncLifetime
         // Populate properties for the current instance (legacy support)
         if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
         if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
-        if (_azuriteContainer != null) AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         // Initialize WebApplicationFactory for THIS test class instance
         await InitializeFactoryAsync();
@@ -125,25 +121,16 @@ public class TestContainerFixture : IAsyncLifetime
                 .Build();
         }
 
-        if (_azuriteContainer == null)
-        {
-            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
-                .WithCleanUp(true)
-                .Build();
-        }
-
         // Iniciar containers em paralelo
         var startTasks = new List<Task>();
         startTasks.Add(_postgresContainer.StartAsync());
         startTasks.Add(_redisContainer.StartAsync());
-        startTasks.Add(_azuriteContainer.StartAsync());
 
         await Task.WhenAll(startTasks);
 
         // Armazenar connection strings
         PostgresConnectionString = _postgresContainer.GetConnectionString();
         RedisConnectionString = _redisContainer.GetConnectionString();
-        AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         Console.WriteLine("✅ TestContainers initialized successfully");
     }
@@ -170,7 +157,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["Postgres:ConnectionString"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
                         ["Migrations:Enabled"] = "false",
-                        ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
+                        ["Azure:Storage:ConnectionString"] = "UseDevelopmentStorage=true",
                         ["Hangfire:Enabled"] = "false",
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",

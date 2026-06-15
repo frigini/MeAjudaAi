@@ -505,6 +505,8 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _serializerMock.Verify(x => x.Serialize(It.Is<EmailOutboxPayload>(p =>
+            p.HtmlBody == "<p>Html</p>" && p.TextBody == null && p.To == "test@test.com" && p.Subject == "Subject")), Times.Once);
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -520,6 +522,8 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _serializerMock.Verify(x => x.Serialize(It.Is<EmailOutboxPayload>(p =>
+            p.TextBody == "Plain text" && p.HtmlBody == null && p.To == "test@test.com" && p.Subject == "Subject")), Times.Once);
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -567,6 +571,10 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _serializerMock.Verify(x => x.Serialize(It.Is<PushOutboxPayload>(p =>
+            p.DeviceToken == "token" && p.Title == "Title" && p.Body == "Body" &&
+            p.Data != null && p.Data["key"] == "value")), Times.Once);
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

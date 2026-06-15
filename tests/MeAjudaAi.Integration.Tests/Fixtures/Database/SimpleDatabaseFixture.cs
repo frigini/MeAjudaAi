@@ -1,7 +1,6 @@
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Npgsql;
-using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
@@ -13,7 +12,6 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 public sealed class SimpleDatabaseFixture : IAsyncLifetime
 {
     private static PostgreSqlContainer? _postgresContainer;
-    private static AzuriteContainer? _azuriteContainer;
     
     // Semáforo para garantir inicialização única e thread-safe dos containers
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
@@ -36,8 +34,6 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     }
 
     public string? ConnectionString => _postgresContainer?.GetConnectionString();
-
-    public string? AzuriteConnectionString => _azuriteContainer?.GetConnectionString();
 
     public async Task CreateDatabaseAsync(string databaseName)
     {
@@ -129,18 +125,8 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
                     .Build();
             }
 
-            if (_azuriteContainer == null)
-            {
-                // Cria container Azurite para testes determinísticos de blob storage
-                // Usando tag 3.30.0 para estabilidade
-                _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
-                    .WithCleanUp(true)
-                    .Build();
-            }
-
             // Inicia containers sequencialmente para evitar colisões de recursos em ambientes CI
             await _postgresContainer.StartAsync();
-            await _azuriteContainer.StartAsync();
 
             // Garante que PostGIS está habilitado (necessário para SearchProviders)
             // Chamado após startup para permitir conexão válida ao banco

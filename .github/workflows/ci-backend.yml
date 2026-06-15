@@ -68,13 +68,6 @@ jobs:
         ports:
           - 5432:5432
 
-      azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:3.33.0
-        ports:
-          - 10000:10000
-          - 10001:10001
-          - 10002:10002
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -163,7 +156,6 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Payments: ${{ steps.db.outputs.connection-string }}
-          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
           echo "🧪 Running Unit & Architecture Tests..."
           rm -rf ./coverage
@@ -224,7 +216,6 @@ jobs:
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
-          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
           echo "🚀 Running Integration Tests..."
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \

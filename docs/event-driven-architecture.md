@@ -41,7 +41,7 @@ O endpoint `GET /api/v1/communications/templates` (via `ICommunicationsModuleApi
 
 **Limitação:** Não é possível listar templates inativos para auditoria ou reativação via este endpoint. Se gestão administrativa de templates for necessária, criar um endpoint admin separado:
 
-```
+```http
 GET /admin/communications/templates?includeInactive=true
 ```
 
@@ -85,7 +85,7 @@ A API inter-module (`IBookingsModuleApi`) é independente e expõe: `GetBookingB
 
 O request usa `DateTimeOffset` (Start/End), enquanto a resposta (`ModuleBookingDto`) usa `DateOnly`/`TimeOnly`:
 
-```
+```text
 Request:  DateTimeOffset Start, DateTimeOffset End
 Response: DateOnly Date, TimeOnly StartTime, TimeOnly EndTime
 ```

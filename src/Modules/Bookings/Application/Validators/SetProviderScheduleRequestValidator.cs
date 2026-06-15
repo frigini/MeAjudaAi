@@ -57,6 +57,10 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
                     }).WithMessage("A lista de horários para {DayOfWeek} contém sobreposições entre os horários {Overlap}.");
 
                 availability.RuleForEach(x => x.Slots)
+                    .NotNull().WithMessage("Item de horário não pode ser nulo.");
+
+                availability.RuleForEach(x => x.Slots)
+                    .Where(s => s != null)
                     .ChildRules(slot => {
                         slot.RuleFor(x => x.End)
                             .GreaterThan(x => x.Start)
