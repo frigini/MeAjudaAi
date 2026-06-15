@@ -846,7 +846,7 @@ public class DevelopmentDataSeeder(
                     is_active, is_system_template, language, version, created_at, updated_at
                   )
                   VALUES ({0}, {1}, NULL, {2}, {3}, {4}, true, true, 'pt-br', 1, {5}, {5})
-                  ON CONFLICT (template_key, language, override_key) WHERE is_active = true DO NOTHING",
+                  ON CONFLICT (template_key, language) WHERE is_active = true AND override_key IS NULL DO NOTHING",
                 new object[] { t.Id, t.TemplateKey, t.Subject, t.HtmlBody, t.TextBody, now },
                 cancellationToken);
         }

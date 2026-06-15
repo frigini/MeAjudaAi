@@ -180,7 +180,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<RatingsDbContext>(services);
 
                     AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
-                    AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
                     AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
                     AddTestDbContextWithUnitOfWork<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure", ModuleKeys.ServiceCatalogs);
                     services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
@@ -191,6 +190,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
                     AddTestDbContext<BookingsDbContext>(services, "bookings", "MeAjudaAi.Modules.Bookings.Infrastructure");
                     AddTestDbContextWithUnitOfWork<RatingsDbContext>(services, "ratings", "MeAjudaAi.Modules.Ratings.Infrastructure", ModuleKeys.Ratings);
+                    AddTestDbContextWithUnitOfWork<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure", ModuleKeys.Providers);
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();

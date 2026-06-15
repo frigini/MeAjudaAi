@@ -1,63 +1,83 @@
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace MeAjudaAi.Integration.Tests.Database;
 
-public class EmailTemplateRepositoryTests
+public class EmailTemplateRepositoryTests : IAsyncLifetime
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly SimpleDatabaseFixture _databaseFixture;
+    private readonly string _databaseName;
+    private IServiceProvider _serviceProvider = null!;
 
     public EmailTemplateRepositoryTests()
     {
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=meajudaai_test;Username=postgres;Password=postgres"
-            }!)
-            .Build();
+        _databaseFixture = new SimpleDatabaseFixture();
+        _databaseName = $"test_emailtemplate_{Guid.NewGuid().ToString("N")[..8]}";
+    }
 
+    public async ValueTask InitializeAsync()
+    {
+        await _databaseFixture.InitializeAsync();
+        await _databaseFixture.CreateDatabaseAsync(_databaseName);
+
+        var connectionString = _databaseFixture.GetConnectionString(_databaseName);
+
+        var services = new ServiceCollection();
         services.AddLogging();
         services.AddDbContext<CommunicationsDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+        {
+            options.UseNpgsql(connectionString, npgsql =>
+            {
+                npgsql.MigrationsAssembly("MeAjudaAi.Modules.Communications.Infrastructure");
+                npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "communications");
+            });
+            options.UseSnakeCaseNamingConvention();
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
         services.AddScoped<DbContextEmailTemplateQueries>();
 
         _serviceProvider = services.BuildServiceProvider();
+
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+        context.Database.SetCommandTimeout(TimeSpan.FromMinutes(2));
+        await context.Database.MigrateAsync();
     }
 
-    [Fact(Skip = "Requires a running PostgreSQL instance.")]
+    public async ValueTask DisposeAsync()
+    {
+        if (_databaseFixture != null)
+            await _databaseFixture.DropDatabaseAsync(_databaseName);
+    }
+
+    [Fact]
     public async Task EmailTemplateSchema_ShouldRejectTwoActiveBaseTemplates_WithSameKeyAndLanguage()
     {
         // Arrange
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-        
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.MigrateAsync();
 
         var template1 = EmailTemplate.Create("key", "Subject", "Html", "Text", "pt-br");
-        var template2 = EmailTemplate.Create("key", "Subject", "Html", "Text", "pt-br");
-        
         context.EmailTemplates.Add(template1);
+        await context.SaveChangesAsync();
+
+        var template2 = EmailTemplate.Create("key", "Subject", "Html", "Text", "pt-br");
         context.EmailTemplates.Add(template2);
 
         // Act & Assert
         await ((Func<Task>)(() => context.SaveChangesAsync())).Should().ThrowAsync<DbUpdateException>();
     }
 
-    [Fact(Skip = "Requires a running PostgreSQL instance.")]
+    [Fact]
     public async Task EmailTemplateSchema_ShouldAllowInactiveHistoricalVersions()
     {
         // Arrange
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-        
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.MigrateAsync();
 
         var template1 = EmailTemplate.Create("key", "Subject", "Html", "Text", "pt-br");
         context.EmailTemplates.Add(template1);
@@ -73,15 +93,12 @@ public class EmailTemplateRepositoryTests
         await ((Func<Task>)(() => context.SaveChangesAsync())).Should().NotThrowAsync();
     }
 
-    [Fact(Skip = "Requires a running PostgreSQL instance.")]
+    [Fact]
     public async Task EmailTemplateSchema_ShouldAllowDifferentOverrideKeys()
     {
         // Arrange
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-        
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.MigrateAsync();
 
         var template1 = EmailTemplate.Create("key", "Subject", "Html", "Text", "pt-br", overrideKey: "over1");
         var template2 = EmailTemplate.Create("key", "Subject", "Html", "Text", "pt-br", overrideKey: "over2");
