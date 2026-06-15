@@ -1,5 +1,4 @@
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Validators;
@@ -12,14 +11,14 @@ public class SetProviderScheduleRequestValidatorTests
     public void Should_Have_Error_When_Availabilities_Is_Null()
     {
         // Arrange
-        var request = new SetProviderScheduleRequest(Guid.NewGuid(), null!);
+        var request = new SetProviderScheduleRequestDto(Guid.NewGuid(), null!);
 
         // Act
         var result = _validator.Validate(request);
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(SetProviderScheduleRequest.Availabilities));
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(SetProviderScheduleRequestDto.Availabilities));
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public class SetProviderScheduleRequestValidatorTests
     {
         // Arrange
         var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
+        var request = new SetProviderScheduleRequestDto(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, [new AvailableSlotDto(baseDate, baseDate.AddHours(1))]),
             new AvailabilityDto(DayOfWeek.Monday, [new AvailableSlotDto(baseDate, baseDate.AddHours(1))])
@@ -38,7 +37,7 @@ public class SetProviderScheduleRequestValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(SetProviderScheduleRequest.Availabilities));
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(SetProviderScheduleRequestDto.Availabilities));
     }
 
     [Fact]
@@ -46,7 +45,7 @@ public class SetProviderScheduleRequestValidatorTests
     {
         // Arrange
         var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
+        var request = new SetProviderScheduleRequestDto(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, 
             [
@@ -67,7 +66,7 @@ public class SetProviderScheduleRequestValidatorTests
     {
         // Arrange
         var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
+        var request = new SetProviderScheduleRequestDto(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, 
             [
@@ -87,7 +86,7 @@ public class SetProviderScheduleRequestValidatorTests
     {
         // Arrange
         var baseDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var request = new SetProviderScheduleRequest(Guid.NewGuid(), 
+        var request = new SetProviderScheduleRequestDto(Guid.NewGuid(), 
         [
             new AvailabilityDto(DayOfWeek.Monday, 
             [

@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities;
@@ -49,7 +49,7 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
     /// <param name="cancellationToken">Token de cancelamento.</param>
     /// <returns>Resultado 204 se a agenda for definida com sucesso.</returns>
     private static async Task<IResult> SetProviderScheduleAsync(
-        SetProviderScheduleRequest request,
+        SetProviderScheduleRequestDto request,
         [FromServices] ICommandDispatcher dispatcher,
         [FromServices] IProvidersModuleApi providersApi,
         [FromServices] ProviderAuthorizationResolver authResolver,

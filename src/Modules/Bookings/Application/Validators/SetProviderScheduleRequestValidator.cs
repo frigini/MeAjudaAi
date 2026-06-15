@@ -1,9 +1,9 @@
 using FluentValidation;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Validators;
 
-public class SetProviderScheduleRequestValidator : AbstractValidator<SetProviderScheduleRequest>
+public class SetProviderScheduleRequestValidator : AbstractValidator<SetProviderScheduleRequestDto>
 {
     public SetProviderScheduleRequestValidator()
     {

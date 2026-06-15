@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
@@ -44,7 +44,7 @@ public class RejectBookingEndpoint : IEndpoint
     /// <returns>Retorna 204 No Content se a rejeição for bem-sucedida, ou um problema detalhado caso contrário.</returns>
     private static async Task<IResult> RejectBookingAsync(
         Guid id,
-        RejectBookingRequest request,
+        RejectBookingRequestDto request,
         [FromServices] ICommandDispatcher dispatcher,
         [FromServices] ProviderAuthorizationResolver authResolver,
         HttpContext context,

@@ -108,14 +108,29 @@ public sealed class CommunicationsModuleApi(
         if (email == null) return Result<Guid>.Failure(Error.BadRequest("A mensagem de e-mail não pode ser nula."));
         if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest("O e-mail do destinatário é obrigatório."));
         if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest("O assunto do e-mail é obrigatório."));
-        if (string.IsNullOrWhiteSpace(email.Body)) return Result<Guid>.Failure(Error.BadRequest("O corpo do e-mail é obrigatório."));
         
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        var payload = email.IsHtml
-            ? EmailOutboxPayload.Create(to: email.To, subject: email.Subject, htmlBody: email.Body, templateKey: email.TemplateKey, templateData: email.TemplateData?.AsReadOnly())
-            : EmailOutboxPayload.Create(to: email.To, subject: email.Subject, textBody: email.Body, templateKey: email.TemplateKey, templateData: email.TemplateData?.AsReadOnly());
+        EmailOutboxPayload payload;
+
+        if (!string.IsNullOrWhiteSpace(email.TemplateKey))
+        {
+            payload = EmailOutboxPayload.Create(
+                to: email.To,
+                subject: email.Subject,
+                templateKey: email.TemplateKey,
+                templateData: email.TemplateData?.AsReadOnly());
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(email.Body))
+                return Result<Guid>.Failure(Error.BadRequest("O corpo do e-mail é obrigatório quando TemplateKey não é informado."));
+
+            payload = email.IsHtml
+                ? EmailOutboxPayload.Create(to: email.To, subject: email.Subject, htmlBody: email.Body)
+                : EmailOutboxPayload.Create(to: email.To, subject: email.Subject, textBody: email.Body);
+        }
 
         return await EnqueueOutboxAsync(ECommunicationChannel.Email, payload, priority, ct);
     }

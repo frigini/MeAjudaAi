@@ -102,7 +102,7 @@ MeAjudaAi.Client.Contracts/
 │   ├── IDocumentsApi.cs          # Upload e validação de documentos
 │   ├── IServiceCatalogsApi.cs    # Catálogo de serviços (categorias + serviços)
 │   ├── ILocationsApi.cs          # Restrições geográficas (cidades permitidas)
-│   ├── IBookingsApi.cs           # Agendamentos de serviços
+│   ├── IBookingsApi.cs           # Agendamentos (CRUD, lifecycle, availability, schedule)
 │   └── IUsersApi.cs              # (FUTURO) Gestão de usuários
 └── Models/
     └── PagedResult.cs            # Modelo de paginação genérico

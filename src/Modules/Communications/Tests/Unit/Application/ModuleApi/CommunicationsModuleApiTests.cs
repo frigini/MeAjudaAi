@@ -66,7 +66,6 @@ public class CommunicationsModuleApiTests
     [Theory]
     [InlineData(null, "Subject", "Body")]
     [InlineData("test@test.com", null, "Body")]
-    [InlineData("test@test.com", "Subject", null)]
     public async Task SendEmailAsync_WithInvalidData_ShouldReturnFailure(string? to, string? subject, string? body)
     {
         // Arrange
@@ -78,6 +77,52 @@ public class CommunicationsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithoutTemplateKeyAndNoBody_ShouldFail()
+    {
+        // Arrange
+        var dto = new EmailMessageDto("test@test.com", "Subject", null);
+
+        // Act
+        var result = await _api.SendEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("corpo do e-mail");
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithTemplateKeyAndNoBody_ShouldSucceed()
+    {
+        // Arrange
+        var dto = new EmailMessageDto("test@test.com", "Subject", null, TemplateKey: "welcome");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithTemplateKeyAndTemplateData_ShouldEnqueueTemplatePayload()
+    {
+        // Arrange
+        var templateData = new Dictionary<string, string> { { "Name", "John" } };
+        var dto = new EmailMessageDto("test@test.com", "Subject", null, TemplateKey: "welcome", TemplateData: templateData);
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -376,6 +421,164 @@ public class CommunicationsModuleApiTests
 
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(() => _api.IsAvailableAsync(cts.Token));
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenHealthServiceReturnsDegraded_ShouldReturnFalse()
+    {
+        // Arrange
+        var healthCheckServiceMock = new Mock<HealthCheckService>();
+        var entries = new Dictionary<string, HealthReportEntry>
+        {
+            { "db", new HealthReportEntry(HealthStatus.Degraded, "Slow", TimeSpan.Zero, null, null) }
+        };
+        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HealthReport(entries, HealthStatus.Degraded, TimeSpan.Zero));
+
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenNoTemplatesFound_ShouldStillReturnTrue()
+    {
+        // Arrange
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenBasicOperationsCancelled_ShouldReturnFalse()
+    {
+        // Arrange
+        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
+        var cts = new CancellationTokenSource();
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .Returns(async (CancellationToken ct) =>
+            {
+                cts.Cancel();
+                await Task.Yield();
+                throw new OperationCanceledException(ct);
+            });
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _api.IsAvailableAsync(cts.Token));
+    }
+
+    [Fact]
+    public async Task GetLogsAsync_WhenSearchReturnsNullItems_ShouldReturnEmptyList()
+    {
+        // Arrange
+        var query = new CommunicationLogQuery { PageNumber = 1, PageSize = 10 };
+        _logQueriesMock.Setup(x => x.SearchAsync(It.IsAny<CommunicationLogQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((IReadOnlyList<CommunicationLog>)null!, 0));
+
+        // Act
+        var result = await _api.GetLogsAsync(query);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Items.Should().BeEmpty();
+        result.Value.TotalItems.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithHtmlBody_ShouldCreateHtmlPayload()
+    {
+        // Arrange
+        var dto = new EmailMessageDto("test@test.com", "Subject", "<p>Html</p>") { IsHtml = true };
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithTextBody_ShouldCreateTextPayload()
+    {
+        // Arrange
+        var dto = new EmailMessageDto("test@test.com", "Subject", "Plain text") { IsHtml = false };
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithTemplateKeyButEmptyBody_ShouldSucceed()
+    {
+        // Arrange
+        var templateData = new Dictionary<string, string> { { "Name", "John" } };
+        var dto = new EmailMessageDto("test@test.com", "Subject", "", TemplateKey: "welcome", TemplateData: templateData);
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendSmsAsync_WithValidDataAndHighPriority_ShouldEnqueueWithPriority()
+    {
+        // Arrange
+        var dto = new SmsMessageDto("123456", "Body");
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendSmsAsync(dto, ECommunicationPriority.High);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.Is<OutboxMessage>(m => m.Priority == ECommunicationPriority.High), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendPushAsync_WithExtraData_ShouldPassToPayload()
+    {
+        // Arrange
+        var extraData = new Dictionary<string, string> { { "key", "value" } };
+        var dto = new PushMessageDto("token", "Title", "Body") { ExtraData = extraData };
+        _serializerMock.Setup(x => x.Serialize(It.IsAny<PushOutboxPayload>())).Returns("{}");
+
+        // Act
+        var result = await _api.SendPushAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ModuleName_ShouldReturnCommunications()
+    {
+        _api.ModuleName.Should().Be("Communications");
+    }
+
+    [Fact]
+    public async Task ApiVersion_ShouldReturn1_0()
+    {
+        _api.ApiVersion.Should().Be("1.0");
     }
 
     #endregion

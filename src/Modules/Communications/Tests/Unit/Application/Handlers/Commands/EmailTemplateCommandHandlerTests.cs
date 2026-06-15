@@ -138,4 +138,61 @@ public class EmailTemplateCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
     }
+
+    [Fact]
+    public async Task HandleAsync_SetStatus_Activate_WhenFound_ShouldActivateAndSave()
+    {
+        // Arrange
+        var templateId = Guid.NewGuid();
+        var template = EmailTemplate.Create("key", "Sub", "Html", "Text");
+        template.Deactivate();
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+
+        var command = new SetEmailTemplateStatusCommand(templateId, true, Guid.NewGuid());
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        template.IsActive.Should().BeTrue();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SetStatus_Deactivate_WhenFound_ShouldDeactivateAndSave()
+    {
+        // Arrange
+        var templateId = Guid.NewGuid();
+        var template = EmailTemplate.Create("key", "Sub", "Html", "Text");
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+
+        var command = new SetEmailTemplateStatusCommand(templateId, false, Guid.NewGuid());
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        template.IsActive.Should().BeFalse();
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SetStatus_DeactivateSystemTemplate_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var templateId = Guid.NewGuid();
+        var template = EmailTemplate.Create("key", "Sub", "Html", "Text", "pt-br", null, true);
+        _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+
+        var command = new SetEmailTemplateStatusCommand(templateId, false, Guid.NewGuid());
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.StatusCode.Should().Be(400);
+    }
 }

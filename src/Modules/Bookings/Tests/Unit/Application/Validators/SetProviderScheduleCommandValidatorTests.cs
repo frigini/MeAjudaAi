@@ -1,5 +1,5 @@
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Validators;

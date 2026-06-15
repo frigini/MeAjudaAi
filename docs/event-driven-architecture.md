@@ -31,6 +31,67 @@ Cada módulo deve expor uma interface `IModuleApi` se precisar disponibilizar fu
 | ServiceCatalogs | `IServiceCatalogsModuleApi` | Catálogo de serviços |
 | Users | `IUsersModuleApi` | Identidade e perfil |
 
+### Decisões de Design e Limitações Conhecidas
+
+#### Communications — `GetTemplatesAsync` retorna apenas templates ativos
+
+O endpoint `GET /api/v1/communications/templates` (via `ICommunicationsModuleApi.GetTemplatesAsync`) retorna apenas templates com `IsActive = true`. A query subjacente (`DbContextEmailTemplateQueries.GetAllAsync`) filtra por `x.IsActive`.
+
+**Justificativa:** O endpoint serve templates disponíveis para envio de notificações. Templates inativos (versões históricas desativadas por `UpdateEmailTemplate`) não devem ser usados para envio.
+
+**Limitação:** Não é possível listar templates inativos para auditoria ou reativação via este endpoint. Se gestão administrativa de templates for necessária, criar um endpoint admin separado:
+
+```
+GET /admin/communications/templates?includeInactive=true
+```
+
+#### Communications — `IsAvailableAsync` aceita módulo sem templates
+
+O health check do módulo (`CommunicationsModuleApi.IsAvailableAsync`) retorna `true` mesmo quando não existem templates seedados, emitindo apenas um `LogWarning`.
+
+**Justificativa:** Templates são opcionais — é possível enviar e-mails com corpo direto (`HtmlBody`/`TextBody`) sem depender de templates. O warning sinaliza que dados de seed podem estar ausentes, mas o módulo permanece operacional.
+
+#### Communications — `SendEmailAsync` com TemplateKey e Body mutuamente exclusivos
+
+O método `SendEmailAsync` aceita `EmailMessageDto` com `Body` opcional. A semântica é:
+
+- **Com `TemplateKey`**: O corpo é renderizado a partir do template. `Body` é ignorado.
+- **Sem `TemplateKey`**: `Body` é obrigatório e usado como `HtmlBody` ou `TextBody` conforme `IsHtml`.
+
+Essa separação evita `ArgumentException` do `EmailOutboxPayload.Create()`, que rejeita a combinação de `TemplateKey` + `HtmlBody`/`TextBody`.
+
+#### Bookings — `IBookingsApi` (Client.Contracts) completo
+
+A interface Refit `IBookingsApi` em `src/Client/MeAjudaAi.Client.Contracts/Api/IBookingsApi.cs` expõe todos os endpoints REST do módulo:
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/v1/bookings` | Criar agendamento |
+| GET | `/api/v1/bookings/{id}` | Buscar agendamento por ID |
+| GET | `/api/v1/bookings/my` | Listar meus agendamentos (paginado) |
+| GET | `/api/v1/bookings/provider/{providerId}` | Listar agendamentos do prestador (paginado) |
+| GET | `/api/v1/bookings/availability/{providerId}` | Consultar disponibilidade |
+| POST | `/api/v1/bookings/schedule` | Definir agenda do prestador |
+| PUT | `/api/v1/bookings/{id}/confirm` | Confirmar agendamento |
+| PUT | `/api/v1/bookings/{id}/reject` | Rejeitar agendamento |
+| PUT | `/api/v1/bookings/{id}/complete` | Concluir agendamento |
+| PUT | `/api/v1/bookings/{id}/cancel` | Cancelar agendamento |
+
+O endpoint SSE (`GET /api/v1/bookings/{id}/events`) não é suportado via Refit e deve ser consumido com `HttpClient` diretamente para streams `text/event-stream`.
+
+A API inter-module (`IBookingsModuleApi`) é independente e expõe: `GetBookingByIdAsync`, `HasCompletedBookingAsync`, `GetProviderBookingsAsync`.
+
+#### Bookings — Semântica temporal de `CreateBookingRequestDto`
+
+O request usa `DateTimeOffset` (Start/End), enquanto a resposta (`ModuleBookingDto`) usa `DateOnly`/`TimeOnly`:
+
+```
+Request:  DateTimeOffset Start, DateTimeOffset End
+Response: DateOnly Date, TimeOnly StartTime, TimeOnly EndTime
+```
+
+**Comportamento:** O `DateTimeOffset` enviado pelo cliente representa o instante solicitado. O módulo converte para a data e horário local do prestador (via `TimeZoneResolver`) antes de persistir como `DateOnly` + `TimeSlot`. O offset do cliente não é preservado — apenas a data/hora resultante no fuso do prestador é armazenada.
+
 ## 3. Integration Events (Assíncrona)
 
 ### Padrão de Produção (Domínio -> Integração)

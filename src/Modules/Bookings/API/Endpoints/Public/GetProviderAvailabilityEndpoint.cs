@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
