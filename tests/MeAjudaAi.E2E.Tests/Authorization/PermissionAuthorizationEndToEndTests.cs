@@ -484,13 +484,13 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
             isSystemAdmin: true
         );
 
-        var faker = new Bogus.Faker();
+        var uniqueId = Guid.NewGuid().ToString()[..8];
         var createRequest = new
         {
-            Username = $"{namePrefix.ToLower()}-{Guid.NewGuid().ToString()[..8]}",
-            Email = $"{namePrefix.ToLower()}-{Guid.NewGuid()}@test.com",
-            FirstName = faker.Person.FirstName,
-            LastName = faker.Person.LastName,
+            Username = $"{namePrefix.ToLower()}-{uniqueId}",
+            Email = $"{namePrefix.ToLower()}-{uniqueId}@test.com",
+            FirstName = "Test",
+            LastName = "User",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
