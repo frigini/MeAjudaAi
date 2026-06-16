@@ -80,4 +80,39 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
         result.Should().HaveCount(2);
         result[0].TemplateKey.Should().Be("atemplate");
     }
+
+    [Fact]
+    public async Task GetActiveByKeyAsync_WithNullLanguage_ShouldFallbackToDefault()
+    {
+        var template = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br", null, true);
+        DbContext.EmailTemplates.Add(template);
+        await DbContext.SaveChangesAsync();
+
+        var result = await _queries.GetActiveByKeyAsync("welcome", null);
+
+        result.Should().NotBeNull();
+        result!.TemplateKey.Should().Be("welcome");
+    }
+
+    [Fact]
+    public async Task GetAllByKeyAsync_WithEmptyKey_ShouldThrowArgumentException()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _queries.GetAllByKeyAsync(""));
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithNoActiveTemplates_ShouldReturnEmpty()
+    {
+        var inactive = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br");
+        DbContext.EmailTemplates.Add(inactive);
+        await DbContext.SaveChangesAsync();
+
+        inactive.Deactivate();
+        await DbContext.SaveChangesAsync();
+
+        var result = await _queries.GetAllAsync();
+
+        result.Should().BeEmpty();
+    }
 }

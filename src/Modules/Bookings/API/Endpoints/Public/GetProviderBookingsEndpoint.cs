@@ -12,10 +12,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
+[ExcludeFromCodeCoverage]
 public class GetProviderBookingsEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

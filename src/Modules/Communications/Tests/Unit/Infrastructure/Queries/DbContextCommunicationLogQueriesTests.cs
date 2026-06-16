@@ -57,4 +57,58 @@ public class DbContextCommunicationLogQueriesTests : BaseInMemoryDatabaseTest<Co
 
         items.Should().HaveCount(1);
     }
+
+    [Fact]
+    public async Task ExistsByCorrelationIdAsync_WhenExists_ShouldReturnTrue()
+    {
+        var log = CommunicationLog.CreateSuccess("corr-exists", ECommunicationChannel.Email, "test@test.com", 1);
+        DbContext.CommunicationLogs.Add(log);
+        await DbContext.SaveChangesAsync();
+
+        var result = await _queries.ExistsByCorrelationIdAsync("corr-exists");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExistsByCorrelationIdAsync_WhenNotExists_ShouldReturnFalse()
+    {
+        var result = await _queries.ExistsByCorrelationIdAsync("nonexistent");
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByRecipientAsync_WhenNoResults_ShouldReturnEmpty()
+    {
+        var items = await _queries.GetByRecipientAsync("nobody@test.com");
+
+        items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithNoFilters_ShouldReturnAll()
+    {
+        DbContext.CommunicationLogs.Add(CommunicationLog.CreateSuccess("corr-1", ECommunicationChannel.Email, "a@test.com", 1));
+        DbContext.CommunicationLogs.Add(CommunicationLog.CreateSuccess("corr-2", ECommunicationChannel.Sms, "b@test.com", 1));
+        await DbContext.SaveChangesAsync();
+
+        var (items, total) = await _queries.SearchAsync(new CommunicationLogQuery());
+
+        total.Should().Be(2);
+        items.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithIsSuccessFilter_ShouldReturnMatching()
+    {
+        DbContext.CommunicationLogs.Add(CommunicationLog.CreateSuccess("corr-1", ECommunicationChannel.Email, "a@test.com", 1));
+        DbContext.CommunicationLogs.Add(CommunicationLog.CreateFailure("corr-2", ECommunicationChannel.Email, "b@test.com", "error", 1));
+        await DbContext.SaveChangesAsync();
+
+        var (items, total) = await _queries.SearchAsync(new CommunicationLogQuery(IsSuccess: true));
+
+        total.Should().Be(1);
+        items[0].CorrelationId.Should().Be("corr-1");
+    }
 }
