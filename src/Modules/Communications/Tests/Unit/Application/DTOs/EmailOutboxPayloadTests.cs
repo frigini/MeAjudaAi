@@ -161,5 +161,6 @@ public class EmailOutboxPayloadTests
 
         // Assert
         payload.HtmlBody.Should().Be("<p>Hi</p>");
+        payload.TemplateData.Should().BeNull();
     }
 }

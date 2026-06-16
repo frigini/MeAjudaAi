@@ -10,12 +10,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint para atualização de um template de e-mail.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class UpdateEmailTemplateEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

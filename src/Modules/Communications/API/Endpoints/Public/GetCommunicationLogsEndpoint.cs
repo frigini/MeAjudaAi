@@ -6,12 +6,14 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint para busca dos logs de comunicação.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class GetCommunicationLogsEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

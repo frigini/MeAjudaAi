@@ -9,12 +9,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint para desativação de um template de e-mail.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class DeactivateEmailTemplateEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

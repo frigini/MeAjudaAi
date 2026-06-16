@@ -15,6 +15,7 @@ public class FakeHybridCache : HybridCache
     public bool RemoveByTagAsyncCalled { get; set; }
     public string? LastKey { get; set; }
     public object? LastValue { get; set; }
+    public Exception? ExceptionToThrow { get; set; }
 
     public override ValueTask<T> GetOrCreateAsync<TState, T>(
         string key, 
@@ -24,6 +25,8 @@ public class FakeHybridCache : HybridCache
         IEnumerable<string>? tags = null, 
         CancellationToken cancellationToken = default)
     {
+        if (ExceptionToThrow != null)
+            throw ExceptionToThrow;
         GetOrCreateAsyncCalled = true;
         LastKey = key;
         if (SimulateCacheHit)
@@ -40,6 +43,8 @@ public class FakeHybridCache : HybridCache
         IEnumerable<string>? tags = null, 
         CancellationToken cancellationToken = default)
     {
+        if (ExceptionToThrow != null)
+            throw ExceptionToThrow;
         SetAsyncCalled = true;
         LastKey = key;
         LastValue = value;
@@ -48,6 +53,8 @@ public class FakeHybridCache : HybridCache
 
     public override ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
+        if (ExceptionToThrow != null)
+            throw ExceptionToThrow;
         RemoveAsyncCalled = true;
         LastKey = key;
         return ValueTask.CompletedTask;
@@ -55,6 +62,8 @@ public class FakeHybridCache : HybridCache
 
     public override ValueTask RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
     {
+        if (ExceptionToThrow != null)
+            throw ExceptionToThrow;
         RemoveByTagAsyncCalled = true;
         LastKey = tag;
         return ValueTask.CompletedTask;
@@ -196,7 +205,7 @@ public class HybridCacheServiceTests
         var cacheEnabledSection = new Mock<IConfigurationSection>();
         cacheEnabledSection.Setup(s => s.Value).Returns("false");
         _configurationMock.Setup(c => c.GetSection("Cache:Enabled")).Returns(cacheEnabledSection.Object);
-        
+
         var service = new HybridCacheService(
             _hybridCache, _loggerMock.Object, _metricsMock.Object, _configurationMock.Object);
 
@@ -210,5 +219,65 @@ public class HybridCacheServiceTests
         result.Should().Be("bypass-value");
         factoryCalled.Should().BeTrue();
         _hybridCache.GetOrCreateAsyncCalled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAsync_WhenHybridCacheThrowsException_ShouldReturnDefault()
+    {
+        // Arrange
+        _hybridCache.ExceptionToThrow = new Exception("Cache provider error");
+
+        // Act
+        var (value, isCached) = await _service.GetAsync<string>("test-key");
+
+        // Assert
+        isCached.Should().BeFalse();
+        value.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SetAsync_WhenHybridCacheThrowsException_ShouldNotRethrow()
+    {
+        // Arrange
+        _hybridCache.ExceptionToThrow = new Exception("Cache provider error");
+
+        // Act & Assert - should not throw
+        await _service.SetAsync("key", "value");
+    }
+
+    [Fact]
+    public async Task RemoveAsync_WhenHybridCacheThrowsException_ShouldNotRethrow()
+    {
+        // Arrange
+        _hybridCache.ExceptionToThrow = new Exception("Cache provider error");
+
+        // Act & Assert - should not throw
+        await _service.RemoveAsync("key");
+    }
+
+    [Fact]
+    public async Task RemoveByTagAsync_WhenHybridCacheThrowsException_ShouldNotRethrow()
+    {
+        // Arrange
+        _hybridCache.ExceptionToThrow = new Exception("Cache provider error");
+
+        // Act & Assert - should not throw
+        await _service.RemoveByTagAsync("mytag");
+    }
+
+    [Fact]
+    public async Task GetOrCreateAsync_WhenHybridCacheThrowsException_ShouldReturnDefault()
+    {
+        // Arrange
+        _hybridCache.ExceptionToThrow = new Exception("Cache provider error");
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<string>> factory = ct => { factoryCalled = true; return new ValueTask<string>("fallback-value"); };
+
+        // Act
+        var result = await _service.GetOrCreateAsync("key", factory);
+
+        // Assert - when cache throws, it returns default without calling factory
+        result.Should().BeNull();
+        factoryCalled.Should().BeFalse();
     }
 }

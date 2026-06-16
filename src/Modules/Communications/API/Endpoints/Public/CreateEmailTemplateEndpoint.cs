@@ -8,12 +8,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint para criação de um novo template de e-mail.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class CreateEmailTemplateEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

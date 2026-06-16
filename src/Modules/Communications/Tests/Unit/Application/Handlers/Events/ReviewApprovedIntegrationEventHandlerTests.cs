@@ -28,6 +28,7 @@ public class ReviewApprovedIntegrationEventHandlerTests
         new(providerId, "Provider Name", "provider-slug", "provider@test.com",
             "12345678900", "Individual", "Active", DateTime.UtcNow, DateTime.UtcNow, true);
 
+
     public ReviewApprovedIntegrationEventHandlerTests()
     {
         _outboxRepositoryMock = new Mock<IOutboxMessageRepository>();

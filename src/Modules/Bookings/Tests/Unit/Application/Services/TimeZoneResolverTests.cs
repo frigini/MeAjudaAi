@@ -109,6 +109,31 @@ public class TimeZoneResolverTests
         result.Error!.Message.Should().Contain("Horário inválido");
     }
 
+    [Fact]
+    public void ResolveTimeZone_WithNullId_ShouldReturnFallback()
+    {
+        var result = TimeZoneResolver.ResolveTimeZone(null, _loggerMock.Object);
+
+        result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ResolveTimeZone_WithStrictMode_InvalidId_ShouldReturnNull()
+    {
+        var result = TimeZoneResolver.ResolveTimeZone("Invalid/ID", _loggerMock.Object, allowFallback: false);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void ResolveTimeZone_WithStrictMode_ValidId_ShouldReturnTimeZone()
+    {
+        var result = TimeZoneResolver.ResolveTimeZone("UTC", _loggerMock.Object, allowFallback: false);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be("UTC");
+    }
+
     private static class TestTimeZones
     {
         public static TimeZoneInfo? GetPacific()

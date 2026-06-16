@@ -79,4 +79,17 @@ public class AvailabilityTests : BaseUnitTest
         // Act & Assert
         avail1.Equals(avail2).Should().BeFalse();
     }
+
+    [Fact]
+    public void Create_Should_Throw_When_SlotsAreNull()
+    {
+        // Arrange
+        var day = DayOfWeek.Monday;
+
+        // Act
+        var act = () => Availability.Create(day, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
 }
