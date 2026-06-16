@@ -295,4 +295,48 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         result.IsFailure.Should().BeTrue();
         result.Error!.Code.Should().Be(ErrorCodes.Bookings.StartNotInFuture);
     }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_ServiceNotActive()
+    {
+        // Arrange
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(command.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(false));
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be(ErrorCodes.Catalogs.ServiceNotFound);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_ProviderServiceOfferedApiFails()
+    {
+        // Arrange
+        var command = BuildFutureCommand();
+        var schedule = ProviderSchedule.Create(command.ProviderId, "UTC");
+        schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek,
+            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(command.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Failure(new Error("API Error", 500, ErrorCodes.InternalError)));
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be(ErrorCodes.InternalError);
+    }
 }

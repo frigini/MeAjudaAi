@@ -175,4 +175,26 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         result.IsSuccess.Should().BeTrue();
         result.Value!.Slots.Should().HaveCount(1);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenNoDayScheduleFound_ShouldReturnEmptySlots()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
+
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
+        // No availability set for this day
+
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+
+        // Act
+        var result = await _sut.HandleAsync(query);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Slots.Should().BeEmpty();
+    }
 }
