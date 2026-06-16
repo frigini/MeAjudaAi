@@ -57,16 +57,17 @@ public class SubscriptionTests
     public void Activate_ShouldBeIdempotent_WhenAlreadyActive()
     {
         // Arrange
+        var expiresAt = DateTime.UtcNow.AddMonths(1);
         var subscription = new SubscriptionBuilder()
             .WithPlanId("plan_123")
             .WithAmount(MoneyBuilder.Brl(99.90m))
-            .Activated("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1))
+            .Activated("sub_123", "cus_123", expiresAt)
             .Build();
         subscription.ClearDomainEvents();
         var originalUpdatedAt = subscription.UpdatedAt;
 
         // Act
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", "cus_123", expiresAt);
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);

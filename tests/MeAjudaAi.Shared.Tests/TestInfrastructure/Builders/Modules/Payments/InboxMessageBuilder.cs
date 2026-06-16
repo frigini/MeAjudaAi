@@ -63,9 +63,10 @@ public class InboxMessageBuilder : BaseBuilder<InboxMessage>
 
     public static InboxMessageBuilder CreateSubscriptionRenewed(string? externalEventId = null)
     {
+        var futureDate = DateTime.UtcNow.AddMonths(1).ToString("yyyy-MM-ddTHH:mm:ssZ");
         return new InboxMessageBuilder()
             .WithType("subscription.renewed")
-            .WithContent("{\"subscription_id\": \"sub_123\", \"expires_at\": \"2025-12-31T23:59:59Z\"}")
+            .WithContent($"{{\"subscription_id\": \"sub_123\", \"expires_at\": \"{futureDate}\"}}")
             .WithExternalEventId(externalEventId ?? "evt_renewed_001");
     }
 

@@ -30,7 +30,8 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
 
     public override async ValueTask DisposeAsync()
     {
-        await _context.DisposeAsync();
+        if (_context != null)
+            await _context.DisposeAsync();
         await base.DisposeAsync();
     }
 
