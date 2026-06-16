@@ -8,4 +8,3 @@ public sealed record ModuleServiceValidationResultDto(
     IReadOnlyList<Guid> InvalidServiceIds,
     IReadOnlyList<Guid> InactiveServiceIds
 );
-

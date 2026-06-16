@@ -12,5 +12,3 @@ public partial class CommunicationsDbContext : IRepository<EmailTemplate, Guid>
     void IRepository<EmailTemplate, Guid>.Add(EmailTemplate aggregate) => EmailTemplates.Add(aggregate);
     void IRepository<EmailTemplate, Guid>.Delete(EmailTemplate aggregate) => EmailTemplates.Remove(aggregate);
 }
-
-

@@ -1,7 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Modules.Locations.Domain.Events;
+using MeAjudaAi.Modules.Locations.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Filters;
@@ -9,14 +12,12 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Modules.Locations.Domain.Events;
-using MeAjudaAi.Modules.Locations.Infrastructure.Events.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,16 +32,27 @@ public static class Extensions
     /// <summary>
     /// Registra todos os serviços de infraestrutura do módulo Locations.
     /// </summary>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        // Registrar DbContext para Locations module
+        services.AddPersistence(configuration, environment);
+        services.AddServices(configuration);
+        services.AddEventHandlers();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configura a persistência do banco de dados e repositórios do módulo.
+    /// </summary>
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    {
         services.AddDbContext<LocationsDbContext>((serviceProvider, options) =>
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
                     connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
@@ -62,10 +74,7 @@ public static class Extensions
             options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = serviceProvider.GetService<IHostEnvironment>();
-            var isDevelopment = environment?.IsDevelopment() == true;
-            
-            if (isDevelopment)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -79,84 +88,19 @@ public static class Extensions
             return context;
         });
 
-        // Registrar DbContext com Keyed Service
+        // Unit of Work e Repositórios
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Locations, (sp, key) => sp.GetRequiredService<LocationsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
 
-        // Registrar queries
+        services.AddScoped<IRepository<AllowedCity, Guid>>(sp => sp.GetRequiredService<LocationsDbContext>());
+
+        // Consultas otimizadas
         services.AddScoped<IAllowedCityQueries, DbContextAllowedCityQueries>();
 
         // Registrar ExceptionHandler para exceções de domínio
         services.AddExceptionHandler<LocationsExceptionHandler>();
 
-        // Registrar HTTP clients para APIs de CEP
-        // ServiceDefaults já configura resiliência (retry, circuit breaker, timeout)
-        services.AddHttpClient<ViaCepClient>(client =>
-        {
-            var baseUrl = configuration["Locations:ExternalApis:ViaCep:BaseUrl"]
-                ?? "https://viacep.com.br/"; // Fallback para testes
-            
-            if (!baseUrl.EndsWith('/')) baseUrl += "/";
-            client.BaseAddress = new Uri(baseUrl);
-        });
-
-        services.AddHttpClient<BrasilApiCepClient>(client =>
-        {
-            var baseUrl = configuration["Locations:ExternalApis:BrasilApi:BaseUrl"]
-                ?? "https://brasilapi.com.br/"; // Fallback para testes
-            
-            if (!baseUrl.EndsWith('/')) baseUrl += "/";
-            client.BaseAddress = new Uri(baseUrl);
-        });
-
-        services.AddHttpClient<OpenCepClient>(client =>
-        {
-            var baseUrl = configuration["Locations:ExternalApis:OpenCep:BaseUrl"]
-                ?? "https://opencep.com/"; // Fallback para testes
-            
-            if (!baseUrl.EndsWith('/')) baseUrl += "/";
-            client.BaseAddress = new Uri(baseUrl);
-        });
-
-        // Registrar HTTP client para Nominatim (geocoding)
-        services.AddHttpClient<NominatimClient>(client =>
-        {
-            var baseUrl = configuration["Locations:ExternalApis:Nominatim:BaseUrl"]
-                ?? "https://nominatim.openstreetmap.org/"; // Fallback para testes
-            client.BaseAddress = new Uri(baseUrl);
-
-            // Configurar User-Agent conforme política de uso do Nominatim
-            var userAgent = configuration["Locations:ExternalApis:Nominatim:UserAgent"]
-                ?? "MeAjudaAi-Tests/1.0 (https://github.com/frigini/MeAjudaAi)"; // Fallback para testes
-            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
-        });
-
-        // Registrar HTTP client para IBGE Localidades
-        services.AddHttpClient<IIbgeClient, IbgeClient>(client =>
-        {
-            var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"]
-                ?? "https://servicodados.ibge.gov.br/api/v1/localidades/"; // Fallback para testes
-
-            if (!baseUrl.EndsWith('/'))
-            {
-                baseUrl += "/";
-            }
-
-            client.BaseAddress = new Uri(baseUrl);
-        });
-
-        // Registrar serviços
-        services.AddScoped<ICepLookupService, CepLookupService>();
-        services.AddScoped<IGeocodingService, GeocodingService>();
-        services.AddScoped<IIbgeService, IbgeService>();
-
-        // Registrar adapter para middleware (Shared → Locations)
-        services.AddScoped<IGeographicValidationService, GeographicValidationService>();
-
-        // Registrar Module API
-        services.AddScoped<ILocationsModuleApi, LocationsModuleApi>();
-
-        // Registrar Command e Query Handlers automaticamente
+        // Command e Query Handlers
         var applicationAssembly = typeof(Application.Handlers.CreateAllowedCityHandler).Assembly;
 
         // Registrar todos os ICommandHandler<T> e ICommandHandler<T, TResult>
@@ -190,17 +134,88 @@ public static class Extensions
         {
             services.AddScoped(handler.Interface, handler.Implementation);
         }
+    }
 
+    /// <summary>
+    /// Configura os clientes HTTP e serviços externos do módulo.
+    /// </summary>
+    private static void AddServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        // HTTP clients para APIs de CEP
+        // ServiceDefaults já configura resiliência (retry, circuit breaker, timeout)
+        services.AddHttpClient<ViaCepClient>(client =>
+        {
+            var baseUrl = configuration["Locations:ExternalApis:ViaCep:BaseUrl"]
+                ?? "https://viacep.com.br/";
+            
+            if (!baseUrl.EndsWith('/')) baseUrl += "/";
+            client.BaseAddress = new Uri(baseUrl);
+        });
+
+        services.AddHttpClient<BrasilApiCepClient>(client =>
+        {
+            var baseUrl = configuration["Locations:ExternalApis:BrasilApi:BaseUrl"]
+                ?? "https://brasilapi.com.br/";
+            
+            if (!baseUrl.EndsWith('/')) baseUrl += "/";
+            client.BaseAddress = new Uri(baseUrl);
+        });
+
+        services.AddHttpClient<OpenCepClient>(client =>
+        {
+            var baseUrl = configuration["Locations:ExternalApis:OpenCep:BaseUrl"]
+                ?? "https://opencep.com/";
+            
+            if (!baseUrl.EndsWith('/')) baseUrl += "/";
+            client.BaseAddress = new Uri(baseUrl);
+        });
+
+        // HTTP client para Nominatim (geocoding)
+        services.AddHttpClient<NominatimClient>(client =>
+        {
+            var baseUrl = configuration["Locations:ExternalApis:Nominatim:BaseUrl"]
+                ?? "https://nominatim.openstreetmap.org/";
+            client.BaseAddress = new Uri(baseUrl);
+
+            // Configurar User-Agent conforme política de uso do Nominatim
+            var userAgent = configuration["Locations:ExternalApis:Nominatim:UserAgent"]
+                ?? "MeAjudaAi-Tests/1.0 (https://github.com/frigini/MeAjudaAi)";
+            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+        });
+
+        // HTTP client para IBGE Localidades
+        services.AddHttpClient<IIbgeClient, IbgeClient>(client =>
+        {
+            var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"]
+                ?? "https://servicodados.ibge.gov.br/api/v1/localidades/";
+
+            if (!baseUrl.EndsWith('/'))
+            {
+                baseUrl += "/";
+            }
+
+            client.BaseAddress = new Uri(baseUrl);
+        });
+
+        // Serviços de negócio
+        services.AddScoped<ICepLookupService, CepLookupService>();
+        services.AddScoped<IGeocodingService, GeocodingService>();
+        services.AddScoped<IIbgeService, IbgeService>();
+
+        // Adapter para middleware (Shared → Locations)
+        services.AddScoped<IGeographicValidationService, GeographicValidationService>();
+
+        // Module API
+        services.AddScoped<ILocationsModuleApi, LocationsModuleApi>();
+    }
+
+    /// <summary>
+    /// Adiciona os Event Handlers do módulo Locations.
+    /// </summary>
+    private static void AddEventHandlers(this IServiceCollection services)
+    {
         services.AddScoped<IEventHandler<AllowedCityCreatedDomainEvent>, AllowedCityCreatedDomainEventHandler>();
         services.AddScoped<IEventHandler<AllowedCityUpdatedDomainEvent>, AllowedCityUpdatedDomainEventHandler>();
         services.AddScoped<IEventHandler<AllowedCityDeletedDomainEvent>, AllowedCityDeletedDomainEventHandler>();
-
-        return services;
     }
 }
-
-
-
-
-
-

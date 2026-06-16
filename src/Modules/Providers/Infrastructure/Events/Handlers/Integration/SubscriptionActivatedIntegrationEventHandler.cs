@@ -1,7 +1,6 @@
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using Microsoft.EntityFrameworkCore;
@@ -15,20 +14,22 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// </summary>
 public sealed class SubscriptionActivatedIntegrationEventHandler(
     ProvidersDbContext dbContext,
+    IIdempotencyRepository idempotencyRepository,
     ILogger<SubscriptionActivatedIntegrationEventHandler> logger) : IEventHandler<SubscriptionActivatedIntegrationEvent>
 {
     public async Task HandleAsync(SubscriptionActivatedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var correlationId = integrationEvent.SubscriptionId.ToString();
+            var correlationId = $"{integrationEvent.SubscriptionId}_{integrationEvent.Id}";
             logger.LogInformation(
                 "Handling SubscriptionActivatedIntegrationEvent for user {UserId}, subscription {SubscriptionId}",
                 integrationEvent.UserId,
                 integrationEvent.SubscriptionId);
 
             // Verificar idempotência
-            if (await dbContext.ProcessedIntegrationEvents.AnyAsync(e => e.CorrelationId == correlationId, cancellationToken))
+            if (await idempotencyRepository.IsProcessedAsync(correlationId, cancellationToken))
             {
                 logger.LogInformation("Event {CorrelationId} already processed.", correlationId);
                 return;
@@ -46,14 +47,16 @@ public sealed class SubscriptionActivatedIntegrationEventHandler(
             provider.PromoteTier(EProviderTier.Gold, "payments-integration-activated");
             
             // Registrar processamento
-            dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
+            await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
             
             await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             
             logger.LogInformation("Promoted provider {ProviderId} to Gold tier.", provider.Id);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Error handling SubscriptionActivatedIntegrationEvent for user {UserId}", integrationEvent.UserId);
             throw;
         }

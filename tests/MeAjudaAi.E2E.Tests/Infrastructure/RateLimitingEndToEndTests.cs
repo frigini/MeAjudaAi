@@ -66,7 +66,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
         for (int i = 0; i < 30; i++)
         {
             healthResponses.Add(await _fixture.ApiClient.GetAsync("/health"));
-            apiResponses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-categories"));
+            apiResponses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories"));
         }
 
         // Assert
@@ -142,4 +142,3 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
         }
     }
 }
-

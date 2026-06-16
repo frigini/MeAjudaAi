@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -19,7 +20,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado</param>
 /// <param name="localizer">Localizador de strings</param>
 public sealed class AddQualificationCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<AddQualificationCommandHandler> logger,
     IStringLocalizer<Strings> localizer
 ) : ICommandHandler<AddQualificationCommand, Result<ProviderDto>>
@@ -65,3 +66,5 @@ public sealed class AddQualificationCommandHandler(
         }
     }
 }
+
+

@@ -18,7 +18,9 @@ public static class Extensions
         {
             "MeAjudaAi.Modules.Users.Application",
             "MeAjudaAi.Modules.Providers.Application",
-            "MeAjudaAi.Modules.SearchProviders.Application"
+            "MeAjudaAi.Modules.SearchProviders.Application",
+            "MeAjudaAi.Modules.Communications.Application",
+            "MeAjudaAi.Modules.Bookings.Application"
         };
 
         // Em cenários de teste parcial, alguns assemblies podem não estar disponíveis

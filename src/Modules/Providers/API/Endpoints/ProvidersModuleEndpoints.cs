@@ -74,7 +74,8 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<GetMyProviderStatusEndpoint>()
             .MapEndpoint<ActivateMyProviderProfileEndpoint>()
             .MapEndpoint<DeactivateMyProviderProfileEndpoint>()
-            .MapEndpoint<ProviderVerificationEventsEndpoint>();
+            .MapEndpoint<ProviderVerificationEventsEndpoint>()
+            .MapEndpoint<UpdateProviderDeviceTokenEndpoint>();
         
         // Endpoints de associação de serviços
         endpoints.MapEndpoint<AddServiceToProviderEndpoint>()

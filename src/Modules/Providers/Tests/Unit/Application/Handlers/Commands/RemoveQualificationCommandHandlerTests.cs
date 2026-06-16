@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
@@ -14,14 +13,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class RemoveQualificationCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RemoveQualificationCommandHandler>> _loggerMock;
     private readonly RemoveQualificationCommandHandler _handler;
 
     public RemoveQualificationCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveQualificationCommandHandler>>();
 
@@ -94,7 +93,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider not found");
+        result.Error!.Message.Should().Contain("Fornecedor não encontrado");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -126,7 +125,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing the qualification");
+        result.Error!.Message.Should().Contain("Qualificação não encontrada");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -156,7 +155,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing the qualification");
+        result.Error!.Message.Should().Contain("Erro ao remover qualificação");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
@@ -186,7 +185,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing the qualification");
+        result.Error!.Message.Should().Contain("Erro ao remover qualificação");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -255,5 +254,3 @@ public class RemoveQualificationCommandHandlerTests
             Times.Once);
     }
 }
-
-

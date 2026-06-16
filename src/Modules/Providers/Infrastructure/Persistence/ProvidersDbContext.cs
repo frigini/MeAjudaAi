@@ -1,16 +1,15 @@
-using System.Reflection;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 
 /// <summary>
 /// Contexto de banco de dados para o módulo de prestadores de serviços.
 /// </summary>
-public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
+public partial class ProvidersDbContext : BaseDbContext, IUnitOfWork
 {
     private readonly IServiceProvider? _serviceProvider;
 
@@ -18,13 +17,11 @@ public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
 
     public ProvidersDbContext(
         DbContextOptions<ProvidersDbContext> options,
-        IServiceProvider serviceProvider) : base(options)
+        IServiceProvider? serviceProvider) : base(options)
     {
         _serviceProvider = serviceProvider;
     }
-
     public DbSet<Provider> Providers => Set<Provider>();
-    public DbSet<ProcessedIntegrationEvent> ProcessedIntegrationEvents => Set<ProcessedIntegrationEvent>();
 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
@@ -43,5 +40,3 @@ public partial class ProvidersDbContext : BaseDbContext, IProviderUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
-
-

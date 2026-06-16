@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
@@ -13,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Category", "Unit")]
 public class DeleteProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly FakeTimeProvider _timeProvider;
     private readonly Mock<ILogger<DeleteProviderCommandHandler>> _loggerMock;
@@ -21,7 +20,7 @@ public class DeleteProviderCommandHandlerTests
 
     public DeleteProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<DeleteProviderCommandHandler>>();
@@ -72,12 +71,10 @@ public class DeleteProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Contain("Fornecedor não encontrado");
 
         _uowMock.Verify(
             u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }
-
-

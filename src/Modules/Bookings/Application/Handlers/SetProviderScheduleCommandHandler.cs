@@ -22,12 +22,6 @@ public sealed class SetProviderScheduleCommandHandler(
     {
         logger.LogInformation("Setting schedule for Provider {ProviderId}", command.ProviderId);
 
-        if (command.Availabilities == null)
-        {
-            logger.LogWarning("Availabilities is null for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.BadRequest("A lista de disponibilidades não pode ser nula."));
-        }
-
         var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
         if (providerExists.IsFailure)
         {
@@ -44,16 +38,6 @@ public sealed class SetProviderScheduleCommandHandler(
         {
             foreach (var availabilityDto in command.Availabilities)
             {
-                if (availabilityDto == null)
-                {
-                    return Result.Failure(Error.BadRequest("Uma das disponibilidades fornecidas é nula."));
-                }
-
-                if (availabilityDto.Slots == null)
-                {
-                    return Result.Failure(Error.BadRequest($"A lista de horários para {availabilityDto.DayOfWeek} não pode ser nula."));
-                }
-
                 var slots = availabilityDto.Slots.Select(s => TimeSlot.Create(TimeOnly.FromDateTime(s.Start.DateTime), TimeOnly.FromDateTime(s.End.DateTime)));
                 var availability = Availability.Create(availabilityDto.DayOfWeek, slots);
                 newAvailabilities.Add(availability);

@@ -1,8 +1,8 @@
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
-using MeAjudaAi.Contracts.Modules.Communications.Queries;
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using MeAjudaAi.Contracts.Modules.Communications.Queries;
 
 namespace MeAjudaAi.Contracts.Modules.Communications;
 

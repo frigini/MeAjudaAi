@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -12,7 +13,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de remoção de serviços de providers.
 /// </summary>
 public sealed class RemoveServiceFromProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<RemoveServiceFromProviderCommandHandler> logger
 ) : ICommandHandler<RemoveServiceFromProviderCommand, Result>
 {
@@ -67,3 +68,5 @@ public sealed class RemoveServiceFromProviderCommandHandler(
         }
     }
 }
+
+

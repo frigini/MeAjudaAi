@@ -33,7 +33,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task PreflightRequest_FromAllowedOrigin_ShouldReturnCorsHeaders()
     {
         // Arrange - Simular preflight request do browser
-        var request = new HttpRequestMessage(HttpMethod.Options, "/api/users/register");
+        var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/users/register");
         request.Headers.Add("Origin", "http://localhost:3000");
         request.Headers.Add("Access-Control-Request-Method", "POST");
         request.Headers.Add("Access-Control-Request-Headers", "content-type");
@@ -64,7 +64,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task PreflightRequest_WithMultipleMethods_ShouldIncludeAllowedMethods()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/services");
+        var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/service-catalogs/services");
         request.Headers.Add("Origin", "http://localhost:3000");
         request.Headers.Add("Access-Control-Request-Method", "GET");
 
@@ -86,7 +86,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task PreflightRequest_WithCustomHeaders_ShouldAllowContentType()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Options, "/api/users/register");
+        var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/users/register");
         request.Headers.Add("Origin", "http://localhost:3000");
         request.Headers.Add("Access-Control-Request-Method", "POST");
         request.Headers.Add("Access-Control-Request-Headers", "content-type,authorization");
@@ -259,7 +259,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task CorsConfiguration_ShouldIncludeMaxAge()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Options, "/api/users/register");
+        var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/users/register");
         request.Headers.Add("Origin", "http://localhost:3000");
         request.Headers.Add("Access-Control-Request-Method", "POST");
 
@@ -305,7 +305,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
 
         foreach (var method in methods)
         {
-            var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/services");
+            var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/service-catalogs/services");
             request.Headers.Add("Origin", "http://localhost:3000");
             request.Headers.Add("Access-Control-Request-Method", method);
 
@@ -331,7 +331,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task CorsHeaders_ShouldBeConsistentAcrossEndpoints()
     {
         // Arrange - Testar múltiplos endpoints
-        var endpoints = new[] { "/health", "/alive", "/api/users/register" };
+        var endpoints = new[] { "/health", "/alive", "/api/v1/users/register" };
         var originHeader = "http://localhost:3000";
 
         foreach (var endpoint in endpoints)
@@ -354,5 +354,3 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
 
     #endregion
 }
-
-

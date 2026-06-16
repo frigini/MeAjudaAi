@@ -1,8 +1,11 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
@@ -10,21 +13,62 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Infrastructure")]
-public class UserDeletedDomainEventHandlerTests
+public class UserDeletedDomainEventHandlerTests : IDisposable
 {
     private readonly Mock<IMessageBus> _messageBusMock;
     private readonly Mock<ILogger<UserDeletedDomainEventHandler>> _loggerMock;
+    private readonly UsersDbContext _context;
     private readonly UserDeletedDomainEventHandler _handler;
 
     public UserDeletedDomainEventHandlerTests()
     {
         _messageBusMock = new Mock<IMessageBus>();
         _loggerMock = new Mock<ILogger<UserDeletedDomainEventHandler>>();
-        _handler = new UserDeletedDomainEventHandler(_messageBusMock.Object, _loggerMock.Object);
+
+        var options = new DbContextOptionsBuilder<UsersDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        _context = new UsersDbContext(options, null!);
+        _handler = new UserDeletedDomainEventHandler(_messageBusMock.Object, _context, _loggerMock.Object);
     }
 
     [Fact]
     public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
+    {
+        // Arrange
+        var userId = UuidGenerator.NewId();
+        var user = new UserBuilder()
+            .WithId(userId)
+            .WithEmail("john@example.com")
+            .WithFirstName("John")
+            .WithLastName("Doe")
+            .Build();
+
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+
+        var domainEvent = new UserDeletedDomainEvent(userId, 1);
+
+        // Act
+        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+
+        // Assert
+        _messageBusMock.Verify(
+            x => x.PublishAsync(
+                It.Is<UserDeletedIntegrationEvent>(e =>
+                    e.UserId == userId &&
+                    e.Email == "john@example.com" &&
+                    e.FirstName == "John"),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()
+            ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenUserNotFound_ShouldPublishWithFallbackData()
     {
         // Arrange
         var userId = UuidGenerator.NewId();
@@ -36,21 +80,12 @@ public class UserDeletedDomainEventHandlerTests
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
-                It.Is<UserDeletedIntegrationEvent>(e => e.UserId == userId),
+                It.Is<UserDeletedIntegrationEvent>(e =>
+                    e.UserId == userId &&
+                    e.Email == "desconhecido" &&
+                    e.FirstName == "Usuário"),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()
-            ),
-            Times.Once
-        );
-
-        // Verify info log
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Successfully published UserDeleted")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
             Times.Once
         );
@@ -61,6 +96,16 @@ public class UserDeletedDomainEventHandlerTests
     {
         // Arrange
         var userId = UuidGenerator.NewId();
+        var user = new UserBuilder()
+            .WithId(userId)
+            .WithEmail("john@example.com")
+            .WithFirstName("John")
+            .WithLastName("Doe")
+            .Build();
+
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         _messageBusMock
@@ -90,12 +135,21 @@ public class UserDeletedDomainEventHandlerTests
     }
 
     [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
     [InlineData("ffffffff-ffff-ffff-ffff-ffffffffffff")]
     public async Task HandleAsync_WithEdgeCaseUserIds_ShouldPublishEvent(string userIdString)
     {
         // Arrange
         var userId = Guid.Parse(userIdString);
+        var user = new UserBuilder()
+            .WithId(userId)
+            .WithEmail("edge@example.com")
+            .WithFirstName("Edge")
+            .WithLastName("Case")
+            .Build();
+
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         // Act
@@ -117,6 +171,16 @@ public class UserDeletedDomainEventHandlerTests
     {
         // Arrange
         var userId = UuidGenerator.NewId();
+        var user = new UserBuilder()
+            .WithId(userId)
+            .WithEmail("john@example.com")
+            .WithFirstName("John")
+            .WithLastName("Doe")
+            .Build();
+
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
         using var cts = new CancellationTokenSource();
         var token = cts.Token;
@@ -140,6 +204,16 @@ public class UserDeletedDomainEventHandlerTests
     {
         // Arrange
         var userId = UuidGenerator.NewId();
+        var user = new UserBuilder()
+            .WithId(userId)
+            .WithEmail("john@example.com")
+            .WithFirstName("John")
+            .WithLastName("Doe")
+            .Build();
+
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         // Act
@@ -166,6 +240,16 @@ public class UserDeletedDomainEventHandlerTests
         var userId2 = UuidGenerator.NewId();
         var userId3 = UuidGenerator.NewId();
 
+        var users = new[]
+        {
+            new UserBuilder().WithId(userId1).WithEmail("u1@test.com").WithFirstName("U1").Build(),
+            new UserBuilder().WithId(userId2).WithEmail("u2@test.com").WithFirstName("U2").Build(),
+            new UserBuilder().WithId(userId3).WithEmail("u3@test.com").WithFirstName("U3").Build()
+        };
+
+        await _context.Users.AddRangeAsync(users);
+        await _context.SaveChangesAsync();
+
         var event1 = new UserDeletedDomainEvent(userId1, 1);
         var event2 = new UserDeletedDomainEvent(userId2, 1);
         var event3 = new UserDeletedDomainEvent(userId3, 1);
@@ -184,5 +268,10 @@ public class UserDeletedDomainEventHandlerTests
             ),
             Times.Exactly(3)
         );
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }

@@ -12,6 +12,9 @@ internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<Emai
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Version)
+            .IsRequired();
+
         builder.Property(x => x.TemplateKey)
             .HasMaxLength(100)
             .IsRequired();
@@ -32,10 +35,22 @@ internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<Emai
         builder.Property(x => x.Language)
             .HasMaxLength(10)
             .IsRequired()
-            .HasDefaultValue("pt-BR");
+            .HasDefaultValue("pt-br");
 
+        // Índice único parcial: apenas uma versão ativa por template_key + language + override_key (quando override_key NÃO é NULL)
         builder.HasIndex(x => new { x.TemplateKey, x.Language, x.OverrideKey })
             .IsUnique()
-            .AreNullsDistinct(false);
+            .HasFilter("is_active = true AND override_key IS NOT NULL")
+            .HasDatabaseName("ix_email_templates_active_per_key_language_override");
+
+        // Índice único parcial para NULL override_key: apenas uma versão ativa por template_key + language
+        // Necessário porque PostgreSQL trata NULLs como distintos em índices únicos
+        builder.HasIndex(x => new { x.TemplateKey, x.Language })
+            .IsUnique()
+            .HasFilter("is_active = true AND override_key IS NULL")
+            .HasDatabaseName("ix_email_templates_active_per_key_language_no_override");
+
+        // Índice para buscar todas as versões de um template específico
+        builder.HasIndex(x => new { x.TemplateKey, x.Language, x.Version });
     }
 }

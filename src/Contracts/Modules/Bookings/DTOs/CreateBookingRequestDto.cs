@@ -1,6 +1,9 @@
 namespace MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 
-public record CreateBookingRequestDto(
+/// <summary>
+/// Request DTO para criação de um agendamento.
+/// </summary>
+public sealed record CreateBookingRequestDto(
     Guid ProviderId,
     Guid ServiceId,
     DateTimeOffset Start,

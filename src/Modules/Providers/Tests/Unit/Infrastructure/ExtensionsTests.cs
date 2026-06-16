@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit;
 using FluentAssertions;
@@ -24,10 +25,11 @@ public class ExtensionsTests
         var messageBusMock = new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>();
         services.AddSingleton(messageBusMock.Object);
         services.AddLogging(); // Registrar ILogger
+        var environment = new Mock<IHostEnvironment>();
         
         // Act
         // Como AddEventHandlers é internal/privado, precisaremos chamar AddInfrastructure
-        MeAjudaAi.Modules.Providers.Infrastructure.Extensions.AddInfrastructure(services, configuration);
+        MeAjudaAi.Modules.Providers.Infrastructure.Extensions.AddInfrastructure(services, configuration, environment.Object);
         var provider = services.BuildServiceProvider();
 
         // Assert - Domain Handlers

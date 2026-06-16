@@ -18,4 +18,3 @@ public sealed record ModuleSearchableProviderDto(
     double? DistanceInKm = null,
     string? City = null,
     string? State = null);
-

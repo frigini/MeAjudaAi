@@ -210,7 +210,7 @@ public class ProviderAuthorizationResolverTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(403);
+        result.Error!.StatusCode.Should().Be(403);
     }
 
     [Fact]
@@ -225,6 +225,63 @@ public class ProviderAuthorizationResolverTests
 
         // Assert
         _cacheMock.Verify(x => x.RemoveAsync(expectedKey, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ReturnUpstreamFailure_When_ProvidersApiFails()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var claims = new[] { new Claim(AuthConstants.Claims.Subject, userId.ToString()) };
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        _providersApiMock.Setup(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Failure(new Error("Provider API unavailable", 503, "PROVIDER_ERROR")));
+
+        // Act
+        var result = await _sut.ResolveAsync(principal);
+
+        // Assert
+        result.FailureKind.Should().Be(EAuthorizationFailureKind.UpstreamFailure);
+        result.ErrorMessage.Should().Be("Provider API unavailable");
+        result.ErrorStatusCode.Should().Be(503);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ReturnNotLinked_When_ProviderNotFoundForUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var claims = new[] { new Claim(AuthConstants.Claims.Subject, userId.ToString()) };
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        _providersApiMock.Setup(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(null));
+
+        // Act
+        var result = await _sut.ResolveAsync(principal);
+
+        // Assert
+        result.FailureKind.Should().Be(EAuthorizationFailureKind.NotLinked);
+        result.UserId.Should().Be(userId);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ReturnUnauthorized_When_UserIdClaimIsInvalidGuid()
+    {
+        // Arrange
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.Subject, "not-a-valid-guid")
+        };
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        // Act
+        var result = await _sut.ResolveAsync(principal);
+
+        // Assert
+        result.FailureKind.Should().Be(EAuthorizationFailureKind.Unauthorized);
+        result.ErrorMessage.Should().Contain("não encontrada");
     }
 
     private static ModuleProviderDto CreateModuleProviderDto(Guid providerId)

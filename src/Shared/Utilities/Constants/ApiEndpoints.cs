@@ -59,6 +59,10 @@ public static class ApiEndpoints
         public const string Base = "communications";
         public const string GetLogs = "/logs";
         public const string GetTemplates = "/templates";
+        public const string CreateTemplate = "/templates";
+        public const string UpdateTemplate = "/templates/{id:guid}";
+        public const string ActivateTemplate = "/templates/{id:guid}/activate";
+        public const string DeactivateTemplate = "/templates/{id:guid}/deactivate";
     }
 
     public static class Documents

@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Locations;
 
@@ -20,4 +20,3 @@ public interface ILocationsModuleApi : IModuleApi
     /// </summary>
     Task<Result<ModuleCoordinatesDto>> GetCoordinatesFromAddressAsync(string address, CancellationToken cancellationToken = default);
 }
-

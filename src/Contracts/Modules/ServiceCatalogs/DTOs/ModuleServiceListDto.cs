@@ -11,4 +11,3 @@ public sealed record ModuleServiceListDto(
     int DisplayOrder,
     bool IsActive
 );
-

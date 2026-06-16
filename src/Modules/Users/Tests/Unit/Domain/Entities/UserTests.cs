@@ -265,7 +265,7 @@ public class UserTests
 
         // Assert
         user.Email.Value.Should().Be(newEmail);
-        user.DomainEvents.Should().ContainSingle(e => e.GetType().Name == "UserEmailChangedEvent");
+        user.DomainEvents.Should().ContainSingle(e => e.GetType().Name == "UserEmailChangedDomainEvent");
     }
 
     [Fact]
@@ -312,7 +312,7 @@ public class UserTests
         // Assert
         user.Username.Value.Should().Be(newUsername);
         user.LastUsernameChangeAt.Should().Be(new DateTime(2023, 10, 15, 12, 0, 0, DateTimeKind.Utc));
-        user.DomainEvents.Should().ContainSingle(e => e.GetType().Name == "UserUsernameChangedEvent");
+        user.DomainEvents.Should().ContainSingle(e => e is UserUsernameChangedDomainEvent);
     }
 
     [Fact]
@@ -399,6 +399,45 @@ public class UserTests
         canChange.Should().BeTrue();
     }
 
+
+    [Fact]
+    public void UpdateDeviceToken_WhenNull_ShouldClearToken()
+    {
+        var user = User.Create(new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString()).Value!;
+        user.UpdateDeviceToken("token");
+        user.UpdateDeviceToken(null);
+        user.DeviceToken.Should().BeNull();
+    }
+
+    [Fact]
+    public void UpdateDeviceToken_WhenEmpty_ShouldClearToken()
+    {
+        var user = User.Create(new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString()).Value!;
+        user.UpdateDeviceToken("token");
+        user.UpdateDeviceToken("  ");
+        user.DeviceToken.Should().BeNull();
+    }
+
+    [Fact]
+    public void UpdateDeviceToken_WhenSameToken_ShouldNotUpdate()
+    {
+        var user = User.Create(new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString()).Value!;
+        user.UpdateDeviceToken("token");
+        
+        user.UpdateDeviceToken("token");
+        
+        user.DeviceToken.Should().Be("token");
+    }
+
+    [Fact]
+    public void UpdateDeviceToken_WhenDeletedUser_ShouldThrow()
+    {
+        var user = User.Create(new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString()).Value!;
+        user.MarkAsDeleted(TimeProvider.System);
+        
+        Action act = () => user.UpdateDeviceToken("token");
+        act.Should().Throw<MeAjudaAi.Modules.Users.Domain.Exceptions.UserDomainException>();
+    }
 
     // Cria um usuário de teste
     private static User CreateTestUser(string firstName = "John", string lastName = "Doe")

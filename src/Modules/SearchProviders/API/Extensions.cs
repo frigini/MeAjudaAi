@@ -27,7 +27,7 @@ public static class ModuleExtensions
         services.AddSearchProvidersApplication();
 
         // Infrastructure layer (requer configuration para conexão do BD)
-        services.AddSearchProvidersInfrastructure(configuration, environment);
+        services.AddInfrastructure(configuration, environment);
 
         // API layer - sem serviços adicionais para registrar
 

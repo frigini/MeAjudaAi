@@ -55,6 +55,11 @@ public sealed class User : AggregateRoot<UserId>
     public PhoneNumber? PhoneNumber { get; private set; }
 
     /// <summary>
+    /// Token do dispositivo para notificações push (opcional).
+    /// </summary>
+    public string? DeviceToken { get; private set; }
+
+    /// <summary>
     /// Identificador único do usuário no Keycloak (sistema de autenticação externo).
     /// </summary>
     /// <remarks>
@@ -266,6 +271,23 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>
+    /// Atualiza o token do dispositivo para notificações push.
+    /// </summary>
+    /// <param name="deviceToken">Token do dispositivo. Passar null ou vazio para limpar o token.</param>
+    public void UpdateDeviceToken(string? deviceToken)
+    {
+        if (IsDeleted)
+            throw new UserDomainException("Cannot update device token of deleted user");
+
+        var normalized = string.IsNullOrWhiteSpace(deviceToken) ? null : deviceToken;
+        if (normalized == DeviceToken)
+            return;
+
+        DeviceToken = normalized;
+        MarkAsUpdated();
+    }
+
+    /// <summary>
     /// Marca o usuário como excluído logicamente do sistema.
     /// </summary>
     /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
@@ -340,7 +362,7 @@ public sealed class User : AggregateRoot<UserId>
         MarkAsUpdated();
 
         // Adiciona evento de domínio para sincronização com sistemas externos
-        AddDomainEvent(new UserEmailChangedEvent(Id.Value, 1, oldEmail, newEmail));
+        AddDomainEvent(new UserEmailChangedDomainEvent(Id.Value, 1, oldEmail, newEmail));
     }
 
     /// <summary>
@@ -369,7 +391,7 @@ public sealed class User : AggregateRoot<UserId>
         MarkAsUpdated();
 
         // Adiciona evento de domínio para sincronização com sistemas externos
-        AddDomainEvent(new UserUsernameChangedEvent(Id.Value, 1, oldUsername, newUsername));
+        AddDomainEvent(new UserUsernameChangedDomainEvent(Id.Value, 1, oldUsername, newUsername));
     }
 
     /// <summary>

@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Queries;
 
@@ -42,3 +40,4 @@ public class GetAllEmailTemplatesHandlerTests
         result.Value.Should().BeEquivalentTo(templates);
     }
 }
+

@@ -47,13 +47,13 @@ public partial class Program
 
             // Registrar módulos ANTES de AddSharedServices
             // (exception handlers específicos devem ser registrados antes do global)
-            builder.Services.AddUsersModule(builder.Configuration);
-            builder.Services.AddProvidersModule(builder.Configuration);
+            builder.Services.AddUsersModule(builder.Configuration, builder.Environment);
+            builder.Services.AddProvidersModule(builder.Configuration, builder.Environment);
             builder.Services.AddDocumentsModule(builder.Configuration, builder.Environment);
             builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
-            builder.Services.AddLocationsModule(builder.Configuration);
-            builder.Services.AddServiceCatalogsModule(builder.Configuration);
-            builder.Services.AddCommunicationsModule(builder.Configuration);
+            builder.Services.AddLocationsModule(builder.Configuration, builder.Environment);
+            builder.Services.AddServiceCatalogsModule(builder.Configuration, builder.Environment);
+            builder.Services.AddCommunicationsModule(builder.Configuration, builder.Environment);
             builder.Services.AddBookingsModule(builder.Configuration, builder.Environment);
             builder.Services.AddRatingsModule(builder.Configuration, builder.Environment);
             builder.Services.AddPaymentsModule(builder.Configuration, builder.Environment);
@@ -160,7 +160,6 @@ public partial class Program
 
         // Endpoints de orquestração cross-módulo (ficam no ApiService)
         app.MapProviderRegistrationEndpoints();
-        app.MapCommunicationsEndpoints();
     }
 
     private static void LogStartupComplete(WebApplication app)

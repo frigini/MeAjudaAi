@@ -9,6 +9,9 @@ public sealed record EmailTemplateDto(
     string Subject,
     string HtmlBody,
     string TextBody,
+    bool IsActive,
     bool IsSystemTemplate,
-    string Language
+    string Language,
+    int Version,
+    string? OverrideKey = null
 );

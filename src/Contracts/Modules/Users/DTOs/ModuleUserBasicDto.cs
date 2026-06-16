@@ -9,4 +9,3 @@ public sealed record ModuleUserBasicDto(
     string Email,
     bool IsActive
 );
-

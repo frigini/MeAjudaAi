@@ -1,6 +1,6 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
-using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Contracts.Modules.SearchProviders;
 
@@ -53,4 +53,3 @@ public interface ISearchProvidersModuleApi : IModuleApi
     /// <returns>Resultado indicando sucesso ou falha</returns>
     Task<Result> RemoveProviderAsync(Guid providerId, CancellationToken cancellationToken = default);
 }
-

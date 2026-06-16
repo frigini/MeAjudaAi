@@ -1,5 +1,7 @@
 using Bogus;
 using MeAjudaAi.ApiService;
+using MeAjudaAi.E2E.Tests.Base.Helpers;
+using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
@@ -10,17 +12,13 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.E2E.Tests.Base.Helpers;
-using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Testcontainers.Azurite;
+using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -35,7 +33,6 @@ public class TestContainerFixture : IAsyncLifetime
 {
     private static PostgreSqlContainer? _postgresContainer;
     private static RedisContainer? _redisContainer;
-    private static AzuriteContainer? _azuriteContainer;
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
     private static bool _containersInitialized = false;
     private static bool _migrationsApplied = false;
@@ -46,7 +43,6 @@ public class TestContainerFixture : IAsyncLifetime
     public IServiceProvider Services { get; private set; } = null!;
     public string PostgresConnectionString { get; private set; } = null!;
     public string RedisConnectionString { get; private set; } = null!;
-    public string AzuriteConnectionString { get; private set; } = null!;
     public Faker Faker { get; } = new();
 
     /// <summary>
@@ -80,7 +76,6 @@ public class TestContainerFixture : IAsyncLifetime
         // Populate properties for the current instance (legacy support)
         if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
         if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
-        if (_azuriteContainer != null) AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         // Initialize WebApplicationFactory for THIS test class instance
         await InitializeFactoryAsync();
@@ -126,25 +121,16 @@ public class TestContainerFixture : IAsyncLifetime
                 .Build();
         }
 
-        if (_azuriteContainer == null)
-        {
-            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
-                .WithCleanUp(true)
-                .Build();
-        }
-
         // Iniciar containers em paralelo
         var startTasks = new List<Task>();
         startTasks.Add(_postgresContainer.StartAsync());
         startTasks.Add(_redisContainer.StartAsync());
-        startTasks.Add(_azuriteContainer.StartAsync());
 
         await Task.WhenAll(startTasks);
 
         // Armazenar connection strings
         PostgresConnectionString = _postgresContainer.GetConnectionString();
         RedisConnectionString = _redisContainer.GetConnectionString();
-        AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         Console.WriteLine("✅ TestContainers initialized successfully");
     }
@@ -171,7 +157,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["Postgres:ConnectionString"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
                         ["Migrations:Enabled"] = "false",
-                        ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
+                        ["Azure:Storage:ConnectionString"] = "UseDevelopmentStorage=true",
                         ["Hangfire:Enabled"] = "false",
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
@@ -297,10 +283,23 @@ public class TestContainerFixture : IAsyncLifetime
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
-        ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-        ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services, ModuleKeys.Communications);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services, ModuleKeys.SearchProviders);
         ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services, ModuleKeys.Ratings);
-        ReconfigureDbContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
+        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services, ModuleKeys.Payments);
+
+        // Remove ALL non-keyed IUnitOfWork registrations (production modules each register their own,
+        // but only the last one wins in MS DI — Payments. This causes handlers to use the wrong DbContext.)
+        var nonKeyedUowDescriptors = services.Where(d =>
+            d.ServiceType == typeof(IUnitOfWork) && d.ServiceKey == null).ToList();
+        foreach (var descriptor in nonKeyedUowDescriptors)
+            services.Remove(descriptor);
+
+        // Register a CompositeUnitOfWork as the single non-keyed IUnitOfWork.
+        // It resolves the correct DbContext per aggregate by finding which registered DbContext
+        // implements IRepository<TAggregate, TKey>.
+        services.AddScoped<IUnitOfWork>(sp =>
+            new CompositeTestUnitOfWork(sp));
 
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
         if (postgresOptionsDescriptor != null)
@@ -327,15 +326,6 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Registra o serviço por chave para o módulo usando o tipo do contexto diretamente
         services.AddKeyedScoped<IUnitOfWork>(moduleKey, (sp, key) => (IUnitOfWork)sp.GetRequiredService<TContext>());
-
-        // Somente o módulo de Usuários deve definir IUserUnitOfWork (que estende IUnitOfWork)
-        // Todos os outros módulos usam apenas o registro por chave de IUnitOfWork
-        // Os handlers de usuário agora usam IUserUnitOfWork diretamente, então não é necessária a substituição global de IUnitOfWork
-        if (typeof(TContext).Name == "UsersDbContext")
-        {
-            services.Replace(ServiceDescriptor.Scoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(
-                sp => (MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork)sp.GetRequiredService<TContext>()));
-        }
     }
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext

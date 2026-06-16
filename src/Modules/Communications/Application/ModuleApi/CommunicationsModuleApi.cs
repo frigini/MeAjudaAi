@@ -1,23 +1,32 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.DTOs;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
-using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Application.ModuleApi;
 
-[MeAjudaAi.Contracts.Modules.ModuleApi(ModuleNames.Communications)]
+[ModuleApi(ModuleNames.Communications)]
 public sealed class CommunicationsModuleApi(
     IOutboxMessageRepository outboxRepository,
     IEmailTemplateQueries templateQueries,
-    ICommunicationLogQueries logQueries)
+    ICommunicationLogQueries logQueries,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
+    IServiceProvider serviceProvider,
+    ILogger<CommunicationsModuleApi> logger)
     : ICommunicationsModuleApi
 {
     private readonly IEmailTemplateQueries _templateQueries = templateQueries;
@@ -25,8 +34,71 @@ public sealed class CommunicationsModuleApi(
     public string ModuleName => ModuleNames.Communications;
     public string ApiVersion => "1.0";
 
-    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
-        => Task.FromResult(true);
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            logger.LogDebug("Checking Communications module availability");
+
+            // Verifica health checks registrados do sistema
+            var healthCheckService = serviceProvider.GetService<HealthCheckService>();
+            if (healthCheckService != null)
+            {
+                var healthReport = await healthCheckService.CheckHealthAsync(
+                    check => check.Tags.Contains("communications") || check.Tags.Contains("database"),
+                    cancellationToken);
+
+                if (healthReport.Status == HealthStatus.Unhealthy || healthReport.Status == HealthStatus.Degraded)
+                {
+                    logger.LogWarning("Communications module unavailable due to health check failures: {FailedChecks}",
+                        string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy || e.Value.Status == HealthStatus.Degraded).Select(e => e.Key)));
+                    return false;
+                }
+
+            }
+
+            // Testa funcionalidade básica
+            var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
+            if (!canExecuteBasicOperations)
+            {
+                logger.LogWarning("Communications module unavailable - basic operations test failed");
+                return false;
+            }
+
+            logger.LogDebug("Communications module is available and healthy");
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            logger.LogDebug("Communications module availability check canceled");
+            throw;
+        }
+       catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking Communications module availability");
+            return false;
+        }
+    }
+
+    private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var templates = await _templateQueries.GetAllAsync(cancellationToken);
+            if (templates.Count == 0)
+                logger.LogWarning("No email templates found — Communications module may not be fully configured.");
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Basic operations test failed for Communications module");
+            return false;
+        }
+    }
 
     public async Task<Result<Guid>> SendEmailAsync(
         EmailMessageDto email,
@@ -36,12 +108,31 @@ public sealed class CommunicationsModuleApi(
         if (email == null) return Result<Guid>.Failure(Error.BadRequest("A mensagem de e-mail não pode ser nula."));
         if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest("O e-mail do destinatário é obrigatório."));
         if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest("O assunto do e-mail é obrigatório."));
-        if (string.IsNullOrWhiteSpace(email.Body)) return Result<Guid>.Failure(Error.BadRequest("O corpo do e-mail é obrigatório."));
         
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        return await EnqueueOutboxAsync(ECommunicationChannel.Email, email, priority, ct);
+        EmailOutboxPayload payload;
+
+        if (!string.IsNullOrWhiteSpace(email.TemplateKey))
+        {
+            payload = EmailOutboxPayload.Create(
+                to: email.To,
+                subject: email.Subject,
+                templateKey: email.TemplateKey,
+                templateData: email.TemplateData?.AsReadOnly());
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(email.Body))
+                return Result<Guid>.Failure(Error.BadRequest("O corpo do e-mail é obrigatório quando TemplateKey não é informado."));
+
+            payload = email.IsHtml
+                ? EmailOutboxPayload.Create(to: email.To, subject: email.Subject, htmlBody: email.Body)
+                : EmailOutboxPayload.Create(to: email.To, subject: email.Subject, textBody: email.Body);
+        }
+
+        return await EnqueueOutboxAsync(ECommunicationChannel.Email, payload, priority, ct);
     }
 
     public async Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default)
@@ -54,8 +145,11 @@ public sealed class CommunicationsModuleApi(
             x.Subject,
             x.HtmlBody,
             x.TextBody,
+            x.IsActive,
             x.IsSystemTemplate,
-            x.Language)).ToList();
+            x.Language,
+            x.Version,
+            x.OverrideKey)).ToList();
 
         return Result<IReadOnlyList<EmailTemplateDto>>.Success(dtos);
     }
@@ -72,7 +166,8 @@ public sealed class CommunicationsModuleApi(
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        return await EnqueueOutboxAsync(ECommunicationChannel.Sms, sms, priority, ct);
+        var payload = new SmsOutboxPayload(sms.PhoneNumber, sms.Message);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Sms, payload, priority, ct);
     }
 
     public async Task<Result<Guid>> SendPushAsync(
@@ -88,7 +183,8 @@ public sealed class CommunicationsModuleApi(
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
             return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        return await EnqueueOutboxAsync(ECommunicationChannel.Push, push, priority, ct);
+        var payload = new PushOutboxPayload(push.DeviceToken, push.Title, push.Body, push.ExtraData);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Push, payload, priority, ct);
     }
 
     public async Task<Result<PagedResult<CommunicationLogDto>>> GetLogsAsync(
@@ -96,19 +192,11 @@ public sealed class CommunicationsModuleApi(
         CancellationToken ct = default)
     {
         if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("A consulta não pode ser nula."));
-        if (query.PageNumber < 1) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O número da página deve ser pelo menos 1."));
-        if (query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O tamanho da página deve estar entre 1 e 100."));
+        if (query.PageNumber < 1 || query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Parâmetros de paginação inválidos."));
+        
+        var (items, totalCount) = await logQueries.SearchAsync(query, ct);
 
-        var (items, totalCount) = await logQueries.SearchAsync(
-            query.CorrelationId,
-            query.Channel,
-            query.Recipient,
-            query.IsSuccess,
-            query.PageNumber,
-            query.PageSize,
-            ct);
-
-        var dtos = items.Select(x => new CommunicationLogDto(
+        var dtos = (items ?? new List<CommunicationLog>()).Select(x => new CommunicationLogDto(
             x.Id,
             x.CorrelationId,
             x.Channel.ToString(),
@@ -117,7 +205,8 @@ public sealed class CommunicationsModuleApi(
             x.IsSuccess,
             x.ErrorMessage,
             x.AttemptCount,
-            x.CreatedAt)).ToList();
+            x.CreatedAt,
+            x.OutboxMessageId)).ToList();
 
         return Result<PagedResult<CommunicationLogDto>>.Success(new PagedResult<CommunicationLogDto>
         {
@@ -134,7 +223,10 @@ public sealed class CommunicationsModuleApi(
         ECommunicationPriority priority, 
         CancellationToken ct)
     {
-        var serializedPayload = JsonSerializer.Serialize(payload);
+        var payloadData = serializer.Serialize(payload);
+        var envelope = new MessageEnvelope(1, payloadData);
+        var serializedPayload = serializer.Serialize(envelope);
+        
         var message = OutboxMessage.Create(
             channel,
             serializedPayload,

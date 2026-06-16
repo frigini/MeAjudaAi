@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Communications.Application.Queries;
+using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +18,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
 
         var overrideTemplate = await dbContext.EmailTemplates
             .AsNoTracking()
+            .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync(x => x.OverrideKey == templateKeyLower
                                 && x.Language == languageLower
                                 && x.IsActive, cancellationToken);
@@ -25,6 +26,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
 
         return await dbContext.EmailTemplates
             .AsNoTracking()
+            .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync(x => x.TemplateKey == templateKeyLower
                                 && x.OverrideKey == null
                                 && x.Language == languageLower
@@ -50,6 +52,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
     {
         return await dbContext.EmailTemplates
             .AsNoTracking()
+            .Where(x => x.IsActive)
             .OrderBy(x => x.TemplateKey)
             .ThenBy(x => x.Language)
             .ToListAsync(cancellationToken);

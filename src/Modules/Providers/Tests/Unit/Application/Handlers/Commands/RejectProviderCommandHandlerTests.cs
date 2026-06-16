@@ -12,14 +12,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 public sealed class RejectProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RejectProviderCommandHandler>> _loggerMock;
     private readonly RejectProviderCommandHandler _handler;
 
     public RejectProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RejectProviderCommandHandler>>();
 
@@ -154,5 +154,6 @@ public sealed class RejectProviderCommandHandlerTests
         result.Error.Message.Should().Be("Falha ao rejeitar o fornecedor");
     }
 }
+
 
 

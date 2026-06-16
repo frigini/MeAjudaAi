@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -22,7 +23,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="documentsModuleApi">API do módulo Documents para validação de documentos</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class ActivateProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     IDocumentsModuleApi documentsModuleApi,
     ILogger<ActivateProviderCommandHandler> logger
 ) : ICommandHandler<ActivateProviderCommand, Result>
@@ -125,3 +126,5 @@ public sealed class ActivateProviderCommandHandler(
         return rejectedDocsValidation;
     }
 }
+
+

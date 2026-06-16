@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
 public sealed class RegisterProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     IProviderQueries providerQueries,
     ILogger<RegisterProviderCommandHandler> logger
 ) : ICommandHandler<RegisterProviderCommand, Result<ProviderDto>>
@@ -99,3 +100,5 @@ public sealed class RegisterProviderCommandHandler(
         }
     }
 }
+
+

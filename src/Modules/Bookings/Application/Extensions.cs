@@ -1,9 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Events;
 using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
@@ -26,7 +26,7 @@ public static class Extensions
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
 
         // Comandos
-        services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateBookingCommand, Result<ModuleBookingDto>>, CreateBookingCommandHandler>();
         services.AddScoped<ICommandHandler<SetProviderScheduleCommand, Result>, SetProviderScheduleCommandHandler>();
         services.AddScoped<ICommandHandler<ConfirmBookingCommand, Result>, ConfirmBookingCommandHandler>();
         services.AddScoped<ICommandHandler<CancelBookingCommand, Result>, CancelBookingCommandHandler>();
@@ -35,9 +35,9 @@ public static class Extensions
         
         // Consultas
         services.AddScoped<IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>, GetProviderAvailabilityQueryHandler>();
-        services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>, GetBookingByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>, GetBookingsByClientQueryHandler>();
-        services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>, GetBookingsByProviderQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<ModuleBookingDto>>, GetBookingByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<ModuleBookingDto>>>, GetBookingsByClientQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>, GetBookingsByProviderQueryHandler>();
 
         services.AddScoped<ProviderAuthorizationResolver>();
 

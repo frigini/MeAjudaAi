@@ -12,5 +12,6 @@ public sealed record CommunicationLogDto(
     bool IsSuccess,
     string? ErrorMessage,
     int AttemptCount,
-    DateTime SentAt
+    DateTime CreatedAt,
+    Guid? OutboxMessageId = null
 );

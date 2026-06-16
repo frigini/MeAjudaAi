@@ -26,5 +26,6 @@ public sealed record ProviderDto(
     DateTime? DeletedAt,
     bool IsActive,
     string? SuspensionReason = null,
-    string? RejectionReason = null
+    string? RejectionReason = null,
+    string? DeviceToken = null
 );

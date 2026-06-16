@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Moq;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.API;
 
@@ -10,6 +12,7 @@ public class ModuleExtensionsTests
 {
     private readonly IServiceCollection _services;
     private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment _environment;
 
     public ModuleExtensionsTests()
     {
@@ -20,13 +23,14 @@ public class ModuleExtensionsTests
                 { "ConnectionStrings:DefaultConnection", "Host=localhost;Database=test;Username=test;Password=test" }
             })
             .Build();
+        _environment = new Mock<IHostEnvironment>().Object;
     }
 
     [Fact]
     public void AddServiceCatalogsModule_ShouldReturnServiceCollection()
     {
         // Act
-        var result = MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration);
+        var result = MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration, _environment);
 
         // Assert
         result.Should().NotBeNull();
@@ -37,7 +41,7 @@ public class ModuleExtensionsTests
     public void AddServiceCatalogsModule_ShouldRegisterApplicationServices()
     {
         // Act
-        MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration);
+        MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration, _environment);
 
         // Assert
         _services.Should().Contain(s => s.ServiceType.Namespace != null &&
@@ -48,7 +52,7 @@ public class ModuleExtensionsTests
     public void AddServiceCatalogsModule_ShouldRegisterModuleApi()
     {
         // Act
-        MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration);
+        MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration, _environment);
 
         // Assert
         _services.Should().Contain(s => s.ServiceType == typeof(IServiceCatalogsModuleApi));
@@ -59,7 +63,7 @@ public class ModuleExtensionsTests
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(serviceCollection, _configuration);
+        MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(serviceCollection, _configuration, _environment);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
 

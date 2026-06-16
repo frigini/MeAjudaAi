@@ -1,3 +1,5 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -5,8 +7,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -22,7 +23,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="providerQueries">Serviço de consulta de prestadores</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class CreateProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     IProviderQueries providerQueries,
     ILogger<CreateProviderCommandHandler> logger
 ) : ICommandHandler<CreateProviderCommand, Result<ProviderDto>>
@@ -74,12 +75,25 @@ public sealed class CreateProviderCommandHandler(
 
             return Result<ProviderDto>.Success(provider.ToDto());
         }
+        catch (Domain.Exceptions.ProviderDomainException ex)
+        {
+            logger.LogWarning(ex, "Domain validation error creating provider for user {UserId}", command.UserId);
+            return Result<ProviderDto>.Failure(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogWarning(ex, "Invalid argument creating provider for user {UserId}", command.UserId);
+            return Result<ProviderDto>.Failure(ex.Message);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            logger.LogError(ex, "Database error creating provider for user {UserId}", command.UserId);
+            return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error creating provider for user {UserId}", command.UserId);
+            logger.LogError(ex, "Unexpected error creating provider for user {UserId}", command.UserId);
             return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
         }
     }
 }
-
-

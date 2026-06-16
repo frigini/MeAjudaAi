@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
@@ -11,10 +12,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public.Events;
 
+[ExcludeFromCodeCoverage]
 public class GetBookingEventsEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
@@ -53,7 +56,7 @@ public class GetBookingEventsEndpoint : IEndpoint
         var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
 
         var query = new GetBookingByIdQuery(id, userId, providerId, isSystemAdmin, correlationId);
-        var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<BookingDto>>(query, ct);
+        var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<ModuleBookingDto>>(query, ct);
 
         if (result.IsFailure)
         {

@@ -1,6 +1,6 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
@@ -9,7 +9,10 @@ using MeAjudaAi.Modules.Users.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,67 +20,42 @@ using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure;
 
+/// <summary>
+/// Métodos de extensão para registrar serviços de infraestrutura do módulo Users.
+/// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registra serviços de infraestrutura do módulo Users incluindo persistência, integração com Keycloak, serviços de domínio e manipuladores de eventos.
+    /// Registra todos os serviços de infraestrutura do módulo Users.
     /// </summary>
-    /// <param name="services">A coleção de serviços a ser configurada.</param>
-    /// <param name="configuration">A configuração da aplicação contendo configurações de banco de dados e Keycloak.</param>
-    /// <returns>A coleção de serviços configurada para encadeamento fluente.</returns>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        services.AddPersistence();
-        services.AddKeycloak(configuration);
-        services.AddDomainServices(configuration);
+        services.AddPersistence(configuration, environment);
+        services.AddServices(configuration);
         services.AddEventHandlers();
 
         return services;
     }
 
     /// <summary>
-    /// Determina se serviços mock do Keycloak devem ser usados com base na configuração.
-    /// Verifica se o Keycloak está explicitamente desabilitado ou se a configuração necessária está faltando.
+    /// Configura a persistência do banco de dados e repositórios do módulo.
     /// </summary>
-    private static bool ShouldUseMockKeycloakServices(IConfiguration configuration)
-    {
-        // Verifica se Keycloak está habilitado - verifica múltiplas variações da configuração
-        var keycloakEnabledString = configuration["Keycloak:Enabled"] ?? configuration["Keycloak__Enabled"];
-        var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
-
-        // Verifica também se existe uma seção de configuração do Keycloak com valores válidos
-        var keycloakSection = configuration.GetSection("Keycloak");
-        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
-
-        // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
-        return !keycloakEnabled || !hasValidKeycloakConfig;
-    }
-
-    private static IServiceCollection AddPersistence(this IServiceCollection services)
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
         {
-            // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
-            // Resolve a string de conexão a partir da configuração do DI, incluindo sobrescritas de testes
-            var resolvedConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
-            var connectionString = resolvedConfiguration.GetConnectionString("DefaultConnection")
-                                  ?? resolvedConfiguration.GetConnectionString("Users")
-                                  ?? resolvedConfiguration.GetConnectionString("meajudaai-db");
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                                  ?? configuration.GetConnectionString("Users")
+                                  ?? configuration.GetConnectionString("meajudaai-db");
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                var env = serviceProvider.GetService<IHostEnvironment>();
                 var isIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";
-                
-                if (isIntegrationTests && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(env))
+
+                if (isIntegrationTests && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
                 {
                     // Fallback para testes de integração quando a flag INTEGRATION_TESTS=true é definida
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
+                    connectionString = DatabaseConstants.DefaultTestConnectionString;
                 }
                 else
                 {
@@ -92,18 +70,14 @@ public static class Extensions
             {
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
-
-                // PERFORMANCE: Timeout mais longo para permitir criação do banco de dados
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()
-            // Configurações consistentes para evitar problemas com compiled queries
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = serviceProvider.GetService<IHostEnvironment>();
-            if (environment?.IsDevelopment() == true)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -125,20 +99,23 @@ public static class Extensions
             return context;
         });
 
-        // Registra processador de eventos de domínio (abordagem de injeção de dependência direta)
+        // Registra processador de eventos de domínio
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
-        // Registra o DbContext como IUnitOfWork
-        services.AddScoped<IUserUnitOfWork>(sp => (IUserUnitOfWork)sp.GetRequiredService<UsersDbContext>());
+        // Unit of Work e Repositórios
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
+        services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Users, (sp, key) => sp.GetRequiredService<UsersDbContext>());
 
-        // Queries
+        services.AddScoped<IRepository<User, Guid>>(sp => sp.GetRequiredService<UsersDbContext>());
+
+        // Consultas otimizadas
         services.AddScoped<IUserQueries, DbContextUserQueries>();
-
-        return services;
     }
 
-    private static IServiceCollection AddKeycloak(this IServiceCollection services, IConfiguration configuration)
+    /// <summary>
+    /// Configura os serviços de autenticação e domínio do módulo.
+    /// </summary>
+    private static void AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Sempre registra as opções do Keycloak
         services.AddSingleton(provider =>
@@ -154,46 +131,41 @@ public static class Extensions
         {
             // Registra serviço real quando Keycloak está habilitado e configurado
             services.AddHttpClient<IKeycloakService, KeycloakService>();
-        }
-        // Quando shouldUseMock é true, não registra nada (será necessário configurar manualmente para testes)
-
-        return services;
-    }
-
-    private static IServiceCollection AddDomainServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        var shouldUseMock = ShouldUseMockKeycloakServices(configuration);
-
-        if (!shouldUseMock)
-        {
-            // Registra serviços reais quando Keycloak está habilitado e configurado
             services.AddScoped<IUserDomainService, KeycloakUserDomainService>();
             services.AddScoped<IAuthenticationDomainService, KeycloakAuthenticationDomainService>();
         }
         else
         {
-            // Registra implementações de desenvolvimento local quando Keycloak não está disponível ou configurado
+            // Registra implementações de desenvolvimento local quando Keycloak não está disponível
             services.AddScoped<IUserDomainService, LocalDevelopmentUserDomainService>();
             services.AddScoped<IAuthenticationDomainService, LocalDevelopmentAuthenticationDomainService>();
         }
-
-        return services;
     }
 
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    /// <summary>
+    /// Determina se serviços mock do Keycloak devem ser usados com base na configuração.
+    /// </summary>
+    private static bool ShouldUseMockKeycloakServices(IConfiguration configuration)
     {
-        // Event Handlers específicos do módulo Users
+        var keycloakEnabledString = configuration["Keycloak:Enabled"] ?? configuration["Keycloak__Enabled"];
+        var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
+
+        var keycloakSection = configuration.GetSection("Keycloak");
+        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
+
+        return !keycloakEnabled || !hasValidKeycloakConfig;
+    }
+
+    /// <summary>
+    /// Adiciona os Event Handlers do módulo Users.
+    /// </summary>
+    private static void AddEventHandlers(this IServiceCollection services)
+    {
         services.AddScoped<IEventHandler<UserRegisteredDomainEvent>, UserRegisteredDomainEventHandler>();
         services.AddScoped<IEventHandler<UserProfileUpdatedDomainEvent>, UserProfileUpdatedDomainEventHandler>();
         services.AddScoped<IEventHandler<UserDeletedDomainEvent>, UserDeletedDomainEventHandler>();
-
-        return services;
     }
 }
-
-
-
-
-
-
-

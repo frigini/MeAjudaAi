@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 

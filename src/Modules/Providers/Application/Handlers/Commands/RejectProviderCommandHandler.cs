@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -12,7 +13,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de rejeição de prestadores.
 /// </summary>
 public sealed class RejectProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<RejectProviderCommandHandler> logger
 ) : ICommandHandler<RejectProviderCommand, Result>
 {
@@ -56,3 +57,5 @@ public sealed class RejectProviderCommandHandler(
         }
     }
 }
+
+

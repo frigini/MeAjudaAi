@@ -14,4 +14,3 @@ public enum ESubscriptionTier
     Gold = 2,
     Platinum = 3
 }
-

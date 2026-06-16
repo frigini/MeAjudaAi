@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -23,7 +24,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 /// <param name="localizer">Localizador de strings</param>
 public sealed class RequireBasicInfoCorrectionCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<RequireBasicInfoCorrectionCommandHandler> logger,
     IStringLocalizer<Strings> localizer
 ) : ICommandHandler<RequireBasicInfoCorrectionCommand, Result>
@@ -87,3 +88,5 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
         }
     }
 }
+
+

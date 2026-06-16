@@ -161,9 +161,16 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TemplateKey", "Language", "OverrideKey")
                         .IsUnique()
-                        .HasDatabaseName("ix_email_templates_template_key_language_override_key");
+                        .HasFilter("is_active = true AND override_key IS NOT NULL")
+                        .HasDatabaseName("ix_email_templates_active_per_key_language_override");
 
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("TemplateKey", "Language", "OverrideKey"), false);
+                    b.HasIndex("TemplateKey", "Language")
+                        .IsUnique()
+                        .HasFilter("is_active = true AND override_key IS NULL")
+                        .HasDatabaseName("ix_email_templates_active_per_key_language_no_override");
+
+                    b.HasIndex("TemplateKey", "Language", "Version")
+                        .HasDatabaseName("ix_email_templates_template_key_language_version");
 
                     b.ToTable("email_templates", "communications");
                 });

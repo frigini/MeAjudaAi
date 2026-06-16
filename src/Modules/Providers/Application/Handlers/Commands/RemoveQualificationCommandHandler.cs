@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -16,7 +17,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado</param>
 public sealed class RemoveQualificationCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     ILogger<RemoveQualificationCommandHandler> logger
 ) : ICommandHandler<RemoveQualificationCommand, Result<ProviderDto>>
 {
@@ -35,20 +36,33 @@ public sealed class RemoveQualificationCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Provider not found");
+                return Result<ProviderDto>.Failure("Fornecedor não encontrado");
             }
 
-            provider.RemoveQualification(command.QualificationName);
+            try 
+            {
+                provider.RemoveQualification(command.QualificationName);
+            }
+            catch (MeAjudaAi.Modules.Providers.Domain.Exceptions.ProviderDomainException)
+            {
+                return Result<ProviderDto>.Failure("Qualificação não encontrada");
+            }
 
             await uow.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Qualification removed successfully from provider {ProviderId}", command.ProviderId);
             return Result<ProviderDto>.Success(provider.ToDto());
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing qualification from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("An error occurred while removing the qualification");
+            return Result<ProviderDto>.Failure("Erro ao remover qualificação");
         }
     }
 }
+
+

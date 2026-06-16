@@ -75,7 +75,6 @@ public static class UsersTestInfrastructureExtensions
 
         // Adicionar IUnitOfWork e IUserQueries específicos do Users
         services.AddScoped<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
-        services.AddScoped<MeAjudaAi.Modules.Users.Application.Queries.IUserUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
         services.AddScoped<MeAjudaAi.Modules.Users.Application.Queries.IUserQueries, MeAjudaAi.Modules.Users.Infrastructure.Queries.DbContextUserQueries>();
 
         // Adicionar serviços de aplicação (incluindo IUsersModuleApi)

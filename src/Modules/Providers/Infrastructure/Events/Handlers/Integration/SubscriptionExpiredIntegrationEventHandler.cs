@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +14,19 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// </summary>
 public sealed class SubscriptionExpiredIntegrationEventHandler(
     ProvidersDbContext dbContext,
+    IIdempotencyRepository idempotencyRepository,
     ILogger<SubscriptionExpiredIntegrationEventHandler> logger) : IEventHandler<SubscriptionExpiredIntegrationEvent>
 {
     public async Task HandleAsync(SubscriptionExpiredIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var correlationId = integrationEvent.SubscriptionId.ToString();
+            var correlationId = $"{integrationEvent.SubscriptionId}_{integrationEvent.Id}";
             logger.LogInformation("Handling SubscriptionExpiredIntegrationEvent for user {UserId}", integrationEvent.UserId);
 
             // Verificar idempotência
-            if (await dbContext.ProcessedIntegrationEvents.AnyAsync(e => e.CorrelationId == correlationId, cancellationToken))
+            if (await idempotencyRepository.IsProcessedAsync(correlationId, cancellationToken))
             {
                 logger.LogInformation("Event {CorrelationId} already processed.", correlationId);
                 return;
@@ -42,14 +44,16 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
             provider.DemoteTier(EProviderTier.Standard, "payments-integration-expired");
             
             // Registrar processamento
-            dbContext.ProcessedIntegrationEvents.Add(new ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
+            await idempotencyRepository.MarkAsProcessedAsync(correlationId, cancellationToken);
             
             await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             
             logger.LogInformation("Demoted provider {ProviderId} to Standard tier.", provider.Id);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Error handling SubscriptionExpiredIntegrationEvent for user {UserId}", integrationEvent.UserId);
             throw;
         }

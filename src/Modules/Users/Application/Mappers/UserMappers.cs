@@ -14,6 +14,7 @@ public static class UserMappers
             user.FirstName,
             user.LastName,
             user.GetFullName(),
+            user.DeviceToken,
             user.KeycloakId,
             user.CreatedAt,
             user.UpdatedAt

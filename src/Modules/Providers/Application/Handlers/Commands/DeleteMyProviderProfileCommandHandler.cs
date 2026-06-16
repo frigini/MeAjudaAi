@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -12,7 +13,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Handler responsável por processar comandos de exclusão de perfil pelo próprio prestador de serviços.
 /// </summary>
 public sealed class DeleteMyProviderProfileCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     TimeProvider dateTimeProvider,
     ILogger<DeleteMyProviderProfileCommandHandler> logger
 ) : ICommandHandler<DeleteMyProviderProfileCommand, Result>
@@ -40,8 +41,10 @@ public sealed class DeleteMyProviderProfileCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao excluir o perfil do prestador {ProviderId}", command.ProviderId);
-            return Result.Failure("Erro ao excluir o perfil do prestador");
+            logger.LogError(ex, "Error deleting provider profile {ProviderId}", command.ProviderId);
+            return Result.Failure("Error deleting provider profile");
         }
     }
 }
+
+

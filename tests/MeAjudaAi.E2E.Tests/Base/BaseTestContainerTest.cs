@@ -27,7 +27,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using Testcontainers.Azurite;
+using System.Text.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -47,7 +47,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     // Static containers shared across all tests
     private static PostgreSqlContainer? _postgresContainer;
     private static RedisContainer? _redisContainer;
-    private static AzuriteContainer? _azuriteContainer;
 
     /// <summary>
     /// Sobrescreva em classes derivadas para habilitar o message bus em memória síncrono e eventos de domínio.
@@ -97,18 +96,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                             .Build();
                     }
 
-                    if (_azuriteContainer == null)
-                    {
-                        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
-                            .WithCleanUp(true)
-                            .Build();
-                    }
-
                     // Start containers in parallel
                     var tasks = new List<Task>();
                     tasks.Add(_postgresContainer.StartAsync());
                     tasks.Add(_redisContainer.StartAsync());
-                    tasks.Add(_azuriteContainer.StartAsync());
 
                     await Task.WhenAll(tasks);
 
@@ -155,7 +146,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ConnectionStrings:RatingsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:DocumentsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer!.GetConnectionString(),
-                        ["Azure:Storage:ConnectionString"] = _azuriteContainer!.GetConnectionString(),
+                        ["Azure:Storage:ConnectionString"] = "UseDevelopmentStorage=true",
                         ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
@@ -214,6 +205,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureDbContext<BookingsDbContext>(services);
                     ReconfigureDbContext<SearchProvidersDbContext>(services);
+
+                    // Replace the last non-keyed IUnitOfWork (LocationsDbContext) with CompositeTestUnitOfWork
+                    // to resolve the correct DbContext per aggregate type
+                    TestServiceHelpers.RemoveAllUnitOfWorkRegistrations(services);
+                    services.AddScoped<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>(sp =>
+                        new CompositeTestUnitOfWork(sp));
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
                     var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -712,6 +709,18 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
         var newDescriptor = new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime);
         services.Add(newDescriptor);
+    }
+
+    /// <summary>
+    /// Extrai o objeto de dados de uma resposta JSON, suportando formatos { "value": {...} }, { "data": {...} } ou objeto direto.
+    /// </summary>
+    protected static JsonElement GetResponseData(JsonElement response)
+    {
+        if (response.TryGetProperty("value", out var value))
+            return value;
+        if (response.TryGetProperty("data", out var data))
+            return data;
+        return response;
     }
 }
 

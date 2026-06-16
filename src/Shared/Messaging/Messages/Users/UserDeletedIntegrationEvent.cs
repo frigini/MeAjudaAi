@@ -11,5 +11,7 @@ public sealed record UserDeletedIntegrationEvent
 (
     string Source,
     Guid UserId,
+    string Email,
+    string FirstName,
     DateTime DeletedAt
 ) : IntegrationEvent(Source);

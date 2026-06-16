@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
 
 public class ActivateProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<IDocumentsModuleApi> _documentsModuleApiMock;
     private readonly Mock<ILogger<ActivateProviderCommandHandler>> _loggerMock;
@@ -22,7 +22,7 @@ public class ActivateProviderCommandHandlerTests
 
     public ActivateProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _documentsModuleApiMock = new Mock<IDocumentsModuleApi>();
         _loggerMock = new Mock<ILogger<ActivateProviderCommandHandler>>();
@@ -202,5 +202,6 @@ public class ActivateProviderCommandHandlerTests
          );
     }
 }
+
 
 

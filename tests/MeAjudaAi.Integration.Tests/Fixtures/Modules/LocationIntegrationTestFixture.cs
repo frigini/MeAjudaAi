@@ -3,7 +3,9 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
@@ -36,6 +38,8 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
 
+        var environment = new Mock<IHostEnvironment>().Object;
+
         // Adiciona cache em memória para testes
         services.AddMemoryCache();
         services.AddHybridCache(options =>
@@ -50,7 +54,7 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         services.AddSingleton<ICacheService, HybridCacheService>();
 
         // Adiciona serviços do módulo Locations PRIMEIRO
-        MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration);
+        MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration, environment);
 
         // DEPOIS configura os clientes HTTP com mocks (sobrescreve os handlers)
         HttpMockBuilder = new MockHttpClientBuilder(services);

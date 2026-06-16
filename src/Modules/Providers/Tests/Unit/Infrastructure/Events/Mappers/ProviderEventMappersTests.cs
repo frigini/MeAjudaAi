@@ -39,12 +39,13 @@ public class ProviderEventMappersTests
         var domainEvent = new ProviderDeletedDomainEvent(providerId, 1, "Test Provider", userId.ToString());
 
         // Act
-        var result = domainEvent.ToIntegrationEvent(userId);
+        var result = domainEvent.ToIntegrationEvent(userId, "test@test.com");
 
         // Assert
         result.Source.Should().Be("Providers");
         result.ProviderId.Should().Be(providerId);
         result.UserId.Should().Be(userId);
+        result.Email.Should().Be("test@test.com");
         result.Name.Should().Be("Test Provider");
         result.Reason.Should().Be("Provider deleted");
         result.DeletedBy.Should().Be(userId.ToString());

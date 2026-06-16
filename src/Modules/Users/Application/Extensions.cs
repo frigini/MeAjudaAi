@@ -1,3 +1,7 @@
+using FluentValidation;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -7,11 +11,7 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Implementations;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules.Users;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
-using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Application;
@@ -37,6 +37,7 @@ public static class Extensions
         services.AddScoped<ICommandHandler<ChangeUserEmailCommand, Result<UserDto>>, ChangeUserEmailCommandHandler>();
         services.AddScoped<ICommandHandler<ChangeUserUsernameCommand, Result<UserDto>>, ChangeUserUsernameCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterCustomerCommand, Result<UserDto>>, RegisterCustomerCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateUserDeviceTokenCommand, Result>, UpdateUserDeviceTokenCommandHandler>();
 
         // Cache Services específicos do módulo
         services.AddScoped<IUsersCacheService, UsersCacheService>();

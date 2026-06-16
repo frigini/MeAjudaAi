@@ -17,5 +17,5 @@ public sealed record ModuleProviderDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     bool IsActive,
-    string? Phone = null);
-
+    string? Phone = null,
+    string? DeviceToken = null);

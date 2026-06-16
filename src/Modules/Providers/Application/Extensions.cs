@@ -1,18 +1,20 @@
-using System.Reflection;
-using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
-using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Events;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
+using MeAjudaAi.Modules.Providers.Application.ModuleApi;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Events;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.Providers.Application;
 
@@ -47,10 +49,16 @@ public static class Extensions
         services.AddScoped<ICommandHandler<RemoveServiceFromProviderCommand, Result>, RemoveServiceFromProviderCommandHandler>();
         services.AddScoped<ICommandHandler<ActivateProviderProfileCommand, Result>, ActivateProviderProfileCommandHandler>();
         services.AddScoped<ICommandHandler<DeactivateProviderProfileCommand, Result>, DeactivateProviderProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateProviderDeviceTokenCommand, Result>, UpdateProviderDeviceTokenCommandHandler>();
+        services.AddScoped<ICommandHandler<ActivateProviderCommand, Result>, ActivateProviderCommandHandler>();
+        services.AddScoped<ICommandHandler<CompleteBasicInfoCommand, Result>, CompleteBasicInfoCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteMyProviderProfileCommand, Result>, DeleteMyProviderProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<RejectProviderCommand, Result>, RejectProviderCommandHandler>();
+        services.AddScoped<ICommandHandler<RequireBasicInfoCorrectionCommand, Result>, RequireBasicInfoCorrectionCommandHandler>();
+        services.AddScoped<ICommandHandler<SuspendProviderCommand, Result>, SuspendProviderCommandHandler>();
 
         // Module API - registro da API pública para comunicação entre módulos
-        services.AddScoped<MeAjudaAi.Contracts.Modules.Providers.IProvidersModuleApi,
-            MeAjudaAi.Modules.Providers.Application.ModuleApi.ProvidersModuleApi>();
+        services.AddScoped<IProvidersModuleApi, ProvidersModuleApi>();
 
         // Validators - registro dos validadores FluentValidation
         services.AddModuleValidators(Assembly.GetExecutingAssembly());

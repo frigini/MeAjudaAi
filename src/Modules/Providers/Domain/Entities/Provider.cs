@@ -95,6 +95,11 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public IReadOnlyCollection<ProviderService> Services => _services.AsReadOnly();
 
     /// <summary>
+    /// Token do dispositivo para notificações push (opcional).
+    /// </summary>
+    public string? DeviceToken { get; private set; }
+
+    /// <summary>
     /// Indica se o prestador de serviços foi excluído logicamente do sistema.
     /// </summary>
     public bool IsDeleted { get; private set; }
@@ -813,6 +818,19 @@ public sealed class Provider : AggregateRoot<ProviderId>
         // Limpa o motivo de rejeição se não estiver mais no estado Rejected
         if (newStatus != EProviderStatus.Rejected)
             RejectionReason = null;
+    }
+
+    /// <summary>
+    /// Atualiza o token do dispositivo para notificações push.
+    /// </summary>
+    /// <param name="deviceToken">Token do dispositivo. Passar null ou vazio para limpar o token.</param>
+    public void UpdateDeviceToken(string? deviceToken)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update device token of deleted provider");
+
+        DeviceToken = string.IsNullOrWhiteSpace(deviceToken) ? null : deviceToken;
+        MarkAsUpdated();
     }
 
     /// <summary>

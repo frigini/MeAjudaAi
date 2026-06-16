@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Payments;
 

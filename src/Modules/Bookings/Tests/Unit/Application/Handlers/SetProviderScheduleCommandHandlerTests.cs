@@ -1,9 +1,10 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Application.Validators;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -100,25 +101,23 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_Availabilities_Is_Null()
+    public void Should_Fail_When_Availabilities_Is_Null()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var command = new SetProviderScheduleCommand(providerId, null!, Guid.NewGuid());
 
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
         // Act
-        var result = await _sut.HandleAsync(command);
+        var validator = new SetProviderScheduleCommandValidator();
+        var result = validator.Validate(command);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("A lista de disponibilidades não pode ser nula.");
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(SetProviderScheduleCommand.Availabilities));
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_Availabilities_Contains_Null()
+    public void Should_Fail_When_Availabilities_Contains_Null()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -133,15 +132,13 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         
         var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
 
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
         // Act
-        var result = await _sut.HandleAsync(command);
+        var validator = new SetProviderScheduleCommandValidator();
+        var result = validator.Validate(command);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Uma das disponibilidades fornecidas é nula.");
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.ErrorMessage == "Item de disponibilidade não pode ser nulo.");
     }
 
     [Fact]
@@ -225,5 +222,67 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos.");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenConflictOnAdd_ShouldFallbackToUpdate()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var availabilities = new List<AvailabilityDto>
+        {
+            new(DayOfWeek.Monday, new List<AvailableSlotDto>
+            {
+                new(DateTimeOffset.UtcNow.Date.AddHours(8), DateTimeOffset.UtcNow.Date.AddHours(12))
+            })
+        };
+
+        var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var existingSchedule = ProviderSchedule.Create(providerId, "UTC");
+        _scheduleQueriesMock.SetupSequence(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ProviderSchedule?)null)
+            .ReturnsAsync(existingSchedule);
+
+        _uowMock.SetupSequence(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("conflict"))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenSaveChangesThrows_ShouldReturnInternalError()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var availabilities = new List<AvailabilityDto>
+        {
+            new(DayOfWeek.Monday, new List<AvailableSlotDto>
+            {
+                new(DateTimeOffset.UtcNow.Date.AddHours(8), DateTimeOffset.UtcNow.Date.AddHours(12))
+            })
+        };
+
+        var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _scheduleQueriesMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProviderSchedule.Create(providerId));
+
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _sut.HandleAsync(command));
     }
 }

@@ -35,7 +35,7 @@ public class BookingsModuleApiTests : BaseApiTest
         }
 
         // Act
-        var result = default(Result<BookingDto>);
+        var result = default(Result<ModuleBookingDto>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
@@ -55,7 +55,7 @@ public class BookingsModuleApiTests : BaseApiTest
         var bookingId = Guid.NewGuid();
 
         // Act
-        var result = default(Result<BookingDto>);
+        var result = default(Result<ModuleBookingDto>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
@@ -85,7 +85,7 @@ public class BookingsModuleApiTests : BaseApiTest
         }
 
         // Act
-        var result = default(Result<IReadOnlyList<BookingDto>>);
+        var result = default(Result<IReadOnlyList<ModuleBookingDto>>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();
@@ -188,7 +188,7 @@ public class BookingsModuleApiTests : BaseApiTest
         }
 
         // Act
-        var result = default(Result<IReadOnlyList<BookingDto>>);
+        var result = default(Result<IReadOnlyList<ModuleBookingDto>>);
         using (var scope = Services.CreateScope())
         {
             var bookingsApi = scope.ServiceProvider.GetRequiredService<IBookingsModuleApi>();

@@ -6,9 +6,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Junho 2026)
 
-**Sprint Atual**: Sprint 14 (Finalização)
+**Sprint Atual**: Sprint 14.6 (Planejada)
 
-**Status**: 🚀 Em Execução
+**Status**: 📋 Planejamento
 
 **Meta MVP**: 12 a 16 de maio de 2026 (Concluída)
 
@@ -21,6 +21,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 | Sprint | Foco | Status |
 |--------|------|--------|
 | **14** | **Auditoria de Débitos Técnicos** | 🚀 Em Execução |
+| **14.6** | **Padrão Builder — Domínio Compartilhado** | 📋 Planejada |
 
 ### Detalhes Sprint 14
 - ✅ **Concluído**: Padronização de Infraestrutura e Autorização.
@@ -40,6 +41,23 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
         - **Resiliência Crítica (Concluído)**: ✅ Persistência via Quorum Queues para eventos `[CriticalEvent]`.
         - **Roteamento por Atributo (Concluído)**: ✅ Suporte total a tópicos dedicados via `AttributeTopicNameConvention`.
 
+### Detalhes Sprint 14.6 — Padrão Builder
+
+**Objetivo**: Criar builders de domínio reutilizáveis em `MeAjudaAi.Shared.Tests` para eliminar criação inline de entidades nos testes e padronizar o padrão de construção.
+
+| Fase | Escopo | Status |
+|------|--------|--------|
+| **Fase 1** | Builders novos: Bookings (BookingBuilder, ProviderScheduleBuilder, TimeSlotBuilder, AvailabilityBuilder) | 📋 Planejada |
+| **Fase 2** | Builders novos: Communications (EmailTemplateBuilder, CommunicationLogBuilder, OutboxMessageBuilder, EmailOutboxPayloadBuilder, SmsOutboxPayloadBuilder, PushOutboxPayloadBuilder) | 📋 Planejada |
+| **Fase 3** | Migração de builders existentes (Users, Providers, ServiceCatalogs) para Shared.Tests | 📋 Planejada |
+| **Fase 4** | Validação, limpeza e padronização (DocumentBuilder, SerializerMockBuilder) | 📋 Planejada |
+
+**Métricas**:
+- ~164 ocorrências de criação inline a substituir
+- 16 builders a criar
+- ~50 arquivos de teste a atualizar
+- Plano detalhado: `prompts/implementacao-padrao-builders.md`
+
 ---
 
 ## 🔮 Roadmaps Futuros (Além do MVP)
@@ -58,6 +76,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 - **Evolução de APIs Públicas**:
     - `IPaymentsModuleApi`: Avaliar `GetSubscriptionStatusAsync` caso surja consumidor específico para apenas o status.
     - `ICommunicationsModuleApi`: Melhorar documentação de finalidade (uso interno vs admin).
+    - `IUsersApi`: Implementar SDK para gestão de usuários (CRUD, perfil, autenticação).
 - **Analytics & Reports (Novo)**: 
     - **Provedores**: Dashboards de conversão (cliques vs. agendamentos), métricas de faturamento e avaliação média temporal.
     - **Administração**: Relatórios de crescimento da plataforma, hotspots geográficos de demanda e exportação de dados para contabilidade (CSV/PDF).
@@ -68,6 +87,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
+- **Sprint 14.5**: Code review e correções — regex Language validator (case-insensitive), remoção de testes duplicados, fix de mock de payload inválido em OutboxProcessorServiceTests, correção de 3 integration event handlers (BookingCreated, ProviderRegistered, UserProfileUpdated) para não envolver não-DbUpdateException, renomeação de teste misleading.
 - **Sprint 14**: Infraestrutura e Acesso, Padronização de API, Core Integration Events.
 - **Sprint 13**: RabbitMQ Excellence (infraestrutura real com RabbitMqInfrastructureManager, deadlocks corrigidos, dispose seguro), i18n mocks para testes (Provider/Admin/Customer), fail-fast em DI de Messaging.
 - **Sprint 12**: Bookings Module completo, Command Handlers (Reject/Complete), queries de listagem, automação com Domain Events, integração frontend de agenda.

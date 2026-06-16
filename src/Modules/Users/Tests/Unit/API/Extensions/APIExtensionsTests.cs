@@ -2,6 +2,8 @@ using MeAjudaAi.Modules.Users.API;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Moq;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API.Extensions;
 
@@ -14,6 +16,8 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.API.Extensions;
 [Trait("Component", "Extensions")]
 public class APIExtensionsTests
 {
+    private readonly IHostEnvironment _environment = new Mock<IHostEnvironment>().Object;
+
     [Fact]
     public void AddUsersModule_ShouldRegisterServices()
     {
@@ -26,9 +30,10 @@ public class APIExtensionsTests
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
+        var environment = new Mock<IHostEnvironment>().Object;
 
         // Act
-        var result = services.AddUsersModule(configuration);
+        var result = services.AddUsersModule(configuration, environment);
 
         // Assert
         result.Should().BeSameAs(services);
@@ -53,7 +58,7 @@ public class APIExtensionsTests
             .Build();
 
         // Act
-        var result = await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
+        var result = await services.AddUsersModuleWithSchemaIsolationAsync(configuration, _environment);
 
         // Assert
         result.Should().BeSameAs(services);
@@ -76,6 +81,7 @@ public class APIExtensionsTests
         // Act & Assert
         var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(
             configuration,
+            _environment,
             usersRolePassword: null,
             appRolePassword: null);
 
@@ -108,7 +114,7 @@ public class APIExtensionsTests
         IConfiguration configuration = null!;
 
         // Act & Assert
-        var act = () => services.AddUsersModule(configuration);
+        var act = () => services.AddUsersModule(configuration, _environment);
         act.Should().Throw<ArgumentNullException>();
     }
 
@@ -120,7 +126,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder().Build();
 
         // Act & Assert
-        var act = () => services.AddUsersModule(configuration);
+        var act = () => services.AddUsersModule(configuration, _environment);
         act.Should().Throw<ArgumentNullException>();
     }
 
@@ -132,7 +138,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder().Build();
 
         // Act & Assert
-        var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
+        var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(configuration, _environment);
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
@@ -144,7 +150,7 @@ public class APIExtensionsTests
         IConfiguration configuration = null!;
 
         // Act & Assert
-        var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
+        var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(configuration, _environment);
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
@@ -174,7 +180,7 @@ public class APIExtensionsTests
             .Build();
 
         // Act
-        var result = services.AddUsersModule(configuration);
+        var result = services.AddUsersModule(configuration, _environment);
 
         // Assert
         result.Should().BeSameAs(services);
@@ -198,8 +204,8 @@ public class APIExtensionsTests
         // Act & Assert
         var act = () =>
         {
-            services.AddUsersModule(configuration);
-            services.AddUsersModule(configuration);
+            services.AddUsersModule(configuration, _environment);
+            services.AddUsersModule(configuration, _environment);
         };
 
         act.Should().NotThrow();

@@ -8,4 +8,3 @@ namespace MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 public sealed record ModuleLocationDto(
     double Latitude,
     double Longitude);
-

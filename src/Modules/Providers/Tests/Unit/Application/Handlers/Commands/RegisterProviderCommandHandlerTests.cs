@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Category", "Unit")]
 public class RegisterProviderCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<RegisterProviderCommandHandler>> _loggerMock;
@@ -23,7 +23,7 @@ public class RegisterProviderCommandHandlerTests
 
     public RegisterProviderCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<RegisterProviderCommandHandler>>();
@@ -258,6 +258,7 @@ public class RegisterProviderCommandHandlerTests
         return new DbUpdateException("Unique constraint violation", pgEx);
     }
 }
+
 
 
 

@@ -10,14 +10,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
 public sealed class CompleteBasicInfoCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>> _mockRepository;
     private readonly Mock<ILogger<CompleteBasicInfoCommandHandler>> _mockLogger;
     private readonly CompleteBasicInfoCommandHandler _handler;
 
     public CompleteBasicInfoCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _mockRepository = new Mock<IRepository<MeAjudaAi.Modules.Providers.Domain.Entities.Provider, MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>>();
         _mockLogger = new Mock<ILogger<CompleteBasicInfoCommandHandler>>();
 
@@ -96,5 +96,6 @@ public sealed class CompleteBasicInfoCommandHandlerTests
         result.Error.Message.Should().Be("Failed to complete provider basic info");
     }
 }
+
 
 

@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 [Trait("Layer", "Application")]
 public class RequireBasicInfoCorrectionCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RequireBasicInfoCorrectionCommandHandler>> _loggerMock;
     private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
@@ -26,7 +26,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
     public RequireBasicInfoCorrectionCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RequireBasicInfoCorrectionCommandHandler>>();
         _localizerMock = new Mock<IStringLocalizer<Strings>>();
@@ -313,5 +313,6 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         correctionEvent.RequestedBy.Should().Be("verifier@test.com");
     }
 }
+
 
 

@@ -12,5 +12,3 @@ public partial class CommunicationsDbContext : IRepository<CommunicationLog, Gui
     void IRepository<CommunicationLog, Guid>.Add(CommunicationLog aggregate) => CommunicationLogs.Add(aggregate);
     void IRepository<CommunicationLog, Guid>.Delete(CommunicationLog aggregate) => CommunicationLogs.Remove(aggregate);
 }
-
-

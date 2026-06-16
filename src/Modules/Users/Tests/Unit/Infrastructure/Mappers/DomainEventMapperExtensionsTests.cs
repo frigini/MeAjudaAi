@@ -59,11 +59,13 @@ public class DomainEventMapperExtensionsTests
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         // Act
-        var result = domainEvent.ToIntegrationEvent();
+        var result = domainEvent.ToIntegrationEvent("john@example.com", "John");
 
         // Assert
         result.Source.Should().Be("Users");
         result.UserId.Should().Be(userId);
+        result.Email.Should().Be("john@example.com");
+        result.FirstName.Should().Be("John");
         result.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 

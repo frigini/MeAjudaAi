@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Ratings;
 

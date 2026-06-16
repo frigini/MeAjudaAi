@@ -89,9 +89,8 @@ public sealed class PermissionClaimsTransformation(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to transform claims for user {UserId}", userId);
-            // Emite métrica de erro inesperado
             metrics.RecordPerformanceStats("claims_transformation_failure", 1, "error");
-            throw;
+            return principal;
         }
     }
 

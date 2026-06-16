@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 
 /// <summary>
-/// Stub para envio de notificaÃ§Ãµes push na infraestrutura.
+/// Stub para envio de notificações push na infraestrutura.
 /// </summary>
-public sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
+internal sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
 {
     public async Task<bool> SendAsync(PushNotification notification, CancellationToken cancellationToken = default)
     {
@@ -15,4 +15,3 @@ public sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
         return true;
     }
 }
-

@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
-using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
@@ -14,7 +13,6 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 public static class SharedTestContainers
 {
     private static PostgreSqlContainer? _postgreSqlContainer;
-    private static AzuriteContainer? _azuriteContainer;
     private static RabbitMqContainer? _rabbitMqContainer;
     private static TestDatabaseOptions? _databaseOptions;
     private static readonly Lock _lock = new();
@@ -29,18 +27,6 @@ public static class SharedTestContainers
         {
             EnsureInitialized();
             return _postgreSqlContainer!;
-        }
-    }
-
-    /// <summary>
-    /// Container Azurite (Azure Storage Emulator) compartilhado para testes de upload/blob storage
-    /// </summary>
-    public static AzuriteContainer Azurite
-    {
-        get
-        {
-            EnsureInitialized();
-            return _azuriteContainer!;
         }
     }
 
@@ -97,12 +83,6 @@ public static class SharedTestContainers
                 .WithPassword(_databaseOptions.Password)
                 .Build();
 
-            // Azurite (Azure Storage Emulator) para testes de blob storage/documents
-            // Expõe serviços Blob, Queue e Table
-            // Pinned to 3.33.0 for stability - matches production CI/CD environment
-            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
-                .Build();
-
             // RabbitMQ para testes de mensageria
             _rabbitMqContainer = new RabbitMqBuilder("rabbitmq:4.0.9-management")
                 .WithUsername("guest")
@@ -123,14 +103,12 @@ public static class SharedTestContainers
         // Inicia containers em paralelo para performance
         await Task.WhenAll(
             _postgreSqlContainer!.StartAsync(),
-            _azuriteContainer!.StartAsync(),
             _rabbitMqContainer!.StartAsync()
         );
 
         // Verifica se os containers estão realmente prontos
         await Task.WhenAll(
             ValidateContainerHealthAsync(),
-            ValidateAzuriteHealthAsync(),
             ValidateRabbitMqHealthAsync()
         );
     }
@@ -167,55 +145,19 @@ public static class SharedTestContainers
     }
 
     /// <summary>
-    /// Valida se o container Azurite está saudável e pronto para conexões
-    /// </summary>
-    private static async Task ValidateAzuriteHealthAsync()
-    {
-        if (_azuriteContainer == null) return;
-
-        const int maxRetries = 30;
-        const int delayMs = 1000;
-
-        for (int i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                // Tenta verificar se as portas do Azurite estão mapeadas
-                var blobPort = _azuriteContainer.GetMappedPublicPort(10000);
-                var queuePort = _azuriteContainer.GetMappedPublicPort(10001);
-                var tablePort = _azuriteContainer.GetMappedPublicPort(10002);
-
-                // Se conseguiu obter todas as portas, o container está pronto
-                Console.WriteLine($"Container Azurite ready! Blob: {blobPort}, Queue: {queuePort}, Table: {tablePort}");
-                return;
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine($"Azurite not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
-                await Task.Delay(delayMs);
-            }
-        }
-
-        throw new InvalidOperationException("Azurite container failed to become ready after maximum retries.");
-    }
-
-    /// <summary>
     /// Para todos os containers
     /// </summary>
     public static async Task StopAllAsync()
     {
         if (!_isInitialized) return;
 
-        var stopTasks = new List<Task>();
+            var stopTasks = new List<Task>();
 
-        if (_postgreSqlContainer != null)
-            stopTasks.Add(_postgreSqlContainer.StopAsync());
+            if (_postgreSqlContainer != null)
+                stopTasks.Add(_postgreSqlContainer.StopAsync());
 
-        if (_azuriteContainer != null)
-            stopTasks.Add(_azuriteContainer.StopAsync());
-
-        if (_rabbitMqContainer != null)
-            stopTasks.Add(_rabbitMqContainer.StopAsync());
+            if (_rabbitMqContainer != null)
+                stopTasks.Add(_rabbitMqContainer.StopAsync());
 
         await Task.WhenAll(stopTasks);
     }

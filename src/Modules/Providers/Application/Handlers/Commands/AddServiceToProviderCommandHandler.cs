@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
@@ -14,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// Valida os serviços via IServiceCatalogsModuleApi antes de permitir a associação.
 /// </summary>
 public sealed class AddServiceToProviderCommandHandler(
-    IProviderUnitOfWork uow,
+    IUnitOfWork uow,
     IServiceCatalogsModuleApi serviceCatalogsModuleApi,
     ILogger<AddServiceToProviderCommandHandler> logger
 ) : ICommandHandler<AddServiceToProviderCommand, Result>
@@ -121,3 +122,5 @@ public sealed class AddServiceToProviderCommandHandler(
         }
     }
 }
+
+

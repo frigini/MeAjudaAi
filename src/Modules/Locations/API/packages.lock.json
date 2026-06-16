@@ -310,7 +310,6 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.6.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.8, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
-          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",

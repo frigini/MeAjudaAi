@@ -1,23 +1,26 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
+[ExcludeFromCodeCoverage]
 public class CancelBookingEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPut("/{id}/cancel", CancelBookingAsync)
+        app.MapPut(ApiEndpoints.Bookings.Cancel, CancelBookingAsync)
         .RequireAuthorization()
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -43,7 +46,7 @@ public class CancelBookingEndpoint : IEndpoint
     /// <returns>Resultado 204 se cancelado com sucesso.</returns>
     private static async Task<IResult> CancelBookingAsync(
         Guid id,
-        CancelBookingRequest request,
+        CancelBookingRequestDto request,
         [FromServices] ICommandDispatcher dispatcher,
         [FromServices] ProviderAuthorizationResolver authResolver,
         HttpContext context,

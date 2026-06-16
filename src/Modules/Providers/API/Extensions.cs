@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Providers.API;
 
@@ -12,15 +13,13 @@ public static class Extensions
     /// <summary>
     /// Adiciona os serviços do módulo Providers.
     /// </summary>
-    /// <param name="services">Coleção de serviços</param>
-    /// <param name="configuration">Configuração da aplicação</param>
-    /// <returns>Coleção de serviços para encadeamento</returns>
     public static IServiceCollection AddProvidersModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, environment);
 
         return services;
     }
@@ -28,8 +27,6 @@ public static class Extensions
     /// <summary>
     /// Configura os endpoints do módulo Providers.
     /// </summary>
-    /// <param name="app">Aplicação web</param>
-    /// <returns>Aplicação web para encadeamento</returns>
     public static WebApplication UseProvidersModule(this WebApplication app)
     {
         app.MapProvidersEndpoints();

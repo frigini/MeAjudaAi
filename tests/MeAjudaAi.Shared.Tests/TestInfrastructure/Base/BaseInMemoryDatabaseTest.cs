@@ -10,6 +10,7 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 public abstract class BaseInMemoryDatabaseTest<TDbContext> : IDisposable where TDbContext : DbContext
 {
     protected readonly TDbContext DbContext;
+    private bool _disposed;
 
     protected BaseInMemoryDatabaseTest(Func<DbContextOptions<TDbContext>, TDbContext> contextFactory)
     {
@@ -21,9 +22,24 @@ public abstract class BaseInMemoryDatabaseTest<TDbContext> : IDisposable where T
         DbContext = contextFactory(options);
     }
 
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            // liberar recursos gerenciados
+            DbContext?.Dispose();
+        }
+
+        // sem recursos não gerenciados para liberar
+
+        _disposed = true;
+    }
+
     public void Dispose()
     {
-        DbContext.Dispose();
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 }

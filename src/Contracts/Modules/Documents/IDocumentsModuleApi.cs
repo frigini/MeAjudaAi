@@ -1,5 +1,5 @@
-using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
 namespace MeAjudaAi.Contracts.Modules.Documents;
 

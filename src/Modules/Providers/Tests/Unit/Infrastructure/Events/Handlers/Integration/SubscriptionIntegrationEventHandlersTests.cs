@@ -3,29 +3,21 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events.Handlers.Integration;
 
-public class SubscriptionIntegrationEventHandlersTests
+public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTest<ProvidersDbContext>
 {
-    private readonly ProvidersDbContext _dbContext;
     private readonly Mock<ILogger<SubscriptionActivatedIntegrationEventHandler>> _loggerActivated = new();
     private readonly Mock<ILogger<SubscriptionCanceledIntegrationEventHandler>> _loggerCanceled = new();
     private readonly Mock<ILogger<SubscriptionExpiredIntegrationEventHandler>> _loggerExpired = new();
+    private readonly Mock<IIdempotencyRepository> _idempotencyRepositoryMock = new();
 
-    public SubscriptionIntegrationEventHandlersTests()
+    public SubscriptionIntegrationEventHandlersTests() : base(options => new ProvidersDbContext(options))
     {
-        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        _dbContext = new ProvidersDbContext(options);
     }
 
     [Fact]
@@ -34,74 +26,85 @@ public class SubscriptionIntegrationEventHandlersTests
         var contactInfo = new ContactInfo("test@test.com");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
         var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
-        _dbContext.Providers.Add(provider);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
-        var handler = new SubscriptionActivatedIntegrationEventHandler(_dbContext, _loggerActivated.Object);
         var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.NewGuid(), provider.UserId);
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
+        _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var handler = new SubscriptionActivatedIntegrationEventHandler(DbContext, _idempotencyRepositoryMock.Object, _loggerActivated.Object);
 
         await handler.HandleAsync(evt);
 
         provider.Tier.Should().Be(EProviderTier.Gold);
+        _idempotencyRepositoryMock.Verify(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
+        _idempotencyRepositoryMock.Verify(x => x.MarkAsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task ActivatedHandler_WhenEventProcessed_ShouldNotReprocess()
     {
-        var contactInfo = new ContactInfo("test@test.com");
-        var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
-        var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
-        _dbContext.Providers.Add(provider);
-        await _dbContext.SaveChangesAsync();
+        var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.NewGuid(), Guid.NewGuid());
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
+        _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
-        var correlationId = Guid.NewGuid().ToString();
-        _dbContext.ProcessedIntegrationEvents.Add(new MeAjudaAi.Modules.Providers.Domain.Entities.ProcessedIntegrationEvent(correlationId, DateTime.UtcNow));
-        await _dbContext.SaveChangesAsync();
-
-        var handler = new SubscriptionActivatedIntegrationEventHandler(_dbContext, _loggerActivated.Object);
-        var evt = new SubscriptionActivatedIntegrationEvent("Payments", Guid.Parse(correlationId), provider.UserId);
+        var handler = new SubscriptionActivatedIntegrationEventHandler(DbContext, _idempotencyRepositoryMock.Object, _loggerActivated.Object);
 
         await handler.HandleAsync(evt);
 
-        var refreshedProvider = await _dbContext.Providers.FindAsync(provider.Id);
-        refreshedProvider!.Tier.Should().Be(EProviderTier.Standard);
-        _dbContext.ProcessedIntegrationEvents.Count().Should().Be(1);
-        _dbContext.ChangeTracker.HasChanges().Should().BeFalse();
+        _idempotencyRepositoryMock.Verify(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
+        _idempotencyRepositoryMock.Verify(x => x.MarkAsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Never);
+        DbContext.ChangeTracker.HasChanges().Should().BeFalse();
     }
 
     [Fact]
-    public async Task CanceledHandler_WhenProviderIsGold_ShouldDemoteToStandard()
+    public async Task CanceledHandler_WhenProviderExists_ShouldDemoteToStandard()
     {
         var contactInfo = new ContactInfo("test@test.com");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
         var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
         provider.PromoteTier(EProviderTier.Gold, "setup");
-        _dbContext.Providers.Add(provider);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
-        var handler = new SubscriptionCanceledIntegrationEventHandler(_dbContext, _loggerCanceled.Object);
         var evt = new SubscriptionCanceledIntegrationEvent("Payments", Guid.NewGuid(), provider.UserId);
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
+        _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var handler = new SubscriptionCanceledIntegrationEventHandler(DbContext, _idempotencyRepositoryMock.Object, _loggerCanceled.Object);
 
         await handler.HandleAsync(evt);
 
         provider.Tier.Should().Be(EProviderTier.Standard);
+        _idempotencyRepositoryMock.Verify(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
+        _idempotencyRepositoryMock.Verify(x => x.MarkAsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task ExpiredHandler_WhenProviderIsGold_ShouldDemoteToStandard()
+    public async Task ExpiredHandler_WhenProviderExists_ShouldDemoteToStandard()
     {
         var contactInfo = new ContactInfo("test@test.com");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
         var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
         provider.PromoteTier(EProviderTier.Gold, "setup");
-        _dbContext.Providers.Add(provider);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
-        var handler = new SubscriptionExpiredIntegrationEventHandler(_dbContext, _loggerExpired.Object);
         var evt = new SubscriptionExpiredIntegrationEvent("Payments", Guid.NewGuid(), provider.UserId);
+        var correlationId = $"{evt.SubscriptionId}_{evt.Id}";
+        _idempotencyRepositoryMock.Setup(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var handler = new SubscriptionExpiredIntegrationEventHandler(DbContext, _idempotencyRepositoryMock.Object, _loggerExpired.Object);
 
         await handler.HandleAsync(evt);
 
         provider.Tier.Should().Be(EProviderTier.Standard);
+        _idempotencyRepositoryMock.Verify(x => x.IsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
+        _idempotencyRepositoryMock.Verify(x => x.MarkAsProcessedAsync(correlationId, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

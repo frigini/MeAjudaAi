@@ -1,6 +1,8 @@
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.ModuleApi;
@@ -93,9 +95,11 @@ public class BookingsModuleApiTests
     {
         // Arrange
         var bookingId = Guid.NewGuid();
-        var booking = new Booking(bookingId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), 
-            MeAjudaAi.Modules.Bookings.Domain.ValueObjects.TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
-            MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Confirmed, 1);
+        var booking = new Booking(
+            bookingId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
+            EBookingStatus.Confirmed, 1);
         _bookingQueriesMock.Setup(q => q.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
@@ -135,8 +139,8 @@ public class BookingsModuleApiTests
         var booking = new Booking(
             Guid.NewGuid(), providerId, Guid.NewGuid(), Guid.NewGuid(), 
             DateOnly.FromDateTime(start.Date), 
-            MeAjudaAi.Modules.Bookings.Domain.ValueObjects.TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)),
-            MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Confirmed, 1);
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)),
+            EBookingStatus.Confirmed, 1);
             
         _bookingQueriesMock.Setup(q => q.GetByProviderAndPeriodAsync(providerId, It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { booking });

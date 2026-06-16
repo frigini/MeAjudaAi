@@ -30,29 +30,34 @@ public class EmailTemplateTests
     }
 
     [Fact]
-    public void UpdateContent_WhenNotSystemTemplate_ShouldUpdate()
+    public void CreateNewVersion_WhenNotSystemTemplate_ShouldCreateNewVersion()
     {
         // Arrange
         var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: false);
 
         // Act
-        template.UpdateContent("New S", "New H", "New T");
+        var newVersion = template.CreateNewVersion("New S", "New H", "New T");
 
         // Assert
-        template.Subject.Should().Be("New S");
-        template.HtmlBody.Should().Be("New H");
-        template.TextBody.Should().Be("New T");
-        template.Version.Should().Be(2);
+        newVersion.Should().NotBeSameAs(template);
+        newVersion.Subject.Should().Be("New S");
+        newVersion.HtmlBody.Should().Be("New H");
+        newVersion.TextBody.Should().Be("New T");
+        newVersion.Version.Should().Be(2);
+        newVersion.TemplateKey.Should().Be(template.TemplateKey);
+        newVersion.Language.Should().Be(template.Language);
+        newVersion.OverrideKey.Should().Be(template.OverrideKey);
+        newVersion.IsActive.Should().BeTrue();
     }
 
     [Fact]
-    public void UpdateContent_WhenSystemTemplate_ShouldThrowInvalidOperationException()
+    public void CreateNewVersion_WhenSystemTemplate_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: true);
 
         // Act
-        var act = () => template.UpdateContent("New S", "New H", "New T");
+        var act = () => template.CreateNewVersion("New S", "New H", "New T");
 
         // Assert
         act.Should().Throw<InvalidOperationException>();
@@ -118,13 +123,13 @@ public class EmailTemplateTests
     [InlineData(null, "H", "T")]
     [InlineData("S", null, "T")]
     [InlineData("S", "H", null)]
-    public void UpdateContent_WithInvalidData_ShouldThrowArgumentException(string? sub, string? html, string? text)
+    public void CreateNewVersion_WithInvalidData_ShouldThrowArgumentException(string? sub, string? html, string? text)
     {
         // Arrange
         var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: false);
 
         // Act
-        var act = () => template.UpdateContent(sub!, html!, text!);
+        var act = () => template.CreateNewVersion(sub!, html!, text!);
 
         // Assert
         act.Should().Throw<ArgumentException>();

@@ -40,6 +40,7 @@ public class UsersCacheServiceTests
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
+            DeviceToken: null,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -88,6 +89,7 @@ public class UsersCacheServiceTests
             FirstName: "Cached",
             LastName: "User",
             FullName: "Cached User",
+            DeviceToken: null,
             KeycloakId: "keycloak456",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -152,6 +154,7 @@ public class UsersCacheServiceTests
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
+            DeviceToken: null,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -233,6 +236,7 @@ public class UsersCacheServiceTests
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
+            DeviceToken: null,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -367,6 +371,7 @@ public class UsersCacheServiceTests
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
+            DeviceToken: null,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null

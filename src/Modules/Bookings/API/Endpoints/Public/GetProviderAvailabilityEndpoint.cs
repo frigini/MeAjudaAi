@@ -1,21 +1,24 @@
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
+[ExcludeFromCodeCoverage]
 public class GetProviderAvailabilityEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapGet("/availability/{providerId}", GetProviderAvailabilityAsync)
+        app.MapGet(ApiEndpoints.Bookings.GetProviderAvailability, GetProviderAvailabilityAsync)
         .RequireAuthorization()
         .Produces<AvailabilityDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)

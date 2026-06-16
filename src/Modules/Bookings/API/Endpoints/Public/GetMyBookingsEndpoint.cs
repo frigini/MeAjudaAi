@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
@@ -11,17 +11,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
+[ExcludeFromCodeCoverage]
 public class GetMyBookingsEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapGet("/my", GetMyBookingsAsync)
+        app.MapGet(ApiEndpoints.Bookings.GetMy, GetMyBookingsAsync)
         .RequireAuthorization()
-        .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
+        .Produces<PagedResult<ModuleBookingDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
@@ -90,7 +92,7 @@ public class GetMyBookingsEndpoint : IEndpoint
         }
 
         var query = new GetBookingsByClientQuery(clientId, correlationId, normalizedPage, normalizedPageSize, from?.UtcDateTime, to?.UtcDateTime);
-        var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
+        var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<PagedResult<ModuleBookingDto>>>(query, cancellationToken);
 
         return result.Match(
             onSuccess: bookings => Results.Ok(bookings),

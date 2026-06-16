@@ -3,12 +3,10 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Services;
 
@@ -112,5 +110,44 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
 
         // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Database error");
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_Should_Throw_When_CancellationToken_Is_Cancelled()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _service.AddIfNoOverlapAsync(booking, cts.Token));
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_Should_Throw_When_NonConcurrency_DbException_Occurs()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+
+        var options = new DbContextOptionsBuilder<BookingsDbContext>()
+            .UseInMemoryDatabase("ErrorTest_" + Guid.NewGuid())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+        var mockContext = new Mock<BookingsDbContext>(options) { CallBase = true };
+
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new PostgresException("Connection error", "Error", "22P02", null));
+
+        var serviceWithError = new DbContextBookingCommandService(mockContext.Object, _loggerMock.Object);
+
+        // Act & Assert
+        Func<Task> act = () => serviceWithError.AddIfNoOverlapAsync(booking);
+        await act.Should().ThrowAsync<PostgresException>();
     }
 }

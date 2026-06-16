@@ -13,5 +13,3 @@ public class CommunicationsDbContextFactory : BaseDesignTimeDbContextFactory<Com
         return new CommunicationsDbContext(options);
     }
 }
-
-

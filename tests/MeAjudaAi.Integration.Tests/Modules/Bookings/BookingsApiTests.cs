@@ -2,9 +2,9 @@ using System.Globalization;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
-using MeAjudaAi.Modules.Bookings.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -31,7 +31,7 @@ public class BookingsApiTests : BaseApiTest
 
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var start = tomorrow.ToDateTime(new TimeOnly(10, 0));
-        var request = new CreateBookingRequest(
+        var request = new CreateBookingRequestDto(
             providerId,
             serviceId,
             new DateTimeOffset(start, TimeSpan.Zero),
@@ -47,7 +47,7 @@ public class BookingsApiTests : BaseApiTest
             response.StatusCode.Should().Be(HttpStatusCode.Created, $"Error detail: {error}");
         }
 
-        var result = await ReadJsonAsync<BookingDto>(response.Content);
+        var result = await ReadJsonAsync<ModuleBookingDto>(response.Content);
         result.Should().NotBeNull();
         result!.ProviderId.Should().Be(providerId);
     }
@@ -84,7 +84,7 @@ public class BookingsApiTests : BaseApiTest
                     new(new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(13, 0)), TimeSpan.Zero), new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(17, 0)), TimeSpan.Zero))
                 })
         };
-        var request = new SetProviderScheduleRequest(providerId, availabilities);
+        var request = new SetProviderScheduleRequestDto(providerId, availabilities);
         AuthConfig.ConfigureProvider(providerId, Guid.NewGuid().ToString());
 
         var response = await Client.PostAsJsonAsync("/api/v1/bookings/schedule", request);
@@ -108,7 +108,7 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/bookings/provider/{providerId}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty(); // Não deve ver agendamentos de outros provedores
     }
@@ -129,7 +129,7 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/bookings/{bookingId}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var booking = await ReadJsonAsync<BookingDto>(response.Content);
+        var booking = await ReadJsonAsync<ModuleBookingDto>(response.Content);
         booking.Should().NotBeNull();
         booking!.Id.Should().Be(bookingId);
     }
@@ -147,7 +147,7 @@ public class BookingsApiTests : BaseApiTest
 
         AuthConfig.ConfigureRegularUser(clientId.ToString());
 
-        var cancelRequest = new CancelBookingRequest("Test Cancel");
+        var cancelRequest = new CancelBookingRequestDto("Test Cancel");
         var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", cancelRequest);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -168,7 +168,7 @@ public class BookingsApiTests : BaseApiTest
         // 2. Act: Configurar como usuário regular (sem ProviderId vinculado) e tentar cancelar
         AuthConfig.ConfigureRegularUser(clientId.ToString());
 
-        var cancelRequest = new CancelBookingRequest("Client cancelling own booking");
+        var cancelRequest = new CancelBookingRequestDto("Client cancelling own booking");
         var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", cancelRequest);
 
         // 3. Assert: Deve permitir cancelamento
@@ -195,7 +195,7 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.GetAsync("/api/v1/bookings/my");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
     }

@@ -28,6 +28,16 @@ public static class Extensions
     {
         services.Configure<PaymentsOptions>(configuration.GetSection(PaymentsOptions.SectionName));
 
+        services.AddPersistence(configuration, environment);
+        services.AddServices(configuration);
+        services.AddEventHandlers();
+        services.AddJobs();
+
+        return services;
+    }
+
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    {
         services.AddDbContext<PaymentsDbContext>(options =>
         {
             var connStr = configuration.GetConnectionString("Payments") ??
@@ -36,9 +46,7 @@ public static class Extensions
 
             if (string.IsNullOrWhiteSpace(connStr) && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {
-#pragma warning disable S2068
                 connStr = DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
             }
 
             if (string.IsNullOrWhiteSpace(connStr))
@@ -56,10 +64,14 @@ public static class Extensions
         services.AddScoped<IRepository<MeAjudaAi.Modules.Payments.Domain.Entities.Subscription, Guid>>(sp => sp.GetRequiredService<PaymentsDbContext>());
         services.AddScoped<IRepository<PaymentTransaction, Guid>>(sp => sp.GetRequiredService<PaymentsDbContext>());
 
+        // Queries
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
         services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
         services.AddScoped<IPaymentCommandService, DbContextPaymentCommandService>();
-        
+    }
+
+    private static void AddServices(this IServiceCollection services, IConfiguration configuration)
+    {
         services.AddScoped<IStripeClient>(provider => 
         {
             var config = provider.GetRequiredService<IConfiguration>();
@@ -73,21 +85,18 @@ public static class Extensions
 
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IPaymentGateway, StripePaymentGateway>();
+    }
 
-        // Corrigir: registrar IMessageBus (assume-se que já está registrado no Shared, mas garantir a injeção correta aqui caso necessário)
-        
+    private static void AddEventHandlers(this IServiceCollection services)
+    {
         services.AddScoped<IEventHandler<SubscriptionActivatedDomainEvent>, SubscriptionActivatedDomainEventHandler>();
         services.AddScoped<IEventHandler<SubscriptionCanceledDomainEvent>, SubscriptionCanceledDomainEventHandler>();
         services.AddScoped<IEventHandler<SubscriptionExpiredDomainEvent>, SubscriptionExpiredDomainEventHandler>();
         services.AddScoped<IEventHandler<SubscriptionRenewedDomainEvent>, SubscriptionRenewedDomainEventHandler>();
-        
-        services.AddHostedService<ProcessInboxJob>();
+    }
 
-        return services;
+    private static void AddJobs(this IServiceCollection services)
+    {
+        services.AddHostedService<ProcessInboxJob>();
     }
 }
-
-
-
-
-

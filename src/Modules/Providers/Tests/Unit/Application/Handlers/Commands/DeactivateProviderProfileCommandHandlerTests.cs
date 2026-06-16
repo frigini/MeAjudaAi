@@ -12,14 +12,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 [Trait("Category", "Unit")]
 public class DeactivateProviderProfileCommandHandlerTests
 {
-    private readonly Mock<IProviderUnitOfWork> _uowMock;
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<DeactivateProviderProfileCommandHandler>> _loggerMock;
     private readonly DeactivateProviderProfileCommandHandler _sut;
 
     public DeactivateProviderProfileCommandHandlerTests()
     {
-        _uowMock = new Mock<IProviderUnitOfWork>();
+        _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<DeactivateProviderProfileCommandHandler>>();
 
@@ -89,5 +89,6 @@ public class DeactivateProviderProfileCommandHandlerTests
         _uowMock.Verify(repo => repo.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once());
     }
 }
+
 
 

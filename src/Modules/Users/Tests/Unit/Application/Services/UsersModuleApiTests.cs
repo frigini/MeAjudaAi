@@ -116,6 +116,7 @@ public class UsersModuleApiTests
             "John",
             "Doe",
             "John Doe",
+            null,
             UuidGenerator.NewIdString(),
             DateTime.UtcNow,
             null);
@@ -187,6 +188,7 @@ public class UsersModuleApiTests
             "Jane",
             "Smith",
             "Jane Smith",
+            null,
             UuidGenerator.NewIdString(),
             DateTime.UtcNow,
             null);
@@ -214,8 +216,8 @@ public class UsersModuleApiTests
         var userId2 = UuidGenerator.NewId();
         var userIds = new List<Guid> { userId1, userId2 };
 
-        var userDto1 = new UserDto(userId1, "user1", "user1@test.com", "User", "One", "User One", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
-        var userDto2 = new UserDto(userId2, "user2", "user2@test.com", "User", "Two", "User Two", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
+        var userDto1 = new UserDto(userId1, "user1", "user1@test.com", "User", "One", "User One", null, UuidGenerator.NewIdString(), DateTime.UtcNow, null);
+        var userDto2 = new UserDto(userId2, "user2", "user2@test.com", "User", "Two", "User Two", null, UuidGenerator.NewIdString(), DateTime.UtcNow, null);
         var userDtos = new List<UserDto> { userDto1, userDto2 };
 
         _getUsersByIdsHandler
@@ -252,7 +254,7 @@ public class UsersModuleApiTests
     {
         // Arrange
         var userId = UuidGenerator.NewId();
-        var userDto = new UserDto(userId, "test", "test@test.com", "Test", "User", "Test User", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
+        var userDto = new UserDto(userId, "test", "test@test.com", "Test", "User", "Test User", null, UuidGenerator.NewIdString(), DateTime.UtcNow, null);
 
         _getUserByIdHandler
             .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
@@ -307,7 +309,7 @@ public class UsersModuleApiTests
     {
         // Arrange
         var email = "test@example.com";
-        var userDto = new UserDto(UuidGenerator.NewId(), "test", email, "Test", "User", "Test User", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
+        var userDto = new UserDto(UuidGenerator.NewId(), "test", email, "Test", "User", "Test User", null, UuidGenerator.NewIdString(), DateTime.UtcNow, null);
 
         _getUserByEmailHandler
             .Setup(x => x.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
@@ -430,6 +432,7 @@ public class UsersModuleApiTests
             "John",
             "Doe",
             "John Doe",
+            null,
             UuidGenerator.NewIdString(),
             DateTime.UtcNow,
             null);

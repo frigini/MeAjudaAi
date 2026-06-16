@@ -33,7 +33,8 @@ public static class ProviderMapper
             provider.DeletedAt,
             provider.IsActive,
             provider.SuspensionReason,
-            provider.RejectionReason
+            provider.RejectionReason,
+            provider.DeviceToken
         );
     }
 
