@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Database.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using ValidationFailure = FluentValidation.Results.ValidationFailure;
 
@@ -209,12 +210,65 @@ public class GlobalExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
-        
+
         var problemDetails = await ReadProblemDetailsAsync(context);
         problemDetails.Detail.Should().Be("Ocorreu um erro inesperado");
-        
+
         var serializedPayload = System.Text.Json.JsonSerializer.Serialize(problemDetails);
         serializedPayload.Should().NotContain("Sensitive internal error details");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithBadHttpRequestException_ShouldReturnStatusFromException()
+    {
+        var context = CreateDefaultContext();
+        var exception = new BadHttpRequestException("Invalid HTTP request", 422);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(422);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithArgumentException_ShouldReturnBadRequest()
+    {
+        var context = CreateDefaultContext();
+        var exception = new ArgumentException("Parameter 'id' must not be null", "id");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        var body = await ReadProblemDetailsAsync(context);
+        body.Extensions.Should().ContainKey("parameterName");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithTargetInvocationException_ShouldUnwrapAndHandleInner()
+    {
+        var context = CreateDefaultContext();
+        var inner = new NotFoundException("User", "123");
+        var exception = new System.Reflection.TargetInvocationException("Wrapper", inner);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithDbUpdateException_NotConstraint_ShouldReturnBadRequest()
+    {
+        var context = CreateDefaultContext();
+        var exception = new DbUpdateException("Database error");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        var body = await ReadProblemDetailsAsync(context);
+        body.Extensions.Should().ContainKey("exceptionType");
     }
 
     private DefaultHttpContext CreateDefaultContext()

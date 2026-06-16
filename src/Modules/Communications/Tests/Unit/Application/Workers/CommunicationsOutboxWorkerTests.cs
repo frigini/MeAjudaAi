@@ -107,4 +107,25 @@ public class CommunicationsOutboxWorkerTests
             
         iterationCount.Should().BeGreaterThanOrEqualTo(2);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Exit_Normally_When_OperationCanceledException_DuringDelay()
+    {
+        // Arrange
+        var worker = new CommunicationsOutboxWorker(_scopeFactoryMock.Object, _loggerMock.Object, TimeSpan.FromMilliseconds(10));
+        var cts = new CancellationTokenSource();
+
+        _repositoryMock.Setup(x => x.ResetStaleProcessingMessagesAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        _processorMock.Setup(x => x.ProcessPendingMessagesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        // Act - cancel immediately after starting
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(50); // Allow one iteration to start
+        await worker.StopAsync(cts.Token);
+
+        // Assert - should exit gracefully without exceptions
+        await task.WaitAsync(TimeSpan.FromSeconds(2));
+    }
 }

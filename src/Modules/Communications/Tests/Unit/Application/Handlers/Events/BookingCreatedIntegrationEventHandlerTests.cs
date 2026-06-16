@@ -108,4 +108,118 @@ public class BookingCreatedIntegrationEventHandlerTests
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
         _loggerMock.Verify(x => x.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.AtLeastOnce);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenClientApiFails_ShouldLogWarningAndReturn()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var integrationEvent = new BookingCreatedIntegrationEvent(
+            "Bookings", bookingId, providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow));
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(new ModuleProviderDto(
+                providerId, "Provider", "slug", "provider@test.com", "123", "Individual", "Active", DateTime.UtcNow, DateTime.UtcNow, true)));
+
+        _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(clientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleUserDto?>.Failure("Client not found"));
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _loggerMock.Verify(x => x.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenProviderHasDeviceToken_ShouldAlsoEnqueuePush()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var integrationEvent = new BookingCreatedIntegrationEvent(
+            "Bookings", bookingId, providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow));
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(new ModuleProviderDto(
+                providerId, "Provider", "slug", "provider@test.com", "123", "Individual", "Active", DateTime.UtcNow, DateTime.UtcNow, true, DeviceToken: "device-token-123")));
+
+        _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(clientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleUserDto?>.Success(new ModuleUserDto(
+                clientId, "Username", "client@test.com", "Client", "Last", "Client Last")));
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert - 3 messages: provider email, provider push, client email
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenClientHasPhoneNumber_ShouldAlsoEnqueueSms()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var integrationEvent = new BookingCreatedIntegrationEvent(
+            "Bookings", bookingId, providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow));
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(new ModuleProviderDto(
+                providerId, "Provider", "slug", "provider@test.com", "123", "Individual", "Active", DateTime.UtcNow, DateTime.UtcNow, true)));
+
+        _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(clientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleUserDto?>.Success(new ModuleUserDto(
+                clientId, "Username", "client@test.com", "Client", "Last", "Client Last", PhoneNumber: "+5511999999999")));
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert - 3 messages: provider email, client email, client sms
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenNonDbUpdateException_ShouldRethrow()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var integrationEvent = new BookingCreatedIntegrationEvent(
+            "Bookings", bookingId, providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow));
+
+        _logQueriesMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(new ModuleProviderDto(
+                providerId, "Provider", "slug", "provider@test.com", "123", "Individual", "Active", DateTime.UtcNow, DateTime.UtcNow, true)));
+
+        _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(clientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleUserDto?>.Success(new ModuleUserDto(
+                clientId, "Username", "client@test.com", "Client", "Last", "Client Last")));
+
+        _outboxRepositoryMock.Setup(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something went wrong"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(integrationEvent));
+    }
 }
