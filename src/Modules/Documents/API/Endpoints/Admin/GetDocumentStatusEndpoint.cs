@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 
-namespace MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
+namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela consulta de status de um documento.
@@ -28,7 +28,8 @@ public class GetDocumentStatusEndpoint : BaseEndpoint, IEndpoint
                 - URLs de acesso ao documento
                 """)
             .Produces<DocumentDto>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> GetDocumentStatusAsync(
         Guid documentId,

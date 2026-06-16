@@ -7,11 +7,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints;
 
+/// <summary>
+/// Classe responsável pelo mapeamento de todos os endpoints do módulo Bookings.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public static class BookingsEndpoints
 {
     public const string Tag = "Bookings";
 
+    /// <summary>
+    /// Mapeia todos os endpoints do módulo Bookings.
+    /// </summary>
+    /// <param name="app">Aplicação web para configuração das rotas</param>
     public static void Map(IEndpointRouteBuilder app)
     {
         var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Bookings.Base, ModuleNames.Bookings);

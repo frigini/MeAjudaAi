@@ -1,11 +1,11 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
-namespace MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
+namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para aprovar ou rejeitar documentos após verificação manual.
@@ -43,7 +43,8 @@ public class VerifyDocumentEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status403Forbidden);
+            .Produces(StatusCodes.Status403Forbidden)
+            .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> VerifyDocumentAsync(
         Guid documentId,

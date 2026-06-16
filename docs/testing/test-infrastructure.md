@@ -406,6 +406,153 @@ private async Task CleanupDatabaseAsync()
 - [Testcontainers Documentation](https://dotnet.testcontainers.org/)
 - [WebApplicationFactory](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests)
 - [xUnit Best Practices](https://xunit.net/docs/getting-started)
+- [Bogus Documentation](https://github.com/bchavez/Bogus)
+
+---
+
+## Test Builders
+
+O projeto utiliza **test builders** centralizados em `tests/MeAjudaAi.Shared.Tests/TestInfrastructure/Builders/` para criar objetos de teste de forma consistente e legível.
+
+### Arquitetura
+
+```text
+MeAjudaAi.Shared.Tests/TestInfrastructure/Builders/
+├── BaseBuilder.cs                              # Classe base abstrata
+└── Modules/
+    ├── Bookings/
+    │   ├── AvailabilityBuilder.cs
+    │   ├── BookingBuilder.cs
+    │   ├── ProviderScheduleBuilder.cs
+    │   └── TimeSlotBuilder.cs
+    ├── Communications/
+    │   ├── CommunicationLogBuilder.cs
+    │   ├── EmailOutboxPayloadBuilder.cs
+    │   ├── EmailTemplateBuilder.cs
+    │   ├── OutboxMessageBuilder.cs
+    │   ├── PushOutboxPayloadBuilder.cs
+    │   └── SmsOutboxPayloadBuilder.cs
+    ├── Locations/
+    │   └── AllowedCityBuilder.cs
+    ├── Payments/
+    │   ├── InboxMessageBuilder.cs
+    │   ├── MoneyBuilder.cs                     # Static helpers
+    │   ├── PaymentTransactionBuilder.cs
+    │   └── SubscriptionBuilder.cs
+    ├── Providers/
+    │   └── ProviderBuilder.cs
+    ├── ServiceCatalogs/
+    │   ├── ServiceBuilder.cs
+    │   └── ServiceCategoryBuilder.cs
+    └── Users/
+        ├── EmailBuilder.cs
+        ├── UserBuilder.cs
+        └── UsernameBuilder.cs
+```
+
+### BaseBuilder\<T\>
+
+Classe base abstrata que fornece:
+
+- **`Faker<T>`** para geração de dados realistas via Bogus
+- **`Build()`** — constrói uma única instância
+- **`BuildMany(count)`** — constrói múltiplas instâncias
+- **`BuildList(count)`** — constrói uma lista
+- **`WithCustomAction(Action<T>)`** — aplica ações customizadas após criação (ex: mudar estado via domain methods)
+- **Conversão implícita** — `BaseBuilder<T>` pode ser usado diretamente onde `T` é esperado
+
+### Padrão de Uso
+
+```csharp
+// Builder com dados aleatórios (Bogus)
+var user = new UserBuilder().Build();
+
+// Builder com propriedades específicas
+var subscription = new SubscriptionBuilder()
+    .WithProviderId(providerId)
+    .WithAmount(99.90m)
+    .AsActive()
+    .Build();
+
+// Factory methods estáticos para cenários comuns
+var money = MoneyBuilder.Brl(150.00m);
+var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG");
+var checkout = InboxMessageBuilder.CreateCheckoutCompleted();
+```
+
+### Convenções
+
+| Convenção | Exemplo | Descrição |
+| :--- | :--- | :--- |
+| `[ExcludeFromCodeCoverage]` | `public class UserBuilder` | Todos os builders são marcados como excluídos de cobertura |
+| `With*()` methods | `.WithUsername("joao")` | Para definir propriedades de ValueObjects primitivos |
+| `As*()` methods | `.AsActive()`, `.AsCanceled()` | Para definir estados/enums |
+| `Activated()` via `WithCustomAction` | `sub.Activate(...)` | Para aplicar domain methods que mudam estado internamente |
+| Sem `using static` | `MoneyBuilder.Brl(100)` | Usar nome completo do builder para clareza |
+| Sem factories city-specific | `AsTestCity("Muriaé", "MG")` | Usar `AsTestCity()` genérico, não `Muriae()` |
+
+### Exemplo: SubscriptionBuilder
+
+```csharp
+// Subscription pendente (padrão)
+var pending = new SubscriptionBuilder().Build();
+
+// Subscription ativa
+var active = new SubscriptionBuilder()
+    .WithProviderId(providerId)
+    .WithPlanId("premium")
+    .WithAmount(199.90m)
+    .Activated() // Chama sub.Activate() via WithCustomAction
+    .Build();
+
+// Subscription cancelada
+var canceled = new SubscriptionBuilder()
+    .AsCanceled()
+    .Canceled() // Chama sub.Cancel() via WithCustomAction
+    .Build();
+
+// Subscription expirada via factory
+var expired = new SubscriptionBuilder().Expired().Build();
+```
+
+### Exemplo: MoneyBuilder (Static Helpers)
+
+```csharp
+// Helpers estáticos — não herdam BaseBuilder<T>
+var brl = MoneyBuilder.Brl(150.00m);
+var usd = MoneyBuilder.Usd(25.50m);
+var zero = MoneyBuilder.ZeroBrl();
+var custom = MoneyBuilder.FromDecimal(42.00m, "EUR");
+```
+
+### Exemplo: InboxMessageBuilder
+
+```csharp
+// Factory methods para eventos comuns
+var checkout = InboxMessageBuilder.CreateCheckoutCompleted();
+var renewed = InboxMessageBuilder.CreateSubscriptionRenewed();
+var unknown = InboxMessageBuilder.CreateUnknown();
+
+// Builder customizado
+var message = new InboxMessageBuilder()
+    .WithType("payment.failed")
+    .WithContent("{\"error\": \"insufficient_funds\"}")
+    .WithExternalEventId("evt_custom_001")
+    .WithError("Payment gateway declined")
+    .Build();
+```
+
+### Quando Usar Qual Builder
+
+| Cenário | Builder | Notas |
+| :--- | :--- | :--- |
+| ValueObject `Money` | `MoneyBuilder.Brl(amount)` | Static helpers |
+| Entidade `User` | `UserBuilder` | Usa `User.Create()` + `SetIdForTesting` |
+| Entidade `Subscription` | `SubscriptionBuilder` | `Activated()` usa `WithCustomAction` |
+| Entidade `Booking` | `BookingBuilder` | Suporta todos os status via `As*()` |
+| Entidade `AllowedCity` | `AllowedCityBuilder` | `AsTestCity()` genérico |
+| Mensagem outbox | `OutboxMessageBuilder` | Suporta `WithPayload()` para JSON |
+| Mensagem inbox | `InboxMessageBuilder` | Factory methods `Create*()` |
 
 ---
 

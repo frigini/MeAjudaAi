@@ -8,14 +8,21 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints;
 
+/// <summary>
+/// Classe responsável pelo mapeamento de todos os endpoints do módulo Communications.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public static class CommunicationsEndpoints
 {
     public const string Tag = "Communications";
 
+    /// <summary>
+    /// Mapeia todos os endpoints do módulo Communications.
+    /// </summary>
+    /// <param name="app">Aplicação web para configuração das rotas</param>
     public static void Map(IEndpointRouteBuilder app)
     {
-        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Communications.Base, "Communications");
+        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Communications.Base, ModuleNames.Communications);
 
         group.MapEndpoint<GetCommunicationLogsEndpoint>()
             .MapEndpoint<GetEmailTemplatesEndpoint>()

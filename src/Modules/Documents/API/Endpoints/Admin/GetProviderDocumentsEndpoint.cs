@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 
-namespace MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
+namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela listagem de documentos de um prestador.
@@ -25,7 +25,8 @@ public class GetProviderDocumentsEndpoint : BaseEndpoint, IEndpoint
                 - Verificar status de verificação de documentos
                 - Acompanhar progresso de validação de cadastro
                 """)
-            .Produces<IEnumerable<DocumentDto>>(StatusCodes.Status200OK);
+            .Produces<IEnumerable<DocumentDto>>(StatusCodes.Status200OK)
+            .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> GetProviderDocumentsAsync(
         Guid providerId,

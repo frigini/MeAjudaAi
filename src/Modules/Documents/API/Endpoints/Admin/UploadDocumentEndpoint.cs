@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
+namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela geração de URL de upload com SAS token.
@@ -43,7 +43,7 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         if (request is null)
-            return BaseEndpoint.BadRequest("Request body is required");
+            return BadRequest("Request body is required");
 
         var command = new UploadDocumentCommand(
             request.ProviderId,

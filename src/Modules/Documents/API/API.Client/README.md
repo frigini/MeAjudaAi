@@ -9,7 +9,7 @@ API.Client/
 ├── collection.bru.example       # Template de configuração (copie para collection.bru)
 ├── collection.bru               # Configuração local (não versionado - criar local)
 ├── README.md                    # Documentação completa  
-└── DocumentAdmin/
+└── Admin/
     ├── UploadDocument.bru       # POST /api/v1/documents
     ├── GetDocument.bru          # GET /api/v1/documents/{id}
     ├── GetProviderDocuments.bru # GET /api/v1/documents/provider/{providerId}

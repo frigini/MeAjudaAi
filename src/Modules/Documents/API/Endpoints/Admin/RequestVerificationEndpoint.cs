@@ -1,9 +1,9 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 
-namespace MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
+namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela solicitação de verificação manual de documento.
@@ -34,7 +34,8 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict)
             .Produces(StatusCodes.Status422UnprocessableEntity)
-            .ProducesProblem(StatusCodes.Status500InternalServerError);
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> RequestVerificationAsync(
         Guid documentId,

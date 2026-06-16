@@ -1,25 +1,27 @@
-using MeAjudaAi.Modules.Documents.API.Endpoints.DocumentAdmin;
+using MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints;
 
 /// <summary>
 /// Classe responsável pelo mapeamento de todos os endpoints do módulo Documents.
 /// </summary>
-public static class DocumentsModuleEndpoints
+[ExcludeFromCodeCoverage]
+public static class DocumentsEndpoints
 {
+    public const string Tag = "Documents";
+
     /// <summary>
     /// Mapeia todos os endpoints do módulo Documents.
     /// </summary>
     /// <param name="app">Aplicação web para configuração das rotas</param>
-    public static void MapDocumentsEndpoints(this WebApplication app)
+    public static void Map(IEndpointRouteBuilder app)
     {
-        // Usa o sistema unificado de versionamento via BaseEndpoint
-        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Documents.Base, "Documents")
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Documents.Base, ModuleNames.Documents)
             .RequireAuthorization(); // Aplica autorização global
 
-        // Endpoints de gestão de documentos
         endpoints.MapEndpoint<UploadDocumentEndpoint>()
             .MapEndpoint<GetDocumentStatusEndpoint>()
             .MapEndpoint<GetProviderDocumentsEndpoint>()
