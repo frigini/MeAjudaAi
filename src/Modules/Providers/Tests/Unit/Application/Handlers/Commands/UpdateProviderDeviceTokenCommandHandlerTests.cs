@@ -1,15 +1,17 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
+namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 
 [Trait("Category", "Unit")]
+[Trait("Module", "Providers")]
+[Trait("Layer", "Application")]
 public class UpdateProviderDeviceTokenCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
@@ -24,132 +26,142 @@ public class UpdateProviderDeviceTokenCommandHandlerTests
         _loggerMock = new Mock<ILogger<UpdateProviderDeviceTokenCommandHandler>>();
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new UpdateProviderDeviceTokenCommandHandler(
-            _uowMock.Object,
-            _loggerMock.Object);
+        _handler = new UpdateProviderDeviceTokenCommandHandler(_uowMock.Object, _loggerMock.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenProviderNotFound_ShouldReturnFailure()
+    public async Task HandleAsync_WhenProviderNotFound_ShouldReturnNotFoundFailure()
     {
-        var command = new UpdateProviderDeviceTokenCommand(Guid.NewGuid(), "new-token");
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var command = new UpdateProviderDeviceTokenCommand(ProviderId: providerId, DeviceToken: "token-abc");
 
         _providerRepositoryMock
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        result.IsSuccess.Should().BeFalse();
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Be("Provider not found");
+
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenTokenIsUnchanged_ShouldReturnSuccessWithoutSaving()
+    public async Task HandleAsync_WhenTokenUnchanged_ShouldReturnSuccessWithoutSaving()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder().WithId(providerId).Build();
-        provider.UpdateDeviceToken("same-token");
+        const string existingToken = "existing-device-token";
+        var provider = ProviderBuilder.Create().WithId(providerId).Build();
+        provider.UpdateDeviceToken(existingToken);
 
-        var command = new UpdateProviderDeviceTokenCommand(providerId, "same-token");
+        var command = new UpdateProviderDeviceTokenCommand(ProviderId: providerId, DeviceToken: existingToken);
 
         _providerRepositoryMock
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenTokenChanged_ShouldUpdateAndReturnSuccess()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        const string newToken = "new-device-token";
+        var provider = ProviderBuilder.Create().WithId(providerId).Build();
+
+        var command = new UpdateProviderDeviceTokenCommand(ProviderId: providerId, DeviceToken: newToken);
+
+        _providerRepositoryMock
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _providerRepositoryMock.Verify(
+            r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task HandleAsync_WhenBothTokensNormalizeToNull_ShouldReturnSuccessWithoutSaving(string? newToken)
+    public async Task HandleAsync_WhenWhitespaceToken_AndCurrentIsNull_ShouldReturnSuccessWithoutSaving(string whitespaceToken)
     {
+        // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder().WithId(providerId).Build();
+        var provider = ProviderBuilder.Create().WithId(providerId).Build();
         // provider.DeviceToken is null by default
 
-        var command = new UpdateProviderDeviceTokenCommand(providerId, newToken!);
+        var command = new UpdateProviderDeviceTokenCommand(ProviderId: providerId, DeviceToken: whitespaceToken);
 
         _providerRepositoryMock
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenTokenChanges_ShouldUpdateAndSave()
+    public async Task HandleAsync_WhenOperationCancelled_ShouldRethrow()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder().WithId(providerId).Build();
-        provider.UpdateDeviceToken("old-token");
-
-        var command = new UpdateProviderDeviceTokenCommand(providerId, "new-token");
-
-        _providerRepositoryMock
-            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(provider);
-
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        provider.DeviceToken.Should().Be("new-token");
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WhenProviderHasTokenAndNewTokenIsWhitespace_ShouldUpdateAndSave()
-    {
-        var providerId = Guid.NewGuid();
-        var provider = new ProviderBuilder().WithId(providerId).Build();
-        provider.UpdateDeviceToken("existing-token");
-
-        var command = new UpdateProviderDeviceTokenCommand(providerId, "   ");
-
-        _providerRepositoryMock
-            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(provider);
-
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WhenExceptionOccurs_ShouldReturnFailure()
-    {
-        var command = new UpdateProviderDeviceTokenCommand(Guid.NewGuid(), "new-token");
-
-        _providerRepositoryMock
-            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("DB error"));
-
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task HandleAsync_WhenOperationCanceled_ShouldRethrow()
-    {
-        var command = new UpdateProviderDeviceTokenCommand(Guid.NewGuid(), "new-token");
+        var command = new UpdateProviderDeviceTokenCommand(ProviderId: providerId, DeviceToken: "token");
         var cts = new CancellationTokenSource();
+        cts.Cancel();
 
         _providerRepositoryMock
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        var act = async () => await _handler.HandleAsync(command, cts.Token);
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _handler.HandleAsync(command, cts.Token));
+    }
 
-        await act.Should().ThrowAsync<OperationCanceledException>();
+    [Fact]
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var command = new UpdateProviderDeviceTokenCommand(ProviderId: providerId, DeviceToken: "token");
+
+        _providerRepositoryMock
+            .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Contain("Erro ao atualizar device token");
+
+        _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
