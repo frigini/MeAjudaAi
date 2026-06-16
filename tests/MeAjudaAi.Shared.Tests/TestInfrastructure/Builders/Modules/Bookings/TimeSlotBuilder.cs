@@ -31,6 +31,13 @@ public class TimeSlotBuilder : BaseBuilder<TimeSlot>
 
     public TimeSlotBuilder WithDuration(int startHour, int durationHours)
     {
+        if (startHour is < 0 or >= 24)
+            throw new ArgumentException("Start hour must be between 0 and 23");
+        if (startHour + durationHours > 24)
+            throw new ArgumentException("End hour must not exceed 24");
+        if (durationHours < 1)
+            throw new ArgumentException("Duration must be at least 1 hour");
+
         _start = new TimeOnly(startHour, 0);
         _end = new TimeOnly(startHour + durationHours, 0);
         return this;

@@ -1,10 +1,10 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 

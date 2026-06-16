@@ -14,6 +14,8 @@ public class UserBuilder : BaseBuilder<User>
     private string? _lastName;
     private string? _keycloakId;
     private Guid? _id;
+    private DateTime? _createdAt;
+    private DateTime? _updatedAt;
 
     public UserBuilder()
     {
@@ -38,6 +40,16 @@ public class UserBuilder : BaseBuilder<User>
                 if (_id.HasValue)
                 {
                     user.SetIdForTesting(new UserId(_id.Value));
+                }
+
+                if (_createdAt.HasValue)
+                {
+                    user.SetCreatedAtForTesting(_createdAt.Value);
+                }
+
+                if (_updatedAt.HasValue)
+                {
+                    user.SetUpdatedAtForTesting(_updatedAt.Value);
                 }
 
                 return user;
@@ -108,8 +120,20 @@ public class UserBuilder : BaseBuilder<User>
 
     public UserBuilder AsDeleted(DateTime deletedAt)
     {
-        var dateTimeProvider = new FakeTimeProvider(new DateTimeOffset(deletedAt, TimeSpan.Zero));
+        var dateTimeProvider = new FakeTimeProvider(new DateTimeOffset(deletedAt));
         WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
+        return this;
+    }
+
+    public UserBuilder WithCreatedAt(DateTime createdAt)
+    {
+        _createdAt = createdAt;
+        return this;
+    }
+
+    public UserBuilder WithUpdatedAt(DateTime? updatedAt)
+    {
+        _updatedAt = updatedAt;
         return this;
     }
 }
