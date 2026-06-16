@@ -1,17 +1,13 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using FluentAssertions;
-using MeAjudaAi.Modules.Locations.Application.Handlers;
-using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Messaging.Messages.Locations;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Moq;
 using System.Security.Claims;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
@@ -42,7 +38,9 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_WithValidCommand_ShouldUpdateAllowedCity()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -103,9 +101,13 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_WhenDuplicateCityExists_ShouldReturnConflictError()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
         var differentCityId = Guid.NewGuid();
-        var duplicateCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
+        var duplicateCity = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ")
+            .WithIbgeCode(3302270)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -135,7 +137,10 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_WhenCityNameChanged_AndCoordsMissing_ShouldCallGeocodingService()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 10, 20, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(10, 20)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -170,7 +175,10 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_WhenStateChanged_AndCoordsMissing_ShouldCallGeocodingService()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 10, 20, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(10, 20)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -203,7 +211,9 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_WhenExistingCoordsInvalid_AndCommandCoordsMissing_ShouldCallGeocodingService()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -238,7 +248,10 @@ public class UpdateAllowedCityHandlerTests
         var cityId = Guid.NewGuid();
         var existingCoordsLat = 10.5;
         var existingCoordsLon = 20.5;
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, existingCoordsLat, existingCoordsLon, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(existingCoordsLat, existingCoordsLon)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -270,7 +283,9 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_UpdatingSameCityWithSameName_ShouldNotThrowException()
     {
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
         var cityId = existingCity.Id;
         var command = new UpdateAllowedCityCommand
         {
@@ -299,7 +314,9 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_WithNoUserEmail_ShouldUseSystemAsUpdater()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
@@ -336,5 +353,3 @@ public class UpdateAllowedCityHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
 }
-
-

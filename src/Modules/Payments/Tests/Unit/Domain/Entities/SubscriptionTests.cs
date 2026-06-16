@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Events;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Payments;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Domain.Entities;
 
@@ -33,7 +34,10 @@ public class SubscriptionTests
     public void Activate_ShouldUpdateStatusAndDates_AndAddDomainEvent()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         var externalId = "sub_stripe_123";
         var expiresAt = DateTime.UtcNow.AddMonths(1);
 
@@ -53,8 +57,11 @@ public class SubscriptionTests
     public void Activate_ShouldBeIdempotent_WhenAlreadyActive()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Activated("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1))
+            .Build();
         subscription.ClearDomainEvents();
         var originalUpdatedAt = subscription.UpdatedAt;
 
@@ -72,10 +79,13 @@ public class SubscriptionTests
     public void Activate_ShouldUpdateExpiresAt_WhenAlreadyActiveWithDifferentExpiration()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Activated("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1))
+            .Build();
         var expires1 = DateTime.UtcNow.AddMonths(1);
         var expires2 = DateTime.UtcNow.AddMonths(2);
-        subscription.Activate("sub_123", "cus_123", expires1);
         
         var before = DateTime.UtcNow;
 
@@ -91,7 +101,10 @@ public class SubscriptionTests
     public void Activate_ShouldAcceptExpiresAt()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         var expiresAt = DateTime.UtcNow.AddMonths(1);
 
         // Act
@@ -106,7 +119,10 @@ public class SubscriptionTests
     public void Activate_ShouldThrowArgumentException_WhenExternalSubscriptionIdIsMissing()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
 
         // Act
         var act = () => subscription.Activate("", "cus_123", DateTime.UtcNow.AddMonths(1));
@@ -119,7 +135,10 @@ public class SubscriptionTests
     public void Activate_ShouldThrowArgumentException_WhenExternalCustomerIdIsMissing()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
 
         // Act
         var act = () => subscription.Activate("sub_123", "", DateTime.UtcNow.AddMonths(1));
@@ -132,7 +151,10 @@ public class SubscriptionTests
     public void Activate_ShouldThrowArgumentException_WhenExpiresAtIsInvalid()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
 
         // Act
         var act = () => subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddDays(-1));
@@ -145,7 +167,10 @@ public class SubscriptionTests
     public void Renew_ShouldUpdateExpiresAt_AndAddDomainEvent()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.10m, "BRL"));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.10m))
+            .Build();
         var originalExpiresAt = DateTime.UtcNow.AddMonths(1);
         subscription.Activate("sub_123", "cus_123", originalExpiresAt);
         var newExpiresAt = originalExpiresAt.AddMonths(1);
@@ -164,7 +189,10 @@ public class SubscriptionTests
     public void Cancel_ShouldUpdateStatus_AndAddDomainEvent()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
         subscription.ClearDomainEvents();
 
@@ -181,7 +209,10 @@ public class SubscriptionTests
     public void Cancel_ShouldBeIdempotent_WhenAlreadyCanceled()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
         subscription.Cancel();
         subscription.ClearDomainEvents();
@@ -198,7 +229,10 @@ public class SubscriptionTests
     public void Cancel_ShouldWorkFromPendingStatus()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
 
         // Act
         subscription.Cancel();
@@ -212,7 +246,10 @@ public class SubscriptionTests
     public void Expire_ShouldUpdateStatus_AndAddDomainEvent()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
         subscription.ClearDomainEvents();
 
@@ -229,7 +266,10 @@ public class SubscriptionTests
     public void Expire_ShouldNotAddEvent_WhenAlreadyExpired()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         subscription.Expire();
         subscription.ClearDomainEvents();
 
@@ -244,7 +284,10 @@ public class SubscriptionTests
     public void Expire_ShouldNotExpire_WhenCanceled()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         subscription.Cancel();
         subscription.ClearDomainEvents();
 
@@ -260,7 +303,10 @@ public class SubscriptionTests
     public void Expire_ShouldBeIdempotent_WhenAlreadyExpired()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_123")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
         subscription.Expire();
 
@@ -275,7 +321,10 @@ public class SubscriptionTests
     public void FullLifecycle_Pending_Activate_Cancel()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_full", Money.FromDecimal(199.90m, "USD"));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan_full")
+            .WithAmount(MoneyBuilder.Usd(199.90m))
+            .Build();
 
         // Act & Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Pending);
@@ -291,7 +340,10 @@ public class SubscriptionTests
     public void Cancel_ShouldBeNoOp_WhenAlreadyExpired()
     {
         // Arrange
-        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("plan_a")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         sub.Activate("sub_ext", "cus_ext");
         sub.Expire();
         sub.ClearDomainEvents();
@@ -308,7 +360,10 @@ public class SubscriptionTests
     public void Expire_ShouldBeNoOp_WhenAlreadyCanceled()
     {
         // Arrange
-        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("plan_a")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         sub.Activate("sub_ext", "cus_ext");
         sub.Cancel();
         sub.ClearDomainEvents();
@@ -326,7 +381,10 @@ public class SubscriptionTests
     {
         // Arrange
         var expiresAt = DateTime.UtcNow.AddDays(30);
-        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("plan_a")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         sub.Activate("sub_ext", "cus_ext", expiresAt);
 
         // Act
@@ -341,7 +399,10 @@ public class SubscriptionTests
     public void Activate_ShouldIncrementVersion_OnSuccessfulActivation()
     {
         // Arrange
-        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("plan_a")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         var initialVersion = sub.Version;
 
         // Act
@@ -355,7 +416,10 @@ public class SubscriptionTests
     public void Activate_ShouldThrow_WhenExpiresAtIsExactlyNow()
     {
         // Arrange
-        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("plan_a")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
 
         // Act
         Action act = () => sub.Activate("sub_ext", "cus_ext", DateTime.UtcNow);
@@ -413,7 +477,10 @@ public class SubscriptionTests
     public void Activate_ShouldThrow_WhenStatusIsCanceled()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Cancel();
 
         // Act
@@ -427,7 +494,10 @@ public class SubscriptionTests
     public void Activate_ShouldThrow_WhenStatusIsExpired()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
         subscription.Expire();
 
@@ -442,7 +512,10 @@ public class SubscriptionTests
     public void Renew_ShouldThrow_WhenStatusIsCanceled()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Cancel();
 
         // Act
@@ -456,7 +529,10 @@ public class SubscriptionTests
     public void Renew_ShouldThrow_WhenStatusIsExpired()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
         subscription.Expire();
 
@@ -471,7 +547,10 @@ public class SubscriptionTests
     public void Renew_ShouldThrow_WhenDateIsNotInFuture()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Activate("sub", "cus", DateTime.UtcNow.AddMonths(1));
 
         // Act
@@ -485,7 +564,10 @@ public class SubscriptionTests
     public void Cancel_ShouldBeIdempotent_WhenExpired()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
         subscription.Expire();
 
@@ -500,7 +582,10 @@ public class SubscriptionTests
     public void Renew_ShouldThrow_WhenStatusIsPending()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
 
         // Act
         var act = () => subscription.Renew(DateTime.UtcNow.AddDays(1));
@@ -513,7 +598,10 @@ public class SubscriptionTests
     public void Activate_ShouldUpdateExternalIds_WhenStatusIsActiveButIdsAreDifferent()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         subscription.Activate("old_sub", "old_cus", DateTime.UtcNow.AddDays(1));
         var originalUpdatedAt = subscription.UpdatedAt;
 
@@ -530,7 +618,10 @@ public class SubscriptionTests
     public void Renew_ShouldThrow_WhenNewExpiresAtIsNotAfterCurrent()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var subscription = new SubscriptionBuilder()
+            .WithPlanId("plan")
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         var currentExpiresAt = DateTime.UtcNow.AddMonths(1);
         subscription.Activate("sub", "cus", currentExpiresAt);
         

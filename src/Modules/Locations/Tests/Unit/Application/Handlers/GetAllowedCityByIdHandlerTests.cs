@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using Moq;
-using Xunit;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
@@ -23,7 +21,11 @@ public class GetAllowedCityByIdHandlerTests
     {
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, -21.130, -42.366, 15);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.130, -42.366)
+            .WithServiceRadius(15)
+            .Build();
 
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
@@ -55,7 +57,10 @@ public class GetAllowedCityByIdHandlerTests
     {
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .AsInactive()
+            .Build();
 
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
@@ -71,7 +76,9 @@ public class GetAllowedCityByIdHandlerTests
     {
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
 
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);

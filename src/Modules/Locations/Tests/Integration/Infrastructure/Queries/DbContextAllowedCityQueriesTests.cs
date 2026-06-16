@@ -1,45 +1,45 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Queries;
-using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Integration.Infrastructure.Queries;
 
-public class DbContextAllowedCityQueriesTests : IAsyncLifetime
+public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
 {
-    private readonly PostgreSqlContainer _postgresContainer;
     private LocationsDbContext _context = null!;
     private IAllowedCityQueries _queries = null!;
 
     public DbContextAllowedCityQueriesTests()
+        : base(schema: "locations", databaseName: "locations_test")
     {
-        var options = new TestDatabaseOptions
-        {
-            DatabaseName = "locations_test",
-            Username = "test_user",
-            Password = "test_password",
-            Schema = "locations"
-        };
+    }
 
-        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
-            .WithDatabase(options.DatabaseName)
-            .WithUsername(options.Username)
-            .WithPassword(options.Password)
-            .WithCleanUp(true)
-            .Build();
+    public override async ValueTask InitializeAsync()
+    {
+        await base.InitializeAsync();
+
+        var dbContextOptions = CreateDbContextOptions<LocationsDbContext>();
+        _context = new LocationsDbContext(dbContextOptions);
+        await _context.Database.MigrateAsync();
+        await InitializeRespawnerAsync();
+
+        _queries = new DbContextAllowedCityQueries(_context);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync();
+        await base.DisposeAsync();
     }
 
     [Fact]
     public async Task GetAllActiveAsync_ShouldReturnOnlyActiveCities()
     {
-        var activeCity1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        var activeCity2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
-        var inactiveCity = new AllowedCity("São Paulo", "SP", "admin@test.com", 3550308, 0, 0, 0, false);
+        var activeCity1 = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
+        var activeCity2 = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").Build();
+        var inactiveCity = AllowedCityBuilder.AsTestCity("São Paulo", "SP").AsInactive().Build();
 
         _context.AllowedCities.Add(activeCity1);
         _context.AllowedCities.Add(activeCity2);
@@ -58,8 +58,8 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllCities()
     {
-        var activeCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        var inactiveCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0, false);
+        var activeCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
+        var inactiveCity = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").AsInactive().Build();
 
         _context.AllowedCities.Add(activeCity);
         _context.AllowedCities.Add(inactiveCity);
@@ -75,7 +75,7 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task GetByCityAndStateAsync_WithExistingCityAndState_ShouldReturnCity()
     {
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
         _context.AllowedCities.Add(city);
         await _context.SaveChangesAsync();
 
@@ -97,7 +97,7 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task IsCityAllowedAsync_WithActiveCity_ShouldReturnTrue()
     {
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
         _context.AllowedCities.Add(city);
         await _context.SaveChangesAsync();
 
@@ -109,7 +109,7 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task IsCityAllowedAsync_WithInactiveCity_ShouldReturnFalse()
     {
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").AsInactive().Build();
         _context.AllowedCities.Add(city);
         await _context.SaveChangesAsync();
 
@@ -129,7 +129,7 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task ExistsAsync_WithExistingCity_ShouldReturnTrue()
     {
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
         _context.AllowedCities.Add(city);
         await _context.SaveChangesAsync();
 
@@ -149,9 +149,9 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task GetAllActiveAsync_ShouldReturnOrderedByStateAndCityName()
     {
-        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        var city2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
-        var city3 = new AllowedCity("Bom Jesus do Itabapoana", "RJ", "admin@test.com", 3300704, 0, 0, 0);
+        var city1 = AllowedCityBuilder.AsTestCity("Muriaé", "MG").WithIbgeCode(3143906).Build();
+        var city2 = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").WithIbgeCode(3302270).Build();
+        var city3 = AllowedCityBuilder.AsTestCity("Bom Jesus do Itabapoana", "RJ").WithIbgeCode(3300704).Build();
 
         _context.AllowedCities.Add(city1);
         _context.AllowedCities.Add(city2);
@@ -172,7 +172,7 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
     [Fact]
     public async Task GetByCityAndStateAsync_ShouldBeCaseInsensitive()
     {
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").WithIbgeCode(3143906).Build();
         _context.AllowedCities.Add(city);
         await _context.SaveChangesAsync();
 
@@ -207,26 +207,5 @@ public class DbContextAllowedCityQueriesTests : IAsyncLifetime
         var result = await _queries.ExistsAsync(null!, "MG");
 
         result.Should().BeFalse("normalização de null deve resultar em string vazia");
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await _postgresContainer.StartAsync();
-
-        var dbContextOptions = new DbContextOptionsBuilder<LocationsDbContext>()
-            .UseNpgsql(_postgresContainer.GetConnectionString())
-            .UseSnakeCaseNamingConvention()
-            .Options;
-
-        _context = new LocationsDbContext(dbContextOptions);
-        await _context.Database.MigrateAsync();
-
-        _queries = new DbContextAllowedCityQueries(_context);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _context.DisposeAsync();
-        await _postgresContainer.DisposeAsync();
     }
 }
