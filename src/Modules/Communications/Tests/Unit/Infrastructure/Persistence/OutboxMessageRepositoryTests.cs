@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Domain;
-using DomainOutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure.Persistence;
 
@@ -14,7 +14,10 @@ public class OutboxMessageRepositoryTests
         // Arrange
         using var context = CommunicationsTestDb.CreateSqlite();
         var repo = new OutboxMessageRepository(context);
-        var msg = DomainOutboxMessage.Create(ECommunicationChannel.Email, "{}");
+        var msg = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .Build();
         await repo.AddAsync(msg);
         await repo.SaveChangesAsync();
 
@@ -35,13 +38,23 @@ public class OutboxMessageRepositoryTests
         var utcNow = DateTime.UtcNow;
 
         // 1. Pending and ready
-        var msg1 = DomainOutboxMessage.Create(ECommunicationChannel.Email, "{}");
-        
+        var msg1 = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .Build();
+
         // 2. Scheduled for future
-        var msg2 = DomainOutboxMessage.Create(ECommunicationChannel.Email, "{}", scheduledAt: utcNow.AddHours(1));
-        
+        var msg2 = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .AsScheduled(utcNow.AddHours(1))
+            .Build();
+
         // 3. Already processed
-        var msg3 = DomainOutboxMessage.Create(ECommunicationChannel.Email, "{}");
+        var msg3 = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .Build();
         msg3.MarkAsSent(utcNow);
 
         await repo.AddAsync(msg1);
@@ -63,11 +76,14 @@ public class OutboxMessageRepositoryTests
         // Arrange
         using var context = CommunicationsTestDb.CreateSqlite();
         var repo = new OutboxMessageRepository(context);
-        var oldMsg = DomainOutboxMessage.Create(ECommunicationChannel.Email, "{}");
+        var oldMsg = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .Build();
         oldMsg.MarkAsSent(DateTime.UtcNow);
-        
+
         typeof(BaseEntity).GetProperty("CreatedAt")?.SetValue(oldMsg, DateTime.UtcNow.AddDays(-10));
-        
+
         await repo.AddAsync(oldMsg);
         await repo.SaveChangesAsync();
 

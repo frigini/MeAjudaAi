@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.Entities;
 
@@ -10,11 +10,13 @@ public class ProviderScheduleTests : BaseUnitTest
     {
         // Arrange & Act
         var providerId = Guid.NewGuid();
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .Build();
 
         // Assert
         schedule.ProviderId.Should().Be(providerId);
-        schedule.TimeZoneId.Should().Be("America/Sao_Paulo");
+        schedule.TimeZoneId.Should().Be(TimeZoneConstants.DefaultTimeZoneId);
         schedule.Availabilities.Should().BeEmpty();
     }
 
@@ -22,9 +24,13 @@ public class ProviderScheduleTests : BaseUnitTest
     public void SetAvailability_Should_AddOrUpdateDay()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
-        var slot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
-        var availability = Availability.Create(DayOfWeek.Monday, [slot]);
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
+        var availability = new AvailabilityBuilder()
+            .WithDayOfWeek(DayOfWeek.Monday)
+            .WithSingleSlot(new TimeOnly(8, 0), new TimeOnly(12, 0))
+            .Build();
 
         // Act
         schedule.SetAvailability(availability);
@@ -38,7 +44,9 @@ public class ProviderScheduleTests : BaseUnitTest
     public void IsAvailable_Should_ReturnFalse_When_NoAvailabilityForDay()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
         var dateTime = new DateTime(2026, 4, 20, 10, 0, 0); // Segunda-feira
         dateTime.DayOfWeek.Should().Be(DayOfWeek.Monday);
         var duration = TimeSpan.FromHours(1);
@@ -54,9 +62,13 @@ public class ProviderScheduleTests : BaseUnitTest
     public void IsAvailable_Should_ReturnTrue_When_WithinSlot()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
-        var slot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
-        schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
+        schedule.SetAvailability(new AvailabilityBuilder()
+            .WithDayOfWeek(DayOfWeek.Monday)
+            .WithSingleSlot(new TimeOnly(8, 0), new TimeOnly(12, 0))
+            .Build());
         
         var dateTime = new DateTime(2026, 4, 20, 9, 0, 0); // Segunda, 09:00
         var duration = TimeSpan.FromHours(1);
@@ -72,10 +84,14 @@ public class ProviderScheduleTests : BaseUnitTest
     public void IsAvailable_Should_ReturnFalse_When_DurationIsZeroOrNegative()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
         var dateTime = new DateTime(2026, 4, 20, 9, 0, 0); // Segunda-feira
-        var slot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
-        schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
+        schedule.SetAvailability(new AvailabilityBuilder()
+            .WithDayOfWeek(DayOfWeek.Monday)
+            .WithSingleSlot(new TimeOnly(8, 0), new TimeOnly(12, 0))
+            .Build());
 
         // Act & Assert
         schedule.IsAvailable(dateTime, TimeSpan.Zero).Should().BeFalse();
@@ -86,10 +102,14 @@ public class ProviderScheduleTests : BaseUnitTest
     public void IsAvailable_Should_ReturnFalse_When_CrossesMidnight()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
         // Slot cobre até o final do dia para garantir que falhemos por cruzamento de data
-        var slot = TimeSlot.Create(new TimeOnly(22, 0), TimeOnly.MaxValue);
-        schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
+        schedule.SetAvailability(new AvailabilityBuilder()
+            .WithDayOfWeek(DayOfWeek.Monday)
+            .WithSingleSlot(new TimeOnly(22, 0), TimeOnly.MaxValue)
+            .Build());
 
         var dateTime = new DateTime(2026, 4, 20, 23, 30, 0); // Segunda, 23:30
         var duration = TimeSpan.FromHours(1); // Vai até 00:30 do dia seguinte
@@ -105,7 +125,9 @@ public class ProviderScheduleTests : BaseUnitTest
     public void UpdateTimeZone_Should_ChangeTimeZone_When_Valid()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
         var newTimeZone = "UTC";
 
         // Act
@@ -122,7 +144,9 @@ public class ProviderScheduleTests : BaseUnitTest
     public void UpdateTimeZone_Should_Throw_When_NullOrWhitespace(string? timeZone)
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
 
         // Act
         var act = () => schedule.UpdateTimeZone(timeZone!);
@@ -135,7 +159,9 @@ public class ProviderScheduleTests : BaseUnitTest
     public void UpdateTimeZone_Should_Throw_When_InvalidTimeZoneId()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
 
         // Act
         var act = () => schedule.UpdateTimeZone("Invalid/TimeZone");
@@ -148,9 +174,13 @@ public class ProviderScheduleTests : BaseUnitTest
     public void ClearAvailabilities_Should_EmptyTheList()
     {
         // Arrange
-        var schedule = ProviderSchedule.Create(Guid.NewGuid());
-        var slot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
-        schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .Build();
+        schedule.SetAvailability(new AvailabilityBuilder()
+            .WithDayOfWeek(DayOfWeek.Monday)
+            .WithSingleSlot(new TimeOnly(8, 0), new TimeOnly(12, 0))
+            .Build());
         schedule.Availabilities.Should().NotBeEmpty();
 
         // Act

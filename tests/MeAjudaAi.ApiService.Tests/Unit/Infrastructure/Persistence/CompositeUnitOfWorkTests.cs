@@ -74,7 +74,7 @@ public class CompositeUnitOfWorkTests
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
 
-        var user = new MeAjudaAi.Modules.Users.Tests.Builders.UserBuilder().Build();
+        var user = new MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users.UserBuilder().Build();
         context.Users.Add(user);
 
         // Act
@@ -99,7 +99,7 @@ public class CompositeUnitOfWorkTests
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
 
-        var provider = new MeAjudaAi.Modules.Providers.Tests.Builders.ProviderBuilder().Build();
+        var provider = new MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers.ProviderBuilder().Build();
         context.Providers.Add(provider);
 
         // Act
@@ -158,10 +158,10 @@ public class CompositeUnitOfWorkTests
         var serviceProvider = services.BuildServiceProvider();
         var unitOfWork = new CompositeUnitOfWork(serviceProvider);
 
-        var user = new MeAjudaAi.Modules.Users.Tests.Builders.UserBuilder().Build();
+        var user = new MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users.UserBuilder().Build();
         usersContext.Users.Add(user);
 
-        var provider = new MeAjudaAi.Modules.Providers.Tests.Builders.ProviderBuilder().Build();
+        var provider = new MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers.ProviderBuilder().Build();
         providersContext.Providers.Add(provider);
 
         // Act

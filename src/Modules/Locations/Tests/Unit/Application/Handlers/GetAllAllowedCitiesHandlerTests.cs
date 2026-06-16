@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
-using Moq;
-using Xunit;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
@@ -24,7 +22,7 @@ public class GetAllAllowedCitiesHandlerTests
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
         var activeCities = new List<AllowedCity>
         {
-            new("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0)
+            AllowedCityBuilder.AsTestCity("Muriaé", "MG").WithIbgeCode(3143906).Build()
         };
 
         _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
@@ -43,8 +41,8 @@ public class GetAllAllowedCitiesHandlerTests
         var query = new GetAllAllowedCitiesQuery { OnlyActive = false };
         var allCities = new List<AllowedCity>
         {
-            new("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0),
-            new("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0, false)
+            AllowedCityBuilder.AsTestCity("Muriaé", "MG").WithIbgeCode(3143906).Build(),
+            AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").WithIbgeCode(3302270).AsInactive().Build()
         };
 
         _queriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
@@ -72,7 +70,11 @@ public class GetAllAllowedCitiesHandlerTests
     public async Task HandleAsync_ShouldMapPropertiesToDto()
     {
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, -21.1308, -42.3689, 25.5);
+        var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.1308, -42.3689)
+            .WithServiceRadius(25.5)
+            .Build();
         _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AllowedCity> { city });
 

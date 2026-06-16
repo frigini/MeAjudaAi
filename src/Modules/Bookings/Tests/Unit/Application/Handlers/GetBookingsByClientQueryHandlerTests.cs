@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
@@ -32,10 +32,20 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         var bookings = new List<Booking>
         {
-            Booking.Create(providerId, clientId, Guid.NewGuid(), date,
-                TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0))),
-            Booking.Create(providerId, clientId, Guid.NewGuid(), date,
-                TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(15, 0)))
+            new BookingBuilder()
+                .WithProviderId(providerId)
+                .WithClientId(clientId)
+                .WithServiceId(Guid.NewGuid())
+                .WithDate(date)
+                .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+                .Build(),
+            new BookingBuilder()
+                .WithProviderId(providerId)
+                .WithClientId(clientId)
+                .WithServiceId(Guid.NewGuid())
+                .WithDate(date)
+                .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(14, 0)).WithEnd(new TimeOnly(15, 0)).Build())
+                .Build()
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
@@ -43,7 +53,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProviderSchedule.Create(providerId));
+            .ReturnsAsync(new ProviderScheduleBuilder().WithProviderId(providerId).Build());
 
         // Act
         var result = await _sut.HandleAsync(new GetBookingsByClientQuery(clientId, Guid.NewGuid()));
@@ -139,10 +149,20 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         var bookings = new List<Booking>
         {
-            Booking.Create(providerId, clientId, Guid.NewGuid(), date,
-                TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0))),
-            Booking.Create(providerId, clientId, Guid.NewGuid(), date,
-                TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(12, 0)))
+            new BookingBuilder()
+                .WithProviderId(providerId)
+                .WithClientId(clientId)
+                .WithServiceId(Guid.NewGuid())
+                .WithDate(date)
+                .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(9, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+                .Build(),
+            new BookingBuilder()
+                .WithProviderId(providerId)
+                .WithClientId(clientId)
+                .WithServiceId(Guid.NewGuid())
+                .WithDate(date)
+                .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(11, 0)).WithEnd(new TimeOnly(12, 0)).Build())
+                .Build()
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
@@ -150,7 +170,7 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProviderSchedule.Create(providerId));
+            .ReturnsAsync(new ProviderScheduleBuilder().WithProviderId(providerId).Build());
 
         // Act
         var result = await _sut.HandleAsync(new GetBookingsByClientQuery(clientId, Guid.NewGuid()));

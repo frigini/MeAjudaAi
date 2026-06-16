@@ -1,12 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Database.Abstractions;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
@@ -32,7 +29,9 @@ public class DeleteAllowedCityHandlerTests
     public async Task HandleAsync_WithValidId_ShouldDeleteAllowedCity()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .Build();
         var command = new DeleteAllowedCityCommand { Id = cityId };
 
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
@@ -62,7 +61,10 @@ public class DeleteAllowedCityHandlerTests
     public async Task HandleAsync_WithInactiveCity_ShouldStillDelete()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithIbgeCode(3143906)
+            .AsInactive()
+            .Build();
         var command = new DeleteAllowedCityCommand { Id = cityId };
 
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
@@ -74,5 +76,3 @@ public class DeleteAllowedCityHandlerTests
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-
-

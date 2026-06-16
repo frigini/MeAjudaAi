@@ -1,12 +1,11 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Tests.Builders;
-using MeAjudaAi.Shared.Commands;
-using Microsoft.Extensions.DependencyInjection;
-
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 

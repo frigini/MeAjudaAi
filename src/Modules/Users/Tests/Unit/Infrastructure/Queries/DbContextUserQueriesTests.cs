@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Queries;
-using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Queries;

@@ -38,4 +38,14 @@
     <ProjectReference Include="..\..\..\..\tests\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="Moq" />
+    <Using Include="Bogus" />
+    <Using Include="AutoFixture" />
+    <Using Include="MeAjudaAi.Shared.Tests.TestInfrastructure.Base" />
+    <Using Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
 </Project>

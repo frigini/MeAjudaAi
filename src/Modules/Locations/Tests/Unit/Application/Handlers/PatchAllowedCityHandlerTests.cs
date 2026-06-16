@@ -1,12 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 using Microsoft.AspNetCore.Http;
-using Moq;
 using System.Security.Claims;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 
@@ -32,7 +30,12 @@ public class PatchAllowedCityHandlerTests
     public async Task HandleAsync_UpdateRadius_ShouldUpdateServiceRadiusOK()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "test@user.com", 3143906, -21.1, -42.3, 10);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithCreatedBy("test@user.com")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.1, -42.3)
+            .WithServiceRadius(10)
+            .Build();
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: 50, IsActive: null);
 
         SetupHttpContext("admin@test.com");
@@ -51,7 +54,13 @@ public class PatchAllowedCityHandlerTests
     public async Task HandleAsync_ActivateCity_ShouldSetIsActiveTrue()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "test@user.com", 3143906, -21.1, -42.3, 10, isActive: false);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithCreatedBy("test@user.com")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.1, -42.3)
+            .WithServiceRadius(10)
+            .AsInactive()
+            .Build();
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: null, IsActive: true);
 
         SetupHttpContext("admin@test.com");
@@ -70,7 +79,13 @@ public class PatchAllowedCityHandlerTests
     public async Task HandleAsync_DeactivateCity_ShouldSetIsActiveFalse()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "test@user.com", 3143906, -21.1, -42.3, 10, isActive: true);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithCreatedBy("test@user.com")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.1, -42.3)
+            .WithServiceRadius(10)
+            .AsActive()
+            .Build();
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: null, IsActive: false);
 
         SetupHttpContext("admin@test.com");
@@ -104,7 +119,12 @@ public class PatchAllowedCityHandlerTests
     public async Task HandleAsync_NoUserContext_ShouldUseSystemUser()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "test@user.com", 3143906, -21.1, -42.3, 10);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithCreatedBy("test@user.com")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.1, -42.3)
+            .WithServiceRadius(10)
+            .Build();
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: 50, IsActive: null);
 
         SetupHttpContext(null);
@@ -122,7 +142,12 @@ public class PatchAllowedCityHandlerTests
     public async Task HandleAsync_NoChanges_ShouldReturnSuccessWithoutSave()
     {
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "test@user.com", 3143906, -21.1, -42.3, 10);
+        var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
+            .WithCreatedBy("test@user.com")
+            .WithIbgeCode(3143906)
+            .WithCoordinates(-21.1, -42.3)
+            .WithServiceRadius(10)
+            .Build();
         var command = new PatchAllowedCityCommand(cityId, ServiceRadiusKm: null, IsActive: null);
 
         SetupHttpContext("admin@test.com");

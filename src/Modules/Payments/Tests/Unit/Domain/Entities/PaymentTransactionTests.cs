@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Payments;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Domain.Entities;
 
@@ -27,7 +28,9 @@ public class PaymentTransactionTests
     public void Settle_ShouldUpdateStatusAndReference()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         var externalId = "ch_123";
 
         // Act
@@ -43,7 +46,9 @@ public class PaymentTransactionTests
     public void Settle_ShouldThrow_WhenAlreadyProcessed()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         tx.Settle("id1");
 
         // Act
@@ -57,7 +62,9 @@ public class PaymentTransactionTests
     public void Fail_ShouldUpdateStatus()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
 
         // Act
         tx.Fail();
@@ -71,7 +78,9 @@ public class PaymentTransactionTests
     public void Fail_ShouldThrow_WhenAlreadyProcessed()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         tx.Fail();
 
         // Act
@@ -85,7 +94,9 @@ public class PaymentTransactionTests
     public void Refund_ShouldUpdateStatus()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
         tx.Settle("id1");
 
         // Act
@@ -99,7 +110,9 @@ public class PaymentTransactionTests
     public void Refund_ShouldBeIdempotent_WhenAlreadyRefunded()
     {
         // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), new Money(100m, "BRL"));
+        var transaction = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(100))
+            .Build();
         transaction.Settle("tx_ext_001");
         transaction.Refund(); // primeira chamada
 
@@ -115,7 +128,9 @@ public class PaymentTransactionTests
     public void Refund_ShouldPreserveRefundedAt_OnSecondCall()
     {
         // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), new Money(50m, "BRL"));
+        var transaction = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(50))
+            .Build();
         transaction.Settle("tx_ext_002");
         transaction.Refund();
         var firstRefundedAt = transaction.RefundedAt;
@@ -133,7 +148,9 @@ public class PaymentTransactionTests
     public void Refund_ShouldThrow_WhenNotSucceeded()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
 
         // Act
         var act = () => tx.Refund();
@@ -146,7 +163,9 @@ public class PaymentTransactionTests
     public void Settle_ShouldThrow_WhenExternalIdIsEmpty()
     {
         // Arrange
-        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var tx = new PaymentTransactionBuilder()
+            .WithAmount(MoneyBuilder.Brl(10))
+            .Build();
 
         // Act
         var act = () => tx.Settle("");

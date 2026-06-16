@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 
 /// <summary>
 /// Padrão builder base para criar objetos de teste com Bogus
 /// </summary>
+[ExcludeFromCodeCoverage]
 public abstract class BaseBuilder<T> where T : class
 {
     protected Faker<T> Faker;

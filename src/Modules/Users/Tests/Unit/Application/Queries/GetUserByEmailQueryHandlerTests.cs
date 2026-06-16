@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;

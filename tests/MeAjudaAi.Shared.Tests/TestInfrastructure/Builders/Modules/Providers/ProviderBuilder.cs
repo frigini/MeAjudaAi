@@ -1,11 +1,12 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 using Microsoft.Extensions.Time.Testing;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
+[ExcludeFromCodeCoverage]
 public class ProviderBuilder : BaseBuilder<Provider>
 {
     private Guid? _userId;
@@ -16,8 +17,8 @@ public class ProviderBuilder : BaseBuilder<Provider>
     private EVerificationStatus? _verificationStatus;
     private EProviderTier? _tier;
     private EProviderStatus? _status;
-    private readonly List<Document> _documents = new();
-    private readonly List<Qualification> _qualifications = new();
+    private readonly List<Document> _documents = [];
+    private readonly List<Qualification> _qualifications = [];
     private string? _city;
     private string? _state;
 
@@ -25,62 +26,48 @@ public class ProviderBuilder : BaseBuilder<Provider>
 
     public ProviderBuilder()
     {
-        // Configura o Faker com regras específicas para o domínio Provider
         Faker = new Faker<Provider>()
             .CustomInstantiator(f =>
             {
                 Provider provider;
 
-                // Cria o BusinessProfile com city/state customizados se definidos
                 var businessProfile = _businessProfile ?? CreateDefaultBusinessProfile(f, _city, _state);
 
-                // Se um ID específico foi fornecido, usa o construtor interno para testes
-                if (_providerId != null)
-                {
-                    provider = new Provider(
+                provider =_providerId != null
+                    ? new Provider(
                         _providerId,
                         _userId ?? f.Random.Guid(),
                         _name ?? f.Company.CompanyName(),
                         _type ?? f.PickRandom<EProviderType>(),
                         businessProfile
-                    );
-                }
-                else
-                {
-                    // Usa o construtor público que gera um novo ID
-                    provider = new Provider(
+                    )
+                    : new Provider(
                         _userId ?? f.Random.Guid(),
                         _name ?? f.Company.CompanyName(),
                         _type ?? f.PickRandom<EProviderType>(),
                         businessProfile
                     );
-                }
 
-                // Adiciona documentos se especificados
                 foreach (var document in _documents)
                 {
                     provider.AddDocument(document);
                 }
 
-                // Adiciona qualificações se especificadas
                 foreach (var qualification in _qualifications)
                 {
                     provider.AddQualification(qualification);
                 }
 
-                // Define status de verificação se especificado
                 if (_verificationStatus.HasValue)
                 {
                     provider.UpdateVerificationStatus(_verificationStatus.Value);
                 }
 
-                // Define tier se especificado
                 if (_tier.HasValue && _tier.Value != EProviderTier.Standard)
                 {
                     provider.PromoteTier(_tier.Value, "test-builder");
                 }
 
-                // Define status se especificado seguindo a máquina de estados do domínio
                 if (_status.HasValue && _status.Value != EProviderStatus.PendingBasicInfo)
                 {
                     switch (_status.Value)
@@ -88,20 +75,22 @@ public class ProviderBuilder : BaseBuilder<Provider>
                         case EProviderStatus.PendingDocumentVerification:
                             provider.CompleteBasicInfo("test-builder");
                             break;
-                            
                         case EProviderStatus.Active:
                             provider.CompleteBasicInfo("test-builder");
                             provider.Activate("test-builder");
                             break;
-                            
                         case EProviderStatus.Suspended:
                             provider.CompleteBasicInfo("test-builder");
                             provider.Activate("test-builder");
                             provider.Suspend("Test suspension", "test-builder");
                             break;
-                            
                         case EProviderStatus.Rejected:
                             provider.Reject("Test rejection", "test-builder");
+                            break;
+                        case EProviderStatus.None:
+                        case EProviderStatus.PendingBasicInfo:
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -209,12 +198,6 @@ public class ProviderBuilder : BaseBuilder<Provider>
     private bool _shouldDelete = false;
     private string? _deletedBy;
 
-    /// <summary>
-    /// Configura o provider para ser marcado como deletado.
-    /// </summary>
-    /// <param name="isDeleted">Indica se o provider deve ser deletado</param>
-    /// <param name="deletedBy">Identificação de quem deletou o provider</param>
-    /// <returns>A instância atual do builder</returns>
     public ProviderBuilder WithDeleted(bool isDeleted = true, string? deletedBy = null)
     {
         _shouldDelete = isDeleted;
@@ -222,20 +205,16 @@ public class ProviderBuilder : BaseBuilder<Provider>
         return this;
     }
 
-    /// <summary>
-    /// Constrói a instância do Provider com as configurações definidas.
-    /// </summary>
-    /// <returns>Uma instância configurada de Provider</returns>
     public override Provider Build()
     {
         var provider = base.Build();
-        
+
         if (_shouldDelete)
         {
             var fakeTimeProvider = new FakeTimeProvider(new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
             provider.Delete(fakeTimeProvider, _deletedBy);
         }
-        
+
         return provider;
     }
 
@@ -244,15 +223,15 @@ public class ProviderBuilder : BaseBuilder<Provider>
         var address = new Address(
             street: faker.Address.StreetAddress(),
             number: faker.Address.BuildingNumber(),
-            neighborhood: "Centro", // faker.Address.SecondaryAddress() sometimes is long
+            neighborhood: "Centro",
             city: city ?? faker.Address.City(),
             state: state ?? faker.Address.StateAbbr(),
-            zipCode: "12345-678", // Safe length
+            zipCode: "12345-678",
             country: "Brasil");
 
         var contactInfo = new ContactInfo(
             email: faker.Internet.Email(),
-            phoneNumber: "11999999999", // Safe length < 20
+            phoneNumber: "11999999999",
             website: faker.Internet.Url());
 
         return new BusinessProfile(
@@ -260,5 +239,4 @@ public class ProviderBuilder : BaseBuilder<Provider>
             contactInfo: contactInfo,
             primaryAddress: address);
     }
-
 }

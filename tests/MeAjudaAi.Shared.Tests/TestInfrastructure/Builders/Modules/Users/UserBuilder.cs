@@ -1,11 +1,11 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 using Microsoft.Extensions.Time.Testing;
+using System.Diagnostics.CodeAnalysis;
 
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 
-namespace MeAjudaAi.Modules.Users.Tests.Builders;
-
+[ExcludeFromCodeCoverage]
 public class UserBuilder : BaseBuilder<User>
 {
     private Username? _username;
@@ -14,10 +14,11 @@ public class UserBuilder : BaseBuilder<User>
     private string? _lastName;
     private string? _keycloakId;
     private Guid? _id;
+    private DateTime? _createdAt;
+    private DateTime? _updatedAt;
 
     public UserBuilder()
     {
-        // Configura o Faker com regras específicas para o domínio User
         Faker = new Faker<User>()
             .CustomInstantiator(f =>
             {
@@ -31,18 +32,27 @@ public class UserBuilder : BaseBuilder<User>
 
                 if (userResult.IsFailure)
                 {
-                    throw new InvalidOperationException(userResult.Error.Message);
+                    throw new InvalidOperationException(userResult.Error?.Message ?? "User creation failed");
                 }
 
-                var user = userResult.Value;
+                var user = userResult.Value ?? throw new InvalidOperationException("User creation returned null");
 
-                // Se um ID específico foi definido, usa helper interno
                 if (_id.HasValue)
                 {
                     user.SetIdForTesting(new UserId(_id.Value));
                 }
 
-                return user!;
+                if (_createdAt.HasValue)
+                {
+                    user.SetCreatedAtForTesting(_createdAt.Value);
+                }
+
+                if (_updatedAt.HasValue)
+                {
+                    user.SetUpdatedAtForTesting(_updatedAt.Value);
+                }
+
+                return user;
             });
     }
 
@@ -101,10 +111,6 @@ public class UserBuilder : BaseBuilder<User>
         return this;
     }
 
-    /// <summary>
-    /// Marca o usuário como excluído usando o horário UTC atual.
-    /// Para testes que exigem timestamps de exclusão específicos, use AsDeleted(DateTime).
-    /// </summary>
     public UserBuilder AsDeleted()
     {
         var dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
@@ -112,26 +118,22 @@ public class UserBuilder : BaseBuilder<User>
         return this;
     }
 
-    /// <summary>
-    /// Marca o usuário como excluído com um timestamp de exclusão específico.
-    /// Útil para testes que precisam validar valores exatos de DeletedAt.
-    /// </summary>
     public UserBuilder AsDeleted(DateTime deletedAt)
     {
-        var dateTimeProvider = new FakeTimeProvider(new DateTimeOffset(deletedAt, TimeSpan.Zero));
+        var dateTimeProvider = new FakeTimeProvider(new DateTimeOffset(deletedAt));
         WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
         return this;
     }
 
     public UserBuilder WithCreatedAt(DateTime createdAt)
     {
-        WithCustomAction(user => user.SetCreatedAtForTesting(createdAt));
+        _createdAt = createdAt;
         return this;
     }
 
     public UserBuilder WithUpdatedAt(DateTime? updatedAt)
     {
-        WithCustomAction(user => user.SetUpdatedAtForTesting(updatedAt));
+        _updatedAt = updatedAt;
         return this;
     }
 }

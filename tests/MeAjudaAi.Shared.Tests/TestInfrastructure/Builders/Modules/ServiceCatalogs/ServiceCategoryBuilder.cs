@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
+[ExcludeFromCodeCoverage]
 public class ServiceCategoryBuilder : BaseBuilder<ServiceCategory>
 {
     private string? _name;
@@ -21,7 +22,6 @@ public class ServiceCategoryBuilder : BaseBuilder<ServiceCategory>
                     _displayOrder ?? f.Random.Int(1, 100)
                 );
 
-                // Define o estado de ativo/inativo
                 if (!_isActive)
                 {
                     category.Deactivate();
@@ -52,14 +52,12 @@ public class ServiceCategoryBuilder : BaseBuilder<ServiceCategory>
     public ServiceCategoryBuilder AsActive()
     {
         _isActive = true;
-        // CustomInstantiator will ensure category is created active
         return this;
     }
 
     public ServiceCategoryBuilder AsInactive()
     {
         _isActive = false;
-        // CustomInstantiator will call Deactivate() after creation
         return this;
     }
 }

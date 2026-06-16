@@ -1,16 +1,19 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
+[ExcludeFromCodeCoverage]
 public class ServiceBuilder : BaseBuilder<Service>
 {
     private ServiceCategoryId? _categoryId;
     private string? _name;
+    private bool _nameSet;
     private string? _description;
+    private bool _descriptionSet;
     private bool _isActive = true;
-    private int? _displayOrder = null;
+    private int? _displayOrder;
 
     public ServiceBuilder()
     {
@@ -22,12 +25,11 @@ public class ServiceBuilder : BaseBuilder<Service>
 
                 var service = Service.Create(
                     _categoryId ?? ServiceCategoryId.New(),
-                    _name ?? (generatedName.Length <= 150 ? generatedName : generatedName[..150]),
-                    _description ?? (generatedDescription.Length <= 1000 ? generatedDescription : generatedDescription[..1000]),
+                    _nameSet ? _name! : (generatedName.Length <= 150 ? generatedName : generatedName[..150]),
+                    _descriptionSet ? _description! : (generatedDescription.Length <= 1000 ? generatedDescription : generatedDescription[..1000]),
                     _displayOrder ?? f.Random.Int(0, 100)
                 );
 
-                // Define o estado de ativo/inativo
                 if (!_isActive)
                 {
                     service.Deactivate();
@@ -52,12 +54,14 @@ public class ServiceBuilder : BaseBuilder<Service>
     public ServiceBuilder WithName(string name)
     {
         _name = name;
+        _nameSet = true;
         return this;
     }
 
     public ServiceBuilder WithDescription(string? description)
     {
         _description = description;
+        _descriptionSet = true;
         return this;
     }
 

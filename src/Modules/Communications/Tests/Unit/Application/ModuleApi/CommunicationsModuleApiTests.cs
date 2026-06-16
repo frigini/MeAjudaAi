@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 
@@ -303,7 +304,7 @@ public class CommunicationsModuleApiTests
         // Arrange
         var templates = new List<EmailTemplate>
         {
-            EmailTemplate.Create("key1", "Sub1", "Html1", "Text1")
+            new EmailTemplateBuilder().WithKey("key1").WithSubject("Sub1").WithHtmlBody("Html1").WithTextBody("Text1").Build()
         };
         _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(templates);
@@ -324,7 +325,13 @@ public class CommunicationsModuleApiTests
         var query = new CommunicationLogQuery { PageNumber = 1, PageSize = 10 };
         var logs = new List<CommunicationLog>
         {
-            CommunicationLog.CreateSuccess("corr1", ECommunicationChannel.Email, "rec1", 1)
+            new CommunicationLogBuilder()
+                .WithCorrelationId("corr1")
+                .WithChannel(ECommunicationChannel.Email)
+                .WithRecipient("rec1")
+                .WithAttemptCount(1)
+                .AsSuccess()
+                .Build()
         };
         _logQueriesMock.Setup(x => x.SearchAsync(It.IsAny<CommunicationLogQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((logs, 1));
@@ -345,7 +352,7 @@ public class CommunicationsModuleApiTests
     {
         // Arrange
         _serviceProviderMock.Setup(static x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { EmailTemplate.Create("t", "s", "h", "t") });
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { new EmailTemplateBuilder().WithKey("t").WithSubject("s").WithHtmlBody("h").WithTextBody("t").Build() });
 
         // Act
         var result = await _api.IsAvailableAsync();
@@ -363,7 +370,7 @@ public class CommunicationsModuleApiTests
             .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Healthy, TimeSpan.Zero));
 
         _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { EmailTemplate.Create("t", "s", "h", "t") });
+        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { new EmailTemplateBuilder().WithKey("t").WithSubject("s").WithHtmlBody("h").WithTextBody("t").Build() });
 
         // Act
         var result = await _api.IsAvailableAsync();
@@ -413,7 +420,7 @@ public class CommunicationsModuleApiTests
         // Arrange
         var cts = new CancellationTokenSource();
         cts.Cancel();
-        
+
         var healthCheckServiceMock = new Mock<HealthCheckService>();
         healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException(cts.Token));

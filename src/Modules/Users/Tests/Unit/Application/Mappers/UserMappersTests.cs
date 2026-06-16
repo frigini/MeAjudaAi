@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Mappers;
 

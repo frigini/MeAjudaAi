@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
@@ -30,13 +30,14 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
-        
         var slotStart = new TimeOnly(8, 0);
         var slotEnd = new TimeOnly(10, 0);
         
-        schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(slotStart, slotEnd)]));
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("UTC")
+            .WithSingleSlot(date.DayOfWeek, slotStart, slotEnd)
+            .Build();
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -65,12 +66,19 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
-        schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0))]));
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("UTC")
+            .WithSingleSlot(date.DayOfWeek, new TimeOnly(8, 0), new TimeOnly(10, 0))
+            .Build();
 
-        var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(8, 30), new TimeOnly(9, 30)));
+        var existingBooking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 30)).WithEnd(new TimeOnly(9, 30)).Build())
+            .Build();
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -121,14 +129,21 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
         var slotStart = new TimeOnly(8, 0);
         var slotEnd = new TimeOnly(10, 0);
-        schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(slotStart, slotEnd)]));
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("UTC")
+            .WithSingleSlot(date.DayOfWeek, slotStart, slotEnd)
+            .Build();
 
-        var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(slotStart, slotEnd));
+        var existingBooking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(slotStart).WithEnd(slotEnd).Build())
+            .Build();
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -151,15 +166,22 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
         var slotStart = new TimeOnly(8, 0);
         var slotEnd = new TimeOnly(10, 0);
-        schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(slotStart, slotEnd)]));
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("UTC")
+            .WithSingleSlot(date.DayOfWeek, slotStart, slotEnd)
+            .Build();
 
         var otherDate = date.AddDays(2);
-        var bookingOnOtherDate = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), otherDate,
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(9, 0)));
+        var bookingOnOtherDate = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(otherDate)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(9, 0)).Build())
+            .Build();
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -184,8 +206,10 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
-        // No availability set for this day
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("UTC")
+            .Build();
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);

@@ -1,9 +1,10 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.Tests.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 
+[ExcludeFromCodeCoverage]
 public class UsernameBuilder : BaseBuilder<Username>
 {
     public UsernameBuilder()
@@ -21,7 +22,7 @@ public class UsernameBuilder : BaseBuilder<Username>
 
     public UsernameBuilder WithLength(int length)
     {
-        if (length < ValidationConstants.UserLimits.UsernameMinLength || length > ValidationConstants.UserLimits.UsernameMaxLength)
+        if (length is <ValidationConstants.UserLimits.UsernameMinLength or >ValidationConstants.UserLimits.UsernameMaxLength)
             throw new ArgumentException($"Username length must be between {ValidationConstants.UserLimits.UsernameMinLength} and {ValidationConstants.UserLimits.UsernameMaxLength} characters");
 
         Faker = new Faker<Username>()

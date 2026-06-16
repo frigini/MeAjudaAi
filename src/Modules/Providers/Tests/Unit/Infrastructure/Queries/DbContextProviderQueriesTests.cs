@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
-using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Queries;

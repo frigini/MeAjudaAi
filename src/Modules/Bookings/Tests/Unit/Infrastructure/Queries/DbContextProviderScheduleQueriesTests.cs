@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Queries;
 
@@ -21,7 +21,9 @@ public class DbContextProviderScheduleQueriesTests : BaseInMemoryDatabaseTest<Bo
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .Build();
         DbContext.ProviderSchedules.Add(schedule);
         await DbContext.SaveChangesAsync();
 

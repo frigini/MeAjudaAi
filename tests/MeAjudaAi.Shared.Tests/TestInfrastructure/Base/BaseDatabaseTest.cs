@@ -17,9 +17,15 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
     private Respawner? _respawner;
     private readonly TestDatabaseOptions _databaseOptions;
 
-    protected BaseDatabaseTest(TestDatabaseOptions? databaseOptions = null)
+    protected BaseDatabaseTest(string? schema = null, string? databaseName = null)
     {
-        _databaseOptions = databaseOptions ?? GetDefaultDatabaseOptions();
+        _databaseOptions = new TestDatabaseOptions
+        {
+            DatabaseName = databaseName ?? "meajudaai_test",
+            Username = "test_user",
+            Password = "test_password",
+            Schema = schema ?? "public"
+        };
 
         _postgresContainer = new PostgreSqlBuilder("postgres:17.5")
             .WithDatabase(_databaseOptions.DatabaseName)
@@ -28,17 +34,6 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
             .WithCleanUp(true)
             .Build();
     }
-
-    /// <summary>
-    /// Configurações padrão do banco para testes (sobrescreva se necessário)
-    /// </summary>
-    protected virtual TestDatabaseOptions GetDefaultDatabaseOptions() => new()
-    {
-        DatabaseName = "meajudaai_test",
-        Username = "test_user",
-        Password = "test_password",
-        Schema = "public"
-    };
 
     /// <summary>
     /// String de conexão para o banco de dados de teste

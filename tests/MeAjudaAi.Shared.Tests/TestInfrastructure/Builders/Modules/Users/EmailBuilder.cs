@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.Tests.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 
+[ExcludeFromCodeCoverage]
 public class EmailBuilder : BaseBuilder<Email>
 {
     public EmailBuilder()

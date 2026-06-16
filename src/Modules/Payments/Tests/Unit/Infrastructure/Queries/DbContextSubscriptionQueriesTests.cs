@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Payments;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Queries;
 
@@ -28,7 +29,10 @@ public class DbContextSubscriptionQueriesTests : IDisposable
     [Fact]
     public async Task GetByIdAsync_WithExistingSubscription_ShouldReturnSubscription()
     {
-        var sub = new Subscription(Guid.NewGuid(), "premium", Money.FromDecimal(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("premium")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         _dbContext.Subscriptions.Add(sub);
         await _dbContext.SaveChangesAsync();
 
@@ -41,7 +45,10 @@ public class DbContextSubscriptionQueriesTests : IDisposable
     [Fact]
     public async Task GetByExternalIdAsync_WithExistingSubscription_ShouldReturnSubscription()
     {
-        var sub = new Subscription(Guid.NewGuid(), "premium", Money.FromDecimal(99.90m, "BRL"));
+        var sub = new SubscriptionBuilder()
+            .WithPlanId("premium")
+            .WithAmount(MoneyBuilder.Brl(99.90m))
+            .Build();
         sub.Activate("ext-sub-123", "cus-123", DateTime.UtcNow.AddMonths(1));
         _dbContext.Subscriptions.Add(sub);
         await _dbContext.SaveChangesAsync();
@@ -56,7 +63,11 @@ public class DbContextSubscriptionQueriesTests : IDisposable
     public async Task GetLatestByProviderIdAsync_ShouldReturnMostRecentSubscription()
     {
         var providerId = Guid.NewGuid();
-        var oldSub = new Subscription(providerId, "basic", Money.FromDecimal(50.00m, "BRL"));
+        var oldSub = new SubscriptionBuilder()
+            .WithProviderId(providerId)
+            .WithPlanId("basic")
+            .WithAmount(MoneyBuilder.Brl(50.00m))
+            .Build();
         var newSub = new Subscription(providerId, "premium", Money.FromDecimal(99.90m, "BRL"));
         
         _dbContext.Subscriptions.Add(oldSub);

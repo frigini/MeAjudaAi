@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Communications.Domain.Entities;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Domain.Entities;
 
@@ -8,14 +8,16 @@ public class EmailTemplateTests
     public void Create_WithValidData_ShouldCreateTemplate()
     {
         // Act
-        var template = EmailTemplate.Create(
-            "user_registered",
-            "Welcome",
-            "<h1>Hello</h1>",
-            "Hello",
-            "en-US",
-            "custom-key",
-            true);
+        var template = new EmailTemplateBuilder()
+            .WithKey("user_registered")
+            .WithSubject("Welcome")
+            .WithHtmlBody("<h1>Hello</h1>")
+            .WithTextBody("Hello")
+            .WithLanguage("en-US")
+            .WithOverrideKey("custom-key")
+            .AsSystemTemplate()
+            .AsActive()
+            .Build();
 
         // Assert
         template.TemplateKey.Should().Be("user_registered");
@@ -33,7 +35,12 @@ public class EmailTemplateTests
     public void CreateNewVersion_WhenNotSystemTemplate_ShouldCreateNewVersion()
     {
         // Arrange
-        var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: false);
+        var template = new EmailTemplateBuilder()
+            .WithKey("test")
+            .WithSubject("S")
+            .WithHtmlBody("H")
+            .WithTextBody("T")
+            .Build();
 
         // Act
         var newVersion = template.CreateNewVersion("New S", "New H", "New T");
@@ -54,7 +61,13 @@ public class EmailTemplateTests
     public void CreateNewVersion_WhenSystemTemplate_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: true);
+        var template = new EmailTemplateBuilder()
+            .WithKey("test")
+            .WithSubject("S")
+            .WithHtmlBody("H")
+            .WithTextBody("T")
+            .AsSystemTemplate()
+            .Build();
 
         // Act
         var act = () => template.CreateNewVersion("New S", "New H", "New T");
@@ -67,7 +80,12 @@ public class EmailTemplateTests
     public void Deactivate_WhenNotSystemTemplate_ShouldDeactivate()
     {
         // Arrange
-        var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: false);
+        var template = new EmailTemplateBuilder()
+            .WithKey("test")
+            .WithSubject("S")
+            .WithHtmlBody("H")
+            .WithTextBody("T")
+            .Build();
 
         // Act
         template.Deactivate();
@@ -80,7 +98,13 @@ public class EmailTemplateTests
     public void Deactivate_WhenSystemTemplate_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: true);
+        var template = new EmailTemplateBuilder()
+            .WithKey("test")
+            .WithSubject("S")
+            .WithHtmlBody("H")
+            .WithTextBody("T")
+            .AsSystemTemplate()
+            .Build();
 
         // Act
         var act = () => template.Deactivate();
@@ -93,7 +117,12 @@ public class EmailTemplateTests
     public void Activate_ShouldActivate()
     {
         // Arrange
-        var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: false);
+        var template = new EmailTemplateBuilder()
+            .WithKey("test")
+            .WithSubject("S")
+            .WithHtmlBody("H")
+            .WithTextBody("T")
+            .Build();
         template.Deactivate();
 
         // Act
@@ -113,7 +142,7 @@ public class EmailTemplateTests
     public void Create_WithInvalidData_ShouldThrowArgumentException(string? key, string? sub, string? html, string? text)
     {
         // Act
-        var act = () => EmailTemplate.Create(key!, sub!, html!, text!);
+        var act = () => new EmailTemplateBuilder().WithKey(key!).WithSubject(sub!).WithHtmlBody(html!).WithTextBody(text!).Build();
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -126,7 +155,12 @@ public class EmailTemplateTests
     public void CreateNewVersion_WithInvalidData_ShouldThrowArgumentException(string? sub, string? html, string? text)
     {
         // Arrange
-        var template = EmailTemplate.Create("test", "S", "H", "T", isSystemTemplate: false);
+        var template = new EmailTemplateBuilder()
+            .WithKey("test")
+            .WithSubject("S")
+            .WithHtmlBody("H")
+            .WithTextBody("T")
+            .Build();
 
         // Act
         var act = () => template.CreateNewVersion(sub!, html!, text!);

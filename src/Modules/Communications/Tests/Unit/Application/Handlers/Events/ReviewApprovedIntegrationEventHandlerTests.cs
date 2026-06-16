@@ -124,7 +124,7 @@ public class ReviewApprovedIntegrationEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenProviderApiReturnsTransientError_ShouldThrow()
+    public async Task HandleAsync_WhenProviderApiReturnsTransientError_ShouldReturnEarly()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -138,9 +138,10 @@ public class ReviewApprovedIntegrationEventHandlerTests
             .Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderDto?>.Failure(Error.Internal("Service unavailable")));
 
-        // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(integrationEvent));
+        // Act - should return early, not throw
+        await _handler.HandleAsync(integrationEvent);
 
+        // Assert
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

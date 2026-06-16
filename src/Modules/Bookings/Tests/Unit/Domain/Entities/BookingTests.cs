@@ -1,8 +1,9 @@
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
+using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.Entities;
 
@@ -240,35 +241,15 @@ public class BookingTests : BaseUnitTest
             .WithMessage("Only pending bookings can be rejected.");
     }
 
-    private static Booking BringBookingToStatus(EBookingStatus status)
+    private static Booking BringBookingToStatus(EBookingStatus status) => status switch
     {
-        var booking = CreatePendingBooking();
-        switch (status)
-        {
-            case EBookingStatus.Confirmed:
-                booking.Confirm();
-                break;
-            case EBookingStatus.Rejected:
-                booking.Reject("test");
-                break;
-            case EBookingStatus.Cancelled:
-                booking.Cancel("test");
-                break;
-            case EBookingStatus.Completed:
-                booking.Confirm();
-                booking.Complete();
-                break;
-        }
-        return booking;
-    }
+        EBookingStatus.Pending => new BookingBuilder().AsPending().Build(),
+        EBookingStatus.Confirmed => new BookingBuilder().AsConfirmed().Build(),
+        EBookingStatus.Rejected => new BookingBuilder().AsRejected().Build(),
+        EBookingStatus.Cancelled => new BookingBuilder().AsCancelled().Build(),
+        EBookingStatus.Completed => new BookingBuilder().AsCompleted().Build(),
+        _ => throw new ArgumentOutOfRangeException(nameof(status))
+    };
 
-    private static Booking CreatePendingBooking()
-    {
-        return Booking.Create(
-            Guid.NewGuid(), 
-            Guid.NewGuid(), 
-            Guid.NewGuid(), 
-            DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
-    }
+    private static Booking CreatePendingBooking() => new BookingBuilder().AsPending().Build();
 }
