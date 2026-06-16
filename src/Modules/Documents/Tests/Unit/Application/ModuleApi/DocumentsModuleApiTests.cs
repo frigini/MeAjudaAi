@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.ModuleApi;
 using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -18,6 +19,7 @@ public class DocumentsModuleApiTests
 {
     private readonly Mock<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>> _getDocumentStatusHandlerMock;
     private readonly Mock<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>> _getProviderDocumentsHandlerMock;
+    private readonly Mock<IDocumentQueries> _documentQueriesMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<DocumentsModuleApi>> _loggerMock;
     private readonly DocumentsModuleApi _sut;
@@ -26,12 +28,14 @@ public class DocumentsModuleApiTests
     {
         _getDocumentStatusHandlerMock = new Mock<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>>();
         _getProviderDocumentsHandlerMock = new Mock<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>>();
+        _documentQueriesMock = new Mock<IDocumentQueries>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<DocumentsModuleApi>>();
 
         _sut = new DocumentsModuleApi(
             _getDocumentStatusHandlerMock.Object,
             _getProviderDocumentsHandlerMock.Object,
+            _documentQueriesMock.Object,
             _serviceProviderMock.Object,
             _loggerMock.Object);
     }
@@ -293,9 +297,9 @@ public class DocumentsModuleApiTests
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns((HealthCheckService?)null);
 
-        _getDocumentStatusHandlerMock
-            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((DocumentDto?)null);
+        _documentQueriesMock
+            .Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _sut.IsAvailableAsync();
@@ -583,8 +587,8 @@ public class DocumentsModuleApiTests
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns((HealthCheckService?)null);
 
-        _getDocumentStatusHandlerMock
-            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
+        _documentQueriesMock
+            .Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
         // Act
@@ -600,7 +604,7 @@ public class DocumentsModuleApiTests
         // Arrange
         _serviceProviderMock
             .Setup(x => x.GetService(typeof(HealthCheckService)))
-            .Throws(new NullReferenceException("Unexpected error"));
+            .Throws(new InvalidOperationException("Unexpected error"));
 
         // Act
         var result = await _sut.IsAvailableAsync();
@@ -630,6 +634,68 @@ public class DocumentsModuleApiTests
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WithHealthyHealthCheck_AndCanConnect_ShouldReturnTrue()
+    {
+        // Arrange
+        var healthCheckServiceMock = new Mock<HealthCheckService>(MockBehavior.Strict);
+        var healthyReport = new HealthReport(
+            new Dictionary<string, HealthReportEntry>
+            {
+                ["database"] = new HealthReportEntry(HealthStatus.Healthy, "OK", TimeSpan.FromMilliseconds(10), null, null)
+            },
+            TimeSpan.FromMilliseconds(10));
+
+        healthCheckServiceMock
+            .Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(healthyReport);
+
+        _serviceProviderMock
+            .Setup(x => x.GetService(typeof(HealthCheckService)))
+            .Returns(healthCheckServiceMock.Object);
+
+        _documentQueriesMock
+            .Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WithHealthyHealthCheck_ButCanConnectFails_ShouldReturnFalse()
+    {
+        // Arrange
+        var healthCheckServiceMock = new Mock<HealthCheckService>(MockBehavior.Strict);
+        var healthyReport = new HealthReport(
+            new Dictionary<string, HealthReportEntry>
+            {
+                ["database"] = new HealthReportEntry(HealthStatus.Healthy, "OK", TimeSpan.FromMilliseconds(10), null, null)
+            },
+            TimeSpan.FromMilliseconds(10));
+
+        healthCheckServiceMock
+            .Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(healthyReport);
+
+        _serviceProviderMock
+            .Setup(x => x.GetService(typeof(HealthCheckService)))
+            .Returns(healthCheckServiceMock.Object);
+
+        _documentQueriesMock
+            .Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
     }
 
     #endregion

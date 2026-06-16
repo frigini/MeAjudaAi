@@ -52,11 +52,11 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 
 | Método | Endpoint | Descrição | Autorização |
 |--------|----------|-----------|-------------|
-| POST | `/api/v1/documents` | Upload de documento | SelfOrAdmin |
-| GET | `/api/v1/documents/{id}` | Buscar documento por ID | SelfOrAdmin |
+| POST | `/api/v1/documents/upload` | Upload de documento | SelfOrAdmin |
+| GET | `/api/v1/documents/{documentId}/status` | Consultar status de documento | SelfOrAdmin |
 | GET | `/api/v1/documents/provider/{providerId}` | Listar documentos do prestador | SelfOrAdmin |
-| POST | `/api/v1/documents/{id}/verify` | Verificar documento | AdminOnly |
-| POST | `/api/v1/documents/{id}/reject` | Rejeitar documento | AdminOnly |
+| POST | `/api/v1/documents/{documentId}/verify` | Verificar documento | AdminOnly |
+| POST | `/api/v1/documents/{documentId}/request-verification` | Solicitar verificação | SelfOrAdmin |
 
 ## 🔒 Políticas de Autorização
 

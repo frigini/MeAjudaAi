@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 
 [ExcludeFromCodeCoverage]
-public sealed class AllowedCityDeletedIntegrationEventHandler(
+internal sealed class AllowedCityDeletedIntegrationEventHandler(
     ILogger<AllowedCityDeletedIntegrationEventHandler> logger) 
     : IEventHandler<AllowedCityDeletedIntegrationEvent>
 {

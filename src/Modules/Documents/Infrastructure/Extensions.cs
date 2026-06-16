@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
-using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Events;
 using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;

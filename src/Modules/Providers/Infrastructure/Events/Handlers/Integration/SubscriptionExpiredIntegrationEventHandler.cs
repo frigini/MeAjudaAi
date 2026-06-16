@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// Handler para o evento de assinatura expirada.
 /// Rebaixa o tier do prestador para Standard.
 /// </summary>
-public sealed class SubscriptionExpiredIntegrationEventHandler(
+internal sealed class SubscriptionExpiredIntegrationEventHandler(
     ProvidersDbContext dbContext,
     IIdempotencyRepository idempotencyRepository,
     ILogger<SubscriptionExpiredIntegrationEventHandler> logger) : IEventHandler<SubscriptionExpiredIntegrationEvent>

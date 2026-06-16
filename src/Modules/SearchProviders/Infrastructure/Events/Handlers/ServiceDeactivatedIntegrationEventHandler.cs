@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// <summary>
 /// Handler para remover um serviço de todos os prestadores pesquisáveis quando ele é desativado no catálogo.
 /// </summary>
-public sealed class ServiceDeactivatedIntegrationEventHandler(
+internal sealed class ServiceDeactivatedIntegrationEventHandler(
     [FromKeyedServices(ModuleKeys.SearchProviders)] IUnitOfWork uow,
     ISearchableProviderQueries queries,
     ILogger<ServiceDeactivatedIntegrationEventHandler> logger) : IEventHandler<ServiceDeactivatedIntegrationEvent>

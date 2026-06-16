@@ -1,13 +1,15 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Serialization;
@@ -15,35 +17,29 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MeAjudaAi.Contracts.Enums;
 
-
-namespace MeAjudaAi.Modules.Documents.Application.Handlers;
+namespace MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
 
 public class UploadDocumentCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IBlobStorageService blobStorageService,
     IHttpContextAccessor httpContextAccessor,
-    IOptions<DocumentUploadOptions> uploadOptions,
+    DocumentUploadOptions uploadOptions,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-    private readonly DocumentUploadOptions _uploadOptions = uploadOptions?.Value ?? throw new ArgumentNullException(nameof(uploadOptions));
+    private readonly DocumentUploadOptions _uploadOptions = uploadOptions ?? throw new ArgumentNullException(nameof(uploadOptions));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null)
-                throw new UnauthorizedAccessException("HTTP context not available");
-
+            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException("HTTP context not available");
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated");
@@ -138,6 +134,3 @@ public class UploadDocumentCommandHandler(
         }
     }
 }
-
-
-

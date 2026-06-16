@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client, ILogger<AzureDocumentIntelligenceService> logger) : IDocumentIntelligenceService
+internal class AzureDocumentIntelligenceService(DocumentIntelligenceClient client, ILogger<AzureDocumentIntelligenceService> logger) : IDocumentIntelligenceService
 {
     private readonly DocumentIntelligenceClient _client = client ?? throw new ArgumentNullException(nameof(client));
     private readonly ILogger<AzureDocumentIntelligenceService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));

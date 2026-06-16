@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService, IAsyncDisposable
+internal class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService, IAsyncDisposable
 {
     private const string ContainerName = "documents";
     private readonly BlobServiceClient _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));

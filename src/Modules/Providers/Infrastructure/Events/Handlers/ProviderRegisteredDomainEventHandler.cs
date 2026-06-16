@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 /// entre módulos. Quando um prestador é registrado no domínio, este handler busca os dados
 /// atualizados e publica um evento de integração para notificar outros sistemas.
 /// </remarks>
-public sealed class ProviderRegisteredDomainEventHandler(
+internal sealed class ProviderRegisteredDomainEventHandler(
     IMessageBus messageBus,
     ProvidersDbContext context,
     ILogger<ProviderRegisteredDomainEventHandler> logger) : IEventHandler<ProviderRegisteredDomainEvent>

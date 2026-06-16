@@ -1,12 +1,13 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
+using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Documents.Application.ModuleApi;
 using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules.Documents;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,12 @@ public static class Extensions
         services.AddHttpContextAccessor();
 
         // Configurações de upload de documentos
-        services.Configure<DocumentUploadOptions>(configuration.GetSection("DocumentUpload"));
+        services.AddSingleton(_ =>
+        {
+            var options = new DocumentUploadOptions();
+            configuration.GetSection(DocumentUploadOptions.SectionName).Bind(options);
+            return options;
+        });
 
         // Command Handlers - registro manual
         services.AddScoped<ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>, UploadDocumentCommandHandler>();

@@ -1,11 +1,11 @@
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Application.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;

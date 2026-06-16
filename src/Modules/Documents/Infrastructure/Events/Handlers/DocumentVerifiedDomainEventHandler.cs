@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
 /// entre módulos. Quando um documento é verificado com sucesso, este handler publica um evento
 /// de integração para notificar o módulo Providers para atualizar o status do prestador.
 /// </remarks>
-public sealed class DocumentVerifiedDomainEventHandler(
+internal sealed class DocumentVerifiedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<DocumentVerifiedDomainEventHandler> logger) : IEventHandler<DocumentVerifiedDomainEvent>
 {

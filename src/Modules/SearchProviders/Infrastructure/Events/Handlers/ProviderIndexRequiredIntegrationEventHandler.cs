@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// <summary>
 /// Handler de integração que reage ao evento de necessidade de indexação de prestador.
 /// </summary>
-public sealed class ProviderIndexRequiredIntegrationEventHandler(
+internal sealed class ProviderIndexRequiredIntegrationEventHandler(
     ISearchProvidersModuleApi searchProvidersModuleApi,
     ILogger<ProviderIndexRequiredIntegrationEventHandler> logger) : IEventHandler<ProviderIndexRequiredIntegrationEvent>
 {

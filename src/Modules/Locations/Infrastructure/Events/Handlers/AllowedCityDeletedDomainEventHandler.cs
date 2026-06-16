@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Events.Handlers;
 
-public sealed class AllowedCityDeletedDomainEventHandler(
+internal sealed class AllowedCityDeletedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<AllowedCityDeletedDomainEventHandler> logger)
     : IEventHandler<AllowedCityDeletedDomainEvent>

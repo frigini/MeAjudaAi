@@ -1,19 +1,21 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
-using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Serialization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Contracts.Enums;
+using Microsoft.Extensions.Logging;
+using Npgsql;
 
-namespace MeAjudaAi.Modules.Documents.Application.Handlers;
+namespace MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
 
 /// <summary>
 /// Manipula solicitações para iniciar a verificação de documentos.
@@ -66,8 +68,8 @@ public class RequestVerificationCommandHandler(
                 }
             }
 
-            if (document.Status != EDocumentStatus.Uploaded &&
-                document.Status != EDocumentStatus.Failed)
+            if (document.Status is not EDocumentStatus.Uploaded and
+                not EDocumentStatus.Failed)
             {
                 _logger.LogWarning(
                     "Document {DocumentId} cannot be marked for verification in status {Status}",
@@ -95,13 +97,15 @@ public class RequestVerificationCommandHandler(
 
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Falha ao solicitar a verificação. Por favor, tente novamente mais tarde.", "InternalError"));
+            _logger.LogError(ex, "Error requesting verification for document {DocumentId}", command.DocumentId);
+            return Result.Failure(Error.Internal("Erro ao solicitar verificação do documento, tente novamente mais tarde", "InternalError"));
+        }
+        catch (NpgsqlException ex)
+        {
+            _logger.LogError(ex, "Database error requesting verification for document {DocumentId}", command.DocumentId);
+            return Result.Failure(Error.Internal("Erro ao solicitar verificação do documento, tente novamente mais tarde", "InternalError"));
         }
     }
 }
-
-
-

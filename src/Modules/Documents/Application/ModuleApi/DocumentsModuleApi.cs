@@ -1,14 +1,18 @@
-using MeAjudaAi.Modules.Documents.Application.DTOs;
-using MeAjudaAi.Modules.Documents.Application.Queries;
-using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Documents.Application.DTOs;
+using MeAjudaAi.Modules.Documents.Application.Mappers;
+using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 
@@ -30,12 +34,13 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 public sealed class DocumentsModuleApi(
     IQueryHandler<GetDocumentStatusQuery, DocumentDto?> getDocumentStatusHandler,
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
+    IDocumentQueries documentQueries,
     IServiceProvider serviceProvider,
     ILogger<DocumentsModuleApi> logger) : IDocumentsModuleApi
 {
     private static class ModuleMetadata
     {
-        public const string Name = "Documents";
+        public const string Name = ModuleNames.Documents;
         public const string Version = "1.0";
     }
 
@@ -48,7 +53,6 @@ public sealed class DocumentsModuleApi(
         {
             logger.LogDebug("Checking Documents module availability");
 
-            // Verifica health checks registrados do sistema
             var healthCheckService = serviceProvider.GetService<HealthCheckService>();
             if (healthCheckService != null)
             {
@@ -64,7 +68,6 @@ public sealed class DocumentsModuleApi(
                 }
             }
 
-            // Testa funcionalidade básica
             var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
             if (!canExecuteBasicOperations)
             {
@@ -81,9 +84,19 @@ public sealed class DocumentsModuleApi(
             logger.LogDebug("Documents module availability check canceled");
             throw;
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            logger.LogError(ex, "Error checking Documents module availability");
+            logger.LogError(ex, "Documents module availability check failed with InvalidOperationException");
+            return false;
+        }
+        catch (TimeoutException ex)
+        {
+            logger.LogError(ex, "Documents module availability check timed out");
+            return false;
+        }
+        catch (NpgsqlException ex)
+        {
+            logger.LogError(ex, "Database error checking Documents module availability");
             return false;
         }
     }
@@ -92,26 +105,19 @@ public sealed class DocumentsModuleApi(
     {
         try
         {
-            // Teste básico: tentar buscar por ID não existente
-            // GetDocumentByIdAsync faz o log de erros
-            // NOTA: Isto acopla a disponibilidade ao GetDocumentByIdAsync retornando Success(null) para not-found.
-            // Considere introduzir uma query de health check leve (SELECT 1) para desacoplar da semântica da API de negócio.
-            // PERF: Se verificações de disponibilidade se tornarem hot-path, substitua por query dedicada leve para evitar
-            // executar todo o pipeline de documentos em cada teste.
-            var testId = Guid.NewGuid();
-            var result = await GetDocumentByIdAsync(testId, cancellationToken);
-
-            // Sucesso se retornar Success com null (documento não encontrado)
-            return result.IsSuccess && result.Value == null;
+            return await documentQueries.CanConnectAsync(cancellationToken);
         }
 
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
-        catch
+        catch (NpgsqlException)
         {
-            // GetDocumentByIdAsync já fez o log do erro
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
             return false;
         }
     }
@@ -127,15 +133,19 @@ public sealed class DocumentsModuleApi(
 
             return document == null
                 ? Result<ModuleDocumentDto?>.Success(null)
-                : Result<ModuleDocumentDto?>.Success(MapToModuleDto(document));
+                : Result<ModuleDocumentDto?>.Success(document.ToModuleDto());
         }
 
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // Propagar cancelamento para o caller
             throw;
         }
-        catch (Exception ex)
+        catch (NpgsqlException ex)
+        {
+            logger.LogError(ex, "Database error retrieving document {DocumentId}", documentId);
+            return Result<ModuleDocumentDto?>.Failure("DOCUMENTS_GET_FAILED");
+        }
+        catch (InvalidOperationException ex)
         {
             logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
             return Result<ModuleDocumentDto?>.Failure("DOCUMENTS_GET_FAILED");
@@ -151,7 +161,7 @@ public sealed class DocumentsModuleApi(
             var query = new GetProviderDocumentsQuery(providerId);
             var documents = await getProviderDocumentsHandler.HandleAsync(query, cancellationToken);
 
-            var moduleDtos = documents.Select(MapToModuleDto).ToList();
+            var moduleDtos = documents.Select(d => d.ToModuleDto()).ToList();
             return Result<IReadOnlyList<ModuleDocumentDto>>.Success(moduleDtos);
         }
 
@@ -159,7 +169,12 @@ public sealed class DocumentsModuleApi(
         {
             throw;
         }
-        catch (Exception ex)
+        catch (NpgsqlException ex)
+        {
+            logger.LogError(ex, "Database error retrieving documents for provider {ProviderId}", providerId);
+            return Result<IReadOnlyList<ModuleDocumentDto>>.Failure("DOCUMENTS_PROVIDER_GET_FAILED");
+        }
+        catch (InvalidOperationException ex)
         {
             logger.LogError(ex, "Error retrieving documents for provider {ProviderId}", providerId);
             return Result<IReadOnlyList<ModuleDocumentDto>>.Failure("DOCUMENTS_PROVIDER_GET_FAILED");
@@ -209,30 +224,17 @@ public sealed class DocumentsModuleApi(
         {
             throw;
         }
-        catch (Exception ex)
+        catch (NpgsqlException ex)
+        {
+            logger.LogError(ex, "Database error retrieving document status {DocumentId}", documentId);
+            return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
+        }
+        catch (InvalidOperationException ex)
         {
             logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
             return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
         }
     }
-
-    // PERFORMANCE NOTE: The following methods fetch all provider documents and filter in-memory.
-    //
-    // CURRENT DATA MODEL CONSTRAINT:
-    // EDocumentType has exactly 4 types (IdentityDocument, ProofOfResidence, CriminalRecord, Other).
-    // The ix_documents_provider_type index on (ProviderId, DocumentType) suggests the design allows
-    // at most one document per type per provider, capping each provider at ~4 documents maximum.
-    // Therefore, in-memory filtering is highly efficient and optimization is NOT currently needed.
-    //
-    // TODO: Implement specialized queries for document status checks ONLY IF:
-    // - EDocumentType enum is extended with additional types (>10 types)
-    // - Data model changes to allow multiple documents per type (removing one-per-type assumption)
-    // - Performance metrics show this as a bottleneck despite the 4-document cap
-    //
-    // Potential optimizations (deferred until model changes):
-    // - HasVerifiedDocumentsQuery, HasPendingDocumentsQuery, HasRejectedDocumentsQuery
-    // - GetDocumentStatusCountQuery (GroupBy + Count in database)
-    // - HasRequiredDocumentsQuery (complex filtering with All())
 
     /// <summary>
     /// Helper method to get provider documents and handle common error propagation.
@@ -247,213 +249,77 @@ public sealed class DocumentsModuleApi(
             : result;
     }
 
-    /// <summary>
-    /// Helper method to get consistent string representation of document status.
-    /// Centralizes enum-to-string conversion to reduce chances of mismatches.
-    /// </summary>
-    private static string StatusString(EDocumentStatus status) => status.ToString();
-
-    /// <summary>
-    /// Helper method to get consistent string representation of document type.
-    /// Centralizes enum-to-string conversion to reduce chances of mismatches.
-    /// </summary>
-    private static string TypeString(EDocumentType type) => type.ToString();
-
     public async Task<Result<bool>> HasVerifiedDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        var result = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        if (result.IsFailure)
+            return Result<bool>.Failure(result.Error);
 
-            if (documentsResult.IsFailure)
-            {
-                return Result<bool>.Failure(documentsResult.Error);
-            }
-
-            var hasVerified = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.Verified));
-            return Result<bool>.Success(hasVerified);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking verified documents for provider {ProviderId}", providerId);
-            return Result<bool>.Failure("DOCUMENTS_VERIFIED_CHECK_FAILED");
-        }
+        var hasVerified = result.Value!.Any(d => d.Status == EDocumentStatus.Verified.ToString());
+        return Result<bool>.Success(hasVerified);
     }
 
-    /// <summary>
-    /// Verifica se o provedor possui todos os documentos obrigatórios VERIFICADOS.
-    /// </summary>
-    /// <param name="providerId">ID do provedor</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True se possui IdentityDocument e ProofOfResidence verificados; False caso contrário</returns>
-    /// <remarks>
-    /// Documentos obrigatórios:
-    /// - IdentityDocument (RG, CNH, etc.)
-    /// - ProofOfResidence (Comprovante de residência)
-    /// 
-    /// Este método verifica PRESENÇA + STATUS VERIFICADO. Documentos apenas enviados
-    /// (Uploaded/PendingVerification) ou rejeitados não satisfazem o requisito.
-    /// </remarks>
     public async Task<Result<bool>> HasRequiredDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        var result = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        if (result.IsFailure)
+            return Result<bool>.Failure(result.Error);
 
-            if (documentsResult.IsFailure)
-            {
-                return Result<bool>.Failure(documentsResult.Error);
-            }
+        var verifiedDocs = result.Value!
+            .Where(d => d.Status == EDocumentStatus.Verified.ToString())
+            .Select(d => d.DocumentType)
+            .ToHashSet();
 
-            var documents = documentsResult.Value!;
+        var hasIdentity = verifiedDocs.Contains(EDocumentType.IdentityDocument.ToString());
+        var hasProofOfResidence = verifiedDocs.Contains(EDocumentType.ProofOfResidence.ToString());
 
-            // Documentos obrigatórios: IdentityDocument e ProofOfResidence (ambos devem estar VERIFICADOS)
-            // Com apenas 4 tipos de documento por provedor, single-pass lookup é mais eficiente e legível
-            var verifiedTypes = documents
-                .Where(d => d.Status == StatusString(EDocumentStatus.Verified))
-                .Select(d => d.DocumentType)
-                .ToHashSet();
-
-            var hasRequired = verifiedTypes.Contains(TypeString(EDocumentType.IdentityDocument)) &&
-                            verifiedTypes.Contains(TypeString(EDocumentType.ProofOfResidence));
-
-            return Result<bool>.Success(hasRequired);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking required documents for provider {ProviderId}", providerId);
-            return Result<bool>.Failure("DOCUMENTS_REQUIRED_CHECK_FAILED");
-        }
+        return Result<bool>.Success(hasIdentity && hasProofOfResidence);
     }
 
     public async Task<Result<DocumentStatusCountDto>> GetDocumentStatusCountAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        var result = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        if (result.IsFailure)
+            return Result<DocumentStatusCountDto>.Failure(result.Error);
 
-            if (documentsResult.IsFailure)
-            {
-                return Result<DocumentStatusCountDto>.Failure(documentsResult.Error);
-            }
+        var documents = result.Value;
+        var countDto = new DocumentStatusCountDto(
+            Total: documents.Count,
+            Verified: documents.Count(d => d.Status == EDocumentStatus.Verified.ToString()),
+            Pending: documents.Count(d => d.Status == EDocumentStatus.PendingVerification.ToString()),
+            Rejected: documents.Count(d => d.Status == EDocumentStatus.Rejected.ToString()),
+            Uploading: documents.Count(d => d.Status == EDocumentStatus.Uploaded.ToString()));
 
-            var documents = documentsResult.Value!;
-
-            // Single-pass GroupBy para eficiência (embora com ≤4 documentos a diferença seja mínima)
-            var statusGroups = documents
-                .GroupBy(d => d.Status)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            var count = new DocumentStatusCountDto(
-                documents.Count,
-                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.PendingVerification)),
-                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Verified)),
-                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Rejected)),
-                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Uploaded))
-            );
-
-            return Result<DocumentStatusCountDto>.Success(count);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving document status count for provider {ProviderId}", providerId);
-            return Result<DocumentStatusCountDto>.Failure("DOCUMENTS_STATUS_COUNT_FAILED");
-        }
+        return Result<DocumentStatusCountDto>.Success(countDto);
     }
 
     public async Task<Result<bool>> HasPendingDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        var result = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        if (result.IsFailure)
+            return Result<bool>.Failure(result.Error);
 
-            if (documentsResult.IsFailure)
-            {
-                return Result<bool>.Failure(documentsResult.Error);
-            }
-
-            var hasPending = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.PendingVerification));
-            return Result<bool>.Success(hasPending);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking pending documents for provider {ProviderId}", providerId);
-            return Result<bool>.Failure("DOCUMENTS_PENDING_CHECK_FAILED");
-        }
+        var hasPending = result.Value!.Any(d => d.Status == EDocumentStatus.PendingVerification.ToString());
+        return Result<bool>.Success(hasPending);
     }
 
     public async Task<Result<bool>> HasRejectedDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        var result = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
+        if (result.IsFailure)
+            return Result<bool>.Failure(result.Error);
 
-            if (documentsResult.IsFailure)
-            {
-                return Result<bool>.Failure(documentsResult.Error);
-            }
-
-            var hasRejected = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.Rejected));
-            return Result<bool>.Success(hasRejected);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking rejected documents for provider {ProviderId}", providerId);
-            return Result<bool>.Failure("DOCUMENTS_REJECTED_CHECK_FAILED");
-        }
-    }
-
-    /// <summary>
-    /// Mapeia DocumentDto interno para ModuleDocumentDto público.
-    /// </summary>
-    private static ModuleDocumentDto MapToModuleDto(DocumentDto document)
-    {
-        return new ModuleDocumentDto(
-            document.Id,
-            document.ProviderId,
-            TypeString(document.DocumentType),
-            document.FileName,
-            document.FileUrl,
-            StatusString(document.Status),
-            document.UploadedAt,
-            document.VerifiedAt,
-            document.RejectionReason,
-            document.OcrData
-        );
+        var hasRejected = result.Value!.Any(d => d.Status == EDocumentStatus.Rejected.ToString());
+        return Result<bool>.Success(hasRejected);
     }
 }

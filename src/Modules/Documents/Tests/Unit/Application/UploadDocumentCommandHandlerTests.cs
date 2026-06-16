@@ -1,17 +1,16 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using System.Security.Claims;
 using MeAjudaAi.Modules.Documents.Application.Commands;
-using MeAjudaAi.Modules.Documents.Application.Handlers;
+using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
-using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
@@ -23,7 +22,7 @@ public class UploadDocumentCommandHandlerTests
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly Mock<IOptions<DocumentUploadOptions>> _mockUploadOptions;
+    private readonly DocumentUploadOptions _uploadOptions;
     private readonly Mock<ILogger<UploadDocumentCommandHandler>> _mockLogger;
     private readonly UploadDocumentCommandHandler _handler;
 
@@ -35,24 +34,22 @@ public class UploadDocumentCommandHandlerTests
         _mockQueries = new Mock<IDocumentQueries>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _mockUploadOptions = new Mock<IOptions<DocumentUploadOptions>>();
+        _uploadOptions = new DocumentUploadOptions
+        {
+            MaxFileSizeBytes = 10 * 1024 * 1024,
+            AllowedContentTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
+        };
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
 
         _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
         _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(_mockOutboxRepo.Object);
-
-        _mockUploadOptions.Setup(x => x.Value).Returns(new DocumentUploadOptions
-        {
-            MaxFileSizeBytes = 10 * 1024 * 1024,
-            AllowedContentTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
-        });
 
         _handler = new UploadDocumentCommandHandler(
             _mockUow.Object,
             _mockQueries.Object,
             _mockBlobStorage.Object,
             _mockHttpContextAccessor.Object,
-            _mockUploadOptions.Object,
+            _uploadOptions,
             _mockLogger.Object);
     }
     

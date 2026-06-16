@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
 /// Handler para o evento de usuário excluído.
 /// Remove as avaliações feitas pelo usuário.
 /// </summary>
-public sealed class UserDeletedIntegrationEventHandler(
+internal sealed class UserDeletedIntegrationEventHandler(
     RatingsDbContext dbContext,
     IIdempotencyRepository idempotencyRepository,
     ILogger<UserDeletedIntegrationEventHandler> logger)

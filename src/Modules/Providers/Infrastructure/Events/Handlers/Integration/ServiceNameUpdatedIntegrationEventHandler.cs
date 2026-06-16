@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// <summary>
 /// Handler para processar eventos de atualização de nome de serviço do módulo ServiceCatalogs.
 /// </summary>
-public sealed class ServiceNameUpdatedIntegrationEventHandler(
+internal sealed class ServiceNameUpdatedIntegrationEventHandler(
     ProvidersDbContext dbContext,
     ILogger<ServiceNameUpdatedIntegrationEventHandler> logger) : IEventHandler<ServiceNameUpdatedIntegrationEvent>
 {

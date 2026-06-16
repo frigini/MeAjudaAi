@@ -1,7 +1,5 @@
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
-using MeAjudaAi.Modules.Documents.Application.Handlers;
-using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Exceptions;
@@ -9,6 +7,8 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 

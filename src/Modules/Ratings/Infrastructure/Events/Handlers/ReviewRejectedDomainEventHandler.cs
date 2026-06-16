@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 
-public sealed class ReviewRejectedDomainEventHandler(
+internal sealed class ReviewRejectedDomainEventHandler(
     ILogger<ReviewRejectedDomainEventHandler> logger) : IEventHandler<ReviewRejectedDomainEvent>
 {
     public Task HandleAsync(ReviewRejectedDomainEvent domainEvent, CancellationToken cancellationToken = default)

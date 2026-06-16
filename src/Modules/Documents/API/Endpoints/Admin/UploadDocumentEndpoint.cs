@@ -35,7 +35,8 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
                 - Other: Outros documentos
                 """)
             .Produces<UploadDocumentResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> UploadDocumentAsync(
         [FromBody] UploadDocumentRequest request,
@@ -43,7 +44,7 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         if (request is null)
-            return BadRequest("Request body is required");
+            return BadRequest("Corpo da requisição é obrigatório");
 
         var command = new UploadDocumentCommand(
             request.ProviderId,

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 
-public sealed class ReviewApprovedDomainEventHandler(
+internal sealed class ReviewApprovedDomainEventHandler(
     IMessageBus messageBus,
     IReviewQueries queries,
     ILogger<ReviewApprovedDomainEventHandler> logger) : IEventHandler<ReviewApprovedDomainEvent>

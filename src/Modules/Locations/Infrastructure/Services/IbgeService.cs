@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 /// Implementação do serviço de validação geográfica usando API IBGE com caching.
 /// Cache Redis: TTL de 7 dias (municípios raramente mudam)
 /// </summary>
-public sealed class IbgeService(
+internal sealed class IbgeService(
     IIbgeClient ibgeClient,
     ICacheService cacheService,
     IAllowedCityQueries allowedCityQueries,

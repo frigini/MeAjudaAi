@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
