@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -10,7 +11,7 @@ public sealed class ProviderSchedule : BaseEntity
 {
     private readonly List<Availability> _availabilities = [];
     public Guid ProviderId { get; private set; }
-    public string TimeZoneId { get; private set; } = "America/Sao_Paulo"; // Padrão Brasília (IANA)
+    public string TimeZoneId { get; private set; } = TimeZoneConstants.DefaultTimeZoneId;
     public IReadOnlyList<Availability> Availabilities => _availabilities.AsReadOnly();
 
     private ProviderSchedule() { } // Required by EF Core

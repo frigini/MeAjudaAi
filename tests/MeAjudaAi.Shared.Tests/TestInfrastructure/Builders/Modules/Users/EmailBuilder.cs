@@ -1,0 +1,43 @@
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using System.Diagnostics.CodeAnalysis;
+
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
+
+[ExcludeFromCodeCoverage]
+public class EmailBuilder : BaseBuilder<Email>
+{
+    public EmailBuilder()
+    {
+        Faker = new Faker<Email>()
+            .CustomInstantiator(f => new Email(f.Internet.Email()));
+    }
+
+    public EmailBuilder WithValue(string email)
+    {
+        Faker = new Faker<Email>()
+            .CustomInstantiator(_ => new Email(email));
+        return this;
+    }
+
+    public EmailBuilder WithDomain(string domain)
+    {
+        Faker = new Faker<Email>()
+            .CustomInstantiator(f => new Email($"{f.Internet.UserName()}@{domain}"));
+        return this;
+    }
+
+    public EmailBuilder AsGmail()
+    {
+        return WithDomain("gmail.com");
+    }
+
+    public EmailBuilder AsOutlook()
+    {
+        return WithDomain("outlook.com");
+    }
+
+    public EmailBuilder AsCompanyEmail(string company)
+    {
+        return WithDomain($"{company}.com");
+    }
+}

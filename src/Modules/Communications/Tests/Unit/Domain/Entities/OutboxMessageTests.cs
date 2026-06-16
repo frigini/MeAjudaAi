@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Enums;
-using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Domain.Entities;
 
@@ -17,7 +17,14 @@ public class OutboxMessageTests
         var correlationId = "test-correlation";
 
         // Act
-        var message = OutboxMessage.Create(channel, payload, priority, scheduledAt, 5, correlationId);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(channel)
+            .WithPayload(payload)
+            .WithPriority(priority)
+            .AsScheduled(scheduledAt)
+            .WithMaxRetries(5)
+            .WithCorrelationId(correlationId)
+            .Build();
 
         // Assert
         message.Channel.Should().Be(channel);
@@ -37,7 +44,10 @@ public class OutboxMessageTests
     public void Create_WithInvalidPayload_ShouldThrowArgumentException(string? invalidPayload)
     {
         // Act
-        var act = () => OutboxMessage.Create(ECommunicationChannel.Email, invalidPayload!);
+        var act = () => new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(invalidPayload!)
+            .Build();
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -47,7 +57,11 @@ public class OutboxMessageTests
     public void Create_WithInvalidMaxRetries_ShouldThrowArgumentOutOfRangeException()
     {
         // Act
-        var act = () => OutboxMessage.Create(ECommunicationChannel.Email, "payload", maxRetries: 0);
+        var act = () => new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .WithMaxRetries(0)
+            .Build();
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -57,7 +71,11 @@ public class OutboxMessageTests
     public void IsReadyToProcess_WhenPendingAndScheduledAtIsPast_ShouldReturnTrue()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload", scheduledAt: DateTime.UtcNow.AddMinutes(-1));
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .AsScheduled(DateTime.UtcNow.AddMinutes(-1))
+            .Build();
 
         // Act
         var result = message.IsReadyToProcess(DateTime.UtcNow);
@@ -70,7 +88,11 @@ public class OutboxMessageTests
     public void IsReadyToProcess_WhenPendingAndScheduledAtIsFuture_ShouldReturnFalse()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload", scheduledAt: DateTime.UtcNow.AddMinutes(10));
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .AsScheduled(DateTime.UtcNow.AddMinutes(10))
+            .Build();
 
         // Act
         var result = message.IsReadyToProcess(DateTime.UtcNow);
@@ -83,7 +105,10 @@ public class OutboxMessageTests
     public void MarkAsProcessing_WhenPending_ShouldUpdateStatus()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .Build();
 
         // Act
         message.MarkAsProcessing();
@@ -96,7 +121,10 @@ public class OutboxMessageTests
     public void ResetToPending_WhenProcessing_ShouldUpdateStatus()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .Build();
         message.MarkAsProcessing();
 
         // Act
@@ -110,7 +138,10 @@ public class OutboxMessageTests
     public void MarkAsSent_WhenProcessing_ShouldUpdateStatusAndSentAt()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .Build();
         message.MarkAsProcessing();
         var sentAt = DateTime.UtcNow;
 
@@ -126,7 +157,11 @@ public class OutboxMessageTests
     public void MarkAsFailed_WhenBelowMaxRetries_ShouldIncrementRetryCountAndStayPending()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload", maxRetries: 3);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .WithMaxRetries(3)
+            .Build();
         message.MarkAsProcessing();
 
         // Act
@@ -142,7 +177,11 @@ public class OutboxMessageTests
     public void MarkAsFailed_WhenReachesMaxRetries_ShouldUpdateStatusToFailed()
     {
         // Arrange
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload", maxRetries: 1);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .WithMaxRetries(1)
+            .Build();
         message.MarkAsProcessing();
 
         // Act

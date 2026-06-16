@@ -5,6 +5,7 @@ using MeAjudaAi.Shared.Domain;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("MeAjudaAi.Modules.Users.Tests")]
+[assembly: InternalsVisibleTo("MeAjudaAi.Shared.Tests")]
 
 namespace MeAjudaAi.Modules.Users.Domain.Entities;
 

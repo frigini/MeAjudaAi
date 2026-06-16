@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
@@ -33,19 +33,28 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         var bookings = new List<Booking>
         {
-            Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-                TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0))),
-            Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-                TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(15, 0)))
+            new BookingBuilder()
+                .WithProviderId(providerId)
+                .WithClientId(Guid.NewGuid())
+                .WithServiceId(Guid.NewGuid())
+                .WithDate(date)
+                .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+                .Build(),
+            new BookingBuilder()
+                .WithProviderId(providerId)
+                .WithClientId(Guid.NewGuid())
+                .WithServiceId(Guid.NewGuid())
+                .WithDate(date)
+                .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(14, 0)).WithEnd(new TimeOnly(15, 0)).Build())
+                .Build()
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
         _bookingQueriesMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
-        var schedule = ProviderSchedule.Create(providerId);
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schedule);
+            .ReturnsAsync(new ProviderScheduleBuilder().WithProviderId(providerId).Build());
 
         // Act
         var result = await _sut.HandleAsync(new GetBookingsByProviderQuery(providerId, Guid.NewGuid()));
@@ -121,14 +130,22 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         var startTime = new TimeOnly(10, 0);
         var endTime = new TimeOnly(11, 0);
         
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(startTime, endTime));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(startTime).WithEnd(endTime).Build())
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking> { booking }.AsReadOnly(), 1));
 
         // Tóquio está em UTC+9
-        var schedule = ProviderSchedule.Create(providerId, "Tokyo Standard Time");
+        var schedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("Tokyo Standard Time")
+            .Build();
         
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -150,8 +167,13 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), FutureBookingDate(),
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(FutureBookingDate())
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking> { booking }.AsReadOnly(), 1));

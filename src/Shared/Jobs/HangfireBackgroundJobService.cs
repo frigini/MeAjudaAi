@@ -1,4 +1,5 @@
 using Hangfire;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
@@ -88,7 +89,7 @@ public class HangfireBackgroundJobService(
             try
             {
                 // Tentar IANA ID primeiro (funciona em Linux/Windows no .NET 9+)
-                timeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"); // UTC-3 (Brasília)
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneConstants.DefaultTimeZoneId); // UTC-3 (Brasília)
             }
             catch (TimeZoneNotFoundException)
             {
@@ -100,7 +101,7 @@ public class HangfireBackgroundJobService(
                 catch (TimeZoneNotFoundException ex)
                 {
                     // Fallback final para UTC
-                    logger.LogWarning(ex, "Timezone America/Sao_Paulo and fallback not found, using UTC");
+                    logger.LogWarning(ex, "Timezone {TimeZoneId} and fallback not found, using UTC", TimeZoneConstants.DefaultTimeZoneId);
                     timeZone = TimeZoneInfo.Utc;
                 }
             }

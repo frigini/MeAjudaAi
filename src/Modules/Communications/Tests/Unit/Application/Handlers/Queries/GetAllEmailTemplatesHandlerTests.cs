@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Communications.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Queries;
 
@@ -22,8 +23,8 @@ public class GetAllEmailTemplatesHandlerTests
         // Arrange
         var templates = new List<EmailTemplate>
         {
-            EmailTemplate.Create("template1", "subject1", "body1", "en"),
-            EmailTemplate.Create("template2", "subject2", "body2", "en")
+            new EmailTemplateBuilder().WithKey("template1").WithSubject("subject1").WithHtmlBody("body1").WithLanguage("en").Build(),
+            new EmailTemplateBuilder().WithKey("template2").WithSubject("subject2").WithHtmlBody("body2").WithLanguage("en").Build()
         };
         _emailTemplateQueriesMock.Setup(q => q.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(templates);
@@ -40,4 +41,3 @@ public class GetAllEmailTemplatesHandlerTests
         result.Value.Should().BeEquivalentTo(templates);
     }
 }
-

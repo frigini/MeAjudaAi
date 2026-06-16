@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Services;
@@ -79,7 +80,7 @@ public static class TimeZoneResolver
 
         try
         {
-            return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+            return TimeZoneInfo.FindSystemTimeZoneById(TimeZoneConstants.DefaultTimeZoneId);
         }
         catch (TimeZoneNotFoundException exIana)
         {

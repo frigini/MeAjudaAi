@@ -1,8 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Queries;
 
@@ -22,19 +21,23 @@ public class DbContextBookingQueriesTests : BaseInMemoryDatabaseTest<BookingsDbC
     public async Task GetByIdAsync_WithExistingBooking_ShouldReturnBooking()
     {
         // Arrange
-        var bookingId = Guid.NewGuid();
-        var booking = new Booking(bookingId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), 
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
-            EBookingStatus.Pending, 1);
+        var booking = new BookingBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .WithStatus(EBookingStatus.Pending)
+            .Build();
         DbContext.Bookings.Add(booking);
         await DbContext.SaveChangesAsync();
 
         // Act
-        var result = await _queries.GetByIdAsync(bookingId);
+        var result = await _queries.GetByIdAsync(booking.Id);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(bookingId);
+        result!.Id.Should().Be(booking.Id);
     }
 
     [Fact]
@@ -43,9 +46,14 @@ public class DbContextBookingQueriesTests : BaseInMemoryDatabaseTest<BookingsDbC
         // Arrange
         var clientId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
-        var booking = new Booking(Guid.NewGuid(), providerId, clientId, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), 
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
-            EBookingStatus.Completed, 1);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(clientId)
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .AsCompleted()
+            .Build();
         DbContext.Bookings.Add(booking);
         await DbContext.SaveChangesAsync();
 

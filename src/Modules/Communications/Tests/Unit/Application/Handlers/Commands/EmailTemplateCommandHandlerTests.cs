@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Commands;
 
@@ -40,7 +41,12 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("welcome", "OldSub", "OldHtml", "OldText");
+        var template = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("OldSub")
+            .WithHtmlBody("OldHtml")
+            .WithTextBody("OldText")
+            .Build();
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
@@ -85,7 +91,14 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("welcome", "OldSub", "OldHtml", "OldText", "pt-br", null, true);
+        var template = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("OldSub")
+            .WithHtmlBody("OldHtml")
+            .WithTextBody("OldText")
+            .WithLanguage("pt-br")
+            .AsSystemTemplate()
+            .Build();
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
@@ -103,7 +116,14 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("welcome", "OldSub", "OldHtml", "OldText", "en-US", "custom-override");
+        var template = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("OldSub")
+            .WithHtmlBody("OldHtml")
+            .WithTextBody("OldText")
+            .WithLanguage("en-US")
+            .WithOverrideKey("custom-override")
+            .Build();
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
         var command = new UpdateEmailTemplateCommand(templateId, "NewSub", "NewHtml", "NewText", Guid.NewGuid());
@@ -144,7 +164,12 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("key", "Sub", "Html", "Text");
+        var template = new EmailTemplateBuilder()
+            .WithKey("key")
+            .WithSubject("Sub")
+            .WithHtmlBody("Html")
+            .WithTextBody("Text")
+            .Build();
         template.Deactivate();
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
@@ -164,7 +189,12 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("key", "Sub", "Html", "Text");
+        var template = new EmailTemplateBuilder()
+            .WithKey("key")
+            .WithSubject("Sub")
+            .WithHtmlBody("Html")
+            .WithTextBody("Text")
+            .Build();
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
         var command = new SetEmailTemplateStatusCommand(templateId, false, Guid.NewGuid());
@@ -183,7 +213,14 @@ public class EmailTemplateCommandHandlerTests
     {
         // Arrange
         var templateId = Guid.NewGuid();
-        var template = EmailTemplate.Create("key", "Sub", "Html", "Text", "pt-br", null, true);
+        var template = new EmailTemplateBuilder()
+            .WithKey("key")
+            .WithSubject("Sub")
+            .WithHtmlBody("Html")
+            .WithTextBody("Text")
+            .WithLanguage("pt-br")
+            .AsSystemTemplate()
+            .Build();
         _repositoryMock.Setup(x => x.TryFindAsync(templateId, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
         var command = new SetEmailTemplateStatusCommand(templateId, false, Guid.NewGuid());

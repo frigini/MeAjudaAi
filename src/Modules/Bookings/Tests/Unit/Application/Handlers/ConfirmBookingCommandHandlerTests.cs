@@ -4,8 +4,8 @@ using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -36,8 +36,13 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         // Arrange
         var providerId = Guid.NewGuid();
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
@@ -59,8 +64,13 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         // Arrange
         var providerId = Guid.NewGuid();
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
@@ -83,8 +93,13 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
@@ -123,8 +138,13 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
@@ -145,10 +165,14 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         // Arrange
         var providerId = Guid.NewGuid();
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
-        
-        booking.Confirm(); // Já confirmado, não pode confirmar novamente
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .AsConfirmed()
+            .Build();
         
         _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);

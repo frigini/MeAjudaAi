@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Domain.Entities;
 
@@ -17,7 +17,15 @@ public class CommunicationLogTests
         var templateKey = "template-1";
 
         // Act
-        var log = CommunicationLog.CreateSuccess(correlationId, channel, recipient, attemptCount, outboxId, templateKey);
+        var log = new CommunicationLogBuilder()
+            .WithCorrelationId(correlationId)
+            .WithChannel(channel)
+            .WithRecipient(recipient)
+            .WithAttemptCount(attemptCount)
+            .WithOutboxMessageId(outboxId)
+            .WithTemplateKey(templateKey)
+            .AsSuccess()
+            .Build();
 
         // Assert
         log.CorrelationId.Should().Be(correlationId);
@@ -41,7 +49,13 @@ public class CommunicationLogTests
         var attemptCount = 3;
 
         // Act
-        var log = CommunicationLog.CreateFailure(correlationId, channel, recipient, errorMessage, attemptCount);
+        var log = new CommunicationLogBuilder()
+            .WithCorrelationId(correlationId)
+            .WithChannel(channel)
+            .WithRecipient(recipient)
+            .WithAttemptCount(attemptCount)
+            .AsFailure(errorMessage)
+            .Build();
 
         // Assert
         log.CorrelationId.Should().Be(correlationId);
@@ -59,7 +73,13 @@ public class CommunicationLogTests
     public void CreateSuccess_WithInvalidCorrelationId_ShouldThrowArgumentException(string? invalidId)
     {
         // Act
-        var act = () => CommunicationLog.CreateSuccess(invalidId!, ECommunicationChannel.Email, "test@test.com", 1);
+        var act = () => new CommunicationLogBuilder()
+            .WithCorrelationId(invalidId!)
+            .WithChannel(ECommunicationChannel.Email)
+            .WithRecipient("test@test.com")
+            .WithAttemptCount(1)
+            .AsSuccess()
+            .Build();
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -69,7 +89,13 @@ public class CommunicationLogTests
     public void CreateSuccess_WithNegativeAttemptCount_ShouldThrowArgumentOutOfRangeException()
     {
         // Act
-        var act = () => CommunicationLog.CreateSuccess("id", ECommunicationChannel.Email, "test@test.com", -1);
+        var act = () => new CommunicationLogBuilder()
+            .WithCorrelationId("id")
+            .WithChannel(ECommunicationChannel.Email)
+            .WithRecipient("test@test.com")
+            .WithAttemptCount(-1)
+            .AsSuccess()
+            .Build();
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -82,7 +108,13 @@ public class CommunicationLogTests
     public void CreateFailure_WithInvalidData_ShouldThrowArgumentException(string? corrId, ECommunicationChannel channel, string? recipient, string? error)
     {
         // Act
-        var act = () => CommunicationLog.CreateFailure(corrId!, channel, recipient!, error!, 1);
+        var act = () => new CommunicationLogBuilder()
+            .WithCorrelationId(corrId!)
+            .WithChannel(channel)
+            .WithRecipient(recipient!)
+            .WithAttemptCount(1)
+            .AsFailure(error!)
+            .Build();
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -92,7 +124,13 @@ public class CommunicationLogTests
     public void CreateFailure_WithNegativeAttemptCount_ShouldThrowArgumentOutOfRangeException()
     {
         // Act
-        var act = () => CommunicationLog.CreateFailure("id", ECommunicationChannel.Email, "test@test.com", "Error", -1);
+        var act = () => new CommunicationLogBuilder()
+            .WithCorrelationId("id")
+            .WithChannel(ECommunicationChannel.Email)
+            .WithRecipient("test@test.com")
+            .WithAttemptCount(-1)
+            .AsFailure("Error")
+            .Build();
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>();

@@ -1,8 +1,7 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -28,8 +27,13 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
 
         // Act
         var result = await _service.AddIfNoOverlapAsync(booking);
@@ -46,13 +50,23 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
         // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-        var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+        var existingBooking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
         DbContext.Bookings.Add(existingBooking);
         await DbContext.SaveChangesAsync();
 
-        var newBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(11, 0))); // Overlaps
+        var newBooking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(9, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
 
         // Act
         var result = await _service.AddIfNoOverlapAsync(newBooking);
@@ -69,13 +83,23 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
         // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-        var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(9, 0)));
+        var existingBooking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(9, 0)).Build())
+            .Build();
         DbContext.Bookings.Add(existingBooking);
         await DbContext.SaveChangesAsync();
 
-        var newBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0))); // Adjacent
+        var newBooking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(9, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
 
         // Act
         var result = await _service.AddIfNoOverlapAsync(newBooking);
@@ -91,8 +115,13 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
         
         // Force DbContext error by making it throw on SaveChanges
         var options = new DbContextOptionsBuilder<BookingsDbContext>()
@@ -117,8 +146,13 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
 
         var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -132,8 +166,13 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0)));
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
 
         var options = new DbContextOptionsBuilder<BookingsDbContext>()
             .UseInMemoryDatabase("ErrorTest_" + Guid.NewGuid())

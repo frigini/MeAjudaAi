@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.ModuleApi;
@@ -94,22 +94,24 @@ public class BookingsModuleApiTests
     public async Task GetBookingByIdAsync_WhenFound_ShouldReturnMappedDto()
     {
         // Arrange
-        var bookingId = Guid.NewGuid();
-        var booking = new Booking(
-            bookingId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 
-            DateOnly.FromDateTime(DateTime.UtcNow),
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)), 
-            EBookingStatus.Confirmed, 1);
-        _bookingQueriesMock.Setup(q => q.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
+        var booking = new BookingBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .WithStatus(EBookingStatus.Confirmed)
+            .Build();
+        _bookingQueriesMock.Setup(q => q.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         // Act
-        var result = await _api.GetBookingByIdAsync(bookingId);
+        var result = await _api.GetBookingByIdAsync(booking.Id);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Id.Should().Be(bookingId);
+        result.Value!.Id.Should().Be(booking.Id);
     }
 
     [Fact]
@@ -135,13 +137,16 @@ public class BookingsModuleApiTests
         var providerId = Guid.NewGuid();
         var start = DateTimeOffset.UtcNow;
         var end = start.AddDays(1);
-        
-        var booking = new Booking(
-            Guid.NewGuid(), providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            DateOnly.FromDateTime(start.Date), 
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)),
-            EBookingStatus.Confirmed, 1);
-            
+
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(start.Date))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .WithStatus(EBookingStatus.Confirmed)
+            .Build();
+
         _bookingQueriesMock.Setup(q => q.GetByProviderAndPeriodAsync(providerId, It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { booking });
 

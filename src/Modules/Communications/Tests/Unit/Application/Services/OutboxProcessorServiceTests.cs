@@ -10,6 +10,7 @@ using MeAjudaAi.Modules.Communications.Tests.Unit.TestInfrastructure;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
@@ -92,7 +93,10 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenEmailSuccess_ShouldMarkAsSentAndLog()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(true);
 
@@ -108,7 +112,11 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenDispatchFails_ShouldMarkAsFailedAndRetryLater()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 3);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .WithMaxRetries(3)
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(false);
 
@@ -123,7 +131,11 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenMaxRetriesReached_ShouldMarkAsFailedAndLog()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .WithMaxRetries(1)
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(false);
 
@@ -139,7 +151,10 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenOperationCanceledDuringDispatch_ShouldReturnZeroAndStayPending()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .Build();
         var cts = new CancellationTokenSource();
 
         SetupPendingMessages(message);
@@ -160,7 +175,10 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenUnknownChannel_ShouldFail()
     {
-        var message = OutboxMessage.Create((ECommunicationChannel)99, "{}");
+        var message = new OutboxMessageBuilder()
+            .WithChannel((ECommunicationChannel)99)
+            .WithPayload("{}")
+            .Build();
         SetupPendingMessages(message);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -175,7 +193,10 @@ public class OutboxProcessorServiceTests
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("invalid-json"))
             .Throws(new System.Text.Json.JsonException("Invalid JSON"));
 
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "invalid-json");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("invalid-json")
+            .Build();
         SetupPendingMessages(message);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -188,7 +209,10 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenSmsSuccess_ShouldMarkAsSentAndLog()
     {
         var payload = _serializeMock.Object.Serialize(new { PhoneNumber = "+5511999999999", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Sms, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Sms)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
         SetupSmsSender(true);
 
@@ -205,7 +229,10 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenPushSuccess_ShouldMarkAsSentAndLog()
     {
         var payload = _serializeMock.Object.Serialize(new { DeviceToken = "token123", Title = "Hi", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Push, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Push)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
         SetupPushSender(true);
 
@@ -222,7 +249,11 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenExceptionInDispatch_ShouldFailAndLog()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .WithMaxRetries(1)
+            .Build();
         SetupPendingMessages(message);
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Network error"));
@@ -238,7 +269,10 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WithHtmlBody_ShouldUseIt()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_body_payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("html_body_payload")
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(true);
 
@@ -250,7 +284,10 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WithOnlyBody_ShouldConvertToHtml()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "body_payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("body_payload")
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(true);
 
@@ -263,10 +300,18 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenEmailWithTemplate_ShouldRenderTokens()
     {
         var templateKey = "welcome_template";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("html_payload")
+            .Build();
         SetupPendingMessages(message);
 
-        var template = EmailTemplate.Create(templateKey, "Olá {{FirstName}}!", "Hello {{FirstName}}!", "Olá {{FirstName}}!");
+        var template = new EmailTemplateBuilder()
+            .WithKey(templateKey)
+            .WithSubject("Olá {{FirstName}}!")
+            .WithHtmlBody("Hello {{FirstName}}!")
+            .WithTextBody("Olá {{FirstName}}!")
+            .Build();
         _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync(templateKey, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(template);
         SetupEmailSender(true);
@@ -283,14 +328,26 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenTemplateDataMissing_ShouldRenderWithoutTokens()
     {
         var templateKey = "welcome_template";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "html_payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("html_payload")
+            .Build();
         SetupPendingMessages(message);
 
-        var template = EmailTemplate.Create(templateKey, "Olá {{Name}}!", "Hello {{Name}}!", "Olá {{Name}}!");
+        var template = new EmailTemplateBuilder()
+            .WithKey(templateKey)
+            .WithSubject("Olá {{Name}}!")
+            .WithHtmlBody("Hello {{Name}}!")
+            .WithTextBody("Olá {{Name}}!")
+            .Build();
         _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync(templateKey, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(template);
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
-            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", templateKey: templateKey));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("t@t.com")
+                .WithSubject("S")
+                .AsTemplate(templateKey)
+                .Build());
         SetupEmailSender(true);
 
         await _service.ProcessPendingMessagesAsync();
@@ -304,7 +361,11 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenFinalRetryFails_ShouldCreateFailureCommunicationLog()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "{}", maxRetries: 1);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .WithMaxRetries(1)
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(false);
 
@@ -318,7 +379,11 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenNonFinalRetryFails_ShouldNotCreateFailureCommunicationLog()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "{}", maxRetries: 3);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("{}")
+            .WithMaxRetries(3)
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(false);
 
@@ -332,13 +397,20 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenInvalidEnvelope_ShouldFallbackToLegacyPayload()
     {
         var legacyPayload = "{\"To\":\"test@test.com\",\"Subject\":\"Hi\",\"Body\":\"Hello\"}";
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, legacyPayload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(legacyPayload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
             .Throws(new Exception("Invalid envelope"));
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(legacyPayload))
-            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Hi", htmlBody: "Hello"));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("test@test.com")
+                .WithSubject("Hi")
+                .WithHtmlBody("Hello")
+                .Build());
         SetupEmailSender(true);
 
         await _service.ProcessPendingMessagesAsync();
@@ -350,11 +422,18 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenTemplateNotFound_ShouldUsePayloadBody()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Sub", TemplateKey = "nonexistent" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Sub", templateKey: "nonexistent_template"));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("test@test.com")
+                .WithSubject("Sub")
+                .AsTemplate("nonexistent_template")
+                .Build());
         _emailTemplateQueriesMock.Setup(x => x.GetActiveByKeyAsync("nonexistent_template", It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((EmailTemplate?)null);
         SetupEmailSender(true);
@@ -369,11 +448,18 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenNoTemplateKey_ShouldUsePayloadBody()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Sub", HtmlBody = "<p>Direct</p>" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Sub", htmlBody: "<p>Direct</p>"));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("test@test.com")
+                .WithSubject("Sub")
+                .WithHtmlBody("<p>Direct</p>")
+                .Build());
         SetupEmailSender(true);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -386,11 +472,18 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenEmptySubject_ShouldUseNoSubjectFallback()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "", HtmlBody = "<p>Hi</p>" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "", htmlBody: "<p>Hi</p>"));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("test@test.com")
+                .WithSubject("")
+                .WithHtmlBody("<p>Hi</p>")
+                .Build());
         SetupEmailSender(true);
 
         await _service.ProcessPendingMessagesAsync();
@@ -402,13 +495,19 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenSmsWithLegacyPayload_ShouldFallbackAndSend()
     {
         var legacyPayload = "{\"PhoneNumber\":\"+5511999999999\",\"Body\":\"Hello\"}";
-        var message = OutboxMessage.Create(ECommunicationChannel.Sms, legacyPayload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Sms)
+            .WithPayload(legacyPayload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
             .Throws(new Exception("Invalid envelope"));
         _serializeMock.Setup(x => x.Deserialize<SmsOutboxPayload>(legacyPayload))
-            .Returns(new SmsOutboxPayload("+5511999999999", "Hello"));
+            .Returns(new SmsOutboxPayloadBuilder()
+                .WithPhoneNumber("+5511999999999")
+                .WithBody("Hello")
+                .Build());
         SetupSmsSender(true);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -421,13 +520,20 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenPushWithLegacyPayload_ShouldFallbackAndSend()
     {
         var legacyPayload = "{\"DeviceToken\":\"token\",\"Title\":\"Hi\",\"Body\":\"Hello\"}";
-        var message = OutboxMessage.Create(ECommunicationChannel.Push, legacyPayload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Push)
+            .WithPayload(legacyPayload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
             .Throws(new Exception("Invalid envelope"));
         _serializeMock.Setup(x => x.Deserialize<PushOutboxPayload>(legacyPayload))
-            .Returns(new PushOutboxPayload("token", "Hi", "Hello", null));
+            .Returns(new PushOutboxPayloadBuilder()
+                .WithDeviceToken("token")
+                .WithTitle("Hi")
+                .WithBody("Hello")
+                .Build());
         SetupPushSender(true);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -442,7 +548,10 @@ public class OutboxProcessorServiceTests
         _serializeMock.Setup(x => x.Deserialize<SmsOutboxPayload>("invalid"))
             .Throws(new System.Text.Json.JsonException("Invalid JSON"));
 
-        var message = OutboxMessage.Create(ECommunicationChannel.Sms, "invalid");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Sms)
+            .WithPayload("invalid")
+            .Build();
         SetupPendingMessages(message);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -457,7 +566,10 @@ public class OutboxProcessorServiceTests
         _serializeMock.Setup(x => x.Deserialize<PushOutboxPayload>("invalid"))
             .Throws(new System.Text.Json.JsonException("Invalid JSON"));
 
-        var message = OutboxMessage.Create(ECommunicationChannel.Push, "invalid");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Push)
+            .WithPayload("invalid")
+            .Build();
         SetupPendingMessages(message);
 
         var result = await _service.ProcessPendingMessagesAsync();
@@ -469,7 +581,10 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenOnSuccessLogSaveFails_ShouldStillComplete()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload");
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(true);
 
@@ -485,7 +600,11 @@ public class OutboxProcessorServiceTests
     [Fact]
     public async Task ProcessPendingMessagesAsync_WhenOnFailureLogSaveFails_ShouldStillComplete()
     {
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, "payload", maxRetries: 1);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload("payload")
+            .WithMaxRetries(1)
+            .Build();
         SetupPendingMessages(message);
         SetupEmailSender(false);
 
@@ -502,11 +621,18 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenEmailWithTextBodyOnly_ShouldSendTextBody()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Sub", TextBody = "Plain text" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Sub", textBody: "Plain text"));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("test@test.com")
+                .WithSubject("Sub")
+                .WithTextBody("Plain text")
+                .Build());
         SetupEmailSender(true);
 
         await _service.ProcessPendingMessagesAsync();
@@ -518,11 +644,19 @@ public class OutboxProcessorServiceTests
     public async Task ProcessPendingMessagesAsync_WhenEmailWithFromAddress_ShouldPassFromToSender()
     {
         var payload = _serializeMock.Object.Serialize(new { To = "test@test.com", Subject = "Sub", HtmlBody = "<p>Hi</p>", From = "sender@test.com" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
+        var message = new OutboxMessageBuilder()
+            .WithChannel(ECommunicationChannel.Email)
+            .WithPayload(payload)
+            .Build();
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
-            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Sub", htmlBody: "<p>Hi</p>", from: "sender@test.com"));
+            .Returns(new EmailOutboxPayloadBuilder()
+                .WithTo("test@test.com")
+                .WithSubject("Sub")
+                .WithHtmlBody("<p>Hi</p>")
+                .WithFrom("sender@test.com")
+                .Build());
         SetupEmailSender(true);
 
         await _service.ProcessPendingMessagesAsync();

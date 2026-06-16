@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
@@ -51,7 +52,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
             .ReturnsAsync(Result<bool>.Success(true));
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProviderSchedule.Create(providerId));
+            .ReturnsAsync(new ProviderScheduleBuilder().WithProviderId(providerId).Build());
 
         // Act
         var result = await _sut.HandleAsync(command);
@@ -242,7 +243,10 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        var existingSchedule = ProviderSchedule.Create(providerId, "UTC");
+        var existingSchedule = new ProviderScheduleBuilder()
+            .WithProviderId(providerId)
+            .WithTimeZoneId("UTC")
+            .Build();
         _scheduleQueriesMock.SetupSequence(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null)
             .ReturnsAsync(existingSchedule);
@@ -277,7 +281,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
             .ReturnsAsync(Result<bool>.Success(true));
 
         _scheduleQueriesMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProviderSchedule.Create(providerId));
+            .ReturnsAsync(new ProviderScheduleBuilder().WithProviderId(providerId).Build());
 
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB failure"));

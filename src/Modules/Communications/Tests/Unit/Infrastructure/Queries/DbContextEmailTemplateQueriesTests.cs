@@ -1,7 +1,7 @@
-using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure.Queries;
 
@@ -20,8 +20,23 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetActiveByKeyAsync_WithOverride_ShouldReturnOverrideTemplate()
     {
-        var baseTemplate = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br", null, true);
-        var overrideTemplate = EmailTemplate.Create("welcome", "Subject", "<html>override</html>", "override", "pt-br", "custom_key", true);
+        var baseTemplate = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>base</html>")
+            .WithTextBody("base")
+            .WithLanguage("pt-br")
+            .AsSystemTemplate()
+            .Build();
+        var overrideTemplate = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>override</html>")
+            .WithTextBody("override")
+            .WithLanguage("pt-br")
+            .WithOverrideKey("custom_key")
+            .AsSystemTemplate()
+            .Build();
         DbContext.EmailTemplates.AddRange(baseTemplate, overrideTemplate);
         await DbContext.SaveChangesAsync();
 
@@ -35,7 +50,14 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetActiveByKeyAsync_WithNoOverride_ShouldFallbackToBase()
     {
-        var baseTemplate = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br", null, true);
+        var baseTemplate = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>base</html>")
+            .WithTextBody("base")
+            .WithLanguage("pt-br")
+            .AsSystemTemplate()
+            .Build();
         DbContext.EmailTemplates.Add(baseTemplate);
         await DbContext.SaveChangesAsync();
 
@@ -57,8 +79,8 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     public async Task GetAllByKeyAsync_ShouldReturnTemplatesOrderedByLanguageThenVersionDesc()
     {
         DbContext.EmailTemplates.AddRange(
-            EmailTemplate.Create("welcome", "Subject", "<html>en</html>", "en", "en", null, true),
-            EmailTemplate.Create("welcome", "Subject", "<html>pt</html>", "pt", "pt-br", null, true));
+            new EmailTemplateBuilder().WithKey("welcome").WithSubject("Subject").WithHtmlBody("<html>en</html>").WithTextBody("en").WithLanguage("en").AsSystemTemplate().Build(),
+            new EmailTemplateBuilder().WithKey("welcome").WithSubject("Subject").WithHtmlBody("<html>pt</html>").WithTextBody("pt").WithLanguage("pt-br").AsSystemTemplate().Build());
         await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetAllByKeyAsync("welcome");
@@ -71,8 +93,8 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     public async Task GetAllAsync_ShouldReturnAllTemplatesOrderedByKeyThenLanguage()
     {
         DbContext.EmailTemplates.AddRange(
-            EmailTemplate.Create("ztemplate", "Subject", "<html>z</html>", "z", "pt-br", null, true),
-            EmailTemplate.Create("atemplate", "Subject", "<html>a</html>", "a", "pt-br", null, true));
+            new EmailTemplateBuilder().WithKey("ztemplate").WithSubject("Subject").WithHtmlBody("<html>z</html>").WithTextBody("z").WithLanguage("pt-br").AsSystemTemplate().Build(),
+            new EmailTemplateBuilder().WithKey("atemplate").WithSubject("Subject").WithHtmlBody("<html>a</html>").WithTextBody("a").WithLanguage("pt-br").AsSystemTemplate().Build());
         await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetAllAsync();
@@ -84,7 +106,14 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetActiveByKeyAsync_WithNullLanguage_ShouldFallbackToDefault()
     {
-        var template = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br", null, true);
+        var template = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>base</html>")
+            .WithTextBody("base")
+            .WithLanguage("pt-br")
+            .AsSystemTemplate()
+            .Build();
         DbContext.EmailTemplates.Add(template);
         await DbContext.SaveChangesAsync();
 
@@ -104,7 +133,13 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetAllAsync_WithNoActiveTemplates_ShouldReturnEmpty()
     {
-        var inactive = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br");
+        var inactive = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>base</html>")
+            .WithTextBody("base")
+            .WithLanguage("pt-br")
+            .Build();
         DbContext.EmailTemplates.Add(inactive);
         await DbContext.SaveChangesAsync();
 
@@ -119,8 +154,20 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetAllAsync_ShouldExcludeInactiveTemplates()
     {
-        var active = EmailTemplate.Create("active", "Subject", "<html>active</html>", "active", "pt-br");
-        var inactive = EmailTemplate.Create("inactive", "Subject", "<html>inactive</html>", "inactive", "pt-br");
+        var active = new EmailTemplateBuilder()
+            .WithKey("active")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>active</html>")
+            .WithTextBody("active")
+            .WithLanguage("pt-br")
+            .Build();
+        var inactive = new EmailTemplateBuilder()
+            .WithKey("inactive")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>inactive</html>")
+            .WithTextBody("inactive")
+            .WithLanguage("pt-br")
+            .Build();
         DbContext.EmailTemplates.AddRange(active, inactive);
         await DbContext.SaveChangesAsync();
 
@@ -136,8 +183,21 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetActiveByKeyAsync_WithInactiveOverride_ShouldFallbackToBase()
     {
-        var baseTemplate = EmailTemplate.Create("welcome", "Subject", "<html>base</html>", "base", "pt-br", null);
-        var overrideTemplate = EmailTemplate.Create("welcome", "Subject", "<html>override</html>", "override", "pt-br", "custom_key");
+        var baseTemplate = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>base</html>")
+            .WithTextBody("base")
+            .WithLanguage("pt-br")
+            .Build();
+        var overrideTemplate = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject")
+            .WithHtmlBody("<html>override</html>")
+            .WithTextBody("override")
+            .WithLanguage("pt-br")
+            .WithOverrideKey("custom_key")
+            .Build();
         DbContext.EmailTemplates.AddRange(baseTemplate, overrideTemplate);
         await DbContext.SaveChangesAsync();
 
@@ -152,7 +212,13 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     [Fact]
     public async Task GetActiveByKeyAsync_WhenMultipleActiveVersions_ShouldReturnHighestVersion()
     {
-        var v1 = EmailTemplate.Create("welcome", "Subject v1", "<html>v1</html>", "v1", "pt-br");
+        var v1 = new EmailTemplateBuilder()
+            .WithKey("welcome")
+            .WithSubject("Subject v1")
+            .WithHtmlBody("<html>v1</html>")
+            .WithTextBody("v1")
+            .WithLanguage("pt-br")
+            .Build();
         DbContext.EmailTemplates.Add(v1);
         await DbContext.SaveChangesAsync();
 
@@ -170,8 +236,8 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
     public async Task GetAllByKeyAsync_ShouldReturnAllVersions()
     {
         DbContext.EmailTemplates.AddRange(
-            EmailTemplate.Create("welcome", "Subject", "<html>v1</html>", "v1", "pt-br", null),
-            EmailTemplate.Create("welcome", "Subject", "<html>v2</html>", "v2", "pt-br", null));
+            new EmailTemplateBuilder().WithKey("welcome").WithSubject("Subject").WithHtmlBody("<html>v1</html>").WithTextBody("v1").WithLanguage("pt-br").Build(),
+            new EmailTemplateBuilder().WithKey("welcome").WithSubject("Subject").WithHtmlBody("<html>v2</html>").WithTextBody("v2").WithLanguage("pt-br").Build());
         await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetAllByKeyAsync("welcome");

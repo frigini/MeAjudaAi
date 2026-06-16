@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Bookings.Application.Services;
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
-using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Services;
@@ -30,7 +30,7 @@ public class TimeZoneResolverTests
         // Assert
         result.Should().NotBeNull();
         // Fallback is usually "E. South America Standard Time" (Windows) or "America/Sao_Paulo" (IANA)
-        result!.Id.Should().BeOneOf("E. South America Standard Time", "America/Sao_Paulo");
+        result!.Id.Should().BeOneOf("E. South America Standard Time", TimeZoneConstants.DefaultTimeZoneId);
     }
 
     [Fact]
@@ -46,8 +46,13 @@ public class TimeZoneResolverTests
         var date = new DateOnly(2024, 11, 3);
         var start = new TimeOnly(1, 30);
         var end = new TimeOnly(2, 30);
-        var slot = TimeSlot.Create(start, end);
-        var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(clientId)
+            .WithServiceId(serviceId)
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(start).WithEnd(end).Build())
+            .Build();
 
         // Act
         var result = TimeZoneResolver.CreateValidatedBookingDto(booking, pst, _loggerMock.Object);
@@ -70,8 +75,13 @@ public class TimeZoneResolverTests
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
         var date = new DateOnly(2024, 6, 10);
-        var slot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
-        var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(clientId)
+            .WithServiceId(serviceId)
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
 
         // Act
         var result = TimeZoneResolver.CreateValidatedBookingDto(booking, pst, _loggerMock.Object);
@@ -98,8 +108,13 @@ public class TimeZoneResolverTests
         // O horário 02:30 AM não existe.
         var start = new TimeOnly(2, 30);
         var end = new TimeOnly(3, 30);
-        var slot = TimeSlot.Create(start, end);
-        var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(clientId)
+            .WithServiceId(serviceId)
+            .WithDate(date)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(start).WithEnd(end).Build())
+            .Build();
 
         // Act
         var result = TimeZoneResolver.CreateValidatedBookingDto(booking, pst, _loggerMock.Object);
