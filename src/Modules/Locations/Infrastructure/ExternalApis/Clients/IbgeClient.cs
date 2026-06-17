@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// Cliente HTTP para a API IBGE Localidades.
 /// Documentação: https://servicodados.ibge.gov.br/api/docs/localidades
 /// </summary>
-public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger) : IIbgeClient
+public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger, ISerializer serializer) : IIbgeClient
 {
     /// <summary>
     /// Busca um município por nome usando query parameter.
@@ -52,7 +52,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
             // A API retorna array quando busca por nome
-            var municipios = System.Text.Json.JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
+            var municipios = serializer.Deserialize<List<Municipio>>(content);
 
             if (municipios is null || municipios.Count == 0)
             {
@@ -124,7 +124,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var municipios = System.Text.Json.JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
+            var municipios = serializer.Deserialize<List<Municipio>>(content);
 
             return municipios ?? [];
         }

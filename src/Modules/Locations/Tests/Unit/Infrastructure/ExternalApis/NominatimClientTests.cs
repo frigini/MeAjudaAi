@@ -26,7 +26,7 @@ public sealed class NominatimClientTests : IDisposable
 
         _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
-        _client = new NominatimClient(_httpClient, NullLogger<NominatimClient>.Instance, _timeProvider);
+        _client = new NominatimClient(_httpClient, NullLogger<NominatimClient>.Instance, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
     }
 
     public void Dispose()

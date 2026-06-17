@@ -1,8 +1,9 @@
-using System.Web;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
+using System.Web;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 
@@ -14,7 +15,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// - Usar caching para reduzir chamadas
 /// Documentação: https://nominatim.org/release-docs/latest/api/Search/
 /// </summary>
-public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClient> logger, TimeProvider timeProvider) : IDisposable
+public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClient> logger, TimeProvider timeProvider, ISerializer serializer) : IDisposable
 {
     private readonly SemaphoreSlim _rateLimiter = new(1, 1); // 1 req/sec
     private DateTime _lastRequestTime = DateTime.MinValue;
@@ -55,7 +56,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                 }
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                var results = System.Text.Json.JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
+                var results = serializer.Deserialize<NominatimResponse[]>(content);
 
                 if (results is null || results.Length == 0)
                 {
@@ -108,12 +109,15 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
         }
         catch (Exception ex)
         {
+            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
             logger.LogError(ex, "Error querying Nominatim for address {Address}", address);
-            return null;
+            throw new InvalidOperationException(
+                $"Unexpected error querying Nominatim for address '{address}' (may be JSON parsing or network issue)",
+                ex);
         }
     }
 
-    public async Task<MeAjudaAi.Contracts.Modules.Locations.DTOs.LocationCandidate[]> SearchAsync(string query, CancellationToken cancellationToken)
+    public async Task<LocationCandidate[]> SearchAsync(string query, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -148,7 +152,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                 }
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                var results = System.Text.Json.JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
+                var results = serializer.Deserialize<NominatimResponse[]>(content);
 
                 if (results is null || results.Length == 0)
                 {
@@ -211,8 +215,11 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
         }
         catch (Exception ex)
         {
+            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
             logger.LogError(ex, "Error searching Nominatim for query {Query}", query);
-            return [];
+            throw new InvalidOperationException(
+                $"Unexpected error querying Nominatim for query '{query}' (may be JSON parsing or network issue)",
+                ex);
         }
     }
 

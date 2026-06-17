@@ -15,4 +15,3 @@ public partial class LocationsDbContext : IRepository<AllowedCity, Guid>
     void IRepository<AllowedCity, Guid>.Delete(AllowedCity aggregate) =>
         AllowedCities.Remove(aggregate);
 }
-

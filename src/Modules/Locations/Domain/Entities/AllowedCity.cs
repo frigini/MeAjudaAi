@@ -1,6 +1,6 @@
-using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Modules.Locations.Domain.Events;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
+using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Locations.Domain.Entities;
 
@@ -143,10 +143,10 @@ public sealed class AllowedCity : AggregateRoot<Guid>
         if (string.IsNullOrWhiteSpace(updatedBy)) throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
         
         if (double.IsNaN(latitude)) throw new InvalidLocationArgumentException("Latitude inválida");
-        if (latitude < -90 || latitude > 90) throw new InvalidLocationArgumentException("Latitude inválida");
+        if (latitude is <  -90 or > 90) throw new InvalidLocationArgumentException("Latitude inválida");
         
         if (double.IsNaN(longitude)) throw new InvalidLocationArgumentException("Longitude inválida");
-        if (longitude < -180 || longitude > 180) throw new InvalidLocationArgumentException("Longitude inválida");
+        if (longitude is < -180 or > 180) throw new InvalidLocationArgumentException("Longitude inválida");
         
         ValidateServiceRadius(serviceRadiusKm);
         
@@ -171,9 +171,7 @@ public sealed class AllowedCity : AggregateRoot<Guid>
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new AllowedCityDeletedDomainEvent(Id));
     }
-
-    // ... (rest of methods)
-    
+   
     public void Activate(string updatedBy)
     {
         if (string.IsNullOrWhiteSpace(updatedBy))

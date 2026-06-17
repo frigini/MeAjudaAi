@@ -23,7 +23,7 @@ public sealed class OpenCepClientTests : IDisposable
             BaseAddress = new Uri("https://opencep.com/")
         };
 
-        _client = new OpenCepClient(_httpClient, NullLogger<OpenCepClient>.Instance);
+        _client = new OpenCepClient(_httpClient, NullLogger<OpenCepClient>.Instance, new SystemTextJsonSerializer(SerializationDefaults.Api));
     }
 
     public void Dispose()

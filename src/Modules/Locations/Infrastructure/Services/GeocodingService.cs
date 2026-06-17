@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
@@ -45,9 +46,7 @@ internal sealed class GeocodingService(
         return coordinates;
     }
 
-
-
-    public async Task<List<MeAjudaAi.Contracts.Modules.Locations.DTOs.LocationCandidate>> SearchAsync(string query, CancellationToken cancellationToken = default)
+    public async Task<List<LocationCandidate>> SearchAsync(string query, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -84,4 +83,3 @@ internal sealed class GeocodingService(
         return $"geocoding:{normalized}";
     }
 }
-

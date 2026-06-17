@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Locations.Domain.Events;
 

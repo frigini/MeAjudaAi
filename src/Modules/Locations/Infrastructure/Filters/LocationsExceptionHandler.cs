@@ -19,7 +19,7 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
     {
         ProblemDetails? problemDetails = exception switch
         {
-            Shared.Exceptions.NotFoundException notFoundEx => HandleNotFoundException(notFoundEx),
+            NotFoundException notFoundEx => HandleNotFoundException(notFoundEx),
             DuplicateAllowedCityException duplicateEx => HandleDuplicateException(duplicateEx),
             InvalidLocationArgumentException invalidArgEx => HandleArgumentException(invalidArgEx),
             BadRequestException badRequestEx => HandleBadRequestException(badRequestEx),
@@ -36,7 +36,7 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
         return true;
     }
 
-    private ProblemDetails HandleNotFoundException(Shared.Exceptions.NotFoundException exception)
+    private ProblemDetails HandleNotFoundException(NotFoundException exception)
     {
         logger.LogWarning(exception, "Resource not found: {Message}", exception.Message);
         return new ProblemDetails

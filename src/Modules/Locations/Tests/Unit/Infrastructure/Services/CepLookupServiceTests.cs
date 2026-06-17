@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -30,9 +31,9 @@ public sealed class CepLookupServiceTests
     private CepLookupService CreateService()
     {
         var httpClient = new HttpClient();
-        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
-        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
-        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
+        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
+        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
+        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
 
         return new CepLookupService(
             viaClient,

@@ -8,9 +8,8 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// <summary>
 /// Cliente HTTP para a API OpenCEP.
 /// </summary>
-public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> logger)
+public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> logger, ISerializer serializer)
 {
-
     public async Task<Address?> GetAddressAsync(Cep cep, CancellationToken cancellationToken)
     {
         try
@@ -28,7 +27,7 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogDebug("OpenCEP response for {Cep}: {Content}", cep.Value, content);
-            var openCepResponse = System.Text.Json.JsonSerializer.Deserialize<OpenCepResponse>(content, SerializationDefaults.Api);
+            var openCepResponse = serializer.Deserialize<OpenCepResponse>(content);
 
             if (openCepResponse is null)
             {
@@ -46,8 +45,11 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
         }
         catch (Exception ex)
         {
+            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
             logger.LogError(ex, "Error querying OpenCEP for CEP {Cep}", cep.Value);
-            return null;
+            throw new InvalidOperationException(
+                $"Unexpected error querying OpenCEP for CEP '{cep.Value}' (may be JSON parsing or network issue)",
+                ex);
         }
     }
 }

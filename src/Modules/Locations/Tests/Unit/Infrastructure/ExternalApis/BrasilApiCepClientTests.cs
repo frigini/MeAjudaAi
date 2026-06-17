@@ -23,7 +23,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
             BaseAddress = new Uri("https://brasilapi.com.br/")
         };
 
-        _client = new BrasilApiCepClient(_httpClient, NullLogger<BrasilApiCepClient>.Instance);
+        _client = new BrasilApiCepClient(_httpClient, NullLogger<BrasilApiCepClient>.Instance, new SystemTextJsonSerializer(SerializationDefaults.Api));
     }
 
     public void Dispose()

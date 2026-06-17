@@ -85,5 +85,3 @@ public class LocationsDbContextFactory : BaseDesignTimeDbContextFactory<Location
         return new LocationsDbContext(options);
     }
 }
-
-

@@ -22,7 +22,7 @@ public sealed class IbgeClientTests : IDisposable
             BaseAddress = new Uri("https://servicodados.ibge.gov.br/api/v1/localidades/")
         };
 
-        _client = new IbgeClient(_httpClient, NullLogger<IbgeClient>.Instance);
+        _client = new IbgeClient(_httpClient, NullLogger<IbgeClient>.Instance, new SystemTextJsonSerializer(SerializationDefaults.Default));
     }
 
     public void Dispose()

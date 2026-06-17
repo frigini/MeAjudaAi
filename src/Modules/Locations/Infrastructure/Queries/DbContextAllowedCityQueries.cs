@@ -22,7 +22,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+    public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         await dbContext.AllowedCities
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 

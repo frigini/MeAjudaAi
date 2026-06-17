@@ -23,7 +23,7 @@ public sealed class ViaCepClientTests : IDisposable
             BaseAddress = new Uri("https://viacep.com.br/")
         };
 
-        _client = new ViaCepClient(_httpClient, NullLogger<ViaCepClient>.Instance);
+        _client = new ViaCepClient(_httpClient, NullLogger<ViaCepClient>.Instance, new SystemTextJsonSerializer(SerializationDefaults.Api));
     }
 
     public void Dispose()

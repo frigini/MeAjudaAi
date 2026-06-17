@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// <summary>
 /// Cliente HTTP para a API BrasilAPI.
 /// </summary>
-public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiCepClient> logger)
+public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiCepClient> logger, ISerializer serializer)
 {
     public async Task<Address?> GetAddressAsync(Cep cep, CancellationToken cancellationToken)
     {
@@ -27,7 +27,7 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogDebug("BrasilAPI response for {Cep}: {Content}", cep.Value, content);
-            var brasilApiResponse = System.Text.Json.JsonSerializer.Deserialize<BrasilApiCepResponse>(content, SerializationDefaults.Api);
+            var brasilApiResponse = serializer.Deserialize<BrasilApiCepResponse>(content);
 
             if (brasilApiResponse is null)
             {
@@ -50,10 +50,27 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
 
             return address;
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            logger.LogError("Request canceled/timed out when querying BrasilAPI for CEP {Cep}", cep.Value);
+            throw new TimeoutException(
+                $"BrasilAPI request timed out while querying CEP {cep.Value}",
+                ex);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "HTTP error querying BrasilAPI for CEP {Cep}", cep.Value);
+            throw new InvalidOperationException(
+                $"HTTP error querying BrasilAPI for CEP {cep.Value} (Status: {ex.StatusCode})",
+                ex);
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error querying BrasilAPI for CEP {Cep}", cep.Value);
-            return null;
+            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
+            logger.LogError(ex, "Unexpected error querying  BrasilAPI for CEP {Cep}", cep.Value);
+            throw new InvalidOperationException(
+                $"Unexpected error querying BrasilAPI for CEP {cep.Value} (may be JSON parsing or network issue)",
+                ex);
         }
     }
 }
