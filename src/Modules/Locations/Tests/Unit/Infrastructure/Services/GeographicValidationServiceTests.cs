@@ -1,9 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Services;
 
@@ -119,4 +115,3 @@ public sealed class GeographicValidationServiceTests
             .WithMessage("IBGE API unavailable");
     }
 }
-

@@ -1,10 +1,8 @@
-using System.Net;
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
+using System.Net;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.ExternalApis;
 
@@ -17,7 +15,7 @@ public sealed class IbgeClientTests : IDisposable
     public IbgeClientTests()
     {
         _mockHandler = new MockHttpMessageHandler();
-        _httpClient = new HttpClient(_mockHandler)
+        _httpClient = new HttpClient(_mockHandler.GetHandler())
         {
             BaseAddress = new Uri("https://servicodados.ibge.gov.br/api/v1/localidades/")
         };
@@ -46,10 +44,10 @@ public sealed class IbgeClientTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        // IbgeClient uses lowercase for API queries (client internally URL-encodes but Uri.ToString() displays decoded)
+        // IbgeClient usa lowercase para queries à API (client faz URL-encode internamente, mas Uri.ToString() exibe decodificado)
         var uriString = _mockHandler.LastRequestUri!.ToString();
         uriString.Should().Contain("municipios?nome=");
-        uriString.Should().Contain(input.ToLowerInvariant()); // Query string is lowercase (displayed decoded by Uri.ToString())
+        uriString.Should().Contain(input.ToLowerInvariant()); // Query string em lowercase (exibido decodificado por Uri.ToString())
     }
 
     [Fact]
@@ -217,41 +215,5 @@ public sealed class IbgeClientTests : IDisposable
                 }
             }
         };
-    }
-
-    // Mock HttpMessageHandler for testing
-
-    private sealed class MockHttpMessageHandler : HttpMessageHandler
-    {
-        private HttpResponseMessage? _responseMessage;
-        private Exception? _exception;
-        public string? LastRequestUri { get; private set; }
-
-        public void SetResponse(HttpStatusCode statusCode, string content)
-        {
-            _responseMessage = new HttpResponseMessage(statusCode)
-            {
-                Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
-            };
-            _exception = null;
-        }
-
-        public void SetException(Exception exception)
-        {
-            _exception = exception;
-            _responseMessage = null;
-        }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            LastRequestUri = request.RequestUri?.ToString();
-
-            if (_exception is not null)
-            {
-                throw _exception;
-            }
-
-            return Task.FromResult(_responseMessage ?? new HttpResponseMessage(HttpStatusCode.InternalServerError));
-        }
     }
 }

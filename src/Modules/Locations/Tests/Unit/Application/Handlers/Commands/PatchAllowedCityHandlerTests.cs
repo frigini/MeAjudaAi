@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers.Commands;
 
 public class PatchAllowedCityHandlerTests
 {
@@ -29,6 +29,7 @@ public class PatchAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_UpdateRadius_ShouldUpdateServiceRadiusOK()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithCreatedBy("test@user.com")
@@ -42,8 +43,10 @@ public class PatchAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         existingCity.ServiceRadiusKm.Should().Be(50);
         existingCity.UpdatedBy.Should().Be("admin@test.com");
@@ -53,6 +56,7 @@ public class PatchAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_ActivateCity_ShouldSetIsActiveTrue()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithCreatedBy("test@user.com")
@@ -67,8 +71,10 @@ public class PatchAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         existingCity.IsActive.Should().BeTrue();
         existingCity.UpdatedBy.Should().Be("admin@test.com");
@@ -78,6 +84,7 @@ public class PatchAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_DeactivateCity_ShouldSetIsActiveFalse()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithCreatedBy("test@user.com")
@@ -92,8 +99,10 @@ public class PatchAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         existingCity.IsActive.Should().BeFalse();
         existingCity.UpdatedBy.Should().Be("admin@test.com");
@@ -103,14 +112,17 @@ public class PatchAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_CityNotFound_ShouldReturnFailure()
     {
+        // Arrange
         var command = new PatchAllowedCityCommand(Guid.NewGuid(), ServiceRadiusKm: 50, IsActive: null);
 
         SetupHttpContext("admin@test.com");
         _repositoryMock.Setup(x => x.TryFindAsync(command.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(404);
     }
@@ -118,6 +130,7 @@ public class PatchAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_NoUserContext_ShouldUseSystemUser()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithCreatedBy("test@user.com")
@@ -131,8 +144,10 @@ public class PatchAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         existingCity.UpdatedBy.Should().Be("system");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -141,6 +156,7 @@ public class PatchAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_NoChanges_ShouldReturnSuccessWithoutSave()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithCreatedBy("test@user.com")
@@ -154,8 +170,10 @@ public class PatchAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -173,5 +191,3 @@ public class PatchAllowedCityHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
 }
-
-

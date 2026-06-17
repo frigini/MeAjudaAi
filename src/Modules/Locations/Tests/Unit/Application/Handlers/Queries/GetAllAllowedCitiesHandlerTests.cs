@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers.Queries;
 
 public class GetAllAllowedCitiesHandlerTests
 {
@@ -20,6 +20,7 @@ public class GetAllAllowedCitiesHandlerTests
     [Fact]
     public async Task HandleAsync_WithOnlyActiveTrue_ShouldReturnOnlyActiveCities()
     {
+        // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
         var activeCities = new List<AllowedCity>
         {
@@ -29,8 +30,10 @@ public class GetAllAllowedCitiesHandlerTests
         _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(activeCities);
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().HaveCount(1);
         result.First().CityName.Should().Be("Muriaé");
         _queriesMock.Verify(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -39,6 +42,7 @@ public class GetAllAllowedCitiesHandlerTests
     [Fact]
     public async Task HandleAsync_WithOnlyActiveFalse_ShouldReturnAllCities()
     {
+        // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = false };
         var allCities = new List<AllowedCity>
         {
@@ -49,8 +53,10 @@ public class GetAllAllowedCitiesHandlerTests
         _queriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(allCities);
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().HaveCount(2);
         _queriesMock.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -58,18 +64,22 @@ public class GetAllAllowedCitiesHandlerTests
     [Fact]
     public async Task HandleAsync_WithNoCities_ShouldReturnEmptyList()
     {
+        // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
         _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AllowedCity>());
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task HandleAsync_ShouldMapPropertiesToDto()
     {
+        // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -79,8 +89,10 @@ public class GetAllAllowedCitiesHandlerTests
         _queriesMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AllowedCity> { city });
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         var dto = result.First();
         dto.CityName.Should().Be(city.CityName);
         dto.StateSigla.Should().Be(city.StateSigla);

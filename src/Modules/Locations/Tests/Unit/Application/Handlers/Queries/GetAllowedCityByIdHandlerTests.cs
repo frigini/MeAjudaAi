@@ -20,6 +20,7 @@ public class GetAllowedCityByIdHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidId_ShouldReturnAllowedCityDto()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
@@ -31,8 +32,10 @@ public class GetAllowedCityByIdHandlerTests
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
         result!.CityName.Should().Be("Muriaé");
         result.StateSigla.Should().Be("MG");
@@ -42,20 +45,24 @@ public class GetAllowedCityByIdHandlerTests
     [Fact]
     public async Task HandleAsync_WithInvalidId_ShouldReturnNull()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
 
         _queriesMock.Setup(x => x.GetByIdAsync(query.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().BeNull();
     }
 
     [Fact]
     public async Task HandleAsync_WithInactiveCity_ShouldReturnDto()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
@@ -66,8 +73,10 @@ public class GetAllowedCityByIdHandlerTests
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
         result!.IsActive.Should().BeFalse();
     }
@@ -75,6 +84,7 @@ public class GetAllowedCityByIdHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldMapAllPropertiesToDto()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery(cityId);
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
@@ -84,8 +94,10 @@ public class GetAllowedCityByIdHandlerTests
         _queriesMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
 
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
         result!.CityName.Should().Be(city.CityName);
         result.StateSigla.Should().Be(city.StateSigla);

@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers.Commands;
 
 public class DeleteAllowedCityHandlerTests
 {
@@ -28,6 +28,7 @@ public class DeleteAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidId_ShouldDeleteAllowedCity()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -37,8 +38,10 @@ public class DeleteAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         _repositoryMock.Verify(x => x.Delete(existingCity), Times.Once);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -46,13 +49,16 @@ public class DeleteAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenCityNotFound_ShouldThrowAllowedCityNotFoundException()
     {
+        // Arrange
         var command = new DeleteAllowedCityCommand { Id = Guid.NewGuid() };
 
         _repositoryMock.Setup(x => x.TryFindAsync(command.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<AllowedCityNotFoundException>()
             .WithMessage("*not found*");
     }
@@ -60,6 +66,7 @@ public class DeleteAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WithInactiveCity_ShouldStillDelete()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -70,8 +77,10 @@ public class DeleteAllowedCityHandlerTests
         _repositoryMock.Setup(x => x.TryFindAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         _repositoryMock.Verify(x => x.Delete(existingCity), Times.Once);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

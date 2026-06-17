@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
@@ -6,9 +5,6 @@ using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Services;
 
@@ -207,7 +203,7 @@ public sealed class IbgeServiceTests
         result.GetEstadoSigla().Should().Be("MG");
         _cacheServiceMock.Verify();
 
-        // Verify that the IBGE client was NOT called (cache hit)
+        // Verificar que o cliente IBGE NÃO foi chamado (cache hit)
         _ibgeClientMock.Verify(
             x => x.GetMunicipioByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -467,4 +463,3 @@ public sealed class IbgeServiceTests
 
     #endregion
 }
-

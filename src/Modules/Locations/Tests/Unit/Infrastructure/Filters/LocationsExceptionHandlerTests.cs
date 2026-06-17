@@ -1,11 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Infrastructure.Filters;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Filters;
 
@@ -37,7 +33,7 @@ public class LocationsExceptionHandlerTests
         result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(404);
         
-        // Verifying logging
+        // Verificando logging
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
@@ -90,7 +86,7 @@ public class LocationsExceptionHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(400); // Mapped to BadRequest in code
+        context.Response.StatusCode.Should().Be(400); // Mapeado para BadRequest no código
 
         _loggerMock.Verify(
             x => x.Log(
@@ -143,7 +139,7 @@ public class LocationsExceptionHandlerTests
 
         // Assert
         result.Should().BeFalse();
-        // Should not modify status code
+        // Não deve modificar o status code
         context.Response.StatusCode.Should().Be(200); // Default
     }
 }

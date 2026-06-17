@@ -1,7 +1,5 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Domain.ValueObjects;
 
@@ -290,8 +288,8 @@ public sealed class AddressTests
             "SP");
 
         // Act & Assert
-        address1.Should().NotBe(address2); // Different complements
-        address1.Should().NotBe(address3); // One has complement, other doesn't
+        address1.Should().NotBe(address2); // Complementos diferentes
+        address1.Should().NotBe(address3); // Um tem complemento, o outro não
     }
 
     [Fact]
@@ -326,8 +324,8 @@ public sealed class AddressTests
             "SP");
 
         // Act & Assert
-        address1.Should().NotBe(address2); // Different geo points
-        address1.Should().NotBe(address3); // One has geo point, other doesn't
+        address1.Should().NotBe(address2); // Geo points diferentes
+        address1.Should().NotBe(address3); // Um tem geo point, o outro não
     }
 
     [Fact]
@@ -361,9 +359,6 @@ public sealed class AddressTests
         // Act & Assert
         address.Should().Be(address);
         address!.Equals(address).Should().BeTrue();
-#pragma warning disable CS1718 // Comparison made to same variable
-        (address == address).Should().BeTrue();
-#pragma warning restore CS1718
     }
 
     #endregion

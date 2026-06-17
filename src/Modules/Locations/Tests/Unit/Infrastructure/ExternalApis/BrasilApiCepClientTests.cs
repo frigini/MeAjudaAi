@@ -1,11 +1,9 @@
-using System.Net;
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
+using System.Net;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.ExternalApis;
 
@@ -18,7 +16,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public BrasilApiCepClientTests()
     {
         _mockHandler = new MockHttpMessageHandler();
-        _httpClient = new HttpClient(_mockHandler)
+        _httpClient = new HttpClient(_mockHandler.GetHandler())
         {
             BaseAddress = new Uri("https://brasilapi.com.br/")
         };
@@ -29,7 +27,6 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public void Dispose()
     {
         _httpClient?.Dispose();
-        _mockHandler?.Dispose();
     }
 
     [Fact]
@@ -143,51 +140,4 @@ public sealed class BrasilApiCepClientTests : IDisposable
         _mockHandler.LastRequestUri.Should().Contain("api/cep/v2/01001000");
     }
 
-    private sealed class MockHttpMessageHandler : HttpMessageHandler, IDisposable
-    {
-        private HttpResponseMessage? _responseMessage;
-        private Exception? _exception;
-        public string? LastRequestUri { get; private set; }
-
-        public void SetResponse(HttpStatusCode statusCode, string content)
-        {
-            _responseMessage?.Dispose();
-            _responseMessage = new HttpResponseMessage(statusCode)
-            {
-                Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
-            };
-            _exception = null;
-        }
-
-        public void SetException(Exception exception)
-        {
-            _responseMessage?.Dispose();
-            _exception = exception;
-            _responseMessage = null;
-        }
-
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-        {
-            LastRequestUri = request.RequestUri?.ToString();
-
-            if (_exception is not null)
-            {
-                throw _exception;
-            }
-
-            return Task.FromResult(_responseMessage ?? new HttpResponseMessage(HttpStatusCode.InternalServerError));
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _responseMessage?.Dispose();
-                _responseMessage = null;
-            }
-            base.Dispose(disposing);
-        }
-    }
 }

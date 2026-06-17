@@ -45,6 +45,7 @@
     <Using Include="Bogus" />
     <Using Include="AutoFixture" />
     <Using Include="MeAjudaAi.Shared.Tests.TestInfrastructure.Base" />
+    <Using Include="MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http" />
     <Using Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 

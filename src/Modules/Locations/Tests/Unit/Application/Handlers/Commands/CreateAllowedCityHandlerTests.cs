@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
@@ -7,12 +6,9 @@ using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Moq;
 using System.Security.Claims;
-using Xunit;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers.Commands;
 
 public class CreateAllowedCityHandlerTests
 {

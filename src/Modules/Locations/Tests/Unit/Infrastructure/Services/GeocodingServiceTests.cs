@@ -1,14 +1,10 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Services;
 

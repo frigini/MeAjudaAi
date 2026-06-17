@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Tests;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests;
 

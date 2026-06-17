@@ -9,7 +9,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers.Commands;
 
 public class UpdateAllowedCityHandlerTests
 {
@@ -37,6 +37,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldUpdateAllowedCity()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -60,8 +61,10 @@ public class UpdateAllowedCityHandlerTests
         _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
+        // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         existingCity.CityName.Should().Be("Itaperuna");
         existingCity.StateSigla.Should().Be("RJ");
         existingCity.IbgeCode.Should().Be(3302270);
@@ -74,6 +77,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenCityNotFound_ShouldReturnNotFoundResult()
     {
+        // Arrange
         var command = new UpdateAllowedCityCommand
         {
             Id = Guid.NewGuid(),
@@ -90,8 +94,10 @@ public class UpdateAllowedCityHandlerTests
         _queriesMock.Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(404);
         result.Error.Message.Should().Contain("não encontrada");
@@ -100,6 +106,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenDuplicateCityExists_ShouldReturnConflictError()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -126,8 +133,10 @@ public class UpdateAllowedCityHandlerTests
         _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(duplicateCity);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(409);
         result.Error.Message.Should().Contain("já cadastrada");
@@ -136,6 +145,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenCityNameChanged_AndCoordsMissing_ShouldCallGeocodingService()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -163,8 +173,10 @@ public class UpdateAllowedCityHandlerTests
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedCoords);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync($"{command.CityName}, {command.StateSigla}, Brasil", It.IsAny<CancellationToken>()), Times.Once);
         existingCity.Latitude.Should().Be(expectedCoords.Latitude);
@@ -174,6 +186,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenStateChanged_AndCoordsMissing_ShouldCallGeocodingService()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -201,8 +214,10 @@ public class UpdateAllowedCityHandlerTests
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedCoords);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync($"{command.CityName}, {command.StateSigla}, Brasil", It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -210,6 +225,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenExistingCoordsInvalid_AndCommandCoordsMissing_ShouldCallGeocodingService()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -234,8 +250,10 @@ public class UpdateAllowedCityHandlerTests
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedCoords);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         existingCity.Latitude.Should().Be(expectedCoords.Latitude);
@@ -245,6 +263,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_WhenGeocodingFails_ShouldKeepExistingCoordinates()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCoordsLat = 10.5;
         var existingCoordsLon = 20.5;
@@ -273,8 +292,10 @@ public class UpdateAllowedCityHandlerTests
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Geocoding service unavailable"));
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         existingCity.Latitude.Should().Be(existingCoordsLat);
         existingCity.Longitude.Should().Be(existingCoordsLon);
@@ -283,6 +304,7 @@ public class UpdateAllowedCityHandlerTests
     [Fact]
     public async Task HandleAsync_UpdatingSameCityWithSameName_ShouldNotThrowException()
     {
+        // Arrange
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
             .Build();
@@ -305,14 +327,17 @@ public class UpdateAllowedCityHandlerTests
         _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
+        // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task HandleAsync_WithNoUserEmail_ShouldUseSystemAsUpdater()
     {
+        // Arrange
         var cityId = Guid.NewGuid();
         var existingCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG")
             .WithIbgeCode(3143906)
@@ -335,8 +360,10 @@ public class UpdateAllowedCityHandlerTests
         _queriesMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
+        // Act
         await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         existingCity.UpdatedBy.Should().Be("system");
     }
 
