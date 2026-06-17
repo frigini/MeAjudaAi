@@ -1,16 +1,16 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers.Commands;
 
 public class ApproveDocumentCommandHandlerTests
 {
@@ -55,6 +55,7 @@ public class ApproveDocumentCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidCommand_ShouldApproveDocument()
     {
+        // Arrange
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
         document.MarkAsPendingVerification();
         var command = new ApproveDocumentCommand(document.Id, "Verified OK");
@@ -69,8 +70,10 @@ public class ApproveDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -79,6 +82,7 @@ public class ApproveDocumentCommandHandlerTests
     [Fact]
     public async Task Handle_WithNonExistentDocument_ShouldThrowNotFoundException()
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         var command = new ApproveDocumentCommand(documentId, null);
 
@@ -89,8 +93,10 @@ public class ApproveDocumentCommandHandlerTests
             .Setup(x => x.HttpContext)
             .Returns(CreateAuthenticatedAdminContext());
 
+        // Act
         var act = () => _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage("*Document*not found*");
     }
@@ -98,6 +104,7 @@ public class ApproveDocumentCommandHandlerTests
     [Fact]
     public async Task Handle_WithAlreadyApprovedDocument_ShouldReturnBadRequest()
     {
+        // Arrange
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
         var statusProperty = typeof(Document).GetProperty("Status");
         statusProperty?.SetValue(document, EDocumentStatus.Verified);
@@ -110,8 +117,10 @@ public class ApproveDocumentCommandHandlerTests
             .Setup(x => x.HttpContext)
             .Returns(CreateAuthenticatedAdminContext());
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("status");
     }
@@ -119,6 +128,7 @@ public class ApproveDocumentCommandHandlerTests
     [Fact]
     public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
     {
+        // Arrange
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
         document.MarkAsPendingVerification();
         var command = new ApproveDocumentCommand(document.Id, null);
@@ -133,11 +143,11 @@ public class ApproveDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB failure"));
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("Falha ao aprovar");
     }
 }
-
-

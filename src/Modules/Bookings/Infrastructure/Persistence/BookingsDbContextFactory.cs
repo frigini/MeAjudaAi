@@ -11,6 +11,6 @@ public class BookingsDbContextFactory : BaseDesignTimeDbContextFactory<BookingsD
 {
     protected override BookingsDbContext CreateDbContextInstance(DbContextOptions<BookingsDbContext> options)
     {
-        return new BookingsDbContext(options, null!);
+        return new BookingsDbContext(options);
     }
 }

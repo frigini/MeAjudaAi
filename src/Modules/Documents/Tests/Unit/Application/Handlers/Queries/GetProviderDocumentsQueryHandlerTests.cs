@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers.Queries;
 
 public class GetProviderDocumentsQueryHandlerTests
 {
@@ -20,6 +20,7 @@ public class GetProviderDocumentsQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WithExistingDocuments_ShouldReturnDocumentList()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<Document>
         {
@@ -31,8 +32,11 @@ public class GetProviderDocumentsQueryHandlerTests
             .ReturnsAsync(documents);
 
         var query = new GetProviderDocumentsQuery(providerId);
+
+        // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Should().Contain(d => d.Id == documents[0].Id);

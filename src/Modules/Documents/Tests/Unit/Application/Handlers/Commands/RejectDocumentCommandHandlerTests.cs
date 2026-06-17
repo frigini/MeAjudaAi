@@ -1,16 +1,16 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers.Commands;
 
 public class RejectDocumentCommandHandlerTests
 {
@@ -56,6 +56,7 @@ public class RejectDocumentCommandHandlerTests
     [InlineData(RoleConstants.Admin)]
     public async Task HandleAsync_WithAdminUser_ShouldRejectDocument(string adminRole)
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
         document.MarkAsPendingVerification();
@@ -65,9 +66,11 @@ public class RejectDocumentCommandHandlerTests
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
         _mockUow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
+        // Act
         var command = new RejectDocumentCommand(documentId, "Documento ilegível");
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Rejected);
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -78,6 +81,7 @@ public class RejectDocumentCommandHandlerTests
     [InlineData(RoleConstants.Provider)]
     public async Task HandleAsync_WithNonAdminUser_ShouldReturnFailure(string nonAdminRole)
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
         document.MarkAsPendingVerification();
@@ -87,8 +91,10 @@ public class RejectDocumentCommandHandlerTests
 
         var command = new RejectDocumentCommand(documentId, "Reason");
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<ForbiddenAccessException>();
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -96,6 +102,7 @@ public class RejectDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenDocumentNotFound_ShouldThrowNotFoundException()
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         SetupAuthenticatedUser(RoleConstants.Admin);
         
@@ -103,8 +110,10 @@ public class RejectDocumentCommandHandlerTests
 
         var command = new RejectDocumentCommand(documentId, "Reason");
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<NotFoundException>();
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -112,6 +121,7 @@ public class RejectDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenStatusIsNotPendingVerification_ShouldReturnFailure()
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
         // Status defaults to Uploaded
@@ -120,8 +130,11 @@ public class RejectDocumentCommandHandlerTests
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
 
         var command = new RejectDocumentCommand(documentId, "Reason");
+
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Code.Should().Be("BadRequest");
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -130,6 +143,7 @@ public class RejectDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenReasonIsMissing_ShouldReturnFailure()
     {
+        // Arrange
         var documentId = Guid.NewGuid();
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
         document.MarkAsPendingVerification();
@@ -138,8 +152,11 @@ public class RejectDocumentCommandHandlerTests
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
 
         var command = new RejectDocumentCommand(documentId, "");
+
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Code.Should().Be("BadRequest");
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);

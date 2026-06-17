@@ -82,4 +82,3 @@ public class NullDocumentIntelligenceServiceTests
             Times.Once);
     }
 }
-

@@ -324,7 +324,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_GET_FAILED");
     }
 
     [Fact]
@@ -360,7 +360,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
 
     [Fact]
@@ -396,7 +396,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
 
     [Fact]
@@ -430,7 +430,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
 
     [Fact]
@@ -493,7 +493,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
 
     [Fact]
@@ -532,7 +532,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
 
     [Fact]
@@ -549,7 +549,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
+        result.Error!.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
 
     [Fact]
@@ -745,9 +745,8 @@ public class DocumentsModuleApiTests
             status,
             DateTime.UtcNow.AddDays(-5),
             // VerifiedAt is set when document is Verified OR Rejected (domain behavior)
-            status == EDocumentStatus.Verified || status == EDocumentStatus.Rejected ? DateTime.UtcNow : null,
+            status is EDocumentStatus.Verified or EDocumentStatus.Rejected ? DateTime.UtcNow : null,
             status == EDocumentStatus.Rejected ? "Invalid document" : null,
             null);
     }
 }
-

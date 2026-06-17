@@ -11,6 +11,6 @@ public class RatingsDbContextFactory : BaseDesignTimeDbContextFactory<RatingsDbC
 {
     protected override RatingsDbContext CreateDbContextInstance(DbContextOptions<RatingsDbContext> options)
     {
-        return new RatingsDbContext(options, null!);
+        return new RatingsDbContext(options);
     }
 }

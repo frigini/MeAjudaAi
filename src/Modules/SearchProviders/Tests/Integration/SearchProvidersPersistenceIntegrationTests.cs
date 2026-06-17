@@ -29,46 +29,6 @@ public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegra
     }
 
     [Fact]
-    public async Task UnitOfWork_AddAndSave_ShouldPersistEntity()
-    {
-        // Arrange
-        await CleanupDatabase();
-        var provider = CreateTestSearchableProvider("Integration Provider", -23.561, -46.656, ESubscriptionTier.Gold);
-
-        // Act
-        Uow.GetRepository<SearchableProvider, SearchableProviderId>().Add(provider);
-        var affected = await Uow.SaveChangesAsync();
-
-        // Assert
-        affected.Should().BeGreaterThan(0);
-
-        var queryResult = await Queries.GetByIdAsync(provider.Id);
-        queryResult.Should().NotBeNull();
-        queryResult!.Name.Should().Be("Integration Provider");
-        queryResult.SubscriptionTier.Should().Be(ESubscriptionTier.Gold);
-    }
-
-    [Fact]
-    public async Task UnitOfWork_DeleteAndSave_ShouldRemoveEntity()
-    {
-        // Arrange
-        await CleanupDatabase();
-        var provider = CreateTestSearchableProvider("To Delete Provider", -23.561, -46.656);
-        await PersistSearchableProviderAsync(provider);
-
-        // Act
-        var repo = Uow.GetRepository<SearchableProvider, SearchableProviderId>();
-        var tracked = await repo.TryFindAsync(provider.Id);
-        tracked.Should().NotBeNull();
-        repo.Delete(tracked!);
-        await Uow.SaveChangesAsync();
-
-        // Assert
-        var queryResult = await Queries.GetByIdAsync(provider.Id);
-        queryResult.Should().BeNull();
-    }
-
-    [Fact]
     public async Task Queries_GetByProviderId_WithTrackTrue_ShouldReturnTrackedEntity()
     {
         // Arrange

@@ -92,4 +92,3 @@ public sealed class DocumentIdTests
         result.Should().Contain(guid.ToString());
     }
 }
-

@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers.Commands;
 
 public class UploadDocumentCommandHandlerTests
 {
@@ -75,6 +75,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldUploadAndEnqueue()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -83,8 +84,10 @@ public class UploadDocumentCommandHandlerTests
         _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(("upload-url", DateTime.UtcNow.AddMinutes(15)));
 
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.Should().NotBeNull();
         result.UploadUrl.Should().Be("upload-url");
 
@@ -98,56 +101,69 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenHttpContextIsNull_ShouldThrowUnauthorized()
     {
+        // Arrange
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext)null!);
 
         var command = new UploadDocumentCommand(Guid.NewGuid(), EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*HTTP context not available*");
     }
 
     [Fact]
     public async Task HandleAsync_WhenUserNotAuthenticated_ShouldThrowUnauthorized()
     {
+        // Arrange
         SetupAuthenticatedUser(Guid.NewGuid(), isAuthenticated: false);
 
         var command = new UploadDocumentCommand(Guid.NewGuid(), EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*User is not authenticated*");
     }
 
     [Fact]
     public async Task HandleAsync_WhenUserIdMissingFromToken_ShouldThrowUnauthorized()
     {
+        // Arrange
         SetupAuthenticatedUser(null);
 
         var command = new UploadDocumentCommand(Guid.NewGuid(), EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*User ID not found in token*");
     }
 
     [Fact]
     public async Task HandleAsync_WithDifferentProviderId_AndNotAdmin_ShouldThrowUnauthorized()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var loggedUserId = Guid.NewGuid();
         SetupAuthenticatedUser(loggedUserId, role: "provider");
 
         var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*authorized*");
     }
 
     [Fact]
     public async Task HandleAsync_WithDifferentProviderId_AndIsAdmin_ShouldSucceed()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
         SetupAuthenticatedUser(adminId, role: RoleConstants.Admin);
@@ -157,8 +173,10 @@ public class UploadDocumentCommandHandlerTests
         _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(("upload-url", DateTime.UtcNow.AddMinutes(15)));
 
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.Should().NotBeNull();
         result.UploadUrl.Should().Be("upload-url");
     }
@@ -166,58 +184,71 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithInvalidDocumentType_ShouldThrowArgumentException()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
         var command = new UploadDocumentCommand(providerId, "InvalidType", "test.pdf", "application/pdf", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*Invalid document type*");
     }
 
     [Fact]
     public async Task HandleAsync_WithFileTooLarge_ShouldThrowArgumentException()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
         var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "application/pdf", 20 * 1024 * 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*File too large*");
     }
 
     [Fact]
     public async Task HandleAsync_WithEmptyContentType_ShouldThrowArgumentException()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
         var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.pdf", "", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*Content-Type is required*");
     }
 
     [Fact]
     public async Task HandleAsync_WithForbiddenContentType_ShouldThrowArgumentException()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
         var command = new UploadDocumentCommand(providerId, EDocumentType.IdentityDocument.ToString(), "test.exe", "application/x-msdownload", 1024);
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*File type not allowed*");
     }
 
     [Fact]
     public async Task HandleAsync_WhenUnexpectedExceptionOccurs_ShouldThrowInvalidOperationException()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -226,11 +257,10 @@ public class UploadDocumentCommandHandlerTests
         _mockBlobStorage.Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Storage service unavailable"));
 
+        // Act
         var act = async () => await _handler.HandleAsync(command);
 
+        // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*enviar*");
     }
 }
-
-
-

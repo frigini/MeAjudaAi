@@ -2,9 +2,11 @@ using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Modules.Documents.API.Endpoints;
 using MeAjudaAi.Modules.Documents.Application;
 using MeAjudaAi.Modules.Documents.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.API;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>

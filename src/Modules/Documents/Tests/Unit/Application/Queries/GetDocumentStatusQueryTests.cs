@@ -85,4 +85,3 @@ public class GetDocumentStatusQueryTests
         query1.CorrelationId.Should().NotBeEmpty();
     }
 }
-

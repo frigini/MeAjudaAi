@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Persistence;
@@ -21,7 +22,7 @@ public class BookingsDbContextModelTests
 
         // Assert
         model.Should().NotBeNull();
-        model.GetDefaultSchema().Should().Be("bookings");
+        model.GetDefaultSchema().Should().Be(Schemas.Bookings);
 
         // Check if entities are registered
         model.FindEntityType(typeof(MeAjudaAi.Modules.Bookings.Domain.Entities.Booking)).Should().NotBeNull();

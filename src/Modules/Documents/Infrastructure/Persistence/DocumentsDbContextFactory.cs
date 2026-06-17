@@ -11,6 +11,6 @@ public class DocumentsDbContextFactory : BaseDesignTimeDbContextFactory<Document
 {
     protected override DocumentsDbContext CreateDbContextInstance(DbContextOptions<DocumentsDbContext> options)
     {
-        return new DocumentsDbContext(options, null!);
+        return new DocumentsDbContext(options);
     }
 }

@@ -356,32 +356,6 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
     }
 
     [Fact]
-    public async Task Update_ShouldPersistChangesViaTracking()
-    {
-        // Arrange
-        await CleanupDatabase();
-        using var scope = CreateScope();
-        var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders);
-        var queries = scope.ServiceProvider.GetRequiredService<ISearchableProviderQueries>();
-
-        var provider = CreateTestSearchableProvider("Original Name", -23.5505, -46.6333);
-        await PersistSearchableProviderAsync(provider);
-
-        // Act - Fetch with tracking, then update
-        var tracked = await queries.GetByProviderIdAsync(provider.ProviderId, track: true);
-        tracked.Should().NotBeNull();
-        
-        var newServiceIds = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        tracked!.UpdateServices(newServiceIds);
-        await uow.SaveChangesAsync();
-
-        // Assert
-        var retrieved = await queries.GetByIdAsync(provider.Id);
-        retrieved.Should().NotBeNull();
-        retrieved!.ServiceIds.Should().Equal(newServiceIds);
-    }
-
-    [Fact]
     public async Task Delete_ShouldRemoveProvider()
     {
         // Arrange

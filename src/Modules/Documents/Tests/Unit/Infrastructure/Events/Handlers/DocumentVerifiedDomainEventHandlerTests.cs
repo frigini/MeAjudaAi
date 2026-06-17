@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Events;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Events.Handlers;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Documents")]
@@ -193,4 +193,3 @@ public class DocumentVerifiedDomainEventHandlerTests
         capturedToken.Should().Be(token);
     }
 }
-

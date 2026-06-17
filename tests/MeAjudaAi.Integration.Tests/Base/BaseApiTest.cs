@@ -1,37 +1,36 @@
-using System.Text.Json;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Integration.Tests.Mocks;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
-using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Documents.Tests;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
+using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 // Enable parallel execution by isolating databases per test class
 // [assembly: CollectionBehavior(DisableTestParallelization = true)]

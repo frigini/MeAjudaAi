@@ -11,6 +11,6 @@ public class PaymentsDbContextFactory : BaseDesignTimeDbContextFactory<PaymentsD
 {
     protected override PaymentsDbContext CreateDbContextInstance(DbContextOptions<PaymentsDbContext> options)
     {
-        return new PaymentsDbContext(options, null!);
+        return new PaymentsDbContext(options);
     }
 }

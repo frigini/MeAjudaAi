@@ -106,7 +106,7 @@ internal class AzureDocumentIntelligenceService(
                 ExtractedData: null,
                 Fields: null,
                 Confidence: null,
-                ErrorMessage: $"API error: {ex.Message}");
+                ErrorMessage: $"Erro na API: {ex.Message}");
         }
         catch (Exception ex)
         {

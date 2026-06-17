@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.API;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     public static IServiceCollection AddUsersModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

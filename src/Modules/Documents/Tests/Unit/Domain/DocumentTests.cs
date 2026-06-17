@@ -1,12 +1,15 @@
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Events;
+using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Domain;
 
 [Trait("Category", "Unit")]
 public class DocumentTests
 {
+    private static readonly ISerializer Serializer = new SystemTextJsonSerializer();
+
     [Fact]
     public void Create_WithValidParameters_ShouldCreateDocument()
     {
@@ -73,7 +76,7 @@ public class DocumentTests
         // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification();
-        document.MarkAsVerified("{\"verified\": true}"); // Change to Verified status
+        document.MarkAsVerified(Serializer.Serialize(new { verified = true })); // Change to Verified status
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -106,7 +109,7 @@ public class DocumentTests
         // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification(); // Transição para estado permitido
-        var ocrData = "{\"documentNumber\": \"123456789\"}";
+        var ocrData = Serializer.Serialize(new { documentNumber = "123456789" });
 
         // Act
         document.MarkAsVerified(ocrData);
@@ -128,7 +131,7 @@ public class DocumentTests
         document.ClearDomainEvents(); // Limpar evento de criação
 
         // Act
-        document.MarkAsVerified("{\"verified\": true}");
+        document.MarkAsVerified(Serializer.Serialize(new { verified = true }));
 
         // Assert
         document.DomainEvents.Should().HaveCount(1);
@@ -375,4 +378,3 @@ public class DocumentTests
             "https://storage.blob.core.windows.net/documents/test-document.pdf");
     }
 }
-

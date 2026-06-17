@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;
 
-public class AzureBlobStorageServiceTests
+public class AzureBlobStorageServiceTests : IAsyncDisposable
 {
     private readonly Mock<BlobServiceClient> _mockBlobServiceClient;
     private readonly Mock<BlobContainerClient> _mockContainerClient;
@@ -33,6 +33,11 @@ public class AzureBlobStorageServiceTests
             .Returns(_mockBlobClient.Object);
 
         _service = new AzureBlobStorageService(_mockBlobServiceClient.Object, _mockLogger.Object);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _service.DisposeAsync().ConfigureAwait(false);
     }
 
     [Fact]
@@ -258,5 +263,3 @@ public class AzureBlobStorageServiceTests
             .WithParameterName("logger");
     }
 }
-
-

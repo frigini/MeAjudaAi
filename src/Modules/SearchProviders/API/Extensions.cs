@@ -1,12 +1,14 @@
 using MeAjudaAi.Modules.SearchProviders.API.Endpoints;
 using MeAjudaAi.Modules.SearchProviders.Application;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.SearchProviders.API;
 
 /// <summary>
 /// Extensões em nível de módulo para registrar o módulo completo de SearchProviders.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class ModuleExtensions
 {
     /// <summary>
