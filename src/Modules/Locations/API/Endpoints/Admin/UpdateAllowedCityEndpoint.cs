@@ -1,12 +1,13 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Shared.Authorization.Extensions;
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para atualizar cidade permitida existente (Admin only)
@@ -21,6 +22,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
+            .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();
 
     private static async Task<IResult> UpdateAsync(

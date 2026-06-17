@@ -1,12 +1,11 @@
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Authorization.Extensions;
-
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para buscar cidade permitida por ID (Admin only)
@@ -20,6 +19,7 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
             .WithDescription("Recupera uma cidade permitida específica pelo seu ID")
             .Produces<Response<AllowedCityDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();
 
     private static async Task<IResult> GetByIdAsync(

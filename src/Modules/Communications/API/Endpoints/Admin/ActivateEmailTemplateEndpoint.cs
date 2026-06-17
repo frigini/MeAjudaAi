@@ -11,28 +11,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
+namespace MeAjudaAi.Modules.Communications.API.Endpoints.Admin;
 
 /// <summary>
-/// Endpoint para desativação de um template de e-mail.
+/// Endpoint para ativação de um template de e-mail.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class DeactivateEmailTemplateEndpoint : IEndpoint
+public class ActivateEmailTemplateEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPatch(ApiEndpoints.Communications.DeactivateTemplate, HandleAsync)
+        app.MapPatch(ApiEndpoints.Communications.ActivateTemplate, HandleAsync)
            .Produces(StatusCodes.Status204NoContent)
-           .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("DeactivateEmailTemplate")
-           .WithSummary("Desativa um template de e-mail")
-           .WithDescription("Torna um template de e-mail inativo.");
+           .WithName("ActivateEmailTemplate")
+           .WithSummary("Ativa um template de e-mail")
+           .WithDescription("Torna um template de e-mail ativo para uso.");
     }
 
     /// <summary>
-    /// Manipula a requisição de desativação de um template de e-mail.
+    /// Manipula a requisição de ativação de um template de e-mail.
     /// </summary>
     /// <param name="id">ID do template.</param>
     /// <param name="dispatcher">Dispensador de comandos.</param>
@@ -43,7 +42,7 @@ public class DeactivateEmailTemplateEndpoint : IEndpoint
         [FromServices] ICommandDispatcher dispatcher,
         CancellationToken ct)
     {
-        var result = await dispatcher.SendAsync<SetEmailTemplateStatusCommand, Result>(new SetEmailTemplateStatusCommand(id, false, Guid.NewGuid()), ct);
+        var result = await dispatcher.SendAsync<SetEmailTemplateStatusCommand, Result>(new SetEmailTemplateStatusCommand(id, true, Guid.NewGuid()), ct);
         
         if (result.IsSuccess)
         {

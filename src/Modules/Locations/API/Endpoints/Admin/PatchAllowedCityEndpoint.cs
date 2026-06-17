@@ -1,12 +1,12 @@
-using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Mvc;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para atualizar parcialmente uma cidade permitida.
@@ -22,6 +22,7 @@ public class PatchAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError)
+            .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();
 
     private static async Task<IResult> HandleAsync(

@@ -1,10 +1,10 @@
-using MeAjudaAi.Modules.Locations.API.Mappers;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para deletar cidade permitida (Admin only)
@@ -18,6 +18,7 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithDescription("Deleta uma cidade permitida")
             .Produces<Result>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();
 
     private static async Task<IResult> DeleteAsync(

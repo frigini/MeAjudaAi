@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Communications.API.Endpoints.Admin;
 using MeAjudaAi.Modules.Communications.API.Endpoints.Public;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
@@ -22,7 +23,7 @@ public static class CommunicationsEndpoints
     /// <param name="app">Aplicação web para configuração das rotas</param>
     public static void Map(IEndpointRouteBuilder app)
     {
-        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Communications.Base, ModuleNames.Communications);
+        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Communications.Base, Tag);
 
         group.MapEndpoint<GetCommunicationLogsEndpoint>()
             .MapEndpoint<GetEmailTemplatesEndpoint>()

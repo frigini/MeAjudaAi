@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
+namespace MeAjudaAi.Modules.Communications.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para criação de um novo template de e-mail.

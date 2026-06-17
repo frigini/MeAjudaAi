@@ -1,14 +1,13 @@
-using MeAjudaAi.Modules.Locations.Application.DTOs;
-using MeAjudaAi.Modules.Locations.Application.Queries;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Contracts.Functional;
-
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
+using MeAjudaAi.Modules.Locations.Application.DTOs;
+using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para listar todas as cidades permitidas (Admin only)
@@ -21,6 +20,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
             .WithSummary("Listar todas as cidades permitidas")
             .WithDescription("Recupera todas as cidades permitidas (opcionalmente apenas as ativas)")
             .Produces<Result<IReadOnlyList<ModuleAllowedCityDto>>>(StatusCodes.Status200OK)
+            .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();
 
     private static async Task<IResult> GetAllAsync(

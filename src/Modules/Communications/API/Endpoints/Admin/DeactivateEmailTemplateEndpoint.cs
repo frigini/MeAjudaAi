@@ -1,6 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Commands;
-using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
@@ -12,40 +11,39 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;
+namespace MeAjudaAi.Modules.Communications.API.Endpoints.Admin;
 
 /// <summary>
-/// Endpoint para atualização de um template de e-mail.
+/// Endpoint para desativação de um template de e-mail.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class UpdateEmailTemplateEndpoint : IEndpoint
+public class DeactivateEmailTemplateEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPut(ApiEndpoints.Communications.UpdateTemplate, HandleAsync)
+        app.MapPatch(ApiEndpoints.Communications.DeactivateTemplate, HandleAsync)
            .Produces(StatusCodes.Status204NoContent)
+           .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("UpdateEmailTemplate")
-           .WithSummary("Atualiza um template de e-mail")
-           .WithDescription("Atualiza o conteúdo de um template de e-mail existente.");
+           .WithName("DeactivateEmailTemplate")
+           .WithSummary("Desativa um template de e-mail")
+           .WithDescription("Torna um template de e-mail inativo.");
     }
 
     /// <summary>
-    /// Manipula a requisição de atualização de um template de e-mail existente.
+    /// Manipula a requisição de desativação de um template de e-mail.
     /// </summary>
     /// <param name="id">ID do template.</param>
-    /// <param name="body">Conteúdo da atualização.</param>
     /// <param name="dispatcher">Dispensador de comandos.</param>
     /// <param name="ct">Token de cancelamento.</param>
     /// <returns>Resultado da operação.</returns>
     private static async Task<IResult> HandleAsync(
         [FromRoute] Guid id,
-        [FromBody] UpdateEmailTemplateBody body,
         [FromServices] ICommandDispatcher dispatcher,
         CancellationToken ct)
     {
-        var result = await dispatcher.SendAsync<UpdateEmailTemplateCommand, Result>(new UpdateEmailTemplateCommand(id, body.Subject, body.HtmlBody, body.TextBody, Guid.NewGuid()), ct);
+        var result = await dispatcher.SendAsync<SetEmailTemplateStatusCommand, Result>(new SetEmailTemplateStatusCommand(id, false, Guid.NewGuid()), ct);
         
         if (result.IsSuccess)
         {

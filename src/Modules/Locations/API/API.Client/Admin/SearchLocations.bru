@@ -1,0 +1,56 @@
+meta {
+  name: Search Locations
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v1/locations/search
+  body: none
+  auth: bearer
+}
+
+params:query {
+  query: Muriaé
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Search Locations
+  
+  Busca cidades/endereços para cadastro. Retorna candidatos de localização baseados na query.
+  
+  **Autorização**: Requer permissão `LocationsManage`
+  
+  ## Query Parameters
+  
+  - `query` (string, required): Termo de busca (mínimo 3 caracteres)
+  
+  ## Resposta Sucesso (200 OK)
+  
+  ```json
+  [
+    {
+      "name": "Muriaé",
+      "state": "MG",
+      "ibgeCode": "3143906",
+      "latitude": -21.1357,
+      "longitude": -42.3695
+    }
+  ]
+  ```
+  
+  Retorna array vazio se query tiver menos de 3 caracteres.
+  
+  ## Possíveis Erros
+  
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui permissão LocationsManage
+}

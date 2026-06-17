@@ -1,14 +1,14 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Mvc;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Modules.Locations.DTOs;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint para criar nova cidade permitida (Admin only)

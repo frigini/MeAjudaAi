@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -115,7 +116,7 @@ public sealed class ProvidersModuleApi(
         var result = await getProviderByIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
-            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
+            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : providerDto.ToContract()),
             onFailure: error => error.StatusCode == 404 ? Result<ModuleProviderDto?>.Success(null) : Result<ModuleProviderDto?>.Failure(error)
         );
     }
@@ -126,7 +127,7 @@ public sealed class ProvidersModuleApi(
         var result = await getProviderByDocumentHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
-            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
+            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : providerDto.ToContract()),
             onFailure: error => error.StatusCode == 404 ? Result<ModuleProviderDto?>.Success(null) : Result<ModuleProviderDto?>.Failure(error)
         );
     }
@@ -138,12 +139,7 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
-        var dtos = new List<ModuleProviderBasicDto>();
-        foreach (var dto in result.Value)
-        {
-            dtos.Add(MapDtoToBasicDto(dto));
-        }
-        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
     }
 
     public async Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -152,7 +148,7 @@ public sealed class ProvidersModuleApi(
         var result = await getProviderByUserIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
-            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
+            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : providerDto.ToContract()),
             onFailure: error => error.StatusCode == 404 ? Result<ModuleProviderDto?>.Success(null) : Result<ModuleProviderDto?>.Failure(error)
         );
     }
@@ -166,12 +162,7 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
-        var dtos = new List<ModuleProviderBasicDto>();
-        foreach (var dto in result.Value)
-        {
-            dtos.Add(MapDtoToBasicDto(dto));
-        }
-        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(dtos);
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
     }
 
     public async Task<Result<bool>> ProviderExistsAsync(Guid providerId, CancellationToken cancellationToken = default)
@@ -317,36 +308,6 @@ public sealed class ProvidersModuleApi(
             logger.LogError(ex, "Error getting provider indexing data for {ProviderId}", providerId);
             return Result<ModuleProviderIndexingDto?>.Failure(ProvidersErrorMessages.IndexingDataError);
         }
-    }
-
-    private static ModuleProviderDto MapToModuleDto(ProviderDto providerDto)
-    {
-        var doc = providerDto.Documents?.FirstOrDefault(d => d.IsPrimary) ?? providerDto.Documents?.FirstOrDefault();
-        return new ModuleProviderDto(
-            Id: providerDto.Id,
-            Name: providerDto.Name,
-            Slug: providerDto.Slug,
-            Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            Document: doc?.Number ?? string.Empty,
-            ProviderType: providerDto.Type.ToString(),
-            VerificationStatus: providerDto.VerificationStatus.ToString(),
-            CreatedAt: providerDto.CreatedAt,
-            UpdatedAt: providerDto.UpdatedAt ?? providerDto.CreatedAt,
-            IsActive: providerDto.IsActive,
-            Phone: providerDto.BusinessProfile?.ContactInfo?.PhoneNumber,
-            DeviceToken: providerDto.DeviceToken);
-    }
-
-    private static ModuleProviderBasicDto MapDtoToBasicDto(ProviderDto providerDto)
-    {
-        return new ModuleProviderBasicDto(
-            Id: providerDto.Id,
-            Name: providerDto.Name,
-            Slug: providerDto.Slug,
-            Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            ProviderType: providerDto.Type.ToString(),
-            VerificationStatus: providerDto.VerificationStatus.ToString(),
-            IsActive: providerDto.IsActive);
     }
 
     public async Task<Result<IReadOnlyList<Guid>>> GetProvidersByServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)

@@ -1,0 +1,51 @@
+meta {
+  name: Update Email Template
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/v1/communications/templates/{{templateId}}
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "subject": "Bem-vindo ao MeAjudaAi! (Atualizado)",
+    "htmlBody": "<h1>Bem-vindo!</h1><p>Obrigado por se juntar ao MeAjudaAi. Versão atualizada.</p>",
+    "textBody": "Bem-vindo! Obrigado por se juntar ao MeAjudaAi. Versão atualizada."
+  }
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Update Email Template
+  
+  Atualiza o conteúdo de um template de e-mail existente.
+  
+  ## Autorização
+  - **Requer token**: Sim (Admin)
+  
+  ## Path Parameters
+  | Parâmetro | Tipo | Descrição |
+  |-----------|------|-----------|
+  | templateId | string (uuid) | ID do template |
+  
+  ## Body Parameters
+  | Parâmetro | Tipo | Obrigatório | Descrição |
+  |-----------|------|-------------|-----------|
+  | subject | string | Sim | Assunto do e-mail |
+  | htmlBody | string | Sim | Corpo HTML do e-mail |
+  | textBody | string | Sim | Corpo em texto plano |
+  
+  ## Resposta Esperada (204 No Content)
+}

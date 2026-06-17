@@ -1,10 +1,10 @@
-using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Services;
-using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
 public class SearchLocationsEndpoint : IEndpoint
 {
@@ -15,6 +15,7 @@ public class SearchLocationsEndpoint : IEndpoint
             .WithSummary("Busca cidades/endereços para cadastro")
             .WithDescription("Retorna candidatos de localização baseados na query")
             .Produces<LocationCandidate[]>(StatusCodes.Status200OK)
+            .WithTags(LocationsEndpoints.Tag)
             .RequirePermission(EPermission.LocationsManage);
     }
 

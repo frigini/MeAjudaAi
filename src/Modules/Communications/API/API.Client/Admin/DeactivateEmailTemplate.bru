@@ -1,0 +1,35 @@
+meta {
+  name: Deactivate Email Template
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/communications/templates/{{templateId}}/deactivate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Deactivate Email Template
+  
+  Torna um template de e-mail inativo.
+  
+  ## Autorização
+  - **Requer token**: Sim (Admin)
+  
+  ## Path Parameters
+  | Parâmetro | Tipo | Descrição |
+  |-----------|------|-----------|
+  | templateId | string (uuid) | ID do template |
+  
+  ## Resposta Esperada (204 No Content)
+}
