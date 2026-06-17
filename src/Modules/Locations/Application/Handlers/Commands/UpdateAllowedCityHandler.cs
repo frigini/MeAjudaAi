@@ -1,20 +1,18 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Application.Queries;
-using MeAjudaAi.Modules.Locations.Application.Services;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Locations;
-using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Locations.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 
 /// <summary>
 /// Handler responsável por processar o comando de atualização de cidade permitida.
@@ -73,13 +71,17 @@ public sealed class UpdateAllowedCityHandler(
                         lon = coords.Longitude;
                     }
                 }
-                catch (OperationCanceledException)
+                catch (HttpRequestException ex)
                 {
-                    throw;
+                    logger.LogWarning(ex, "Geocoding HTTP request failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
                 }
-                catch (Exception ex)
+                catch (TimeoutException ex)
                 {
-                    logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Keeping existing coordinates.", command.CityName, command.StateSigla);
+                    logger.LogWarning(ex, "Geocoding timed out for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
+                }
+                catch (GeocodingException ex)
+                {
+                    logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
                 }
             }
         }

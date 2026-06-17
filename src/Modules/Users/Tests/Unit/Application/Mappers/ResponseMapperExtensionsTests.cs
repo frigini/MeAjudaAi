@@ -2,11 +2,11 @@ using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Mappers;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
-[Trait("Layer", "API")]
+[Trait("Layer", "Application")]
 public class ResponseMapperExtensionsTests
 {
     private static UserDto CreateTestUser(
@@ -94,8 +94,11 @@ public class ResponseMapperExtensionsTests
         // Assert
         contracts.Should().HaveCount(3);
         contracts[0].Username.Should().Be("user1");
+        contracts[0].Email.Should().Be("user1@test.com");
         contracts[1].Username.Should().Be("user2");
+        contracts[1].Email.Should().Be("user2@test.com");
         contracts[2].Username.Should().Be("user3");
+        contracts[2].Email.Should().Be("user3@test.com");
     }
 
     [Fact]

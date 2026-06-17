@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Application.Handlers;
-using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;

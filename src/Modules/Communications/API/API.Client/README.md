@@ -69,7 +69,7 @@ Copie o `access_token` e configure na variável `{{accessToken}}`.
 
 ## 🔧 Variáveis da Collection
 
-```
+```text
 baseUrl = http://localhost:5000
 accessToken = [AUTO-SET by shared setup]
 templateId = [CONFIGURE_AQUI após criar template]

@@ -9,4 +9,3 @@ public sealed record DeleteAllowedCityCommand : Command
 {
     public Guid Id { get; init; }
 }
-

@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;

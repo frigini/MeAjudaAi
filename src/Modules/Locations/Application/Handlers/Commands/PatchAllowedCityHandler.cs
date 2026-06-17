@@ -1,17 +1,17 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Http;
+
 using Microsoft.Extensions.DependencyInjection;
 
-using MeAjudaAi.Contracts.Utilities.Constants;
 
-
-namespace MeAjudaAi.Modules.Locations.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 
 public sealed class PatchAllowedCityHandler(
     [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
@@ -55,6 +55,3 @@ public sealed class PatchAllowedCityHandler(
         return Result.Success();
     }
 }
-
-
-

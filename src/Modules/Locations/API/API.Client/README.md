@@ -50,14 +50,14 @@ Todos os endpoints requerem:
 
 Use a collection `Setup/SetupGetKeycloakToken.bru`:
 
-```json
-POST {{keycloakUrl}}/realms/{{realmName}}/protocol/openid-connect/token
+```text
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
 Body:
 {
   "grant_type": "password",
-  "client_id": "meajudaai-api",
-  "username": "admin@meajudaai.com",
-  "password": "admin123"
+  "client_id": "{{clientId}}",
+  "username": "{{adminUser}}",
+  "password": "{{adminPassword}}"
 }
 ```
 
@@ -65,7 +65,7 @@ Copie o `access_token` e configure na variável `{{accessToken}}`.
 
 ## 🔧 Variáveis da Collection
 
-```
+```text
 baseUrl = http://localhost:5000
 keycloakUrl = http://localhost:8080
 realm = meajudaai-realm
@@ -118,7 +118,7 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 #### g) Deletar
 - Execute `Admin/DeleteAllowedCity.bru`
 - Valide: 200 OK
-- Execute `GetAllowedCityById.bru` novamente → deve retornar 404
+- Execute `Admin/GetAllowedCityById.bru` novamente → deve retornar 404
 
 ## 📊 Status Codes
 

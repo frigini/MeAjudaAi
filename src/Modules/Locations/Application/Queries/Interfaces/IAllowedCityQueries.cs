@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 
-namespace MeAjudaAi.Modules.Locations.Application.Queries;
+namespace MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 
 public interface IAllowedCityQueries
 {

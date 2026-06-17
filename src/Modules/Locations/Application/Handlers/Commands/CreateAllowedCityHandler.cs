@@ -1,22 +1,18 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using MeAjudaAi.Contracts.Functional;
-
-using MeAjudaAi.Shared.Extensions;
-
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Locations;
-using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Locations.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 
 /// <summary>
 /// Handler responsável por processar o comando de criação de cidade permitida.
@@ -54,13 +50,16 @@ public sealed class CreateAllowedCityHandler(
                     lon = coords.Longitude;
                 }
             }
-            catch (OperationCanceledException)
+            catch (HttpRequestException ex)
             {
-                throw;
+                logger.LogWarning(ex, "Geocoding HTTP request failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
             }
-            catch (Exception ex)
+            catch (TimeoutException ex)
             {
-                // Falha no geocoding não é bloqueante; o usuário pode editar as coordenadas manualmente
+                logger.LogWarning(ex, "Geocoding timed out for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
+            }
+            catch (GeocodingException ex)
+            {
                 logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
             }
         }
@@ -86,6 +85,3 @@ public sealed class CreateAllowedCityHandler(
         return Result<Guid>.Success(allowedCity.Id);
     }
 }
-
-
-

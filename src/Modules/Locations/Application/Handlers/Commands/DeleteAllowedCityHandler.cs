@@ -1,16 +1,13 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Locations;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Locations.Application.Handlers;
+namespace MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 
 public sealed class DeleteAllowedCityHandler(
     [FromKeyedServices(ModuleKeys.Locations)] IUnitOfWork uow,
@@ -28,6 +25,3 @@ public sealed class DeleteAllowedCityHandler(
         logger.LogInformation("AllowedCity {CityId} deleted.", city.Id);
     }
 }
-
-
-

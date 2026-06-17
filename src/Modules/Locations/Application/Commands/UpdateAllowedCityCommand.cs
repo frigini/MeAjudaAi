@@ -17,4 +17,3 @@ public sealed record UpdateAllowedCityCommand : Command<Result>
     public double ServiceRadiusKm { get; init; }
     public bool IsActive { get; init; }
 }
-

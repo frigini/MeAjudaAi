@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
-using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Events;
@@ -101,7 +102,7 @@ public static class Extensions
         services.AddExceptionHandler<LocationsExceptionHandler>();
 
         // Command e Query Handlers
-        var applicationAssembly = typeof(Application.Handlers.CreateAllowedCityHandler).Assembly;
+        var applicationAssembly = typeof(CreateAllowedCityHandler).Assembly;
 
         // Registrar todos os ICommandHandler<T> e ICommandHandler<T, TResult>
         var commandHandlerTypes = applicationAssembly.GetTypes()

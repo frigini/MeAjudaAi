@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;

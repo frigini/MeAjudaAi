@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Application.Handlers;
+using MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Shared.Database.Abstractions;
