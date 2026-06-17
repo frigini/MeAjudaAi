@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MeAjudaAi.Integration.Tests;
@@ -58,7 +57,7 @@ public static class TestServicesConfiguration
                     if (!blobEndpointMatch.Success)
                     {
                         throw new InvalidOperationException(
-                            $"Could not extract BlobEndpoint from Azurite connection string: {azuriteConnectionString}");
+                            "Could not extract BlobEndpoint from Azurite connection string. Verify the connection string format is correct.");
                     }
 
                     var blobEndpoint = new Uri(blobEndpointMatch.Groups[1].Value);

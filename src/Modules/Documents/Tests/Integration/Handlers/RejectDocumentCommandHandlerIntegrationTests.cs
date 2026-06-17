@@ -48,7 +48,8 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : BaseDatabaseT
 
     public override async ValueTask DisposeAsync()
     {
-        await _dbContext.DisposeAsync();
+        if (_dbContext is not null)
+            await _dbContext.DisposeAsync();
         await base.DisposeAsync();
     }
 

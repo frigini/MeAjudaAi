@@ -1,3 +1,4 @@
+using Azure;
 using Azure.AI.DocumentIntelligence;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
@@ -138,9 +139,14 @@ public class AzureDocumentIntelligenceServiceTests
             _service.AnalyzeDocumentAsync(blobUrl, documentType, cts.Token));
 
         // Assert
-        // The service should handle a pre-canceled token without surfacing exceptions here.
-        // Real cancellation testing requires integration tests with actual Azure SDK behavior.
         exception.Should().BeNull("the service should not throw synchronously when a canceled token is provided");
+        _mockClient.Verify(
+            x => x.AnalyzeDocumentAsync(
+                WaitUntil.Completed,
+                It.IsAny<string>(),
+                It.IsAny<Uri>(),
+                cancellationToken: cts.Token),
+            Times.Once);
     }
 
     [Theory]
