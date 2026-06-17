@@ -34,10 +34,10 @@ public sealed class CreateAllowedCityHandler(
         }
 
         // Tentar obter coordenadas se não informadas
-        double lat = command.Latitude;
-        double lon = command.Longitude;
+        double lat = command.Latitude ?? 0;
+        double lon = command.Longitude ?? 0;
 
-        if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
+        if (!command.Latitude.HasValue && !command.Longitude.HasValue)
         {
             try
             {
@@ -59,6 +59,10 @@ public sealed class CreateAllowedCityHandler(
                 logger.LogWarning(ex, "Geocoding timed out for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
             }
             catch (GeocodingException ex)
+            {
+                logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
+            }
+            catch (InvalidOperationException ex)
             {
                 logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
             }

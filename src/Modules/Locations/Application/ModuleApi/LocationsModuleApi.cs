@@ -64,6 +64,11 @@ public sealed class LocationsModuleApi(
             logger.LogError(ex, "Timeout while checking Location module availability");
             return false;
         }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error while checking Location module availability");
+            return false;
+        }
     }
 
     public async Task<Result<ModuleAddressDto>> GetAddressFromCepAsync(string cep, CancellationToken cancellationToken = default)

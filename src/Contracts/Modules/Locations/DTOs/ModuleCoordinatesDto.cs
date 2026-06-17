@@ -6,4 +6,3 @@ namespace MeAjudaAi.Contracts.Modules.Locations.DTOs;
 public sealed record ModuleCoordinatesDto(
     double Latitude,
     double Longitude);
-

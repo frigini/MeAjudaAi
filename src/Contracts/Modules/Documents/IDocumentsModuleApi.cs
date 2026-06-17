@@ -88,4 +88,3 @@ public interface IDocumentsModuleApi : IModuleApi
         Guid providerId,
         CancellationToken cancellationToken = default);
 }
-

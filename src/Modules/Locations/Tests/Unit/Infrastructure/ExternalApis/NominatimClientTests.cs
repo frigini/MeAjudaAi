@@ -110,17 +110,18 @@ public sealed class NominatimClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetCoordinatesAsync_WhenApiThrowsException_ShouldReturnNull()
+    public async Task GetCoordinatesAsync_WhenApiThrowsException_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var address = "Test Address";
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _client.GetCoordinatesAsync(address, CancellationToken.None);
+        var act = async () => await _client.GetCoordinatesAsync(address, CancellationToken.None);
 
         // Assert
-        result.Should().BeNull();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<HttpRequestException>();
     }
 
     [Fact]

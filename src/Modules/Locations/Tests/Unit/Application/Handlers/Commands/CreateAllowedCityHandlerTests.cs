@@ -56,7 +56,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WhenCityAlreadyExists_ShouldReturnConflictError()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906);
         SetupHttpContext("admin@test.com");
 
         _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -75,7 +75,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WhenGeocodingReturnsCoordinates_ShouldUseGeocodedCoordinates()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906);
         var geoPoint = new GeoPoint(-21.1311, -42.3708);
         SetupHttpContext("admin@test.com");
 
@@ -130,7 +130,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithIsActiveFalse_ShouldCreateInactiveCity()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, false);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, IsActive: false);
         SetupHttpContext("admin@test.com");
 
         _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -155,7 +155,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithNoUserEmail_ShouldUseSystemAsCreator()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906);
         SetupHttpContext(null);
 
         _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -180,7 +180,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithNullIbgeCode_ShouldCreateCity()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", null, 0, 0, 0, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", null);
         SetupHttpContext("admin@test.com");
 
         _queriesMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -205,7 +205,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithValidCommand_ShouldCreateAllowedCityAndReturnId()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906);
         var userEmail = "admin@test.com";
 
         SetupHttpContext(userEmail);

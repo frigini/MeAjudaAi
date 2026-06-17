@@ -83,6 +83,10 @@ public sealed class UpdateAllowedCityHandler(
                 {
                     logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
                 }
+                catch (InvalidOperationException ex)
+                {
+                    logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
+                }
             }
         }
 

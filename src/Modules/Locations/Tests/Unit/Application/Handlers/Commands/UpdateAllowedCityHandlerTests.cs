@@ -290,7 +290,7 @@ public class UpdateAllowedCityHandlerTests
             .ReturnsAsync((AllowedCity?)null);
 
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Geocoding service unavailable"));
+            .ThrowsAsync(new HttpRequestException("Geocoding service unavailable"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);

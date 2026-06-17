@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -8,7 +10,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// <summary>
 /// Cliente HTTP para a API OpenCEP.
 /// </summary>
-public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> logger, ISerializer serializer)
+public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> logger, [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer)
 {
     public async Task<Address?> GetAddressAsync(Cep cep, CancellationToken cancellationToken)
     {

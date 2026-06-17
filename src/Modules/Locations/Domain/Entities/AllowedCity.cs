@@ -100,10 +100,10 @@ public sealed class AllowedCity : AggregateRoot<Guid>
         if (string.IsNullOrWhiteSpace(createdBy))
             throw new InvalidLocationArgumentException("CreatedBy não pode ser vazio");
 
-        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude < -90 || latitude > 90)
+        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude is < -90 or > 90)
             throw new InvalidLocationArgumentException("Latitude inválida");
 
-        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
+        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude is < -180 or > 180)
             throw new InvalidLocationArgumentException("Longitude inválida");
             
         ValidateServiceRadius(serviceRadiusKm);
@@ -142,10 +142,10 @@ public sealed class AllowedCity : AggregateRoot<Guid>
         
         if (string.IsNullOrWhiteSpace(updatedBy)) throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
         
-        if (double.IsNaN(latitude)) throw new InvalidLocationArgumentException("Latitude inválida");
-        if (latitude is <  -90 or > 90) throw new InvalidLocationArgumentException("Latitude inválida");
+        if (double.IsNaN(latitude) || double.IsInfinity(latitude)) throw new InvalidLocationArgumentException("Latitude inválida");
+        if (latitude is < -90 or > 90) throw new InvalidLocationArgumentException("Latitude inválida");
         
-        if (double.IsNaN(longitude)) throw new InvalidLocationArgumentException("Longitude inválida");
+        if (double.IsNaN(longitude) || double.IsInfinity(longitude)) throw new InvalidLocationArgumentException("Longitude inválida");
         if (longitude is < -180 or > 180) throw new InvalidLocationArgumentException("Longitude inválida");
         
         ValidateServiceRadius(serviceRadiusKm);

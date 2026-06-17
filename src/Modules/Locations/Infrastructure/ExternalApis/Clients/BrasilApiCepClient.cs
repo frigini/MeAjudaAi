@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -8,7 +10,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// <summary>
 /// Cliente HTTP para a API BrasilAPI.
 /// </summary>
-public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiCepClient> logger, ISerializer serializer)
+public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiCepClient> logger, [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer)
 {
     public async Task<Address?> GetAddressAsync(Cep cep, CancellationToken cancellationToken)
     {
@@ -66,8 +68,8 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
         }
         catch (Exception ex)
         {
-            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
-            logger.LogError(ex, "Unexpected error querying  BrasilAPI for CEP {Cep}", cep.Value);
+            // Para outras exceÃ§Ãµes (parsing JSON, etc), re-lanÃ§a para habilitar fallback
+            logger.LogError(ex, "Unexpected error querying BrasilAPI for CEP {Cep}", cep.Value);
             throw new InvalidOperationException(
                 $"Unexpected error querying BrasilAPI for CEP {cep.Value} (may be JSON parsing or network issue)",
                 ex);

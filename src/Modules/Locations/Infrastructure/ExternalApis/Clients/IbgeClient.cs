@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -9,7 +11,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// Cliente HTTP para a API IBGE Localidades.
 /// Documentação: https://servicodados.ibge.gov.br/api/docs/localidades
 /// </summary>
-public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger, ISerializer serializer) : IIbgeClient
+public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger, [FromKeyedServices(SerializationKeys.Default)] ISerializer serializer) : IIbgeClient
 {
     /// <summary>
     /// Busca um município por nome usando query parameter.

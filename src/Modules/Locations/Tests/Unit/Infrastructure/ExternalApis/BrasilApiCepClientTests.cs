@@ -88,17 +88,18 @@ public sealed class BrasilApiCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenHttpClientThrowsException_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenHttpClientThrowsException_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var cep = Cep.Create("01001000")!;
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _client.GetAddressAsync(cep, CancellationToken.None);
+        var act = async () => await _client.GetAddressAsync(cep, CancellationToken.None);
 
         // Assert
-        result.Should().BeNull();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<HttpRequestException>();
     }
 
     [Fact]

@@ -28,7 +28,7 @@ public sealed class LocationsModuleApiTests
         var moduleName = _sut.ModuleName;
 
         // Assert
-        moduleName.Should().Be("Location");
+        moduleName.Should().Be("Locations");
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class LocationsModuleApiTests
         // Arrange
         _mockCepLookupService
             .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Service unavailable"));
+            .ThrowsAsync(new HttpRequestException("Service unavailable"));
 
         // Act
         var result = await _sut.IsAvailableAsync();

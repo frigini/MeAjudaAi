@@ -26,10 +26,9 @@ public sealed class CepLookupServiceTests
 
     private CepLookupService CreateService()
     {
-        var httpClient = new HttpClient();
-        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
-        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
-        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
+        var viaClient = new ViaCepClient(new HttpClient(), _viaLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
+        var brasilClient = new BrasilApiCepClient(new HttpClient(), _brasilLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
+        var openClient = new OpenCepClient(new HttpClient(), _openLoggerMock.Object, new SystemTextJsonSerializer(SerializationDefaults.Api));
 
         return new CepLookupService(
             viaClient,

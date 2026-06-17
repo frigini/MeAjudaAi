@@ -2,6 +2,8 @@ using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Web;
 
@@ -15,7 +17,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// - Usar caching para reduzir chamadas
 /// Documentação: https://nominatim.org/release-docs/latest/api/Search/
 /// </summary>
-public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClient> logger, TimeProvider timeProvider, ISerializer serializer) : IDisposable
+public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClient> logger, TimeProvider timeProvider, [FromKeyedServices(SerializationKeys.Default)] ISerializer serializer) : IDisposable
 {
     private readonly SemaphoreSlim _rateLimiter = new(1, 1); // 1 req/sec
     private DateTime _lastRequestTime = DateTime.MinValue;
