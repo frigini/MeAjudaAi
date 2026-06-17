@@ -104,6 +104,7 @@ public class RejectDocumentCommandHandler(
         return ex is OutOfMemoryException
             or StackOverflowException
             or AccessViolationException
+            or OperationCanceledException
             or System.Threading.ThreadAbortException
             or System.Runtime.InteropServices.SEHException;
     }

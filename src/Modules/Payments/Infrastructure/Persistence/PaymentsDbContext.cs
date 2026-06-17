@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
@@ -38,7 +39,7 @@ public partial class PaymentsDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("payments");
+        modelBuilder.HasDefaultSchema(Schemas.Payments);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }

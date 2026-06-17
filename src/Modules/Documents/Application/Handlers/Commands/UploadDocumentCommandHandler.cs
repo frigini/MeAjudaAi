@@ -1,11 +1,11 @@
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
-using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
@@ -130,7 +130,7 @@ public class UploadDocumentCommandHandler(
         catch (Exception ex) when (ex is not UnauthorizedAccessException and not ArgumentException)
         {
             _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
-            throw new InvalidOperationException(ValidationMessages.UploadFailed, ex);
+            throw new InvalidOperationException(ValidationMessages.Documents.UploadFailed, ex);
         }
     }
 }

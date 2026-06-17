@@ -38,14 +38,14 @@ public static class Extensions
                               ?? configuration.GetConnectionString("Documents")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
-        // In test environments, allow placeholder connection string since tests will replace the DbContext
+        // Em ambientes de teste, permitir string de conexão placeholder pois os testes substituirão o DbContext
         var isTestEnvironment = EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (string.IsNullOrEmpty(connectionString))
         {
             if (isTestEnvironment)
             {
-                // Use placeholder for integration tests - will be replaced by test infrastructure
+                // Usar placeholder para testes de integração - será substituído pela infraestrutura de testes
                 connectionString = DatabaseConstants.DefaultTestConnectionString;
             }
             else
@@ -113,13 +113,13 @@ public static class Extensions
                     new Uri(documentIntelligenceEndpoint),
                     new Azure.AzureKeyCredential(documentIntelligenceApiKey)));
 
-            // Azure Document Intelligence (OCR) - only if configured
+            // Azure Document Intelligence (OCR) - apenas se configurado
             services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
         }
 
         if (!string.IsNullOrEmpty(storageConnectionString))
         {
-            // Azure Storage - only if configured
+            // Azure Storage - apenas se configurado
             services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         }
 

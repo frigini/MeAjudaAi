@@ -27,6 +27,7 @@ public static class SerializationExtensions
         // Registro de ISerializer como Keyed Services
         services.AddKeyedScoped<ISerializer>(SerializationKeys.Default, (_, _) => new SystemTextJsonSerializer(SerializationDefaults.Default));
         services.AddKeyedScoped<ISerializer>(SerializationKeys.Api, (_, _) => new SystemTextJsonSerializer(SerializationDefaults.Api));
+        services.AddKeyedScoped<ISerializer>(SerializationKeys.Logging, (_, _) => new SystemTextJsonSerializer(SerializationDefaults.Logging));
 
         return services;
     }

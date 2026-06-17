@@ -1,31 +1,16 @@
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 
 /// <summary>
-/// Factory para criar DocumentsDbContext em design-time (migrações)
+/// Factory para criação do DocumentsDbContext em design time (para migrações)
+/// O nome do módulo é detectado automaticamente do namespace
 /// </summary>
-public class DocumentsDbContextFactory : IDesignTimeDbContextFactory<DocumentsDbContext>
+public class DocumentsDbContextFactory : BaseDesignTimeDbContextFactory<DocumentsDbContext>
 {
-    public DocumentsDbContext CreateDbContext(string[] args)
+    protected override DocumentsDbContext CreateDbContextInstance(DbContextOptions<DocumentsDbContext> options)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<DocumentsDbContext>();
-
-        // Requer EFCORE_CONNECTION_STRING definida - falha rápida ao invés de usar padrões inseguros
-        var connectionString = Environment.GetEnvironmentVariable("EFCORE_CONNECTION_STRING")
-            ?? throw new InvalidOperationException(
-                "EFCORE_CONNECTION_STRING não está definida; defina esta variável de ambiente para configurar a conexão com o banco. "
-                + "Exemplo: $env:EFCORE_CONNECTION_STRING=\"Host=localhost;Database=meajudaai;Username=postgres;Password=postgres\"");
-
-        optionsBuilder.UseNpgsql(
-            connectionString,
-            npgsqlOptions =>
-            {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
-            });
-
-        return new DocumentsDbContext(optionsBuilder.Options);
+        return new DocumentsDbContext(options, null!);
     }
 }

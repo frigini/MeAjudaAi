@@ -235,6 +235,24 @@ public class RequestVerificationCommandHandlerTests
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         _mockOutboxRepo.Verify(x => x.Add(It.IsAny<OutboxMessage>()), Times.Never);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenInvalidOperationExceptionOccurs_ShouldReturnFailure()
+    {
+        var documentId = Guid.NewGuid();
+        _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Invalid operation"));
+
+        var command = new RequestVerificationCommand(documentId);
+        var result = await _handler.HandleAsync(command);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("InternalError");
+        result.Error.Message.Should().Contain("tente novamente mais tarde");
+        
+        _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockOutboxRepo.Verify(x => x.Add(It.IsAny<OutboxMessage>()), Times.Never);
+    }
 }
 
 

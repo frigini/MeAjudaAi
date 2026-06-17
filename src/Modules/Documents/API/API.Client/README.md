@@ -10,11 +10,11 @@ API.Client/
 ├── collection.bru               # Configuração local (não versionado - criar local)
 ├── README.md                    # Documentação completa  
 └── Admin/
-    ├── UploadDocument.bru       # POST /api/v1/documents
-    ├── GetDocument.bru          # GET /api/v1/documents/{id}
+    ├── UploadDocument.bru       # POST /api/v1/documents/upload
+    ├── GetDocumentStatus.bru    # GET /api/v1/documents/{documentId}/status
     ├── GetProviderDocuments.bru # GET /api/v1/documents/provider/{providerId}
-    ├── VerifyDocument.bru       # POST /api/v1/documents/{id}/verify
-    └── RejectDocument.bru       # POST /api/v1/documents/{id}/reject
+    ├── VerifyDocument.bru       # POST /api/v1/documents/{documentId}/verify
+    └── RequestVerification.bru  # POST /api/v1/documents/{documentId}/request-verification
 ```
 
 **🔗 Recursos Compartilhados (em `src/Shared/API.Collections/`):**

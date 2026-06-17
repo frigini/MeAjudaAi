@@ -599,12 +599,42 @@ public class DocumentsModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenExceptionOccurs_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenInvalidOperationExceptionOccurs_ShouldReturnFalse()
     {
         // Arrange
         _serviceProviderMock
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Throws(new InvalidOperationException("Unexpected error"));
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenTimeoutExceptionOccurs_ShouldReturnFalse()
+    {
+        // Arrange
+        _serviceProviderMock
+            .Setup(x => x.GetService(typeof(HealthCheckService)))
+            .Throws(new TimeoutException("Operation timed out"));
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenNpgsqlExceptionOccurs_ShouldReturnFalse()
+    {
+        // Arrange
+        _serviceProviderMock
+            .Setup(x => x.GetService(typeof(HealthCheckService)))
+            .Throws(new Npgsql.NpgsqlException("Database connection failed"));
 
         // Act
         var result = await _sut.IsAvailableAsync();

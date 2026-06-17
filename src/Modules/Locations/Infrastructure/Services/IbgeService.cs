@@ -24,7 +24,7 @@ internal sealed class IbgeService(
         string? stateSigla,
         CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Validando cidade {CityName} (UF: {State}) contra lista de cidades permitidas no banco de dados", cityName, stateSigla ?? "N/A");
+        logger.LogDebug("Validating city {CityName} (State: {State}) against allowed cities list in database", cityName, stateSigla ?? "N/A");
 
         // Buscar detalhes do município na API IBGE (com cache)
         // Exceções são propagadas para GeographicValidationService -> Middleware (fail-open com fallback)
@@ -41,7 +41,7 @@ internal sealed class IbgeService(
         if (!string.IsNullOrEmpty(stateSigla) && !string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase))
         {
             logger.LogWarning(
-                "Município {CityName} encontrado, mas estado não corresponde. Esperado: {ExpectedState}, Encontrado: {FoundState}",
+                "Municipality {CityName} found, but state does not match. Expected: {ExpectedState}, Found: {FoundState}",
                 cityName, stateSigla, ufSigla);
             return false;
         }

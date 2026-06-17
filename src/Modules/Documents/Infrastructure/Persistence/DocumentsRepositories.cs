@@ -48,5 +48,3 @@ public partial class DocumentsDbContext : IRepository<Document, Guid>, IReposito
     void IRepository<OutboxMessage, Guid>.Delete(OutboxMessage aggregate) =>
         OutboxMessages.Remove(aggregate);
 }
-
-

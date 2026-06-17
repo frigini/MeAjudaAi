@@ -1,9 +1,5 @@
-using System.Runtime.CompilerServices;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-
-[assembly: InternalsVisibleTo("MeAjudaAi.Modules.Documents.Tests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
@@ -13,15 +9,8 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 /// geração de spec OpenAPI via Swagger CLI).
 /// Todos os métodos retornam um <see cref="OcrResult"/> de falha com mensagem explicativa.
 /// </summary>
-internal sealed class NullDocumentIntelligenceService : IDocumentIntelligenceService
+internal sealed class NullDocumentIntelligenceService(ILogger<NullDocumentIntelligenceService> logger) : IDocumentIntelligenceService
 {
-    private readonly ILogger<NullDocumentIntelligenceService> _logger;
-
-    public NullDocumentIntelligenceService(ILogger<NullDocumentIntelligenceService> logger)
-    {
-        _logger = logger;
-    }
-
     public Task<OcrResult> AnalyzeDocumentAsync(
         string blobUrl,
         string documentType,
@@ -42,8 +31,7 @@ internal sealed class NullDocumentIntelligenceService : IDocumentIntelligenceSer
             throw new ArgumentException($"Invalid blob URL format: {blobUrl}", nameof(blobUrl));
         }
 
-
-        _logger.LogWarning(
+        logger.LogWarning(
             "DocumentIntelligenceService not configured. OCR analysis for document type '{DocumentType}' is unavailable.",
             documentType);
 

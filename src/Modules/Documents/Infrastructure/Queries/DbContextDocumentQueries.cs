@@ -1,9 +1,9 @@
-namespace MeAjudaAi.Modules.Documents.Infrastructure.Queries;
-
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+
+namespace MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 
 public class DbContextDocumentQueries(DocumentsDbContext dbContext) : IDocumentQueries
 {

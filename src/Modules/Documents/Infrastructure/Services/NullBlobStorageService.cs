@@ -10,21 +10,14 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 /// Todos os métodos lançam <see cref="NotSupportedException"/> pois operações de
 /// blob não funcionam sem as credenciais do Azure.
 /// </summary>
-internal sealed class NullBlobStorageService : IBlobStorageService
+internal sealed class NullBlobStorageService(ILogger<NullBlobStorageService> logger) : IBlobStorageService
 {
-    private readonly ILogger<NullBlobStorageService> _logger;
-
-    public NullBlobStorageService(ILogger<NullBlobStorageService> logger)
-    {
-        _logger = logger;
-    }
-
     public Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(
         string blobName,
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("BlobStorageService not configured. Upload URL generation is unavailable.");
+        logger.LogWarning("BlobStorageService not configured. Upload URL generation is unavailable.");
         throw new NotSupportedException(
             "Azure Blob Storage is not configured. Set 'Azure:Storage:ConnectionString' to enable file uploads.");
     }
@@ -33,20 +26,20 @@ internal sealed class NullBlobStorageService : IBlobStorageService
         string blobName,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("BlobStorageService not configured. Download URL generation is unavailable.");
+        logger.LogWarning("BlobStorageService not configured. Download URL generation is unavailable.");
         throw new NotSupportedException(
             "Azure Blob Storage is not configured. Set 'Azure:Storage:ConnectionString' to enable file downloads.");
     }
 
     public Task<bool> ExistsAsync(string blobName, CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("BlobStorageService not configured. Blob existence check is unavailable.");
+        logger.LogWarning("BlobStorageService not configured. Blob existence check is unavailable.");
         return Task.FromResult(false);
     }
 
     public Task DeleteAsync(string blobName, CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("BlobStorageService not configured. Blob deletion is unavailable.");
+        logger.LogWarning("BlobStorageService not configured. Blob deletion is unavailable.");
         return Task.CompletedTask;
     }
 }

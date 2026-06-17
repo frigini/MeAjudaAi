@@ -66,9 +66,9 @@ internal class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILog
         try
         {
             var blobClient = containerClient.GetBlobClient(blobName);
-            var expiresAt = DateTime.UtcNow.AddHours(1); // SAS v├ílido por 1 hora
+            var expiresAt = DateTime.UtcNow.AddHours(1); // SAS válido por 1 hora
 
-            // Verifica se temos permiss├╡es para gerar SAS
+            // Verifica se temos permissões para gerar SAS
             if (!containerClient.CanGenerateSasUri)
             {
                 _logger.LogWarning("BlobContainerClient cannot generate SAS URIs. Verify credentials.");
@@ -198,4 +198,3 @@ internal class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILog
         await ValueTask.CompletedTask;
     }
 }
-

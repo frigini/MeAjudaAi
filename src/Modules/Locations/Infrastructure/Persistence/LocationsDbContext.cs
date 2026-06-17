@@ -2,6 +2,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
@@ -43,7 +44,7 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Define schema padrão para este módulo
-        modelBuilder.HasDefaultSchema("locations");
+        modelBuilder.HasDefaultSchema(Schemas.Locations);
 
         // Aplica todas as configurações do assembly atual
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(LocationsDbContext).Assembly);

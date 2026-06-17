@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Documents.Domain.Events;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
@@ -18,8 +19,6 @@ internal sealed class DocumentVerifiedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<DocumentVerifiedDomainEventHandler> logger) : IEventHandler<DocumentVerifiedDomainEvent>
 {
-    private const string ModuleName = "Documents";
-
     /// <summary>
     /// Processa o evento de domínio de documento verificado de forma assíncrona.
     /// </summary>
@@ -37,7 +36,7 @@ internal sealed class DocumentVerifiedDomainEventHandler(
 
             // Cria evento de integração para notificar outros módulos
             var integrationEvent = new DocumentVerifiedIntegrationEvent(
-                Source: ModuleName,
+                Source: ModuleNames.Documents,
                 DocumentId: domainEvent.AggregateId,
                 ProviderId: domainEvent.ProviderId,
                 DocumentType: domainEvent.DocumentType.ToString(),
