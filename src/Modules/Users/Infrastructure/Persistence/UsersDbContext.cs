@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -46,7 +47,7 @@ public partial class UsersDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("users");
+        modelBuilder.HasDefaultSchema(Schemas.Users);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }

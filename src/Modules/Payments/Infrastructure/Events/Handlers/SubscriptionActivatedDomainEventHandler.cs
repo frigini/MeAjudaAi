@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Events.Handlers;
 
-public sealed class SubscriptionActivatedDomainEventHandler(
+internal sealed class SubscriptionActivatedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<SubscriptionActivatedDomainEventHandler> logger)
     : IEventHandler<SubscriptionActivatedDomainEvent>

@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// Handler para processar eventos de ativação de assinatura vindos do módulo de pagamentos.
 /// Promove o tier do prestador no módulo de Providers.
 /// </summary>
-public sealed class SubscriptionActivatedIntegrationEventHandler(
+internal sealed class SubscriptionActivatedIntegrationEventHandler(
     ProvidersDbContext dbContext,
     IIdempotencyRepository idempotencyRepository,
     ILogger<SubscriptionActivatedIntegrationEventHandler> logger) : IEventHandler<SubscriptionActivatedIntegrationEvent>

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 
-public sealed class ServiceActivatedIntegrationEventHandler(
+internal sealed class ServiceActivatedIntegrationEventHandler(
     ISearchProvidersModuleApi searchProvidersModuleApi,
     IProvidersModuleApi providersModuleApi,
     ILogger<ServiceActivatedIntegrationEventHandler> logger) : IEventHandler<ServiceActivatedIntegrationEvent>

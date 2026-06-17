@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService, IAsyncDisposable
+internal class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService, IAsyncDisposable
 {
     private const string ContainerName = "documents";
     private readonly BlobServiceClient _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));
@@ -66,9 +66,9 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         try
         {
             var blobClient = containerClient.GetBlobClient(blobName);
-            var expiresAt = DateTime.UtcNow.AddHours(1); // SAS v├ílido por 1 hora
+            var expiresAt = DateTime.UtcNow.AddHours(1); // SAS válido por 1 hora
 
-            // Verifica se temos permiss├╡es para gerar SAS
+            // Verifica se temos permissões para gerar SAS
             if (!containerClient.CanGenerateSasUri)
             {
                 _logger.LogWarning("BlobContainerClient cannot generate SAS URIs. Verify credentials.");
@@ -198,4 +198,3 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         await ValueTask.CompletedTask;
     }
 }
-

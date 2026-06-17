@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// Este handler é acionado quando serviços são adicionados/removidos de um prestador no módulo Providers.
 /// Reindexа o prestador no módulo de busca para refletir as alterações.
 /// </remarks>
-public sealed class ProviderServicesUpdatedIntegrationEventHandler(
+internal sealed class ProviderServicesUpdatedIntegrationEventHandler(
     ISearchProvidersModuleApi SearchProvidersModuleApi,
     ILogger<ProviderServicesUpdatedIntegrationEventHandler> logger) : IEventHandler<ProviderServicesUpdatedIntegrationEvent>
 {

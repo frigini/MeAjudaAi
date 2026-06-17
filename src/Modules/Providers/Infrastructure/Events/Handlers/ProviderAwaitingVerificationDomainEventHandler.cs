@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 /// entre módulos. Quando um prestador entra na fase de verificação de documentos, este handler
 /// publica um evento de integração para notificar outros sistemas.
 /// </remarks>
-public sealed class ProviderAwaitingVerificationDomainEventHandler(
+internal sealed class ProviderAwaitingVerificationDomainEventHandler(
     IMessageBus messageBus,
     ILogger<ProviderAwaitingVerificationDomainEventHandler> logger) : IEventHandler<ProviderAwaitingVerificationDomainEvent>
 {

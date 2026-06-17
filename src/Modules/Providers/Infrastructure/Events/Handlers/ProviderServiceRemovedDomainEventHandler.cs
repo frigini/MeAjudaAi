@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 /// <remarks>
 /// Publica um evento de integração para que outros módulos (como SearchProviders) possam reindexar o prestador.
 /// </remarks>
-public sealed class ProviderServiceRemovedDomainEventHandler(
+internal sealed class ProviderServiceRemovedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<ProviderServiceRemovedDomainEventHandler> logger) : IEventHandler<ProviderServiceRemovedDomainEvent>
 {

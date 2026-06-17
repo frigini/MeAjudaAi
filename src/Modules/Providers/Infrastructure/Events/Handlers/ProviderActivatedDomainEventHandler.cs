@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 /// entre módulos. Quando um prestador é ativado no sistema, este handler publica um evento
 /// de integração para notificar outros sistemas, como o módulo de busca.
 /// </remarks>
-public sealed class ProviderActivatedDomainEventHandler(
+internal sealed class ProviderActivatedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<ProviderActivatedDomainEventHandler> logger) : IEventHandler<ProviderActivatedDomainEvent>
 {

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
@@ -40,7 +41,7 @@ public partial class SearchProvidersDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("search_providers");
+        modelBuilder.HasDefaultSchema(Schemas.SearchProviders);
 
         // Habilita extensão PostGIS para recursos geoespaciais
         modelBuilder.HasPostgresExtension("postgis");

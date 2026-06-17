@@ -18,6 +18,7 @@ public static class StatusTranslations
         EDocumentStatus.Uploaded => "Enviado",
         EDocumentStatus.Rejected => "Rejeitado",
         EDocumentStatus.Verified => "Verificado",
+        EDocumentStatus.Failed => "Falha",
         _ => status.ToString()
     };
 }

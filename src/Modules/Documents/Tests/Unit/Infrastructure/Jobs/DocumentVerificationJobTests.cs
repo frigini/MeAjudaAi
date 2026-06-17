@@ -1,8 +1,9 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -15,8 +16,8 @@ public class DocumentVerificationJobTests
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IDocumentIntelligenceService> _mockIntelligenceService;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
-    private readonly Mock<ILogger<MeAjudaAi.Modules.Documents.Infrastructure.Jobs.DocumentVerificationJob>> _mockLogger;
-    private readonly MeAjudaAi.Modules.Documents.Infrastructure.Jobs.DocumentVerificationJob _job;
+    private readonly Mock<ILogger<DocumentVerificationJob>> _mockLogger;
+    private readonly DocumentVerificationJob _job;
 
     public DocumentVerificationJobTests()
     {
@@ -25,7 +26,7 @@ public class DocumentVerificationJobTests
         _mockQueries = new Mock<IDocumentQueries>();
         _mockIntelligenceService = new Mock<IDocumentIntelligenceService>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
-        _mockLogger = new Mock<ILogger<MeAjudaAi.Modules.Documents.Infrastructure.Jobs.DocumentVerificationJob>>();
+        _mockLogger = new Mock<ILogger<DocumentVerificationJob>>();
         
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -35,7 +36,7 @@ public class DocumentVerificationJobTests
             .Build();
         _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
 
-        _job = new MeAjudaAi.Modules.Documents.Infrastructure.Jobs.DocumentVerificationJob(
+        _job = new DocumentVerificationJob(
             _mockUow.Object,
             _mockQueries.Object,
             _mockIntelligenceService.Object,
@@ -97,6 +98,3 @@ public class DocumentVerificationJobTests
         _mockUow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-
-
-

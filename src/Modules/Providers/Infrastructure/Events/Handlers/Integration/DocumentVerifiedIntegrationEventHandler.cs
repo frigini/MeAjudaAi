@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// <summary>
 /// Handler para processar eventos de integração de documentos verificados.
 /// </summary>
-public sealed class DocumentVerifiedIntegrationEventHandler(
+internal sealed class DocumentVerifiedIntegrationEventHandler(
     IProviderQueries providerQueries,
     ILogger<DocumentVerifiedIntegrationEventHandler> logger) : IEventHandler<DocumentVerifiedIntegrationEvent>
 {

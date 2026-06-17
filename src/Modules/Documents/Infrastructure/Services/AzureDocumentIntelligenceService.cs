@@ -1,16 +1,22 @@
-using System.Text.Json;
 using Azure;
 using Azure.AI.DocumentIntelligence;
 using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client, ILogger<AzureDocumentIntelligenceService> logger) : IDocumentIntelligenceService
+internal class AzureDocumentIntelligenceService(
+    DocumentIntelligenceClient client,
+    ILogger<AzureDocumentIntelligenceService> logger,
+    [FromKeyedServices(SerializationKeys.Logging)] ISerializer serializer) : IDocumentIntelligenceService
 {
     private readonly DocumentIntelligenceClient _client = client ?? throw new ArgumentNullException(nameof(client));
     private readonly ILogger<AzureDocumentIntelligenceService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ISerializer _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
     public async Task<OcrResult> AnalyzeDocumentAsync(
         string blobUrl,
@@ -79,13 +85,10 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
 
             var averageConfidence = fieldCount > 0 ? totalConfidence / fieldCount : 0;
 
-            var extractedData = JsonSerializer.Serialize(fields, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            var extractedData = _serializer.Serialize(fields);
 
             _logger.LogInformation(
-                "Análise OCR concluída com sucesso. Confiança média: {Confidence:P}, Campos extraídos: {FieldCount}",
+                "OCR analysis completed successfully. Average confidence: {Confidence:P}, Fields extracted: {FieldCount}",
                 averageConfidence, fieldCount);
 
             return new OcrResult(
@@ -97,7 +100,7 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao processar documento com Azure Document Intelligence");
+            _logger.LogError(ex, "Error processing document with Azure Document Intelligence");
             return new OcrResult(
                 Success: false,
                 ExtractedData: null,
@@ -107,7 +110,7 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro inesperado ao processar documento");
+            _logger.LogError(ex, "Unexpected error processing document");
             return new OcrResult(
                 Success: false,
                 ExtractedData: null,

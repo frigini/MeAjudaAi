@@ -3,6 +3,7 @@ using System.Reflection;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -46,7 +47,7 @@ public partial class ServiceCatalogsDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("service_catalogs");
+        modelBuilder.HasDefaultSchema(Schemas.ServiceCatalogs);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }

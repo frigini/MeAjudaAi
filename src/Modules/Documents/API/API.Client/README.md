@@ -9,12 +9,12 @@ API.Client/
 ├── collection.bru.example       # Template de configuração (copie para collection.bru)
 ├── collection.bru               # Configuração local (não versionado - criar local)
 ├── README.md                    # Documentação completa  
-└── DocumentAdmin/
-    ├── UploadDocument.bru       # POST /api/v1/documents
-    ├── GetDocument.bru          # GET /api/v1/documents/{id}
+└── Admin/
+    ├── UploadDocument.bru       # POST /api/v1/documents/upload
+    ├── GetDocumentStatus.bru    # GET /api/v1/documents/{documentId}/status
     ├── GetProviderDocuments.bru # GET /api/v1/documents/provider/{providerId}
-    ├── VerifyDocument.bru       # POST /api/v1/documents/{id}/verify
-    └── RejectDocument.bru       # POST /api/v1/documents/{id}/reject
+    ├── VerifyDocument.bru       # POST /api/v1/documents/{documentId}/verify
+    └── RequestVerification.bru  # POST /api/v1/documents/{documentId}/request-verification
 ```
 
 **🔗 Recursos Compartilhados (em `src/Shared/API.Collections/`):**
@@ -52,11 +52,11 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 
 | Método | Endpoint | Descrição | Autorização |
 |--------|----------|-----------|-------------|
-| POST | `/api/v1/documents` | Upload de documento | SelfOrAdmin |
-| GET | `/api/v1/documents/{id}` | Buscar documento por ID | SelfOrAdmin |
+| POST | `/api/v1/documents/upload` | Upload de documento | SelfOrAdmin |
+| GET | `/api/v1/documents/{documentId}/status` | Consultar status de documento | SelfOrAdmin |
 | GET | `/api/v1/documents/provider/{providerId}` | Listar documentos do prestador | SelfOrAdmin |
-| POST | `/api/v1/documents/{id}/verify` | Verificar documento | AdminOnly |
-| POST | `/api/v1/documents/{id}/reject` | Rejeitar documento | AdminOnly |
+| POST | `/api/v1/documents/{documentId}/verify` | Verificar documento | AdminOnly |
+| POST | `/api/v1/documents/{documentId}/request-verification` | Solicitar verificação | SelfOrAdmin |
 
 ## 🔒 Políticas de Autorização
 

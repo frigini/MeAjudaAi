@@ -10,5 +10,5 @@ public class GatewayResilienceOptions
     public int TimeoutSeconds { get; set; } = 30;
     public int RetryCount { get; set; } = 3;
     public int RetryBaseDelayMs { get; set; } = 100;
-    public List<string> RetryableMethods { get; set; } = new List<string> { "GET", "HEAD", "OPTIONS" };
-    }
+    public List<string> RetryableMethods { get; } = new List<string> { "GET", "HEAD", "OPTIONS" };
+}

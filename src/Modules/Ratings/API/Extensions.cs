@@ -8,12 +8,14 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 
 namespace MeAjudaAi.Modules.Ratings.API;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     public static IServiceCollection AddRatingsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 /// Ordem de tentativa: ViaCEP → BrasilAPI → OpenCEP
 /// Cache Redis: TTL de 24 horas (CEPs são estáveis)
 /// </summary>
-public sealed class CepLookupService(
+internal sealed class CepLookupService(
     ViaCepClient viaCepClient,
     BrasilApiCepClient brasilApiClient,
     OpenCepClient openCepClient,

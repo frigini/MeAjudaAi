@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// <summary>
 /// Handler para processar eventos de exclusão de prestador.
 /// </summary>
-public sealed class ProviderDeletedIntegrationEventHandler(
+internal sealed class ProviderDeletedIntegrationEventHandler(
     ISearchProvidersModuleApi searchProvidersModuleApi,
     ILogger<ProviderDeletedIntegrationEventHandler> logger) : IEventHandler<ProviderDeletedIntegrationEvent>
 {

@@ -1,0 +1,64 @@
+using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.Application.DTOs;
+using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
+
+/// <summary>
+/// Endpoint responsável pela geração de URL de upload com SAS token.
+/// </summary>
+public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
+{
+    /// <summary>
+    /// Configura o mapeamento do endpoint de upload de documento.
+    /// </summary>
+    public static void Map(IEndpointRouteBuilder app)
+        => app.MapPost("/upload", UploadDocumentAsync)
+            .WithName("UploadDocument")
+            .WithSummary("Gerar URL de upload com SAS token")
+            .WithDescription("""
+                Gera uma URL de upload com SAS token para envio direto ao Azure Blob Storage.
+                
+                **Fluxo:**
+                1. Valida informações do documento
+                2. Gera SAS token com 1 hora de validade
+                3. Cria registro de documento no banco com status Uploaded
+                4. Retorna URL de upload (com blob name e data de expiração)
+                
+                **Tipos de documentos suportados:**
+                - IdentityDocument: RG, CNH, CPF
+                - ProofOfResidence: Comprovante de residência
+                - CriminalRecord: Certidão de antecedentes
+                - Other: Outros documentos
+                """)
+            .Produces<UploadDocumentResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithTags(DocumentsEndpoints.Tag);
+
+    private static async Task<IResult> UploadDocumentAsync(
+        [FromBody] UploadDocumentRequest request,
+        ICommandDispatcher commandDispatcher,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
+            return BadRequest("Corpo da requisição é obrigatório");
+
+        var command = new UploadDocumentCommand(
+            request.ProviderId,
+            request.DocumentType.ToString(),
+            request.FileName,
+            request.ContentType,
+            request.FileSizeBytes);
+
+        // Note: UploadDocumentCommandHandler returns UploadDocumentResponse directly.
+        // If handler is refactored to return Result<UploadDocumentResponse> in the future,
+        // consider using BaseEndpoint.Handle(result) for consistent error/status mapping.
+        var response = await commandDispatcher.SendAsync<UploadDocumentCommand, UploadDocumentResponse>(
+            command, cancellationToken);
+
+        return Results.Ok(response);
+    }
+}

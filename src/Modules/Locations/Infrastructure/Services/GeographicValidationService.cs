@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 /// Bridge entre Shared (middleware) e módulo Locations (IBGE).
 /// A validação é feita contra o banco de dados (tabela AllowedCities).
 /// </summary>
-public sealed class GeographicValidationService(
+internal sealed class GeographicValidationService(
     IIbgeService ibgeService,
     ILogger<GeographicValidationService> logger) : IGeographicValidationService
 {

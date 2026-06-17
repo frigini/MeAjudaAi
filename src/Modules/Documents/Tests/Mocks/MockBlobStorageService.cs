@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Interfaces;
 namespace MeAjudaAi.Modules.Documents.Tests.Mocks;
 
 /// <summary>
-/// Mock implementation of IBlobStorageService for testing environments
+/// Implementação mock de IBlobStorageService para ambientes de teste.
 /// </summary>
 /// <remarks>
 /// Por padrão, sempre retorna sucesso nas operações (upload/download/delete).
@@ -84,4 +84,3 @@ public sealed class MockBlobStorageService : IBlobStorageService
         return Task.CompletedTask;
     }
 }
-

@@ -10,6 +10,7 @@ public class StatusTranslationsTests
     [InlineData(EDocumentStatus.Uploaded, "Enviado")]
     [InlineData(EDocumentStatus.Rejected, "Rejeitado")]
     [InlineData(EDocumentStatus.Verified, "Verificado")]
+    [InlineData(EDocumentStatus.Failed, "Falha")]
     public void ToPortuguese_Should_ReturnCorrectTranslation(EDocumentStatus status, string expected)
     {
         status.ToPortuguese().Should().Be(expected);
@@ -22,4 +23,3 @@ public class StatusTranslationsTests
         status.ToPortuguese().Should().Be("999");
     }
 }
-

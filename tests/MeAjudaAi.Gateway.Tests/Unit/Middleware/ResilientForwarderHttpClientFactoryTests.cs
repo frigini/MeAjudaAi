@@ -32,8 +32,7 @@ public class ResilientForwarderHttpClientFactoryTests
         var options = new GatewayResilienceOptions
         {
             RetryCount = 3,
-            RetryBaseDelayMs = 100,
-            RetryableMethods = ["GET", "HEAD"]
+            RetryBaseDelayMs = 100
         };
 
         var factory = CreateFactory(options);
@@ -98,8 +97,10 @@ public class ResilientForwarderHttpClientFactoryTests
         var options = new GatewayResilienceOptions
         {
             RetryCount = 2,
-            RetryableMethods = ["GET", "POST", "PUT"]
+            RetryBaseDelayMs = 1
         };
+        options.RetryableMethods.Clear();
+        options.RetryableMethods.AddRange(["GET", "POST", "PUT"]);
 
         var factory = CreateFactory(options);
         var handler = factory.CreateHandler(new ForwarderHttpClientContext());
@@ -114,8 +115,10 @@ public class ResilientForwarderHttpClientFactoryTests
         var options = new GatewayResilienceOptions
         {
             RetryCount = 1,
-            RetryableMethods = ["GET", "HEAD", "PUT", "DELETE"]
+            RetryBaseDelayMs = 1
         };
+        options.RetryableMethods.Clear();
+        options.RetryableMethods.AddRange(["GET", "HEAD", "PUT", "DELETE"]);
 
         var factory = CreateFactory(options);
         var handler = factory.CreateHandler(new ForwarderHttpClientContext());
@@ -132,7 +135,7 @@ public class ResilientForwarderHttpClientFactoryTests
         var options = new GatewayResilienceOptions
         {
             RetryCount = 1,
-            RetryableMethods = ["GET", "HEAD"]
+            RetryBaseDelayMs = 1
         };
 
         var factory = CreateFactory(options);

@@ -1,9 +1,9 @@
-namespace MeAjudaAi.Modules.Documents.Infrastructure.Queries;
-
-using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+
+namespace MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 
 public class DbContextDocumentQueries(DocumentsDbContext dbContext) : IDocumentQueries
 {
@@ -21,4 +21,7 @@ public class DbContextDocumentQueries(DocumentsDbContext dbContext) : IDocumentQ
         await dbContext.Documents
             .AsNoTracking()
             .AnyAsync(x => x.Id == id, cancellationToken);
+
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
+        await dbContext.Database.CanConnectAsync(cancellationToken);
 }

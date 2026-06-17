@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
@@ -37,7 +38,7 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("ratings");
+        modelBuilder.HasDefaultSchema(Schemas.Ratings);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }

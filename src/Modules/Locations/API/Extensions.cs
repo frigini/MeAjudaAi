@@ -1,11 +1,13 @@
 using MeAjudaAi.Modules.Locations.API.Endpoints;
 using MeAjudaAi.Modules.Locations.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.API;
 
 /// <summary>
 /// Métodos de extensão para registrar serviços e endpoints do módulo Locations.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>

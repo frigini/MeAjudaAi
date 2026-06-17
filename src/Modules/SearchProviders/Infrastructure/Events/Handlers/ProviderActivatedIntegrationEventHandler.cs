@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// Este handler é acionado quando um prestador é ativado no módulo Providers.
 /// Indexa o prestador no módulo de busca para que fique disponível nas pesquisas.
 /// </remarks>
-public sealed class ProviderActivatedIntegrationEventHandler(
+internal sealed class ProviderActivatedIntegrationEventHandler(
     ISearchProvidersModuleApi SearchProvidersModuleApi,
     ILogger<ProviderActivatedIntegrationEventHandler> logger) : IEventHandler<ProviderActivatedIntegrationEvent>
 {

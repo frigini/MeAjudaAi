@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -35,7 +36,7 @@ public partial class ProvidersDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("providers");
+        modelBuilder.HasDefaultSchema(Schemas.Providers);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }

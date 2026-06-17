@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// Handler para processar o evento de aprovação de uma avaliação.
 /// Atualiza a média de avaliação do provedor no módulo de busca.
 /// </summary>
-public sealed class ReviewApprovedIntegrationEventHandler(
+internal sealed class ReviewApprovedIntegrationEventHandler(
     [FromKeyedServices(ModuleKeys.SearchProviders)] IUnitOfWork uow,
     ISearchableProviderQueries queries,
     ILogger<ReviewApprovedIntegrationEventHandler> logger) : IEventHandler<ReviewApprovedIntegrationEvent>

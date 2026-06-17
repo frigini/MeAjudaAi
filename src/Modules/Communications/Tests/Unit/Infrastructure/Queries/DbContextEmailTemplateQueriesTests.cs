@@ -117,7 +117,7 @@ public class DbContextEmailTemplateQueriesTests : BaseInMemoryDatabaseTest<Commu
         DbContext.EmailTemplates.Add(template);
         await DbContext.SaveChangesAsync();
 
-        var result = await _queries.GetActiveByKeyAsync("welcome", null);
+        var result = await _queries.GetActiveByKeyAsync("welcome", null!);
 
         result.Should().NotBeNull();
         result!.TemplateKey.Should().Be("welcome");

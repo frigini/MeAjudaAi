@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 /// <summary>
 /// Manipula eventos de domínio ProviderVerificationStatusUpdatedDomainEvent e publica eventos de integração.
 /// </summary>
-public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
+internal sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
     IMessageBus messageBus,
     ProvidersDbContext context,
     ILogger<ProviderVerificationStatusUpdatedDomainEventHandler> logger) : IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>

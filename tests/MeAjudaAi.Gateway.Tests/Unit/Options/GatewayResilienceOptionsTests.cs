@@ -34,9 +34,10 @@ public class GatewayResilienceOptionsTests
         {
             TimeoutSeconds = 60,
             RetryCount = 5,
-            RetryBaseDelayMs = 200,
-            RetryableMethods = ["GET", "POST", "PUT"]
+            RetryBaseDelayMs = 200
         };
+        options.RetryableMethods.Clear();
+        options.RetryableMethods.AddRange(["GET", "POST", "PUT"]);
 
         options.TimeoutSeconds.Should().Be(60);
         options.RetryCount.Should().Be(5);

@@ -1,59 +1,41 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
-using MeAjudaAi.Modules.Documents.Application.Handlers;
-using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Handlers;
 
 [Trait("Category", "Integration")]
 [Trait("Module", "Documents")]
 [Trait("Layer", "Application")]
-public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifetime
+public sealed class ApproveDocumentCommandHandlerIntegrationTests : BaseDatabaseTest
 {
-    private readonly PostgreSqlContainer _postgresContainer;
-    private DocumentsDbContext? _dbContext;
-    private IUnitOfWork? _uow;
-    private IDocumentQueries? _queries;
-    private ApproveDocumentCommandHandler? _handler;
-    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly Mock<ILogger<ApproveDocumentCommandHandler>> _mockLogger;
+    private DocumentsDbContext _dbContext = null!;
+    private IUnitOfWork _uow = null!;
+    private IDocumentQueries _queries = null!;
+    private ApproveDocumentCommandHandler _handler = null!;
+    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor = new();
+    private readonly Mock<ILogger<ApproveDocumentCommandHandler>> _mockLogger = new();
 
-    public ApproveDocumentCommandHandlerIntegrationTests()
+    public ApproveDocumentCommandHandlerIntegrationTests() : base(schema: Schemas.Documents) { }
+
+    public override async ValueTask InitializeAsync()
     {
-        _postgresContainer = new PostgreSqlBuilder("postgres:15-alpine")
-            .WithDatabase("documents_test")
-            .WithUsername("postgres")
-            .WithPassword("postgres")
-            .Build();
+        await base.InitializeAsync();
 
-        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _mockLogger = new Mock<ILogger<ApproveDocumentCommandHandler>>();
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await _postgresContainer.StartAsync();
-
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseNpgsql(_postgresContainer.GetConnectionString())
-            .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(warnings =>
-                warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
-            .Options;
-
-        _dbContext = new DocumentsDbContext(options, null!);
+        var options = CreateDbContextOptions<DocumentsDbContext>();
+        _dbContext = new DocumentsDbContext(options);
         await _dbContext.Database.MigrateAsync();
+        await InitializeRespawnerAsync();
 
         _uow = _dbContext;
         _queries = new DbContextDocumentQueries(_dbContext);
@@ -64,10 +46,11 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
             _mockLogger.Object);
     }
 
-    public async ValueTask DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
-        if (_dbContext != null) await _dbContext.DisposeAsync();
-        await _postgresContainer.DisposeAsync();
+        if (_dbContext is not null)
+            await _dbContext.DisposeAsync();
+        await base.DisposeAsync();
     }
 
     private void SetupAuthenticatedAdmin()
@@ -91,19 +74,16 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : IAsyncLifeti
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "id.pdf", "docs/id.pdf");
         document.MarkAsPendingVerification();
 
-        _uow!.GetRepository<Document, Guid>().Add(document);
+        _uow.GetRepository<Document, Guid>().Add(document);
         await _uow.SaveChangesAsync();
 
         var command = new ApproveDocumentCommand(document.Id.Value, "Notes");
-        var result = await _handler!.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         result.IsSuccess.Should().BeTrue();
 
-        _dbContext!.ChangeTracker.Clear();
-        var persisted = await _queries!.GetByIdAsync(document.Id.Value);
+        _dbContext.ChangeTracker.Clear();
+        var persisted = await _queries.GetByIdAsync(document.Id.Value);
         persisted!.Status.Should().Be(EDocumentStatus.Verified);
     }
 }
-
-
-

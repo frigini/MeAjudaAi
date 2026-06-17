@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 /// Implementação do serviço de geocoding usando Nominatim (OpenStreetMap).
 /// Inclui caching Redis para reduzir chamadas à API externa.
 /// </summary>
-public sealed class GeocodingService(
+internal sealed class GeocodingService(
     NominatimClient nominatimClient,
     ICacheService cacheService,
     ILogger<GeocodingService> logger) : IGeocodingService

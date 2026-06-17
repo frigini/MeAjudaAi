@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Services;
 
-public class DbContextPaymentCommandService(
+internal class DbContextPaymentCommandService(
     [FromKeyedServices(ModuleKeys.Payments)] IUnitOfWork uow,
     PaymentsDbContext dbContext,
     ILogger<DbContextPaymentCommandService> logger) : IPaymentCommandService

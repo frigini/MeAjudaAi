@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Payments.API;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>

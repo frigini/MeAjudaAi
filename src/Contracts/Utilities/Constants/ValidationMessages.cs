@@ -136,4 +136,12 @@ public static class ValidationMessages
         public const string UpdateFailed = "Erro ao atualizar cidade permitida.";
         public const string CreationFailed = "Erro ao criar cidade permitida.";
     }
+
+    /// <summary>
+    /// Mensagens para o módulo Documents
+    /// </summary>
+    public static class Documents
+    {
+        public const string UploadFailed = "Falha ao enviar documento. Por favor, tente novamente mais tarde.";
+    }
 }

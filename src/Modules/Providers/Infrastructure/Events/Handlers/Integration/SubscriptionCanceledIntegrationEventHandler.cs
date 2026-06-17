@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration
 /// Handler para o evento de assinatura cancelada.
 /// Rebaixa o tier do prestador para Standard.
 /// </summary>
-public sealed class SubscriptionCanceledIntegrationEventHandler(
+internal sealed class SubscriptionCanceledIntegrationEventHandler(
     ProvidersDbContext dbContext,
     IIdempotencyRepository idempotencyRepository,
     ILogger<SubscriptionCanceledIntegrationEventHandler> logger) : IEventHandler<SubscriptionCanceledIntegrationEvent>

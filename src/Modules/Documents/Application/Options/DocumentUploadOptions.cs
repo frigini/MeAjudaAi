@@ -5,6 +5,8 @@ namespace MeAjudaAi.Modules.Documents.Application.Options;
 /// </summary>
 public class DocumentUploadOptions
 {
+    public const string SectionName = "DocumentUpload";
+
     /// <summary>
     /// Tamanho máximo global de arquivo em bytes.
     /// Usado quando não há limite específico para o tipo de documento.
@@ -16,7 +18,7 @@ public class DocumentUploadOptions
     /// Sobrescreve MaxFileSizeBytes para tipos específicos.
     /// Usar nomes exatos do enum EDocumentType.
     /// </summary>
-    public Dictionary<string, long> MaxFileSizeByDocumentType { get; set; } = new()
+    public Dictionary<string, long> MaxFileSizeByDocumentType { get; } = new()
     {
         // Documentos de identidade podem ser maiores (fotos de alta qualidade)
         ["IdentityDocument"] = 15 * 1024 * 1024, // 15MB

@@ -1,10 +1,12 @@
+using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Modules.Documents.API.Endpoints;
 using MeAjudaAi.Modules.Documents.Application;
 using MeAjudaAi.Modules.Documents.Infrastructure;
-using MeAjudaAi.Contracts.Modules.Documents;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.API;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>
@@ -18,9 +20,6 @@ public static class Extensions
         services.AddApplication(configuration);
         services.AddInfrastructure(configuration, environment);
 
-        // Register module public API for cross-module communication
-        services.AddScoped<IDocumentsModuleApi, Application.ModuleApi.DocumentsModuleApi>();
-
         return services;
     }
 
@@ -32,5 +31,11 @@ public static class Extensions
         app.MapDocumentsEndpoints();
 
         return app;
+    }
+
+    public static IEndpointRouteBuilder MapDocumentsEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        DocumentsEndpoints.Map(endpoints);
+        return endpoints;
     }
 }

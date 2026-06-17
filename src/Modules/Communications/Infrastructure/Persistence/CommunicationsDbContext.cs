@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
@@ -34,7 +35,7 @@ public partial class CommunicationsDbContext : BaseDbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("communications");
+        modelBuilder.HasDefaultSchema(Schemas.Communications);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CommunicationsDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }

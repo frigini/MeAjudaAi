@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 /// <summary>
 /// Handler para processar eventos de atualização de perfil de prestador.
 /// </summary>
-public sealed class ProviderProfileUpdatedIntegrationEventHandler(
+internal sealed class ProviderProfileUpdatedIntegrationEventHandler(
     ISearchProvidersModuleApi searchProvidersModuleApi,
     ILogger<ProviderProfileUpdatedIntegrationEventHandler> logger) : IEventHandler<ProviderProfileUpdatedIntegrationEvent>
 {

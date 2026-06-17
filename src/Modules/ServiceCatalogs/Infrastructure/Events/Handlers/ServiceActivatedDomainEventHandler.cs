@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 
-public sealed class ServiceActivatedDomainEventHandler(
+internal sealed class ServiceActivatedDomainEventHandler(
     IServiceQueries serviceQueries,
     IMessageBus messageBus,
     ILogger<ServiceActivatedDomainEventHandler> logger) : IEventHandler<ServiceActivatedDomainEvent>
