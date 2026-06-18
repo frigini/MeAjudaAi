@@ -638,6 +638,15 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Document should be available after successful verification");
+
+        var getContent = await getResponse.Content.ReadAsStringAsync();
+        using var getResult = System.Text.Json.JsonDocument.Parse(getContent);
+        var getResultData = ExtractDataFromResult(getResult.RootElement);
+        getResultData.TryGetProperty("status", out var statusProp).Should().BeTrue();
+        var statusValue = statusProp.GetString();
+        statusValue.Should().NotBeNullOrEmpty();
+        var parsedStatus = statusValue!.IsValidEnum<EDocumentStatus>();
+        parsedStatus.Should().BeTrue($"Status '{statusValue}' should be a valid EDocumentStatus");
     }
 
     [Fact]

@@ -76,8 +76,8 @@ export default function AllowedCitiesPage() {
 
   const filteredCities = cities.filter(
     (c: AllowedCityDto) =>
-      (c.cityName?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
-      (c.stateSigla?.toLowerCase() ?? "").includes(search.toLowerCase())
+      (c.city?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
+      (c.state?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
   const unfilteredTotalPages = Math.ceil(filteredCities.length / ITEMS_PER_PAGE);
@@ -106,8 +106,8 @@ export default function AllowedCitiesPage() {
   const handleOpenEdit = (city: AllowedCityDto) => {
     setSelectedCity(city);
     editForm.reset({
-      city: city.cityName ?? "",
-      state: city.stateSigla ?? "",
+      city: city.city ?? "",
+      state: city.state ?? "",
       serviceRadiusKm: city.serviceRadiusKm ?? 50,
       isActive: city.isActive ?? true,
     });
@@ -143,8 +143,11 @@ export default function AllowedCitiesPage() {
       await updateMutation.mutateAsync({
         path: { id: selectedCity.id },
         body: {
-          cityName: data.city,
-          stateSigla: data.state,
+          city: data.city,
+          state: data.state,
+          country: "Brasil",
+          latitude: selectedCity.latitude ?? 0,
+          longitude: selectedCity.longitude ?? 0,
           serviceRadiusKm: data.serviceRadiusKm,
           isActive: data.isActive,
         },
@@ -236,8 +239,8 @@ export default function AllowedCitiesPage() {
                 <tbody>
                   {paginatedCities.map((city: AllowedCityDto) => (
                     <tr key={city.id} className="border-b border-border last:border-b-0">
-                      <td className="px-4 py-3 text-sm font-medium">{city.cityName ?? "-"}</td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{city.stateSigla ?? "-"}</td>
+                      <td className="px-4 py-3 text-sm font-medium">{city.city ?? "-"}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{city.state ?? "-"}</td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">{city.serviceRadiusKm ?? 50} km</td>
                       <td className="px-4 py-3">
                         <Badge variant={city.isActive ? "success" : "secondary"}>
@@ -393,7 +396,7 @@ export default function AllowedCitiesPage() {
           <DialogHeader>
             <DialogTitle>Excluir Cidade</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir a cidade <strong>{selectedCity?.cityName}</strong>?
+              Tem certeza que deseja excluir a cidade <strong>{selectedCity?.city}</strong>?
               Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>

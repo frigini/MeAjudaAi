@@ -1948,14 +1948,16 @@ public sealed record UserRegisteredIntegrationEvent(
 **Localização**: `src/Shared/Contracts/Modules/Documents/IDocumentsModuleApi.cs`  
 **Implementação**: `src/Modules/Documents/Application/ModuleApi/DocumentsModuleApi.cs`
 
-**Métodos (6)**:
+**Métodos (8)**:
 ```csharp
 Task<Result<ModuleDocumentDto?>> GetDocumentByIdAsync(Guid documentId, CancellationToken ct);
 Task<Result<IReadOnlyList<ModuleDocumentDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken ct);
+Task<Result<DocumentStatusCountDto>> GetDocumentStatusCountAsync(Guid providerId, CancellationToken ct);
 Task<Result<bool>> HasVerifiedDocumentsAsync(Guid providerId, CancellationToken ct);
 Task<Result<bool>> HasRequiredDocumentsAsync(Guid providerId, CancellationToken ct);
 Task<Result<bool>> HasPendingDocumentsAsync(Guid providerId, CancellationToken ct);
 Task<Result<bool>> HasRejectedDocumentsAsync(Guid providerId, CancellationToken ct);
+Task<Result<bool>> DeleteDocumentAsync(Guid documentId, CancellationToken ct);
 ```
 
 **Usado por**: 
