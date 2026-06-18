@@ -378,8 +378,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
         var updateRequest = new
         {
-            CityName = "Porto Alegre Atualizado",
-            StateSigla = "RS",
+            City = "Porto Alegre Atualizado",
+            State = "RS",
             IbgeCode = 4314902,
             IsActive = false
         };
@@ -449,8 +449,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
         var updateRequest = new
         {
-            CityName = "Belém", // Tentando renomear para uma cidade existente
-            StateSigla = "PA"
+            City = "Belém", // Tentando renomear para uma cidade existente
+            State = "PA"
         };
 
         // Act
@@ -544,8 +544,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Step 3: Update city
         var updateRequest = new
         {
-            CityName = "Vitória Atualizada",
-            StateSigla = "ES",
+            City = "Vitória Atualizada",
+            State = "ES",
             IbgeCode = 3205309,
             IsActive = false
         };

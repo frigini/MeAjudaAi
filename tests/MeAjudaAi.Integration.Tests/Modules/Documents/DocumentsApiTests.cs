@@ -63,24 +63,8 @@ public class DocumentsApiTests : BaseApiTest
         // Assert
         response.StatusCode.Should().Match(code =>
             code == HttpStatusCode.Unauthorized ||
-            code == HttpStatusCode.Forbidden ||
-            code == HttpStatusCode.InternalServerError,
+            code == HttpStatusCode.Forbidden,
             "user should not be able to upload documents for a different provider");
-    }
-
-    [Fact]
-    public async Task GetDocumentStatus_WithNonExistentId_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var randomId = Guid.NewGuid();
-
-        // Act - Use /status endpoint which doesn't require admin-only policy
-        var response = await Client.GetAsync($"/api/v1/documents/{randomId}/status");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "API should return 404 when document ID does not exist");
     }
 
     [Fact]
@@ -117,9 +101,8 @@ public class DocumentsApiTests : BaseApiTest
         // Assert
         response.StatusCode.Should().Match(code =>
             code == HttpStatusCode.BadRequest ||
-            code == HttpStatusCode.Unauthorized ||
-            code == HttpStatusCode.InternalServerError,
-            "API should reject invalid request with 400, 401, or 500");
+            code == HttpStatusCode.Unauthorized,
+            "API should reject invalid request with 400 or 401");
     }
 
     [Theory]
@@ -200,9 +183,9 @@ public class DocumentsApiTests : BaseApiTest
         var uploadData = await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content);
         var documentId = uploadData!.DocumentId;
 
-        // 2. Get Status (Initial)
-        var statusResponse = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
-        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        // 2. Get Document (Initial)
+        var getResponse = await Client.GetAsync($"/api/v1/documents/{documentId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // 3. Request Verification
         var requestVerificationResponse = await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
@@ -261,17 +244,6 @@ public class DocumentsApiTests : BaseApiTest
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var getStatus = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
-        var statusData = GetResponseData(await ReadJsonAsync<JsonElement>(getStatus.Content));
-
-        // Handle different response formats
-        var statusValue = "";
-        if (statusData.ValueKind == JsonValueKind.Object)
-        {
-            statusValue = statusData.TryGetProperty("status", out var s) ? s.GetString() ?? "" :
-                         statusData.TryGetProperty("Status", out var s2) ? s2.GetString() ?? "" : "";
-        }
-        statusValue.Should().Be("Rejected", "Document status should be Rejected after rejection");
     }
 
     #endregion

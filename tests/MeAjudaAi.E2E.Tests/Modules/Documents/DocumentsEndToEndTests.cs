@@ -633,34 +633,11 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             HttpStatusCode.Accepted,
             HttpStatusCode.NoContent);
 
-        // Se a verificação foi aceita, verifica o status do documento
-        TestContainerFixture.AuthenticateAsAdmin(); // GET requer autorização
-        var statusResponse = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
-        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Status endpoint should be available after successful verification");
-
-        var statusContent = await statusResponse.Content.ReadAsStringAsync();
-        statusContent.Should().NotBeNullOrEmpty();
-
-        // Parse JSON - Response is wrapped in Result<T> - extract data property
-        using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
-
-        var statusData = ExtractDataFromResult(statusResult.RootElement);
-        statusData.TryGetProperty("status", out var statusProperty)
-            .Should().BeTrue("Response should contain 'status' property");
-
-        // Parse status as enum to avoid string drift
-        var statusString = statusProperty.GetString();
-        statusString.Should().NotBeNullOrEmpty("Status should have a value");
-
-        var statusParsed = statusString.IsValidEnum<EDocumentStatus>();
-        statusParsed.Should().BeTrue($"Status '{statusString}' should be a valid EDocumentStatus");
-
-        var documentStatus = statusString.ToEnum<EDocumentStatus>().Value;
-
-        // Document should be in uploaded or pending verification status
-        documentStatus.Should().BeOneOf(EDocumentStatus.Uploaded, EDocumentStatus.PendingVerification)
-            .And.Subject.Should().NotBe(EDocumentStatus.Verified, "Document should not be verified immediately after upload");
+        // Verify document exists via GetDocumentById
+        TestContainerFixture.AuthenticateAsAdmin();
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Document should be available after successful verification");
     }
 
     [Fact]

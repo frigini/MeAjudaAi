@@ -55,8 +55,8 @@ src/Modules/Documents/
    └─> MarkAsVerified/MarkAsRejected
 
 3. Consulta
-   ├─> GET /api/v1/documents/status/{id}
-   └─> GetDocumentStatusQueryHandler
+   ├─> GET /api/v1/documents/{id}
+   └─> GetDocumentByIdQueryHandler
 ```
 
 ### Tipos de Documento

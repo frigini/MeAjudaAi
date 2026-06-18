@@ -188,61 +188,6 @@ public sealed class DocumentsModuleApi(
     }
 
     /// <summary>
-    /// Obtém o status de um documento.
-    /// </summary>
-    /// <param name="documentId">ID do documento</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>DTO de status do documento ou null se não encontrado</returns>
-    /// <remarks>
-    /// <para><strong>Semântica de UpdatedAt:</strong></para>
-    /// <para>Usa VerifiedAt ?? UploadedAt, onde VerifiedAt representa o timestamp da última mudança
-    /// de status (verificação ou rejeição). O modelo de domínio define VerifiedAt quando documentos
-    /// são verificados OU rejeitados. Para documentos ainda em Uploaded/PendingVerification,
-    /// usa UploadedAt como fallback.</para>
-    /// <para><strong>Nota:</strong> RejectedAt NÃO é usado na cadeia de fallback porque o domínio
-    /// já popula VerifiedAt para documentos rejeitados, tornando VerifiedAt o timestamp
-    /// autoritativo para todos os estados terminais (Verified/Rejected).</para>
-    /// </remarks>
-    public async Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
-        Guid documentId,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var query = new GetDocumentByIdQuery(documentId);
-            var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
-
-            if (document == null)
-            {
-                return Result<ModuleDocumentStatusDto?>.Success(null);
-            }
-
-            var statusDto = new ModuleDocumentStatusDto(
-                document.Id,
-                document.Status.ToString(),
-                document.VerifiedAt ?? document.UploadedAt
-            );
-
-            return Result<ModuleDocumentStatusDto?>.Success(statusDto);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (NpgsqlException ex)
-        {
-            logger.LogError(ex, "Database error retrieving document status {DocumentId}", documentId);
-            return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
-        }
-        catch (InvalidOperationException ex)
-        {
-            logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
-            return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
-        }
-    }
-
-    /// <summary>
     /// Helper method to get provider documents and handle common error propagation.
     /// </summary>
     private async Task<Result<IReadOnlyList<ModuleDocumentDto>>> GetProviderDocumentsResultAsync(
@@ -263,7 +208,7 @@ public sealed class DocumentsModuleApi(
         if (result.IsFailure)
             return Result<bool>.Failure(result.Error);
 
-        var hasVerified = result.Value!.Any(d => d.Status == EDocumentStatus.Verified.ToDescription());
+        var hasVerified = result.Value!.Any(d => d.Status == EDocumentStatus.Verified.ToString());
         return Result<bool>.Success(hasVerified);
     }
 
@@ -276,12 +221,12 @@ public sealed class DocumentsModuleApi(
             return Result<bool>.Failure(result.Error);
 
         var verifiedDocs = result.Value!
-            .Where(d => d.Status == EDocumentStatus.Verified.ToDescription())
+            .Where(d => d.Status == EDocumentStatus.Verified.ToString())
             .Select(d => d.DocumentType)
             .ToHashSet();
 
-        var hasIdentity = verifiedDocs.Contains(EDocumentType.IdentityDocument.ToDescription());
-        var hasProofOfResidence = verifiedDocs.Contains(EDocumentType.ProofOfResidence.ToDescription());
+        var hasIdentity = verifiedDocs.Contains(EDocumentType.IdentityDocument.ToString());
+        var hasProofOfResidence = verifiedDocs.Contains(EDocumentType.ProofOfResidence.ToString());
 
         return Result<bool>.Success(hasIdentity && hasProofOfResidence);
     }

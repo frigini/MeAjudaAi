@@ -16,7 +16,7 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeleteAllowedCity")
             .WithSummary("Deletar cidade permitida")
             .WithDescription("Deleta uma cidade permitida")
-            .Produces<Result>(StatusCodes.Status200OK)
+            .Produces<Result<Unit>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();

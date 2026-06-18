@@ -1948,11 +1948,10 @@ public sealed record UserRegisteredIntegrationEvent(
 **Localização**: `src/Shared/Contracts/Modules/Documents/IDocumentsModuleApi.cs`  
 **Implementação**: `src/Modules/Documents/Application/ModuleApi/DocumentsModuleApi.cs`
 
-**Métodos (7)**:
+**Métodos (6)**:
 ```csharp
 Task<Result<ModuleDocumentDto?>> GetDocumentByIdAsync(Guid documentId, CancellationToken ct);
 Task<Result<IReadOnlyList<ModuleDocumentDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken ct);
-Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(Guid documentId, CancellationToken ct);
 Task<Result<bool>> HasVerifiedDocumentsAsync(Guid providerId, CancellationToken ct);
 Task<Result<bool>> HasRequiredDocumentsAsync(Guid providerId, CancellationToken ct);
 Task<Result<bool>> HasPendingDocumentsAsync(Guid providerId, CancellationToken ct);
@@ -2630,7 +2629,6 @@ public sealed record ClientConfiguration
 
 ✅ **Model DTOs**:
 - `ModuleProviderBasicDto` → Converter
-- `ModuleDocumentStatusDto` → Converter
 
 ⚠️ **MANTER Nominal (Valores Padrão/Config)**:
 - `GeoPoint` (config object)

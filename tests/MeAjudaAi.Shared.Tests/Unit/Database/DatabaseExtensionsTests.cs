@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -195,25 +196,16 @@ public class DatabaseExtensionsTests
             })
             .Build();
 
-        // Set Testing environment
-        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        try
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        var environment = new MockHostEnvironment("Testing");
 
-            // Act & Assert - should not throw
-            services.AddPostgres(configuration);
-            
-            var provider = services.BuildServiceProvider();
-            var options = provider.GetRequiredService<IOptions<PostgresOptions>>();
-            
-            // In Testing environment, the expected connection string is what we provided
-            options.Value.ConnectionString.Should().Be("Host=localhost;Database=dummy;Username=postgres;Password=postgres");
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
-        }
+        // Act & Assert - should not throw
+        services.AddPostgres(configuration, environment);
+        
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<PostgresOptions>>();
+        
+        // In Testing environment, the expected connection string is what we provided
+        options.Value.ConnectionString.Should().Be("Host=localhost;Database=dummy;Username=postgres;Password=postgres");
     }
 
     [Fact]

@@ -196,20 +196,6 @@ public class RequestMapperExtensionsTests
     }
 
     [Fact]
-    public void ToQuery_GetDocumentStatus_ShouldMapDocumentId()
-    {
-        // Arrange
-        var documentId = Guid.NewGuid();
-
-        // Act
-        var query = documentId.ToQuery();
-
-        // Assert
-        query.Should().NotBeNull();
-        query.DocumentId.Should().Be(documentId);
-    }
-
-    [Fact]
     public void ToDocumentsQuery_ShouldMapProviderId()
     {
         // Arrange

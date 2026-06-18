@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using MeAjudaAi.Shared.Extensions;
 
@@ -11,7 +12,7 @@ public enum TestStatus
     Pending
 }
 
-// Dummy enum with Display attributes for testing ToDescription/ToDisplayName
+// Enum dummy com atributos Display para testar ToDescription/ToDisplayName
 public enum TestStatusWithAttributes
 {
     [Display(Name = "Ativo")]
@@ -21,6 +22,19 @@ public enum TestStatusWithAttributes
     Inactive,
 
     [Display(Name = "Pendente")]
+    Pending
+}
+
+// Enum dummy com atributos Description para testar fallback do ToDescription
+public enum TestStatusWithDescription
+{
+    [Description("Descrição do Ativo")]
+    Active,
+
+    [Description("Descrição do Inativo")]
+    Inactive,
+
+    [Description("Descrição do Pendente")]
     Pending
 }
 
@@ -164,6 +178,19 @@ public class EnumExtensionsTests
     {
         // Act
         var result = input.ToDisplayName();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(TestStatusWithDescription.Active, "Descrição do Ativo")]
+    [InlineData(TestStatusWithDescription.Inactive, "Descrição do Inativo")]
+    [InlineData(TestStatusWithDescription.Pending, "Descrição do Pendente")]
+    public void ToDescription_WithDescriptionAttribute_ShouldReturnDescriptionValue(TestStatusWithDescription input, string expected)
+    {
+        // Act
+        var result = input.ToDescription();
 
         // Assert
         result.Should().Be(expected);

@@ -1,8 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
+using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Mappers;
-using MeAjudaAi.Modules.Documents.API.Mappers;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
@@ -42,7 +43,7 @@ public class GetDocumentByIdEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var query = documentId.ToQuery();
-        var result = await queryDispatcher.QueryAsync<Application.Queries.GetDocumentByIdQuery, DocumentDto?>(
+        var result = await queryDispatcher.QueryAsync<GetDocumentByIdQuery, DocumentDto?>(
             query, cancellationToken);
 
         if (result is null)

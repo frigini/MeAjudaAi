@@ -11,7 +11,6 @@ API.Client/
 ├── README.md                    # Documentação completa  
 └── Admin/
     ├── UploadDocument.bru       # POST /api/v1/documents/upload
-    ├── GetDocumentStatus.bru    # GET /api/v1/documents/{documentId}/status
     ├── GetProviderDocuments.bru # GET /api/v1/documents/provider/{providerId}
     ├── VerifyDocument.bru       # POST /api/v1/documents/{documentId}/verify
     └── RequestVerification.bru  # POST /api/v1/documents/{documentId}/request-verification
@@ -53,7 +52,6 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 | Método | Endpoint | Descrição | Autorização |
 |--------|----------|-----------|-------------|
 | POST | `/api/v1/documents/upload` | Upload de documento | SelfOrAdmin |
-| GET | `/api/v1/documents/{documentId}/status` | Consultar status de documento | SelfOrAdmin |
 | GET | `/api/v1/documents/provider/{providerId}` | Listar documentos do prestador | SelfOrAdmin |
 | POST | `/api/v1/documents/{documentId}/verify` | Verificar documento | AdminOnly |
 | POST | `/api/v1/documents/{documentId}/request-verification` | Solicitar verificação | SelfOrAdmin |
