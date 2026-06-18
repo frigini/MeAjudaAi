@@ -37,7 +37,7 @@ public static class Extensions
         services.AddScoped<ICommandHandler<DeleteDocumentCommand, Result>, DeleteDocumentCommandHandler>();
 
         // Query Handlers - registro manual
-        services.AddScoped<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>, GetDocumentStatusQueryHandler>();
+        services.AddScoped<IQueryHandler<GetDocumentByIdQuery, DocumentDto?>, GetDocumentByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>, GetProviderDocumentsQueryHandler>();
 
         // Module API - interface pública para outros módulos

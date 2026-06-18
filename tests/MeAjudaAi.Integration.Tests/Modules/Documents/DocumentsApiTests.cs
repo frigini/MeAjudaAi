@@ -85,7 +85,7 @@ public class DocumentsApiTests : BaseApiTest
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/documents/{randomId}/status");
+        var response = await Client.GetAsync($"/api/v1/documents/{randomId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -101,7 +101,7 @@ public class DocumentsApiTests : BaseApiTest
 
         // Act
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", new { });
-        var statusResponse = await Client.GetAsync($"/api/v1/documents/{Guid.NewGuid()}/status");
+        var statusResponse = await Client.GetAsync($"/api/v1/documents/{Guid.NewGuid()}");
         var listResponse = await Client.GetAsync($"/api/v1/documents/provider/{Guid.NewGuid()}");
 
         // Assert

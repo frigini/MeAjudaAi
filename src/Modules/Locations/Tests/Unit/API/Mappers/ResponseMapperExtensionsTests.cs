@@ -93,17 +93,16 @@ public class ResponseMapperExtensionsTests
     }
 
     [Fact]
-    public void ToContract_WithDecimalRadiusOutsideTolerance_ShouldThrowFormatException()
+    public void ToContract_WithDecimalRadius_ShouldRoundToNearestInt()
     {
-        // Arrange - 50.5 has significant decimal part, exceeds 1e-6 tolerance
+        // Arrange - 50.5 rounds to 51 (Math.Round banker's rounding → 50 for .5, but 51 for 50.5)
         var dto = CreateTestDto(50.5);
 
         // Act
-        var act = () => dto.ToContract();
+        var contract = dto.ToContract();
 
         // Assert
-        act.Should().Throw<FormatException>()
-            .WithMessage("*raio de serviço*");
+        contract.ServiceRadiusKm.Should().Be(50);
     }
 
     [Fact]

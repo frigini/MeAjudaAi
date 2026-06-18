@@ -82,7 +82,7 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenOperationCancelled_ShouldWrapInInvalidOperationException()
+    public async Task IsAvailableAsync_WhenOperationCancelled_ShouldRethrowOperationCanceledException()
     {
         // Arrange
         _mockCepLookupService
@@ -93,8 +93,7 @@ public sealed class LocationsModuleApiTests
         var act = () => _sut.IsAvailableAsync();
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*cancelled*");
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]

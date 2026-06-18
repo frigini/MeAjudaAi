@@ -85,11 +85,11 @@ public static class RequestMapperExtensions
     }
 
     /// <summary>
-    /// Mapeia um Guid para GetDocumentStatusQuery.
+    /// Mapeia um Guid para GetDocumentByIdQuery.
     /// </summary>
-    public static Application.Queries.GetDocumentStatusQuery ToQuery(this Guid documentId)
+    public static Application.Queries.GetDocumentByIdQuery ToQuery(this Guid documentId)
     {
-        return new Application.Queries.GetDocumentStatusQuery(documentId);
+        return new Application.Queries.GetDocumentByIdQuery(documentId);
     }
 
     /// <summary>

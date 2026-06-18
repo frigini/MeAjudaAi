@@ -36,7 +36,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
     #region Helper Methods
 
     /// <summary>
-    /// Extracts the "value" property from a Result&lt;T&gt; JSON response.
+    /// Extrai a propriedade "value" de uma resposta JSON Result&lt;T&gt;.
     /// </summary>
     private static JsonElement ExtractDataFromResult(JsonElement result)
     {
@@ -156,7 +156,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

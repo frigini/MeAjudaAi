@@ -95,7 +95,7 @@ public sealed class UpdateAllowedCityHandler(
         allowedCity.Update(
             command.CityName,
             command.StateSigla,
-            command.IbgeCode,
+            command.IbgeCode ?? allowedCity.IbgeCode,
             lat,
             lon,
             command.ServiceRadiusKm,

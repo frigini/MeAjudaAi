@@ -13,7 +13,7 @@ public sealed record GetAllowedCitiesByStateQuery : Query<IReadOnlyList<AllowedC
 {
     public string State { get; init; } = string.Empty;
 
-    public string GetCacheKey() => $"locations:state:{State.ToUpperInvariant()}";
+    public string GetCacheKey() => $"locations:state:{State.Trim().ToUpperInvariant()}";
     public TimeSpan GetCacheExpiration() => TimeSpan.FromHours(1);
     public IReadOnlyCollection<string>? GetCacheTags() =>
         [CacheTags.Locations];

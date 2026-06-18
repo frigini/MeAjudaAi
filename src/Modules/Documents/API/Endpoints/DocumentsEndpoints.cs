@@ -23,7 +23,6 @@ public static class DocumentsEndpoints
             .RequireAuthorization(); // Aplica autorização global
 
         endpoints.MapEndpoint<UploadDocumentEndpoint>()
-            .MapEndpoint<GetDocumentStatusEndpoint>()
             .MapEndpoint<GetDocumentByIdEndpoint>()
             .MapEndpoint<GetProviderDocumentsEndpoint>()
             .MapEndpoint<RequestVerificationEndpoint>()

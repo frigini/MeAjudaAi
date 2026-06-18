@@ -6,15 +6,15 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Documents.Application.Queries;
 
 /// <summary>
-/// Query para consultar o status de um documento específico.
+/// Query para obter um documento por ID.
 /// Utiliza CorrelationId gerado centralmente via UuidGenerator.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public record GetDocumentStatusQuery(Guid DocumentId) : Query<DocumentDto?>, ICacheableQuery
+public record GetDocumentByIdQuery(Guid DocumentId) : Query<DocumentDto?>, ICacheableQuery
 {
     public string GetCacheKey()
     {
-        return $"document:status:{DocumentId}";
+        return $"document:{DocumentId}";
     }
 
     public TimeSpan GetCacheExpiration()

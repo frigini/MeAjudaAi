@@ -15,7 +15,7 @@ public class DocumentsEndpointsTests : BaseApiTest
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/documents/status/{Guid.NewGuid()}");
+        var response = await Client.GetAsync($"/api/v1/documents/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);

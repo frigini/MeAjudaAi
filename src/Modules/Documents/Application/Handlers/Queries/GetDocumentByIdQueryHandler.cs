@@ -6,14 +6,14 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
-public class GetDocumentStatusQueryHandler(
+public class GetDocumentByIdQueryHandler(
     IDocumentQueries documentQueries,
-    ILogger<GetDocumentStatusQueryHandler> logger) : IQueryHandler<GetDocumentStatusQuery, DocumentDto?>
+    ILogger<GetDocumentByIdQueryHandler> logger) : IQueryHandler<GetDocumentByIdQuery, DocumentDto?>
 {
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
-    private readonly ILogger<GetDocumentStatusQueryHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILogger<GetDocumentByIdQueryHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<DocumentDto?> HandleAsync(GetDocumentStatusQuery query, CancellationToken cancellationToken = default)
+    public async Task<DocumentDto?> HandleAsync(GetDocumentByIdQuery query, CancellationToken cancellationToken = default)
     {
         var document = await _documentQueries.GetByIdAsync(query.DocumentId, cancellationToken);
 

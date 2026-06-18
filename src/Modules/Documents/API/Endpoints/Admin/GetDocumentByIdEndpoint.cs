@@ -3,6 +3,7 @@ using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Mappers;
 using MeAjudaAi.Modules.Documents.API.Mappers;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 
@@ -32,6 +33,7 @@ public class GetDocumentByIdEndpoint : BaseEndpoint, IEndpoint
                 """)
             .Produces<Result<ModuleDocumentDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .RequireAdmin()
             .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> GetDocumentByIdAsync(
@@ -40,7 +42,7 @@ public class GetDocumentByIdEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var query = documentId.ToQuery();
-        var result = await queryDispatcher.QueryAsync<Application.Queries.GetDocumentStatusQuery, DocumentDto?>(
+        var result = await queryDispatcher.QueryAsync<Application.Queries.GetDocumentByIdQuery, DocumentDto?>(
             query, cancellationToken);
 
         if (result is null)

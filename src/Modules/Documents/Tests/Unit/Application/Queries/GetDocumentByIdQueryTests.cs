@@ -3,19 +3,19 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Queries;
 
 /// <summary>
-/// Testes unitários para GetDocumentStatusQuery (implementação de ICacheableQuery)
+/// Testes unitários para GetDocumentByIdQuery (implementação de ICacheableQuery)
 /// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Documents")]
 [Trait("Component", "Caching")]
-public class GetDocumentStatusQueryTests
+public class GetDocumentByIdQueryTests
 {
     [Fact]
     public void GetCacheKey_ShouldGenerateConsistentKey()
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var query = new GetDocumentStatusQuery(documentId);
+        var query = new GetDocumentByIdQuery(documentId);
 
         // Act
         var cacheKey1 = query.GetCacheKey();
@@ -25,7 +25,6 @@ public class GetDocumentStatusQueryTests
         cacheKey1.Should().Be(cacheKey2);
         cacheKey1.Should().Contain(documentId.ToString());
         cacheKey1.Should().Contain("document");
-        cacheKey1.Should().Contain("status");
     }
 
     [Fact]
@@ -34,8 +33,8 @@ public class GetDocumentStatusQueryTests
         // Arrange
         var documentId1 = Guid.NewGuid();
         var documentId2 = Guid.NewGuid();
-        var query1 = new GetDocumentStatusQuery(documentId1);
-        var query2 = new GetDocumentStatusQuery(documentId2);
+        var query1 = new GetDocumentByIdQuery(documentId1);
+        var query2 = new GetDocumentByIdQuery(documentId2);
 
         // Act
         var cacheKey1 = query1.GetCacheKey();
@@ -49,7 +48,7 @@ public class GetDocumentStatusQueryTests
     public void GetCacheExpiration_ShouldReturn2Minutes()
     {
         // Arrange
-        var query = new GetDocumentStatusQuery(Guid.NewGuid());
+        var query = new GetDocumentByIdQuery(Guid.NewGuid());
 
         // Act
         var expiration = query.GetCacheExpiration();
@@ -63,7 +62,7 @@ public class GetDocumentStatusQueryTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var query = new GetDocumentStatusQuery(documentId);
+        var query = new GetDocumentByIdQuery(documentId);
 
         // Act
         var tags = query.GetCacheTags();
@@ -77,8 +76,8 @@ public class GetDocumentStatusQueryTests
     public void CorrelationId_ShouldBeUniqueForEachInstance()
     {
         // Arrange & Act
-        var query1 = new GetDocumentStatusQuery(Guid.NewGuid());
-        var query2 = new GetDocumentStatusQuery(Guid.NewGuid());
+        var query1 = new GetDocumentByIdQuery(Guid.NewGuid());
+        var query2 = new GetDocumentByIdQuery(Guid.NewGuid());
 
         // Assert
         query1.CorrelationId.Should().NotBe(query2.CorrelationId);

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
@@ -31,7 +32,7 @@ public class GetAllowedCitiesByStateEndpoint : BaseEndpoint, IEndpoint
     {
         if (string.IsNullOrWhiteSpace(state) || state.Length != 2)
         {
-            return Results.BadRequest(new { error = "Sigla de estado inválida. Use 2 caracteres (ex: SP, MG, RJ)." });
+            return Error.BadRequest("Sigla de estado inválida. Use 2 caracteres (ex: SP, MG, RJ).").ToProblem();
         }
 
         var query = new GetAllowedCitiesByStateQuery { State = state };

@@ -32,7 +32,7 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// </remarks>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class DocumentsModuleApi(
-    IQueryHandler<GetDocumentStatusQuery, DocumentDto?> getDocumentStatusHandler,
+    IQueryHandler<GetDocumentByIdQuery, DocumentDto?> getDocumentByIdHandler,
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
     IDocumentQueries documentQueries,
     IServiceProvider serviceProvider,
@@ -133,8 +133,8 @@ public sealed class DocumentsModuleApi(
     {
         try
         {
-            var query = new GetDocumentStatusQuery(documentId);
-            var document = await getDocumentStatusHandler.HandleAsync(query, cancellationToken);
+            var query = new GetDocumentByIdQuery(documentId);
+            var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
 
             return document == null
                 ? Result<ModuleDocumentDto?>.Success(null)
@@ -208,8 +208,8 @@ public sealed class DocumentsModuleApi(
     {
         try
         {
-            var query = new GetDocumentStatusQuery(documentId);
-            var document = await getDocumentStatusHandler.HandleAsync(query, cancellationToken);
+            var query = new GetDocumentByIdQuery(documentId);
+            var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
 
             if (document == null)
             {
@@ -334,8 +334,8 @@ public sealed class DocumentsModuleApi(
     {
         try
         {
-            var query = new GetDocumentStatusQuery(documentId);
-            var document = await getDocumentStatusHandler.HandleAsync(query, cancellationToken);
+            var query = new GetDocumentByIdQuery(documentId);
+            var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
 
             if (document == null)
                 return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
@@ -344,11 +344,11 @@ public sealed class DocumentsModuleApi(
             var repository = uow.GetRepository<Modules.Documents.Domain.Entities.Document, Guid>();
             var entity = await repository.TryFindAsync(documentId, cancellationToken);
 
-            if (entity is not null)
-            {
-                repository.Delete(entity);
-                await uow.SaveChangesAsync(cancellationToken);
-            }
+            if (entity is null)
+                return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
+
+            repository.Delete(entity);
+            await uow.SaveChangesAsync(cancellationToken);
 
             return Result<bool>.Success(true);
         }

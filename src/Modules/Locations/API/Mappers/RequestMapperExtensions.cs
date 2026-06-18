@@ -74,7 +74,6 @@ public static class RequestMapperExtensions
             Id = id,
             CityName = request.City,
             StateSigla = request.State,
-            IbgeCode = null, // IbgeCode not in contract
             Latitude = request.Latitude,
             Longitude = request.Longitude,
             ServiceRadiusKm = request.ServiceRadiusKm,

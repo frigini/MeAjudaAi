@@ -46,25 +46,11 @@ public interface IDocumentsApi
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Consulta status de processamento de um documento específico.
-    /// </summary>
-    /// <param name="documentId">ID do documento (GUID)</param>
-    /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>Detalhes do documento incluindo status e dados de OCR</returns>
-    /// <response code="200">Documento encontrado</response>
-    /// <response code="404">Documento não encontrado</response>
-    /// <response code="401">Não autenticado</response>
-    [Get("/api/v1/documents/{documentId}/status")]
-    Task<Result<ModuleDocumentDto>> GetDocumentStatusAsync(
-        Guid documentId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Obtém um documento específico por ID.
     /// </summary>
     /// <param name="documentId">ID do documento (GUID)</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>Detalhes completos do documento</returns>
+    /// <returns>Detalhes completos do documento incluindo status e dados de OCR</returns>
     /// <response code="200">Documento encontrado</response>
     /// <response code="404">Documento não encontrado</response>
     /// <response code="401">Não autenticado</response>
@@ -114,7 +100,7 @@ public interface IDocumentsApi
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão de administrador</response>
     [Post("/api/v1/documents/{documentId}/verify")]
-    Task VerifyDocumentAsync(
+    Task<Result> VerifyDocumentAsync(
         Guid documentId,
         [Body] VerifyDocumentRequest request,
         CancellationToken cancellationToken = default);
