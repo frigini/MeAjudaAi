@@ -494,9 +494,9 @@ services.AddHttpContextAccessor();
             }
             else
             {
-                // Tratar tipos de wrapper de resposta não genéricos (ex: UploadDocumentResponse)
-                isResultType = type.Name.EndsWith("Response") || 
-                               (type.Namespace?.Contains("Contracts.Functional") ?? false);
+                // Apenas tipos explicitamente de wrapper (ex: Response<T> em Contracts.Functional)
+                // NÃO tratar tipos como UploadDocumentResponse como wrapper - eles são o dado real dentro de Result<T>
+                isResultType = type.Namespace?.Contains("Contracts.Functional") ?? false;
             }
 
             if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))

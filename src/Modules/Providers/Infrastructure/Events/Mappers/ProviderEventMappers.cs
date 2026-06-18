@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Events;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Mappers;
@@ -20,7 +21,7 @@ public static class ProviderEventMappers
             ProviderId: domainEvent.AggregateId,
             UserId: domainEvent.UserId,
             Name: domainEvent.Name,
-            ProviderType: domainEvent.Type.ToString(),
+            ProviderType: domainEvent.Type.ToDescription(),
             Email: domainEvent.Email,
             RegisteredAt: DateTime.UtcNow,
             Slug: domainEvent.Slug
@@ -54,8 +55,8 @@ public static class ProviderEventMappers
             ProviderId: domainEvent.AggregateId,
             UserId: userId,
             Name: providerName,
-            PreviousStatus: domainEvent.PreviousStatus.ToString(),
-            NewStatus: domainEvent.NewStatus.ToString(),
+            PreviousStatus: domainEvent.PreviousStatus.ToDescription(),
+            NewStatus: domainEvent.NewStatus.ToDescription(),
             UpdatedBy: domainEvent.UpdatedBy
         );
     }

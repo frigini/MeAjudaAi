@@ -10,6 +10,7 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -199,7 +200,7 @@ public sealed class CommunicationsModuleApi(
         var dtos = (items ?? new List<CommunicationLog>()).Select(x => new CommunicationLogDto(
             x.Id,
             x.CorrelationId,
-            x.Channel.ToString(),
+            x.Channel.ToDescription(),
             x.Recipient,
             x.TemplateKey,
             x.IsSuccess,

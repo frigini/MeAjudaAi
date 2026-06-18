@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Queries;
@@ -35,8 +36,9 @@ public class DbContextCommunicationLogQueries(CommunicationsDbContext dbContext)
             query = query.Where(x => x.CorrelationId.Contains(queryParams.CorrelationId));
         if (!string.IsNullOrWhiteSpace(queryParams.Channel))
         {
-            if (Enum.TryParse<ECommunicationChannel>(queryParams.Channel, true, out var ch))
-                query = query.Where(x => x.Channel == ch);
+            var channelResult = queryParams.Channel.ToEnum<ECommunicationChannel>();
+            if (channelResult.IsSuccess)
+                query = query.Where(x => x.Channel == channelResult.Value);
             else
                 query = query.Where(x => false);
         }

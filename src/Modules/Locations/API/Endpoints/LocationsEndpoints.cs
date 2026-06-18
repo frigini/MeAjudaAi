@@ -32,6 +32,7 @@ public static class LocationsEndpoints
         // Endpoints de gestão de cidades permitidas (Admin only)
         endpoints.MapEndpoint<CreateAllowedCityEndpoint>()
             .MapEndpoint<GetAllAllowedCitiesEndpoint>()
+            .MapEndpoint<GetAllowedCitiesByStateEndpoint>()
             .MapEndpoint<GetAllowedCityByIdEndpoint>()
             .MapEndpoint<UpdateAllowedCityEndpoint>()
             .MapEndpoint<PatchAllowedCityEndpoint>()

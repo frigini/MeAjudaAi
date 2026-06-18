@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Extensions;
@@ -7,6 +8,19 @@ public enum TestStatus
 {
     Active,
     Inactive,
+    Pending
+}
+
+// Dummy enum with Display attributes for testing ToDescription/ToDisplayName
+public enum TestStatusWithAttributes
+{
+    [Display(Name = "Ativo")]
+    Active,
+
+    [Display(Name = "Inativo")]
+    Inactive,
+
+    [Display(Name = "Pendente")]
     Pending
 }
 
@@ -101,5 +115,57 @@ public class EnumExtensionsTests
         // Assert
         result.Should().Contain("Active, Inactive, Pending");
         result.Should().StartWith("Valores válidos para TestStatus:");
+    }
+
+    [Theory]
+    [InlineData(TestStatusWithAttributes.Active, "Ativo")]
+    [InlineData(TestStatusWithAttributes.Inactive, "Inativo")]
+    [InlineData(TestStatusWithAttributes.Pending, "Pendente")]
+    public void ToDescription_WithDisplayAttribute_ShouldReturnDisplayName(TestStatusWithAttributes input, string expected)
+    {
+        // Act
+        var result = input.ToDescription();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(TestStatus.Active, "Active")]
+    [InlineData(TestStatus.Inactive, "Inactive")]
+    [InlineData(TestStatus.Pending, "Pending")]
+    public void ToDescription_WithoutDisplayAttribute_ShouldReturnEnumName(TestStatus input, string expected)
+    {
+        // Act
+        var result = input.ToDescription();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(TestStatusWithAttributes.Active, "Ativo")]
+    [InlineData(TestStatusWithAttributes.Inactive, "Inativo")]
+    [InlineData(TestStatusWithAttributes.Pending, "Pendente")]
+    public void ToDisplayName_WithDisplayAttribute_ShouldReturnDisplayName(TestStatusWithAttributes input, string expected)
+    {
+        // Act
+        var result = input.ToDisplayName();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(TestStatus.Active, "Active")]
+    [InlineData(TestStatus.Inactive, "Inactive")]
+    [InlineData(TestStatus.Pending, "Pending")]
+    public void ToDisplayName_WithoutDisplayAttribute_ShouldReturnEnumName(TestStatus input, string expected)
+    {
+        // Act
+        var result = input.ToDisplayName();
+
+        // Assert
+        result.Should().Be(expected);
     }
 }

@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Application.Mappers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
@@ -262,7 +263,7 @@ public sealed class DocumentsModuleApi(
         if (result.IsFailure)
             return Result<bool>.Failure(result.Error);
 
-        var hasVerified = result.Value!.Any(d => d.Status == EDocumentStatus.Verified.ToString());
+        var hasVerified = result.Value!.Any(d => d.Status == EDocumentStatus.Verified.ToDescription());
         return Result<bool>.Success(hasVerified);
     }
 
@@ -275,12 +276,12 @@ public sealed class DocumentsModuleApi(
             return Result<bool>.Failure(result.Error);
 
         var verifiedDocs = result.Value!
-            .Where(d => d.Status == EDocumentStatus.Verified.ToString())
+            .Where(d => d.Status == EDocumentStatus.Verified.ToDescription())
             .Select(d => d.DocumentType)
             .ToHashSet();
 
-        var hasIdentity = verifiedDocs.Contains(EDocumentType.IdentityDocument.ToString());
-        var hasProofOfResidence = verifiedDocs.Contains(EDocumentType.ProofOfResidence.ToString());
+        var hasIdentity = verifiedDocs.Contains(EDocumentType.IdentityDocument.ToDescription());
+        var hasProofOfResidence = verifiedDocs.Contains(EDocumentType.ProofOfResidence.ToDescription());
 
         return Result<bool>.Success(hasIdentity && hasProofOfResidence);
     }

@@ -24,6 +24,7 @@ public static class DocumentsEndpoints
 
         endpoints.MapEndpoint<UploadDocumentEndpoint>()
             .MapEndpoint<GetDocumentByIdEndpoint>()
+            .MapEndpoint<GetDocumentStatusEndpoint>()
             .MapEndpoint<GetProviderDocumentsEndpoint>()
             .MapEndpoint<RequestVerificationEndpoint>()
             .MapEndpoint<VerifyDocumentEndpoint>()

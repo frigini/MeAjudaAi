@@ -43,6 +43,19 @@ public class DeleteDocumentEndpoint : BaseEndpoint, IEndpoint
     {
         var command = documentId.ToDeleteCommand();
         var result = await commandDispatcher.SendAsync<DeleteDocumentCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        
+        if (result.IsFailure)
+        {
+            return result.Error.StatusCode switch
+            {
+                StatusCodes.Status404NotFound => Results.NotFound(Result<bool>.Failure(result.Error)),
+                _ => Results.Problem(
+                    detail: result.Error.Message,
+                    statusCode: result.Error.StatusCode,
+                    title: "Erro ao excluir documento")
+            };
+        }
+
+        return Results.Ok(Result<bool>.Success(true));
     }
 }

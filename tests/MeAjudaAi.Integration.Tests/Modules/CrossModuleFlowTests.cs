@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
 namespace MeAjudaAi.Integration.Tests.Modules;
 
@@ -41,14 +41,12 @@ public class CrossModuleFlowTests : BaseApiTest
 
         // 2. Upload de Documento (Módulo Documents)
         // Mesmo sendo um 'customer', ele pode precisar de documentos para upgrade ou verificação
-        var uploadRequest = new UploadDocumentRequest
-        {
-            ProviderId = Guid.Parse(userId), // Neste caso usando o próprio ID do usuário como dono
-            DocumentType = MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentType.IdentityDocument,
-            FileName = "id_card.pdf",
-            ContentType = "application/pdf",
-            FileSizeBytes = 100 * 1024
-        };
+        var uploadRequest = new UploadDocumentRequest(
+            Guid.Parse(userId),
+            "IdentityDocument",
+            "id_card.pdf",
+            "application/pdf",
+            100 * 1024);
 
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
         

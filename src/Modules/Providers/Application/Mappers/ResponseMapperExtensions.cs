@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Modules.Providers.Application.Mappers;
 
@@ -21,8 +22,8 @@ public static class ResponseMapperExtensions
             Slug: provider.Slug,
             Email: provider.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
             Document: doc?.Number ?? string.Empty,
-            ProviderType: provider.Type.ToString(),
-            VerificationStatus: provider.VerificationStatus.ToString(),
+            ProviderType: provider.Type.ToDescription(),
+            VerificationStatus: provider.VerificationStatus.ToDescription(),
             CreatedAt: provider.CreatedAt,
             UpdatedAt: provider.UpdatedAt ?? provider.CreatedAt,
             IsActive: provider.IsActive,
@@ -40,8 +41,8 @@ public static class ResponseMapperExtensions
             Name: provider.Name,
             Slug: provider.Slug,
             Email: provider.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            ProviderType: provider.Type.ToString(),
-            VerificationStatus: provider.VerificationStatus.ToString(),
+            ProviderType: provider.Type.ToDescription(),
+            VerificationStatus: provider.VerificationStatus.ToDescription(),
             IsActive: provider.IsActive);
     }
 

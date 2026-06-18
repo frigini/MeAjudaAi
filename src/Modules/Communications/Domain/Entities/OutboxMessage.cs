@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Modules.Communications.Domain.Entities;
 
@@ -35,7 +36,7 @@ public sealed class OutboxMessage : Shared.Database.Outbox.OutboxMessage
         return new OutboxMessage
         {
             Channel = channel,
-            Type = channel.ToString(), // Mapeia o canal para o campo Type da base
+            Type = channel.ToDescription(), // Mapeia o canal para o campo Type da base
             Payload = payload,
             Status = EOutboxMessageStatus.Pending,
             Priority = priority,

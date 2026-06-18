@@ -12,6 +12,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
@@ -63,11 +64,12 @@ public class UploadDocumentCommandHandler(
 
             _logger.LogInformation("Generating upload URL for provider {ProviderId} document", command.ProviderId);
 
-            if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType) ||
-                !Enum.IsDefined(typeof(EDocumentType), documentType))
+            var documentTypeResult = command.DocumentType.ToEnum<EDocumentType>();
+            if (documentTypeResult.IsFailure)
             {
                 throw new ArgumentException($"Invalid document type: {command.DocumentType}");
             }
+            var documentType = documentTypeResult.Value;
 
             var maxFileSize = _uploadOptions.GetMaxFileSizeForDocumentType(command.DocumentType);
             if (command.FileSizeBytes > maxFileSize)

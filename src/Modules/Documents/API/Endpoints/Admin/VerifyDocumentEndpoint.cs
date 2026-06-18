@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Commands;
-using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;

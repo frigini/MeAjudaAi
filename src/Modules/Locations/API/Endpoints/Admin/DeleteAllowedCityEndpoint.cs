@@ -30,8 +30,8 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
 
         await commandDispatcher.SendAsync(command, cancellationToken);
 
-        // CORREÇÃO: Retornar 200 OK com Result.Success() para compatibilidade com ILocationsApi (Refit)
-        // O frontend espera um objeto JSON { "isSuccess": true, ... }
-        return Results.Ok(Result.Success());
+        // CORREÇÃO: Retornar 200 OK com Result<Unit>.Success(Unit.Value) para compatibilidade com ILocationsApi (Refit)
+        // O frontend espera um objeto JSON { "isSuccess": true, "value": {} }
+        return Results.Ok(Result<Unit>.Success(Unit.Value));
     }
 }

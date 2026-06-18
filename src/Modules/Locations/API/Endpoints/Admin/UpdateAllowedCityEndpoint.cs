@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
@@ -27,7 +27,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> UpdateAsync(
         Guid id,
-        UpdateAllowedCityRequest request,
+        UpdateAllowedCityRequestDto request,
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
@@ -51,6 +51,6 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
                 title: "Erro ao atualizar cidade permitida");
         }
 
-        return Results.Ok(Result.Success());
+        return Results.Ok(Result<Unit>.Success(Unit.Value));
     }
 }

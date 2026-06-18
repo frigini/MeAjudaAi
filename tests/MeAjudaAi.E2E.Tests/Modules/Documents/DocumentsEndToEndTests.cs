@@ -4,6 +4,7 @@ using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Documents;
@@ -652,8 +653,10 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var statusString = statusProperty.GetString();
         statusString.Should().NotBeNullOrEmpty("Status should have a value");
 
-        var statusParsed = Enum.TryParse<EDocumentStatus>(statusString, ignoreCase: true, out var documentStatus);
+        var statusParsed = statusString.IsValidEnum<EDocumentStatus>();
         statusParsed.Should().BeTrue($"Status '{statusString}' should be a valid EDocumentStatus");
+
+        var documentStatus = statusString.ToEnum<EDocumentStatus>().Value;
 
         // Document should be in uploaded or pending verification status
         documentStatus.Should().BeOneOf(EDocumentStatus.Uploaded, EDocumentStatus.PendingVerification)
