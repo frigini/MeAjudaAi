@@ -3,9 +3,9 @@ import type {
   MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto,
   MeAjudaAiModulesProvidersApplicationDtosDocumentDto,
   MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto,
-  MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto,
   MeAjudaAiModulesUsersApplicationDtosUserDto,
 } from "../api/generated";
+import type { MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto } from "../api/generated/types.gen";
 import { z } from "zod";
 import { zMeAjudaAiModulesProvidersApplicationDtosProviderDto } from "../api/generated/zod.gen";
 

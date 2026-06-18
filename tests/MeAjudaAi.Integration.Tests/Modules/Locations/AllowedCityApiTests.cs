@@ -214,11 +214,12 @@ public class AllowedCityApiTests : BaseApiTest
         AuthConfig.ConfigureAdmin();
         var updatePayload = new
         {
-            cityName = $"CidadeUpdated_{Guid.NewGuid():N}"[..20],
-            stateSigla = "ES",
+            city = $"CidadeUpdated_{Guid.NewGuid():N}"[..20],
+            state = "ES",
+            country = "Brasil",
             latitude = -20.0,
             longitude = -40.0,
-            serviceRadiusKm = 60.0,
+            serviceRadiusKm = 60,
             isActive = true
         };
 
@@ -237,11 +238,12 @@ public class AllowedCityApiTests : BaseApiTest
         var nonExistingId = Guid.NewGuid();
         var updatePayload = new
         {
-            cityName = "TestCity",
-            stateSigla = "SP",
+            city = "TestCity",
+            state = "SP",
+            country = "Brasil",
             latitude = -23.5,
             longitude = -46.6,
-            serviceRadiusKm = 50.0,
+            serviceRadiusKm = 50,
             isActive = true
         };
 
@@ -260,7 +262,7 @@ public class AllowedCityApiTests : BaseApiTest
     {
         // Arrange - no auth
         var anyId = Guid.NewGuid();
-        var payload = new { cityName = "Test", stateSigla = "SP", latitude = 0.0, longitude = 0.0, serviceRadiusKm = 50.0, isActive = true };
+        var payload = new { city = "Test", state = "SP", country = "Brasil", latitude = 0.0, longitude = 0.0, serviceRadiusKm = 50, isActive = true };
 
         // Act
         var response = await Client.PutAsJsonAsync($"{BaseRoute}/{anyId}", payload);
@@ -459,11 +461,12 @@ public class AllowedCityApiTests : BaseApiTest
         // 3. UPDATE
         var updatePayload = new
         {
-            cityName = uniqueName,
-            stateSigla = "SP",
+            city = uniqueName,
+            state = "SP",
+            country = "Brasil",
             latitude = -23.5505,
             longitude = -46.6333,
-            serviceRadiusKm = 75.0,
+            serviceRadiusKm = 75,
             isActive = true
         };
         var updateResponse = await Client.PutAsJsonAsync($"{BaseRoute}/{cityId}", updatePayload);
