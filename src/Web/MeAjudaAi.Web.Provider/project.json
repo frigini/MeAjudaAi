@@ -5,6 +5,12 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "generate-api": {
+      "command": "openapi-ts",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    },
     "build": {
       "command": "next build",
       "outputs": [
