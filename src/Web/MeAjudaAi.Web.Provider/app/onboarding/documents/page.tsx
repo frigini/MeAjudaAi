@@ -32,10 +32,10 @@ const documentSchema = z.object({
 type DocumentFormData = z.infer<typeof documentSchema>;
 
 const DOCUMENT_TYPES = {
-  identity: 1 as const,
-  proofOfResidence: 2 as const,
-  criminalRecord: 3 as const,
-  other: 99 as const,
+  identity: "IdentityDocument" as const,
+  proofOfResidence: "ProofOfResidence" as const,
+  criminalRecord: "CriminalRecord" as const,
+  other: "Other" as const,
 };
 
 export default function DocumentsPage() {
@@ -52,7 +52,7 @@ export default function DocumentsPage() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ file, documentType }: { file: File; documentType: 1 | 2 | 3 | 99 }) => {
+    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
       const uploadResponse = await apiUploadPost({
         body: {
           documentType,
