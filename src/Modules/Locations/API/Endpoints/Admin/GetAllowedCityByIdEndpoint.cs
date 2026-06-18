@@ -1,4 +1,6 @@
-using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
@@ -17,7 +19,7 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
             .WithName("GetAllowedCityById")
             .WithSummary("Buscar cidade permitida por ID")
             .WithDescription("Recupera uma cidade permitida específica pelo seu ID")
-            .Produces<Response<AllowedCityDto>>(StatusCodes.Status200OK)
+            .Produces<Result<ModuleAllowedCityDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithTags(LocationsEndpoints.Tag)
             .RequireAdmin();
@@ -31,8 +33,11 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
 
         var result = await queryDispatcher.QueryAsync<GetAllowedCityByIdQuery, AllowedCityDto?>(query, cancellationToken);
 
-        return result is not null
-            ? Results.Ok(new Response<AllowedCityDto>(result))
-            : Results.NotFound(new Response<AllowedCityDto>(default, 404, "Cidade permitida não encontrada"));
+        if (result is null)
+            return Results.NotFound(Result<ModuleAllowedCityDto>.Failure("Cidade permitida não encontrada"));
+
+        var contractResult = result.ToContract();
+
+        return TypedResults.Ok(Result<ModuleAllowedCityDto>.Success(contractResult));
     }
 }

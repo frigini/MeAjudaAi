@@ -327,4 +327,45 @@ public sealed class DocumentsModuleApi(
         var hasRejected = result.Value!.Any(d => d.Status == EDocumentStatus.Rejected.ToString());
         return Result<bool>.Success(hasRejected);
     }
+
+    public async Task<Result<bool>> DeleteDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new GetDocumentStatusQuery(documentId);
+            var document = await getDocumentStatusHandler.HandleAsync(query, cancellationToken);
+
+            if (document == null)
+                return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
+
+            var uow = serviceProvider.GetRequiredService<Shared.Database.Abstractions.IUnitOfWork>();
+            var repository = uow.GetRepository<Modules.Documents.Domain.Entities.Document, Guid>();
+            var entity = await repository.TryFindAsync(documentId, cancellationToken);
+
+            if (entity is not null)
+            {
+                repository.Delete(entity);
+                await uow.SaveChangesAsync(cancellationToken);
+            }
+
+            return Result<bool>.Success(true);
+        }
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (NpgsqlException ex)
+        {
+            logger.LogError(ex, "Database error deleting document {DocumentId}", documentId);
+            return Result<bool>.Failure("DOCUMENTS_DELETE_FAILED");
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "Error deleting document {DocumentId}", documentId);
+            return Result<bool>.Failure("DOCUMENTS_DELETE_FAILED");
+        }
+    }
 }

@@ -22,6 +22,20 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<AllowedCity>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(state))
+            return [];
+
+        var normalizedState = state.Trim().ToUpperInvariant();
+
+        return await dbContext.AllowedCities
+            .Where(x => x.StateSigla == normalizedState)
+            .OrderBy(x => x.CityName)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         await dbContext.AllowedCities
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);

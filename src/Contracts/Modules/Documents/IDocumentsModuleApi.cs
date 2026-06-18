@@ -87,4 +87,14 @@ public interface IDocumentsModuleApi : IModuleApi
     Task<Result<bool>> HasRejectedDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Exclui um documento e seu blob associado.
+    /// </summary>
+    /// <param name="documentId">ID do documento</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>True se excluído com sucesso</returns>
+    Task<Result<bool>> DeleteDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
 }

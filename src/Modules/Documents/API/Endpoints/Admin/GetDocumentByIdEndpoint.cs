@@ -9,32 +9,32 @@ using MeAjudaAi.Shared.Queries;
 namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
 /// <summary>
-/// Endpoint responsável pela consulta de status de um documento.
+/// Endpoint responsável pela consulta de um documento por ID.
 /// </summary>
-public class GetDocumentStatusEndpoint : BaseEndpoint, IEndpoint
+public class GetDocumentByIdEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
-    /// Configura o mapeamento do endpoint de consulta de status.
+    /// Configura o mapeamento do endpoint de consulta de documento por ID.
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{documentId:guid}/status", GetDocumentStatusAsync)
-            .WithName("GetDocumentStatus")
-            .WithSummary("Consultar status de documento")
+        => app.MapGet("/{documentId:guid}", GetDocumentByIdAsync)
+            .WithName("GetDocumentById")
+            .WithSummary("Obter documento por ID")
             .WithDescription("""
                 Retorna informações detalhadas sobre um documento específico.
                 
                 **Informações retornadas:**
+                - ID do documento e do provider
+                - Tipo e nome do arquivo
                 - Status atual (Uploaded, PendingVerification, Verified, Rejected, Failed)
                 - Datas de upload e verificação
-                - Motivo de rejeição (se aplicável)
                 - Dados extraídos por OCR (se disponível)
-                - URLs de acesso ao documento
                 """)
             .Produces<Result<ModuleDocumentDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithTags(DocumentsEndpoints.Tag);
 
-    private static async Task<IResult> GetDocumentStatusAsync(
+    private static async Task<IResult> GetDocumentByIdAsync(
         Guid documentId,
         IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)

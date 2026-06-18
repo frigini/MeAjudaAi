@@ -55,6 +55,29 @@ public class RequestMapperExtensionsTests
     }
 
     [Fact]
+    public void ToCommand_ContractUploadDocumentRequest_ShouldMapAllProperties()
+    {
+        // Arrange
+        var request = new Contracts.Modules.Documents.DTOs.UploadDocumentRequest(
+            ProviderId: Guid.NewGuid(),
+            DocumentType: "CriminalRecord",
+            FileName: "record.pdf",
+            ContentType: "application/pdf",
+            FileSizeBytes: 4096);
+
+        // Act
+        var command = request.ToCommand();
+
+        // Assert
+        command.Should().NotBeNull();
+        command.ProviderId.Should().Be(request.ProviderId);
+        command.DocumentType.Should().Be("CriminalRecord");
+        command.FileName.Should().Be("record.pdf");
+        command.ContentType.Should().Be("application/pdf");
+        command.FileSizeBytes.Should().Be(4096);
+    }
+
+    [Fact]
     public void ToApproveCommand_ShouldMapAllProperties()
     {
         // Arrange
@@ -81,6 +104,22 @@ public class RequestMapperExtensionsTests
 
         // Assert
         command.VerificationNotes.Should().BeNull();
+    }
+
+    [Fact]
+    public void ToApproveCommand_ContractVerifyDocumentRequest_ShouldMapAllProperties()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+        var request = new Contracts.Modules.Documents.DTOs.VerifyDocumentRequest(IsVerified: true, VerificationNotes: "OK");
+
+        // Act
+        var command = request.ToApproveCommand(documentId);
+
+        // Assert
+        command.Should().NotBeNull();
+        command.DocumentId.Should().Be(documentId);
+        command.VerificationNotes.Should().Be("OK");
     }
 
     [Fact]
@@ -113,6 +152,22 @@ public class RequestMapperExtensionsTests
     }
 
     [Fact]
+    public void ToRejectCommand_ContractVerifyDocumentRequest_ShouldMapAllProperties()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+        var request = new Contracts.Modules.Documents.DTOs.VerifyDocumentRequest(IsVerified: false, VerificationNotes: "Inválido");
+
+        // Act
+        var command = request.ToRejectCommand(documentId);
+
+        // Assert
+        command.Should().NotBeNull();
+        command.DocumentId.Should().Be(documentId);
+        command.RejectionReason.Should().Be("Inválido");
+    }
+
+    [Fact]
     public void ToRequestVerificationCommand_ShouldMapDocumentId()
     {
         // Arrange
@@ -120,6 +175,20 @@ public class RequestMapperExtensionsTests
 
         // Act
         var command = documentId.ToRequestVerificationCommand();
+
+        // Assert
+        command.Should().NotBeNull();
+        command.DocumentId.Should().Be(documentId);
+    }
+
+    [Fact]
+    public void ToDeleteCommand_ShouldMapDocumentId()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+
+        // Act
+        var command = documentId.ToDeleteCommand();
 
         // Assert
         command.Should().NotBeNull();

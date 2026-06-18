@@ -16,5 +16,6 @@ public static class DocumentModuleMapper
         dto.Status.ToString(),
         dto.UploadedAt,
         dto.VerifiedAt,
-        dto.RejectionReason);
+        dto.RejectionReason,
+        dto.OcrData);
 }

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
+using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
@@ -55,14 +56,13 @@ public class VerifyDocumentEndpoint : BaseEndpoint, IEndpoint
         // Se IsVerified = true → Aprovar
         if (request.IsVerified)
         {
-            var approveCommand = new ApproveDocumentCommand(documentId, request.VerificationNotes);
+            var approveCommand = request.ToApproveCommand(documentId);
             var result = await commandDispatcher.SendAsync<ApproveDocumentCommand, Result>(approveCommand, cancellationToken);
             return Handle(result);
         }
         
         // Se IsVerified = false → Rejeitar
-        var rejectionReason = request.VerificationNotes ?? "Documento rejeitado durante verificação";
-        var rejectCommand = new RejectDocumentCommand(documentId, rejectionReason);
+        var rejectCommand = request.ToRejectCommand(documentId);
         var rejectResult = await commandDispatcher.SendAsync<RejectDocumentCommand, Result>(rejectCommand, cancellationToken);
         return Handle(rejectResult);
     }

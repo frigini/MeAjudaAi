@@ -49,10 +49,9 @@ public sealed class LocationsModuleApi(
             logger.LogWarning("Location module unavailable - basic operations test failed");
             return false;
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
-            logger.LogDebug(ex, "Location module availability check was cancelled");
-            throw new InvalidOperationException("Location module availability check was cancelled", ex);
+            throw;
         }
         catch (HttpRequestException ex)
         {

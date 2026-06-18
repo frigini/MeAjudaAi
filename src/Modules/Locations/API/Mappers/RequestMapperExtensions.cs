@@ -62,6 +62,27 @@ public static class RequestMapperExtensions
     }
 
     /// <summary>
+    /// Mapeia UpdateAllowedCityRequestDto (Contract) para UpdateAllowedCityCommand.
+    /// </summary>
+    /// <param name="request">Requisição de atualização de cidade permitida (contrato)</param>
+    /// <param name="id">ID da cidade permitida a ser atualizada</param>
+    /// <returns>UpdateAllowedCityCommand com propriedades mapeadas</returns>
+    public static UpdateAllowedCityCommand ToCommand(this MeAjudaAi.Contracts.Modules.Locations.DTOs.UpdateAllowedCityRequestDto request, Guid id)
+    {
+        return new UpdateAllowedCityCommand
+        {
+            Id = id,
+            CityName = request.City,
+            StateSigla = request.State,
+            IbgeCode = null, // IbgeCode not in contract
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            ServiceRadiusKm = request.ServiceRadiusKm,
+            IsActive = request.IsActive
+        };
+    }
+
+    /// <summary>
     /// Mapeia um Guid para DeleteAllowedCityCommand.
     /// </summary>
     /// <param name="id">ID da cidade permitida a ser excluída</param>

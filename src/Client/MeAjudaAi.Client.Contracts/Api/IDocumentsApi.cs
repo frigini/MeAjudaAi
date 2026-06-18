@@ -16,24 +16,18 @@ namespace MeAjudaAi.Client.Contracts.Api;
 public interface IDocumentsApi
 {
     /// <summary>
-    /// Faz upload de um documento de um provider.
+    /// Gera URL de upload com SAS token para envio direto ao Azure Blob Storage.
     /// </summary>
-    /// <param name="providerId">ID do provider (GUID)</param>
-    /// <param name="file">Arquivo do documento (PDF, JPEG, PNG)</param>
-    /// <param name="documentType">Tipo: "RG", "CNH", "CNPJ", "ComprovateResidencia", "Outros"</param>
+    /// <param name="request">Dados do documento para upload (ProviderId, DocumentType, FileName, ContentType, FileSizeBytes)</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>ID do documento criado e URL de acesso</returns>
-    /// <response code="201">Documento enviado com sucesso</response>
-    /// <response code="400">Arquivo inválido ou tipo de documento não suportado</response>
+    /// <returns>URL de upload com SAS token</returns>
+    /// <response code="200">URL gerada com sucesso</response>
+    /// <response code="400">Dados inválidos</response>
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão para upload de documentos deste provider</response>
-    /// <response code="413">Arquivo muito grande (máximo 10MB)</response>
-    [Multipart]
-    [Post("/api/v1/providers/{providerId}/documents")]
-    Task<Result<ModuleDocumentDto>> UploadDocumentAsync(
-        Guid providerId,
-        [AliasAs("file")] StreamPart file,
-        [AliasAs("documentType")] string documentType,
+    [Post("/api/v1/documents/upload")]
+    Task<Result<UploadDocumentResponse>> UploadDocumentAsync(
+        [Body] UploadDocumentRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -46,60 +40,82 @@ public interface IDocumentsApi
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão para visualizar documentos deste provider</response>
     /// <response code="404">Provider não encontrado</response>
-    [Get("/api/v1/providers/{providerId}/documents")]
+    [Get("/api/v1/documents/provider/{providerId}")]
     Task<Result<IReadOnlyList<ModuleDocumentDto>>> GetDocumentsByProviderAsync(
         Guid providerId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Busca um documento específico pelo ID.
+    /// Consulta status de processamento de um documento específico.
     /// </summary>
-    /// <param name="providerId">ID do provider (GUID)</param>
     /// <param name="documentId">ID do documento (GUID)</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>Detalhes completos do documento incluindo dados de OCR</returns>
+    /// <returns>Detalhes do documento incluindo status e dados de OCR</returns>
     /// <response code="200">Documento encontrado</response>
-    /// <response code="404">Documento ou provider não encontrado</response>
+    /// <response code="404">Documento não encontrado</response>
     /// <response code="401">Não autenticado</response>
-    /// <response code="403">Sem permissão para visualizar este documento</response>
-    [Get("/api/v1/providers/{providerId}/documents/{documentId}")]
-    Task<Result<ModuleDocumentDto>> GetDocumentByIdAsync(
-        Guid providerId,
+    [Get("/api/v1/documents/{documentId}/status")]
+    Task<Result<ModuleDocumentDto>> GetDocumentStatusAsync(
         Guid documentId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Solicita verificação de um documento via Azure Document Intelligence.
+    /// Obtém um documento específico por ID.
     /// </summary>
-    /// <param name="providerId">ID do provider (GUID)</param>
     /// <param name="documentId">ID do documento (GUID)</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>Status da solicitação de verificação</returns>
-    /// <response code="200">Verificação solicitada com sucesso (processamento assíncrono)</response>
-    /// <response code="400">Documento em estado inválido para verificação</response>
-    /// <response code="404">Documento ou provider não encontrado</response>
+    /// <returns>Detalhes completos do documento</returns>
+    /// <response code="200">Documento encontrado</response>
+    /// <response code="404">Documento não encontrado</response>
+    /// <response code="401">Não autenticado</response>
+    [Get("/api/v1/documents/{documentId}")]
+    Task<Result<ModuleDocumentDto>> GetDocumentByIdAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Exclui um documento e seu blob associado (Admin only).
+    /// </summary>
+    /// <param name="documentId">ID do documento (GUID)</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <response code="200">Documento excluído com sucesso</response>
+    /// <response code="404">Documento não encontrado</response>
+    /// <response code="403">Sem permissão de administrador</response>
+    /// <response code="401">Não autenticado</response>
+    [Delete("/api/v1/documents/{documentId}")]
+    Task<Result<bool>> DeleteDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Solicita verificação manual de um documento quando OCR falha ou precisa validação adicional.
+    /// </summary>
+    /// <param name="documentId">ID do documento (GUID)</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <response code="202">Verificação solicitada com sucesso (processamento assíncrono)</response>
+    /// <response code="404">Documento não encontrado</response>
+    /// <response code="409">Documento já está em processo de verificação</response>
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão para solicitar verificação</response>
-    [Post("/api/v1/providers/{providerId}/documents/{documentId}/verify")]
-    Task<Result<Unit>> RequestDocumentVerificationAsync(
-        Guid providerId,
+    [Post("/api/v1/documents/{documentId}/request-verification")]
+    Task RequestDocumentVerificationAsync(
         Guid documentId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deleta um documento (Admin only).
+    /// Aprova ou rejeita um documento após verificação manual (Admin only).
     /// </summary>
-    /// <param name="providerId">ID do provider (GUID)</param>
     /// <param name="documentId">ID do documento (GUID)</param>
+    /// <param name="request">Dados da verificação (IsVerified + VerificationNotes)</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>Confirmação da exclusão</returns>
-    /// <response code="204">Documento deletado com sucesso</response>
-    /// <response code="404">Documento ou provider não encontrado</response>
+    /// <response code="200">Documento verificado com sucesso</response>
+    /// <response code="400">Documento já verificado ou status inválido</response>
+    /// <response code="404">Documento não encontrado</response>
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão de administrador</response>
-    [Delete("/api/v1/providers/{providerId}/documents/{documentId}")]
-    Task<Result<Unit>> DeleteDocumentAsync(
-        Guid providerId,
+    [Post("/api/v1/documents/{documentId}/verify")]
+    Task VerifyDocumentAsync(
         Guid documentId,
+        [Body] VerifyDocumentRequest request,
         CancellationToken cancellationToken = default);
 }

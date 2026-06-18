@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 
@@ -42,7 +43,7 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var command = new RequestVerificationCommand(documentId);
+        var command = documentId.ToRequestVerificationCommand();
         var result = await commandDispatcher.SendAsync<RequestVerificationCommand, Result>(command, cancellationToken);
 
         if (result.IsFailure)

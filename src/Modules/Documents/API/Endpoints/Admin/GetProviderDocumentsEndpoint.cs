@@ -1,5 +1,8 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
-using MeAjudaAi.Modules.Documents.Application.Queries;
+using MeAjudaAi.Modules.Documents.Application.Mappers;
+using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 
@@ -25,7 +28,7 @@ public class GetProviderDocumentsEndpoint : BaseEndpoint, IEndpoint
                 - Verificar status de verificação de documentos
                 - Acompanhar progresso de validação de cadastro
                 """)
-            .Produces<IEnumerable<DocumentDto>>(StatusCodes.Status200OK)
+            .Produces<Result<IReadOnlyList<ModuleDocumentDto>>>(StatusCodes.Status200OK)
             .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> GetProviderDocumentsAsync(
@@ -33,10 +36,12 @@ public class GetProviderDocumentsEndpoint : BaseEndpoint, IEndpoint
         IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)
     {
-        var query = new GetProviderDocumentsQuery(providerId);
-        var result = await queryDispatcher.QueryAsync<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>(
+        var query = providerId.ToDocumentsQuery();
+        var result = await queryDispatcher.QueryAsync<Application.Queries.GetProviderDocumentsQuery, IEnumerable<DocumentDto>>(
             query, cancellationToken);
 
-        return Results.Ok(result);
+        var contractResult = result.Select(d => d.ToModuleDto()).ToList();
+
+        return Results.Ok(Result<IReadOnlyList<ModuleDocumentDto>>.Success(contractResult));
     }
 }
