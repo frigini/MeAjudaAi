@@ -42,6 +42,8 @@ describe('AppProviders (Admin)', () => {
 
     expect(screen.getByText('Authenticated Content')).toBeInTheDocument();
     const { useSession } = await import('next-auth/react');
-    expect(useSession()[0]).toEqual(mockSession);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = (useSession() as any)[0];
+    expect(session).toEqual(mockSession);
   });
 });
