@@ -15,7 +15,7 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
     private static readonly Regex IdentifierRegex = new(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Configures permissions using standardized scripts (00-roles.sql, 01-permissions.sql).
+    /// Configura permissões usando scripts SQL padronizados (00-roles.sql, 01-permissions.sql).
     /// </summary>
     public virtual async Task EnsureModulePermissionsAsync(string adminConnectionString, ModulePermissionConfig config)
     {
@@ -40,8 +40,8 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
 
         try
         {
-            await ExecuteScriptAsync(connection, config, "00-roles.sql");
-            await ExecuteScriptAsync(connection, config, "01-permissions.sql");
+            await ExecuteScriptAsync(connection, config, SqlScripts.Roles);
+            await ExecuteScriptAsync(connection, config, SqlScripts.Permissions);
 
             logger.LogInformation("Successfully configured permissions for {ModuleName}", config.ModuleName);
         }
