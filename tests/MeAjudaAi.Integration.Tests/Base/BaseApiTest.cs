@@ -501,6 +501,10 @@ services.AddHttpContextAccessor();
 
             if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
                 return System.Text.Json.JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
+
+            // Handle Response<T> shape: { "data": ..., "statusCode": 200, "message": ... }
+            if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("data", out var d) && d.ValueKind != JsonValueKind.Null)
+                return System.Text.Json.JsonSerializer.Deserialize<T>(d.GetRawText(), SerializationDefaults.Api);
             
             return System.Text.Json.JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
@@ -527,8 +531,8 @@ services.AddHttpContextAccessor();
         if (response.ValueKind == JsonValueKind.Array) return response;
         if (response.ValueKind == JsonValueKind.Object)
         {
-            if (response.TryGetProperty("value", out var v)) return v;
-            if (response.TryGetProperty("data", out var d)) return d;
+            if (response.TryGetProperty("data", out var d) && d.ValueKind != JsonValueKind.Null) return d;
+            if (response.TryGetProperty("value", out var v) && v.ValueKind != JsonValueKind.Null) return v;
         }
         return response;
     }

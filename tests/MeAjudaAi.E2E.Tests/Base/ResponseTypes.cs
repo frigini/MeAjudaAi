@@ -62,4 +62,9 @@ public record ApiResult<T>(T? Value, bool IsSuccess, bool IsFailure, ApiError? E
     public T? Data => Value; 
 }
 
+public record ApiResponse<T>(T? Data, int StatusCode, string? Message)
+{
+    public bool IsSuccess => StatusCode >= 200 && StatusCode < 300;
+}
+
 public record ApiError(string Code, string Message);

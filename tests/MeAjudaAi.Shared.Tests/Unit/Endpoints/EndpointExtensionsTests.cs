@@ -18,11 +18,11 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<Ok<Result<string>>>();
-        var okResult = (Ok<Result<string>>)response;
+        response.Should().BeOfType<Ok<Response<string>>>();
+        var okResult = (Ok<Response<string>>)response;
         okResult.StatusCode.Should().Be(200);
-        okResult.Value.IsSuccess.Should().BeTrue();
-        okResult.Value.Value.Should().Be("test value");
+        okResult.Value.Data.Should().Be("test value");
+        okResult.Value.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -36,12 +36,12 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result, "GetById", routeValues);
 
         // Assert
-        response.Should().BeOfType<CreatedAtRoute<Result<string>>>();
-        var createdResult = (CreatedAtRoute<Result<string>>)response;
+        response.Should().BeOfType<CreatedAtRoute<Response<string>>>();
+        var createdResult = (CreatedAtRoute<Response<string>>)response;
         createdResult.StatusCode.Should().Be(201);
         createdResult.RouteName.Should().Be("GetById");
         createdResult.RouteValues["id"].Should().Be(1);
-        createdResult.Value.IsSuccess.Should().BeTrue();
+        createdResult.Value.Data.Should().Be("test value");
     }
 
     [Fact]
@@ -55,11 +55,10 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<NotFound<Result<string>>>();
-        var notFoundResult = (NotFound<Result<string>>)response;
+        response.Should().BeOfType<NotFound<Response<string>>>();
+        var notFoundResult = (NotFound<Response<string>>)response;
         notFoundResult.StatusCode.Should().Be(404);
-        notFoundResult.Value.IsFailure.Should().BeTrue();
-        notFoundResult.Value.Error.Should().Be(error);
+        notFoundResult.Value.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -73,10 +72,10 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<BadRequest<Result<string>>>();
-        var badRequestResult = (BadRequest<Result<string>>)response;
+        response.Should().BeOfType<BadRequest<Response<string>>>();
+        var badRequestResult = (BadRequest<Response<string>>)response;
         badRequestResult.StatusCode.Should().Be(400);
-        badRequestResult.Value.IsFailure.Should().BeTrue();
+        badRequestResult.Value.StatusCode.Should().Be(400);
     }
 
     [Fact]
@@ -89,10 +88,9 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<Ok<Result>>();
-        var okResult = (Ok<Result>)response;
+        response.Should().BeOfType<Ok<Response<object>>>();
+        var okResult = (Ok<Response<object>>)response;
         okResult.StatusCode.Should().Be(200);
-        okResult.Value.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -106,7 +104,7 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<BadRequest<Result<object>>>();
+        response.Should().BeOfType<BadRequest<Response<object>>>();
     }
     
     [Fact]
@@ -120,11 +118,9 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<JsonHttpResult<Result<string>>>();
-        var jsonResult = (JsonHttpResult<Result<string>>)response;
+        response.Should().BeOfType<JsonHttpResult<Response<string>>>();
+        var jsonResult = (JsonHttpResult<Response<string>>)response;
         jsonResult.StatusCode.Should().Be(401);
-        jsonResult.Value.IsFailure.Should().BeTrue();
-        jsonResult.Value.Error.Should().Be(error);
     }
 
     [Fact]
@@ -141,10 +137,10 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandlePaged(result, totalCount, currentPage, pageSize);
 
         // Assert
-        response.Should().BeOfType<Ok<Result<PagedResponse<IEnumerable<string>>>>>();
-        var okResult = (Ok<Result<PagedResponse<IEnumerable<string>>>>)response;
-        okResult.Value.Value.TotalCount.Should().Be(totalCount);
-        okResult.Value.Value.Data.Should().BeEquivalentTo(data);
+        response.Should().BeOfType<Ok<PagedResponse<IEnumerable<string>>>>();
+        var okResult = (Ok<PagedResponse<IEnumerable<string>>>)response;
+        okResult.Value.TotalCount.Should().Be(totalCount);
+        okResult.Value.Data.Should().BeEquivalentTo(data);
     }
     
     [Fact]
@@ -158,7 +154,7 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandlePaged(result, 0, 1, 10);
 
         // Assert
-        response.Should().BeOfType<BadRequest<Result<IEnumerable<string>>>>();
+        response.Should().BeOfType<BadRequest<Response<IEnumerable<string>>>>();
     }
 
     [Fact]
@@ -172,11 +168,11 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandlePagedResult(result);
 
         // Assert
-        response.Should().BeOfType<Ok<Result<PagedResult<string>>>>();
+        response.Should().BeOfType<Ok<PagedResponse<IReadOnlyList<string>>>>();
     }
 
     [Fact]
-    public void HandleNoContent_Success_ShouldReturnNoContent()
+    public void HandleNoContent_Success_ShouldReturnOk()
     {
         // Arrange
         var result = Result<string>.Success("ignore me");
@@ -185,11 +181,10 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandleNoContent(result);
 
         // Assert
-        // Updated to expect Ok<Result<string>> because HandleNoContent now returns Ok(result) for frontend compatibility
-        response.Should().BeOfType<Ok<Result<string>>>();
-        var okResult = (Ok<Result<string>>)response;
+        response.Should().BeOfType<Ok<Response<string>>>();
+        var okResult = (Ok<Response<string>>)response;
         okResult.StatusCode.Should().Be(200);
-        okResult.Value.IsSuccess.Should().BeTrue();
+        okResult.Value.Data.Should().Be("ignore me");
     }
 
     [Fact]
@@ -203,6 +198,6 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandleNoContent(result);
 
         // Assert
-        response.Should().BeOfType<BadRequest<Result<string>>>();
+        response.Should().BeOfType<BadRequest<Response<string>>>();
     }
 }
