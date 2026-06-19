@@ -42,7 +42,7 @@ public static class Extensions
         services.AddServices(configuration);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Locations, Schemas.Locations, Schemas.Roles.Locations);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Locations, Schemas.Locations, DatabaseRoleConstants.Locations);
 
         return services;
     }

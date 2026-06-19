@@ -1,7 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using MeAjudaAi.Shared.Authorization.Core.Models;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using System.Text.RegularExpressions;
 
 namespace MeAjudaAi.Shared.Database;
 
@@ -11,14 +12,12 @@ namespace MeAjudaAi.Shared.Database;
 /// </summary>
 public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
 {
-    private const string BasePath = "infrastructure/database/modules";
-
     private static readonly Regex IdentifierRegex = new(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled);
 
     /// <summary>
     /// Configures permissions using standardized scripts (00-roles.sql, 01-permissions.sql).
     /// </summary>
-    public async Task EnsureModulePermissionsAsync(string adminConnectionString, ModulePermissionConfig config)
+    public virtual async Task EnsureModulePermissionsAsync(string adminConnectionString, ModulePermissionConfig config)
     {
         // 1. Validar antes de abrir conexão
         if (string.IsNullOrWhiteSpace(config.RolePassword) || string.IsNullOrWhiteSpace(config.AppRolePassword))
@@ -28,8 +27,8 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
         EnsureValidIdentifier(config.AppRoleName, nameof(config.AppRoleName));
         EnsureValidIdentifier(config.SchemaName, nameof(config.SchemaName));
 
-        var rolesScriptPath = Path.Combine(BasePath, config.ModuleName, "00-roles.sql");
-        var permsScriptPath = Path.Combine(BasePath, config.ModuleName, "01-permissions.sql");
+        var rolesScriptPath = SqlScripts.GetScriptPath(config.ModuleName, SqlScripts.Roles);
+        var permsScriptPath = SqlScripts.GetScriptPath(config.ModuleName, SqlScripts.Permissions);
         
         if (!File.Exists(rolesScriptPath)) throw new FileNotFoundException($"Script not found: {rolesScriptPath}");
         if (!File.Exists(permsScriptPath)) throw new FileNotFoundException($"Script not found: {permsScriptPath}");
@@ -62,27 +61,26 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
             throw new ArgumentException($"Invalid identifier for {paramName}. Only ASCII letters, digits and underscores are allowed, and it must not start with a digit.", paramName);
     }
 
+    [SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "SQL template is a static file from disk; replacements use validated identifiers via EnsureValidIdentifier.")]
     private async Task ExecuteScriptAsync(NpgsqlConnection connection, ModulePermissionConfig config, string scriptName)
     {
-        var scriptPath = Path.Combine(BasePath, config.ModuleName, scriptName);
+        var scriptPath = SqlScripts.GetScriptPath(config.ModuleName, scriptName);
         var sql = await File.ReadAllTextAsync(scriptPath);
 
         // Replace placeholders safely
-        sql = sql.Replace("{{ROLE_NAME}}", QuoteIdentifier(config.RoleName))
-                 .Replace("{{SCHEMA_NAME_LITERAL}}", $"'{config.SchemaName.Replace("'", "''")}'")
-                 .Replace("{{ROLE_OWNER_NAME}}", QuoteIdentifier(config.RoleName + "_owner"))
-                 .Replace("{{APP_ROLE_NAME}}", QuoteIdentifier(config.AppRoleName))
-                 .Replace("{{ROLE_PASSWORD}}", "@role_pwd")
-                 .Replace("{{APP_ROLE_PASSWORD}}", "@app_pwd")
-                 .Replace("{{SCHEMA_NAME}}", QuoteIdentifier(config.SchemaName));
+        sql = sql.Replace(SqlTemplatePlaceholders.RoleName, QuoteIdentifier(config.RoleName))
+                 .Replace(SqlTemplatePlaceholders.SchemaNameLiteral, $"'{config.SchemaName.Replace("'", "''")}'")
+                 .Replace(SqlTemplatePlaceholders.RoleOwnerName, QuoteIdentifier(config.RoleName + "_owner"))
+                 .Replace(SqlTemplatePlaceholders.AppRoleName, QuoteIdentifier(config.AppRoleName))
+                 .Replace(SqlTemplatePlaceholders.RolePassword, $"@{SqlTemplatePlaceholders.RolePwdParam}")
+                 .Replace(SqlTemplatePlaceholders.AppRolePassword, $"@{SqlTemplatePlaceholders.AppPwdParam}")
+                 .Replace(SqlTemplatePlaceholders.SchemaName, QuoteIdentifier(config.SchemaName));
 
         using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // Review if the query string passed to 'string NpgsqlCommand.CommandText' in 'ExecuteScriptAsync', accepts any user input
         command.CommandText = sql;
-#pragma warning restore CA2100
 
-        command.Parameters.AddWithValue("role_pwd", config.RolePassword);
-        command.Parameters.AddWithValue("app_pwd", config.AppRolePassword);
+        command.Parameters.AddWithValue(SqlTemplatePlaceholders.RolePwdParam, config.RolePassword);
+        command.Parameters.AddWithValue(SqlTemplatePlaceholders.AppPwdParam, config.AppRolePassword);
 
         await command.ExecuteNonQueryAsync();
     }
@@ -90,7 +88,7 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
     /// <summary>
     /// Verifica se as permissões do módulo já estão configuradas.
     /// </summary>
-    public async Task<bool> AreModulePermissionsConfiguredAsync(string adminConnectionString, string schemaName, string roleName)
+    public virtual async Task<bool> AreModulePermissionsConfiguredAsync(string adminConnectionString, string schemaName, string roleName)
     {
         try
         {

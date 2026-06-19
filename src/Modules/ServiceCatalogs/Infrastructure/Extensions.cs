@@ -46,7 +46,7 @@ public static class Extensions
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.ServiceCatalogs, Schemas.ServiceCatalogs, Schemas.Roles.ServiceCatalogs);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.ServiceCatalogs, Schemas.ServiceCatalogs, DatabaseRoleConstants.ServiceCatalogs);
 
         return services;
     }

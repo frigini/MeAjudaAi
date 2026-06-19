@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +18,7 @@ public class DapperConnectionTests
         _loggerMock = new Mock<ILogger<DapperConnection>>();
         _postgresOptions = new PostgresOptions
         {
-            ConnectionString = "Host=localhost;Port=5432;Database=test;Username=test;Password=test;"
+            ConnectionString = DatabaseConstants.LocalWithPortConnectionString
         };
     }
 
@@ -214,7 +215,7 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var loggerMock = new Mock<ILogger<DapperConnection>>();
-        var options = new PostgresOptions { ConnectionString = "Host=invalid;Port=9999;Database=invalid;Username=invalid;Password=invalid;" };
+        var options = new PostgresOptions { ConnectionString = DatabaseConstants.InvalidConnectionString };
         var connection = new DapperConnection(options, metrics, loggerMock.Object);
 
         // Act

@@ -97,6 +97,9 @@ dotnet_analyzer_diagnostic.severity = suggestion
 # [src/Shared/**]
 # dotnet_diagnostic.CA2000.severity = none
 
+[src/Shared/Database/Constants/DatabaseConstants.cs]
+dotnet_diagnostic.S2068.severity = none # Test connection string constants contain dummy credentials
+
 [src/Shared/Monitoring/BusinessMetrics.cs]
 dotnet_diagnostic.CA1063.severity = none
 

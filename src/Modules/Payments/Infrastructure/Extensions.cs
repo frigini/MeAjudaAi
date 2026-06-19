@@ -35,7 +35,7 @@ public static class Extensions
         services.AddEventHandlers();
         services.AddJobs();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Payments, Schemas.Payments, Schemas.Roles.Payments);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Payments, Schemas.Payments, DatabaseRoleConstants.Payments);
 
         return services;
     }

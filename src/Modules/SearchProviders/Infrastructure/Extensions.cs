@@ -37,7 +37,7 @@ public static class Extensions
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.SearchProviders, Schemas.SearchProviders, Schemas.Roles.SearchProviders);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.SearchProviders, Schemas.SearchProviders, DatabaseRoleConstants.SearchProviders);
 
         return services;
     }

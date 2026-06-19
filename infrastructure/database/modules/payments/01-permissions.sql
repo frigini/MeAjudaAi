@@ -2,7 +2,7 @@
 
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = '{{SCHEMA_NAME_LITERAL}}') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = {{SCHEMA_NAME_LITERAL}}) THEN
         -- Grant immediate permissions on existing objects
         GRANT USAGE ON SCHEMA {{SCHEMA_NAME}} TO {{ROLE_NAME}};
         GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA {{SCHEMA_NAME}} TO {{ROLE_NAME}};

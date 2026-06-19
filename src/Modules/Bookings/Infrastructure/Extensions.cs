@@ -26,7 +26,7 @@ public static class Extensions
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Bookings, Schemas.Bookings, Schemas.Roles.Bookings);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Bookings, Schemas.Bookings, DatabaseRoleConstants.Bookings);
 
         return services;
     }

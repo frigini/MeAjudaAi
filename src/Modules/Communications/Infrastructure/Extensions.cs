@@ -33,7 +33,7 @@ public static class Extensions
         services.AddServices(configuration, environment);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Communications, Schemas.Communications, Schemas.Roles.Communications);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Communications, Schemas.Communications, DatabaseRoleConstants.Communications);
 
         return services;
     }

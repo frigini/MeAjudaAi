@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Events;
@@ -19,7 +20,7 @@ public class ExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test"
+                ["ConnectionStrings:DefaultConnection"] = DatabaseConstants.DefaultTestConnectionString
             })
             .Build();
         var messageBusMock = new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>();

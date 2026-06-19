@@ -30,7 +30,7 @@ public static class Extensions
         services.AddEventHandlers();
         services.AddJobs();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Documents, Schemas.Documents, Schemas.Roles.Documents);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Documents, Schemas.Documents, DatabaseRoleConstants.Documents);
 
         return services;
     }

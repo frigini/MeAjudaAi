@@ -35,7 +35,7 @@ public static class Extensions
         services.AddServices(configuration);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Users, Schemas.Users, Schemas.Roles.Users);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Users, Schemas.Users, DatabaseRoleConstants.Users);
 
         return services;
     }

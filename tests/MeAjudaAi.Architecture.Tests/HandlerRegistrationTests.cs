@@ -1,5 +1,6 @@
 using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,7 @@ public class HandlerRegistrationTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test",
+                ["ConnectionStrings:DefaultConnection"] = DatabaseConstants.DefaultTestConnectionString,
                 ["Stripe:ApiKey"] = "sk_test_dummy",
                 ["Messaging:Enabled"] = "false"
             })

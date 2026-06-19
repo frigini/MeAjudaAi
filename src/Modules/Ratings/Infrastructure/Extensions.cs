@@ -38,7 +38,7 @@ public static class Extensions
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
 
-        services.ConfigureSchemaIsolation(configuration, ModuleNames.Ratings, Schemas.Ratings, Schemas.Roles.Ratings);
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Ratings, Schemas.Ratings, DatabaseRoleConstants.Ratings);
 
         return services;
     }
