@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using System.Diagnostics.CodeAnalysis;
 
@@ -49,12 +50,7 @@ public class GetCommunicationLogsEndpoint : IEndpoint
         }
 
         var error = result.Error!;
-        
-        // Preserve status code if within valid HTTP error range (400-599), else fallback to 500
-        var statusCode = (error.StatusCode >= 400 && error.StatusCode < 600) 
-            ? error.StatusCode 
-            : StatusCodes.Status500InternalServerError;
 
-        return Results.Problem(detail: error.Message, statusCode: statusCode);
+        return error.ToProblem();
     }
 }

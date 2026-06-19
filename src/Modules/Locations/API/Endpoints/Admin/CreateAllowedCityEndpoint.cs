@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
@@ -36,10 +37,7 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 
         if (result.IsFailure)
         {
-            return Results.Problem(
-                detail: result.Error.Message,
-                statusCode: result.Error.StatusCode,
-                title: "Erro ao criar cidade permitida");
+            return result.Error.ToProblem();
         }
 
         return Results.CreatedAtRoute("GetAllowedCityById", new { id = result.Value }, new Response<Guid>(result.Value, 201));

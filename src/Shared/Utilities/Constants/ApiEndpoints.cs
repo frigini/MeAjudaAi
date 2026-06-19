@@ -79,6 +79,9 @@ public static class ApiEndpoints
     public static class Payments
     {
         public const string Base = "payments";
+        public const string CreateSubscription = "/subscriptions";
+        public const string GetBillingPortal = "/subscriptions/billing-portal";
+        public const string StripeWebhook = "/stripe";
     }
 
     public static class Ratings

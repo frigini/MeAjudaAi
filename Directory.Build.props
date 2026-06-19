@@ -36,9 +36,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn> <!-- Missing XML comment warnings -->
     
-    <!-- Package vulnerability warnings (NU1903/NU1902) are now enabled -->
-    <!-- Microsoft.Build packages updated to 17.14.28 (CVE-2025-55247 resolved) -->
-    <!-- TODO: Update EF Core Design to stable 10.0.0 when available (currently RC) -->
+    <!-- Package vulnerability warnings (NU1903/NU1902) -->
+    <!-- TODO: Remove NU1903 suppression when Microsoft.EntityFrameworkCore.Sqlite upgrades to SQLitePCLRaw 3.x -->
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
     
     <!-- Configurações de performance -->
     <DebugType>portable</DebugType>

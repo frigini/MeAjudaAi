@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
 
@@ -37,7 +38,6 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         
         if (result.IsFailure)
         {
-            // Mapeia o código de erro/status para uma mensagem localizada segura
             var errorMessage = result.Error.StatusCode switch
             {
                 StatusCodes.Status409Conflict => ValidationMessages.Locations.DuplicateCity,
@@ -45,10 +45,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
                 _ => ValidationMessages.Locations.UpdateFailed 
             };
 
-            return Results.Problem(
-                detail: errorMessage,
-                statusCode: result.Error.StatusCode,
-                title: "Erro ao atualizar cidade permitida");
+            return new Error(errorMessage, result.Error.StatusCode).ToProblem();
         }
 
         return Results.Ok(Result<Unit>.Success(Unit.Value));

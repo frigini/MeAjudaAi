@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Payments.API.Endpoints.Public;
+using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 
 namespace MeAjudaAi.Modules.Payments.API.Mappers;

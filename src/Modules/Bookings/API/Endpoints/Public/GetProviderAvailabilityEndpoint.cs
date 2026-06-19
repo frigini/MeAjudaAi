@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -52,7 +53,7 @@ public class GetProviderAvailabilityEndpoint : IEndpoint
 
         return result.Match(
             onSuccess: availability => Results.Ok(availability),
-            onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
+            onFailure: error => error.ToProblem()
         );
     }
 }

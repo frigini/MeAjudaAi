@@ -8,6 +8,7 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
 
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
 
@@ -129,10 +130,7 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
                 pageNumber > 0 && pageSize > 0,
                 pageNumber, pageSize, name);
 
-            return Results.Problem(
-                detail: "Ocorreu um erro interno ao processar a lista de prestadores. Consulte os logs.",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Erro Interno do Servidor");
+            return Error.Internal("Ocorreu um erro interno ao processar a lista de prestadores. Consulte os logs.").ToProblem();
         }
     }
 }

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
@@ -46,14 +47,7 @@ public class DeleteDocumentEndpoint : BaseEndpoint, IEndpoint
         
         if (result.IsFailure)
         {
-            return result.Error.StatusCode switch
-            {
-                StatusCodes.Status404NotFound => Results.NotFound(Result<bool>.Failure(result.Error)),
-                _ => Results.Problem(
-                    detail: result.Error.Message,
-                    statusCode: result.Error.StatusCode,
-                    title: "Erro ao excluir documento")
-            };
+            return result.Error.ToProblem();
         }
 
         return Results.Ok(Result<bool>.Success(true));
