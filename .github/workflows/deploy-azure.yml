@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Validate Bicep syntax
         run: az bicep build --file infrastructure/main.bicep
@@ -55,7 +55,7 @@ jobs:
     environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/master' && 'prod' || 'dev') }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Login to Azure
         uses: azure/login@v3
