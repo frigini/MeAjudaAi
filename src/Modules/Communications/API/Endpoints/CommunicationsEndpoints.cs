@@ -4,7 +4,6 @@ using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Routing;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints;

@@ -5,9 +5,6 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Contracts.Functional;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 

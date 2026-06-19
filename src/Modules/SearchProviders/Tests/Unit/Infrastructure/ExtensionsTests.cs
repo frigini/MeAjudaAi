@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -22,7 +23,7 @@ public class ExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test"
+                ["ConnectionStrings:DefaultConnection"] = DatabaseConstants.DefaultTestConnectionString
             })
             .Build();
         var hostEnv = new Mock<Microsoft.Extensions.Hosting.IHostEnvironment>();

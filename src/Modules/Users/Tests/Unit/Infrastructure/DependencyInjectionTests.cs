@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure;
@@ -43,7 +44,7 @@ public class DependencyInjectionTests
     {
         // Arrange
         var settings = new Dictionary<string, string?> {
-            {"ConnectionStrings:DefaultConnection", "Host=localhost;Database=test;Username=postgres;Password=test"},
+            {"ConnectionStrings:DefaultConnection", DatabaseConstants.LocalWithCredentialsConnectionString},
             {"Keycloak:Enabled", "false"}
         };
 
@@ -72,7 +73,7 @@ public class DependencyInjectionTests
     {
         // Arrange
         var settings = new Dictionary<string, string?> {
-            {"ConnectionStrings:DefaultConnection", "Host=localhost;Database=test;Username=postgres;Password=test"},
+            {"ConnectionStrings:DefaultConnection", DatabaseConstants.LocalWithCredentialsConnectionString},
             {"Keycloak:Enabled", "true"},
             {"Keycloak:BaseUrl", "https://keycloak.test.com"},
             {"Keycloak:Realm", "master"},

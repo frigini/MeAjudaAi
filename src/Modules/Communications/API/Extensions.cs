@@ -1,17 +1,12 @@
 using MeAjudaAi.Modules.Communications.API.Endpoints;
 using MeAjudaAi.Modules.Communications.Application;
 using MeAjudaAi.Modules.Communications.Infrastructure;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API;
 
 [ExcludeFromCodeCoverage]
-public static class CommunicationsModuleExtensions
+public static class Extensions
 {
     public static IServiceCollection AddCommunicationsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
@@ -21,15 +16,9 @@ public static class CommunicationsModuleExtensions
         return services;
     }
 
-    public static WebApplication UseCommunicationsModule(this WebApplication app)
+    public static IEndpointRouteBuilder UseCommunicationsModule(this IEndpointRouteBuilder app)
     {
-        app.MapCommunicationsEndpoints();
+        CommunicationsEndpoints.Map(app);
         return app;
-    }
-
-    public static IEndpointRouteBuilder MapCommunicationsEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        CommunicationsEndpoints.Map(endpoints);
-        return endpoints;
     }
 }

@@ -16,11 +16,13 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +45,8 @@ public static class Extensions
     {
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
+
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.ServiceCatalogs, Schemas.ServiceCatalogs, DatabaseRoleConstants.ServiceCatalogs);
 
         return services;
     }

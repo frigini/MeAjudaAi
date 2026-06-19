@@ -1,13 +1,8 @@
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 

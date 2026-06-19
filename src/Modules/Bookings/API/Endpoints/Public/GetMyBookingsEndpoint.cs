@@ -6,11 +6,7 @@ using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 

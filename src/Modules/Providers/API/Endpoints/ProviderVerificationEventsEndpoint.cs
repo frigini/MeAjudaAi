@@ -4,9 +4,6 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Streaming;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints;
 

@@ -10,8 +10,8 @@ $$ LANGUAGE plpgsql;
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = '{{ROLE_NAME}}_owner') THEN
-        CREATE ROLE {{ROLE_NAME}}_owner NOLOGIN INHERIT;
+    IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = '{{ROLE_OWNER_NAME}}') THEN
+        CREATE ROLE {{ROLE_OWNER_NAME}} NOLOGIN INHERIT;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -39,5 +39,5 @@ $$ LANGUAGE plpgsql;
 
 -- Commenting roles
 COMMENT ON ROLE {{ROLE_NAME}} IS 'Permission grouping role for {{SCHEMA_NAME}} schema';
-COMMENT ON ROLE {{ROLE_NAME}}_owner IS 'Owner role for {{SCHEMA_NAME}} schema objects';
+COMMENT ON ROLE {{ROLE_OWNER_NAME}} IS 'Owner role for {{SCHEMA_NAME}} schema objects';
 COMMENT ON ROLE {{APP_ROLE_NAME}} IS 'App-wide role for cross-module access';

@@ -18,7 +18,7 @@ public static class Extensions
     /// <summary>
     /// Registra serviços da camada de Application do SearchProviders.
     /// </summary>
-    public static IServiceCollection AddSearchProvidersApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Registrar query handlers
         services.AddScoped<IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>, Handlers.SearchProvidersQueryHandler>();
