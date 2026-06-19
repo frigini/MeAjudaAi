@@ -5,45 +5,24 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.SearchProviders.API;
 
-/// <summary>
-/// Extensões em nível de módulo para registrar o módulo completo de SearchProviders.
-/// </summary>
 [ExcludeFromCodeCoverage]
-public static class ModuleExtensions
+public static class Extensions
 {
-    /// <summary>
-    /// Registra todos os serviços do módulo SearchProviders (Domain, Application, Infrastructure, API).
-    /// </summary>
-    /// <param name="services">A coleção de serviços.</param>
-    /// <param name="configuration">A configuração para ler strings de conexão e configurações.</param>
-    /// <param name="environment">O ambiente de hospedagem para determinar comportamento em Testing.</param>
-    /// <returns>A coleção de serviços para encadeamento.</returns>
     public static IServiceCollection AddSearchProvidersModule(
         this IServiceCollection services,
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        // Domain layer não tem dependências externas para registrar
-
-        // Application layer
-        services.AddSearchProvidersApplication();
-
-        // Infrastructure layer (requer configuration para conexão do BD)
+        services.AddApplication();
         services.AddInfrastructure(configuration, environment);
-
-        // API layer - sem serviços adicionais para registrar
 
         return services;
     }
 
-    /// <summary>
-    /// Mapeia todos os endpoints do módulo SearchProviders.
-    /// </summary>
-    /// <param name="app">O construtor de rotas de endpoint.</param>
-    /// <returns>O construtor de rotas de endpoint para encadeamento.</returns>
     public static IEndpointRouteBuilder UseSearchProvidersModule(this IEndpointRouteBuilder app)
     {
         SearchProvidersEndpoint.Map(app);
         return app;
     }
 }
+

@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Modules.Documents.API.Endpoints;
 using MeAjudaAi.Modules.Documents.Application;
 using MeAjudaAi.Modules.Documents.Infrastructure;
@@ -9,9 +8,6 @@ namespace MeAjudaAi.Modules.Documents.API;
 [ExcludeFromCodeCoverage]
 public static class Extensions
 {
-    /// <summary>
-    /// Adiciona os serviços do módulo Documents.
-    /// </summary>
     public static IServiceCollection AddDocumentsModule(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -23,19 +19,9 @@ public static class Extensions
         return services;
     }
 
-    /// <summary>
-    /// Configura os endpoints do módulo Documents.
-    /// </summary>
-    public static WebApplication UseDocumentsModule(this WebApplication app)
+    public static IEndpointRouteBuilder UseDocumentsModule(this IEndpointRouteBuilder app)
     {
-        app.MapDocumentsEndpoints();
-
+        DocumentsEndpoints.Map(app);
         return app;
-    }
-
-    public static IEndpointRouteBuilder MapDocumentsEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        DocumentsEndpoints.Map(endpoints);
-        return endpoints;
     }
 }

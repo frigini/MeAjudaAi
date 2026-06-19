@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Idempotency;
@@ -16,6 +17,7 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +37,8 @@ public static class Extensions
     {
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
+
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Ratings, Schemas.Ratings, Schemas.Roles.Ratings);
 
         return services;
     }

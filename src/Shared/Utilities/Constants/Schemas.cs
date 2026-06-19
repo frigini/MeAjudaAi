@@ -19,4 +19,21 @@ public static class Schemas
     public const string Communications = "communications";
     public const string Payments = "payments";
     public const string Ratings = "ratings";
+
+    /// <summary>
+    /// Nomes dos roles de banco de dados por schema (para schema isolation).
+    /// </summary>
+    public static class Roles
+    {
+        public const string Users = "users_role";
+        public const string Providers = "providers_role";
+        public const string Documents = "documents_role";
+        public const string ServiceCatalogs = "service_catalogs_role";
+        public const string SearchProviders = "search_providers_role";
+        public const string Locations = "locations_role";
+        public const string Bookings = "bookings_role";
+        public const string Communications = "communications_role";
+        public const string Payments = "payments_role";
+        public const string Ratings = "ratings_role";
+    }
 }

@@ -13,6 +13,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,8 @@ public static class Extensions
         services.AddPersistence(configuration, environment);
         services.AddServices(configuration);
         services.AddEventHandlers();
+
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Users, Schemas.Users, Schemas.Roles.Users);
 
         return services;
     }

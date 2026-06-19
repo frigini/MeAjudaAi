@@ -118,51 +118,54 @@ public static class DatabaseExtensions
     }
 
     /// <summary>
-    /// Configura permissões de schema para o módulo Users usando scripts existentes.
-    /// Use em produção para segurança do módulo.
+    /// Helper que configura schema isolation para um módulo se habilitado via configuração.
+    /// Executa de forma assíncrona em background para não bloquear a inicialização.
     /// </summary>
-    public static async Task<IServiceCollection> EnsureUsersSchemaPermissionsAsync(
+    public static IServiceCollection ConfigureSchemaIsolation(
         this IServiceCollection services,
         IConfiguration configuration,
-        string? usersRolePassword = null,
-        string? appRolePassword = null)
+        string moduleName,
+        string schemaName,
+        string roleName)
     {
-        // Obter string de conexão admin
-        var adminConnectionString =
-            configuration.GetConnectionString("meajudaai-db-admin") ??
-            configuration.GetConnectionString("meajudaai-db") ??
-            configuration["Postgres:ConnectionString"];
+        var enabled = configuration.GetValue("Postgres:SchemaIsolation:Enabled", false);
+        if (!enabled)
+            return services;
 
-        if (string.IsNullOrEmpty(adminConnectionString))
-        {
-            throw new InvalidOperationException("Admin connection string not found for schema permissions setup");
-        }
+        var rolePassword = configuration["Postgres:SchemaIsolation:RolePassword"];
+        var appRolePassword = configuration["Postgres:SchemaIsolation:AppRolePassword"];
 
-        // Usar senhas da configuração
-        usersRolePassword = string.IsNullOrWhiteSpace(usersRolePassword) ? configuration["Postgres:UsersRolePassword"] : usersRolePassword;
-        if (string.IsNullOrWhiteSpace(usersRolePassword))
-            throw new InvalidOperationException("Postgres:UsersRolePassword configuration is required for schema isolation.");
-
-        appRolePassword = string.IsNullOrWhiteSpace(appRolePassword) ? configuration["Postgres:AppRolePassword"] : appRolePassword;
-        if (string.IsNullOrWhiteSpace(appRolePassword))
-            throw new InvalidOperationException("Postgres:AppRolePassword configuration is required for schema isolation.");
-
-        // Configurar permissões se necessário
-        using var serviceProvider = services.BuildServiceProvider();
-        var permissionsManager = serviceProvider.GetRequiredService<SchemaPermissionsManager>();
+        if (string.IsNullOrWhiteSpace(rolePassword) || string.IsNullOrWhiteSpace(appRolePassword))
+            throw new InvalidOperationException(
+                $"Schema isolation is enabled for module '{moduleName}' but " +
+                "'Postgres:SchemaIsolation:RolePassword' and 'Postgres:SchemaIsolation:AppRolePassword' are required.");
 
         var config = new ModulePermissionConfig(
-            ModuleName: "users",
-            SchemaName: "users",
-            RoleName: "users_role",
-            RolePassword: usersRolePassword,
+            ModuleName: moduleName,
+            SchemaName: schemaName,
+            RoleName: roleName,
+            RolePassword: rolePassword,
             AppRoleName: "meajudaai_app_role",
             AppRolePassword: appRolePassword);
 
-        if (!await permissionsManager.AreModulePermissionsConfiguredAsync(adminConnectionString, config.SchemaName, config.RoleName))
+        _ = Task.Run(async () =>
         {
-            await permissionsManager.EnsureModulePermissionsAsync(adminConnectionString, config);
-        }
+            using var scope = services.BuildServiceProvider().CreateScope();
+            var manager = scope.ServiceProvider.GetRequiredService<SchemaPermissionsManager>();
+
+            var adminConnectionString =
+                configuration.GetConnectionString("meajudaai-db-admin") ??
+                configuration.GetConnectionString("meajudaai-db") ??
+                configuration["Postgres:ConnectionString"];
+
+            if (string.IsNullOrEmpty(adminConnectionString))
+                return;
+
+            if (!await manager.AreModulePermissionsConfiguredAsync(adminConnectionString, config.SchemaName, config.RoleName))
+            {
+                await manager.EnsureModulePermissionsAsync(adminConnectionString, config);
+            }
+        });
 
         return services;
     }

@@ -3,18 +3,17 @@ using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
 
-/// <summary>
-/// Classe responsável pelo mapeamento de todos os endpoints do módulo ServiceCatalogs.
-/// </summary>
 public static class ServiceCatalogsModuleEndpoints
 {
-    /// <summary>
-    /// Mapeia todos os endpoints do módulo ServiceCatalogs.
-    /// </summary>
-    /// <param name="app">Aplicação web para configuração das rotas</param>
+    public static void Map(IEndpointRouteBuilder app)
+    {
+        MapServiceCatalogsEndpoints((WebApplication)app);
+    }
+
     public static void MapServiceCatalogsEndpoints(this WebApplication app)
     {
         // Service Categories endpoints

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
@@ -12,6 +13,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +36,8 @@ public static class Extensions
     {
         services.AddPersistence(configuration, environment);
         services.AddEventHandlers();
+
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.SearchProviders, Schemas.SearchProviders, Schemas.Roles.SearchProviders);
 
         return services;
     }

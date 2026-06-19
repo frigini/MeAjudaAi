@@ -1,17 +1,7 @@
 using MeAjudaAi.Modules.Ratings.API.Endpoints;
 using MeAjudaAi.Modules.Ratings.Application;
 using MeAjudaAi.Modules.Ratings.Infrastructure;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
-using MeAjudaAi.Modules.Ratings.Domain.Events;
-using MeAjudaAi.Shared.Events;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;
-
-using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
-using MeAjudaAi.Shared.Messaging.Messages.Users;
 
 namespace MeAjudaAi.Modules.Ratings.API;
 
@@ -32,3 +22,4 @@ public static class Extensions
         return app;
     }
 }
+

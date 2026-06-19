@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Application.Services;
@@ -14,6 +15,7 @@ using MeAjudaAi.Modules.Payments.Domain.Events;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +34,8 @@ public static class Extensions
         services.AddServices(configuration);
         services.AddEventHandlers();
         services.AddJobs();
+
+        services.ConfigureSchemaIsolation(configuration, ModuleNames.Payments, Schemas.Payments, Schemas.Roles.Payments);
 
         return services;
     }

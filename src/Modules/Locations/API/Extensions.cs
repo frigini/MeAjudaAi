@@ -4,15 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.API;
 
-/// <summary>
-/// Métodos de extensão para registrar serviços e endpoints do módulo Locations.
-/// </summary>
 [ExcludeFromCodeCoverage]
 public static class Extensions
 {
-    /// <summary>
-    /// Adiciona os serviços do módulo Locations.
-    /// </summary>
     public static IServiceCollection AddLocationsModule(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -23,19 +17,10 @@ public static class Extensions
         return services;
     }
 
-    /// <summary>
-    /// Configura os endpoints do módulo Locations.
-    /// </summary>
-    public static WebApplication UseLocationsModule(this WebApplication app)
+    public static IEndpointRouteBuilder UseLocationsModule(this IEndpointRouteBuilder app)
     {
-        app.MapLocationsEndpoints();
-
+        LocationsEndpoints.Map(app);
         return app;
     }
-
-    public static IEndpointRouteBuilder MapLocationsEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        LocationsEndpoints.Map(endpoints);
-        return endpoints;
-    }
 }
+
