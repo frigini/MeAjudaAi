@@ -3,6 +3,7 @@ using System.Globalization;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 
@@ -529,9 +530,10 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
     private static int MapSubscriptionTierToInt(string tier)
     {
-        if (Enum.TryParse<ESubscriptionTier>(tier, ignoreCase: true, out var result))
+        var result = tier.ToEnum<ESubscriptionTier>();
+        if (result.IsSuccess)
         {
-            return (int)result;
+            return (int)result.Value;
         }
         
         throw new ArgumentException($"Invalid subscription tier: {tier}", nameof(tier));

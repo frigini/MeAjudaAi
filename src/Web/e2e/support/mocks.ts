@@ -12,15 +12,11 @@ export const mockProviders = {
   totalCount: 5,
 };
 
-export const mockAllowedCities = {
-  items: [
-    { id: '1', cityName: 'São Paulo', stateSigla: 'SP', serviceRadiusKm: 50, isActive: true },
-    { id: '2', cityName: 'Rio de Janeiro', stateSigla: 'RJ', serviceRadiusKm: 30, isActive: true },
-    { id: '3', cityName: 'Belo Horizonte', stateSigla: 'MG', serviceRadiusKm: 40, isActive: true },
-  ],
-  totalPages: 1,
-  totalCount: 3,
-};
+export const mockAllowedCities = [
+    { id: '1', city: 'São Paulo', state: 'SP', serviceRadiusKm: 50, isActive: true },
+    { id: '2', city: 'Rio de Janeiro', state: 'RJ', serviceRadiusKm: 30, isActive: true },
+    { id: '3', city: 'Belo Horizonte', state: 'MG', serviceRadiusKm: 40, isActive: true },
+];
 
 export const mockCategories = {
   items: [
@@ -98,13 +94,17 @@ export function setupAdminMocks(page: Page) {
     });
   });
 
-  // Allowed Cities list
+  // Allowed Cities list - returns Result<T> with value array matching ModuleAllowedCityDto fields
   page.route('**/api/v1/admin/allowed-cities**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ value: mockAllowedCities.items }), // AllowedCitiesPage uses .value
-    });
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ value: mockAllowedCities, isSuccess: true }),
+      });
+    } else {
+      await route.continue();
+    }
   });
 
   // Categories list

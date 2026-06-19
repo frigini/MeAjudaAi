@@ -93,10 +93,10 @@ type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProvider
     documents?: {
         id?: string;
         providerId?: string;
-        documentType?: number;
+        documentType?: string;
         fileName?: string;
         fileUrl?: string;
-        status?: number;
+        status?: string;
         uploadedAt?: string;
         verifiedAt?: string;
         rejectionReason?: string;

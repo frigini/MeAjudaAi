@@ -1,11 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.ModuleApi;
 
@@ -32,7 +28,7 @@ public sealed class LocationsModuleApiTests
         var moduleName = _sut.ModuleName;
 
         // Assert
-        moduleName.Should().Be("Location");
+        moduleName.Should().Be("Locations");
     }
 
     [Fact]
@@ -76,7 +72,7 @@ public sealed class LocationsModuleApiTests
         // Arrange
         _mockCepLookupService
             .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Service unavailable"));
+            .ThrowsAsync(new HttpRequestException("Service unavailable"));
 
         // Act
         var result = await _sut.IsAvailableAsync();
@@ -86,7 +82,7 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenOperationCancelled_ShouldWrapInInvalidOperationException()
+    public async Task IsAvailableAsync_WhenOperationCancelled_ShouldRethrowOperationCanceledException()
     {
         // Arrange
         _mockCepLookupService
@@ -97,8 +93,7 @@ public sealed class LocationsModuleApiTests
         var act = () => _sut.IsAvailableAsync();
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*cancelled*");
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]

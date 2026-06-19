@@ -3,8 +3,8 @@ import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 import { TextEncoder, TextDecoder } from 'util';
 
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder as any;
+global.TextEncoder = TextEncoder as typeof globalThis.TextEncoder;
+global.TextDecoder = TextDecoder as typeof globalThis.TextDecoder;
 
 import ptTranslations from '../public/locales/pt/common.json';
 

@@ -36,6 +36,8 @@ public sealed class LocationsExceptionFilter(ILogger<LocationsExceptionFilter> l
                 });
                 context.ExceptionHandled = true;
                 break;
+            default:
+                break;
         }
     }
 }

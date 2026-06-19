@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Domain.Events;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -39,7 +40,7 @@ internal sealed class DocumentVerifiedDomainEventHandler(
                 Source: ModuleNames.Documents,
                 DocumentId: domainEvent.AggregateId,
                 ProviderId: domainEvent.ProviderId,
-                DocumentType: domainEvent.DocumentType.ToString(),
+                DocumentType: domainEvent.DocumentType.ToDescription(),
                 HasOcrData: domainEvent.HasOcrData,
                 VerifiedAt: DateTime.UtcNow
             );

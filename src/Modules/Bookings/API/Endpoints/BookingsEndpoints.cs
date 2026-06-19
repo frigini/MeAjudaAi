@@ -21,7 +21,7 @@ public static class BookingsEndpoints
     /// <param name="app">Aplicação web para configuração das rotas</param>
     public static void Map(IEndpointRouteBuilder app)
     {
-        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Bookings.Base, ModuleNames.Bookings);
+        var group = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Bookings.Base, Tag);
 
         group.MapEndpoint<CreateBookingEndpoint>()
              .MapEndpoint<ConfirmBookingEndpoint>()

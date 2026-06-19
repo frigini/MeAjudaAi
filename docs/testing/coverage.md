@@ -460,7 +460,6 @@ ReportGenerator aggregates coverage at the **assembly level**:
 ```xml
 <!-- coverage.cobertura.xml (simplified) -->
 <package name="MeAjudaAi.Modules.Documents.API">
-  <class name="GetDocumentStatusEndpoint" line-rate="1.0" />
   <class name="UploadDocumentEndpoint" line-rate="0.969" />
   <!-- 127 lines covered, 27 uncovered = 82.5% -->
   

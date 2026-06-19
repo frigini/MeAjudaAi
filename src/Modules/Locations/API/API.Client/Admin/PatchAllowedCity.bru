@@ -1,0 +1,69 @@
+meta {
+  name: Patch Allowed City
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/locations/admin/allowed-cities/{{cityId}}
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "serviceRadiusKm": 25.0,
+    "isActive": true
+  }
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  # Patch Allowed City
+  
+  Atualiza parcialmente uma cidade permitida (Raio, Ativo).
+  
+  **Autorização**: Requer role `Admin`
+  
+  ## Path Parameters
+  
+  - `cityId` (uuid, required): ID da cidade permitida
+  
+  ## Request Body
+  
+  ```json
+  {
+    "serviceRadiusKm": 25.0,
+    "isActive": true
+  }
+  ```
+  
+  ### Campos
+  
+  | Campo | Tipo | Obrigatório | Descrição |
+  |-------|------|-------------|-----------|
+  | serviceRadiusKm | double | Não | Raio de atendimento em km |
+  | isActive | boolean | Não | Se a cidade está ativa |
+  
+  ## Resposta Sucesso (200 OK)
+  
+  ```json
+  {
+    "isSuccess": true
+  }
+  ```
+  
+  ## Possíveis Erros
+  
+  - `400 Bad Request`: Validação falhou
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui role Admin
+  - `404 NotFound`: Cidade não encontrada
+}

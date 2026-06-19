@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.ModuleApi;
 [Trait("Component", "ModuleApi")]
 public class DocumentsModuleApiTests
 {
-    private readonly Mock<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>> _getDocumentStatusHandlerMock;
+    private readonly Mock<IQueryHandler<GetDocumentByIdQuery, DocumentDto?>> _getDocumentByIdHandlerMock;
     private readonly Mock<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>> _getProviderDocumentsHandlerMock;
     private readonly Mock<IDocumentQueries> _documentQueriesMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
@@ -26,14 +26,14 @@ public class DocumentsModuleApiTests
 
     public DocumentsModuleApiTests()
     {
-        _getDocumentStatusHandlerMock = new Mock<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>>();
+        _getDocumentByIdHandlerMock = new Mock<IQueryHandler<GetDocumentByIdQuery, DocumentDto?>>();
         _getProviderDocumentsHandlerMock = new Mock<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>>();
         _documentQueriesMock = new Mock<IDocumentQueries>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<DocumentsModuleApi>>();
 
         _sut = new DocumentsModuleApi(
-            _getDocumentStatusHandlerMock.Object,
+            _getDocumentByIdHandlerMock.Object,
             _getProviderDocumentsHandlerMock.Object,
             _documentQueriesMock.Object,
             _serviceProviderMock.Object,
@@ -67,8 +67,8 @@ public class DocumentsModuleApiTests
         var documentId = Guid.NewGuid();
         var documentDto = CreateDocumentDto(documentId, EDocumentStatus.Verified);
 
-        _getDocumentStatusHandlerMock
-            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documentDto);
 
         // Act
@@ -87,8 +87,8 @@ public class DocumentsModuleApiTests
         // Arrange
         var documentId = Guid.NewGuid();
 
-        _getDocumentStatusHandlerMock
-            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentDto?)null);
 
         // Act
@@ -315,8 +315,8 @@ public class DocumentsModuleApiTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        _getDocumentStatusHandlerMock
-            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
         // Act
@@ -335,8 +335,8 @@ public class DocumentsModuleApiTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _getDocumentStatusHandlerMock
-            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
@@ -726,6 +726,76 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_WithExistingDocument_ShouldReturnTrue()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+        var documentDto = CreateDocumentDto(documentId, EDocumentStatus.Verified);
+
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(documentDto);
+
+        var documentEntity = Modules.Documents.Domain.Entities.Document.Create(
+            documentId, Modules.Documents.Domain.Enums.EDocumentType.IdentityDocument, "test.pdf", "blob-url");
+
+        var repositoryMock = new Mock<Shared.Database.Abstractions.IRepository<Modules.Documents.Domain.Entities.Document, Guid>>();
+        repositoryMock.Setup(x => x.TryFindAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(documentEntity);
+
+        var uowMock = new Mock<Shared.Database.Abstractions.IUnitOfWork>();
+        uowMock.Setup(x => x.GetRepository<Modules.Documents.Domain.Entities.Document, Guid>())
+            .Returns(repositoryMock.Object);
+
+        _serviceProviderMock
+            .Setup(x => x.GetService(typeof(Shared.Database.Abstractions.IUnitOfWork)))
+            .Returns(uowMock.Object);
+
+        // Act
+        var result = await _sut.DeleteDocumentAsync(documentId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
+        repositoryMock.Verify(x => x.Delete(documentEntity), Times.Once);
+        uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_WithNonExistentDocument_ShouldReturnFailure()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Modules.Documents.Application.DTOs.DocumentDto?)null);
+
+        // Act
+        var result = await _sut.DeleteDocumentAsync(documentId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_WhenHandlerThrowsException_ShouldReturnFailure()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+        _getDocumentByIdHandlerMock
+            .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var result = await _sut.DeleteDocumentAsync(documentId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("DOCUMENTS_DELETE_FAILED");
     }
 
     #endregion

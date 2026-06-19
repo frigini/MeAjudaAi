@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;

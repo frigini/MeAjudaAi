@@ -19,13 +19,14 @@ public static class DocumentsEndpoints
     /// <param name="app">Aplicação web para configuração das rotas</param>
     public static void Map(IEndpointRouteBuilder app)
     {
-        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Documents.Base, ModuleNames.Documents)
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Documents.Base, Tag)
             .RequireAuthorization(); // Aplica autorização global
 
         endpoints.MapEndpoint<UploadDocumentEndpoint>()
-            .MapEndpoint<GetDocumentStatusEndpoint>()
+            .MapEndpoint<GetDocumentByIdEndpoint>()
             .MapEndpoint<GetProviderDocumentsEndpoint>()
             .MapEndpoint<RequestVerificationEndpoint>()
-            .MapEndpoint<VerifyDocumentEndpoint>();
+            .MapEndpoint<VerifyDocumentEndpoint>()
+            .MapEndpoint<DeleteDocumentEndpoint>();
     }
 }

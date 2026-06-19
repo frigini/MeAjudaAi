@@ -43,7 +43,7 @@ public class AllowedCityTests
     [InlineData("   ")]
     public void Constructor_WithInvalidCityName_ShouldThrowArgumentException(string invalidCityName)
     {
-        // Arrange & Act - Using new AllowedCity() directly to match actual constructor validation
+        // Arrange & Act - Usando new AllowedCity() diretamente para corresponder à validação real do construtor
         var act = () => new AllowedCity(invalidCityName!, "MG", "admin@test.com", null, 0, 0, 0);
 
         // Assert
@@ -57,7 +57,7 @@ public class AllowedCityTests
     [InlineData("   ")]
     public void Constructor_WithInvalidStateSigla_ShouldThrowArgumentException(string invalidStateSigla)
     {
-        // Arrange & Act - Using new AllowedCity() directly to match actual constructor validation
+        // Arrange & Act - Usando new AllowedCity() diretamente para corresponder à validação real do construtor
         var act = () => new AllowedCity("Muriaé", invalidStateSigla!, "admin@test.com", null, 0, 0, 0);
 
         // Assert
@@ -70,7 +70,7 @@ public class AllowedCityTests
     [InlineData("MGA")]
     public void Constructor_WithInvalidStateSiglaLength_ShouldThrowArgumentException(string invalidLength)
     {
-        // Arrange & Act - Using new AllowedCity() directly to match actual constructor validation
+        // Arrange & Act - Usando new AllowedCity() diretamente para corresponder à validação real do construtor
         var act = () => new AllowedCity("Muriaé", invalidLength, "admin@test.com", null, 0, 0, 0);
 
         // Assert
@@ -84,7 +84,7 @@ public class AllowedCityTests
     [InlineData("   ")]
     public void Constructor_WithInvalidCreatedBy_ShouldThrowArgumentException(string invalidCreatedBy)
     {
-        // Arrange & Act - Using new AllowedCity() directly to match actual constructor validation
+        // Arrange & Act - Usando new AllowedCity() diretamente para corresponder à validação real do construtor
         var act = () => new AllowedCity("Muriaé", "MG", invalidCreatedBy, null, 0, 0, 0);
 
         // Assert

@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 using Microsoft.Extensions.Caching.Hybrid;
@@ -52,6 +53,9 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         });
         services.AddSingleton<ICacheMetrics, CacheMetrics>();
         services.AddSingleton<ICacheService, HybridCacheService>();
+
+        // Adiciona serialização (ISerializer keyed services) - necessário para ViaCepClient, NominatimClient, etc.
+        services.AddCustomSerialization();
 
         // Adiciona serviços do módulo Locations PRIMEIRO
         MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration, environment);

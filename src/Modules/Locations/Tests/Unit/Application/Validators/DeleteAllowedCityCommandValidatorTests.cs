@@ -1,7 +1,6 @@
 using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Validators;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Validators;
 

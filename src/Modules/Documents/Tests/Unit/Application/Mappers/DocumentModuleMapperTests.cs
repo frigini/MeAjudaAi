@@ -167,4 +167,51 @@ public class DocumentModuleMapperTests
         // Assert
         result1.Should().BeEquivalentTo(result2);
     }
+
+    [Fact]
+    public void ToModuleDto_WithOcrData_ShouldMapOcrData()
+    {
+        // Arrange
+        var ocrData = "{\"name\":\"João Silva\",\"cpf\":\"123.456.789-00\"}";
+        var dto = new DocumentDto(
+            Id: Guid.NewGuid(),
+            ProviderId: Guid.NewGuid(),
+            DocumentType: EDocumentType.IdentityDocument,
+            FileName: "rg.pdf",
+            FileUrl: "https://storage.example.com/rg.pdf",
+            Status: EDocumentStatus.Verified,
+            UploadedAt: DateTime.UtcNow,
+            VerifiedAt: DateTime.UtcNow,
+            RejectionReason: null,
+            OcrData: ocrData);
+
+        // Act
+        var result = dto.ToModuleDto();
+
+        // Assert
+        result.OcrData.Should().Be(ocrData);
+    }
+
+    [Fact]
+    public void ToModuleDto_WithNullOcrData_ShouldMapNull()
+    {
+        // Arrange
+        var dto = new DocumentDto(
+            Id: Guid.NewGuid(),
+            ProviderId: Guid.NewGuid(),
+            DocumentType: EDocumentType.IdentityDocument,
+            FileName: "test.pdf",
+            FileUrl: "https://storage.example.com/test.pdf",
+            Status: EDocumentStatus.Uploaded,
+            UploadedAt: DateTime.UtcNow,
+            VerifiedAt: null,
+            RejectionReason: null,
+            OcrData: null);
+
+        // Act
+        var result = dto.ToModuleDto();
+
+        // Assert
+        result.OcrData.Should().BeNull();
+    }
 }

@@ -25,4 +25,3 @@ public sealed class NominatimResponse
     [JsonPropertyName("address")]
     public NominatimAddress? Address { get; set; }
 }
-

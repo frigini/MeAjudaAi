@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -8,9 +10,8 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// <summary>
 /// Cliente HTTP para a API ViaCEP.
 /// </summary>
-public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> logger)
+public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> logger, [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer)
 {
-
     public async Task<Address?> GetAddressAsync(Cep cep, CancellationToken cancellationToken)
     {
         try
@@ -28,7 +29,7 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogDebug("ViaCEP response for {Cep}: {Content}", cep.Value, content);
-            var viaCepResponse = System.Text.Json.JsonSerializer.Deserialize<ViaCepResponse>(content, SerializationDefaults.Api);
+            var viaCepResponse = serializer.Deserialize<ViaCepResponse>(content);
 
             if (viaCepResponse is null)
             {
@@ -60,8 +61,11 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
         }
         catch (Exception ex)
         {
+            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
             logger.LogError(ex, "Error querying ViaCEP for CEP {Cep}", cep.Value);
-            return null;
+            throw new InvalidOperationException(
+                $"Unexpected error querying ViaCEP for CEP '{cep.Value}' (may be JSON parsing or network issue)",
+                ex);
         }
     }
 }

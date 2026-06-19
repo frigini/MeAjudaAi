@@ -11,4 +11,3 @@ public sealed record ModuleAddressDto(
     string State,
     string? Complement = null,
     ModuleCoordinatesDto? Coordinates = null);
-

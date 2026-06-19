@@ -1,6 +1,4 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Domain.ExternalModels.IBGE;
 

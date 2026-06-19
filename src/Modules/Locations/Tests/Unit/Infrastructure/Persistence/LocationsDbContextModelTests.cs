@@ -2,9 +2,6 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Persistence;
 
@@ -27,7 +24,7 @@ public class LocationsDbContextModelTests
         model.Should().NotBeNull();
         model.GetDefaultSchema().Should().Be("locations");
         
-        // Check if entities are registered
+        // Verificar se as entidades estão registradas
         model.FindEntityType(typeof(MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity)).Should().NotBeNull();
     }
 

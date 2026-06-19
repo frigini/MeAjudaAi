@@ -333,16 +333,16 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        // GetById retorna Response<T> (legado), então use "data"
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetByid retorna Result<T>, então use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
 
         dataElement.TryGetProperty("id", out var idElement).Should().BeTrue();
         Guid.Parse(idElement.GetString()!).Should().Be(cityId);
 
-        dataElement.TryGetProperty("cityName", out var cityNameElement).Should().BeTrue();
-        cityNameElement.GetString().Should().Be("Recife");
+        dataElement.TryGetProperty("city", out var cityElement).Should().BeTrue();
+        cityElement.GetString().Should().Be("Recife");
 
-        dataElement.TryGetProperty("stateSigla", out var stateElement).Should().BeTrue();
+        dataElement.TryGetProperty("state", out var stateElement).Should().BeTrue();
         stateElement.GetString().Should().Be("PE");
     }
 
@@ -378,8 +378,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
         var updateRequest = new
         {
-            CityName = "Porto Alegre Atualizado",
-            StateSigla = "RS",
+            City = "Porto Alegre Atualizado",
+            State = "RS",
             IbgeCode = 4314902,
             IsActive = false
         };
@@ -389,7 +389,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
         // Assert
 
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify database changes
         await _fixture.WithServiceScopeAsync(async services =>
@@ -449,8 +449,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
         var updateRequest = new
         {
-            CityName = "Belém", // Tentando renomear para uma cidade existente
-            StateSigla = "PA"
+            City = "Belém", // Tentando renomear para uma cidade existente
+            State = "PA"
         };
 
         // Act
@@ -544,14 +544,14 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Step 3: Update city
         var updateRequest = new
         {
-            CityName = "Vitória Atualizada",
-            StateSigla = "ES",
+            City = "Vitória Atualizada",
+            State = "ES",
             IbgeCode = 3205309,
             IsActive = false
         };
 
         var updateResponse = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
-        updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Step 4: Verify update
         await _fixture.WithServiceScopeAsync(async services =>

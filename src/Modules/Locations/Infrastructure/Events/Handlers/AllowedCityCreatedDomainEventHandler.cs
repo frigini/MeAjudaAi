@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Locations.Domain.Events;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Locations;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Events.Handlers;
@@ -16,7 +17,7 @@ internal sealed class AllowedCityCreatedDomainEventHandler(
         try
         {
             var integrationEvent = new AllowedCityCreatedIntegrationEvent(
-                "Locations",
+                ModuleNames.Locations,
                 domainEvent.CityId,
                 domainEvent.CityName,
                 domainEvent.StateSigla);

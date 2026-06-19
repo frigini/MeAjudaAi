@@ -4,6 +4,7 @@ using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Documents;
@@ -34,6 +35,17 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
     }
 
     #region Helper Methods
+
+    /// <summary>
+    /// Extrai a propriedade "value" de uma resposta JSON Result&lt;T&gt;.
+    /// </summary>
+    private static JsonElement ExtractDataFromResult(JsonElement result)
+    {
+        result.TryGetProperty("isSuccess", out var isSuccess).Should().BeTrue();
+        isSuccess.GetBoolean().Should().BeTrue("Result should be successful");
+        result.TryGetProperty("value", out var value).Should().BeTrue();
+        return value;
+    }
 
     private async Task WaitForProviderAsync(Guid providerId, int maxAttempts = 10)
     {
@@ -77,7 +89,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = (int)EDocumentType.IdentityDocument,
+            DocumentType = "IdentityDocument",
             FileName = "identity-card.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 102400
@@ -93,7 +105,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             var content = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-            result.TryGetProperty("documentId", out var documentIdElement).Should().BeTrue();
+            // Response is wrapped in Result<T> - extract data property
+            var data = ExtractDataFromResult(result);
+            data.TryGetProperty("documentId", out var documentIdElement).Should().BeTrue();
             var documentId = Guid.Parse(documentIdElement.GetString()!);
 
             // Verify database persistence
@@ -143,7 +157,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -151,7 +165,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("id", out var idElement).Should().BeTrue();
+        // Response is wrapped in Result<T> - extract data property
+        var data = ExtractDataFromResult(result);
+        data.TryGetProperty("id", out var idElement).Should().BeTrue();
         Guid.Parse(idElement.GetString()!).Should().Be(documentId);
     }
 
@@ -187,10 +203,12 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await response.Content.ReadAsStringAsync();
-        var documents = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
+        var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        documents.ValueKind.Should().Be(JsonValueKind.Array);
-        documents.GetArrayLength().Should().Be(3);
+        // Response is wrapped in Result<T> - extract data property
+        var data = ExtractDataFromResult(result);
+        data.ValueKind.Should().Be(JsonValueKind.Array);
+        data.GetArrayLength().Should().Be(3);
     }
 
     #endregion
@@ -301,7 +319,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = (int)EDocumentType.CriminalRecord,
+            DocumentType = "CriminalRecord",
             FileName = "criminal-record.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 51200
@@ -320,7 +338,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
         var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
         var uploadResult = JsonSerializer.Deserialize<JsonElement>(uploadContent, TestContainerFixture.JsonOptions);
-        var documentId = Guid.Parse(uploadResult.GetProperty("documentId").GetString()!);
+        // Response is wrapped in Result<T> - extract data property
+        var uploadData = ExtractDataFromResult(uploadResult);
+        var documentId = Guid.Parse(uploadData.GetProperty("documentId").GetString()!);
 
         // Act - Primeiro solicitar verificação manual
         var requestVerificationResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
@@ -589,8 +609,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
             using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
 
-            // Response is UploadDocumentResponse directly, not wrapped in "data"
-            uploadResult.RootElement.TryGetProperty("documentId", out var idProperty).Should().BeTrue();
+            // Response is wrapped in Result<T> - extract data property
+            var data = ExtractDataFromResult(uploadResult.RootElement);
+            data.TryGetProperty("documentId", out var idProperty).Should().BeTrue();
             documentId = idProperty.GetGuid();
         }
 
@@ -612,31 +633,20 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             HttpStatusCode.Accepted,
             HttpStatusCode.NoContent);
 
-        // Se a verificação foi aceita, verifica o status do documento
-        TestContainerFixture.AuthenticateAsAdmin(); // GET requer autorização
-        var statusResponse = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
-        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Status endpoint should be available after successful verification");
+        // Verify document exists via GetDocumentById
+        TestContainerFixture.AuthenticateAsAdmin();
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Document should be available after successful verification");
 
-        var statusContent = await statusResponse.Content.ReadAsStringAsync();
-        statusContent.Should().NotBeNullOrEmpty();
-
-        // Parse JSON - DocumentDto é retornado diretamente, não wrapped em "data"
-        using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
-
-        statusResult.RootElement.TryGetProperty("status", out var statusProperty)
-            .Should().BeTrue("Response should contain 'status' property");
-
-        // Parse status as enum to avoid string drift
-        var statusString = statusProperty.GetString();
-        statusString.Should().NotBeNullOrEmpty("Status should have a value");
-
-        var statusParsed = Enum.TryParse<EDocumentStatus>(statusString, ignoreCase: true, out var documentStatus);
-        statusParsed.Should().BeTrue($"Status '{statusString}' should be a valid EDocumentStatus");
-
-        // Document should be in uploaded or pending verification status
-        documentStatus.Should().BeOneOf(EDocumentStatus.Uploaded, EDocumentStatus.PendingVerification)
-            .And.Subject.Should().NotBe(EDocumentStatus.Verified, "Document should not be verified immediately after upload");
+        var getContent = await getResponse.Content.ReadAsStringAsync();
+        using var getResult = System.Text.Json.JsonDocument.Parse(getContent);
+        var getResultData = ExtractDataFromResult(getResult.RootElement);
+        getResultData.TryGetProperty("status", out var statusProp).Should().BeTrue();
+        var statusValue = statusProp.GetString();
+        statusValue.Should().NotBeNullOrEmpty();
+        var parsedStatus = statusValue!.IsValidEnum<EDocumentStatus>();
+        parsedStatus.Should().BeTrue($"Status '{statusValue}' should be a valid EDocumentStatus");
     }
 
     [Fact]

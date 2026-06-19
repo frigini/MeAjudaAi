@@ -32,4 +32,10 @@ public static class Extensions
 
         return app;
     }
+
+    public static IEndpointRouteBuilder MapLocationsEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        LocationsEndpoints.Map(endpoints);
+        return endpoints;
+    }
 }

@@ -10,5 +10,5 @@ public sealed record UpdateAllowedCityRequestDto(
     string Country,
     double Latitude,
     double Longitude,
-    int ServiceRadiusKm,
+    double ServiceRadiusKm,
     bool IsActive);

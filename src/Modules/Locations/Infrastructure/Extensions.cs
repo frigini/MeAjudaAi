@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
-using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Events;
@@ -17,6 +18,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,10 +54,10 @@ public static class Extensions
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+                if (EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-                    connectionString = MeAjudaAi.Shared.Database.Constants.DatabaseConstants.DefaultTestConnectionString;
+                    connectionString = DatabaseConstants.DefaultTestConnectionString;
                 }
                 else
                 {
@@ -101,7 +103,7 @@ public static class Extensions
         services.AddExceptionHandler<LocationsExceptionHandler>();
 
         // Command e Query Handlers
-        var applicationAssembly = typeof(Application.Handlers.CreateAllowedCityHandler).Assembly;
+        var applicationAssembly = typeof(CreateAllowedCityHandler).Assembly;
 
         // Registrar todos os ICommandHandler<T> e ICommandHandler<T, TResult>
         var commandHandlerTypes = applicationAssembly.GetTypes()

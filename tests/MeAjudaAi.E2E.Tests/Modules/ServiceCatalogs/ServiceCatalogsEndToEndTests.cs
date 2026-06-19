@@ -104,10 +104,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
         // Asserção
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceListDto[]>>(response);
-        wrapper.Should().NotBeNull();
-        wrapper!.Data.Should().NotBeNull();
-        var services = wrapper.Data!;
+        var services = await TestContainerFixture.ReadJsonAsync<ServiceListDto[]>(response);
         services.Should().NotBeNull();
         services!.Length.Should().Be(3, "should return exactly 3 services for this category");
         services.Should().OnlyContain(s => s.CategoryId == category.Id.Value, "all services should belong to the specified category");
@@ -141,11 +138,9 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseWrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceCategoryDto>>(getResponse);
-        responseWrapper.Should().NotBeNull();
-        responseWrapper!.Data.Should().NotBeNull();
+        var updatedCategory = await TestContainerFixture.ReadJsonAsync<ServiceCategoryDto>(getResponse);
+        updatedCategory.Should().NotBeNull();
 
-        var updatedCategory = responseWrapper.Data;
         updatedCategory!.Name.Should().Be(updateRequest.Name);
         updatedCategory.Description.Should().Be(updateRequest.Description);
         updatedCategory.DisplayOrder.Should().Be(updateRequest.DisplayOrder);
@@ -207,10 +202,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert - Verify service is inactive
         var getAfterDeactivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var deactivatedResponse = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getAfterDeactivate);
-        deactivatedResponse.Should().NotBeNull();
-        deactivatedResponse!.Data.Should().NotBeNull();
-        var deactivatedService = deactivatedResponse.Data;
+        var deactivatedService = await TestContainerFixture.ReadJsonAsync<ServiceDto>(getAfterDeactivate);
+        deactivatedService.Should().NotBeNull();
         deactivatedService!.IsActive.Should().BeFalse("service should be inactive after deactivate");
 
         // Act - Activate
@@ -220,10 +213,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert - Verify service is active again
         var getAfterActivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var activatedResponse = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getAfterActivate);
-        activatedResponse.Should().NotBeNull();
-        activatedResponse!.Data.Should().NotBeNull();
-        var activatedService = activatedResponse.Data;
+        var activatedService = await TestContainerFixture.ReadJsonAsync<ServiceDto>(getAfterActivate);
+        activatedService.Should().NotBeNull();
         activatedService!.IsActive.Should().BeTrue("service should be active after activate");
     }
 
@@ -489,10 +480,9 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>,
 
 
 
-        var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getServiceResponse);
-        wrapper.Should().NotBeNull();
-        wrapper!.Data.Should().NotBeNull();
-        var actualCategoryId = wrapper.Data!.CategoryId;
+        var actualService = await TestContainerFixture.ReadJsonAsync<ServiceDto>(getServiceResponse);
+        actualService.Should().NotBeNull();
+        var actualCategoryId = actualService!.CategoryId;
         actualCategoryId.Should().Be(category2Id,
             "the service should now be associated with the new category");
     }

@@ -29,16 +29,6 @@ public interface IDocumentsModuleApi : IModuleApi
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Obtém apenas o status de um documento.
-    /// </summary>
-    /// <param name="documentId">ID do documento</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Status do documento</returns>
-    Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
-        Guid documentId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Verifica se um provider tem documentos verificados.
     /// </summary>
     /// <param name="providerId">ID do provider</param>
@@ -87,5 +77,14 @@ public interface IDocumentsModuleApi : IModuleApi
     Task<Result<bool>> HasRejectedDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default);
-}
 
+    /// <summary>
+    /// Exclui um documento e seu blob associado.
+    /// </summary>
+    /// <param name="documentId">ID do documento</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>True se excluído com sucesso</returns>
+    Task<Result<bool>> DeleteDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+}

@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Application.Mappers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,7 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// </remarks>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class DocumentsModuleApi(
-    IQueryHandler<GetDocumentStatusQuery, DocumentDto?> getDocumentStatusHandler,
+    IQueryHandler<GetDocumentByIdQuery, DocumentDto?> getDocumentByIdHandler,
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
     IDocumentQueries documentQueries,
     IServiceProvider serviceProvider,
@@ -133,8 +134,8 @@ public sealed class DocumentsModuleApi(
     {
         try
         {
-            var query = new GetDocumentStatusQuery(documentId);
-            var document = await getDocumentStatusHandler.HandleAsync(query, cancellationToken);
+            var query = new GetDocumentByIdQuery(documentId);
+            var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
 
             return document == null
                 ? Result<ModuleDocumentDto?>.Success(null)
@@ -183,61 +184,6 @@ public sealed class DocumentsModuleApi(
         {
             logger.LogError(ex, "Error retrieving documents for provider {ProviderId}", providerId);
             return Result<IReadOnlyList<ModuleDocumentDto>>.Failure("DOCUMENTS_PROVIDER_GET_FAILED");
-        }
-    }
-
-    /// <summary>
-    /// Obtém o status de um documento.
-    /// </summary>
-    /// <param name="documentId">ID do documento</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>DTO de status do documento ou null se não encontrado</returns>
-    /// <remarks>
-    /// <para><strong>Semântica de UpdatedAt:</strong></para>
-    /// <para>Usa VerifiedAt ?? UploadedAt, onde VerifiedAt representa o timestamp da última mudança
-    /// de status (verificação ou rejeição). O modelo de domínio define VerifiedAt quando documentos
-    /// são verificados OU rejeitados. Para documentos ainda em Uploaded/PendingVerification,
-    /// usa UploadedAt como fallback.</para>
-    /// <para><strong>Nota:</strong> RejectedAt NÃO é usado na cadeia de fallback porque o domínio
-    /// já popula VerifiedAt para documentos rejeitados, tornando VerifiedAt o timestamp
-    /// autoritativo para todos os estados terminais (Verified/Rejected).</para>
-    /// </remarks>
-    public async Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
-        Guid documentId,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var query = new GetDocumentStatusQuery(documentId);
-            var document = await getDocumentStatusHandler.HandleAsync(query, cancellationToken);
-
-            if (document == null)
-            {
-                return Result<ModuleDocumentStatusDto?>.Success(null);
-            }
-
-            var statusDto = new ModuleDocumentStatusDto(
-                document.Id,
-                document.Status.ToString(),
-                document.VerifiedAt ?? document.UploadedAt
-            );
-
-            return Result<ModuleDocumentStatusDto?>.Success(statusDto);
-        }
-
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (NpgsqlException ex)
-        {
-            logger.LogError(ex, "Database error retrieving document status {DocumentId}", documentId);
-            return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
-        }
-        catch (InvalidOperationException ex)
-        {
-            logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
-            return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
         }
     }
 
@@ -326,5 +272,46 @@ public sealed class DocumentsModuleApi(
 
         var hasRejected = result.Value!.Any(d => d.Status == EDocumentStatus.Rejected.ToString());
         return Result<bool>.Success(hasRejected);
+    }
+
+    public async Task<Result<bool>> DeleteDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new GetDocumentByIdQuery(documentId);
+            var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
+
+            if (document == null)
+                return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
+
+            var uow = serviceProvider.GetRequiredService<Shared.Database.Abstractions.IUnitOfWork>();
+            var repository = uow.GetRepository<Modules.Documents.Domain.Entities.Document, Guid>();
+            var entity = await repository.TryFindAsync(documentId, cancellationToken);
+
+            if (entity is null)
+                return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
+
+            repository.Delete(entity);
+            await uow.SaveChangesAsync(cancellationToken);
+
+            return Result<bool>.Success(true);
+        }
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (NpgsqlException ex)
+        {
+            logger.LogError(ex, "Database error deleting document {DocumentId}", documentId);
+            return Result<bool>.Failure("DOCUMENTS_DELETE_FAILED");
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "Error deleting document {DocumentId}", documentId);
+            return Result<bool>.Failure("DOCUMENTS_DELETE_FAILED");
+        }
     }
 }

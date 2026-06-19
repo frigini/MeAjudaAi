@@ -39,7 +39,7 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(response);
-        var value = provider.TryGetProperty("value", out var v) ? v : provider;
+        var value = provider.TryGetProperty("data", out var v) ? v : provider;
         
         value.GetProperty("id").GetString().Should().Be(providerId.ToString());
         value.GetProperty("userId").GetString().Should().Be(userId.ToString());
@@ -63,7 +63,7 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(getResponse);
-        var value = provider.TryGetProperty("value", out var v) ? v : provider;
+        var value = provider.TryGetProperty("data", out var v) ? v : provider;
 
         var newDescription = "Updated Description via Dashboard";
         
@@ -101,7 +101,7 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         
         var verifyResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
         var verifyProvider = await TestContainerFixture.ReadJsonAsync<JsonElement>(verifyResponse);
-        var verifyValue = verifyProvider.TryGetProperty("value", out var vp) ? vp : verifyProvider;
+        var verifyValue = verifyProvider.TryGetProperty("data", out var vp) ? vp : verifyProvider;
         
         verifyValue.GetProperty("businessProfile").GetProperty("description").GetString().Should().Be(newDescription);
     }

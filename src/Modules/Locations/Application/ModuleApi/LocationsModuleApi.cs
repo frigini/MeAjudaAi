@@ -1,9 +1,10 @@
-using MeAjudaAi.Modules.Locations.Application.Services;
-using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.ModuleApi;
@@ -19,7 +20,7 @@ public sealed class LocationsModuleApi(
 {
     private static class ModuleMetadata
     {
-        public const string Name = "Location";
+        public const string Name = ModuleNames.Locations;
         public const string Version = "1.0";
     }
 
@@ -48,14 +49,23 @@ public sealed class LocationsModuleApi(
             logger.LogWarning("Location module unavailable - basic operations test failed");
             return false;
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
-            logger.LogDebug(ex, "Location module availability check was cancelled");
-            throw new InvalidOperationException("Location module availability check was cancelled", ex);
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Network error while checking Location module availability");
+            return false;
+        }
+        catch (TimeoutException ex)
+        {
+            logger.LogError(ex, "Timeout while checking Location module availability");
+            return false;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error checking Location module availability");
+            logger.LogError(ex, "Unexpected error while checking Location module availability");
             return false;
         }
     }

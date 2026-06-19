@@ -119,7 +119,7 @@ describe('mappers', () => {
         rejectionReason: 'Invalid docs',
         suspensionReason: 'Inactive',
         documents: [
-          { id: 'doc-1', documentType: 1, fileName: 'test.pdf', status: 2 }
+          { id: 'doc-1', documentType: 'IdentityDocument', fileName: 'test.pdf', status: 'PendingVerification' }
         ],
         qualifications: [
           { name: 'Cert 1', description: 'Some cert' }

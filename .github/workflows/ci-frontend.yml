@@ -54,7 +54,7 @@ jobs:
       - name: Build Backend (for API Generation)
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
-      - name: Generate API Client
+      - name: Generate API Clients
         working-directory: ./src/Web
         run: |
           set -e
@@ -74,13 +74,6 @@ jobs:
           npm run generate:api --workspace=meajudaai.web.admin
           npm run generate:api --workspace=meajudaai.web.provider
 
-      - name: Validate Generated API Clients
-        working-directory: ./src/Web
-        run: |
-          npx nx build MeAjudaAi.Web.Customer --configuration=development
-          npx nx build MeAjudaAi.Web.Admin --configuration=development
-          npx nx build MeAjudaAi.Web.Provider --configuration=development
-
       - name: Lint Frontend
         working-directory: ./src/Web
         run: npx nx affected --target=lint
@@ -98,7 +91,7 @@ jobs:
           npx nx run-many --target=test --all --args="--coverage"
           node scripts/merge-coverage.mjs
 
-      - name: Build Frontend
+      - name: Build Frontend (Customer)
         working-directory: ./src/Web
         env:
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
@@ -107,11 +100,29 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: ci-build-placeholder
           AUTH_SECRET: ci-build-placeholder
-        run: |
-          set -e
-          npx nx run MeAjudaAi.Web.Customer:build
-          npx nx run MeAjudaAi.Web.Admin:build
-          npx nx run MeAjudaAi.Web.Provider:build
+        run: npx nx build MeAjudaAi.Web.Customer
+
+      - name: Build Frontend (Admin)
+        working-directory: ./src/Web
+        env:
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
+        run: npx nx build MeAjudaAi.Web.Admin
+
+      - name: Build Frontend (Provider)
+        working-directory: ./src/Web
+        env:
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
+        run: npx nx build MeAjudaAi.Web.Provider
 
 
 

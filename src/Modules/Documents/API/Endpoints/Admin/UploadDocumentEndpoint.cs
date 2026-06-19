@@ -1,6 +1,8 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
-using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
+using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Mvc;
@@ -34,31 +36,29 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
                 - CriminalRecord: Certidão de antecedentes
                 - Other: Outros documentos
                 """)
-            .Produces<UploadDocumentResponse>(StatusCodes.Status200OK)
+            .Produces<Result<Contracts.Modules.Documents.DTOs.UploadDocumentResponse>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .WithTags(DocumentsEndpoints.Tag);
 
     private static async Task<IResult> UploadDocumentAsync(
-        [FromBody] UploadDocumentRequest request,
+        [FromBody] Contracts.Modules.Documents.DTOs.UploadDocumentRequest request,
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
         if (request is null)
             return BadRequest("Corpo da requisição é obrigatório");
 
-        var command = new UploadDocumentCommand(
-            request.ProviderId,
-            request.DocumentType.ToString(),
-            request.FileName,
-            request.ContentType,
-            request.FileSizeBytes);
+        var command = request.ToCommand();
 
-        // Note: UploadDocumentCommandHandler returns UploadDocumentResponse directly.
-        // If handler is refactored to return Result<UploadDocumentResponse> in the future,
-        // consider using BaseEndpoint.Handle(result) for consistent error/status mapping.
-        var response = await commandDispatcher.SendAsync<UploadDocumentCommand, UploadDocumentResponse>(
+        var response = await commandDispatcher.SendAsync<UploadDocumentCommand, Modules.Documents.Application.DTOs.UploadDocumentResponse>(
             command, cancellationToken);
 
-        return Results.Ok(response);
+        var contractResponse = new Contracts.Modules.Documents.DTOs.UploadDocumentResponse(
+            response.DocumentId,
+            response.UploadUrl,
+            response.BlobName,
+            response.ExpiresAt);
+
+        return Results.Ok(Result<Contracts.Modules.Documents.DTOs.UploadDocumentResponse>.Success(contractResponse));
     }
 }

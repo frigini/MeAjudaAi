@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Shared.Extensions;
@@ -109,5 +112,57 @@ public static class EnumExtensions
     {
         var values = GetValidValues<TEnum>();
         return $"Valores válidos para {typeof(TEnum).Name}: {string.Join(", ", values)}";
+    }
+
+    /// <summary>
+    /// Obtém a descrição do enum a partir do atributo [Display] ou [Description].
+    /// Retorna o nome do valor do enum como fallback.
+    /// </summary>
+    /// <typeparam name="TEnum">Tipo do enum</typeparam>
+    /// <param name="value">Valor do enum</param>
+    /// <returns>Descrição do atributo ou nome do enum</returns>
+    public static string ToDescription<TEnum>(this TEnum value) where TEnum : struct, Enum
+    {
+        var field = typeof(TEnum).GetField(value.ToString());
+        if (field is null)
+            return value.ToString();
+
+        var displayAttr = field.GetCustomAttribute<DisplayAttribute>();
+        if (displayAttr is not null)
+        {
+            var name = displayAttr.GetName();
+            if (!string.IsNullOrEmpty(name))
+                return name;
+        }
+
+        var descAttr = field.GetCustomAttribute<DescriptionAttribute>();
+        if (descAttr is not null && !string.IsNullOrEmpty(descAttr.Description))
+            return descAttr.Description;
+
+        return value.ToString();
+    }
+
+    /// <summary>
+    /// Obtém o nome do valor do enum a partir do atributo [Display(Name = ...)].
+    /// Retorna o nome do valor do enum como fallback.
+    /// </summary>
+    /// <typeparam name="TEnum">Tipo do enum</typeparam>
+    /// <param name="value">Valor do enum</param>
+    /// <returns>Nome do atributo Display ou nome do enum</returns>
+    public static string ToDisplayName<TEnum>(this TEnum value) where TEnum : struct, Enum
+    {
+        var field = typeof(TEnum).GetField(value.ToString());
+        if (field is null)
+            return value.ToString();
+
+        var displayAttr = field.GetCustomAttribute<DisplayAttribute>();
+        if (displayAttr is not null)
+        {
+            var name = displayAttr.GetName();
+            if (!string.IsNullOrEmpty(name))
+                return name;
+        }
+
+        return value.ToString();
     }
 }

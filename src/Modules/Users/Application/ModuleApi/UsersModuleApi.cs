@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Users;
@@ -33,9 +34,6 @@ public sealed class UsersModuleApi(
     public string ApiVersion => ModuleMetadata.Version;
 
     private static readonly Guid HealthCheckUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-
-    private static ModuleUserDto MapToModuleUserDto(UserDto user) =>
-        new(user.Id, user.Username, user.Email, user.FirstName, user.LastName, user.FullName, user.DeviceToken);
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -135,7 +133,7 @@ public sealed class UsersModuleApi(
         return result.Match<Result<ModuleUserDto?>>(
             user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
-                : Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
+                : Result<ModuleUserDto?>.Success(user.ToContract()),
             error => error.StatusCode == 404
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Failure(error));
@@ -149,7 +147,7 @@ public sealed class UsersModuleApi(
         return result.Match<Result<ModuleUserDto?>>(
             user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
-                : Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
+                : Result<ModuleUserDto?>.Success(user.ToContract()),
             error => error.StatusCode == 404
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Failure(error));
@@ -165,7 +163,7 @@ public sealed class UsersModuleApi(
 
         return result.Match(
             onSuccess: userDtos => Result<IReadOnlyList<ModuleUserBasicDto>>.Success(
-                userDtos.Select(user => new ModuleUserBasicDto(user.Id, user.Username, user.Email, true)).ToList()),
+                userDtos.ToBasicContract()),
             onFailure: error => Result<IReadOnlyList<ModuleUserBasicDto>>.Failure(error)
         );
     }

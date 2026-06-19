@@ -1,13 +1,10 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Services;
 
@@ -31,7 +28,7 @@ public sealed class GeocodingServiceTests
     {
         // Arrange
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -46,7 +43,7 @@ public sealed class GeocodingServiceTests
     {
         // Arrange
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -73,7 +70,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(cachedPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -103,7 +100,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(geoPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -133,7 +130,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(geoPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -163,7 +160,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(geoPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act

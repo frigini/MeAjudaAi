@@ -9,19 +9,6 @@ public class DocumentsEndpointsTests : BaseApiTest
     protected override TestModule RequiredModules => TestModule.Documents | TestModule.Providers;
 
     [Fact]
-    public async Task GetDocumentStatus_ShouldReturnOk_OrNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/documents/status/{Guid.NewGuid()}");
-
-        // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
-    }
-
-    [Fact]
     public async Task ProviderDocuments_Get_ShouldReturnOk()
     {
         // Arrange

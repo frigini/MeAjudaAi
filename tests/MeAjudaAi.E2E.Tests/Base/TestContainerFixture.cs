@@ -526,6 +526,19 @@ public class TestContainerFixture : IAsyncLifetime
     public static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(content))
+            return default;
+
+        var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
+        var type = typeof(T);
+        bool isWrapperType = type.IsGenericType && (type.GetGenericTypeDefinition().Name == "Result`1" || type.GetGenericTypeDefinition().Name == "Response`1");
+
+        if (!isWrapperType && json.ValueKind == System.Text.Json.JsonValueKind.Object && json.TryGetProperty("data", out var data) && data.ValueKind != System.Text.Json.JsonValueKind.Null)
+            return System.Text.Json.JsonSerializer.Deserialize<T>(data.GetRawText(), JsonOptions);
+
+        if (!isWrapperType && json.ValueKind == System.Text.Json.JsonValueKind.Object && json.TryGetProperty("value", out var value) && json.TryGetProperty("isSuccess", out var isSuccess) && isSuccess.ValueKind == System.Text.Json.JsonValueKind.True)
+            return System.Text.Json.JsonSerializer.Deserialize<T>(value.GetRawText(), JsonOptions);
+
         return System.Text.Json.JsonSerializer.Deserialize<T>(content, JsonOptions);
     }
 

@@ -14,15 +14,14 @@ public static class EndpointExtensions
     {
         if (result.IsSuccess)
         {
+            var response = new Response<T>(result.Value);
+
             if (!string.IsNullOrEmpty(createdRoute))
             {
-                // Para Created, ainda precisamos retornar o Result<T> completo para manter o contrato
-                return TypedResults.CreatedAtRoute(result, createdRoute, routeValues);
+                return TypedResults.CreatedAtRoute(response, createdRoute, routeValues);
             }
 
-            // CORREÇÃO CRÍTICA: Retorna o Result<T> completo, não apenas o Value
-            // O cliente espera { "isSuccess": true, "value": { ... }, "error": null }
-            return TypedResults.Ok(result);
+            return TypedResults.Ok(response);
         }
 
         return CreateErrorResponse<T>(result.Error);
@@ -35,8 +34,7 @@ public static class EndpointExtensions
     {
         if (result.IsSuccess)
         {
-            // Retorna o Result completo para vazio também
-            return TypedResults.Ok(result);
+            return TypedResults.Ok(new Response<object>(null));
         }
 
         return CreateErrorResponse<object>(result.Error);
@@ -54,11 +52,8 @@ public static class EndpointExtensions
                 totalCount,
                 currentPage,
                 pageSize);
-            
-            // Retorna Result<PagedResponse> para manter consistência
-            // Usa conversão implícita ou construtor explícito já que Result.Success(val) não existe na classe não-genérica
-            Result<PagedResponse<IEnumerable<T>>> wrappedResult = pagedResponse;
-            return TypedResults.Ok(wrappedResult);
+
+            return TypedResults.Ok(pagedResponse);
         }
 
         return CreateErrorResponse<IEnumerable<T>>(result.Error);
@@ -69,12 +64,16 @@ public static class EndpointExtensions
     /// </summary>
     public static IResult HandlePagedResult<T>(Result<PagedResult<T>> result)
     {
-        // Se o result já é um Result<PagedResult<T>>, retornamos ele diretamente
-        // O cliente espera Result<PagedResult<T>>
-        
         if (result.IsSuccess)
         {
-            return TypedResults.Ok(result);
+            var pagedResult = result.Value;
+            var pagedResponse = new PagedResponse<IReadOnlyList<T>>(
+                pagedResult.Items,
+                pagedResult.TotalItems,
+                pagedResult.PageNumber,
+                pagedResult.PageSize);
+
+            return TypedResults.Ok(pagedResponse);
         }
 
         return CreateErrorResponse<PagedResult<T>>(result.Error);
@@ -87,10 +86,8 @@ public static class EndpointExtensions
     {
         if (result.IsSuccess)
         {
-            // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result<T> completo
-            // O frontend espera { "isSuccess": true, "value": ... }
-            // 204 No Content retorna corpo vazio, quebrando a deserialização do Result<T> no cliente Refit.
-            return TypedResults.Ok(result);
+            var response = new Response<T>(result.Value);
+            return TypedResults.Ok(response);
         }
 
         return CreateErrorResponse<T>(result.Error);
@@ -103,8 +100,7 @@ public static class EndpointExtensions
     {
         if (result.IsSuccess)
         {
-            // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result completo
-            return HandleNoContent<object>(Result<object>.Success(null!)); // Reusing HandleNoContent<T> logic to avoid code duplication (S4144)
+            return TypedResults.Ok(new Response<object>(null));
         }
 
         return CreateErrorResponse<object>(result.Error);
@@ -112,18 +108,16 @@ public static class EndpointExtensions
 
     private static IResult CreateErrorResponse<T>(Error error)
     {
-        // Fix: Retornar Result<T> (Falha) para consistência com o caminho de sucesso
-        // O corpo da resposta de erro será { "isSuccess": false, "error": { ... }, "value": null }
-        var failedResult = Result<T>.Failure(error);
+        var response = new Response<T>(default, error.StatusCode, error.Message);
 
         return error.StatusCode switch
         {
-            404 => TypedResults.NotFound(failedResult),
-            400 => TypedResults.BadRequest(failedResult),
-            401 => TypedResults.Json(failedResult, statusCode: 401),
-            403 => TypedResults.Json(failedResult, statusCode: 403),
-            500 => TypedResults.Json(failedResult, statusCode: 500),
-            _ => TypedResults.BadRequest(failedResult)
+            404 => TypedResults.NotFound(response),
+            400 => TypedResults.BadRequest(response),
+            401 => TypedResults.Json(response, statusCode: 401),
+            403 => TypedResults.Json(response, statusCode: 403),
+            500 => TypedResults.Json(response, statusCode: 500),
+            _ => TypedResults.Json(response, statusCode: error.StatusCode)
         };
     }
 }

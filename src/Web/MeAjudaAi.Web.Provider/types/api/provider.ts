@@ -22,19 +22,18 @@ export enum EProviderTier {
 }
 
 export enum EDocumentType {
-    CNH = 'CNH',
-    CPF = 'CPF',
-    RG = 'RG',
-    CNPJ = 'CNPJ',
-    Certificate = 'Certificate',
+    IdentityDocument = 'IdentityDocument',
+    ProofOfResidence = 'ProofOfResidence',
+    CriminalRecord = 'CriminalRecord',
     Other = 'Other'
 }
 
 export enum EDocumentStatus {
-    Pending = 'Pending',
+    Uploaded = 'Uploaded',
     PendingVerification = 'PendingVerification',
-    Approved = 'Approved',
-    Rejected = 'Rejected'
+    Verified = 'Verified',
+    Rejected = 'Rejected',
+    Failed = 'Failed'
 }
 
 export enum EVerificationStatus {
@@ -99,10 +98,10 @@ export interface ProviderDto {
         id?: string;
         providerId?: string;
         number?: string;
-        documentType: EDocumentType | number;
+        documentType: EDocumentType;
         fileName?: string;
         fileUrl?: string;
-        status?: EDocumentStatus | number;
+        status?: EDocumentStatus;
         uploadedAt?: string;
         verifiedAt?: string;
         rejectionReason?: string;

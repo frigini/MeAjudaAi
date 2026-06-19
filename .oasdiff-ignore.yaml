@@ -3,3 +3,5 @@
 
 GET /api/v1/providers/public/{idOrSlug} response-property-type-changed
 GET /api/v1/providers/public/{idOrSlug} response-body-type-changed
+GET /api/v1/documents/{documentId}/status api-path-removed
+GET /api/v1/documents/provider/{providerId} response-body-type-changed

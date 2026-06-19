@@ -1,0 +1,57 @@
+meta {
+  name: Create Email Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/communications/templates
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "key": "WelcomeEmail",
+    "subject": "Bem-vindo ao MeAjudaAi!",
+    "htmlBody": "<h1>Bem-vindo!</h1><p>Obrigado por se juntar ao MeAjudaAi.</p>",
+    "textBody": "Bem-vindo! Obrigado por se juntar ao MeAjudaAi.",
+    "isSystemTemplate": false,
+    "language": "pt-BR",
+    "correlationId": "00000000-0000-0000-0000-000000000000"
+  }
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Create Email Template
+  
+  Cria um novo template de e-mail no sistema.
+  
+  ## Autorização
+  - **Requer token**: Sim (Admin)
+  
+  ## Body Parameters
+  | Parâmetro | Tipo | Obrigatório | Descrição |
+  |-----------|------|-------------|-----------|
+  | key | string | Sim | Chave única do template |
+  | subject | string | Sim | Assunto do e-mail |
+  | htmlBody | string | Sim | Corpo HTML do e-mail |
+  | textBody | string | Sim | Corpo em texto plano |
+  | isSystemTemplate | boolean | Sim | Se é template do sistema |
+  | language | string | Sim | Idioma (ex: pt-BR) |
+  | correlationId | string | Sim | ID de correlação |
+  
+  ## Resposta Esperada (201 Created)
+  ```json
+  "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  ```
+}

@@ -28,14 +28,6 @@ public static class ResponseMapperExtensions
 
     private static int MapServiceRadius(double radius)
     {
-        var rounded = (int)Math.Round(radius);
-        
-        // Validação explícita para evitar truncamento silencioso com tolerância mais estrita
-        if (Math.Abs(radius - rounded) > 1e-6)
-        {
-            throw new FormatException($"O raio de serviço {radius}km tem precisão decimal e não pode ser convertido seguramente para int no contrato.");
-        }
-        
-        return rounded;
+        return (int)Math.Round(radius);
     }
 }

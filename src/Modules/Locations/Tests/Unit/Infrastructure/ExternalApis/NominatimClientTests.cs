@@ -1,11 +1,9 @@
-using System.Net;
-using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using Xunit;
+using System.Net;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.ExternalApis;
 
@@ -19,14 +17,14 @@ public sealed class NominatimClientTests : IDisposable
     public NominatimClientTests()
     {
         _mockHandler = new MockHttpMessageHandler();
-        _httpClient = new HttpClient(_mockHandler)
+        _httpClient = new HttpClient(_mockHandler.GetHandler())
         {
             BaseAddress = new Uri("https://nominatim.openstreetmap.org/")
         };
 
         _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
-        _client = new NominatimClient(_httpClient, NullLogger<NominatimClient>.Instance, _timeProvider);
+        _client = new NominatimClient(_httpClient, NullLogger<NominatimClient>.Instance, _timeProvider, new SystemTextJsonSerializer(SerializationDefaults.Default));
     }
 
     public void Dispose()
@@ -112,17 +110,18 @@ public sealed class NominatimClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetCoordinatesAsync_WhenApiThrowsException_ShouldReturnNull()
+    public async Task GetCoordinatesAsync_WhenApiThrowsException_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var address = "Test Address";
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _client.GetCoordinatesAsync(address, CancellationToken.None);
+        var act = async () => await _client.GetCoordinatesAsync(address, CancellationToken.None);
 
         // Assert
-        result.Should().BeNull();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<HttpRequestException>();
     }
 
     [Fact]
@@ -310,41 +309,5 @@ public sealed class NominatimClientTests : IDisposable
         _mockHandler.LastRequestUri.Should().Contain("format=json");
         _mockHandler.LastRequestUri.Should().Contain("limit=1");
         _mockHandler.LastRequestUri.Should().Contain("countrycodes=br");
-    }
-
-    private sealed class MockHttpMessageHandler : HttpMessageHandler
-    {
-        private HttpResponseMessage? _responseMessage;
-        private Exception? _exception;
-        public string? LastRequestUri { get; private set; }
-
-        public void SetResponse(HttpStatusCode statusCode, string content)
-        {
-            _responseMessage = new HttpResponseMessage(statusCode)
-            {
-                Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
-            };
-            _exception = null;
-        }
-
-        public void SetException(Exception exception)
-        {
-            _exception = exception;
-            _responseMessage = null;
-        }
-
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-        {
-            LastRequestUri = request.RequestUri?.ToString();
-
-            if (_exception is not null)
-            {
-                throw _exception;
-            }
-
-            return Task.FromResult(_responseMessage ?? new HttpResponseMessage(HttpStatusCode.InternalServerError));
-        }
     }
 }
