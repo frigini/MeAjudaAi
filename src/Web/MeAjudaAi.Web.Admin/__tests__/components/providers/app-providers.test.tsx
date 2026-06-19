@@ -12,7 +12,7 @@ vi.mock('next-auth/react', async (importOriginal) => {
       capturedSession = session;
       return <>{children}</>;
     },
-    useSession: () => [capturedSession, false] as const,
+    useSession: () => ({ data: capturedSession, status: capturedSession ? 'authenticated' : 'unauthenticated', update: vi.fn() }),
   };
 });
 
@@ -42,8 +42,7 @@ describe('AppProviders (Admin)', () => {
 
     expect(screen.getByText('Authenticated Content')).toBeInTheDocument();
     const { useSession } = await import('next-auth/react');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = (useSession() as any)[0];
+    const session = useSession().data;
     expect(session).toEqual(mockSession);
   });
 });

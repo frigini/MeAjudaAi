@@ -117,7 +117,7 @@ public static class EndpointExtensions
             401 => TypedResults.Json(response, statusCode: 401),
             403 => TypedResults.Json(response, statusCode: 403),
             500 => TypedResults.Json(response, statusCode: 500),
-            _ => TypedResults.BadRequest(response)
+            _ => TypedResults.Json(response, statusCode: error.StatusCode)
         };
     }
 }

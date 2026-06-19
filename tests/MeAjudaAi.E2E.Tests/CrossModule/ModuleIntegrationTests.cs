@@ -50,7 +50,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             content.Should().NotBeNullOrEmpty();
 
             var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
-            result.TryGetProperty("value", out var dataProperty).Should().BeTrue();
+            result.TryGetProperty("data", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             idProperty.GetGuid().Should().NotBeEmpty();
         }

@@ -110,7 +110,11 @@ export function DialogDescription({ children, className = "" }: DialogDescriptio
 export function DialogClose({ children, onClick }: { children?: React.ReactNode; onClick?: () => void }) {
   return (
     <DialogPrimitive.Close asChild onClick={onClick}>
-      {children ? children : <Button variant="secondary">Cancelar</Button>}
+      {children
+        ? typeof children === "string"
+          ? <Button variant="secondary">{children}</Button>
+          : children
+        : <Button variant="secondary">Cancelar</Button>}
     </DialogPrimitive.Close>
   );
 }
