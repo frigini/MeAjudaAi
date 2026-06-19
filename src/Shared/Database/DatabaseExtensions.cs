@@ -119,7 +119,7 @@ public static class DatabaseExtensions
 
     /// <summary>
     /// Helper que configura schema isolation para um módulo se habilitado via configuração.
-    /// Executa de forma assíncrona em background para não bloquear a inicialização.
+    /// Registra um IHostedService que executa after o container está pronto.
     /// </summary>
     public static IServiceCollection ConfigureSchemaIsolation(
         this IServiceCollection services,
@@ -148,24 +148,7 @@ public static class DatabaseExtensions
             AppRoleName: "meajudaai_app_role",
             AppRolePassword: appRolePassword);
 
-        _ = Task.Run(async () =>
-        {
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var manager = scope.ServiceProvider.GetRequiredService<SchemaPermissionsManager>();
-
-            var adminConnectionString =
-                configuration.GetConnectionString("meajudaai-db-admin") ??
-                configuration.GetConnectionString("meajudaai-db") ??
-                configuration["Postgres:ConnectionString"];
-
-            if (string.IsNullOrEmpty(adminConnectionString))
-                return;
-
-            if (!await manager.AreModulePermissionsConfiguredAsync(adminConnectionString, config.SchemaName, config.RoleName))
-            {
-                await manager.EnsureModulePermissionsAsync(adminConnectionString, config);
-            }
-        });
+        services.AddHostedService(sp => new SchemaIsolationService(sp.GetRequiredService<SchemaPermissionsManager>(), configuration, config));
 
         return services;
     }
@@ -215,4 +198,31 @@ public static class DatabaseExtensions
         options.EnableSensitiveDataLogging(false);
         options.EnableServiceProviderCaching();
     }
+}
+
+/// <summary>
+/// Serviço que executa schema isolation após o container DI estar pronto.
+/// </summary>
+file sealed class SchemaIsolationService(
+    SchemaPermissionsManager manager,
+    IConfiguration configuration,
+    ModulePermissionConfig config) : IHostedService
+{
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        var adminConnectionString =
+            configuration.GetConnectionString("meajudaai-db-admin") ??
+            configuration.GetConnectionString("meajudaai-db") ??
+            configuration["Postgres:ConnectionString"];
+
+        if (string.IsNullOrEmpty(adminConnectionString))
+            return;
+
+        if (!await manager.AreModulePermissionsConfiguredAsync(adminConnectionString, config.SchemaName, config.RoleName))
+        {
+            await manager.EnsureModulePermissionsAsync(adminConnectionString, config);
+        }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

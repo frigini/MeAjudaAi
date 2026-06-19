@@ -1,14 +1,7 @@
 using MeAjudaAi.Modules.Payments.Application.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using MeAjudaAi.Shared.Endpoints;
 using Stripe;
-
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 

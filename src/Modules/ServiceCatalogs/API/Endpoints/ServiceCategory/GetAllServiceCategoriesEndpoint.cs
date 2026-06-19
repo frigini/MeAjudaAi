@@ -1,8 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Models;

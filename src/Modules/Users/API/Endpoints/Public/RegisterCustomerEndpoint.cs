@@ -3,9 +3,6 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints.Public;
 

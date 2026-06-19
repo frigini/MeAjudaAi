@@ -1,8 +1,5 @@
 using MeAjudaAi.Contracts.Identity.Enums;
 using MeAjudaAi.Shared.Endpoints;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints.Public;
 

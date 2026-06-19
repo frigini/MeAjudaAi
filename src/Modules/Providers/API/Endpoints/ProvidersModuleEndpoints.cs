@@ -11,10 +11,10 @@ public static class ProvidersModuleEndpoints
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        MapProvidersEndpoints((WebApplication)app);
+        MapProvidersEndpoints(app);
     }
 
-    public static void MapProvidersEndpoints(this WebApplication app)
+    public static void MapProvidersEndpoints(IEndpointRouteBuilder app)
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
         var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Providers.Base, ModuleNames.Providers);
