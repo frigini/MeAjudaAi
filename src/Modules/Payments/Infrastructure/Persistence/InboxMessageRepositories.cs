@@ -12,5 +12,3 @@ public partial class PaymentsDbContext : IRepository<InboxMessage, Guid>
     void IRepository<InboxMessage, Guid>.Add(InboxMessage aggregate) => InboxMessages.Add(aggregate);
     void IRepository<InboxMessage, Guid>.Delete(InboxMessage aggregate) => InboxMessages.Remove(aggregate);
 }
-
-

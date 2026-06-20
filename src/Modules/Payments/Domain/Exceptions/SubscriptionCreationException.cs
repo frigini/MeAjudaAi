@@ -1,7 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
+namespace MeAjudaAi.Modules.Payments.Domain.Exceptions;
 
 [ExcludeFromCodeCoverage]
 public class SubscriptionCreationException : DomainException

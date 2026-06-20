@@ -10,4 +10,5 @@ public class PaymentsOptions
     public string? SuccessUrl { get; set; }
     public string? CancelUrl { get; set; }
     public string[] AllowedReturnHosts { get; set; } = Array.Empty<string>();
+    public Dictionary<string, PlanOptions> Plans { get; init; } = new();
 }

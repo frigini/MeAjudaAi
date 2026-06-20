@@ -1,44 +1,41 @@
-using MeAjudaAi.Modules.Payments.Application.Queries;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Payments.Application.Commands;
+using MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Application.Options;
+using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers.Subscriptions.Commands;
 
-public class GetBillingPortalCommandHandlerTests
+public class CreateBillingPortalSessionCommandHandlerTests
 {
     private readonly Mock<IQueryDispatcher> _queryDispatcherMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
     private readonly Mock<IConfiguration> _configurationMock;
-    private readonly Mock<IOptions<PaymentsOptions>> _optionsMock;
-    private readonly Mock<ILogger<GetBillingPortalCommandHandler>> _loggerMock;
-    private readonly GetBillingPortalCommandHandler _handler;
+    private readonly PaymentsOptions _options;
+    private readonly Mock<ILogger<CreateBillingPortalSessionCommandHandler>> _loggerMock;
+    private readonly CreateBillingPortalSessionCommandHandler _handler;
 
-    public GetBillingPortalCommandHandlerTests()
+    public CreateBillingPortalSessionCommandHandlerTests()
     {
         _queryDispatcherMock = new Mock<IQueryDispatcher>();
         _gatewayMock = new Mock<IPaymentGateway>();
         _configurationMock = new Mock<IConfiguration>();
-        _optionsMock = new Mock<IOptions<PaymentsOptions>>();
-        _loggerMock = new Mock<ILogger<GetBillingPortalCommandHandler>>();
+        _loggerMock = new Mock<ILogger<CreateBillingPortalSessionCommandHandler>>();
         
-        var options = new PaymentsOptions { AllowedReturnHosts = new[] { "localhost" } };
-        _optionsMock.Setup(x => x.Value).Returns(options);
+        _options = new PaymentsOptions { AllowedReturnHosts = new[] { "localhost" } };
 
-        _handler = new GetBillingPortalCommandHandler(
+        _handler = new CreateBillingPortalSessionCommandHandler(
             _queryDispatcherMock.Object, 
             _gatewayMock.Object, 
             _configurationMock.Object, 
-            _optionsMock.Object,
+            _options,
             _loggerMock.Object);
     }
 
@@ -60,7 +57,7 @@ public class GetBillingPortalCommandHandlerTests
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedUrl);
 
-        var command = new GetBillingPortalCommand(providerId, returnUrl);
+        var command = new CreateBillingPortalSessionCommand(providerId, returnUrl);
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -77,7 +74,7 @@ public class GetBillingPortalCommandHandlerTests
         _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Subscription?>.Success(null));
 
-        var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://localhost/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -97,7 +94,7 @@ public class GetBillingPortalCommandHandlerTests
         _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Subscription?>.Success(sub));
 
-        var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://localhost/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -120,7 +117,7 @@ public class GetBillingPortalCommandHandlerTests
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?)null);
 
-        var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://localhost/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -148,7 +145,7 @@ public class GetBillingPortalCommandHandlerTests
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
             .ReturnsAsync("https://stripe.com/portal");
 
-        var command = new GetBillingPortalCommand(providerId, returnUrl);
+        var command = new CreateBillingPortalSessionCommand(providerId, returnUrl);
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -171,7 +168,7 @@ public class GetBillingPortalCommandHandlerTests
             .ReturnsAsync(Result<Subscription?>.Success(sub));
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("https://stripe.com");
 
-        var command = new GetBillingPortalCommand(providerId, returnUrl);
+        var command = new CreateBillingPortalSessionCommand(providerId, returnUrl);
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -185,7 +182,7 @@ public class GetBillingPortalCommandHandlerTests
     {
         // Arrange
         _configurationMock.Setup(x => x.GetSection("Payments:AllowedReturnHosts")).Returns(new Mock<IConfigurationSection>().Object);
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), "https://evil.com");
+        var command = new CreateBillingPortalSessionCommand(Guid.NewGuid(), "https://evil.com");
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -210,7 +207,7 @@ public class GetBillingPortalCommandHandlerTests
             .Setup(g => g.CreateBillingPortalSessionAsync("cus_ext_loopback", It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("https://billing.stripe.com/portal_session");
 
-        var command = new GetBillingPortalCommand(providerId, "http://127.0.0.1/return");
+        var command = new CreateBillingPortalSessionCommand(providerId, "http://127.0.0.1/return");
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -225,7 +222,7 @@ public class GetBillingPortalCommandHandlerTests
     [InlineData(" ")]
     public async Task HandleAsync_ShouldThrow_WhenReturnUrlIsMissing(string? url)
     {
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), url!);
+        var command = new CreateBillingPortalSessionCommand(Guid.NewGuid(), url!);
         var act = () => _handler.HandleAsync(command);
         await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "INVALID_RETURN_URL");
     }

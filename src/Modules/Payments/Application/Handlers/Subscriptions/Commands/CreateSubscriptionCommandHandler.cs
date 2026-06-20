@@ -1,25 +1,25 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using System.Globalization;
+using MeAjudaAi.Modules.Payments.Application.Commands;
+using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Modules.Payments.Domain.Exceptions;
+using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
+using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Utilities.Constants;
 
-namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
+namespace MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Commands;
 
 public sealed class CreateSubscriptionCommandHandler(
     [FromKeyedServices(ModuleKeys.Payments)] IUnitOfWork uow,
     IPaymentGateway paymentGateway,
-    IConfiguration configuration,
+    PaymentsOptions paymentsOptions,
     ILogger<CreateSubscriptionCommandHandler> logger) : ICommandHandler<CreateSubscriptionCommand, string>
 {
+    private readonly PaymentsOptions _options = paymentsOptions;
     public async Task<string> HandleAsync(CreateSubscriptionCommand command, CancellationToken cancellationToken = default)
     {
         if (command.IdempotencyKey?.Length > 255)
@@ -31,7 +31,7 @@ public sealed class CreateSubscriptionCommandHandler(
         var moneyAmount = Money.FromDecimal(amount, currency);
         var subscription = new Subscription(command.ProviderId, command.PlanId, moneyAmount);
 
-        SubscriptionGatewayResult result;
+        SubscriptionGatewayResponse result;
         try
         {
             result = await paymentGateway.CreateSubscriptionAsync(
@@ -89,7 +89,7 @@ public sealed class CreateSubscriptionCommandHandler(
         return result.CheckoutUrl;
     }
 
-    private async Task TryCompensateAsync(SubscriptionGatewayResult result)
+    private async Task TryCompensateAsync(SubscriptionGatewayResponse result)
     {
         if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
         {
@@ -116,25 +116,18 @@ public sealed class CreateSubscriptionCommandHandler(
 
     private (decimal Amount, string Currency) GetPlanDetails(string planId)
     {
-        var planSection = configuration.GetSection($"Payments:Plans:{planId}");
-        if (string.IsNullOrEmpty(planSection.Value) && !planSection.GetChildren().Any())
+        if (!_options.Plans.TryGetValue(planId, out var planOptions) || planOptions == null)
         {
             logger.LogWarning("Invalid plan attempted: {PlanId}", planId);
             throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}");
         }
 
-        var amountStr = configuration[$"Payments:Plans:{planId}:Amount"];
-        var currency = configuration[$"Payments:Plans:{planId}:Currency"];
-
-        if (!decimal.TryParse(amountStr, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount) || string.IsNullOrEmpty(currency))
+        if (string.IsNullOrEmpty(planOptions.Currency))
         {
             logger.LogError("Incomplete configuration for plan: {PlanId}", planId);
             throw new SubscriptionCreationException($"Configuração incompleta para o plano: {planId}");
         }
 
-        return (amount, currency);
+        return (planOptions.Amount, planOptions.Currency);
     }
 }
-
-
-

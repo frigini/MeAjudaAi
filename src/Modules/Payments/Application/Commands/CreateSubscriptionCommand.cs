@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Utilities;
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
+namespace MeAjudaAi.Modules.Payments.Application.Commands;
 
 [ExcludeFromCodeCoverage]
 public record CreateSubscriptionCommand(
@@ -14,4 +14,3 @@ public record CreateSubscriptionCommand(
 {
     public Guid CorrelationId { get; init; } = UuidGenerator.NewId();
 }
-

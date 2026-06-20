@@ -9,7 +9,7 @@ public class InboxMessageTests
     {
         // Arrange
         var type = "test.event";
-        var content = "{\"id\": 123}";
+        var content = $"{{\"id\": 123}}";
         var externalId = "evt_123";
 
         // Act

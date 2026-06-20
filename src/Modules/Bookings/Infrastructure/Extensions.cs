@@ -16,9 +16,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

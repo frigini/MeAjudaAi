@@ -1,22 +1,20 @@
-using FluentAssertions;
+using MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Queries;
 using MeAjudaAi.Modules.Payments.Application.Queries;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
+using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Domain.ValueObjects;
-using Moq;
-using Xunit;
 
-namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers.Subscriptions.Queries;
 
-public class GetActiveSubscriptionByProviderHandlerTests
+public class GetActiveSubscriptionByProviderQueryHandlerTests
 {
     private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
-    private readonly GetActiveSubscriptionByProviderHandler _handler;
+    private readonly GetActiveSubscriptionByProviderQueryHandler _handler;
 
-    public GetActiveSubscriptionByProviderHandlerTests()
+    public GetActiveSubscriptionByProviderQueryHandlerTests()
     {
         _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
-        _handler = new GetActiveSubscriptionByProviderHandler(_subscriptionQueriesMock.Object);
+        _handler = new GetActiveSubscriptionByProviderQueryHandler(_subscriptionQueriesMock.Object);
     }
 
     [Fact]

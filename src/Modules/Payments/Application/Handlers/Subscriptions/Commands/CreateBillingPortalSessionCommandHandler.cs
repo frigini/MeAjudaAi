@@ -1,28 +1,27 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Payments.Application.Commands;
+using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Queries;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
+namespace MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Commands;
 
-public class GetBillingPortalCommandHandler(
+public class CreateBillingPortalSessionCommandHandler(
     IQueryDispatcher queryDispatcher,
     IPaymentGateway gateway,
     IConfiguration configuration,
-    IOptions<PaymentsOptions> paymentsOptions,
-    ILogger<GetBillingPortalCommandHandler> logger) : ICommandHandler<GetBillingPortalCommand, string>
+    PaymentsOptions paymentsOptions,
+    ILogger<CreateBillingPortalSessionCommandHandler> logger) : ICommandHandler<CreateBillingPortalSessionCommand, string>
 {
-    private readonly PaymentsOptions _options = paymentsOptions.Value;
+    private readonly PaymentsOptions _options = paymentsOptions;
 
-    public async Task<string> HandleAsync(GetBillingPortalCommand command, CancellationToken cancellationToken = default)
+    public async Task<string> HandleAsync(CreateBillingPortalSessionCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -67,7 +66,7 @@ public class GetBillingPortalCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error in GetBillingPortalCommandHandler: {Message}. Stack: {Stack}", ex.Message, ex.StackTrace);
+            logger.LogError(ex, "Unexpected error in CreateBillingPortalSessionCommandHandler: {Message}. Stack: {Stack}", ex.Message, ex.StackTrace);
             throw;
         }
     }

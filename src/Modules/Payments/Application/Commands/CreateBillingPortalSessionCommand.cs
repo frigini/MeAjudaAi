@@ -3,11 +3,10 @@ using MeAjudaAi.Shared.Utilities;
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
+namespace MeAjudaAi.Modules.Payments.Application.Commands;
 
 [ExcludeFromCodeCoverage]
-public record GetBillingPortalCommand(Guid ProviderId, string ReturnUrl) : ICommand<string>
+public record CreateBillingPortalSessionCommand(Guid ProviderId, string ReturnUrl) : ICommand<string>
 {
     public Guid CorrelationId { get; init; } = UuidGenerator.NewId();
 }
-

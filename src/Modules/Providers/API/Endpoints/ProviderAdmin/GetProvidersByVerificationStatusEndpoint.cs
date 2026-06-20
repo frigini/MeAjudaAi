@@ -99,6 +99,10 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
             return Handle(result);
         }
 
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, 

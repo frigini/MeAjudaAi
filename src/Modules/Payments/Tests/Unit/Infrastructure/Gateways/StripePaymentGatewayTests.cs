@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ public class StripePaymentGatewayTests
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<StripePaymentGateway>> _loggerMock;
     private readonly Mock<IStripeService> _stripeServiceMock;
+    private readonly PaymentsOptions _paymentsOptions;
     private StripePaymentGateway? _gateway;
 
     public StripePaymentGatewayTests()
@@ -18,21 +20,32 @@ public class StripePaymentGatewayTests
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<StripePaymentGateway>>();
         _stripeServiceMock = new Mock<IStripeService>();
+        _paymentsOptions = new PaymentsOptions
+        {
+            SuccessUrl = "/success",
+            CancelUrl = "/cancel",
+            Plans = new Dictionary<string, PlanOptions>
+            {
+                { "plan_test", new PlanOptions { StripePriceId = "stripe_price_test", Amount = 10, Currency = "BRL" } }
+            }
+        };
         
         // Default valid setup
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("sk_test_123");
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
-        _configurationMock.Setup(x => x["Payments:SuccessUrl"]).Returns("/success");
-        _configurationMock.Setup(x => x["Payments:CancelUrl"]).Returns("/cancel");
     }
 
-    private void CreateGateway() => _gateway = new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
+    private void CreateGateway() => _gateway = new StripePaymentGateway(
+        _configurationMock.Object, 
+        _paymentsOptions, 
+        _loggerMock.Object, 
+        _stripeServiceMock.Object);
 
     [Fact]
     public void Constructor_ShouldThrow_WhenApiKeyIsMissing()
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object);
         act.Should().Throw<ArgumentException>().WithMessage("*ApiKey*");
     }
 
@@ -41,7 +54,7 @@ public class StripePaymentGatewayTests
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("sk_test_123");
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object);
         act.Should().Throw<ArgumentException>().WithMessage("*ClientBaseUrl*");
     }
 
@@ -72,7 +85,7 @@ public class StripePaymentGatewayTests
         _stripeServiceMock.Verify(x => x.CreateCheckoutSessionAsync(
             It.Is<Stripe.Checkout.SessionCreateOptions>(o => 
                 o.Metadata["provider_id"] == providerId.ToString() &&
-                o.LineItems[0].Price == planId), // Assuming planId maps directly or via config (here directly)
+                o.LineItems[0].Price == "stripe_price_test"),
             It.Is<RequestOptions>(ro => ro.IdempotencyKey == "idempotency-key"),
             It.IsAny<CancellationToken>()), Times.Once);
     }

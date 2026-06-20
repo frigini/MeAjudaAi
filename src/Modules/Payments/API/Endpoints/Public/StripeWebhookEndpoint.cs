@@ -49,7 +49,6 @@ public class StripeWebhookEndpoint : IEndpoint
         {
             using var ms = new MemoryStream();
             await context.Request.Body.CopyToAsync(ms, context.RequestAborted);
-            ms.Position = 0;
 
             string json;
             using (var reader = new StreamReader(ms,

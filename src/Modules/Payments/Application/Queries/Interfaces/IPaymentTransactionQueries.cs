@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 
-namespace MeAjudaAi.Modules.Payments.Application.Queries;
+namespace MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 
 public interface IPaymentTransactionQueries
 {

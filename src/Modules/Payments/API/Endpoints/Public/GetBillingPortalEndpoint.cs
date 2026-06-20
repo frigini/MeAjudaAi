@@ -1,8 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Payments.API.Helpers;
 using MeAjudaAi.Modules.Payments.API.Mappers;
+using MeAjudaAi.Modules.Payments.Application.Commands;
 using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Payments.Application.DTOs.Responses;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
@@ -56,7 +57,7 @@ public class GetBillingPortalEndpoint : IEndpoint
             });
         }
 
-        var authResult = AuthorizeRequest(httpContext, request.ProviderId);
+        var authResult = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, request.ProviderId);
         if (authResult is not null)
         {
             return authResult;
@@ -69,7 +70,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         }
 
         var command = request.ToCommand(resolveResult.Value!);
-        var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);
+        var portalUrl = await dispatcher.SendAsync<CreateBillingPortalSessionCommand, string>(command, cancellationToken);
 
         return Results.Ok(new GetBillingPortalResponse(portalUrl));
     }
@@ -107,45 +108,18 @@ public class GetBillingPortalEndpoint : IEndpoint
             return Result<string>.Success($"{clientBaseUrl}/billing");
         }
 
-        if (Uri.TryCreate(normalizedReturnUrl, UriKind.Absolute, out _))
+        if (Uri.TryCreate(normalizedReturnUrl, UriKind.Absolute, out var validatedUri))
         {
-            return Result<string>.Success(normalizedReturnUrl);
+            var allowedHost = new Uri(clientBaseUrl).Host;
+            if (string.Equals(validatedUri.Host, allowedHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return Result<string>.Success(normalizedReturnUrl);
+            }
         }
 
         logger.LogInformation(
             "Billing portal ReturnUrl fallback taken for Provider {ProviderId}. Original value: {ReturnUrl}",
             providerId, normalizedReturnUrl);
         return Result<string>.Success(clientBaseUrl);
-    }
-
-    /// <summary>
-    /// Valida se o usuário tem autorização para acessar o portal de faturamento do prestador.
-    /// </summary>
-    /// <param name="httpContext">Contexto HTTP com os claims do usuário.</param>
-    /// <param name="providerId">ID do prestador alvo.</param>
-    /// <returns>Null se autorizado; IResult com erro de autorização caso contrário.</returns>
-    private static IResult? AuthorizeRequest(HttpContext httpContext, Guid providerId)
-    {
-        var isSystemAdmin = string.Equals(
-            httpContext.User?.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value,
-            "true",
-            StringComparison.OrdinalIgnoreCase);
-
-        if (isSystemAdmin)
-        {
-            return null;
-        }
-
-        var userProviderIdClaim = httpContext.User?.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-        if (string.IsNullOrEmpty(userProviderIdClaim) ||
-            !Guid.TryParse(userProviderIdClaim, out var userProviderId) ||
-            userProviderId != providerId)
-        {
-            return string.IsNullOrEmpty(userProviderIdClaim)
-                ? Results.Unauthorized()
-                : Results.Forbid();
-        }
-
-        return null;
     }
 }

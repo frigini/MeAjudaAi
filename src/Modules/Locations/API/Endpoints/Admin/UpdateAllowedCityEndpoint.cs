@@ -1,6 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Shared.Authorization.Extensions;
@@ -38,14 +37,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         
         if (result.IsFailure)
         {
-            var errorMessage = result.Error.StatusCode switch
-            {
-                StatusCodes.Status409Conflict => ValidationMessages.Locations.DuplicateCity,
-                StatusCodes.Status404NotFound => ValidationMessages.Locations.AllowedCityNotFound,
-                _ => ValidationMessages.Locations.UpdateFailed 
-            };
-
-            return new Error(errorMessage, result.Error.StatusCode).ToProblem();
+            return result.Error.ToProblem();
         }
 
         return Results.Ok(Result<Unit>.Success(Unit.Value));

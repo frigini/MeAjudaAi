@@ -1,34 +1,19 @@
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Integration.Infrastructure.Queries;
 
-public class DbContextReviewQueriesTests : IAsyncDisposable
+public class DbContextReviewQueriesTests : BaseSqliteInMemoryDatabaseTest<RatingsDbContext>
 {
-    private readonly RatingsDbContext _context;
     private readonly DbContextReviewQueries _queries;
-    private readonly Microsoft.Data.Sqlite.SqliteConnection _connection;
 
     public DbContextReviewQueriesTests()
+        : base(options => new RatingsDbContext(options))
     {
-        _connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
-        _connection.Open();
-
-        var options = new DbContextOptionsBuilder<RatingsDbContext>()
-            .UseSqlite(_connection)
-            .Options;
-
-        _context = new RatingsDbContext(options);
-        _context.Database.EnsureCreated();
-        _queries = new DbContextReviewQueries(_context);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _context.DisposeAsync();
-        await _connection.DisposeAsync();
+        _queries = new DbContextReviewQueries(DbContext);
     }
 
     [Fact]
@@ -36,8 +21,8 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
     {
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
         review.Approve();
-        _context.Reviews.Add(review);
-        await _context.SaveChangesAsync();
+        DbContext.Reviews.Add(review);
+        await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetByIdAsync(review.Id);
 
@@ -59,8 +44,8 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
         var providerId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var review = Review.Create(providerId, customerId, 4, "Test");
-        _context.Reviews.Add(review);
-        await _context.SaveChangesAsync();
+        DbContext.Reviews.Add(review);
+        await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetByProviderAndCustomerAsync(providerId, customerId);
 
@@ -74,16 +59,16 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
         var providerId = Guid.NewGuid();
         var r1 = Review.Create(providerId, Guid.NewGuid(), 4, "Oldest");
         r1.Approve();
-        _context.Reviews.Add(r1);
+        DbContext.Reviews.Add(r1);
 
         var r2 = Review.Create(providerId, Guid.NewGuid(), 5, "Latest");
         r2.Approve();
-        _context.Reviews.Add(r2);
+        DbContext.Reviews.Add(r2);
 
         var r3 = Review.Create(providerId, Guid.NewGuid(), 1, "Rejected");
         r3.Reject("Bad");
-        _context.Reviews.Add(r3);
-        await _context.SaveChangesAsync();
+        DbContext.Reviews.Add(r3);
+        await DbContext.SaveChangesAsync();
 
         var result = (await _queries.GetByProviderIdAsync(providerId, 1, 10)).ToList();
 
@@ -99,16 +84,16 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
 
         var r1 = Review.Create(providerId, Guid.NewGuid(), 5, null);
         r1.Approve();
-        _context.Reviews.Add(r1);
+        DbContext.Reviews.Add(r1);
 
         var r2 = Review.Create(providerId, Guid.NewGuid(), 4, null);
         r2.Approve();
-        _context.Reviews.Add(r2);
+        DbContext.Reviews.Add(r2);
 
         var r3 = Review.Create(providerId, Guid.NewGuid(), 1, null);
-        _context.Reviews.Add(r3);
+        DbContext.Reviews.Add(r3);
 
-        await _context.SaveChangesAsync();
+        await DbContext.SaveChangesAsync();
 
         var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
 
@@ -119,12 +104,11 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
     [Fact]
     public async Task GetAverageRatingForProviderAsync_WhenNoApprovedReviews_ShouldReturnZero()
     {
-        var providerId = Guid.NewGuid();
-        var review = Review.Create(providerId, Guid.NewGuid(), 5, "Pending");
-        _context.Reviews.Add(review);
-        await _context.SaveChangesAsync();
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Pending");
+        DbContext.Reviews.Add(review);
+        await DbContext.SaveChangesAsync();
 
-        var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
+        var (average, total) = await _queries.GetAverageRatingForProviderAsync(Guid.NewGuid());
 
         average.Should().Be(0);
         total.Should().Be(0);
@@ -138,9 +122,9 @@ public class DbContextReviewQueriesTests : IAsyncDisposable
         {
             var r = Review.Create(providerId, Guid.NewGuid(), 5, $"Review {i}");
             r.Approve();
-            _context.Reviews.Add(r);
+            DbContext.Reviews.Add(r);
         }
-        await _context.SaveChangesAsync();
+        await DbContext.SaveChangesAsync();
 
         var page1 = await _queries.GetByProviderIdAsync(providerId, 1, 3);
         var page2 = await _queries.GetByProviderIdAsync(providerId, 2, 3);

@@ -84,7 +84,7 @@ public class PaymentTransactionTests
         tx.Fail();
 
         // Act
-        var act = () => tx.Fail();
+        var act = tx.Fail;
 
         // Assert
         act.Should().Throw<InvalidOperationException>();
@@ -117,7 +117,7 @@ public class PaymentTransactionTests
         transaction.Refund(); // primeira chamada
 
         // Act
-        Action act = () => transaction.Refund(); // segunda chamada
+        Action act = transaction.Refund; // segunda chamada
 
         // Assert
         act.Should().NotThrow();
@@ -153,7 +153,7 @@ public class PaymentTransactionTests
             .Build();
 
         // Act
-        var act = () => tx.Refund();
+        var act = tx.Refund;
 
         // Assert
         act.Should().Throw<InvalidOperationException>();

@@ -12,5 +12,3 @@ public partial class PaymentsDbContext : IRepository<Subscription, Guid>
     void IRepository<Subscription, Guid>.Add(Subscription aggregate) => Subscriptions.Add(aggregate);
     void IRepository<Subscription, Guid>.Delete(Subscription aggregate) => Subscriptions.Remove(aggregate);
 }
-
-

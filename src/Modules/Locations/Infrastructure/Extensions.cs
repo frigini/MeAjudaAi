@@ -25,12 +25,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure;
 
 /// <summary>
 /// Métodos de extensão para registrar serviços de infraestrutura do módulo Locations.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>

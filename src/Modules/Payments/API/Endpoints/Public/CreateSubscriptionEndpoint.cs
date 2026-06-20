@@ -1,9 +1,10 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Modules.Payments.API.Helpers;
 using MeAjudaAi.Modules.Payments.API.Mappers;
+using MeAjudaAi.Modules.Payments.Application.Commands;
 using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Payments.Application.DTOs.Responses;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
@@ -60,7 +61,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
             });
         }
 
-        var authResult = AuthorizeRequest(httpContext, request.ProviderId);
+        var authResult = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, request.ProviderId);
         if (authResult is not null)
         {
             return authResult;
@@ -93,36 +94,5 @@ public class CreateSubscriptionEndpoint : IEndpoint
         var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);
 
         return Results.Ok(new CreateSubscriptionResponse(checkoutUrl));
-    }
-
-    /// <summary>
-    /// Valida se o usuário tem autorização para criar assinatura para o prestador informado.
-    /// </summary>
-    /// <param name="httpContext">Contexto HTTP com os claims do usuário.</param>
-    /// <param name="providerId">ID do prestador alvo.</param>
-    /// <returns>Null se autorizado; IResult com erro de autorização caso contrário.</returns>
-    private static IResult? AuthorizeRequest(HttpContext httpContext, Guid providerId)
-    {
-        var isSystemAdmin = string.Equals(
-            httpContext.User?.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value,
-            "true",
-            StringComparison.OrdinalIgnoreCase);
-
-        if (isSystemAdmin)
-        {
-            return null;
-        }
-
-        var userProviderIdClaim = httpContext.User?.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-        if (string.IsNullOrEmpty(userProviderIdClaim) ||
-            !Guid.TryParse(userProviderIdClaim, out var userProviderId) ||
-            userProviderId != providerId)
-        {
-            return string.IsNullOrEmpty(userProviderIdClaim)
-                ? Results.Unauthorized()
-                : Results.Forbid();
-        }
-
-        return null;
     }
 }

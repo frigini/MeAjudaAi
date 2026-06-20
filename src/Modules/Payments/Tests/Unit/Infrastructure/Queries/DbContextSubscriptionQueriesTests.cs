@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
-using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Payments;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Queries;
@@ -10,21 +10,15 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Queries;
 [Trait("Category", "Unit")]
 [Trait("Module", "Payments")]
 [Trait("Layer", "Infrastructure")]
-public class DbContextSubscriptionQueriesTests : IDisposable
+public class DbContextSubscriptionQueriesTests : BaseInMemoryDatabaseTest<PaymentsDbContext>
 {
-    private readonly PaymentsDbContext _dbContext;
     private readonly DbContextSubscriptionQueries _queries;
 
     public DbContextSubscriptionQueriesTests()
+        : base(options => new PaymentsDbContext(options))
     {
-        var options = new DbContextOptionsBuilder<PaymentsDbContext>()
-            .UseInMemoryDatabase("SubscriptionQueriesTest_" + Guid.NewGuid())
-            .Options;
-        _dbContext = new PaymentsDbContext(options);
-        _queries = new DbContextSubscriptionQueries(_dbContext);
+        _queries = new DbContextSubscriptionQueries(DbContext);
     }
-
-    public void Dispose() => _dbContext.Dispose();
 
     [Fact]
     public async Task GetByIdAsync_WithExistingSubscription_ShouldReturnSubscription()
@@ -33,8 +27,8 @@ public class DbContextSubscriptionQueriesTests : IDisposable
             .WithPlanId("premium")
             .WithAmount(MoneyBuilder.Brl(99.90m))
             .Build();
-        _dbContext.Subscriptions.Add(sub);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Subscriptions.Add(sub);
+        await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetByIdAsync(sub.Id);
 
@@ -50,8 +44,8 @@ public class DbContextSubscriptionQueriesTests : IDisposable
             .WithAmount(MoneyBuilder.Brl(99.90m))
             .Build();
         sub.Activate("ext-sub-123", "cus-123", DateTime.UtcNow.AddMonths(1));
-        _dbContext.Subscriptions.Add(sub);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Subscriptions.Add(sub);
+        await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetByExternalIdAsync("ext-sub-123");
 
@@ -69,10 +63,10 @@ public class DbContextSubscriptionQueriesTests : IDisposable
             .WithAmount(MoneyBuilder.Brl(50.00m))
             .Build();
         var newSub = new Subscription(providerId, "premium", Money.FromDecimal(99.90m, "BRL"));
-        
-        _dbContext.Subscriptions.Add(oldSub);
-        _dbContext.Subscriptions.Add(newSub);
-        await _dbContext.SaveChangesAsync();
+
+        DbContext.Subscriptions.Add(oldSub);
+        DbContext.Subscriptions.Add(newSub);
+        await DbContext.SaveChangesAsync();
 
         var result = await _queries.GetLatestByProviderIdAsync(providerId);
 

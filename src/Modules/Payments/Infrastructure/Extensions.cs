@@ -1,34 +1,38 @@
-using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Payments.Application.Queries;
+using MeAjudaAi.Modules.Payments.Application.Options;
+using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
+using MeAjudaAi.Modules.Payments.Domain.Events;
 using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
+using MeAjudaAi.Modules.Payments.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using MeAjudaAi.Modules.Payments.Infrastructure.Services;
-using MeAjudaAi.Modules.Payments.Application.Options;
-using MeAjudaAi.Modules.Payments.Infrastructure.Events.Handlers;
-using MeAjudaAi.Modules.Payments.Domain.Events;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Stripe;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.Configure<PaymentsOptions>(configuration.GetSection(PaymentsOptions.SectionName));
+        services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<PaymentsOptions>>().Value);
 
         services.AddPersistence(configuration, environment);
         services.AddServices(configuration);

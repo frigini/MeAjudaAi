@@ -7,13 +7,13 @@ using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Idempotency;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Idempotency;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Idempotency;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Utilities;
@@ -22,12 +22,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure;
 
 /// <summary>
 /// Métodos de extensão para registrar serviços de infraestrutura do módulo Ratings.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>

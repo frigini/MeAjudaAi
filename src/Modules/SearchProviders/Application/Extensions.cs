@@ -1,18 +1,20 @@
 using FluentValidation;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Contracts.Modules.SearchProviders;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.SearchProviders.Application;
 
 /// <summary>
 /// Métodos de extensão para registrar serviços da camada de Application do SearchProviders.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>
