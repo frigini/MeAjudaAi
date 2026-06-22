@@ -77,7 +77,7 @@ public static class Extensions
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
         services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
         services.AddScoped<IPaymentsHealthQueries, DbContextPaymentsHealthQueries>();
-        services.AddScoped<IPaymentCommandService, DbContextPaymentCommandService>();
+        services.AddScoped<IPaymentCommandService, PaymentCommandService>();
     }
 
     private static void AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
