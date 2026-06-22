@@ -118,26 +118,26 @@ public class ReturnUrlResolverTests
     }
 
     [Fact]
-    public void Resolve_UntrustedHost_ShouldFallbackToClientBaseUrl()
+    public void Resolve_UntrustedHost_ShouldReturnBadRequest()
     {
         _options.AllowedReturnHosts = Array.Empty<string>();
         var url = "https://evil.com/steal";
 
         var result = _resolver.Resolve(url, Guid.NewGuid());
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be("https://meajudaai.com");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("não é confiável");
     }
 
     [Fact]
-    public void Resolve_HttpNonLocalhost_ShouldFallbackToClientBaseUrl()
+    public void Resolve_HttpNonLocalhost_ShouldReturnBadRequest()
     {
         var url = "http://meajudaai.com/account";
 
         var result = _resolver.Resolve(url, Guid.NewGuid());
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be("https://meajudaai.com");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("não é confiável");
     }
 
     [Fact]

@@ -56,7 +56,7 @@ public class ReturnUrlResolver(
             logger.LogWarning(
                 "Blocked billing portal redirect to untrusted host {Host} for Provider {ProviderId}.",
                 uri.Host, providerId);
-            return Result<string>.Success(clientBaseUrl);
+            return Result<string>.Failure(Error.BadRequest($"ReturnUrl host '{uri.Host}' não é confiável."));
         }
 
         return Result<string>.Success(normalized);
