@@ -139,7 +139,7 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
-        if (result.Value == null) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(Error.Internal("Provedores não encontrados."));
+        if (result.Value == null) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(new List<ModuleProviderBasicDto>());
 
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
     }
@@ -164,7 +164,7 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
-        if (result.Value == null) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(Error.Internal("Provedores não encontrados."));
+        if (result.Value == null) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(new List<ModuleProviderBasicDto>());
 
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
     }

@@ -35,7 +35,7 @@ public static class Extensions
         services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<PaymentsOptions>>().Value);
 
         services.AddPersistence(configuration, environment);
-        services.AddServices(configuration);
+        services.AddServices(configuration, environment);
         services.AddEventHandlers();
         services.AddJobs();
 
@@ -78,18 +78,27 @@ public static class Extensions
         services.AddScoped<IPaymentCommandService, DbContextPaymentCommandService>();
     }
 
-    private static void AddServices(this IServiceCollection services, IConfiguration configuration)
+    private static void AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
+        var isBypassEnvironment = EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+
         var apiKey = configuration["Stripe:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
+        if (string.IsNullOrWhiteSpace(apiKey) && !isBypassEnvironment)
         {
             throw new InvalidOperationException("Stripe:ApiKey is missing or empty in configuration.");
         }
 
-        services.AddScoped<IStripeClient>(_ => new StripeClient(apiKey));
-
-        services.AddScoped<IStripeService, StripeService>();
-        services.AddScoped<IPaymentGateway, StripePaymentGateway>();
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            services.AddScoped<IStripeClient>(_ => new StripeClient(apiKey));
+            services.AddScoped<IStripeService, StripeService>();
+            services.AddScoped<IPaymentGateway, StripePaymentGateway>();
+        }
+        else
+        {
+            services.AddScoped<IStripeService, MockStripeService>();
+            services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+        }
     }
 
     private static void AddEventHandlers(this IServiceCollection services)

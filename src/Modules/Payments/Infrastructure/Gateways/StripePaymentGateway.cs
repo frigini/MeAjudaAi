@@ -90,7 +90,7 @@ public class StripePaymentGateway : IPaymentGateway
                 return SubscriptionGatewayResponse.Failed("O valor ou moeda do plano não corresponde às informações do provedor de pagamento.");
             }
 
-            var successUrlWithSession = _successUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.OrdinalIgnoreCase)
+            var successUrlWithSession = _successUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.Ordinal)
                 ? _successUrl
                 : _successUrl.Contains('?')
                     ? $"{_successUrl}&session_id={{CHECKOUT_SESSION_ID}}"
