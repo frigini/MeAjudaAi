@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 /// <param name="CheckoutUrl">URL de checkout para o cliente. Preenchido quando <see cref="Success"/> é true.</param>
 /// <param name="ErrorMessage">Mensagem de erro quando a operação falhou. Preenchido quando <see cref="Success"/> é false.</param>
 [ExcludeFromCodeCoverage]
-public record SubscriptionGatewayResponse(
+public sealed record SubscriptionGatewayResponse(
     bool Success,
     string? ExternalSubscriptionId,
     string? CheckoutUrl,
