@@ -1,5 +1,5 @@
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Modules.Payments.Application.Commands;
-using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
 
 namespace MeAjudaAi.Modules.Payments.API.Mappers;
 

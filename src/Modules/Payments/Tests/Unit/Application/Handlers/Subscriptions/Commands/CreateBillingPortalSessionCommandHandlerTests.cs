@@ -1,14 +1,12 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Commands;
 using MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Commands;
-using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers.Subscriptions.Commands;
@@ -17,8 +15,6 @@ public class CreateBillingPortalSessionCommandHandlerTests
 {
     private readonly Mock<IQueryDispatcher> _queryDispatcherMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
-    private readonly Mock<IConfiguration> _configurationMock;
-    private readonly PaymentsOptions _options;
     private readonly Mock<ILogger<CreateBillingPortalSessionCommandHandler>> _loggerMock;
     private readonly CreateBillingPortalSessionCommandHandler _handler;
 
@@ -26,16 +22,11 @@ public class CreateBillingPortalSessionCommandHandlerTests
     {
         _queryDispatcherMock = new Mock<IQueryDispatcher>();
         _gatewayMock = new Mock<IPaymentGateway>();
-        _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<CreateBillingPortalSessionCommandHandler>>();
-        
-        _options = new PaymentsOptions { AllowedReturnHosts = new[] { "localhost" } };
 
         _handler = new CreateBillingPortalSessionCommandHandler(
             _queryDispatcherMock.Object, 
             _gatewayMock.Object, 
-            _configurationMock.Object, 
-            _options,
             _loggerMock.Object);
     }
 
@@ -45,7 +36,7 @@ public class CreateBillingPortalSessionCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var externalCustomerId = "cus_123";
-        var returnUrl = "https://localhost/account";
+        var returnUrl = "https://meajudaai.com/account";
         var expectedUrl = "https://stripe.com/portal/123";
 
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
@@ -74,7 +65,7 @@ public class CreateBillingPortalSessionCommandHandlerTests
         _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Subscription?>.Success(null));
 
-        var command = new CreateBillingPortalSessionCommand(providerId, "https://localhost/account");
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://meajudaai.com/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -89,12 +80,11 @@ public class CreateBillingPortalSessionCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
-        // Observação: o sub não está ativado, portanto ExternalCustomerId é nulo
 
         _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Subscription?>.Success(sub));
 
-        var command = new CreateBillingPortalSessionCommand(providerId, "https://localhost/account");
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://meajudaai.com/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -117,113 +107,12 @@ public class CreateBillingPortalSessionCommandHandlerTests
         _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?)null);
 
-        var command = new CreateBillingPortalSessionCommand(providerId, "https://localhost/account");
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://meajudaai.com/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
 
         // Assert
         await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "GATEWAY_SESSION_FAILURE");
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldAllow_WhenHostInClientBaseUrl()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var externalCustomerId = "cus_123";
-        var returnUrl = "https://meajudaai.com/account";
-        
-        _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
-
-        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
-        sub.Activate("sub_123", externalCustomerId, DateTime.UtcNow.AddMonths(1));
-
-        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<Subscription?>.Success(sub));
-
-        _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
-            .ReturnsAsync("https://stripe.com/portal");
-
-        var command = new CreateBillingPortalSessionCommand(providerId, returnUrl);
-
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
-        result.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldAllowLocalhost_WithHttp()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var returnUrl = "http://localhost:3000/billing";
-        
-        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
-        sub.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
-        _queryDispatcherMock
-            .Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<Subscription?>.Success(sub));
-        _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("https://stripe.com");
-
-        var command = new CreateBillingPortalSessionCommand(providerId, returnUrl);
-
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
-        result.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldThrow_WhenAllowedHostsIsNull()
-    {
-        // Arrange
-        _configurationMock.Setup(x => x.GetSection("Payments:AllowedReturnHosts")).Returns(new Mock<IConfigurationSection>().Object);
-        var command = new CreateBillingPortalSessionCommand(Guid.NewGuid(), "https://evil.com");
-
-        // Act
-        var act = () => _handler.HandleAsync(command);
-
-        // Assert
-        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "UNTRUSTED_RETURN_HOST");
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldAllowLoopbackIp_WithHttp()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
-        sub.Activate("sub_ext", "cus_ext_loopback");
-
-        _queryDispatcherMock
-            .Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<Subscription?>.Success(sub));
-
-        _gatewayMock
-            .Setup(g => g.CreateBillingPortalSessionAsync("cus_ext_loopback", It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("https://billing.stripe.com/portal_session");
-
-        var command = new CreateBillingPortalSessionCommand(providerId, "http://127.0.0.1/return");
-
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
-        result.Should().Be("https://billing.stripe.com/portal_session");
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task HandleAsync_ShouldThrow_WhenReturnUrlIsMissing(string? url)
-    {
-        var command = new CreateBillingPortalSessionCommand(Guid.NewGuid(), url!);
-        var act = () => _handler.HandleAsync(command);
-        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "INVALID_RETURN_URL");
     }
 }

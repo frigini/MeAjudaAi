@@ -106,7 +106,7 @@ public class GlobalExceptionHandler(
                 new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             BusinessRuleException businessException => (
-                StatusCodes.Status400BadRequest,
+                businessException.HttpStatusCode ?? StatusCodes.Status400BadRequest,
                 "Violação de Regra de Negócio",
                 businessException.Message,
                 null,
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler(
                     ("traceId", httpContext.TraceIdentifier))),
 
             DomainException domainException => (
-                StatusCodes.Status400BadRequest,
+                domainException.HttpStatusCode ?? StatusCodes.Status400BadRequest,
                 "Violação de Regra de Domínio",
                 domainException.Message,
                 null,

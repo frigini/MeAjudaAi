@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
+namespace MeAjudaAi.Contracts.Modules.Payments.DTOs;
 
 /// <summary>
 /// DTO de requisição para criação de uma nova assinatura de pagamento.

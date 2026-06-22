@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Messaging;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers.Subscriptions.Commands;
@@ -86,6 +87,7 @@ public class CreateSubscriptionCommandHandlerTests
         // Assert
         var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
         ex.Which.Message.Should().Contain("255");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     [Fact]
@@ -107,7 +109,9 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Plano inválido*");
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("Plano inválido");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     [Fact]
@@ -132,7 +136,9 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Configuração incompleta*");
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("Configuração incompleta");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
     [Fact]
@@ -150,7 +156,9 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*URL de checkout ausente*");
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("URL de checkout ausente");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status502BadGateway);
         _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -171,7 +179,9 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Falha ao persistir*");
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("Falha ao persistir");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -187,7 +197,9 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Falha ao comunicar*");
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("Falha ao comunicar");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status502BadGateway);
     }
 
     [Fact]
@@ -203,7 +215,9 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Falha ao criar assinatura no gateway*");
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("Falha ao criar assinatura no gateway");
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status502BadGateway);
     }
 
     [Fact]
@@ -225,7 +239,8 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>();
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -248,7 +263,8 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>();
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.HttpStatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -104,11 +104,12 @@ public class DbContextReviewQueriesTests : BaseSqliteInMemoryDatabaseTest<Rating
     [Fact]
     public async Task GetAverageRatingForProviderAsync_WhenNoApprovedReviews_ShouldReturnZero()
     {
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Pending");
+        var providerId = Guid.NewGuid();
+        var review = Review.Create(providerId, Guid.NewGuid(), 5, "Pending");
         DbContext.Reviews.Add(review);
         await DbContext.SaveChangesAsync();
 
-        var (average, total) = await _queries.GetAverageRatingForProviderAsync(Guid.NewGuid());
+        var (average, total) = await _queries.GetAverageRatingForProviderAsync(providerId);
 
         average.Should().Be(0);
         total.Should().Be(0);

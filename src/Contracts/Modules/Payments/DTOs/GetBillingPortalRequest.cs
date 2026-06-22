@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
+namespace MeAjudaAi.Contracts.Modules.Payments.DTOs;
 
 /// <summary>
 /// DTO de requisição para geração de link do portal de faturamento Stripe.

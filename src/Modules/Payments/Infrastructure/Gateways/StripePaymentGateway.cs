@@ -30,11 +30,7 @@ public class StripePaymentGateway : IPaymentGateway
         _logger = logger;
         _stripeService = stripeService;
 
-        var apiKey = configuration["Stripe:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            throw new ArgumentException("Stripe ApiKey is missing or empty in configuration.");
-        }
+        var apiKey = configuration["Stripe:ApiKey"]!;
 
         var clientBaseUrl = (configuration["ClientBaseUrl"] ?? "").TrimEnd('/');
         if (string.IsNullOrWhiteSpace(clientBaseUrl))
@@ -90,9 +86,11 @@ public class StripePaymentGateway : IPaymentGateway
                 return SubscriptionGatewayResponse.Failed("The plan amount or currency does not match the payment provider information.");
             }
 
-            var successUrlWithSession = _successUrl.Contains('?') 
-                ? $"{_successUrl}&session_id={{CHECKOUT_SESSION_ID}}" 
-                : $"{_successUrl}?session_id={{CHECKOUT_SESSION_ID}}";
+            var successUrlWithSession = _successUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.OrdinalIgnoreCase)
+                ? _successUrl
+                : _successUrl.Contains('?')
+                    ? $"{_successUrl}&session_id={{CHECKOUT_SESSION_ID}}"
+                    : $"{_successUrl}?session_id={{CHECKOUT_SESSION_ID}}";
 
             var options = new SessionCreateOptions
             {

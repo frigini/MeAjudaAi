@@ -181,7 +181,7 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
         var mockContext = new Mock<BookingsDbContext>(options) { CallBase = true };
 
         mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new PostgresException("Connection error", "Error", "22P02", null));
+            .ThrowsAsync(new PostgresException("Connection error", "Error", "22P02", null!));
 
         var serviceWithError = new DbContextBookingCommandService(mockContext.Object, _loggerMock.Object);
 

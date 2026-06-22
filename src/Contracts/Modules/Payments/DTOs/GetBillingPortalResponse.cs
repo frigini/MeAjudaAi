@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Modules.Payments.Application.DTOs.Responses;
+namespace MeAjudaAi.Contracts.Modules.Payments.DTOs;
 
 /// <summary>
 /// Resposta com a URL do portal de faturamento.

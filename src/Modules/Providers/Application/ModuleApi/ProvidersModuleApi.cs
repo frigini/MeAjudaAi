@@ -139,7 +139,7 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
-        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value!.ToBasicContract());
     }
 
     public async Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -162,7 +162,7 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
-        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
+        return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value!.ToBasicContract());
     }
 
     public async Task<Result<bool>> ProviderExistsAsync(Guid providerId, CancellationToken cancellationToken = default)

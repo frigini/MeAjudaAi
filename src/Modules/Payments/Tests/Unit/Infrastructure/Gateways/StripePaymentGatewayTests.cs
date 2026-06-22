@@ -42,14 +42,6 @@ public class StripePaymentGatewayTests
         _stripeServiceMock.Object);
 
     [Fact]
-    public void Constructor_ShouldThrow_WhenApiKeyIsMissing()
-    {
-        _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object);
-        act.Should().Throw<ArgumentException>().WithMessage("*ApiKey*");
-    }
-
-    [Fact]
     public void Constructor_ShouldThrow_WhenClientBaseUrlIsMissing()
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("sk_test_123");
@@ -166,5 +158,83 @@ public class StripePaymentGatewayTests
         // Assert
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Contain("fractional");
+    }
+
+    [Fact]
+    public async Task CreateSubscriptionAsync_ShouldAppendSessionId_WhenUrlHasNoPlaceholder()
+    {
+        // Arrange
+        _paymentsOptions.SuccessUrl = "/success";
+        CreateGateway();
+
+        var stripePrice = new Price { UnitAmount = 1000, Currency = "brl" };
+        _stripeServiceMock.Setup(x => x.GetPriceAsync(It.IsAny<string>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripePrice);
+
+        var stripeSession = new Stripe.Checkout.Session { Url = "https://checkout.stripe.com/pay/s1" };
+        _stripeServiceMock.Setup(x => x.CreateCheckoutSessionAsync(It.IsAny<Stripe.Checkout.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripeSession);
+
+        // Act
+        await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_test", Money.FromDecimal(10, "BRL"), null, CancellationToken.None);
+
+        // Assert
+        _stripeServiceMock.Verify(x => x.CreateCheckoutSessionAsync(
+            It.Is<Stripe.Checkout.SessionCreateOptions>(o =>
+                o.SuccessUrl == "https://meajudaai.com/success?session_id={CHECKOUT_SESSION_ID}"),
+            It.IsAny<RequestOptions>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateSubscriptionAsync_ShouldNotDuplicateSessionId_WhenUrlAlreadyContainsPlaceholder()
+    {
+        // Arrange
+        _paymentsOptions.SuccessUrl = "/payment/success?session_id={CHECKOUT_SESSION_ID}";
+        CreateGateway();
+
+        var stripePrice = new Price { UnitAmount = 1000, Currency = "brl" };
+        _stripeServiceMock.Setup(x => x.GetPriceAsync(It.IsAny<string>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripePrice);
+
+        var stripeSession = new Stripe.Checkout.Session { Url = "https://checkout.stripe.com/pay/s2" };
+        _stripeServiceMock.Setup(x => x.CreateCheckoutSessionAsync(It.IsAny<Stripe.Checkout.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripeSession);
+
+        // Act
+        await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_test", Money.FromDecimal(10, "BRL"), null, CancellationToken.None);
+
+        // Assert - should NOT contain a second session_id
+        _stripeServiceMock.Verify(x => x.CreateCheckoutSessionAsync(
+            It.Is<Stripe.Checkout.SessionCreateOptions>(o =>
+                o.SuccessUrl == "https://meajudaai.com/payment/success?session_id={CHECKOUT_SESSION_ID}"),
+            It.IsAny<RequestOptions>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateSubscriptionAsync_ShouldAppendSessionIdWithAmpersand_WhenUrlHasQueryButNoPlaceholder()
+    {
+        // Arrange
+        _paymentsOptions.SuccessUrl = "/payment/success?ref=home";
+        CreateGateway();
+
+        var stripePrice = new Price { UnitAmount = 1000, Currency = "brl" };
+        _stripeServiceMock.Setup(x => x.GetPriceAsync(It.IsAny<string>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripePrice);
+
+        var stripeSession = new Stripe.Checkout.Session { Url = "https://checkout.stripe.com/pay/s3" };
+        _stripeServiceMock.Setup(x => x.CreateCheckoutSessionAsync(It.IsAny<Stripe.Checkout.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripeSession);
+
+        // Act
+        await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_test", Money.FromDecimal(10, "BRL"), null, CancellationToken.None);
+
+        // Assert
+        _stripeServiceMock.Verify(x => x.CreateCheckoutSessionAsync(
+            It.Is<Stripe.Checkout.SessionCreateOptions>(o =>
+                o.SuccessUrl == "https://meajudaai.com/payment/success?ref=home&session_id={CHECKOUT_SESSION_ID}"),
+            It.IsAny<RequestOptions>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }

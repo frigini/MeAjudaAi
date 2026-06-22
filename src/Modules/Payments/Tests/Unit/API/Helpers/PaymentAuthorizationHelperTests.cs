@@ -1,7 +1,8 @@
+using System.Security.Claims;
 using MeAjudaAi.Modules.Payments.API.Helpers;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.API.Helpers;
 
@@ -47,7 +48,7 @@ public class PaymentAuthorizationHelperTests
 
         var result = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, _providerId);
 
-        result.Should().NotBeNull();
+        result.Should().BeOfType<ForbidHttpResult>();
     }
 
     [Fact]
@@ -57,7 +58,7 @@ public class PaymentAuthorizationHelperTests
 
         var result = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, _providerId);
 
-        result.Should().NotBeNull();
+        result.Should().BeOfType<UnauthorizedHttpResult>();
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public class PaymentAuthorizationHelperTests
 
         var result = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, _providerId);
 
-        result.Should().NotBeNull();
+        result.Should().BeOfType<UnauthorizedHttpResult>();
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public class PaymentAuthorizationHelperTests
 
         var result = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, _providerId);
 
-        result.Should().NotBeNull();
+        result.Should().BeOfType<ForbidHttpResult>();
     }
 
     [Fact]
@@ -90,7 +91,7 @@ public class PaymentAuthorizationHelperTests
 
         var result = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, _providerId);
 
-        result.Should().NotBeNull();
+        result.Should().BeOfType<UnauthorizedHttpResult>();
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public class PaymentAuthorizationHelperTests
 
         var result = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, _providerId);
 
-        result.Should().NotBeNull();
+        result.Should().BeOfType<UnauthorizedHttpResult>();
     }
 
     private static HttpContext CreateHttpContext(params Claim[] claims)

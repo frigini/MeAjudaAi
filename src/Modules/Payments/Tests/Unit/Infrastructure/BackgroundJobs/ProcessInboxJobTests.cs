@@ -346,7 +346,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
             var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Payments);
 
             var messages = await dbContext.InboxMessages
-                .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries)
+                .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
                 .OrderBy(m => m.CreatedAt)
                 .Take(20)
                 .ToListAsync(ct);

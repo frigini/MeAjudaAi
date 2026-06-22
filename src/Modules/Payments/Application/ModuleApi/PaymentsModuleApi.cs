@@ -37,7 +37,7 @@ public sealed class PaymentsModuleApi(
         {
             logger.LogDebug("Checking Payments module availability");
 
-            // Simple database connectivity test
+            // Teste simples de conectividade com o banco de dados
             _ = await subscriptionQueries.GetActiveByProviderIdAsync(Guid.Empty, cancellationToken);
 
             logger.LogDebug("Payments module is available and healthy");

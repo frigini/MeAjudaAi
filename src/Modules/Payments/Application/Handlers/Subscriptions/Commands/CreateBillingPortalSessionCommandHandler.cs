@@ -1,13 +1,11 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Commands;
-using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Queries;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Commands;
@@ -15,18 +13,12 @@ namespace MeAjudaAi.Modules.Payments.Application.Handlers.Subscriptions.Commands
 public class CreateBillingPortalSessionCommandHandler(
     IQueryDispatcher queryDispatcher,
     IPaymentGateway gateway,
-    IConfiguration configuration,
-    PaymentsOptions paymentsOptions,
     ILogger<CreateBillingPortalSessionCommandHandler> logger) : ICommandHandler<CreateBillingPortalSessionCommand, string>
 {
-    private readonly PaymentsOptions _options = paymentsOptions;
-
     public async Task<string> HandleAsync(CreateBillingPortalSessionCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
-            ValidateReturnUrl(command.ReturnUrl);
-
             var query = new GetActiveSubscriptionByProviderQuery(command.ProviderId, command.CorrelationId);
             var result = await queryDispatcher.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(query, cancellationToken);
             
@@ -64,42 +56,18 @@ public class CreateBillingPortalSessionCommandHandler(
 
             return portalUrl;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            logger.LogError(ex, "Unexpected error in CreateBillingPortalSessionCommandHandler: {Message}. Stack: {Stack}", ex.Message, ex.StackTrace);
             throw;
         }
-    }
-
-    private void ValidateReturnUrl(string returnUrl)
-    {
-        if (string.IsNullOrWhiteSpace(returnUrl))
-            throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno é obrigatória.");
-
-        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri))
-            throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno informada é inválida.");
-
-        var isLocalhost = uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
-                         uri.Host.Equals("127.0.0.1") || 
-                         uri.Host.Equals("::1") ||
-                         (System.Net.IPAddress.TryParse(uri.Host, out var ip) && System.Net.IPAddress.IsLoopback(ip));
-
-        if (uri.Scheme != Uri.UriSchemeHttps && !isLocalhost)
-            throw new BusinessRuleException("INVALID_RETURN_URL_SCHEME", "A URL de retorno deve usar o protocolo HTTPS.");
-
-        var trustedHosts = new HashSet<string>(_options.AllowedReturnHosts, StringComparer.OrdinalIgnoreCase);
-        
-        var clientBaseUrl = configuration["ClientBaseUrl"];
-        if (!string.IsNullOrEmpty(clientBaseUrl) && Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out var clientUri))
+        catch (DomainException)
         {
-            trustedHosts.Add(clientUri.Host);
+            throw;
         }
-
-        if (!isLocalhost && !trustedHosts.Contains(uri.Host))
+        catch (Exception ex)
         {
-            logger.LogWarning("Blocked billing portal redirect to untrusted host: {Host}. Trusted: {Trusted}", 
-                uri.Host, string.Join(", ", trustedHosts));
-            throw new BusinessRuleException("UNTRUSTED_RETURN_HOST", "O domínio da URL de retorno não é confiável.");
+            logger.LogError(ex, "Unexpected error in CreateBillingPortalSessionCommandHandler: {Message}", ex.Message);
+            throw;
         }
     }
 }

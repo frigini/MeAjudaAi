@@ -1,10 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Payments.API.Helpers;
 using MeAjudaAi.Modules.Payments.API.Mappers;
 using MeAjudaAi.Modules.Payments.Application.Commands;
-using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Payments.Application.DTOs.Responses;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;

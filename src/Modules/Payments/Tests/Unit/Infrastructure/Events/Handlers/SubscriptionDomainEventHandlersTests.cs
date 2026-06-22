@@ -94,7 +94,7 @@ public class SubscriptionDomainEventHandlersTests
         var domainEvent = new SubscriptionActivatedDomainEvent(Guid.NewGuid(), Guid.NewGuid(), "ext_id", 1);
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.Is<CancellationToken>(t => t == cts.Token)))
             .ThrowsAsync(new OperationCanceledException());
 
         var act = () => handler.HandleAsync(domainEvent, cts.Token);
@@ -181,7 +181,7 @@ public class SubscriptionDomainEventHandlersTests
         var domainEvent = new SubscriptionCanceledDomainEvent(Guid.NewGuid(), Guid.NewGuid(), 1);
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.Is<CancellationToken>(t => t == cts.Token)))
             .ThrowsAsync(new OperationCanceledException());
 
         var act = () => handler.HandleAsync(domainEvent, cts.Token);
@@ -268,7 +268,7 @@ public class SubscriptionDomainEventHandlersTests
         var domainEvent = new SubscriptionExpiredDomainEvent(Guid.NewGuid(), Guid.NewGuid(), 1);
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.Is<CancellationToken>(t => t == cts.Token)))
             .ThrowsAsync(new OperationCanceledException());
 
         var act = () => handler.HandleAsync(domainEvent, cts.Token);
@@ -356,7 +356,7 @@ public class SubscriptionDomainEventHandlersTests
         var domainEvent = new SubscriptionRenewedDomainEvent(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.AddMonths(1), 1);
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.Is<CancellationToken>(t => t == cts.Token)))
             .ThrowsAsync(new OperationCanceledException());
 
         var act = () => handler.HandleAsync(domainEvent, cts.Token);

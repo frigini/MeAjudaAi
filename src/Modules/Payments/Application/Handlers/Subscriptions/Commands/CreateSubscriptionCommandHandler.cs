@@ -8,6 +8,8 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +26,7 @@ public sealed class CreateSubscriptionCommandHandler(
     {
         if (command.IdempotencyKey?.Length > 255)
         {
-            throw new SubscriptionCreationException("Chave de idempotência inválida ou muito longa (máximo 255 caracteres).");
+            throw new SubscriptionCreationException("Chave de idempotência inválida ou muito longa (máximo 255 caracteres).", StatusCodes.Status400BadRequest);
         }
 
         var (amount, currency) = GetPlanDetails(command.PlanId);
@@ -48,7 +50,7 @@ public sealed class CreateSubscriptionCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Payment provider communication failure for Provider {ProviderId}", command.ProviderId);
-            throw new SubscriptionCreationException("Falha ao comunicar com o provedor de pagamento.", ex);
+            throw new SubscriptionCreationException("Falha ao comunicar com o provedor de pagamento.", StatusCodes.Status502BadGateway);
         }
 
         if (!result.Success)
@@ -61,14 +63,14 @@ public sealed class CreateSubscriptionCommandHandler(
                 await TryCompensateAsync(result);
             }
             
-            throw new SubscriptionCreationException($"Falha ao criar assinatura no gateway: {result.ErrorMessage}");
+            throw new SubscriptionCreationException($"Falha ao criar assinatura no gateway: {result.ErrorMessage}", StatusCodes.Status502BadGateway);
         }
 
         if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
         {
             logger.LogError("Missing checkout URL for Provider {ProviderId}", command.ProviderId);
             await TryCompensateAsync(result);
-            throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
+            throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.", StatusCodes.Status502BadGateway);
         }
 
         try
@@ -83,7 +85,7 @@ public sealed class CreateSubscriptionCommandHandler(
         catch (Exception ex)
         {
             await TryCompensateAsync(result);
-            throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex);
+            throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex, StatusCodes.Status500InternalServerError);
         }
 
         return result.CheckoutUrl;
@@ -119,13 +121,13 @@ public sealed class CreateSubscriptionCommandHandler(
         if (!_options.Plans.TryGetValue(planId, out var planOptions) || planOptions == null)
         {
             logger.LogWarning("Invalid plan attempted: {PlanId}", planId);
-            throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}");
+            throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}", StatusCodes.Status400BadRequest);
         }
 
         if (string.IsNullOrEmpty(planOptions.Currency))
         {
             logger.LogError("Incomplete configuration for plan: {PlanId}", planId);
-            throw new SubscriptionCreationException($"Configuração incompleta para o plano: {planId}");
+            throw new SubscriptionCreationException($"Configuração incompleta para o plano: {planId}", StatusCodes.Status500InternalServerError);
         }
 
         return (planOptions.Amount, planOptions.Currency);

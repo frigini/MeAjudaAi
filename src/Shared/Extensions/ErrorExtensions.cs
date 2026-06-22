@@ -23,12 +23,12 @@ public static class ErrorExtensions
 
         var title = statusCode switch
         {
-            400 => "Bad Request",
-            401 => "Unauthorized",
-            403 => "Forbidden",
-            404 => "Not Found",
-            409 => "Conflict",
-            _ => "Internal Server Error"
+            400 => "Requisição Inválida",
+            401 => "Não Autorizado",
+            403 => "Proibido",
+            404 => "Não Encontrado",
+            409 => "Conflito",
+            _ => "Erro Interno do Servidor"
         };
 
         return Results.Problem(

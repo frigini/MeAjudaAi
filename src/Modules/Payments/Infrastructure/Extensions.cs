@@ -80,16 +80,13 @@ public static class Extensions
 
     private static void AddServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IStripeClient>(provider => 
+        var apiKey = configuration["Stripe:ApiKey"];
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
-            var config = provider.GetRequiredService<IConfiguration>();
-            var apiKey = config["Stripe:ApiKey"];
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                return new StripeClient("sk_test_dummy"); 
-            }
-            return new StripeClient(apiKey);
-        });
+            throw new InvalidOperationException("Stripe:ApiKey is missing or empty in configuration.");
+        }
+
+        services.AddScoped<IStripeClient>(_ => new StripeClient(apiKey));
 
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IPaymentGateway, StripePaymentGateway>();

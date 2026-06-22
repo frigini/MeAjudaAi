@@ -4,7 +4,7 @@ namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 /// Representa uma mensagem na inbox para processamento assíncrono de eventos.
 /// </summary>
 /// <remarks>
-/// Implementa o padrão Inbox para garantia de processamento至少一次 (at-least-once).
+/// Implementa o padrão Inbox para garantia de processamento pelo menos uma vez (at-least-once).
 /// Mensagens são inseridas quando um evento é recebido e processadas por background jobs.
 /// Suporta retry com backoff exponencial e controle de máximo de tentativas.
 /// </remarks>

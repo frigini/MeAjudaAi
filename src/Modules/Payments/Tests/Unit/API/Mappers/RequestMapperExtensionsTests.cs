@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Modules.Payments.API.Mappers;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.API.Mappers;

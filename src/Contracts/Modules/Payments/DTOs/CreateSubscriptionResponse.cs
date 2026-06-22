@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Modules.Payments.Application.DTOs.Responses;
+namespace MeAjudaAi.Contracts.Modules.Payments.DTOs;
 
 /// <summary>
 /// Resposta da criação de assinatura com a URL de checkout.

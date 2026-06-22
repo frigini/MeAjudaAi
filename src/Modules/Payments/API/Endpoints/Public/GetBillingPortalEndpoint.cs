@@ -1,9 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Modules.Payments.API.Helpers;
 using MeAjudaAi.Modules.Payments.API.Mappers;
 using MeAjudaAi.Modules.Payments.Application.Commands;
-using MeAjudaAi.Modules.Payments.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Payments.Application.DTOs.Responses;
+using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
@@ -31,21 +31,10 @@ public class GetBillingPortalEndpoint : IEndpoint
         .WithDescription("Gera um link para o portal de gerenciamento de faturamento do Stripe.");
     }
 
-    /// <summary>
-    /// Gera um link para o portal de gerenciamento de faturamento do Stripe.
-    /// </summary>
-    /// <param name="request">Dados da requisição (prestador e URL de retorno opcional).</param>
-    /// <param name="dispatcher">Disparador de comandos.</param>
-    /// <param name="configuration">Configuração da aplicação para resolver ClientBaseUrl.</param>
-    /// <param name="logger">Logger do endpoint.</param>
-    /// <param name="httpContext">Contexto da requisição HTTP para extração de identidade.</param>
-    /// <param name="cancellationToken">Token de cancelamento da requisição.</param>
-    /// <returns>URL do portal de faturamento.</returns>
     private static async Task<IResult> GetBillingPortalAsync(
         GetBillingPortalRequest request,
         [FromServices] ICommandDispatcher dispatcher,
-        [FromServices] IConfiguration configuration,
-        [FromServices] ILogger<GetBillingPortalEndpoint> logger,
+        [FromServices] IReturnUrlResolver returnUrlResolver,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
@@ -63,7 +52,7 @@ public class GetBillingPortalEndpoint : IEndpoint
             return authResult;
         }
 
-        var resolveResult = ResolveReturnUrl(request.ReturnUrl, configuration, request.ProviderId, logger);
+        var resolveResult = returnUrlResolver.Resolve(request.ReturnUrl, request.ProviderId);
         if (resolveResult.IsFailure)
         {
             return resolveResult.Error.ToProblem();
@@ -73,53 +62,5 @@ public class GetBillingPortalEndpoint : IEndpoint
         var portalUrl = await dispatcher.SendAsync<CreateBillingPortalSessionCommand, string>(command, cancellationToken);
 
         return Results.Ok(new GetBillingPortalResponse(portalUrl));
-    }
-
-    /// <summary>
-    /// Resolve a URL de retorno do portal de faturamento com base no valor informado.
-    /// </summary>
-    /// <param name="returnUrl">URL de retorno informada pelo cliente.</param>
-    /// <param name="configuration">Configuração da aplicação.</param>
-    /// <param name="providerId">ID do prestador para logs.</param>
-    /// <param name="logger">Logger do endpoint.</param>
-    /// <returns>URL de retorno resolvida ou erro de configuração.</returns>
-    private static Result<string> ResolveReturnUrl(
-        string? returnUrl,
-        IConfiguration configuration,
-        Guid providerId,
-        ILogger<GetBillingPortalEndpoint> logger)
-    {
-        var clientBaseUrl = configuration["ClientBaseUrl"];
-        if (string.IsNullOrEmpty(clientBaseUrl))
-        {
-            return Result<string>.Failure(Error.Internal("ClientBaseUrl não configurada."));
-        }
-
-        clientBaseUrl = clientBaseUrl.TrimEnd('/');
-        var normalizedReturnUrl = returnUrl ?? "";
-
-        if (normalizedReturnUrl.Equals("account", StringComparison.OrdinalIgnoreCase))
-        {
-            return Result<string>.Success($"{clientBaseUrl}/account");
-        }
-
-        if (normalizedReturnUrl.Equals("billing", StringComparison.OrdinalIgnoreCase))
-        {
-            return Result<string>.Success($"{clientBaseUrl}/billing");
-        }
-
-        if (Uri.TryCreate(normalizedReturnUrl, UriKind.Absolute, out var validatedUri))
-        {
-            var allowedHost = new Uri(clientBaseUrl).Host;
-            if (string.Equals(validatedUri.Host, allowedHost, StringComparison.OrdinalIgnoreCase))
-            {
-                return Result<string>.Success(normalizedReturnUrl);
-            }
-        }
-
-        logger.LogInformation(
-            "Billing portal ReturnUrl fallback taken for Provider {ProviderId}. Original value: {ReturnUrl}",
-            providerId, normalizedReturnUrl);
-        return Result<string>.Success(clientBaseUrl);
     }
 }
