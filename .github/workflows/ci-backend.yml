@@ -426,21 +426,65 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"
-      - name: Run Security Audit
+
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.slnx
+
+      - name: Run Full Security Audit (informational)
+        id: audit-full
         continue-on-error: true
         run: |
-          dotnet list package --vulnerable --include-transitive > security-audit-report.txt
+          echo "=== Full vulnerability audit (direct + transitive) ===" | tee security-audit-report.txt
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee -a security-audit-report.txt
           cat security-audit-report.txt
+
       - name: Verify No Critical Direct Vulnerabilities
         run: |
-          dotnet list package --vulnerable > direct-security-audit.txt
-          if grep -qi "Critical" direct-security-audit.txt; then
-            echo "Critical direct vulnerabilities found!"
-            cat direct-security-audit.txt
+          echo "=== Direct dependencies vulnerability audit ==="
+          dotnet list package --vulnerable --format json > direct-security-audit.json 2>&1
+
+          # Parse critical vulnerabilities using jq
+          # The JSON format avoids false positives from grep matching advisory URLs
+          CRITICAL_COUNT=$(jq '[
+            .projects[]?
+            | .frameworks[]?
+            | .topLevelPackages[]?
+            | select(.vulnerabilities[]?.severity == "Critical")
+          ] | length' direct-security-audit.json 2>/dev/null || echo "0")
+
+          if [ -z "$CRITICAL_COUNT" ] || [ "$CRITICAL_COUNT" = "null" ]; then
+            CRITICAL_COUNT=0
+          fi
+
+          echo "Critical direct vulnerabilities found: $CRITICAL_COUNT"
+
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "::error::$CRITICAL_COUNT critical vulnerability(ies) found in direct dependencies!"
+            jq '[
+              .projects[]?
+              | {project: .path, packages: [
+                  .frameworks[]?
+                  | .topLevelPackages[]?
+                  | select(.vulnerabilities[]?.severity == "Critical")
+                  | {package: .id, version: .resolvedVersion, vulnerabilities: .vulnerabilities}
+                ]}
+              | select(.packages | length > 0)
+            ]' direct-security-audit.json
             exit 1
           fi
-          echo "No critical vulnerabilities found in direct dependencies."
+
+          echo "✅ No critical vulnerabilities found in direct dependencies."
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-audit-reports
+          path: |
+            security-audit-report.txt
+            direct-security-audit.json
