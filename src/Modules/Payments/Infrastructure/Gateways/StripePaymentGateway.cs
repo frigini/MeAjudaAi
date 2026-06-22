@@ -31,6 +31,10 @@ public class StripePaymentGateway : IPaymentGateway
         _stripeService = stripeService;
 
         var apiKey = configuration["Stripe:ApiKey"]!;
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            throw new ArgumentException("Stripe:ApiKey is missing or empty in configuration.");
+        }
 
         var clientBaseUrl = (configuration["ClientBaseUrl"] ?? "").TrimEnd('/');
         if (string.IsNullOrWhiteSpace(clientBaseUrl))
@@ -68,7 +72,7 @@ public class StripePaymentGateway : IPaymentGateway
         if (CurrencyUtils.IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
         {
             _logger.LogWarning("Attempt to create subscription with fractional amount for zero-decimal currency: {Currency} {Amount}", amount.Currency, amount.Amount);
-            return SubscriptionGatewayResponse.Failed($"Zero-decimal currency ({amount.Currency}) does not accept fractional amounts: {amount.Amount}");
+            return SubscriptionGatewayResponse.Failed($"Moeda zero-decimal ({amount.Currency}) não aceita valores fracionários: {amount.Amount}");
         }
 
         try
@@ -83,7 +87,7 @@ public class StripePaymentGateway : IPaymentGateway
             {
                 _logger.LogError("Price mismatch detected. Stripe: {StripeAmount} {StripeCurrency}, Expected: {ExpectedAmount} {ExpectedCurrency}", 
                     price.UnitAmount, price.Currency, expectedAmount, amount.Currency);
-                return SubscriptionGatewayResponse.Failed("The plan amount or currency does not match the payment provider information.");
+                return SubscriptionGatewayResponse.Failed("O valor ou moeda do plano não corresponde às informações do provedor de pagamento.");
             }
 
             var successUrlWithSession = _successUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.OrdinalIgnoreCase)
@@ -125,7 +129,7 @@ public class StripePaymentGateway : IPaymentGateway
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Stripe error creating subscription for Provider {ProviderId}", providerId);
-            return SubscriptionGatewayResponse.Failed("Payment provider communication failure.");
+            return SubscriptionGatewayResponse.Failed("Falha na comunicação com o provedor de pagamento.");
         }
     }
 

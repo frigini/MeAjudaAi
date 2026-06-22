@@ -115,4 +115,23 @@ public class CreateBillingPortalSessionCommandHandlerTests
         // Assert
         await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "GATEWAY_SESSION_FAILURE");
     }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrowBusinessRule_WhenQueryFails()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var error = Error.Internal("Database error");
+
+        _queryDispatcherMock.Setup(x => x.QueryAsync<GetActiveSubscriptionByProviderQuery, Result<Subscription?>>(It.IsAny<GetActiveSubscriptionByProviderQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Subscription?>.Failure(error));
+
+        var command = new CreateBillingPortalSessionCommand(providerId, "https://meajudaai.com/account");
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "QUERY_FAILURE");
+    }
 }

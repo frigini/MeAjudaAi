@@ -49,15 +49,15 @@ public class ReturnUrlResolverTests
     }
 
     [Theory]
-    [InlineData("ACCOUNT")]
-    [InlineData("Billing")]
-    [InlineData("  account  ")]
-    public void Resolve_AliasCaseInsensitive_ShouldResolve(string alias)
+    [InlineData("ACCOUNT", "/account")]
+    [InlineData("Billing", "/billing")]
+    [InlineData("  account  ", "/account")]
+    public void Resolve_AliasCaseInsensitive_ShouldResolve(string alias, string expectedPath)
     {
         var result = _resolver.Resolve(alias, Guid.NewGuid());
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().StartWith("https://meajudaai.com/");
+        result.Value.Should().Be($"https://meajudaai.com{expectedPath}");
     }
 
     [Fact]
@@ -183,6 +183,8 @@ public class ReturnUrlResolverTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
+        result.Error.StatusCode.Should().Be(500);
+        result.Error.Message.Should().Contain("ClientBaseUrl");
     }
 
     [Fact]

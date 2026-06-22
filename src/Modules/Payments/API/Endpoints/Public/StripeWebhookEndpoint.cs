@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Shared.Endpoints;
@@ -93,6 +94,11 @@ public class StripeWebhookEndpoint : IEndpoint
         catch (StripeException e)
         {
             logger.LogWarning(e, "Stripe signature validation failed.");
+            return Error.BadRequest("Requisição de webhook inválida.").ToProblem();
+        }
+        catch (JsonException e)
+        {
+            logger.LogWarning(e, "Stripe webhook JSON parsing failed.");
             return Error.BadRequest("Requisição de webhook inválida.").ToProblem();
         }
         catch (OperationCanceledException)

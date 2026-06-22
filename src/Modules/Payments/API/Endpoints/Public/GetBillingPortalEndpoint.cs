@@ -40,10 +40,16 @@ public class GetBillingPortalEndpoint : IEndpoint
     {
         if (request.ProviderId == Guid.Empty)
         {
-            return Results.ValidationProblem(new Dictionary<string, string[]>
+            var problemDetails = new ValidationProblemDetails
             {
-                ["ProviderId"] = ["O campo ProviderId é obrigatório."]
-            });
+                Title = "Erro de validação",
+                Status = StatusCodes.Status400BadRequest,
+                Errors = new Dictionary<string, string[]>
+                {
+                    ["ProviderId"] = ["O campo ProviderId é obrigatório."]
+                }
+            };
+            return Results.Problem(problemDetails);
         }
 
         var authResult = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, request.ProviderId);

@@ -106,7 +106,7 @@ public class GlobalExceptionHandler(
                 new Dictionary<string, object?> { ["traceId"] = httpContext.TraceIdentifier }),
 
             BusinessRuleException businessException => (
-                businessException.HttpStatusCode ?? StatusCodes.Status400BadRequest,
+                NormalizeHttpStatusCode(businessException.HttpStatusCode),
                 "Violação de Regra de Negócio",
                 businessException.Message,
                 null,
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler(
                     ("traceId", httpContext.TraceIdentifier))),
 
             DomainException domainException => (
-                domainException.HttpStatusCode ?? StatusCodes.Status400BadRequest,
+                NormalizeHttpStatusCode(domainException.HttpStatusCode),
                 "Violação de Regra de Domínio",
                 domainException.Message,
                 null,
@@ -254,6 +254,13 @@ public class GlobalExceptionHandler(
                 ["exceptionType"] = dbUpdateException.GetType().Name,
                 ["traceId"] = traceId
             });
+    }
+
+    private static int NormalizeHttpStatusCode(int? httpStatusCode)
+    {
+        if (!httpStatusCode.HasValue) return StatusCodes.Status400BadRequest;
+        if (httpStatusCode.Value is >= 400 and < 600) return httpStatusCode.Value;
+        return StatusCodes.Status400BadRequest;
     }
 
     private static string GetProblemTypeUri(int statusCode) => statusCode switch

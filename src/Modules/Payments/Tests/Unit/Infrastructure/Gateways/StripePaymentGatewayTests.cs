@@ -51,6 +51,15 @@ public class StripePaymentGatewayTests
     }
 
     [Fact]
+    public void Constructor_ShouldThrow_WhenApiKeyIsMissing()
+    {
+        _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns((string?)null);
+        _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object);
+        act.Should().Throw<ArgumentException>().WithMessage("*ApiKey*");
+    }
+
+    [Fact]
     public async Task CreateSubscriptionAsync_ShouldReturnSuccess_WhenEverythingIsCorrect()
     {
         // Arrange
@@ -95,7 +104,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("communication failure");
+        result.ErrorMessage.Should().Contain("comunicação");
     }
 
     [Fact]
@@ -112,7 +121,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("match");
+        result.ErrorMessage.Should().Contain("não corresponde");
     }
 
     [Fact]
@@ -157,7 +166,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("fractional");
+        result.ErrorMessage.Should().Contain("fracionários");
     }
 
     [Fact]

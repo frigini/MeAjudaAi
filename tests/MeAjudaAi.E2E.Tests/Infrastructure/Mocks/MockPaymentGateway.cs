@@ -12,6 +12,7 @@ public class MockPaymentGateway : IPaymentGateway
 
     public Task<SubscriptionGatewayResponse> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         RecordedCalls.Enqueue(new { providerId, planId, amount, idempotencyKey });
         
         if (ShouldFail) return Task.FromResult(SubscriptionGatewayResponse.Failed("Mocked failure"));
