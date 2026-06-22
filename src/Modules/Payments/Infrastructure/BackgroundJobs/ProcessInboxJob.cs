@@ -44,6 +44,7 @@ public class ProcessInboxJob(
                 using var scope = _sp.CreateScope();
                 var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments);
                 var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
+                var transactionQueries = scope.ServiceProvider.GetRequiredService<IPaymentTransactionQueries>();
 
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
 
@@ -62,7 +63,7 @@ public class ProcessInboxJob(
                     continue;
                 }
 
-                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, uow, stoppingToken);
+                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, transactionQueries, uow, stoppingToken);
 
                 await uow.SaveChangesAsync(stoppingToken);
                 await transaction.CommitAsync(stoppingToken);
@@ -86,12 +87,14 @@ public class ProcessInboxJob(
     /// <param name="messages">Lista de mensagens pendentes a serem processadas.</param>
     /// <param name="dbContext">Contexto do banco de dados.</param>
     /// <param name="subscriptionQueries">Queries de acesso a dados de assinaturas.</param>
+    /// <param name="transactionQueries">Queries de acesso a dados de transações.</param>
     /// <param name="uow">Unit of Work para persistência.</param>
     /// <param name="ct">Token de cancelamento.</param>
     public virtual async Task ProcessMessagesBatchAsync(
         List<InboxMessage> messages, 
         PaymentsDbContext dbContext, 
-        ISubscriptionQueries subscriptionQueries, 
+        ISubscriptionQueries subscriptionQueries,
+        IPaymentTransactionQueries transactionQueries,
         IUnitOfWork uow,
         CancellationToken ct)
     {
@@ -104,7 +107,7 @@ public class ProcessInboxJob(
                 var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
                 var data = MapToStripeEventData(stripeEvent);
                 
-                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, dbContext, uow, ct);
+                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, transactionQueries, dbContext, uow, ct);
 
 
                 message.MarkAsProcessed();
@@ -168,19 +171,13 @@ public class ProcessInboxJob(
         };
     }
 
-    private static Guid? GetProviderIdFromMetadata(Dictionary<string, string> metadata)
-    {
-        if (metadata != null && metadata.TryGetValue(StripeConstants.ProviderIdMetadataKey, out var idStr) && Guid.TryParse(idStr, out var id))
-            return id;
-        return null;
-    }
-
     /// <summary>
     /// Processa um evento Stripe normalizado, aplicando ações de domínio conforme o tipo do evento.
     /// </summary>
     /// <param name="data">Dados normalizados do evento Stripe.</param>
     /// <param name="transactionRepo">Repositório de transações de pagamento.</param>
     /// <param name="subscriptionQueries">Queries de assinaturas.</param>
+    /// <param name="transactionQueries">Queries de transações de pagamento para deduplicação.</param>
     /// <param name="dbContext">Contexto do banco de dados.</param>
     /// <param name="uow">Unit of Work para persistência.</param>
     /// <param name="ct">Token de cancelamento.</param>
@@ -188,6 +185,7 @@ public class ProcessInboxJob(
         StripeEventData data, 
         IRepository<PaymentTransaction, Guid> transactionRepo,
         ISubscriptionQueries subscriptionQueries,
+        IPaymentTransactionQueries transactionQueries,
         PaymentsDbContext dbContext,
         IUnitOfWork uow,
         CancellationToken ct)
@@ -262,9 +260,18 @@ public class ProcessInboxJob(
                     
                     if (amount != null && amount.Amount > 0 && !string.IsNullOrEmpty(data.InvoiceId))
                     {
-                        var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                        paymentTransaction.Settle(data.InvoiceId);
-                        transactionRepo.Add(paymentTransaction);
+                        var existingTx = await transactionQueries.GetByExternalIdAsync(data.InvoiceId, ct);
+                        if (existingTx != null)
+                        {
+                            logger.LogInformation("PaymentTransaction for Invoice {InvoiceId} already exists (ExternalId: {ExternalId}), skipping", 
+                                data.InvoiceId, existingTx.ExternalTransactionId);
+                        }
+                        else
+                        {
+                            var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
+                            paymentTransaction.Settle(data.InvoiceId);
+                            transactionRepo.Add(paymentTransaction);
+                        }
                     }
                     else
                     {
@@ -300,5 +307,12 @@ public class ProcessInboxJob(
                 logger.LogDebug("Stripe event {Type} ignored", data.Type);
                 break;
         }
+    }
+
+    private static Guid? GetProviderIdFromMetadata(Dictionary<string, string> metadata)
+    {
+        if (metadata != null && metadata.TryGetValue(StripeConstants.ProviderIdMetadataKey, out var idStr) && Guid.TryParse(idStr, out var id))
+            return id;
+        return null;
     }
 }

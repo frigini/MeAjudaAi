@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Services;
@@ -13,6 +14,7 @@ public class ReturnUrlResolverTests
 {
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly PaymentsOptions _options;
+    private readonly Mock<IHostEnvironment> _environmentMock;
     private readonly Mock<ILogger<ReturnUrlResolver>> _loggerMock;
     private readonly ReturnUrlResolver _resolver;
 
@@ -20,13 +22,16 @@ public class ReturnUrlResolverTests
     {
         _configurationMock = new Mock<IConfiguration>();
         _options = new PaymentsOptions();
+        _environmentMock = new Mock<IHostEnvironment>();
         _loggerMock = new Mock<ILogger<ReturnUrlResolver>>();
 
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
+        _environmentMock.Setup(e => e.EnvironmentName).Returns("Production");
 
         _resolver = new ReturnUrlResolver(
             _configurationMock.Object,
             _options,
+            _environmentMock.Object,
             _loggerMock.Object);
     }
 
@@ -136,28 +141,6 @@ public class ReturnUrlResolverTests
     }
 
     [Fact]
-    public void Resolve_LocalhostHttp_ShouldBeTrusted()
-    {
-        var url = "http://localhost:3000/billing";
-
-        var result = _resolver.Resolve(url, Guid.NewGuid());
-
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(url);
-    }
-
-    [Theory]
-    [InlineData("http://127.0.0.1/return")]
-    [InlineData("http://[::1]/return")]
-    public void Resolve_LoopbackIpHttp_ShouldBeTrusted(string url)
-    {
-        var result = _resolver.Resolve(url, Guid.NewGuid());
-
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(url);
-    }
-
-    [Fact]
     public void Resolve_AllowedReturnHostsPlusClientBaseUrl_ShouldTrustBoth()
     {
         _options.AllowedReturnHosts = new[] { "external.com" };
@@ -177,6 +160,7 @@ public class ReturnUrlResolverTests
         var resolver = new ReturnUrlResolver(
             _configurationMock.Object,
             _options,
+            _environmentMock.Object,
             _loggerMock.Object);
 
         var result = resolver.Resolve("account", Guid.NewGuid());
@@ -195,6 +179,7 @@ public class ReturnUrlResolverTests
         var resolver = new ReturnUrlResolver(
             _configurationMock.Object,
             _options,
+            _environmentMock.Object,
             _loggerMock.Object);
 
         var result = resolver.Resolve("account", Guid.NewGuid());

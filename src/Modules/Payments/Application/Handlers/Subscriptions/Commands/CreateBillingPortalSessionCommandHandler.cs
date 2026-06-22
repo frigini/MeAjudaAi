@@ -66,7 +66,7 @@ public class CreateBillingPortalSessionCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error in CreateBillingPortalSessionCommandHandler: {Message}", ex.Message);
+            logger.LogWarning(ex, "Error creating billing portal session: {Message}", ex.Message);
             throw;
         }
     }

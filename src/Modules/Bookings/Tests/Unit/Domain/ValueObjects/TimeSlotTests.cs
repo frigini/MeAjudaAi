@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.ValueObjects;
 
 [Trait("Category", "Unit")]
-public class TimeSlotTests : BaseUnitTest
+public class TimeSlotTests
 {
     [Fact]
     public void Create_Should_SetProperties()

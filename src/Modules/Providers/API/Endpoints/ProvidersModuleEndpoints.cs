@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints;

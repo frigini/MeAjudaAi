@@ -1,9 +1,9 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Utilities.Constants;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Communications.API.Endpoints.Public;

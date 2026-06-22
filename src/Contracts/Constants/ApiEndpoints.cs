@@ -1,13 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
+namespace MeAjudaAi.Contracts.Constants;
 
-namespace MeAjudaAi.Shared.Utilities.Constants;
-
-/// <summary>
-/// Constantes para endpoints da API organizados por módulo
-/// </summary>
 [ExcludeFromCodeCoverage]
 public static class ApiEndpoints
 {
+    public const string VersionPrefix = "/api/v1";
+
     public static class Users
     {
         public const string Base = "users";

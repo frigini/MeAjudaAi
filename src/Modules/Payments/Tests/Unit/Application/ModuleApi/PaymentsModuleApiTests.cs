@@ -9,15 +9,17 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.ModuleApi;
 [Trait("Layer", "Application")]
 public class PaymentsModuleApiTests
 {
+    private readonly Mock<IPaymentsHealthQueries> _healthQueriesMock;
     private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
     private readonly Mock<ILogger<PaymentsModuleApi>> _loggerMock;
     private readonly PaymentsModuleApi _sut;
 
     public PaymentsModuleApiTests()
     {
+        _healthQueriesMock = new Mock<IPaymentsHealthQueries>();
         _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
         _loggerMock = new Mock<ILogger<PaymentsModuleApi>>();
-        _sut = new PaymentsModuleApi(_subscriptionQueriesMock.Object, _loggerMock.Object);
+        _sut = new PaymentsModuleApi(_healthQueriesMock.Object, _subscriptionQueriesMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -52,27 +54,37 @@ public class PaymentsModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenRepositoryResponds_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenHealthCheckReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
-        _subscriptionQueriesMock
-            .Setup(x => x.GetActiveByProviderIdAsync(Guid.Empty, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Payments.Domain.Entities.Subscription?)null);
+        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         // Act
         var result = await _sut.IsAvailableAsync();
 
         // Assert
         result.Should().BeTrue();
-        _subscriptionQueriesMock.Verify(x => x.GetActiveByProviderIdAsync(Guid.Empty, It.IsAny<CancellationToken>()), Times.Once);
+        _healthQueriesMock.Verify(x => x.PingAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenRepositoryThrows_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenHealthCheckReturnsFalse_ShouldReturnFalse()
     {
         // Arrange
-        _subscriptionQueriesMock
-            .Setup(x => x.GetActiveByProviderIdAsync(Guid.Empty, It.IsAny<CancellationToken>()))
+        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenHealthCheckThrows_ShouldReturnFalse()
+    {
+        // Arrange
+        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
         // Act
@@ -89,8 +101,7 @@ public class PaymentsModuleApiTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _subscriptionQueriesMock
-            .Setup(x => x.GetActiveByProviderIdAsync(Guid.Empty, It.IsAny<CancellationToken>()))
+        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act & Assert

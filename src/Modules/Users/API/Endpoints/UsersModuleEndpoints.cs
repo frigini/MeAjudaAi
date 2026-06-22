@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 using MeAjudaAi.Modules.Users.API.Endpoints.Public;

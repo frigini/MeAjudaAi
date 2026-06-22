@@ -8,7 +8,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Shared.Domain.ValueObjects;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
@@ -312,9 +312,10 @@ public class PaymentsApiTests : BaseApiTest
             // Registra manualmente no contexto de DI do escopo para o teste
             var transactionRepo = scope.ServiceProvider.GetRequiredService<IRepository<MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction, Guid>>();
             var subQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
+            var transactionQueries = scope.ServiceProvider.GetRequiredService<IPaymentTransactionQueries>();
             var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments);
-            
-            await job.ProcessStripeEventAsync(data, transactionRepo, subQueries, dbContext, uow, CancellationToken.None);
+
+            await job.ProcessStripeEventAsync(data, transactionRepo, subQueries, transactionQueries, dbContext, uow, CancellationToken.None);
             
             messages[0].MarkAsProcessed();
             await dbContext.SaveChangesAsync();

@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Constants;
 using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;

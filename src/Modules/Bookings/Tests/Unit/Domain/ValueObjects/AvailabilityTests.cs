@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.ValueObjects;
 
-public class AvailabilityTests : BaseUnitTest
+public class AvailabilityTests
 {
     [Fact]
     public void Create_Should_OrderSlotsByStartTime()

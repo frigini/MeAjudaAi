@@ -33,6 +33,7 @@ public static class Extensions
     {
         services.Configure<PaymentsOptions>(configuration.GetSection(PaymentsOptions.SectionName));
         services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<PaymentsOptions>>().Value);
+        services.AddSingleton<IValidateOptions<PaymentsOptions>>(new PaymentsOptionsValidator(configuration));
 
         services.AddPersistence(configuration, environment);
         services.AddServices(configuration, environment);
@@ -75,6 +76,7 @@ public static class Extensions
         // Queries
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
         services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
+        services.AddScoped<IPaymentsHealthQueries, DbContextPaymentsHealthQueries>();
         services.AddScoped<IPaymentCommandService, DbContextPaymentCommandService>();
     }
 

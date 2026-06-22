@@ -1,14 +1,11 @@
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
-using MeAjudaAi.Modules.Bookings.Infrastructure.Events.Handlers;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure;
 

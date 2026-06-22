@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.Entities;
 
-public class BookingTests : BaseUnitTest
+public class BookingTests
 {
     [Fact]
     public void Create_Should_InitializeWithPendingStatus()

@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Contracts\MeAjudaAi.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />

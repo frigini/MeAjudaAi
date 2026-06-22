@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Commands;

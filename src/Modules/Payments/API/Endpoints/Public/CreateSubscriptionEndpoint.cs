@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
@@ -7,7 +8,6 @@ using MeAjudaAi.Modules.Payments.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 

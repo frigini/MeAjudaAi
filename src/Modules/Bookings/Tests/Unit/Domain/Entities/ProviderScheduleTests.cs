@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.Entities;
 
-public class ProviderScheduleTests : BaseUnitTest
+public class ProviderScheduleTests
 {
     [Fact]
     public void Create_Should_InitializeWithDefaultTimeZone()

@@ -2,18 +2,14 @@ using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
-using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Events;
-using MeAjudaAi.Modules.Payments.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure;
 

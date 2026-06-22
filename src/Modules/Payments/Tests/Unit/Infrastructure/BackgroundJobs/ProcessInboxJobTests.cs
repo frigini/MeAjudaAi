@@ -22,6 +22,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
     private readonly Mock<ILogger<ProcessInboxJob>> _loggerMock;
     private readonly Mock<IMessageBus> _messageBusMock;
     private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
+    private readonly Mock<IPaymentTransactionQueries> _transactionQueriesMock;
     private readonly ServiceProvider _serviceProvider;
     private readonly ProcessInboxJob _job;
 
@@ -31,6 +32,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<ProcessInboxJob>>();
         _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
+        _transactionQueriesMock = new Mock<IPaymentTransactionQueries>();
         _messageBusMock = new Mock<IMessageBus>();
 
         _job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
@@ -39,6 +41,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         {
             services.AddSingleton(DbContext);
             services.AddSingleton(_subscriptionQueriesMock.Object);
+            services.AddSingleton(_transactionQueriesMock.Object);
             services.AddSingleton(_messageBusMock.Object);
             services.AddKeyedSingleton<IUnitOfWork>(ModuleKeys.Payments, DbContext);
         });
@@ -171,7 +174,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _subscriptionQueriesMock.Setup(x => x.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((DomainSubscription?)null);
 
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Subscription not found*");
     }
@@ -184,7 +187,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _subscriptionQueriesMock.Setup(x => x.GetByExternalIdAsync("sub_not_found", It.IsAny<CancellationToken>()))
             .ReturnsAsync((DomainSubscription?)null);
 
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not found*");
     }
@@ -194,7 +197,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
     {
         var data = new StripeEventData("checkout.session.completed", "evt_1", "sub_1", null, Guid.NewGuid());
 
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         await act.Should().ThrowAsync<Exception>();
     }
@@ -210,7 +213,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _subscriptionQueriesMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sub);
 
-        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         DbContext.PaymentTransactions.Local.Should().BeEmpty();
     }
@@ -226,7 +229,33 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _subscriptionQueriesMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sub);
 
-        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+
+        sub.Status.Should().Be(ESubscriptionStatus.Active);
+        DbContext.PaymentTransactions.Local.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ProcessStripeEventAsync_InvoicePaid_WhenInvoiceIdAlreadyExists_ShouldSkipCreatingDuplicate()
+    {
+        var externalSubId = "sub_123";
+        var invoiceId = "in_duplicate";
+        var data = new StripeEventData("invoice.paid", "evt_2", externalSubId, "cus_1", null, null, 10000, "brl", invoiceId);
+        var sub = new DomainSubscription(Guid.NewGuid(), "plan", Money.FromDecimal(100, "BRL"));
+        sub.Activate(externalSubId, "cus_1", DateTime.UtcNow.AddDays(1));
+
+        _subscriptionQueriesMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
+
+        var existingTx = new PaymentTransaction(sub.Id, Money.FromDecimal(100, "BRL"));
+        existingTx.Settle(invoiceId);
+        DbContext.PaymentTransactions.Add(existingTx);
+        await DbContext.SaveChangesAsync();
+
+        _transactionQueriesMock.Setup(x => x.GetByExternalIdAsync(invoiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingTx);
+
+        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         sub.Status.Should().Be(ESubscriptionStatus.Active);
         DbContext.PaymentTransactions.Local.Should().ContainSingle();
@@ -237,7 +266,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
     {
         var data = new StripeEventData("checkout.session.completed", "evt_1", "sub_1", "cus_1", null);
 
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Essential data missing*");
     }
@@ -254,7 +283,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _subscriptionQueriesMock.Setup(x => x.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sub);
 
-        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         sub.ExternalSubscriptionId.Should().Be(subId);
     }
@@ -268,7 +297,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
         _subscriptionQueriesMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((DomainSubscription?)null);
 
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not found*");
     }
@@ -278,9 +307,29 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
     {
         var data = new StripeEventData("unknown.event", "evt_999", null, null, null);
 
-        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, new Mock<IRepository<PaymentTransaction, Guid>>().Object, _subscriptionQueriesMock.Object, DbContext, new Mock<IUnitOfWork>().Object, CancellationToken.None);
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, new Mock<IRepository<PaymentTransaction, Guid>>().Object, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, new Mock<IUnitOfWork>().Object, CancellationToken.None);
 
         await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ProcessStripeEventAsync_InvoicePaid_WithPeriodEndBeforeCurrentExpiration_ShouldThrow()
+    {
+        var externalSubId = "sub_123";
+        var providerId = Guid.NewGuid();
+        var existingExpiration = DateTime.UtcNow.AddDays(30);
+        var newPeriodEnd = DateTime.UtcNow.AddDays(20);
+
+        var data = new StripeEventData("invoice.paid", "evt_2", externalSubId, "cus_1", providerId, newPeriodEnd, 10000, "brl", "in_1");
+        var sub = new DomainSubscription(providerId, "plan", Money.FromDecimal(100, "BRL"));
+        sub.Activate(externalSubId, "cus_1", existingExpiration);
+
+        _subscriptionQueriesMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
+
+        Func<Task> act = async () => await _job.ProcessStripeEventAsync(data, DbContext, _subscriptionQueriesMock.Object, _transactionQueriesMock.Object, DbContext, DbContext, CancellationToken.None);
+
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*after current expiration*");
     }
 
     #endregion
@@ -343,6 +392,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
             using var scope = _sp.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
             var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
+            var transactionQueries = scope.ServiceProvider.GetRequiredService<IPaymentTransactionQueries>();
             var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Payments);
 
             var messages = await dbContext.InboxMessages
@@ -353,7 +403,7 @@ public class ProcessInboxJobTests : BaseSqliteInMemoryDatabaseTest<PaymentsDbCon
 
             if (messages.Count == 0) return;
 
-            await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, uow, ct);
+            await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, transactionQueries, uow, ct);
             await uow.SaveChangesAsync(ct);
         }
     }

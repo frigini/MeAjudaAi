@@ -1,14 +1,11 @@
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Events;
-using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure;
 

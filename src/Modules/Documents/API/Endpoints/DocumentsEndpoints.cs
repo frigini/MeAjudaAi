@@ -1,6 +1,6 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Utilities.Constants;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints;

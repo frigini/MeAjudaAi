@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="Refit" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
@@ -80,6 +81,7 @@
     <ProjectReference Include="..\..\src\Modules\Payments\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Payments\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Payments\API\MeAjudaAi.Modules.Payments.API.csproj" />
+    <ProjectReference Include="..\..\src\Client\MeAjudaAi.Client.Contracts\MeAjudaAi.Client.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

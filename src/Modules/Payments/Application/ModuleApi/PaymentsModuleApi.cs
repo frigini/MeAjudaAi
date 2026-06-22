@@ -10,6 +10,7 @@ namespace MeAjudaAi.Modules.Payments.Application.ModuleApi;
 
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class PaymentsModuleApi(
+    IPaymentsHealthQueries healthQueries,
     ISubscriptionQueries subscriptionQueries,
     ILogger<PaymentsModuleApi> logger) : IPaymentsModuleApi
 {
@@ -37,8 +38,12 @@ public sealed class PaymentsModuleApi(
         {
             logger.LogDebug("Checking Payments module availability");
 
-            // Teste simples de conectividade com o banco de dados
-            _ = await subscriptionQueries.GetActiveByProviderIdAsync(Guid.Empty, cancellationToken);
+            var isHealthy = await healthQueries.PingAsync(cancellationToken);
+            if (!isHealthy)
+            {
+                logger.LogWarning("Payments module database connectivity check failed");
+                return false;
+            }
 
             logger.LogDebug("Payments module is available and healthy");
             return true;

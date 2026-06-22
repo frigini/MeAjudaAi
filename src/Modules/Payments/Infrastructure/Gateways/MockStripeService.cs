@@ -1,11 +1,10 @@
-using MeAjudaAi.Modules.Payments.Domain.Abstractions;
-using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
-using MeAjudaAi.Shared.Domain.ValueObjects;
 using Stripe;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 internal class MockStripeService : IStripeService
 {
     public Task<Price> GetPriceAsync(string priceId, RequestOptions? requestOptions, CancellationToken cancellationToken)

@@ -92,6 +92,27 @@ public class StripePaymentGatewayTests
     }
 
     [Fact]
+    public async Task CreateSubscriptionAsync_ShouldReturnFailed_WhenSessionUrlIsNull()
+    {
+        // Arrange
+        CreateGateway();
+        var stripePrice = new Price { UnitAmount = 1000, Currency = "brl" };
+        _stripeServiceMock.Setup(x => x.GetPriceAsync(It.IsAny<string>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripePrice);
+
+        var stripeSession = new Stripe.Checkout.Session { Id = "session_null_url", Url = null };
+        _stripeServiceMock.Setup(x => x.CreateCheckoutSessionAsync(It.IsAny<Stripe.Checkout.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripeSession);
+
+        // Act
+        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_test", Money.FromDecimal(10, "BRL"), null, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("URL de checkout inválida");
+    }
+
+    [Fact]
     public async Task CreateSubscriptionAsync_ShouldReturnFailed_OnStripeException()
     {
         // Arrange
@@ -160,13 +181,50 @@ public class StripePaymentGatewayTests
         // Arrange
         CreateGateway();
         var amount = new Money(1.50m, "JPY"); // JPY é zero-decimal, fração inválida
-        
+
         // Act
         var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_a", amount);
 
         // Assert
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Contain("fracionários");
+    }
+
+    [Fact]
+    public async Task CreateCheckoutSessionAsync_ThrowsStripeException_ShouldReturnFailed()
+    {
+        // Arrange
+        CreateGateway();
+        var stripePrice = new Price { UnitAmount = 1000, Currency = "brl" };
+        _stripeServiceMock.Setup(x => x.GetPriceAsync(It.IsAny<string>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripePrice);
+
+        _stripeServiceMock.Setup(x => x.CreateCheckoutSessionAsync(It.IsAny<Stripe.Checkout.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new StripeException("Session creation failed"));
+
+        // Act
+        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_test", Money.FromDecimal(10, "BRL"), null, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("comunicação");
+    }
+
+    [Fact]
+    public async Task CreateBillingPortalSessionAsync_ReturnsSessionWithNullUrl_ShouldReturnNull()
+    {
+        // Arrange
+        CreateGateway();
+        var portalSession = new Stripe.BillingPortal.Session { Url = null };
+
+        _stripeServiceMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<Stripe.BillingPortal.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(portalSession);
+
+        // Act
+        var result = await _gateway!.CreateBillingPortalSessionAsync("cus_123", "https://return", CancellationToken.None);
+
+        // Assert
+        result.Should().BeNull();
     }
 
     [Fact]

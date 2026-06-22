@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 

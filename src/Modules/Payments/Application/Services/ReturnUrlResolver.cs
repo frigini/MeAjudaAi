@@ -1,14 +1,17 @@
-using System.Net;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Options;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace MeAjudaAi.Modules.Payments.Application.Services;
 
 public class ReturnUrlResolver(
     IConfiguration configuration,
     PaymentsOptions paymentsOptions,
+    IHostEnvironment environment,
     ILogger<ReturnUrlResolver> logger) : IReturnUrlResolver
 {
     public Result<string> Resolve(string? returnUrl, Guid providerId)
@@ -17,11 +20,6 @@ public class ReturnUrlResolver(
         if (string.IsNullOrEmpty(clientBaseUrl))
         {
             return Result<string>.Failure(Error.Internal("ClientBaseUrl não configurada."));
-        }
-
-        if (!Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out _))
-        {
-            return Result<string>.Failure(Error.Internal("ClientBaseUrl inválida."));
         }
 
         clientBaseUrl = clientBaseUrl.TrimEnd('/');
@@ -66,11 +64,6 @@ public class ReturnUrlResolver(
 
     private bool IsTrustedHost(Uri uri)
     {
-        if (IsLocalhost(uri.Host))
-        {
-            return true;
-        }
-
         if (uri.Scheme != Uri.UriSchemeHttps)
         {
             return false;
@@ -84,14 +77,13 @@ public class ReturnUrlResolver(
             trustedHosts.Add(clientUri.Host);
         }
 
-        return trustedHosts.Contains(uri.Host);
-    }
+        if (EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        {
+            trustedHosts.Add("localhost");
+            trustedHosts.Add("127.0.0.1");
+            trustedHosts.Add("::1");
+        }
 
-    private static bool IsLocalhost(string host)
-    {
-        return host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
-            || host.Equals("127.0.0.1")
-            || host.Equals("::1")
-            || (IPAddress.TryParse(host, out var ip) && IPAddress.IsLoopback(ip));
+        return trustedHosts.Contains(uri.Host);
     }
 }

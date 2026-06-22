@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
 [Trait("Category", "Unit")]
-public class ConfirmBookingCommandHandlerTests : BaseUnitTest
+public class ConfirmBookingCommandHandlerTests
 {
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();

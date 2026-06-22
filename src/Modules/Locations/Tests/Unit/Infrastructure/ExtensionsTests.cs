@@ -2,17 +2,12 @@ using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Events;
-using MeAjudaAi.Modules.Locations.Infrastructure.Events.Handlers;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
-using MeAjudaAi.Modules.Locations.Infrastructure.Services;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure;
 

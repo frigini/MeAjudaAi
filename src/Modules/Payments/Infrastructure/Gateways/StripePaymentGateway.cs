@@ -42,29 +42,10 @@ public class StripePaymentGateway : IPaymentGateway
             throw new ArgumentException("ClientBaseUrl is missing or empty in configuration.");
         }
 
-        var successPath = (_options.SuccessUrl ?? "").Trim();
-        var cancelPath = (_options.CancelUrl ?? "").Trim();
+        _successUrl = BuildReturnUrl(clientBaseUrl, _options.SuccessUrl, "Payments:SuccessUrl");
+        _cancelUrl = BuildReturnUrl(clientBaseUrl, _options.CancelUrl, "Payments:CancelUrl");
 
-        if (string.IsNullOrWhiteSpace(successPath))
-            throw new ArgumentException("Payments:SuccessUrl is missing or empty in configuration.");
-        
-        if (string.IsNullOrWhiteSpace(cancelPath))
-            throw new ArgumentException("Payments:CancelUrl is missing or empty in configuration.");
-
-        _successUrl = Uri.TryCreate(successPath, UriKind.Absolute, out var successUri) && 
-                     (successUri.Scheme == Uri.UriSchemeHttp || successUri.Scheme == Uri.UriSchemeHttps)
-                     ? successPath 
-                     : $"{clientBaseUrl}/{successPath.TrimStart('/')}";
-
-        _cancelUrl = Uri.TryCreate(cancelPath, UriKind.Absolute, out var cancelUri) && 
-                     (cancelUri.Scheme == Uri.UriSchemeHttp || cancelUri.Scheme == Uri.UriSchemeHttps)
-                     ? cancelPath 
-                     : $"{clientBaseUrl}/{cancelPath.TrimStart('/')}";
-
-        _requestOptions = new RequestOptions
-        {
-            ApiKey = apiKey
-        };
+        _requestOptions = new RequestOptions { ApiKey = apiKey };
     }
 
     public async Task<SubscriptionGatewayResponse> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default)
@@ -90,12 +71,6 @@ public class StripePaymentGateway : IPaymentGateway
                 return SubscriptionGatewayResponse.Failed("O valor ou moeda do plano não corresponde às informações do provedor de pagamento.");
             }
 
-            var successUrlWithSession = _successUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.Ordinal)
-                ? _successUrl
-                : _successUrl.Contains('?')
-                    ? $"{_successUrl}&session_id={{CHECKOUT_SESSION_ID}}"
-                    : $"{_successUrl}?session_id={{CHECKOUT_SESSION_ID}}";
-
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = [StripeConstants.PaymentMethodCard],
@@ -108,7 +83,7 @@ public class StripePaymentGateway : IPaymentGateway
                     },
                 ],
                 Mode = "subscription",
-                SuccessUrl = successUrlWithSession,
+                SuccessUrl = AppendSessionId(_successUrl),
                 CancelUrl = _cancelUrl,
                 Metadata = new Dictionary<string, string>
                 {
@@ -116,15 +91,15 @@ public class StripePaymentGateway : IPaymentGateway
                 }
             };
 
-            var requestOptions = new RequestOptions { ApiKey = _requestOptions.ApiKey };
-            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            var session = await _stripeService.CreateCheckoutSessionAsync(options, CreateRequestOptions(idempotencyKey), cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(session.Url))
             {
-                requestOptions.IdempotencyKey = idempotencyKey;
+                _logger.LogError("Stripe returned session with null or empty URL for Provider {ProviderId}", providerId);
+                return SubscriptionGatewayResponse.Failed("Provedor de pagamento retornou URL de checkout inválida.");
             }
 
-            var session = await _stripeService.CreateCheckoutSessionAsync(options, requestOptions, cancellationToken);
-
-            return SubscriptionGatewayResponse.Succeeded(null, session.Url!);
+            return SubscriptionGatewayResponse.Succeeded(null, session.Url);
         }
         catch (StripeException ex)
         {
@@ -165,5 +140,44 @@ public class StripePaymentGateway : IPaymentGateway
             _logger.LogError(ex, "Stripe error creating customer portal session for Customer {CustomerId}", externalCustomerId);
             return null;
         }
+    }
+
+    private static string BuildReturnUrl(string clientBaseUrl, string? pathConfig, string configKey)
+    {
+        var path = (pathConfig ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException($"{configKey} is missing or empty in configuration.");
+        }
+
+        if (Uri.TryCreate(path, UriKind.Absolute, out var uri) &&
+            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            return path;
+        }
+
+        return $"{clientBaseUrl}/{path.TrimStart('/')}";
+    }
+
+    private RequestOptions CreateRequestOptions(string? idempotencyKey = null)
+    {
+        var options = new RequestOptions { ApiKey = _requestOptions.ApiKey };
+        if (!string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            options.IdempotencyKey = idempotencyKey;
+        }
+        return options;
+    }
+
+    private static string AppendSessionId(string url)
+    {
+        if (url.Contains("{CHECKOUT_SESSION_ID}", StringComparison.Ordinal))
+        {
+            return url;
+        }
+
+        return url.Contains('?')
+            ? $"{url}&session_id={{CHECKOUT_SESSION_ID}}"
+            : $"{url}?session_id={{CHECKOUT_SESSION_ID}}";
     }
 }

@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Constants;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 

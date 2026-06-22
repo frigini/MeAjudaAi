@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Contracts\MeAjudaAi.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
   </ItemGroup>

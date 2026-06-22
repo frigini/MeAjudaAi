@@ -1,19 +1,23 @@
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Infrastructure.Persistence;
 
-public class OutboxMessageRepositoryTests
+public class OutboxMessageRepositoryTests : BaseInMemoryDatabaseTest<CommunicationsDbContext>
 {
+    public OutboxMessageRepositoryTests() : base(options => new CommunicationsDbContext(options))
+    {
+    }
+
     [Fact]
     public async Task GetPendingAsync_ShouldMarkAsProcessing()
     {
-        // Arrange
-        using var context = CommunicationsTestDb.CreateSqlite();
-        var repo = new OutboxMessageRepository(context);
+        var repo = new OutboxMessageRepository(DbContext);
         var msg = new OutboxMessageBuilder()
             .WithChannel(ECommunicationChannel.Email)
             .WithPayload("{}")
@@ -21,10 +25,8 @@ public class OutboxMessageRepositoryTests
         await repo.AddAsync(msg);
         await repo.SaveChangesAsync();
 
-        // Act
         var pending = await repo.GetPendingAsync(1);
 
-        // Assert
         pending.Should().ContainSingle();
         pending[0].Status.Should().Be(EOutboxMessageStatus.Processing);
     }
@@ -32,25 +34,20 @@ public class OutboxMessageRepositoryTests
     [Fact]
     public async Task GetPendingAsync_ShouldRespectRetryWindow_AndBatchSize()
     {
-        // Arrange (Given)
-        using var ctx = CommunicationsTestDb.CreateSqlite();
-        var repo = new OutboxMessageRepository(ctx);
+        var repo = new OutboxMessageRepository(DbContext);
         var utcNow = DateTime.UtcNow;
 
-        // 1. Pending and ready
         var msg1 = new OutboxMessageBuilder()
             .WithChannel(ECommunicationChannel.Email)
             .WithPayload("{}")
             .Build();
 
-        // 2. Scheduled for future
         var msg2 = new OutboxMessageBuilder()
             .WithChannel(ECommunicationChannel.Email)
             .WithPayload("{}")
             .AsScheduled(utcNow.AddHours(1))
             .Build();
 
-        // 3. Already processed
         var msg3 = new OutboxMessageBuilder()
             .WithChannel(ECommunicationChannel.Email)
             .WithPayload("{}")
@@ -62,10 +59,8 @@ public class OutboxMessageRepositoryTests
         await repo.AddAsync(msg3);
         await repo.SaveChangesAsync();
 
-        // Act (When)
         var result = await repo.GetPendingAsync(batchSize: 20);
 
-        // Assert (Then)
         result.Should().ContainSingle();
         result[0].Id.Should().Be(msg1.Id);
     }
@@ -73,9 +68,7 @@ public class OutboxMessageRepositoryTests
     [Fact]
     public async Task CleanupOldMessagesAsync_ShouldRemoveSentMessagesBeforeThreshold()
     {
-        // Arrange
-        using var context = CommunicationsTestDb.CreateSqlite();
-        var repo = new OutboxMessageRepository(context);
+        var repo = new OutboxMessageRepository(DbContext);
         var oldMsg = new OutboxMessageBuilder()
             .WithChannel(ECommunicationChannel.Email)
             .WithPayload("{}")
@@ -87,11 +80,9 @@ public class OutboxMessageRepositoryTests
         await repo.AddAsync(oldMsg);
         await repo.SaveChangesAsync();
 
-        // Act
         var deletedCount = await repo.CleanupOldMessagesAsync(DateTime.UtcNow.AddDays(-5));
 
-        // Assert
         deletedCount.Should().Be(1);
-        context.OutboxMessages.Should().BeEmpty();
+        DbContext.OutboxMessages.Should().BeEmpty();
     }
 }

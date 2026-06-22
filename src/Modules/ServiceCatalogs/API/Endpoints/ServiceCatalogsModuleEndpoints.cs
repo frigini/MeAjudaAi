@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
 

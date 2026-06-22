@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
-public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
+public class SetProviderScheduleCommandHandlerTests
 {
     private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
