@@ -22,6 +22,11 @@ public class ReturnUrlResolver(
             return Result<string>.Failure(Error.Internal("ClientBaseUrl não configurada."));
         }
 
+        if (!Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out var clientBaseUri))
+        {
+            return Result<string>.Failure(Error.Internal("ClientBaseUrl não é uma URL absoluta válida."));
+        }
+
         clientBaseUrl = clientBaseUrl.TrimEnd('/');
         var normalized = (returnUrl ?? "").Trim();
 

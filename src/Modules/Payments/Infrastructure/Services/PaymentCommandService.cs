@@ -99,12 +99,20 @@ internal class PaymentCommandService(
 
     private async Task<Result> ProcessMockEventAsync(string json, CancellationToken cancellationToken)
     {
-        var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
-        if (mockEvent is null)
+        try
         {
-            return Error.BadRequest("Falha ao processar evento mock.");
-        }
+            var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
+            if (mockEvent is null)
+            {
+                return Error.BadRequest("Falha ao processar evento mock.");
+            }
 
-        return await SaveInboxMessageAsync(mockEvent.Type, json, mockEvent.Id, cancellationToken);
+            return await SaveInboxMessageAsync(mockEvent.Type, json, mockEvent.Id, cancellationToken);
+        }
+        catch (JsonException e)
+        {
+            logger.LogWarning(e, "Mock event JSON parsing failed.");
+            return Error.BadRequest("Requisição de webhook inválida.");
+        }
     }
 }

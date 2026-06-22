@@ -172,4 +172,63 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
         result.IsSuccess.Should().BeTrue();
         _inboxRepositoryMock.Verify(x => x.Add(It.IsAny<InboxMessage>()), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleStripeWebhookAsync_ShouldBypassSignature_WhenEmptySignatureAndBypassEnvironment()
+    {
+        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
+            var service = new PaymentCommandService(
+                _uowMock.Object,
+                DbContext,
+                _configurationMock.Object,
+                _loggerMock.Object);
+
+            var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
+            var payload = $$"""
+            {
+                "id": "{{eventId}}",
+                "type": "checkout.session.completed",
+                "created": 1234567890
+            }
+            """;
+
+            var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
+        }
+    }
+
+    [Fact]
+    public async Task HandleStripeWebhookAsync_ShouldFail_WhenBypassEnvironmentButInvalidMockPayload()
+    {
+        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
+            var service = new PaymentCommandService(
+                _uowMock.Object,
+                DbContext,
+                _configurationMock.Object,
+                _loggerMock.Object);
+
+            var invalidPayload = "{ invalid json for mock }";
+
+            var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
+
+            result.IsFailure.Should().BeTrue();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
+        }
+    }
 }

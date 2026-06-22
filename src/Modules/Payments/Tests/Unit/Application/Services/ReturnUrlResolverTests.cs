@@ -126,6 +126,7 @@ public class ReturnUrlResolverTests
         var result = _resolver.Resolve(url, Guid.NewGuid());
 
         result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(400);
         result.Error.Message.Should().Contain("não é confiável");
     }
 
@@ -137,6 +138,7 @@ public class ReturnUrlResolverTests
         var result = _resolver.Resolve(url, Guid.NewGuid());
 
         result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(400);
         result.Error.Message.Should().Contain("não é confiável");
     }
 
