@@ -432,9 +432,6 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.slnx
-
       - name: Run Full Security Audit (informational)
         id: audit-full
         continue-on-error: true

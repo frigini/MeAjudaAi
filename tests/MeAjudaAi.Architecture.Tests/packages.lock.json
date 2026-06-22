@@ -51,6 +51,12 @@
           "Mono.Cecil": "0.11.3"
         }
       },
+      "Refit": {
+        "type": "Direct",
+        "requested": "[11.2.0, )",
+        "resolved": "11.2.0",
+        "contentHash": "SNxsfTEq62dXvK/TGdm1FDr2IYOpj2YeyuJSW9URY6JzAn/q9R4psfem4qmBnUC474ov6/W/18IlJPds2LZTFw=="
+      },
       "Scrutor": {
         "type": "Direct",
         "requested": "[7.0.0, )",
@@ -922,6 +928,13 @@
           "Swashbuckle.AspNetCore.Annotations": "[10.2.2, )"
         }
       },
+      "meajudaai.client.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
+          "Refit": "[11.2.0, )"
+        }
+      },
       "meajudaai.contracts": {
         "type": "Project",
         "dependencies": {
@@ -931,6 +944,7 @@
       "meajudaai.modules.bookings.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )"
         }
@@ -959,6 +973,7 @@
       "meajudaai.modules.communications.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -993,6 +1008,7 @@
         "dependencies": {
           "Asp.Versioning.Http": "[10.0.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1030,6 +1046,7 @@
         "dependencies": {
           "Asp.Versioning.Http": "[10.0.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1061,6 +1078,7 @@
       "meajudaai.modules.payments.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )"
         }
@@ -1089,6 +1107,7 @@
       "meajudaai.modules.providers.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1121,6 +1140,7 @@
       "meajudaai.modules.ratings.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Ratings.Infrastructure": "[1.0.0, )"
         }
       },
@@ -1152,6 +1172,7 @@
         "dependencies": {
           "Asp.Versioning.Http": "[10.0.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1186,6 +1207,7 @@
       "meajudaai.modules.servicecatalogs.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1217,6 +1239,7 @@
       "meajudaai.modules.users.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
