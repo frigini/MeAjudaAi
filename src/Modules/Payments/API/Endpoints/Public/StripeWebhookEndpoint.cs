@@ -30,7 +30,15 @@ public class StripeWebhookEndpoint : IEndpoint
     {
         try
         {
-            var result = await paymentService.HandleStripeWebhookAsync(context.Request, cancellationToken);
+            context.Request.EnableBuffering();
+
+            using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
+            var payload = await reader.ReadToEndAsync(cancellationToken);
+            context.Request.Body.Position = 0;
+
+            var stripeSignature = context.Request.Headers["Stripe-Signature"].ToString();
+
+            var result = await paymentService.HandleStripeWebhookAsync(payload, stripeSignature, cancellationToken);
 
             if (result.IsFailure)
             {

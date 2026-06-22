@@ -52,36 +52,21 @@ internal class PaymentCommandService(
     }
 
     public async Task<Result> HandleStripeWebhookAsync(
-        HttpRequest request,
+        string payload,
+        string stripeSignature,
         CancellationToken cancellationToken = default)
     {
-        using var ms = new MemoryStream();
-        await request.Body.CopyToAsync(ms, cancellationToken);
-        request.Body.Position = 0;
-        ms.Position = 0;
-
-        string json;
-        using (var reader = new StreamReader(ms,
-            encoding: System.Text.Encoding.UTF8,
-            detectEncodingFromByteOrderMarks: true,
-            bufferSize: 1024,
-            leaveOpen: true))
-        {
-            json = await reader.ReadToEndAsync(cancellationToken);
-        }
-
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrEmpty(payload))
         {
             return Error.BadRequest("Corpo da requisição vazio.");
         }
 
-        var stripeSignature = request.Headers["Stripe-Signature"];
         var webhookSecret = configuration["Stripe:WebhookSecret"];
         var isTestingEnvironment = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment();
 
         if (isTestingEnvironment && string.IsNullOrEmpty(stripeSignature))
         {
-            return await ProcessMockEventAsync(json, cancellationToken);
+            return await ProcessMockEventAsync(payload, cancellationToken);
         }
 
         if (string.IsNullOrWhiteSpace(webhookSecret))
@@ -93,12 +78,12 @@ internal class PaymentCommandService(
         try
         {
             var stripeEvent = EventUtility.ConstructEvent(
-                json,
+                payload,
                 stripeSignature,
                 webhookSecret,
                 throwOnApiVersionMismatch: false);
 
-            return await SaveInboxMessageAsync(stripeEvent.Type, json, stripeEvent.Id, cancellationToken);
+            return await SaveInboxMessageAsync(stripeEvent.Type, payload, stripeEvent.Id, cancellationToken);
         }
         catch (StripeException e)
         {

@@ -26,13 +26,10 @@ public class DbContextPaymentsHealthQueriesTests : BaseInMemoryDatabaseTest<Paym
     }
 
     [Fact]
-    public async Task PingAsync_ShouldReturnTrue_WhenCancellationIsRequested()
+    public async Task PingAsync_ShouldCompleteSuccessfully_WhenValidCancellationToken()
     {
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        var result = await _queries.PingAsync(CancellationToken.None);
 
-        var act = async () => await _queries.PingAsync(cts.Token);
-
-        await act.Should().NotThrowAsync();
+        result.Should().BeTrue();
     }
 }

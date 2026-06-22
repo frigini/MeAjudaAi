@@ -16,7 +16,7 @@ public class PaymentsOptionsValidator : IValidateOptions<PaymentsOptions>
 
     public ValidateOptionsResult Validate(string? name, PaymentsOptions options)
     {
-        if (name != PaymentsOptions.SectionName && name != null)
+        if (name != PaymentsOptions.SectionName && !string.IsNullOrEmpty(name))
         {
             return ValidateOptionsResult.Skip;
         }

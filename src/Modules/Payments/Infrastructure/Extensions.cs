@@ -31,7 +31,9 @@ public static class Extensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        services.Configure<PaymentsOptions>(configuration.GetSection(PaymentsOptions.SectionName));
+        services.AddOptions<PaymentsOptions>()
+            .Bind(configuration.GetSection(PaymentsOptions.SectionName))
+            .ValidateOnStart();
         services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<PaymentsOptions>>().Value);
         services.AddSingleton<IValidateOptions<PaymentsOptions>>(new PaymentsOptionsValidator(configuration));
 

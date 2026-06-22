@@ -26,7 +26,7 @@ public interface IProvidersApi
 
     [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Providers.Base}{ApiEndpoints.Providers.GetByVerificationStatus}")]
     Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByVerificationStatusAsync(
-        string verificationStatus,
+        [AliasAs("status")] string verificationStatus,
         CancellationToken cancellationToken = default);
 
     [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Providers.Base}{ApiEndpoints.Providers.GetByCity}")]
