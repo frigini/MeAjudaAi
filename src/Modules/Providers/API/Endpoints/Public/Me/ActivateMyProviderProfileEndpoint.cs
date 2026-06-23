@@ -1,19 +1,23 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 
+[ExcludeFromCodeCoverage]
 public class ActivateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("me/activate", ActivateMyProfileAsync)
             .WithName("ActivateMyProviderProfile")
             .WithTags("Providers - Me")
+            .WithSummary("Ativar meu perfil de prestador")
+            .WithDescription("Permite que o prestador autenticado ative seu próprio perfil.")
             .RequireAuthorization()
             .Produces<Result>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)

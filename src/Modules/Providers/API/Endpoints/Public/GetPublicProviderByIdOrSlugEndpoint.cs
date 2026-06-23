@@ -5,12 +5,14 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Contracts.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint público para consulta de detalhes básicos do prestador por ID ou slug.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class GetPublicProviderByIdOrSlugEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

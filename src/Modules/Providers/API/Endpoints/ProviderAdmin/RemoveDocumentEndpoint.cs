@@ -1,13 +1,14 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -18,8 +19,9 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// Implementa padrão de endpoint mínimo para remoção de documentos de verificação
 /// utilizando arquitetura CQRS. Permite que prestadores removam seus próprios
 /// documentos ou administradores gerenciem documentos. Operação irreversível.
-/// </remarks>
-public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
     /// Configura o mapeamento do endpoint de remoção de documento.

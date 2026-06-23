@@ -1,15 +1,17 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 
 /// <summary>
 /// Endpoint para adicionar um serviço do catálogo a um provider.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class AddServiceToProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

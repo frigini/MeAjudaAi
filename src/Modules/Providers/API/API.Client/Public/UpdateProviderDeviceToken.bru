@@ -1,0 +1,59 @@
+meta {
+  name: Update Provider Device Token
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/device-token
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "deviceToken": "fcm_token_here",
+    "platform": "android"
+  }
+}
+
+docs {
+  # Update Provider Device Token
+  
+  Registra ou atualiza o token do dispositivo para notificações push.
+  
+  ## Autorização
+  - **Permissão**: SelfOrAdmin (próprio prestador ou admin)
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `providerId` (guid): ID do prestador
+  
+  ## Body Parameters
+  - `deviceToken` (string): Token FCM/APNs
+  - `platform` (string): "android" ou "ios"
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **204**: Atualizado com sucesso
+  - **400**: Dados inválidos
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador não encontrado
+}

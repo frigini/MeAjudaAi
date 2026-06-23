@@ -1,19 +1,23 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 
+[ExcludeFromCodeCoverage]
 public class DeactivateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("me/deactivate", DeactivateMyProfileAsync)
             .WithName("DeactivateMyProviderProfile")
             .WithTags("Providers - Me")
+            .WithSummary("Desativar meu perfil de prestador")
+            .WithDescription("Permite que o prestador autenticado desative seu próprio perfil.")
             .RequireAuthorization()
             .Produces<Result>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)

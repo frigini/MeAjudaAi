@@ -1,0 +1,42 @@
+meta {
+  name: Delete My Provider Profile
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/providers/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Delete My Provider Profile
+  
+  Exclui (logicamente) o perfil do prestador autenticado.
+  
+  ## Autorização
+  - **Requer token**: Sim (usuário logado)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **204**: Excluído com sucesso (no content)
+  - **400**: Não foi possível excluir
+  - **401**: Token inválido/expirado
+  - **404**: Perfil não encontrado
+}

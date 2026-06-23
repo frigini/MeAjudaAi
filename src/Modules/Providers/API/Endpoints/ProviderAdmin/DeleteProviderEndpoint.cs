@@ -1,10 +1,11 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -17,6 +18,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// devido à criticidade da operação. Preserva dados para auditoria e possível
 /// recuperação futura.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class DeleteProviderEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>

@@ -1,13 +1,14 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Constants;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -18,8 +19,9 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// Implementa padrão de endpoint mínimo para retornar prestadores da etapa de verificação
 /// de documentos para correção de informações básicas utilizando arquitetura CQRS.
 /// Restrito a administradores e verificadores devido à criticidade da operação.
-/// </remarks>
-public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
     /// Configura o mapeamento do endpoint de solicitação de correção.

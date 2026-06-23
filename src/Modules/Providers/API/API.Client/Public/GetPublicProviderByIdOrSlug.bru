@@ -1,0 +1,53 @@
+meta {
+  name: Get Public Provider by ID or Slug
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/public/{{providerIdOrSlug}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Public Provider by ID or Slug
+  
+  Obtém dados públicos de um prestador para exibição no site.
+  Não requer autenticação.
+  
+  ## Autorização
+  - **Requer token**: Não (endpoint público)
+  
+  ## Parâmetros Path
+  - `providerIdOrSlug` (guid/string): ID do prestador ou slug amigável
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "name": "João Silva",
+      "type": 1,
+      "businessProfile": {
+        "description": "Eletricista com 10 anos de experiência",
+        "city": "São Paulo",
+        "state": "SP"
+      },
+      "averageRating": 4.5,
+      "reviewCount": 28,
+      "isActive": true
+    },
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **404**: Prestador não encontrado
+}

@@ -1,0 +1,58 @@
+meta {
+  name: Get My Provider Profile
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get My Provider Profile
+  
+  Retorna os dados completos do perfil do prestador autenticado.
+  
+  ## Autorização
+  - **Requer token**: Sim (usuário logado)
+  - **ID do usuário**: Extraído automaticamente do token
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "userId": "uuid",
+      "name": "João Silva",
+      "type": 1,
+      "verificationStatus": 2,
+      "businessProfile": {
+        "description": "Eletricista especializado",
+        "address": "Rua das Flores, 123",
+        "city": "São Paulo",
+        "state": "SP",
+        "phone": "(11) 99999-9999"
+      },
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **401**: Token inválido/expirado
+  - **404**: Perfil não encontrado para o usuário
+}

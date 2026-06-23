@@ -21,8 +21,7 @@ public static class Extensions
 
     public static IEndpointRouteBuilder UseProvidersModule(this IEndpointRouteBuilder app)
     {
-        ProvidersModuleEndpoints.Map(app);
+        ProvidersEndpoints.Map(app);
         return app;
     }
 }
-

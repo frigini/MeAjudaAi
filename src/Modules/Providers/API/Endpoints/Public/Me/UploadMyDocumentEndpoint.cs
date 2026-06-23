@@ -1,3 +1,5 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
@@ -6,9 +8,8 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 
@@ -19,10 +20,11 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 /// <remarks>
 /// Versão self-service do <see cref="ProviderAdmin.AddDocumentEndpoint"/> (admin-only).
 /// Reutiliza o mesmo <see cref="AddDocumentCommand"/> e <see cref="AddDocumentRequest"/>.
-/// </remarks>
-// TODO: Enforce "ProviderPolicy" or specific roles when authorization policies are defined globally.
-// Currently allows any authenticated user, but logic verifies if they have a Provider profile.
-public class UploadMyDocumentEndpoint : BaseEndpoint, IEndpoint
+    /// </remarks>
+    // TODO: Enforce "ProviderPolicy" or specific roles when authorization policies are defined globally.
+    // Currently allows any authenticated user, but logic verifies if they have a Provider profile.
+    [ExcludeFromCodeCoverage]
+    public class UploadMyDocumentEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("me/documents", UploadMyDocumentAsync)

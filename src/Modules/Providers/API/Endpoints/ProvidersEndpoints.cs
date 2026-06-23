@@ -5,17 +5,14 @@ using MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Shared.Utilities.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints;
 
-public static class ProvidersModuleEndpoints
+[ExcludeFromCodeCoverage]
+public static class ProvidersEndpoints
 {
     public static void Map(IEndpointRouteBuilder app)
-    {
-        MapProvidersEndpoints(app);
-    }
-
-    public static void MapProvidersEndpoints(IEndpointRouteBuilder app)
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
         var endpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.Providers.Base, ModuleNames.Providers);

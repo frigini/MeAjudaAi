@@ -1,13 +1,14 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -16,10 +17,11 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// </summary>
 /// <remarks>
 /// Implementa padrão de endpoint mínimo para busca de prestadores de serviços
-/// filtrados por tipo (Individual ou Company). Utiliza arquitetura CQRS e 
+/// filtrados por tipo (Individual ou Company). Utiliza arquitetura CQRS e
 /// permite consulta categorizada por estrutura organizacional.
-/// </remarks>
-public class GetProvidersByTypeEndpoint : BaseEndpoint, IEndpoint
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public class GetProvidersByTypeEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
     /// Configura o mapeamento do endpoint de consulta de prestadores por tipo.

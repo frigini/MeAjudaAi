@@ -1,0 +1,42 @@
+meta {
+  name: Deactivate My Provider Profile
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers/me/deactivate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Deactivate My Provider Profile
+  
+  Desativa o perfil do prestador autenticado.
+  
+  ## Autorização
+  - **Requer token**: Sim (usuário logado)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Desativado com sucesso
+  - **400**: Não foi possível desativar
+  - **401**: Token inválido/expirado
+  - **404**: Perfil não encontrado
+}

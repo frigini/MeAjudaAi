@@ -1,0 +1,66 @@
+meta {
+  name: Upload My Document
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers/me/documents
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "type": 1,
+    "number": "12345678901",
+    "issueDate": "2020-01-15",
+    "issuingAuthority": "SSP-SP",
+    "documentImageBase64": "base64_encoded_image_here"
+  }
+}
+
+docs {
+  # Upload My Document
+  
+  Permite que o prestador autenticado adicione documentos ao seu perfil.
+  
+  ## Autorização
+  - **Requer token**: Sim (usuário logado)
+  
+  ## Body Parameters
+  - `type` (int): Tipo do documento (1=CPF, 2=CNPJ, 3=RG, etc.)
+  - `number` (string): Número do documento
+  - `issueDate` (string, opcional): Data de emissão
+  - `issuingAuthority` (string, opcional): Órgão emissor
+  - `documentImageBase64` (string, opcional): Imagem do documento em base64
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "type": 1,
+      "number": "12345678901",
+      "verifiedAt": null
+    },
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Documento adicionado
+  - **400**: Dados inválidos
+  - **401**: Token inválido/expirado
+  - **404**: Perfil não encontrado
+}

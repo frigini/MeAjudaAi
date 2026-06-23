@@ -1,0 +1,49 @@
+meta {
+  name: Get My Provider Status
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/me/status
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get My Provider Status
+  
+  Retorna o status de aprovação e tier do prestador autenticado.
+  Usado pelo frontend para polling durante onboarding.
+  
+  ## Autorização
+  - **Requer token**: Sim (usuário logado)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "status": "active",
+      "tier": "basic",
+      "verificationStatus": 2,
+      "rejectionReason": null
+    },
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **400**: Não foi possível consultar status
+  - **401**: Token inválido/expirado
+  - **404**: Perfil não encontrado
+}

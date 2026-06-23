@@ -1,12 +1,14 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -18,8 +20,9 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// do ID do usuário associado. Utiliza arquitetura CQRS e permite que
 /// usuários consultem seus próprios dados de prestador ou administradores
 /// consultem qualquer prestador pelo ID do usuário.
-/// </remarks>
-public class GetProviderByUserIdEndpoint : BaseEndpoint, IEndpoint
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public class GetProviderByUserIdEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
     /// Configura o mapeamento do endpoint de consulta de prestador por ID do usuário.

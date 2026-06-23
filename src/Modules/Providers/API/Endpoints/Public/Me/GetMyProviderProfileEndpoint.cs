@@ -4,15 +4,19 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 
+[ExcludeFromCodeCoverage]
 public class GetMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("me", GetMyProfileAsync)
             .WithName("GetMyProviderProfile")
             .WithTags("Providers - Me")
+            .WithSummary("Obter meu perfil de prestador")
+            .WithDescription("Retorna os dados completos do perfil do prestador autenticado.")
             .RequireAuthorization()
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);

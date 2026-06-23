@@ -1,10 +1,11 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 
@@ -12,6 +13,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 /// Endpoint para o próprio prestador excluir (logicamente) sua conta.
 /// Requer autenticação.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class DeleteMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

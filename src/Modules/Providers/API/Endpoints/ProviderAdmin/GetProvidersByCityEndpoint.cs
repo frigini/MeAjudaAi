@@ -1,14 +1,15 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Queries;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Queries;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -20,6 +21,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// filtrados por cidade específica. Utiliza arquitetura CQRS e permite
 /// consulta autorizada para facilitar descoberta de serviços.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -68,7 +70,6 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// <param name="city">Nome da cidade para busca</param>
     /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <param name="logger">Logger para rastreamento de requisições</param>
     /// <returns>Resultado HTTP com lista de prestadores ou erro apropriado</returns>
     /// <remarks>
     /// Processo da consulta:
@@ -80,26 +81,12 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> GetProvidersByCityAsync(
         [FromRoute] string city,
         IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken,
-        ILogger<GetProvidersByCityEndpoint> logger)
+        CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = city.ToCityQuery();
-            var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
-                query, cancellationToken);
+        var query = city.ToCityQuery();
+        var result = await queryDispatcher.QueryAsync<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>(
+            query, cancellationToken);
 
-            return Handle(result);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error fetching providers by city: {City}", city);
-            
-            return Error.Internal("Ocorreu um erro interno ao buscar prestadores por cidade. Consulte os logs.").ToProblem();
-        }
+        return Handle(result);
     }
 }

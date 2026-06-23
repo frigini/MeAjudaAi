@@ -1,0 +1,42 @@
+meta {
+  name: Activate My Provider Profile
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers/me/activate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Activate My Provider Profile
+  
+  Ativa o perfil do prestador autenticado.
+  
+  ## Autorização
+  - **Requer token**: Sim (usuário logado)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Ativado com sucesso
+  - **400**: Não foi possível ativar
+  - **401**: Token inválido/expirado
+  - **404**: Perfil não encontrado
+}
