@@ -1,10 +1,12 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
@@ -57,7 +59,7 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
     {
         if (request == null)
         {
-            return Results.Problem("Corpo da requisição é obrigatório.", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest("Corpo da requisição é obrigatório.").ToProblem();
         }
 
         var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
@@ -74,14 +76,14 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
         {
             if (request.ProviderId == Guid.Empty)
             {
-                return Results.Problem("ProviderId inválido para operação admin.", statusCode: StatusCodes.Status400BadRequest);
+                return Error.BadRequest("ProviderId inválido para operação admin.").ToProblem();
             }
             targetProviderId = request.ProviderId;
             var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value
                 ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
             {
-                return Results.Problem("Identificador do administrador não encontrado no token.", statusCode: StatusCodes.Status400BadRequest);
+                return Error.BadRequest("Identificador do administrador não encontrado no token.").ToProblem();
             }
             logger.LogInformation("Admin {AdminId} is setting schedule for Provider {ProviderId}", userIdClaim, targetProviderId);
         }
@@ -90,14 +92,14 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
             if (!authResult.ProviderId.HasValue)
             {
                 logger.LogError("Authorization resolver did not set ProviderId for non-admin user {UserId}", authResult.UserId);
-                return Results.Problem("Erro interno de configuração: identificador do prestador não encontrado.", statusCode: StatusCodes.Status500InternalServerError);
+                return Error.Internal("Erro interno de configuração: identificador do prestador não encontrado.").ToProblem();
             }
 
             targetProviderId = authResult.ProviderId.Value;
 
             if (request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
             {
-                return Results.Problem("O ProviderId informado não coincide com o prestador autenticado.", statusCode: StatusCodes.Status400BadRequest);
+                return Error.BadRequest("O ProviderId informado não coincide com o prestador autenticado.").ToProblem();
             }
 
             logger.LogInformation("Provider {ProviderId} is setting own schedule", targetProviderId);
@@ -114,7 +116,7 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
 
         return result.Match(
             onSuccess: () => Results.NoContent(),
-            onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
+            onFailure: error => error.ToProblem()
         );
     }
 }

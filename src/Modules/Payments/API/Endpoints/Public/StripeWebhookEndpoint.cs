@@ -1,7 +1,8 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Modules.Payments.Application.Services;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Endpoints;
-using Stripe;
+using MeAjudaAi.Shared.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 
@@ -9,86 +10,46 @@ public class StripeWebhookEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPost("stripe", async (
-            HttpContext context,
-            [FromServices] IConfiguration configuration,
-            [FromServices] IHostEnvironment environment,
-            [FromServices] IPaymentCommandService paymentService,
-            [FromServices] ILogger<StripeWebhookEndpoint> logger,
-            CancellationToken cancellationToken) =>
-        {
-            try
-            {
-                // Copiamos para MemoryStream para suportar CancellationToken na leitura e manter body aberto se necessário
-                using var ms = new System.IO.MemoryStream();
-                await context.Request.Body.CopyToAsync(ms, context.RequestAborted);
-                ms.Position = 0;
-
-                string json;
-                using (var reader = new System.IO.StreamReader(ms, 
-                    encoding: System.Text.Encoding.UTF8, 
-                    detectEncodingFromByteOrderMarks: true, 
-                    bufferSize: 1024, 
-                    leaveOpen: true))
-                {
-                    json = await reader.ReadToEndAsync(cancellationToken);
-                }
-
-                var stripeSignature = context.Request.Headers["Stripe-Signature"];
-                var webhookSecret = configuration["Stripe:WebhookSecret"];
-
-                if (string.IsNullOrEmpty(json))
-                {
-                    return Results.BadRequest(new { error = "Corpo da requisição vazio" });
-                }
-
-                // No ambiente Testing, podemos ignorar a validação de assinatura
-                if (environment.IsEnvironment("Testing") && string.IsNullOrEmpty(stripeSignature))
-                {
-                    var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
-                    if (mockEvent == null) return Results.BadRequest(new { error = "Falha ao processar evento mock" });
-                    
-                    await paymentService.SaveInboxMessageAsync(mockEvent.Type, json, mockEvent.Id, cancellationToken);
-                    return Results.Ok();
-                }
-
-                if (string.IsNullOrWhiteSpace(webhookSecret))
-                {
-                    logger.LogError("Stripe:WebhookSecret not configured.");
-                    return Results.InternalServerError(new { error = "Erro interno no servidor" });
-                }
-
-                var stripeEvent = EventUtility.ConstructEvent(
-                    json,
-                    stripeSignature,
-                    webhookSecret,
-                    throwOnApiVersionMismatch: false);
-
-                await paymentService.SaveInboxMessageAsync(stripeEvent.Type, json, stripeEvent.Id, cancellationToken);
-
-                return Results.Ok();
-            }
-            catch (StripeException e)
-            {
-                logger.LogWarning(e, "Stripe signature validation failed.");
-                return Results.BadRequest(new { error = "Requisição de webhook inválida" });
-            }
-            catch (OperationCanceledException)
-            {
-                // Requisição abortada pelo cliente ou host
-                return Results.StatusCode(499); 
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Internal error processing Stripe webhook.");
-                return Results.InternalServerError(new { error = "Erro interno no servidor" });
-            }
-        })
+        app.MapPost(ApiEndpoints.Payments.StripeWebhook, HandleStripeWebhookAsync)
         .AllowAnonymous()
         .RequireRateLimiting("StripeWebhookPolicy")
-        .WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(256_000))
+        .WithMetadata(new RequestSizeLimitAttribute(256_000))
+        .Produces(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(PaymentsEndpoints.Tag)
         .WithName("StripeWebhook")
-        .WithSummary("Recebe webhooks do Stripe de forma assíncrona.");
+        .WithSummary("Recebe webhooks do Stripe")
+        .WithDescription("Recebe e processa webhooks do Stripe de forma assíncrona.");
+    }
+
+    private static async Task<IResult> HandleStripeWebhookAsync(
+        HttpContext context,
+        [FromServices] IPaymentCommandService paymentService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            context.Request.EnableBuffering();
+
+            using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
+            var payload = await reader.ReadToEndAsync(cancellationToken);
+            context.Request.Body.Position = 0;
+
+            var stripeSignature = context.Request.Headers["Stripe-Signature"].ToString();
+
+            var result = await paymentService.HandleStripeWebhookAsync(payload, stripeSignature, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return result.Error.ToProblem();
+            }
+
+            return Results.Ok();
+        }
+        catch (OperationCanceledException)
+        {
+            return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+        }
     }
 }

@@ -989,16 +989,16 @@
       },
       "Swashbuckle.AspNetCore.Swagger": {
         "type": "Transitive",
-        "resolved": "10.2.1",
-        "contentHash": "ej4inPhiWCq+0utG8yaKhIhE8M3k3R/qRaGhpgDZB+O/s+o62/zRMO1Cn2CtQccsrqPE9PYnzCp6hQGYGpJOyQ==",
+        "resolved": "10.2.2",
+        "contentHash": "XftCYHVoKpi1PO4FjZN4LqFgvcSJPAojTOBCokkEcJLitfAYbaLya1i1XjirnNd7pykK9Nedk3IANyGLVDbYSQ==",
         "dependencies": {
           "Microsoft.OpenApi": "2.7.5"
         }
       },
       "Swashbuckle.AspNetCore.SwaggerUI": {
         "type": "Transitive",
-        "resolved": "10.2.1",
-        "contentHash": "vzB8ZAGqXus3fdareJ9GHctaRP9ZL+wW9x8U7s1Y+BWprInFvSg6rpD9VhANNpwXA8fUHqu5Agjl/+hHG1BCQA=="
+        "resolved": "10.2.2",
+        "contentHash": "DVpnuuBQxh95eo+2gQ/HXxrl91Fhe9JIWUW0KxiTV+nLFoJTCyUaJsKpB7kdowDHDk3qnGqF3sZaGrCmAhWCwg=="
       },
       "System.ClientModel": {
         "type": "Transitive",
@@ -1195,8 +1195,8 @@
           "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.Seq": "[9.1.0, )",
-          "Swashbuckle.AspNetCore": "[10.2.1, )",
-          "Swashbuckle.AspNetCore.Annotations": "[10.2.1, )"
+          "Swashbuckle.AspNetCore": "[10.2.2, )",
+          "Swashbuckle.AspNetCore.Annotations": "[10.2.2, )"
         }
       },
       "meajudaai.contracts": {
@@ -1208,6 +1208,7 @@
       "meajudaai.modules.bookings.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )"
         }
@@ -1236,6 +1237,7 @@
       "meajudaai.modules.communications.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1270,6 +1272,7 @@
         "dependencies": {
           "Asp.Versioning.Http": "[10.0.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1307,6 +1310,7 @@
         "dependencies": {
           "Asp.Versioning.Http": "[10.0.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1338,6 +1342,7 @@
       "meajudaai.modules.payments.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )"
         }
@@ -1366,6 +1371,7 @@
       "meajudaai.modules.providers.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1398,6 +1404,7 @@
       "meajudaai.modules.ratings.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Ratings.Infrastructure": "[1.0.0, )"
         }
       },
@@ -1429,6 +1436,7 @@
         "dependencies": {
           "Asp.Versioning.Http": "[10.0.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1463,6 +1471,7 @@
       "meajudaai.modules.servicecatalogs.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1494,6 +1503,7 @@
       "meajudaai.modules.users.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1529,7 +1539,7 @@
       "meajudaai.servicedefaults": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Npgsql": "[13.4.5, )",
+          "Aspire.Npgsql": "[13.4.6, )",
           "Azure.Monitor.OpenTelemetry.AspNetCore": "[1.5.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.7.0, )",
@@ -1593,7 +1603,9 @@
           "MeAjudaAi.ApiService": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.9, )",
+          "Microsoft.Data.Sqlite": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.InMemory": "[10.0.9, )",
+          "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )",
           "Microsoft.Extensions.Hosting": "[10.0.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.9, )",
           "Microsoft.Extensions.TimeProvider.Testing": "[10.7.0, )",
@@ -1637,9 +1649,9 @@
       },
       "Aspire.Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[13.4.5, )",
-        "resolved": "13.4.5",
-        "contentHash": "KuHyKxNm2jcYSaW+rNuYT9Ptepy8MF1TyTJpRj4UlXTc9GnDAu1LOeJT+AiY+PTuKbON2DUmq6o07y+m7d2bIg==",
+        "requested": "[13.4.6, )",
+        "resolved": "13.4.6",
+        "contentHash": "7CLWuyj6JZmjrIukGNDAxFuYLB8aEeJfOPv9vhVnvynNSBO0BLsSKgW3Mx2qAVljBGhRwuNDmjlZhzq9POchfQ==",
         "dependencies": {
           "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.8",
@@ -2411,32 +2423,32 @@
       },
       "Swashbuckle.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[10.2.1, )",
-        "resolved": "10.2.1",
-        "contentHash": "SDU6akgCV/H4jFMRfyJ0mgO5jWOuuAqekvEThXg8c/LjnfNz5Nkaz+RUpeTVJKWIRX4wDKC/6R3ogJ4AsRE32A==",
+        "requested": "[10.2.2, )",
+        "resolved": "10.2.2",
+        "contentHash": "vgXTCFRbRlfCJHE9zAhgd1QJR4AEoEuYm+i7E4xeqa/WNI77JHnNG21/NXdnK5tgpJeQ7pzp/vNYvTpMZDEd1A==",
         "dependencies": {
           "Microsoft.Extensions.ApiDescription.Server": "10.0.0",
-          "Swashbuckle.AspNetCore.Swagger": "10.2.1",
-          "Swashbuckle.AspNetCore.SwaggerGen": "10.2.1",
-          "Swashbuckle.AspNetCore.SwaggerUI": "10.2.1"
+          "Swashbuckle.AspNetCore.Swagger": "10.2.2",
+          "Swashbuckle.AspNetCore.SwaggerGen": "10.2.2",
+          "Swashbuckle.AspNetCore.SwaggerUI": "10.2.2"
         }
       },
       "Swashbuckle.AspNetCore.Annotations": {
         "type": "CentralTransitive",
-        "requested": "[10.2.1, )",
-        "resolved": "10.2.1",
-        "contentHash": "8kAobMGuvJz6ST6C31VfNdiCMoZ67qijaR6Id5DDLz5NbIAKvDACoq2QGNJv8sOFW8orAy5iCQmRp1Tf0Om7Tg==",
+        "requested": "[10.2.2, )",
+        "resolved": "10.2.2",
+        "contentHash": "flZjXaiYu6hrZfHf7ngZHVyycfof1Fv3DRHjs6bdgkALEqo2beoUY2LavjsTXvFRw9WCBISXMQuVT5gpisqyEw==",
         "dependencies": {
-          "Swashbuckle.AspNetCore.SwaggerGen": "10.2.1"
+          "Swashbuckle.AspNetCore.SwaggerGen": "10.2.2"
         }
       },
       "Swashbuckle.AspNetCore.SwaggerGen": {
         "type": "CentralTransitive",
-        "requested": "[10.2.1, )",
-        "resolved": "10.2.1",
-        "contentHash": "JYX6i/y0xEtQWH/hZyfcage1/ldwww83ueD/gBc34uSnMwyvRLUsOpYcxlliFFxFbZMrY6t+R9ENqolE7zTEOg==",
+        "requested": "[10.2.2, )",
+        "resolved": "10.2.2",
+        "contentHash": "c0iLanVdOSs0JSmd3Oj8HObTgTsTP4UecynmaFrVTvX+76hnyLciA6Vb1oetmVjdQTpRJUzJlx/H19p8bLjVlg==",
         "dependencies": {
-          "Swashbuckle.AspNetCore.Swagger": "10.2.1"
+          "Swashbuckle.AspNetCore.Swagger": "10.2.2"
         }
       },
       "System.IdentityModel.Tokens.Jwt": {

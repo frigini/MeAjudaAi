@@ -334,8 +334,11 @@ public class NamingConventionTests
                    !type.IsAbstract);
 
         // Validar que validators seguem convenção de namespace
+        // Excluir IValidateOptions validators que são especial e devem ficar colocalizados com Options
         var validatorsInWrongNamespace = validators
-            .Where(validator => !validator.Namespace?.Contains("Validators") == true)
+            .Where(validator =>
+                !validator.Namespace?.Contains("Validators") == true &&
+                !validator.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(Microsoft.Extensions.Options.IValidateOptions<>)))
             .Select(validator => validator.FullName)
             .ToList();
 

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
+using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 
 namespace MeAjudaAi.Integration.Tests.Mocks;
@@ -9,15 +10,15 @@ public class MockPaymentGateway : IPaymentGateway
     public ConcurrentQueue<object> RecordedCalls { get; } = new();
     public bool ShouldFail { get; set; }
 
-    public Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default)
+    public Task<SubscriptionGatewayResponse> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         RecordedCalls.Enqueue(new CreateSubscriptionCall(providerId, planId, amount, idempotencyKey));
 
-        if (ShouldFail) return Task.FromResult(SubscriptionGatewayResult.Failed("Mocked failure"));
+        if (ShouldFail) return Task.FromResult(SubscriptionGatewayResponse.Failed("Mocked failure"));
 
         var token = Guid.NewGuid().ToString("n");
-        return Task.FromResult(SubscriptionGatewayResult.Succeeded(
+        return Task.FromResult(SubscriptionGatewayResponse.Succeeded(
             "sub_mock_" + token, 
             "https://checkout.stripe.com/mock_" + token));
     }

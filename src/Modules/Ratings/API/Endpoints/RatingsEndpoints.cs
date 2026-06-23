@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Ratings.API.Endpoints.Admin;
 using MeAjudaAi.Modules.Ratings.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
@@ -5,8 +6,8 @@ using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
@@ -70,7 +71,7 @@ public class CancelBookingEndpoint : IEndpoint
 
         return result.Match(
             onSuccess: () => Results.NoContent(),
-            onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
+            onFailure: error => error.ToProblem()
         );
     }
 }

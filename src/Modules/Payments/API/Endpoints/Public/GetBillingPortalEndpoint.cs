@@ -1,88 +1,71 @@
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
-using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
+using MeAjudaAi.Modules.Payments.API.Helpers;
+using MeAjudaAi.Modules.Payments.API.Mappers;
+using MeAjudaAi.Modules.Payments.Application.Commands;
+using MeAjudaAi.Modules.Payments.Application.Services;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 
+[ExcludeFromCodeCoverage]
 public class GetBillingPortalEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        // POST: /api/v1/payments/subscriptions/billing-portal
-        app.MapPost("subscriptions/billing-portal", async (
-            GetBillingPortalRequest request,
-            [FromServices] ICommandDispatcher dispatcher,
-            [FromServices] IConfiguration configuration,
-            [FromServices] ILogger<GetBillingPortalEndpoint> logger,
-            HttpContext httpContext,
-            CancellationToken cancellationToken) =>
-        {
-            return await HandleRequest(request, dispatcher, configuration, logger, httpContext, cancellationToken);
-        })
+        app.MapPost(ApiEndpoints.Payments.GetBillingPortal, GetBillingPortalAsync)
+        .RequireAuthorization()
+        .Produces<GetBillingPortalResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(PaymentsEndpoints.Tag)
         .WithName("GetBillingPortal")
-        .RequireAuthorization()
-        .WithSummary("Gera um link para o portal de gerenciamento de faturamento do Stripe.");
+        .WithSummary("Gera link do portal de faturamento")
+        .WithDescription("Gera um link para o portal de gerenciamento de faturamento do Stripe.");
     }
 
-    private static async Task<IResult> HandleRequest(
-        GetBillingPortalRequest request, 
-        ICommandDispatcher dispatcher, 
-        IConfiguration configuration, 
-        ILogger<GetBillingPortalEndpoint> logger,
+    private static async Task<IResult> GetBillingPortalAsync(
+        GetBillingPortalRequest request,
+        [FromServices] ICommandDispatcher dispatcher,
+        [FromServices] IReturnUrlResolver returnUrlResolver,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         if (request.ProviderId == Guid.Empty)
-            return Results.BadRequest(new { error = "ProviderId é obrigatório." });
-
-        // Validação de Autorização (Admin ou Dono do Provider)
-        var isSystemAdmin = string.Equals(
-            httpContext.User?.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, 
-            "true", 
-            StringComparison.OrdinalIgnoreCase);
-
-        if (!isSystemAdmin)
         {
-            var userProviderIdClaim = httpContext.User?.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-            if (string.IsNullOrEmpty(userProviderIdClaim) || !Guid.TryParse(userProviderIdClaim, out var userProviderId) || userProviderId != request.ProviderId)
+            var problemDetails = new ValidationProblemDetails
             {
-                return string.IsNullOrEmpty(userProviderIdClaim) ? Results.Unauthorized() : Results.Forbid();
-            }
+                Title = "Erro de validação",
+                Status = StatusCodes.Status400BadRequest,
+                Errors = new Dictionary<string, string[]>
+                {
+                    ["ProviderId"] = ["O campo ProviderId é obrigatório."]
+                }
+            };
+            return Results.Problem(problemDetails);
         }
 
-        var clientBaseUrl = configuration["ClientBaseUrl"];
-        if (string.IsNullOrEmpty(clientBaseUrl))
+        var authResult = PaymentAuthorizationHelper.AuthorizeProviderAccess(httpContext, request.ProviderId);
+        if (authResult is not null)
         {
-            logger.LogError("ClientBaseUrl configuration missing");
-            return Results.Problem("ClientBaseUrl não configurada.");
+            return authResult;
         }
 
-        clientBaseUrl = clientBaseUrl.TrimEnd('/');
-
-        // Se ReturnUrl é um caminho conhecido, resolver. Se for uma URL completa, passar para o handler validar
-        string finalReturnUrl;
-        var returnUrl = request.ReturnUrl ?? "";
-
-        if (returnUrl.Equals("account", StringComparison.OrdinalIgnoreCase))
-            finalReturnUrl = $"{clientBaseUrl}/account";
-        else if (returnUrl.Equals("billing", StringComparison.OrdinalIgnoreCase))
-            finalReturnUrl = $"{clientBaseUrl}/billing";
-        else if (Uri.TryCreate(returnUrl, UriKind.Absolute, out _))
-            finalReturnUrl = returnUrl; // Passar URL completa para o handler validar
-        else
+        var resolveResult = returnUrlResolver.Resolve(request.ReturnUrl, request.ProviderId);
+        if (resolveResult.IsFailure)
         {
-            logger.LogInformation("Billing portal ReturnUrl fallback taken for Provider {ProviderId}. Original value: {ReturnUrl}", 
-                request.ProviderId, returnUrl);
-            finalReturnUrl = clientBaseUrl; // Fallback para URL inválida/não reconhecida
+            return resolveResult.Error.ToProblem();
         }
-        var command = new GetBillingPortalCommand(request.ProviderId, finalReturnUrl);
-        var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);
 
-        return Results.Ok(new { portalUrl });
+        var command = request.ToCommand(resolveResult.Value!);
+        var portalUrl = await dispatcher.SendAsync<CreateBillingPortalSessionCommand, string>(command, cancellationToken);
+
+        return Results.Ok(new GetBillingPortalResponse(portalUrl));
     }
 }
-
-public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);

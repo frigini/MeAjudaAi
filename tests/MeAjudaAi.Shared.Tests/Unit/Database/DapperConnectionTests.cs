@@ -5,11 +5,34 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
 
-public class DapperConnectionTests
+public class DapperConnectionTests : IDisposable
 {
     private readonly DatabaseMetrics _metrics;
     private readonly Mock<ILogger<DapperConnection>> _loggerMock;
     private readonly PostgresOptions _postgresOptions;
+    private readonly EnvironmentVariableRestorer _envRestorer;
+
+    private sealed class EnvironmentVariableRestorer
+    {
+        private readonly HashSet<string> _modifiedVariables = new();
+
+        public void SetVariable(string name, string value)
+        {
+            if (!_modifiedVariables.Contains(name))
+            {
+                _modifiedVariables.Add(name);
+            }
+            Environment.SetEnvironmentVariable(name, value);
+        }
+
+        public void Restore()
+        {
+            foreach (var name in _modifiedVariables)
+            {
+                Environment.SetEnvironmentVariable(name, null);
+            }
+        }
+    }
 
     public DapperConnectionTests()
     {
@@ -20,6 +43,13 @@ public class DapperConnectionTests
         {
             ConnectionString = DatabaseConstants.LocalWithPortConnectionString
         };
+        _envRestorer = new EnvironmentVariableRestorer();
+    }
+
+    public void Dispose()
+    {
+        _envRestorer.Restore();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -35,70 +65,13 @@ public class DapperConnectionTests
     [Fact]
     public void Constructor_UsesTestConnectionString_WhenInTestingEnvironment()
     {
-        // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         var emptyOptions = new PostgresOptions();
 
-        // Act
         var connection = new DapperConnection(emptyOptions, _metrics, _loggerMock.Object);
 
-        // Assert
         connection.Should().NotBeNull();
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-    }
-
-    #pragma warning disable xUnit1004
-    [Fact(Skip = "DapperConnection modifica ambiente globalmente, impossível isolar em testes unitários - testar em integração")]
-    public void Constructor_ThrowsException_WhenConnectionStringNotConfiguredOutsideTesting()
-    {
-        // Este teste verifica se DapperConnection lança exceção quando não há connection string em ambiente de produção
-        // Porém, não podemos isolar corretamente o teste pois o construtor estático é chamado antes
-        // Este comportamento deve ser validado em teste de integração
-    }
-    #pragma warning restore xUnit1004
-
-    [Fact]
-    public async Task QueryAsync_RecordsMetrics_OnSuccess()
-    {
-        // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-        var connection = new DapperConnection(_postgresOptions, _metrics, _loggerMock.Object);
-
-        // Act & Assert
-        // Não podemos executar query real sem banco, mas podemos verificar o comportamento esperado
-        // através de testes de integração separados
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-    }
-
-    [Fact]
-    public async Task QueryAsync_DoesNotRecordMetrics_OnCancellation()
-    {
-        // Este teste verifica comportamento de cancelamento
-        // Implementação real requer teste de integração com banco de dados real
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-        
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-    }
-
-    [Fact]
-    public void GetSqlPreview_TruncatesLongSql()
-    {
-        // Este teste verifica método privado através de comportamento de log
-        // A implementação real do método GetSqlPreview trunca SQL > 100 caracteres
-        
-        // Para testes de método privado, normalmente verificamos através de:
-        // 1. Testes de integração que exercitam o caminho completo
-        // 2. Verificação de logs quando Debug está habilitado
-        
-        // Aqui apenas documentamos o comportamento esperado
-        var longSql = new string('X', 150);
-        var expectedPreview = new string('X', 100) + "...";
-        
-        // Comportamento esperado: SQL com 150 caracteres deve ser truncado para 100 + "..."
-        expectedPreview.Should().HaveLength(103);
     }
 
     [Theory]

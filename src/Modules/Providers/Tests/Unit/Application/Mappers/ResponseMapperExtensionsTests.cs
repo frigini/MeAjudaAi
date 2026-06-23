@@ -23,7 +23,7 @@ public class ResponseMapperExtensionsTests
         bool isDeleted = false,
         List<DocumentDto>? documents = null)
     {
-        var contactInfo = new ProviderContactInfoDto(email, phone, "https://example.com");
+        var contactInfo = new ProviderContactInfoDto(email!, phone, "https://example.com");
         var address = new ProviderAddressDto("Main St", "123", "Suite 100", "Downtown", "São Paulo", "SP", "01310-000", "Brazil");
         var businessProfile = new ProviderBusinessProfileDto("Legal Name", "Fantasy", "Description", contactInfo, address);
 

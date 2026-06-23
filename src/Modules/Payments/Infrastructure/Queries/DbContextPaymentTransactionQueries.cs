@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Payments.Application.Queries;
+using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
@@ -98,16 +99,17 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
             return Handle(result);
         }
 
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, 
                 "CRITICAL ERROR in GetProvidersByVerificationStatus: {Message} | Status={Status}", 
                 ex.Message, status);
 
-            return Results.Problem(
-                detail: "Ocorreu um erro interno ao buscar prestadores por status. Consulte os logs.",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Erro Interno do Servidor");
+            return Error.Internal("Ocorreu um erro interno ao buscar prestadores por status. Consulte os logs.").ToProblem();
         }
     }
 }

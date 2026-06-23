@@ -1,9 +1,11 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
@@ -56,24 +58,24 @@ public class GetMyBookingsEndpoint : IEndpoint
 
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var clientId))
         {
-            return Results.Problem("Autenticação necessária.", statusCode: StatusCodes.Status401Unauthorized);
+            return Error.Unauthorized("Autenticação necessária.").ToProblem();
         }
 
         if (from.HasValue && to.HasValue && from > to)
         {
-            return Results.Problem("A data inicial ('from') não pode ser posterior à data final ('to').", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest("A data inicial ('from') não pode ser posterior à data final ('to').").ToProblem();
         }
 
         var normalizedPage = page ?? Pagination.DefaultPageNumber;
         if (normalizedPage < 1)
         {
-            return Results.Problem($"O parâmetro 'page' deve ser maior ou igual a {Pagination.DefaultPageNumber}.", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest($"O parâmetro 'page' deve ser maior ou igual a {Pagination.DefaultPageNumber}.").ToProblem();
         }
 
         var normalizedPageSize = pageSize ?? Pagination.DefaultPageSize;
         if (normalizedPageSize is < Pagination.MinPageSize or > Pagination.MaxPageSize)
         {
-            return Results.Problem($"O parâmetro 'pageSize' deve estar entre {Pagination.MinPageSize} e {Pagination.MaxPageSize}.", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest($"O parâmetro 'pageSize' deve estar entre {Pagination.MinPageSize} e {Pagination.MaxPageSize}.").ToProblem();
         }
 
         var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId];
@@ -92,7 +94,7 @@ public class GetMyBookingsEndpoint : IEndpoint
 
         return result.Match(
             onSuccess: bookings => Results.Ok(bookings),
-            onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
+            onFailure: error => error.ToProblem()
         );
     }
 }

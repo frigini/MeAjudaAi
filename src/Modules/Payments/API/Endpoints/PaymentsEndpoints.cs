@@ -1,6 +1,6 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints;
 

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.API.Mappers;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 
 namespace MeAjudaAi.Modules.Documents.API.Endpoints.Admin;
 
@@ -48,14 +49,7 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
 
         if (result.IsFailure)
         {
-            return result.Error.StatusCode switch
-            {
-                404 => Results.NotFound(new { error = result.Error.Message }),
-                409 => Results.Conflict(new { error = result.Error.Message }),
-                422 => Results.UnprocessableEntity(new { error = result.Error.Message }),
-                >= 500 => Results.Problem(detail: result.Error.Message, statusCode: result.Error.StatusCode),
-                _ => Results.BadRequest(new { error = result.Error.Message })
-            };
+            return result.Error.ToProblem();
         }
 
         return Results.Accepted();

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
-public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
+public class GetBookingsByClientQueryHandlerTests
 {
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();

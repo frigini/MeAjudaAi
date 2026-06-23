@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Payments.API.Endpoints.Public;
-using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
+using MeAjudaAi.Contracts.Modules.Payments.DTOs;
+using MeAjudaAi.Modules.Payments.Application.Commands;
 
 namespace MeAjudaAi.Modules.Payments.API.Mappers;
 
@@ -20,11 +20,11 @@ public static class RequestMapperExtensions
     }
 
     /// <summary>
-    /// Mapeia GetBillingPortalRequest para GetBillingPortalCommand.
+    /// Mapeia GetBillingPortalRequest para CreateBillingPortalSessionCommand.
     /// </summary>
-    public static GetBillingPortalCommand ToCommand(this GetBillingPortalRequest request, string finalReturnUrl)
+    public static CreateBillingPortalSessionCommand ToCommand(this GetBillingPortalRequest request, string finalReturnUrl)
     {
-        return new GetBillingPortalCommand(
+        return new CreateBillingPortalSessionCommand(
             request.ProviderId,
             finalReturnUrl);
     }

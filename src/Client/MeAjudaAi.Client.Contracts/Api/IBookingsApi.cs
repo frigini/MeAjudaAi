@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using Refit;
@@ -6,17 +7,17 @@ namespace MeAjudaAi.Client.Contracts.Api;
 
 public interface IBookingsApi
 {
-    [Post("/api/v1/bookings")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}")]
     Task<ModuleBookingDto> CreateBookingAsync(
         [Body] CreateBookingRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Get("/api/v1/bookings/{id}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.GetById}")]
     Task<ModuleBookingDto> GetBookingByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default);
 
-    [Get("/api/v1/bookings/my")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.GetMy}")]
     Task<PagedResult<ModuleBookingDto>> GetMyBookingsAsync(
         int? page = null,
         int? pageSize = null,
@@ -24,7 +25,7 @@ public interface IBookingsApi
         DateTimeOffset? to = null,
         CancellationToken cancellationToken = default);
 
-    [Get("/api/v1/bookings/provider/{providerId}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.GetProviderBookings}")]
     Task<PagedResult<ModuleBookingDto>> GetProviderBookingsAsync(
         Guid providerId,
         int? page = null,
@@ -33,34 +34,34 @@ public interface IBookingsApi
         DateTime? to = null,
         CancellationToken cancellationToken = default);
 
-    [Get("/api/v1/bookings/availability/{providerId}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.GetProviderAvailability}")]
     Task<AvailabilityDto> GetProviderAvailabilityAsync(
         Guid providerId,
         DateOnly date,
         CancellationToken cancellationToken = default);
 
-    [Post("/api/v1/bookings/schedule")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.SetProviderSchedule}")]
     Task SetProviderScheduleAsync(
         [Body] SetProviderScheduleRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Put("/api/v1/bookings/{id}/confirm")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.Confirm}")]
     Task ConfirmBookingAsync(
         Guid id,
         CancellationToken cancellationToken = default);
 
-    [Put("/api/v1/bookings/{id}/reject")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.Reject}")]
     Task RejectBookingAsync(
         Guid id,
         [Body] RejectBookingRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Put("/api/v1/bookings/{id}/complete")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.Complete}")]
     Task CompleteBookingAsync(
         Guid id,
         CancellationToken cancellationToken = default);
 
-    [Put("/api/v1/bookings/{id}/cancel")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Bookings.Base}{ApiEndpoints.Bookings.Cancel}")]
     Task CancelBookingAsync(
         Guid id,
         [Body] CancelBookingRequestDto request,

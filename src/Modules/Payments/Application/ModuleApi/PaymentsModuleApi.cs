@@ -2,20 +2,26 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Payments;
 using MeAjudaAi.Contracts.Modules.Payments.DTOs;
-using MeAjudaAi.Contracts.Modules.Payments.Enums;
-using MeAjudaAi.Modules.Payments.Application.Queries;
-using MeAjudaAi.Modules.Payments.Domain.Enums;
+using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Application.ModuleApi;
 
-[ModuleApi("Payments", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class PaymentsModuleApi(
+    IPaymentsHealthQueries healthQueries,
     ISubscriptionQueries subscriptionQueries,
     ILogger<PaymentsModuleApi> logger) : IPaymentsModuleApi
 {
-    public string ModuleName => "Payments";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = ModuleNames.Payments;
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     private static Contracts.Modules.Payments.Enums.ESubscriptionStatus MapStatus(Domain.Enums.ESubscriptionStatus status) => status switch
     {
@@ -28,7 +34,30 @@ public sealed class PaymentsModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(true); // Placeholder
+        try
+        {
+            logger.LogDebug("Checking Payments module availability");
+
+            var isHealthy = await healthQueries.PingAsync(cancellationToken);
+            if (!isHealthy)
+            {
+                logger.LogWarning("Payments module database connectivity check failed");
+                return false;
+            }
+
+            logger.LogDebug("Payments module is available and healthy");
+            return true;
+        }
+        catch (OperationCanceledException ex)
+        {
+            logger.LogDebug(ex, "Payments module availability check was cancelled");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking Payments module availability");
+            return false;
+        }
     }
 
     public async Task<Result<ModuleSubscriptionDto?>> GetActiveSubscriptionByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)

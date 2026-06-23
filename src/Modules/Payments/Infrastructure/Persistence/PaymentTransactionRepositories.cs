@@ -12,5 +12,3 @@ public partial class PaymentsDbContext : IRepository<PaymentTransaction, Guid>
     void IRepository<PaymentTransaction, Guid>.Add(PaymentTransaction aggregate) => PaymentTransactions.Add(aggregate);
     void IRepository<PaymentTransaction, Guid>.Delete(PaymentTransaction aggregate) => PaymentTransactions.Remove(aggregate);
 }
-
-

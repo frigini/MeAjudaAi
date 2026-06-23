@@ -1,13 +1,12 @@
-using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Payments;
-using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.Payments.Application.Queries;
+using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
+using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs.Models;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,12 +15,24 @@ using Stripe;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 
+/// <summary>
+/// Background job que processa mensagens da inbox de eventos Stripe.
+/// </summary>
+/// <remarks>
+/// Implementa o padrão Inbox para garantia de processamento de eventos recebidos do Stripe.
+/// Processa mensagens em lotes de 20, com suporte a retry com backoff exponencial.
+/// Eventos suportados: CheckoutSessionCompleted, InvoicePaid, CustomerSubscriptionDeleted.
+/// </remarks>
 public class ProcessInboxJob(
     IServiceProvider sp,
     ILogger<ProcessInboxJob> logger) : BackgroundService
 {
     protected readonly IServiceProvider _sp = sp;
 
+    /// <summary>
+    /// Loop principal que busca e processa mensagens pendentes da inbox.
+    /// </summary>
+    /// <param name="stoppingToken">Token de cancelamento do serviço.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Inbox Processor for Payments starting...");
@@ -33,6 +44,7 @@ public class ProcessInboxJob(
                 using var scope = _sp.CreateScope();
                 var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments);
                 var subscriptionQueries = scope.ServiceProvider.GetRequiredService<ISubscriptionQueries>();
+                var transactionQueries = scope.ServiceProvider.GetRequiredService<IPaymentTransactionQueries>();
 
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
 
@@ -51,7 +63,7 @@ public class ProcessInboxJob(
                     continue;
                 }
 
-                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, uow, stoppingToken);
+                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionQueries, transactionQueries, uow, stoppingToken);
 
                 await uow.SaveChangesAsync(stoppingToken);
                 await transaction.CommitAsync(stoppingToken);
@@ -69,10 +81,20 @@ public class ProcessInboxJob(
         }
     }
 
+    /// <summary>
+    /// Processa um lote de mensagens da inbox, extraindo e aplicando eventos Stripe.
+    /// </summary>
+    /// <param name="messages">Lista de mensagens pendentes a serem processadas.</param>
+    /// <param name="dbContext">Contexto do banco de dados.</param>
+    /// <param name="subscriptionQueries">Queries de acesso a dados de assinaturas.</param>
+    /// <param name="transactionQueries">Queries de acesso a dados de transações.</param>
+    /// <param name="uow">Unit of Work para persistência.</param>
+    /// <param name="ct">Token de cancelamento.</param>
     public virtual async Task ProcessMessagesBatchAsync(
         List<InboxMessage> messages, 
         PaymentsDbContext dbContext, 
-        ISubscriptionQueries subscriptionQueries, 
+        ISubscriptionQueries subscriptionQueries,
+        IPaymentTransactionQueries transactionQueries,
         IUnitOfWork uow,
         CancellationToken ct)
     {
@@ -85,7 +107,7 @@ public class ProcessInboxJob(
                 var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
                 var data = MapToStripeEventData(stripeEvent);
                 
-                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, dbContext, uow, ct);
+                await ProcessStripeEventAsync(data, transactionRepo, subscriptionQueries, transactionQueries, dbContext, uow, ct);
 
 
                 message.MarkAsProcessed();
@@ -102,8 +124,12 @@ public class ProcessInboxJob(
             }
         }
     }
-    // ... (rest of the file stays the same, need to update ProcessStripeEventAsync)
 
+    /// <summary>
+    /// Converte um evento Stripe bruto em um DTO normalizado para processamento.
+    /// </summary>
+    /// <param name="stripeEvent">Evento Stripe extraído do payload.</param>
+    /// <returns>Dados normalizados do evento para processamento pelo switch de eventos.</returns>
     public StripeEventData MapToStripeEventData(Event stripeEvent)
     {
         if (stripeEvent.Data?.Object == null)
@@ -113,7 +139,7 @@ public class ProcessInboxJob(
 
         return stripeEvent.Type switch
         {
-            "checkout.session.completed" when stripeEvent.Data.Object is Stripe.Checkout.Session session =>
+            StripeConstants.CheckoutSessionCompleted when stripeEvent.Data.Object is Stripe.Checkout.Session session =>
                 new StripeEventData(
                     stripeEvent.Type,
                     stripeEvent.Id,
@@ -121,7 +147,7 @@ public class ProcessInboxJob(
                     session.CustomerId,
                     GetProviderIdFromMetadata(session.Metadata)),
 
-            "invoice.paid" when stripeEvent.Data.Object is Stripe.Invoice invoice =>
+            StripeConstants.InvoicePaid when stripeEvent.Data.Object is Stripe.Invoice invoice =>
                 new StripeEventData(
                     stripeEvent.Type,
                     stripeEvent.Id,
@@ -133,7 +159,7 @@ public class ProcessInboxJob(
                     invoice.AmountPaid,
                     invoice.Currency,
                     invoice.Id),
-            "customer.subscription.deleted" when stripeEvent.Data.Object is Stripe.Subscription sub =>
+            StripeConstants.CustomerSubscriptionDeleted when stripeEvent.Data.Object is Stripe.Subscription sub =>
                 new StripeEventData(
                     stripeEvent.Type,
                     stripeEvent.Id,
@@ -145,24 +171,28 @@ public class ProcessInboxJob(
         };
     }
 
-    private Guid? GetProviderIdFromMetadata(Dictionary<string, string> metadata)
-    {
-        if (metadata != null && metadata.TryGetValue("provider_id", out var idStr) && Guid.TryParse(idStr, out var id))
-            return id;
-        return null;
-    }
-
+    /// <summary>
+    /// Processa um evento Stripe normalizado, aplicando ações de domínio conforme o tipo do evento.
+    /// </summary>
+    /// <param name="data">Dados normalizados do evento Stripe.</param>
+    /// <param name="transactionRepo">Repositório de transações de pagamento.</param>
+    /// <param name="subscriptionQueries">Queries de assinaturas.</param>
+    /// <param name="transactionQueries">Queries de transações de pagamento para deduplicação.</param>
+    /// <param name="dbContext">Contexto do banco de dados.</param>
+    /// <param name="uow">Unit of Work para persistência.</param>
+    /// <param name="ct">Token de cancelamento.</param>
     public async Task ProcessStripeEventAsync(
         StripeEventData data, 
         IRepository<PaymentTransaction, Guid> transactionRepo,
         ISubscriptionQueries subscriptionQueries,
+        IPaymentTransactionQueries transactionQueries,
         PaymentsDbContext dbContext,
         IUnitOfWork uow,
         CancellationToken ct)
     {
         switch (data.Type)
         {
-            case "checkout.session.completed":
+            case StripeConstants.CheckoutSessionCompleted:
                 if (data.ProviderId == null || string.IsNullOrEmpty(data.SubscriptionId))
                 {
                     logger.LogError("Invalid or missing data in checkout.session.completed event. EventId: {EventId}", data.ExternalEventId);
@@ -190,7 +220,7 @@ public class ProcessInboxJob(
                 break;
 
 
-            case "invoice.paid":
+            case StripeConstants.InvoicePaid:
                 if (string.IsNullOrEmpty(data.SubscriptionId))
                 {
                     logger.LogInformation("Invoice {InvoiceId} has no subscription, ignoring", data.InvoiceId);
@@ -230,9 +260,18 @@ public class ProcessInboxJob(
                     
                     if (amount != null && amount.Amount > 0 && !string.IsNullOrEmpty(data.InvoiceId))
                     {
-                        var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                        paymentTransaction.Settle(data.InvoiceId);
-                        transactionRepo.Add(paymentTransaction);
+                        var existingTx = await transactionQueries.GetByExternalIdAsync(data.InvoiceId, ct);
+                        if (existingTx != null)
+                        {
+                            logger.LogInformation("PaymentTransaction for Invoice {InvoiceId} already exists (ExternalId: {ExternalId}), skipping", 
+                                data.InvoiceId, existingTx.ExternalTransactionId);
+                        }
+                        else
+                        {
+                            var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
+                            paymentTransaction.Settle(data.InvoiceId);
+                            transactionRepo.Add(paymentTransaction);
+                        }
                     }
                     else
                     {
@@ -247,7 +286,7 @@ public class ProcessInboxJob(
                 }
                 break;
 
-            case "customer.subscription.deleted":
+            case StripeConstants.CustomerSubscriptionDeleted:
                 if (string.IsNullOrEmpty(data.SubscriptionId)) break;
 
                 var subToCancel = await subscriptionQueries.GetByExternalIdAsync(data.SubscriptionId, ct);
@@ -269,7 +308,11 @@ public class ProcessInboxJob(
                 break;
         }
     }
+
+    private static Guid? GetProviderIdFromMetadata(Dictionary<string, string> metadata)
+    {
+        if (metadata != null && metadata.TryGetValue(StripeConstants.ProviderIdMetadataKey, out var idStr) && Guid.TryParse(idStr, out var id))
+            return id;
+        return null;
+    }
 }
-
-
-

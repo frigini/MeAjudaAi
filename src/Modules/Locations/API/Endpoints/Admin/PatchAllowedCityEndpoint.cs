@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
@@ -36,10 +37,7 @@ public class PatchAllowedCityEndpoint : BaseEndpoint, IEndpoint
         
         if (result.IsFailure)
         {
-            return Results.Problem(
-                detail: result.Error.Message,
-                statusCode: result.Error.StatusCode,
-                title: "Erro ao atualizar parcialmente cidade permitida");
+            return result.Error.ToProblem();
         }
 
         return TypedResults.Ok(Result<Unit>.Success(Unit.Value));

@@ -1,160 +1,81 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 using Refit;
 
 namespace MeAjudaAi.Client.Contracts.Api;
 
-/// <summary>
-/// Refit client interface para o endpoint de Service Catalogs.
-/// </summary>
 public interface IServiceCatalogsApi
 {
-    /// <summary>
-    /// Recupera todas as categorias de serviços.
-    /// </summary>
-    /// <param name="activeOnly">Se verdadeiro, retorna apenas categorias ativas</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Get("/api/v1/service-catalogs/categories")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}")]
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(
         [Query] bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Recupera todos os serviços.
-    /// </summary>
-    /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Get("/api/v1/service-catalogs/services")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}")]
     Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
         [Query] bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Recupera um serviço por ID.
-    /// </summary>
-    /// <param name="serviceId">Identificador do serviço</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Get("/api/v1/service-catalogs/services/{serviceId}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}")]
     Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Recupera todos os serviços de uma categoria específica.
-    /// </summary>
-    /// <param name="categoryId">Identificador da categoria</param>
-    /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Get("/api/v1/service-catalogs/services/category/{categoryId}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/category/{{categoryId}}")]
     Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
         Guid categoryId,
         [Query] bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
-    // ========== CATEGORIES WRITE OPERATIONS ==========
-
-    /// <summary>
-    /// Cria uma nova categoria de serviços.
-    /// </summary>
-    /// <param name="request">Dados da categoria (Name, Description, DisplayOrder)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Post("/api/v1/service-catalogs/categories")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}")]
     Task<Result<ModuleServiceCategoryDto>> CreateCategoryAsync(
         [Body] CreateServiceCatalogCategoryRequestDto request,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Atualiza uma categoria existente.
-    /// </summary>
-    /// <param name="categoryId">ID da categoria</param>
-    /// <param name="request">Dados atualizados (Name, Description, DisplayOrder)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Put("/api/v1/service-catalogs/categories/{categoryId}")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}")]
     Task<Result<Unit>> UpdateCategoryAsync(
         Guid categoryId,
         [Body] UpdateServiceCatalogCategoryRequestDto request,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Deleta uma categoria.
-    /// </summary>
-    /// <param name="categoryId">ID da categoria</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Delete("/api/v1/service-catalogs/categories/{categoryId}")]
+    [Delete($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}")]
     Task<Result<Unit>> DeleteCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Ativa uma categoria.
-    /// </summary>
-    /// <param name="categoryId">ID da categoria</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Post("/api/v1/service-catalogs/categories/{categoryId}/activate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}/activate")]
     Task<Result<Unit>> ActivateCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Desativa uma categoria.
-    /// </summary>
-    /// <param name="categoryId">ID da categoria</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Post("/api/v1/service-catalogs/categories/{categoryId}/deactivate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}/deactivate")]
     Task<Result<Unit>> DeactivateCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
-    // ========== SERVICES WRITE OPERATIONS ==========
-
-    /// <summary>
-    /// Cria um novo serviço.
-    /// </summary>
-    /// <param name="request">Dados do serviço (CategoryId, Name, Description, DisplayOrder)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Post("/api/v1/service-catalogs/services")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}")]
     Task<Result<ModuleServiceDto>> CreateServiceAsync(
         [Body] CreateServiceRequestDto request,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Atualiza um serviço existente.
-    /// </summary>
-    /// <param name="serviceId">ID do serviço</param>
-    /// <param name="request">Dados atualizados (Name, Description, DisplayOrder)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Put("/api/v1/service-catalogs/services/{serviceId}")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}")]
     Task<Result<Unit>> UpdateServiceAsync(
         Guid serviceId,
         [Body] UpdateServiceRequestDto request,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Deleta um serviço.
-    /// </summary>
-    /// <param name="serviceId">ID do serviço</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Delete("/api/v1/service-catalogs/services/{serviceId}")]
+    [Delete($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}")]
     Task<Result<Unit>> DeleteServiceAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Ativa um serviço.
-    /// </summary>
-    /// <param name="serviceId">ID do serviço</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Post("/api/v1/service-catalogs/services/{serviceId}/activate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}/activate")]
     Task<Result<Unit>> ActivateServiceAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Desativa um serviço.
-    /// </summary>
-    /// <param name="serviceId">ID do serviço</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    [Post("/api/v1/service-catalogs/services/{serviceId}/deactivate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}/deactivate")]
     Task<Result<Unit>> DeactivateServiceAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);

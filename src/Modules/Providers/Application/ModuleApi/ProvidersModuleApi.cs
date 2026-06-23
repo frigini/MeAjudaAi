@@ -139,6 +139,8 @@ public sealed class ProvidersModuleApi(
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
 
+        if (result.Value == null) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(new List<ModuleProviderBasicDto>());
+
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
     }
 
@@ -161,6 +163,8 @@ public sealed class ProvidersModuleApi(
         var result = await getProvidersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
 
         if (result.IsFailure) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(result.Error);
+
+        if (result.Value == null) return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(new List<ModuleProviderBasicDto>());
 
         return Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(result.Value.ToBasicContract());
     }

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
@@ -5,9 +6,9 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
@@ -60,19 +61,19 @@ public class GetProviderBookingsEndpoint : IEndpoint
     {
         if (providerId == Guid.Empty)
         {
-            return Results.Problem("ProviderId não pode ser vazio.", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest("ProviderId não pode ser vazio.").ToProblem();
         }
 
         var normalizedPage = page ?? Pagination.DefaultPageNumber;
         if (normalizedPage < Pagination.DefaultPageNumber)
         {
-            return Results.Problem($"O parâmetro 'page' deve ser maior ou igual a {Pagination.DefaultPageNumber}.", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest($"O parâmetro 'page' deve ser maior ou igual a {Pagination.DefaultPageNumber}.").ToProblem();
         }
 
         var normalizedPageSize = pageSize ?? Pagination.DefaultPageSize;
         if (normalizedPageSize < Pagination.MinPageSize || normalizedPageSize > Pagination.MaxPageSize)
         {
-            return Results.Problem($"O parâmetro 'pageSize' deve estar entre {Pagination.MinPageSize} e {Pagination.MaxPageSize}.", statusCode: StatusCodes.Status400BadRequest);
+            return Error.BadRequest($"O parâmetro 'pageSize' deve estar entre {Pagination.MinPageSize} e {Pagination.MaxPageSize}.").ToProblem();
         }
 
         var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
@@ -85,7 +86,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
 
         if (!authResult.IsAdmin && authResult.ProviderId.HasValue && authResult.ProviderId.Value != providerId)
         {
-            return Results.Problem("Proibido: fornecedor incompatível.", statusCode: StatusCodes.Status403Forbidden);
+            return Error.Forbidden("Proibido: fornecedor incompatível.").ToProblem();
         }
 
         var correlationId = CorrelationHelper.ParseCorrelationId(context);
@@ -95,6 +96,6 @@ public class GetProviderBookingsEndpoint : IEndpoint
 
         return result.IsSuccess 
             ? Results.Ok(result.Value) 
-            : Results.Problem(result.Error.Message, statusCode: result.Error.StatusCode);
+            : result.Error.ToProblem();
     }
 }

@@ -14,10 +14,12 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace MeAjudaAi.Modules.Providers.Application;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)

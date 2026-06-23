@@ -9,18 +9,20 @@ using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Application.Workers;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Messaging.Messages.Bookings;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
-using MeAjudaAi.Shared.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace MeAjudaAi.Modules.Communications.Application;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     /// <summary>
