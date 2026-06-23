@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.ModuleApi;
 
@@ -13,14 +12,40 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.ModuleApi;
 public class BookingsModuleApiTests
 {
     private readonly Mock<IBookingQueries> _bookingQueriesMock;
-    private readonly Mock<ILogger<BookingsModuleApi>> _loggerMock;
     private readonly BookingsModuleApi _api;
 
     public BookingsModuleApiTests()
     {
         _bookingQueriesMock = new Mock<IBookingQueries>();
-        _loggerMock = new Mock<ILogger<BookingsModuleApi>>();
-        _api = new BookingsModuleApi(_bookingQueriesMock.Object, _loggerMock.Object);
+        _api = new BookingsModuleApi(_bookingQueriesMock.Object);
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenCanConnect_ReturnsTrue()
+    {
+        // Arrange
+        _bookingQueriesMock.Setup(q => q.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenCannotConnect_ReturnsFalse()
+    {
+        // Arrange
+        _bookingQueriesMock.Setup(q => q.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _api.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -55,23 +80,6 @@ public class BookingsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task HasCompletedBookingAsync_WhenQueryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var clientId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
-        _bookingQueriesMock.Setup(q => q.HasCompletedBookingAsync(clientId, providerId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"));
-
-        // Act
-        var result = await _api.HasCompletedBookingAsync(clientId, providerId);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Error checking booking history.");
     }
 
     [Fact]
@@ -112,22 +120,6 @@ public class BookingsModuleApiTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(booking.Id);
-    }
-
-    [Fact]
-    public async Task GetBookingByIdAsync_WhenQueryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var bookingId = Guid.NewGuid();
-        _bookingQueriesMock.Setup(q => q.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"));
-
-        // Act
-        var result = await _api.GetBookingByIdAsync(bookingId);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Error retrieving booking data.");
     }
 
     [Fact]
@@ -176,24 +168,5 @@ public class BookingsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetProviderBookingsAsync_WhenQueryThrowsException_ShouldReturnFailure()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var start = DateTimeOffset.UtcNow;
-        var end = start.AddDays(1);
-            
-        _bookingQueriesMock.Setup(q => q.GetByProviderAndPeriodAsync(providerId, It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"));
-
-        // Act
-        var result = await _api.GetProviderBookingsAsync(providerId, start, end);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Error retrieving bookings.");
     }
 }

@@ -7,6 +7,9 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 
 public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : IEmailTemplateQueries
 {
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
+        await dbContext.Database.CanConnectAsync(cancellationToken);
+
     public async Task<EmailTemplate?> GetActiveByKeyAsync(
         string templateKey, string language = "pt-BR", CancellationToken cancellationToken = default)
     {

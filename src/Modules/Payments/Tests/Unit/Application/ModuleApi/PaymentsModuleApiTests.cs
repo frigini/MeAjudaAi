@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Payments.Application.ModuleApi;
 using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.ModuleApi;
 
@@ -11,15 +10,13 @@ public class PaymentsModuleApiTests
 {
     private readonly Mock<IPaymentsHealthQueries> _healthQueriesMock;
     private readonly Mock<ISubscriptionQueries> _subscriptionQueriesMock;
-    private readonly Mock<ILogger<PaymentsModuleApi>> _loggerMock;
     private readonly PaymentsModuleApi _sut;
 
     public PaymentsModuleApiTests()
     {
         _healthQueriesMock = new Mock<IPaymentsHealthQueries>();
         _subscriptionQueriesMock = new Mock<ISubscriptionQueries>();
-        _loggerMock = new Mock<ILogger<PaymentsModuleApi>>();
-        _sut = new PaymentsModuleApi(_healthQueriesMock.Object, _subscriptionQueriesMock.Object, _loggerMock.Object);
+        _sut = new PaymentsModuleApi(_healthQueriesMock.Object, _subscriptionQueriesMock.Object);
     }
 
     [Fact]
@@ -57,24 +54,24 @@ public class PaymentsModuleApiTests
     public async Task IsAvailableAsync_WhenHealthCheckReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
-        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _healthQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
-        _healthQueriesMock.Verify(x => x.PingAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _healthQueriesMock.Verify(x => x.CanConnectAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenHealthCheckReturnsFalse_ShouldReturnFalse()
     {
         // Arrange
-        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _healthQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -84,11 +81,11 @@ public class PaymentsModuleApiTests
     public async Task IsAvailableAsync_WhenHealthCheckThrows_ShouldReturnFalse()
     {
         // Arrange
-        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>()))
+        _healthQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -101,7 +98,7 @@ public class PaymentsModuleApiTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _healthQueriesMock.Setup(x => x.PingAsync(It.IsAny<CancellationToken>()))
+        _healthQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act & Assert

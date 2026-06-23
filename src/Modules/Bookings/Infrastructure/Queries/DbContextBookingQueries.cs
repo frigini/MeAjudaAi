@@ -8,6 +8,11 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
 
 public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQueries
 {
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Database.CanConnectAsync(cancellationToken);
+    }
+
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await dbContext.Bookings

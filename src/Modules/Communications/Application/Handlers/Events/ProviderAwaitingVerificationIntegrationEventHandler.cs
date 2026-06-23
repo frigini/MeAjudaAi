@@ -57,10 +57,9 @@ public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
             logger.LogInformation("Admin notification enqueued for provider {ProviderId} (correlationId: {CorrelationId}).", 
                 integrationEvent.ProviderId, correlationId);
         }
-        catch (Exception ex)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
-            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
-                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
+            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(ex);
 
             if ((processedException is Shared.Database.Exceptions.UniqueConstraintException))
             {

@@ -3,10 +3,11 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
-
 using Microsoft.Extensions.Logging;
+
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 /// <summary>
@@ -35,7 +36,7 @@ public class GetProvidersQueryHandler(
         CancellationToken cancellationToken = default)
     {
         logger.LogInformation(
-            "Processando busca de prestadores - Página: {Page}, Tamanho: {PageSize}, Filtros: Nome='{Name}', Tipo={Type}, Status={Status}",
+            "Processing provider search - Page: {Page}, Size: {PageSize}, Filters: Name='{Name}', Type={Type}, Status={Status}",
             query.Page, query.PageSize, query.Name, query.Type, query.VerificationStatus);
 
         var providers = await providerQueries.GetPagedAsync(
@@ -57,7 +58,7 @@ public class GetProvidersQueryHandler(
         };
 
         logger.LogInformation(
-            "Busca de prestadores concluída - Total: {Total}, Página atual: {Page}/{TotalPages}",
+            "Provider search completed - Total: {Total}, Current page: {Page}/{TotalPages}",
             result.TotalItems, result.PageNumber, result.TotalPages);
 
         return Result<PagedResult<ProviderDto>>.Success(result);

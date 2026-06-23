@@ -4,15 +4,13 @@ using MeAjudaAi.Contracts.Modules.Payments;
 using MeAjudaAi.Contracts.Modules.Payments.DTOs;
 using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Application.ModuleApi;
 
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class PaymentsModuleApi(
     IPaymentsHealthQueries healthQueries,
-    ISubscriptionQueries subscriptionQueries,
-    ILogger<PaymentsModuleApi> logger) : IPaymentsModuleApi
+    ISubscriptionQueries subscriptionQueries) : IPaymentsModuleApi
 {
     private static class ModuleMetadata
     {
@@ -34,70 +32,31 @@ public sealed class PaymentsModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug("Checking Payments module availability");
-
-            var isHealthy = await healthQueries.PingAsync(cancellationToken);
-            if (!isHealthy)
-            {
-                logger.LogWarning("Payments module database connectivity check failed");
-                return false;
-            }
-
-            logger.LogDebug("Payments module is available and healthy");
-            return true;
-        }
-        catch (OperationCanceledException ex)
-        {
-            logger.LogDebug(ex, "Payments module availability check was cancelled");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking Payments module availability");
-            return false;
-        }
+        return await healthQueries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<ModuleSubscriptionDto?>> GetActiveSubscriptionByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        try
+        var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(providerId, cancellationToken);
+        
+        if (subscription == null)
         {
-            var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(providerId, cancellationToken);
-            
-            if (subscription == null)
-            {
-                return Result<ModuleSubscriptionDto?>.Success(null);
-            }
-
-            var dto = new ModuleSubscriptionDto(
-                subscription.Id,
-                subscription.ProviderId,
-                subscription.PlanId,
-                MapStatus(subscription.Status),
-                subscription.ExpiresAt);
-
-            return Result<ModuleSubscriptionDto?>.Success(dto);
+            return Result<ModuleSubscriptionDto?>.Success(null);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting active subscription for provider {ProviderId}", providerId);
-            return Result<ModuleSubscriptionDto?>.Failure("Error retrieving subscription data.");
-        }
+
+        var dto = new ModuleSubscriptionDto(
+            subscription.Id,
+            subscription.ProviderId,
+            subscription.PlanId,
+            MapStatus(subscription.Status),
+            subscription.ExpiresAt);
+
+        return Result<ModuleSubscriptionDto?>.Success(dto);
     }
 
     public async Task<Result<bool>> HasActiveSubscriptionAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(providerId, cancellationToken);
-            return Result<bool>.Success(subscription != null);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking active subscription for provider {ProviderId}", providerId);
-            return Result<bool>.Failure("Error checking subscription status.");
-        }
+        var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(providerId, cancellationToken);
+        return Result<bool>.Success(subscription != null);
     }
 }

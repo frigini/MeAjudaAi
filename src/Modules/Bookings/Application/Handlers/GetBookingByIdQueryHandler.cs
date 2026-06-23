@@ -8,6 +8,9 @@ using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
+/// <summary>
+/// Handler para processar consultas de booking por ID.
+/// </summary>
 public sealed class GetBookingByIdQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,

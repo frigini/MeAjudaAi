@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 
 public class DbContextPaymentsHealthQueries(PaymentsDbContext dbContext) : IPaymentsHealthQueries
 {
-    public async Task<bool> PingAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.Database.CanConnectAsync(cancellationToken);
     }

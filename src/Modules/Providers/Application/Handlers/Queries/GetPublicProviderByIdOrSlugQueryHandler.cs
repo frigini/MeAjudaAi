@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Constants;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -24,7 +25,8 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler(IProviderQueries pro
 
         // Tenta resolver por ID (GUID); se não encontrar, faz fallback para slug.
         // Isso cobre o caso em que um slug tem formato de GUID válido.
-        Domain.Entities.Provider? provider = Guid.TryParse(normalizedSlug, out var id)
+        // Guid.Empty é tratado como slug para evitar exception no ProviderId.
+        Domain.Entities.Provider? provider = Guid.TryParse(normalizedSlug, out var id) && id != Guid.Empty
             ? await providerQueries.GetByIdAsync(new ProviderId(id), cancellationToken)
                        ?? await providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken)
             : await providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken);

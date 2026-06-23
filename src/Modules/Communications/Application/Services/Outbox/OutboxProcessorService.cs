@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
@@ -73,7 +74,7 @@ public sealed class OutboxProcessorService(
             uow.GetRepository<CommunicationLog, Guid>().Add(log);
             await uow.SaveChangesAsync(cancellationToken);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                 message.Id, message.CorrelationId);
@@ -106,7 +107,7 @@ public sealed class OutboxProcessorService(
                 uow.GetRepository<CommunicationLog, Guid>().Add(log);
                 await uow.SaveChangesAsync(cancellationToken);
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
                 logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                     message.Id, message.CorrelationId);

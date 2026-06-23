@@ -75,10 +75,9 @@ public sealed class ProviderDeletedIntegrationEventHandler(
                 "Provider deleted email enqueued for provider {ProviderId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
                 integrationEvent.ProviderId, message.Id, correlationId);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
-            var processedException = PostgreSqlExceptionProcessor.ProcessException(
-                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(ex);
 
             if (processedException is UniqueConstraintException)
             {

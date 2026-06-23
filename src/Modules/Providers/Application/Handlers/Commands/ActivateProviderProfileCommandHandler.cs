@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -26,7 +27,7 @@ public sealed class ActivateProviderProfileCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure(Error.NotFound("Prestador não encontrado"));
+            return Result.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
         }
 
         provider.ActivateProfile(command.UpdatedBy);

@@ -58,7 +58,7 @@ public static class ModuleApiRegistry
 
         foreach (var api in moduleApis)
         {
-            var isAvailable = await api.IsAvailableAsync();
+            var isAvailable = await api.IsAvailableAsync(CancellationToken.None);
             moduleInfos.Add(new ModuleApiInfo(
                 api.ModuleName,
                 api.ApiVersion,

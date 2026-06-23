@@ -15,8 +15,6 @@ using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Application.ModuleApi;
 
@@ -25,9 +23,7 @@ public sealed class CommunicationsModuleApi(
     IOutboxMessageRepository outboxRepository,
     IEmailTemplateQueries templateQueries,
     ICommunicationLogQueries logQueries,
-    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
-    IServiceProvider serviceProvider,
-    ILogger<CommunicationsModuleApi> logger)
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer)
     : ICommunicationsModuleApi
 {
     private readonly IEmailTemplateQueries _templateQueries = templateQueries;
@@ -37,68 +33,7 @@ public sealed class CommunicationsModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug("Checking Communications module availability");
-
-            // Verifica health checks registrados do sistema
-            var healthCheckService = serviceProvider.GetService<HealthCheckService>();
-            if (healthCheckService != null)
-            {
-                var healthReport = await healthCheckService.CheckHealthAsync(
-                    check => check.Tags.Contains("communications") || check.Tags.Contains("database"),
-                    cancellationToken);
-
-                if (healthReport.Status == HealthStatus.Unhealthy || healthReport.Status == HealthStatus.Degraded)
-                {
-                    logger.LogWarning("Communications module unavailable due to health check failures: {FailedChecks}",
-                        string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy || e.Value.Status == HealthStatus.Degraded).Select(e => e.Key)));
-                    return false;
-                }
-
-            }
-
-            // Testa funcionalidade básica
-            var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
-            if (!canExecuteBasicOperations)
-            {
-                logger.LogWarning("Communications module unavailable - basic operations test failed");
-                return false;
-            }
-
-            logger.LogDebug("Communications module is available and healthy");
-            return true;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            logger.LogDebug("Communications module availability check canceled");
-            throw;
-        }
-       catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking Communications module availability");
-            return false;
-        }
-    }
-
-    private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            var templates = await _templateQueries.GetAllAsync(cancellationToken);
-            if (templates.Count == 0)
-                logger.LogWarning("No email templates found — Communications module may not be fully configured.");
-            return true;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Basic operations test failed for Communications module");
-            return false;
-        }
+        return await _templateQueries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<Guid>> SendEmailAsync(

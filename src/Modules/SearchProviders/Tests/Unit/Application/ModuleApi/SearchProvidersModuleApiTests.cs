@@ -85,7 +85,7 @@ public class SearchProvidersModuleApiTests
             .ReturnsAsync(Result<PagedResult<SearchableProviderDto>>.Success(pagedResult));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -102,7 +102,7 @@ public class SearchProvidersModuleApiTests
             .ReturnsAsync(Result<PagedResult<SearchableProviderDto>>.Failure("Query failed"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -119,7 +119,7 @@ public class SearchProvidersModuleApiTests
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();

@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Events;
@@ -55,8 +56,3 @@ internal sealed class DocumentVerifiedIntegrationEventHandler(
         }
     }
 }
-
-
-
-
-

@@ -5,82 +5,53 @@ using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.ModuleApi;
 
-[ModuleApi(ModuleNames.Bookings)]
+/// <summary>
+/// Implementação da API pública do módulo Bookings para comunicação entre módulos.
+/// </summary>
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class BookingsModuleApi(
-    IBookingQueries bookingQueries,
-    ILogger<BookingsModuleApi> logger) : IBookingsModuleApi
+    IBookingQueries bookingQueries) : IBookingsModuleApi
 {
-    public string ModuleName => ModuleNames.Bookings;
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = ModuleNames.Bookings;
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(true);
+        return await bookingQueries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<ModuleBookingDto?>> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var booking = await bookingQueries.GetByIdAsync(bookingId, cancellationToken);
-            if (booking == null) return Result<ModuleBookingDto?>.Success(null);
+        var booking = await bookingQueries.GetByIdAsync(bookingId, cancellationToken);
+        if (booking == null) return Result<ModuleBookingDto?>.Success(null);
 
-            return Result<ModuleBookingDto?>.Success(MapToDto(booking));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting booking {BookingId}", bookingId);
-            return Result<ModuleBookingDto?>.Failure("Error retrieving booking data.");
-        }
+        return Result<ModuleBookingDto?>.Success(MapToDto(booking));
     }
 
     public async Task<Result<bool>> HasCompletedBookingAsync(Guid clientId, Guid providerId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var hasBooking = await bookingQueries.HasCompletedBookingAsync(clientId, providerId, cancellationToken);
-            return Result<bool>.Success(hasBooking);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking completed booking for client {ClientId} and provider {ProviderId}", clientId, providerId);
-            return Result<bool>.Failure("Error checking booking history.");
-        }
+        var hasBooking = await bookingQueries.HasCompletedBookingAsync(clientId, providerId, cancellationToken);
+        return Result<bool>.Success(hasBooking);
     }
 
     public async Task<Result<IReadOnlyList<ModuleBookingDto>>> GetProviderBookingsAsync(Guid providerId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var fromDate = DateOnly.FromDateTime(start.Date);
-            var toDate = DateOnly.FromDateTime(end.Date);
-            
-            var bookings = await bookingQueries.GetByProviderAndPeriodAsync(providerId, fromDate, toDate, cancellationToken);
-            
-            var dtos = bookings.Select(MapToDto).ToList();
-            return Result<IReadOnlyList<ModuleBookingDto>>.Success(dtos);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting bookings for provider {ProviderId}", providerId);
-            return Result<IReadOnlyList<ModuleBookingDto>>.Failure("Error retrieving bookings.");
-        }
+        var fromDate = DateOnly.FromDateTime(start.Date);
+        var toDate = DateOnly.FromDateTime(end.Date);
+
+        var bookings = await bookingQueries.GetByProviderAndPeriodAsync(providerId, fromDate, toDate, cancellationToken);
+
+        var dtos = bookings.Select(MapToDto).ToList();
+        return Result<IReadOnlyList<ModuleBookingDto>>.Success(dtos);
     }
 
     private static ModuleBookingDto MapToDto(Booking booking)

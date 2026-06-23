@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -36,7 +37,7 @@ public sealed class GetProviderByDocumentQueryHandler(
         if (string.IsNullOrWhiteSpace(normalizedDocument))
         {
             logger.LogWarning("Invalid document provided for provider search");
-            return Result<ProviderDto?>.Failure(Error.BadRequest("Document cannot be empty"));
+            return Result<ProviderDto?>.Failure(Error.BadRequest("Documento não pode ser vazio"));
         }
 
         var provider = await providerQueries.GetByDocumentAsync(normalizedDocument, cancellationToken);

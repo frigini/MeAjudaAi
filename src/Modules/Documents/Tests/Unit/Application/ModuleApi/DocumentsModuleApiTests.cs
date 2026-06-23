@@ -302,7 +302,7 @@ public class DocumentsModuleApiTests
             .ReturnsAsync(true);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -573,7 +573,7 @@ public class DocumentsModuleApiTests
             .Returns(healthCheckServiceMock.Object);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -592,7 +592,7 @@ public class DocumentsModuleApiTests
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -607,7 +607,7 @@ public class DocumentsModuleApiTests
             .Throws(new InvalidOperationException("Unexpected error"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -622,7 +622,7 @@ public class DocumentsModuleApiTests
             .Throws(new TimeoutException("Operation timed out"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -637,7 +637,7 @@ public class DocumentsModuleApiTests
             .Throws(new Npgsql.NpgsqlException("Database connection failed"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -659,11 +659,8 @@ public class DocumentsModuleApiTests
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns(healthCheckServiceMock.Object);
 
-        // Act
-        var act = async () => await _sut.IsAvailableAsync(cts.Token);
-
-        // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _sut.IsAvailableAsync(cts.Token));
     }
 
     [Fact]
@@ -691,7 +688,7 @@ public class DocumentsModuleApiTests
             .ReturnsAsync(true);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -722,7 +719,7 @@ public class DocumentsModuleApiTests
             .ReturnsAsync(false);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();

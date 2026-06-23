@@ -4,6 +4,7 @@ namespace MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 public interface IBookingQueries
 {
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken = default);
     Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Booking?> GetByIdTrackedAsync(Guid id, CancellationToken cancellationToken = default);
     Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByProviderIdPagedAsync(

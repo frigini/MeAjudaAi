@@ -32,7 +32,7 @@ public sealed class UpdateProviderDeviceTokenCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found for device token update.", command.ProviderId);
-            return Result.Failure(Error.NotFound("Provider not found"));
+            return Result.Failure(Error.NotFound("Prestador não encontrado"));
         }
 
         var normalizedToken = string.IsNullOrWhiteSpace(command.DeviceToken) ? null : command.DeviceToken;

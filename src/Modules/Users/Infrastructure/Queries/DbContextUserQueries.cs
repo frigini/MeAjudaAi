@@ -14,6 +14,10 @@ public sealed class DbContextUserQueries(UsersDbContext context) : IUserQueries
     private readonly UsersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     /// <inheritdoc />
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
+        await _context.Database.CanConnectAsync(cancellationToken);
+
+    /// <inheritdoc />
     public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
         return await _context.Users

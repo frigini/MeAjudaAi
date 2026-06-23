@@ -33,7 +33,7 @@ public sealed class RemoveDocumentCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result<ProviderDto>.Failure("Provider not found");
+            return Result<ProviderDto>.Failure("Prestador não encontrado");
         }
 
         provider.RemoveDocument(command.DocumentType);

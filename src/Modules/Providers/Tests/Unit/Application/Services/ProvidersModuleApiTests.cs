@@ -19,7 +19,6 @@ public class ProvidersModuleApiTests
     private readonly Mock<IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByIdsHandlerMock = new();
     private readonly Mock<ILocationsModuleApi> _locationApiMock = new();
     private readonly Mock<IProviderQueries> _providerQueriesMock = new();
-    private readonly Mock<IServiceProvider> _serviceProviderMock = new();
     private readonly Mock<ILogger<ProvidersModuleApi>> _loggerMock = new();
     private readonly ProvidersModuleApi _sut;
 
@@ -32,7 +31,6 @@ public class ProvidersModuleApiTests
             _getProvidersByIdsHandlerMock.Object,
             _locationApiMock.Object,
             _providerQueriesMock.Object,
-            _serviceProviderMock.Object,
             _loggerMock.Object);
     }
 

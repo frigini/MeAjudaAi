@@ -37,20 +37,20 @@ public sealed class SuspendProviderCommandHandler(
         if (string.IsNullOrWhiteSpace(command.Reason))
         {
             logger.LogWarning("Suspension reason is required but was not provided");
-            return Result.Failure("Suspension reason is required");
+            return Result.Failure("Motivo da suspensão é obrigatório");
         }
 
         if (string.IsNullOrWhiteSpace(command.SuspendedBy))
         {
             logger.LogWarning("SuspendedBy is required but was not provided");
-            return Result.Failure("SuspendedBy is required");
+            return Result.Failure("Responsável pela suspensão é obrigatório");
         }
 
         var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure("Provider not found");
+            return Result.Failure("Prestador não encontrado");
         }
 
         provider.Suspend(command.Reason, command.SuspendedBy);

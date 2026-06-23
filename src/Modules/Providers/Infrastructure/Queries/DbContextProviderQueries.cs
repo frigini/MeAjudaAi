@@ -1,10 +1,10 @@
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 
@@ -20,6 +20,10 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 
     private bool IsPostgres => _context.Database.ProviderName == PostgresProviderName;
     private bool IsRelational => _context.Database.IsRelational() && _context.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
+
+    /// <inheritdoc />
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
+        await _context.Database.CanConnectAsync(cancellationToken);
 
     private IQueryable<Provider> GetProvidersQuery()
     {

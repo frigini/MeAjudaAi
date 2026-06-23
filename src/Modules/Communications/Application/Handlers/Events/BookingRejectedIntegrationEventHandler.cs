@@ -79,10 +79,9 @@ public sealed class BookingRejectedIntegrationEventHandler(
 
             logger.LogInformation("Booking rejected notification enqueued for {BookingId}.", integrationEvent.BookingId);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
-            var processedException = PostgreSqlExceptionProcessor.ProcessException(
-                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(ex);
 
             if (processedException is UniqueConstraintException)
             {

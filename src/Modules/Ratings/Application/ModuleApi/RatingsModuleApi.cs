@@ -17,7 +17,7 @@ public sealed class RatingsModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(true);
+        return await reviewQueries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<ProviderRatingDto>> GetProviderRatingAsync(Guid providerId, CancellationToken cancellationToken = default)

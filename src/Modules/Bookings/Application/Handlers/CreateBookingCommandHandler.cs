@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
+/// <summary>
+/// Handler para processar comandos de criação de booking.
+/// </summary>
 public sealed class CreateBookingCommandHandler(
     IBookingCommandService bookingCommandService,
     IProviderScheduleQueries scheduleQueries,

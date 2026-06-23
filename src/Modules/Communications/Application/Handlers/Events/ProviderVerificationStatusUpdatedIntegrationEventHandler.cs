@@ -87,10 +87,9 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             logger.LogInformation("Verification status update notification enqueued for user {UserId} ({Email}, correlationId: {CorrelationId}).", 
                 integrationEvent.UserId, PiiMaskingHelper.MaskEmail(recipientEmail), correlationId);
         }
-        catch (Exception ex)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
-            var processedException = PostgreSqlExceptionProcessor.ProcessException(
-                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(ex);
 
             if (processedException is UniqueConstraintException)
             {

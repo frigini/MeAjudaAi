@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
@@ -33,7 +34,7 @@ public sealed class AddDocumentCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result<ProviderDto>.Failure("Fornecedor não encontrado");
+            return Result<ProviderDto>.Failure(ValidationMessages.Providers.ProviderNotFound);
         }
 
         var document = new Document(

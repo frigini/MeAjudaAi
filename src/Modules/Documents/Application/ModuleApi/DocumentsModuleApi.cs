@@ -100,11 +100,6 @@ public sealed class DocumentsModuleApi(
             logger.LogError(ex, "Database error checking Documents module availability");
             return false;
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error checking Documents module availability");
-            return false;
-        }
     }
 
     private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancellationToken)

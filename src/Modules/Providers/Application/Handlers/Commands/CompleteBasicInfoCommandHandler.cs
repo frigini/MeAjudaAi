@@ -36,7 +36,7 @@ public sealed class CompleteBasicInfoCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure("Provider not found");
+            return Result.Failure("Prestador não encontrado");
         }
 
         provider.CompleteBasicInfo(command.UpdatedBy);

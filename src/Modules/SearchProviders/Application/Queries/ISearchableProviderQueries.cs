@@ -12,6 +12,11 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
 public interface ISearchableProviderQueries
 {
     /// <summary>
+    /// Verifica se o módulo consegue conectar ao banco de dados.
+    /// </summary>
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Recupera um provedor pesquisável por seu ID.
     /// </summary>
     Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default);

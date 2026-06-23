@@ -3,13 +3,18 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Models;
 
-namespace MeAjudaAi.Modules.Providers.Application.Queries;
+namespace MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 
 /// <summary>
 /// Interface para consultas otimizadas de leitura (NoTracking) do módulo Providers.
 /// </summary>
 public interface IProviderQueries
 {
+    /// <summary>
+    /// Verifica se o módulo consegue conectar ao banco de dados.
+    /// </summary>
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Busca um prestador pelo identificador único sem rastreamento.
     /// </summary>

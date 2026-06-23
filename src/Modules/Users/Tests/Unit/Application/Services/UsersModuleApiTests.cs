@@ -5,8 +5,6 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Services;
 
@@ -16,8 +14,7 @@ public class UsersModuleApiTests
     private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>> _getUserByEmailHandler;
     private readonly Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>> _getUserByUsernameHandler;
     private readonly Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>> _getUsersByIdsHandler;
-    private readonly Mock<IServiceProvider> _serviceProvider;
-    private readonly Mock<ILogger<UsersModuleApi>> _logger;
+    private readonly Mock<IUserQueries> _userQueries;
     private readonly UsersModuleApi _sut;
 
     public UsersModuleApiTests()
@@ -26,16 +23,16 @@ public class UsersModuleApiTests
         _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
         _getUserByUsernameHandler = new Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>();
         _getUsersByIdsHandler = new Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>>();
-        _serviceProvider = new Mock<IServiceProvider>();
-        _logger = new Mock<ILogger<UsersModuleApi>>();
+        _userQueries = new Mock<IUserQueries>();
+
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         _sut = new UsersModuleApi(
             _getUserByIdHandler.Object,
             _getUserByEmailHandler.Object,
             _getUserByUsernameHandler.Object,
             _getUsersByIdsHandler.Object,
-            _serviceProvider.Object,
-            _logger.Object);
+            _userQueries.Object);
     }
 
     [Fact]
@@ -62,11 +59,13 @@ public class UsersModuleApiTests
     public async Task IsAvailableAsync_WhenHealthy_ShouldReturn_True()
     {
         // Arrange
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
         _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -77,11 +76,13 @@ public class UsersModuleApiTests
     public async Task IsAvailableAsync_WhenBasicOperationsFail_ShouldReturn_False()
     {
         // Arrange
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
         _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -91,14 +92,13 @@ public class UsersModuleApiTests
     public async Task IsAvailableAsync_WhenHealthCheckServiceUnavailable_ShouldStillCheckBasicOperations()
     {
         // Arrange
-        _serviceProvider.Setup(x => x.GetService(typeof(HealthCheckService)))
-            .Returns((HealthCheckService?)null);
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound(ValidationMessages.NotFound.User)));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();

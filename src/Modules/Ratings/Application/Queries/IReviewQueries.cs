@@ -5,6 +5,7 @@ namespace MeAjudaAi.Modules.Ratings.Application.Queries;
 
 public interface IReviewQueries
 {
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken = default);
     Task<Review?> GetByIdAsync(ReviewId id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default);
     Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default);

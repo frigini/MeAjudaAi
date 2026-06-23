@@ -12,6 +12,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
+/// <summary>
+/// Handler para processar comandos de definição de agenda do prestador.
+/// </summary>
 public sealed class SetProviderScheduleCommandHandler(
     IProviderScheduleQueries scheduleQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
@@ -52,11 +55,6 @@ public sealed class SetProviderScheduleCommandHandler(
         {
             logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
             return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error processing availabilities for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.Internal("Erro interno ao processar disponibilidades."));
         }
 
         var schedule = await scheduleQueries.GetByProviderIdAsync(command.ProviderId, cancellationToken);

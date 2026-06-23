@@ -66,7 +66,7 @@ public class ServiceCatalogsModuleApiTests
             .ReturnsAsync(categories);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -82,7 +82,7 @@ public class ServiceCatalogsModuleApiTests
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
