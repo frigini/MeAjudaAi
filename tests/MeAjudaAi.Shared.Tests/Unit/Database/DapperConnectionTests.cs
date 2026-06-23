@@ -14,22 +14,22 @@ public class DapperConnectionTests : IDisposable
 
     private sealed class EnvironmentVariableRestorer
     {
-        private readonly Dictionary<string, string?> _originalValues = new();
+        private readonly HashSet<string> _modifiedVariables = new();
 
         public void SetVariable(string name, string value)
         {
-            if (!_originalValues.ContainsKey(name))
+            if (!_modifiedVariables.Contains(name))
             {
-                _originalValues[name] = Environment.GetEnvironmentVariable(name);
+                _modifiedVariables.Add(name);
             }
             Environment.SetEnvironmentVariable(name, value);
         }
 
         public void Restore()
         {
-            foreach (var kvp in _originalValues)
+            foreach (var name in _modifiedVariables)
             {
-                Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
+                Environment.SetEnvironmentVariable(name, null);
             }
         }
     }
