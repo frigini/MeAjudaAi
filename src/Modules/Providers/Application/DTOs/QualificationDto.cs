@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 
 /// <summary>

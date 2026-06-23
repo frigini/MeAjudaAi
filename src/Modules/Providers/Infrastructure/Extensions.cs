@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Events;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
@@ -122,6 +123,9 @@ public static class Extensions
     /// </summary>
     private static void AddEventHandlers(this IServiceCollection services)
     {
+        // SSE Event Handlers
+        services.AddScoped<ProviderVerificationStatusUpdatedSseHandler>();
+
         // Domain Event Handlers
         services.AddScoped<IEventHandler<ProviderRegisteredDomainEvent>, ProviderRegisteredDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderDeletedDomainEvent>, ProviderDeletedDomainEventHandler>();

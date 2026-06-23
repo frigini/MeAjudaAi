@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -12,4 +12,3 @@ public sealed record AddServiceToProviderCommand(
     Guid ProviderId,
     Guid ServiceId
 ) : Command<Result>;
-

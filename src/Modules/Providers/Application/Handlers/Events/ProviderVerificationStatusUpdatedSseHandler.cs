@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Events;
 
+/// <summary>
+/// Handler de evento que transmite atualizações de status de verificação de provider via SSE.
+/// </summary>
 public class ProviderVerificationStatusUpdatedSseHandler(
     ISseHub<ProviderVerificationSseDto> sseHub,
     ILogger<ProviderVerificationStatusUpdatedSseHandler> logger) :

@@ -1,30 +1,21 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Constants;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Modules.Providers.Domain.Constants;
-using Microsoft.FeatureManagement;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.FeatureManagement;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 /// <summary>
 /// Handler responsável por processar a query de busca de prestador público por ID ou slug.
 /// </summary>
-public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>
+public sealed class GetPublicProviderByIdOrSlugQueryHandler(IProviderQueries providerQueries, IFeatureManager featureManager) : IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>
 {
-    private readonly IProviderQueries _providerQueries;
-    private readonly IFeatureManager _featureManager;
-
-    public GetPublicProviderByIdOrSlugQueryHandler(IProviderQueries providerQueries, IFeatureManager featureManager)
-    {
-        _providerQueries = providerQueries;
-        _featureManager = featureManager;
-    }
-
     public async Task<Result<PublicProviderDto?>> HandleAsync(
         GetPublicProviderByIdOrSlugQuery query,
         CancellationToken cancellationToken)
@@ -33,17 +24,10 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
 
         // Tenta resolver por ID (GUID); se não encontrar, faz fallback para slug.
         // Isso cobre o caso em que um slug tem formato de GUID válido.
-        Domain.Entities.Provider? provider;
-        if (Guid.TryParse(normalizedSlug, out var id))
-        {
-            provider = await _providerQueries.GetByIdAsync(new ProviderId(id), cancellationToken)
-                       ?? await _providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken);
-        }
-        else
-        {
-            provider = await _providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken);
-        }
-
+        Domain.Entities.Provider? provider = Guid.TryParse(normalizedSlug, out var id)
+            ? await providerQueries.GetByIdAsync(new ProviderId(id), cancellationToken)
+                       ?? await providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken)
+            : await providerQueries.GetBySlugAsync(normalizedSlug, cancellationToken);
         if (provider is null)
         {
             return Result<PublicProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
@@ -59,7 +43,7 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
         var businessProfile = provider.BusinessProfile;
         
         // Verifica se a privacidade restrita está habilitada via feature flag
-        var isPrivacyEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
+        var isPrivacyEnabled = await featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
 
         // A privacidade é forçada se a feature flag estiver ligada OU se o usuário não estiver autenticado
         var shouldRedactContactInfo = isPrivacyEnabled || !query.IsAuthenticated;

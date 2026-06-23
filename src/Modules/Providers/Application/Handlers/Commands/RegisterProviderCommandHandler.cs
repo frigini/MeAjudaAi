@@ -1,4 +1,3 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
@@ -8,12 +7,16 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
+/// <summary>
+/// Handler para registro de novos providers no sistema.
+/// </summary>
 public sealed class RegisterProviderCommandHandler(
     IUnitOfWork uow,
     IProviderQueries providerQueries,
@@ -100,5 +103,3 @@ public sealed class RegisterProviderCommandHandler(
         }
     }
 }
-
-

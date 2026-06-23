@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.Events;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Events;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Shared.Streaming;

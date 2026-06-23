@@ -4,6 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
+/// <summary>
+/// Request para registro de prestador via API (versão pública).
+/// </summary>
 [ExcludeFromCodeCoverage]
 public record RegisterProviderApiRequest(
     [Required, StringLength(100)] string Name,

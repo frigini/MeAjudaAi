@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -10,4 +10,3 @@ public sealed record DeleteMyProviderProfileCommand(
     Guid ProviderId,
     string? DeletedBy = null
 ) : Command<Result>;
-

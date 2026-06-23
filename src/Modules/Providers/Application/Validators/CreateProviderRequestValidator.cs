@@ -82,8 +82,6 @@ public class CreateProviderRequestValidator : AbstractValidator<CreateProviderRe
         });
     }
 
-
-
     private static bool BeValidProviderType(EProviderType type)
     {
         return type.ToString().IsValidEnum<EProviderType>();

@@ -18,4 +18,3 @@ public sealed record GetProviderByDocumentQuery(string Document) : Query<Result<
     public IReadOnlyCollection<string>? GetCacheTags() => 
         [CacheTags.Providers];
 }
-

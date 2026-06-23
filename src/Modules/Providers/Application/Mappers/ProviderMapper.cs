@@ -181,6 +181,4 @@ public static class ProviderMapper
             dto.ExpirationDate,
             dto.DocumentNumber);
     }
-
-
 }

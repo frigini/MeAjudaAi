@@ -1,10 +1,10 @@
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 

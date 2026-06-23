@@ -3,7 +3,6 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.Events;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.ModuleApi;
@@ -22,6 +21,9 @@ namespace MeAjudaAi.Modules.Providers.Application;
 [ExcludeFromCodeCoverage]
 public static class Extensions
 {
+    /// <summary>
+    /// Registra os serviços da camada de Application do módulo Providers.
+    /// </summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Query Handlers - registro manual para garantir disponibilidade
@@ -64,9 +66,6 @@ public static class Extensions
 
         // Validators - registro dos validadores FluentValidation
         services.AddModuleValidators(Assembly.GetExecutingAssembly());
-
-        // Event Handlers (SSE Realtime)
-        services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>, ProviderVerificationStatusUpdatedSseHandler>();
 
         return services;
     }
