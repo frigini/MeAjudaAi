@@ -35,7 +35,9 @@ public class DapperConnectionTests
     [Fact]
     public void Constructor_UsesTestConnectionString_WhenInTestingEnvironment()
     {
-        // Arrange
+        // Arrange - Set both DOTNET_ENVIRONMENT and ASPNETCORE_ENVIRONMENT to ensure
+        // IsSecurityBypassEnvironment() works correctly (it checks DOTNET_ENVIRONMENT first)
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         var emptyOptions = new PostgresOptions();
 
@@ -46,6 +48,7 @@ public class DapperConnectionTests
         connection.Should().NotBeNull();
 
         // Cleanup
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
@@ -63,12 +66,16 @@ public class DapperConnectionTests
     public async Task QueryAsync_RecordsMetrics_OnSuccess()
     {
         // Arrange
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         var connection = new DapperConnection(_postgresOptions, _metrics, _loggerMock.Object);
 
         // Act & Assert
         // Não podemos executar query real sem banco, mas podemos verificar o comportamento esperado
         // através de testes de integração separados
+
+        // Cleanup
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
@@ -77,9 +84,11 @@ public class DapperConnectionTests
     {
         // Este teste verifica comportamento de cancelamento
         // Implementação real requer teste de integração com banco de dados real
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         
         // Cleanup
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
