@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
+/// <summary>
+/// Handler responsável por processar queries de busca de prestadores por status de verificação.
+/// </summary>
 public sealed class GetProvidersByVerificationStatusQueryHandler(
     IProviderQueries providerQueries,
     ILogger<GetProvidersByVerificationStatusQueryHandler> logger
@@ -15,17 +18,9 @@ public sealed class GetProvidersByVerificationStatusQueryHandler(
 {
     public async Task<Result<IReadOnlyList<ProviderDto>>> HandleAsync(GetProvidersByVerificationStatusQuery query, CancellationToken cancellationToken)
     {
-        try
-        {
-            logger.LogInformation("Getting providers by verification status {Status}", query.Status);
-            var providers = await providerQueries.GetByVerificationStatusAsync(query.Status, cancellationToken);
-            logger.LogInformation("Found {Count} providers with status {Status}", providers.Count, query.Status);
-            return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting providers by verification status {Status}", query.Status);
-            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
-        }
+        logger.LogInformation("Getting providers by verification status {Status}", query.Status);
+        var providers = await providerQueries.GetByVerificationStatusAsync(query.Status, cancellationToken);
+        logger.LogInformation("Found {Count} providers with status {Status}", providers.Count, query.Status);
+        return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
     }
 }

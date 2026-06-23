@@ -25,30 +25,22 @@ public sealed class RemoveDocumentCommandHandler(
     /// </summary>
     public async Task<Result<ProviderDto>> HandleAsync(RemoveDocumentCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Removing document from provider {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Removing document from provider {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Provider not found");
-            }
-
-            provider.RemoveDocument(command.DocumentType);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Document removed successfully from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure("Provider not found");
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error removing document from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("An error occurred while removing the document");
-        }
+
+        provider.RemoveDocument(command.DocumentType);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Document removed successfully from provider {ProviderId}", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }

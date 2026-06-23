@@ -22,25 +22,17 @@ public sealed class GetProviderByUserIdQueryHandler(
     /// </summary>
     public async Task<Result<ProviderDto?>> HandleAsync(GetProviderByUserIdQuery query, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Getting provider by user ID {UserId}", query.UserId);
+
+        var provider = await providerQueries.GetByUserIdAsync(query.UserId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Getting provider by user ID {UserId}", query.UserId);
-
-            var provider = await providerQueries.GetByUserIdAsync(query.UserId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider for user {UserId} not found", query.UserId);
-                return Result<ProviderDto?>.Success(null);
-            }
-
-            logger.LogInformation("Provider for user {UserId} found successfully", query.UserId);
-            return Result<ProviderDto?>.Success(provider.ToDto());
+            logger.LogWarning("Provider for user {UserId} not found", query.UserId);
+            return Result<ProviderDto?>.Success(null);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting provider by user ID {UserId}", query.UserId);
-            return Result<ProviderDto?>.Failure("Erro ao buscar prestador");
-        }
+
+        logger.LogInformation("Provider for user {UserId} found successfully", query.UserId);
+        return Result<ProviderDto?>.Success(provider.ToDto());
     }
 }

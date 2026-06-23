@@ -90,10 +90,5 @@ public sealed class CreateProviderCommandHandler(
             logger.LogError(ex, "Database error creating provider for user {UserId}", command.UserId);
             return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error creating provider for user {UserId}", command.UserId);
-            return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
-        }
     }
 }

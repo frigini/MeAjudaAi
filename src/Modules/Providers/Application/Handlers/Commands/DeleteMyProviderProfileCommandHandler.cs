@@ -19,29 +19,21 @@ public sealed class DeleteMyProviderProfileCommandHandler(
 {
     public async Task<Result> HandleAsync(DeleteMyProviderProfileCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Provider self-deleting profile {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Provider self-deleting profile {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Prestador não encontrado"));
-            }
-
-            provider.Delete(dateTimeProvider, command.DeletedBy);
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider profile {ProviderId} self-deleted successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure(Error.NotFound("Prestador não encontrado"));
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error deleting provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Error deleting provider profile");
-        }
+
+        provider.Delete(dateTimeProvider, command.DeletedBy);
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider profile {ProviderId} self-deleted successfully", command.ProviderId);
+        return Result.Success();
     }
 }

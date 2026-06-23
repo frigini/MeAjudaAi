@@ -26,41 +26,29 @@ public sealed class RemoveQualificationCommandHandler(
     /// </summary>
     public async Task<Result<ProviderDto>> HandleAsync(RemoveQualificationCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Removing qualification from provider {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Removing qualification from provider {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Fornecedor não encontrado");
-            }
-
-            try 
-            {
-                provider.RemoveQualification(command.QualificationName);
-            }
-            catch (ProviderDomainException)
-            {
-                return Result<ProviderDto>.Failure("Qualificação não encontrada");
-            }
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Qualification removed successfully from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure("Fornecedor não encontrado");
         }
-        catch (OperationCanceledException)
+
+        try 
         {
-            throw;
+            provider.RemoveQualification(command.QualificationName);
         }
-        catch (Exception ex)
+        catch (ProviderDomainException)
         {
-            logger.LogError(ex, "Error removing qualification from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("Erro ao remover qualificação");
+            return Result<ProviderDto>.Failure("Qualificação não encontrada");
         }
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Qualification removed successfully from provider {ProviderId}", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }

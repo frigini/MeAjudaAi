@@ -21,36 +21,28 @@ public sealed class UpdateProviderProfileCommandHandler(
 {
     public async Task<Result<ProviderDto>> HandleAsync(UpdateProviderProfileCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Updating provider profile {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Updating provider profile {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
-            }
-
-            var businessProfile = command.BusinessProfile.ToDomain();
-            provider.UpdateProfile(command.Name, businessProfile, command.UpdatedBy);
-
-            if (command.Services != null)
-            {
-                provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
-            }
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
         }
-        catch (Exception ex)
+
+        var businessProfile = command.BusinessProfile.ToDomain();
+        provider.UpdateProfile(command.Name, businessProfile, command.UpdatedBy);
+
+        if (command.Services != null)
         {
-            logger.LogError(ex, "Error updating provider profile {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("Error updating provider profile. Please try again later.");
+            provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
         }
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }

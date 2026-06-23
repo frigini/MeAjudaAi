@@ -36,54 +36,37 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
     /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(RequireBasicInfoCorrectionCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation(
+            "Requiring basic info correction for provider {ProviderId}. Reason: {Reason}, Requested by: {RequestedBy}",
+            command.ProviderId, command.Reason, command.RequestedBy);
+
+        if (string.IsNullOrWhiteSpace(command.Reason))
         {
-            logger.LogInformation(
-                "Requiring basic info correction for provider {ProviderId}. Reason: {Reason}, Requested by: {RequestedBy}",
-                command.ProviderId, command.Reason, command.RequestedBy);
-
-            if (string.IsNullOrWhiteSpace(command.Reason))
-            {
-                logger.LogWarning("Correction reason is required but was not provided");
-                return Result.Failure(localizer["CorrectionReasonRequired"]);
-            }
-
-            if (string.IsNullOrWhiteSpace(command.RequestedBy))
-            {
-                logger.LogWarning("RequestedBy is required but was not provided");
-                return Result.Failure(localizer["RequestedByRequired"]);
-            }
-
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(localizer["ProviderNotFound"]);
-            }
-
-            provider.RequireBasicInfoCorrection(command.Reason, command.RequestedBy);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation(
-                "Basic info correction required for provider {ProviderId}. Provider returned to PendingBasicInfo status",
-                command.ProviderId);
-
-            return Result.Success();
+            logger.LogWarning("Correction reason is required but was not provided");
+            return Result.Failure(localizer["CorrectionReasonRequired"]);
         }
-        catch (ProviderDomainException ex)
+
+        if (string.IsNullOrWhiteSpace(command.RequestedBy))
         {
-            // Preserve domain validation messages for actionable feedback
-            logger.LogWarning(ex,
-                "Domain validation failed when requiring basic info correction for provider {ProviderId}: {Message}",
-                command.ProviderId, ex.Message);
-            return Result.Failure(ex.Message);
+            logger.LogWarning("RequestedBy is required but was not provided");
+            return Result.Failure(localizer["RequestedByRequired"]);
         }
-        catch (Exception ex)
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
+        if (provider == null)
         {
-            // Generic error for unexpected failures
-            logger.LogError(ex, "Error requiring basic info correction for provider {ProviderId}", command.ProviderId);
-            return Result.Failure(localizer["BasicInfoCorrectionError"]);
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure(localizer["ProviderNotFound"]);
         }
+
+        provider.RequireBasicInfoCorrection(command.Reason, command.RequestedBy);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "Basic info correction required for provider {ProviderId}. Provider returned to PendingBasicInfo status",
+            command.ProviderId);
+
+        return Result.Success();
     }
 }

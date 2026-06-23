@@ -75,12 +75,7 @@ public sealed class ProvidersModuleApi(
 
         catch (OperationCanceledException)
         {
-            throw; 
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking Providers module availability");
-            return false;
+            throw;
         }
     }
 
@@ -102,11 +97,6 @@ public sealed class ProvidersModuleApi(
         catch (OperationCanceledException)
         {
             throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Basic operations test failed for Providers module");
-            return false;
         }
     }
 
@@ -306,26 +296,12 @@ public sealed class ProvidersModuleApi(
                 State: address.State);
 
             return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting provider indexing data for {ProviderId}", providerId);
-            return Result<ModuleProviderIndexingDto?>.Failure(ProvidersErrorMessages.IndexingDataError);
-        }
     }
 
     public async Task<Result<IReadOnlyList<Guid>>> GetProvidersByServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var providers = await providerQueries.GetByServiceIdAsync(serviceId, cancellationToken);
-            return Result<IReadOnlyList<Guid>>.Success(providers.Select(p => p.Id.Value).ToList());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting provider IDs for service {ServiceId}", serviceId);
-            return Result<IReadOnlyList<Guid>>.Failure("Error retrieving providers.");
-        }
+        var providers = await providerQueries.GetByServiceIdAsync(serviceId, cancellationToken);
+        return Result<IReadOnlyList<Guid>>.Success(providers.Select(p => p.Id.Value).ToList());
     }
 
     public async Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)

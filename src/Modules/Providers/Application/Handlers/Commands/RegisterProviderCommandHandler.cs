@@ -96,10 +96,5 @@ public sealed class RegisterProviderCommandHandler(
             logger.LogWarning(ex, "Validation error in RegisterProvider for user {UserId}: {Message}", command.UserId, ex.Message);
             return Result<ProviderDto>.Failure(new Error("Erro ao processar a requisição. Verifique os dados informados.", 400));
         }
-        catch (Exception ex)
-        {
-             logger.LogError(ex, "Error handling RegisterProviderCommand for user {UserId}", command.UserId);
-             return Result<ProviderDto>.Failure(new Error("Erro inesperado ao registrar prestador.", 500));
-        }
     }
 }

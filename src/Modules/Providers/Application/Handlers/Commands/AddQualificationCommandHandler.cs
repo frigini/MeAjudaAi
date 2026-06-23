@@ -29,39 +29,31 @@ public sealed class AddQualificationCommandHandler(
     /// </summary>
     public async Task<Result<ProviderDto>> HandleAsync(AddQualificationCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Adding qualification to provider {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Adding qualification to provider {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(localizer["ProviderNotFound"]);
-            }
-
-            var qualification = new Qualification(
-                command.Name,
-                command.Description,
-                command.IssuingOrganization,
-                command.IssueDate,
-                command.ExpirationDate,
-                command.DocumentNumber
-            );
-
-            provider.AddQualification(qualification);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Qualification added successfully to provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure(localizer["ProviderNotFound"]);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error adding qualification to provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure(localizer["QualificationAddError"]);
-        }
+
+        var qualification = new Qualification(
+            command.Name,
+            command.Description,
+            command.IssuingOrganization,
+            command.IssueDate,
+            command.ExpirationDate,
+            command.DocumentNumber
+        );
+
+        provider.AddQualification(qualification);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Qualification added successfully to provider {ProviderId}", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }

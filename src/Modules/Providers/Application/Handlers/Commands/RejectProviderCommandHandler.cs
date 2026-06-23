@@ -18,41 +18,33 @@ public sealed class RejectProviderCommandHandler(
 {
     public async Task<Result> HandleAsync(RejectProviderCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Rejecting provider {ProviderId}. Reason: {Reason}",
+            command.ProviderId, command.Reason);
+
+        if (string.IsNullOrWhiteSpace(command.Reason))
         {
-            logger.LogInformation("Rejecting provider {ProviderId}. Reason: {Reason}",
-                command.ProviderId, command.Reason);
-
-            if (string.IsNullOrWhiteSpace(command.Reason))
-            {
-                logger.LogWarning("Rejection reason is required but was not provided");
-                return Result.Failure("Motivo da rejeição é obrigatório");
-            }
-
-            if (string.IsNullOrWhiteSpace(command.RejectedBy))
-            {
-                logger.LogWarning("RejectedBy is required but was not provided");
-                return Result.Failure("Responsável pela rejeição é obrigatório");
-            }
-
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Fornecedor não encontrado");
-            }
-
-            provider.Reject(command.Reason, command.RejectedBy);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider {ProviderId} rejected successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Rejection reason is required but was not provided");
+            return Result.Failure("Motivo da rejeição é obrigatório");
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(command.RejectedBy))
         {
-            logger.LogError(ex, "Error rejecting provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Falha ao rejeitar o fornecedor");
+            logger.LogWarning("RejectedBy is required but was not provided");
+            return Result.Failure("Responsável pela rejeição é obrigatório");
         }
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
+        if (provider == null)
+        {
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure("Fornecedor não encontrado");
+        }
+
+        provider.Reject(command.Reason, command.RejectedBy);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider {ProviderId} rejected successfully", command.ProviderId);
+        return Result.Success();
     }
 }

@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
+/// <summary>
+/// Handler responsável por processar queries de busca de prestadores por estado.
+/// </summary>
 public sealed class GetProvidersByStateQueryHandler(
     IProviderQueries providerQueries,
     ILogger<GetProvidersByStateQueryHandler> logger
@@ -15,23 +18,15 @@ public sealed class GetProvidersByStateQueryHandler(
 {
     public async Task<Result<IReadOnlyList<ProviderDto>>> HandleAsync(GetProvidersByStateQuery query, CancellationToken cancellationToken)
     {
-        try
+        if (string.IsNullOrWhiteSpace(query.State))
         {
-            if (string.IsNullOrWhiteSpace(query.State))
-            {
-                logger.LogWarning("Invalid state parameter: state cannot be null or empty");
-                return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.StateParameterRequired);
-            }
+            logger.LogWarning("Invalid state parameter: state cannot be null or empty");
+            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.StateParameterRequired);
+        }
 
-            logger.LogInformation("Getting providers by state {State}", query.State);
-            var providers = await providerQueries.GetByStateAsync(query.State, cancellationToken);
-            logger.LogInformation("Found {Count} providers in state {State}", providers.Count, query.State);
-            return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting providers by state {State}", query.State);
-            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
-        }
+        logger.LogInformation("Getting providers by state {State}", query.State);
+        var providers = await providerQueries.GetByStateAsync(query.State, cancellationToken);
+        logger.LogInformation("Found {Count} providers in state {State}", providers.Count, query.State);
+        return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
     }
 }

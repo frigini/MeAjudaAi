@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
+/// <summary>
+/// Handler responsável por processar queries de busca de prestadores por tipo.
+/// </summary>
 public sealed class GetProvidersByTypeQueryHandler(
     IProviderQueries providerQueries,
     ILogger<GetProvidersByTypeQueryHandler> logger
@@ -15,17 +18,9 @@ public sealed class GetProvidersByTypeQueryHandler(
 {
     public async Task<Result<IReadOnlyList<ProviderDto>>> HandleAsync(GetProvidersByTypeQuery query, CancellationToken cancellationToken)
     {
-        try
-        {
-            logger.LogInformation("Getting providers by type {Type}", query.Type);
-            var providers = await providerQueries.GetByTypeAsync(query.Type, cancellationToken);
-            logger.LogInformation("Found {Count} providers of type {Type}", providers.Count, query.Type);
-            return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting providers by type {Type}", query.Type);
-            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
-        }
+        logger.LogInformation("Getting providers by type {Type}", query.Type);
+        var providers = await providerQueries.GetByTypeAsync(query.Type, cancellationToken);
+        logger.LogInformation("Found {Count} providers of type {Type}", providers.Count, query.Type);
+        return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
     }
 }

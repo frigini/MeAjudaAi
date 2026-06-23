@@ -18,29 +18,21 @@ public sealed class ActivateProviderProfileCommandHandler(
 {
     public async Task<Result> HandleAsync(ActivateProviderProfileCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Activating provider profile {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Activating provider profile {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Prestador não encontrado"));
-            }
-
-            provider.ActivateProfile(command.UpdatedBy);
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider profile {ProviderId} activated successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure(Error.NotFound("Prestador não encontrado"));
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error activating provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Erro ao ativar perfil do prestador");
-        }
+
+        provider.ActivateProfile(command.UpdatedBy);
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider profile {ProviderId} activated successfully", command.ProviderId);
+        return Result.Success();
     }
 }

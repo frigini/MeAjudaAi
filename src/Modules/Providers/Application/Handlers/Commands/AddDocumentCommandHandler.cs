@@ -25,36 +25,28 @@ public sealed class AddDocumentCommandHandler(
     /// </summary>
     public async Task<Result<ProviderDto>> HandleAsync(AddDocumentCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Adding document to provider {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Adding document to provider {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Fornecedor não encontrado");
-            }
-
-            var document = new Document(
-                command.DocumentNumber, 
-                command.DocumentType, 
-                command.FileName, 
-                command.FileUrl
-            );
-            provider.AddDocument(document);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Document added successfully to provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure("Fornecedor não encontrado");
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error adding document to provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("Ocorreu um erro ao adicionar o documento");
-        }
+
+        var document = new Document(
+            command.DocumentNumber,
+            command.DocumentType,
+            command.FileName,
+            command.FileUrl
+        );
+        provider.AddDocument(document);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Document added successfully to provider {ProviderId}", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }

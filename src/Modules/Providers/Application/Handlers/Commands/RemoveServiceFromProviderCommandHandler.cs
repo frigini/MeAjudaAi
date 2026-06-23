@@ -24,46 +24,30 @@ public sealed class RemoveServiceFromProviderCommandHandler(
     /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(RemoveServiceFromProviderCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation(
+            "Removing service {ServiceId} from provider {ProviderId}",
+            command.ServiceId,
+            command.ProviderId);
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(
+            new ProviderId(command.ProviderId),
+            cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation(
-                "Removing service {ServiceId} from provider {ProviderId}",
-                command.ServiceId,
-                command.ProviderId);
-
-            // 1. Buscar o provider
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(
-                new ProviderId(command.ProviderId),
-                cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Prestador não encontrado");
-            }
-
-            // 2. Remover o serviço do provider (domínio valida se existe)
-            provider.RemoveService(command.ServiceId);
-
-            // 3. Persistir mudanças
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation(
-                "Service {ServiceId} successfully removed from provider {ProviderId}",
-                command.ServiceId,
-                command.ProviderId);
-
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure("Prestador não encontrado");
         }
-        catch (Exception ex)
-        {
-            logger.LogError(
-                ex,
-                "Error removing service {ServiceId} from provider {ProviderId}",
-                command.ServiceId,
-                command.ProviderId);
 
-            return Result.Failure($"Ocorreu um erro ao remover serviço do prestador: {ex.Message}");
-        }
+        provider.RemoveService(command.ServiceId);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "Service {ServiceId} successfully removed from provider {ProviderId}",
+            command.ServiceId,
+            command.ProviderId);
+
+        return Result.Success();
     }
 }

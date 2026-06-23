@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
+/// <summary>
+/// Handler responsável por processar queries de busca de prestadores por lista de IDs.
+/// </summary>
 public sealed class GetProvidersByIdsQueryHandler(
     IProviderQueries providerQueries,
     ILogger<GetProvidersByIdsQueryHandler> logger
@@ -17,25 +20,16 @@ public sealed class GetProvidersByIdsQueryHandler(
         GetProvidersByIdsQuery query,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug("Retrieving providers by IDs: {ProviderIds}",
-                string.Join(", ", query.ProviderIds));
+        logger.LogDebug("Retrieving providers by IDs: {ProviderIds}",
+            string.Join(", ", query.ProviderIds));
 
-            var providers = await providerQueries.GetByIdsAsync(query.ProviderIds, cancellationToken);
+        var providers = await providerQueries.GetByIdsAsync(query.ProviderIds, cancellationToken);
 
-            var result = providers.ToDto();
+        var result = providers.ToDto();
 
-            logger.LogDebug("Found {Count} providers for {RequestedCount} IDs",
-                result.Count, query.ProviderIds.Count);
+        logger.LogDebug("Found {Count} providers for {RequestedCount} IDs",
+            result.Count, query.ProviderIds.Count);
 
-            return Result<IReadOnlyList<ProviderDto>>.Success(result);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving providers by IDs: {ProviderIds}",
-                string.Join(", ", query.ProviderIds));
-            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
-        }
+        return Result<IReadOnlyList<ProviderDto>>.Success(result);
     }
 }
