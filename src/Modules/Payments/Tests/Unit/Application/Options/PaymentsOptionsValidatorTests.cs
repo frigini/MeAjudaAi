@@ -51,15 +51,23 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldReturnSuccess_WhenInBypassEnvironmentAndOptionsEmpty()
     {
-        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
-        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        try
+        {
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
-        var options = new PaymentsOptions();
+            var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+            var options = new PaymentsOptions();
 
-        var result = validator.Validate(PaymentsOptions.SectionName, options);
+            var result = validator.Validate(PaymentsOptions.SectionName, options);
 
-        result.Succeeded.Should().BeTrue();
+            result.Succeeded.Should().BeTrue();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+        }
     }
 
     [Fact]

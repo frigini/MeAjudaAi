@@ -184,46 +184,62 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
     [Fact]
     public async Task HandleStripeWebhookAsync_ShouldBypassSignature_WhenEmptySignatureAndBypassEnvironment()
     {
-        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
-        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-
-        var service = new PaymentCommandService(
-            _uowMock.Object,
-            DbContext,
-            _configurationMock.Object,
-            _loggerMock.Object);
-
-        var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
-        var payload = $$"""
+        try
         {
-            "id": "{{eventId}}",
-            "type": "checkout.session.completed",
-            "created": 1234567890
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
+            var service = new PaymentCommandService(
+                _uowMock.Object,
+                DbContext,
+                _configurationMock.Object,
+                _loggerMock.Object);
+
+            var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
+            var payload = $$"""
+            {
+                "id": "{{eventId}}",
+                "type": "checkout.session.completed",
+                "created": 1234567890
+            }
+            """;
+
+            var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
         }
-        """;
-
-        var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
+        finally
+        {
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+        }
     }
 
     [Fact]
     public async Task HandleStripeWebhookAsync_ShouldFail_WhenBypassEnvironmentButInvalidMockPayload()
     {
-        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
-        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        try
+        {
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
-        var service = new PaymentCommandService(
-            _uowMock.Object,
-            DbContext,
-            _configurationMock.Object,
-            _loggerMock.Object);
+            var service = new PaymentCommandService(
+                _uowMock.Object,
+                DbContext,
+                _configurationMock.Object,
+                _loggerMock.Object);
 
-        var invalidPayload = "{ invalid json for mock }";
+            var invalidPayload = "{ invalid json for mock }";
 
-        var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
+            var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
 
-        result.IsFailure.Should().BeTrue();
+            result.IsFailure.Should().BeTrue();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+        }
     }
 
     private sealed class EnvironmentVariableRestorer
