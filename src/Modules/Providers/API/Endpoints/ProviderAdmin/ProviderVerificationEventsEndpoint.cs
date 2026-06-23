@@ -3,6 +3,8 @@ using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
@@ -42,8 +44,8 @@ public class ProviderVerificationEventsEndpoint : BaseEndpoint, IEndpoint
     private static async Task GetVerificationEventsAsync(
         Guid id,
         HttpContext context,
-        ISseHub<ProviderVerificationSseDto> sseHub,
-        ISerializer serializer,
+        [FromServices] ISseHub<ProviderVerificationSseDto> sseHub,
+        [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
         CancellationToken ct)
     {
         context.Response.ContentType = "text/event-stream";
