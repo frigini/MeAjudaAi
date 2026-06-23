@@ -1,4 +1,3 @@
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Services;
 using Microsoft.Extensions.Configuration;
