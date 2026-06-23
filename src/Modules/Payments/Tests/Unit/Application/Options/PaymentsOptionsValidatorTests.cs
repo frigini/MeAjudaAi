@@ -7,14 +7,22 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Options;
 [Trait("Category", "Unit")]
 [Trait("Module", "Payments")]
 [Trait("Layer", "Application")]
-public class PaymentsOptionsValidatorTests
+public class PaymentsOptionsValidatorTests : IDisposable
 {
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly EnvironmentVariableRestorer _envRestorer;
 
     public PaymentsOptionsValidatorTests()
     {
         _configurationMock = new Mock<IConfiguration>();
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
+        _envRestorer = new EnvironmentVariableRestorer();
+    }
+
+    public void Dispose()
+    {
+        _envRestorer.Restore();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -43,24 +51,15 @@ public class PaymentsOptionsValidatorTests
     [Fact]
     public void Validate_ShouldReturnSuccess_WhenInBypassEnvironmentAndOptionsEmpty()
     {
-        var originalEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        try
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
-            var validator = new PaymentsOptionsValidator(_configurationMock.Object);
-            var options = new PaymentsOptions();
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var options = new PaymentsOptions();
 
-            var result = validator.Validate(PaymentsOptions.SectionName, options);
+        var result = validator.Validate(PaymentsOptions.SectionName, options);
 
-            result.Succeeded.Should().BeTrue();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalEnv);
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-        }
+        result.Succeeded.Should().BeTrue();
     }
 
     [Fact]
@@ -190,5 +189,27 @@ public class PaymentsOptionsValidatorTests
         var result = validator.Validate(null, options);
 
         result.Succeeded.Should().BeTrue();
+    }
+
+    private sealed class EnvironmentVariableRestorer
+    {
+        private readonly Dictionary<string, string?> _originalValues = new();
+
+        public void SetVariable(string name, string value)
+        {
+            if (!_originalValues.ContainsKey(name))
+            {
+                _originalValues[name] = Environment.GetEnvironmentVariable(name);
+            }
+            Environment.SetEnvironmentVariable(name, value);
+        }
+
+        public void Restore()
+        {
+            foreach (var kvp in _originalValues)
+            {
+                Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
+            }
+        }
     }
 }
