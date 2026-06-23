@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Modules.Payments.Application.Options;
@@ -8,10 +8,17 @@ namespace MeAjudaAi.Modules.Payments.Application.Options;
 public class PaymentsOptionsValidator : IValidateOptions<PaymentsOptions>
 {
     private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment? _environment;
 
     public PaymentsOptionsValidator(IConfiguration configuration)
+        : this(configuration, null)
+    {
+    }
+
+    public PaymentsOptionsValidator(IConfiguration configuration, IHostEnvironment? environment)
     {
         _configuration = configuration;
+        _environment = environment;
     }
 
     public ValidateOptionsResult Validate(string? name, PaymentsOptions options)
@@ -22,7 +29,7 @@ public class PaymentsOptionsValidator : IValidateOptions<PaymentsOptions>
         }
 
         var errors = new List<string>();
-        var isBypass = EnvironmentHelpers.IsSecurityBypassEnvironment();
+        var isBypass = EnvironmentHelpers.IsSecurityBypassEnvironment(_environment);
 
         if (string.IsNullOrWhiteSpace(options.SuccessUrl) && !isBypass)
         {

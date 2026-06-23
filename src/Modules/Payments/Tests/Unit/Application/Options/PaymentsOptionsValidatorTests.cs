@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Payments.Application.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Options;
@@ -7,22 +8,17 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Options;
 [Trait("Category", "Unit")]
 [Trait("Module", "Payments")]
 [Trait("Layer", "Application")]
-public class PaymentsOptionsValidatorTests : IDisposable
+public class PaymentsOptionsValidatorTests
 {
     private readonly Mock<IConfiguration> _configurationMock;
-    private readonly EnvironmentVariableRestorer _envRestorer;
+    private readonly Mock<IHostEnvironment> _environmentMock;
 
     public PaymentsOptionsValidatorTests()
     {
         _configurationMock = new Mock<IConfiguration>();
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
-        _envRestorer = new EnvironmentVariableRestorer();
-    }
-
-    public void Dispose()
-    {
-        _envRestorer.Restore();
-        GC.SuppressFinalize(this);
+        _environmentMock = new Mock<IHostEnvironment>();
+        _environmentMock.Setup(e => e.EnvironmentName).Returns("Production");
     }
 
     [Fact]
@@ -37,9 +33,9 @@ public class PaymentsOptionsValidatorTests : IDisposable
     }
 
     [Fact]
-    public void Validate_ShouldNotSkip_WhenNameIsEmpty()
+    public void Validate_ShouldFail_WhenNameIsEmpty()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions();
 
         var result = validator.Validate("", options);
@@ -51,29 +47,21 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldReturnSuccess_WhenInBypassEnvironmentAndOptionsEmpty()
     {
-        try
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        var bypassEnvMock = new Mock<IHostEnvironment>();
+        bypassEnvMock.Setup(e => e.EnvironmentName).Returns("Testing");
 
-            var validator = new PaymentsOptionsValidator(_configurationMock.Object);
-            var options = new PaymentsOptions();
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, bypassEnvMock.Object);
+        var options = new PaymentsOptions();
 
-            var result = validator.Validate(PaymentsOptions.SectionName, options);
+        var result = validator.Validate(PaymentsOptions.SectionName, options);
 
-            result.Succeeded.Should().BeTrue();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-        }
+        result.Succeeded.Should().BeTrue();
     }
 
     [Fact]
     public void Validate_ShouldReturnSuccess_WhenAllRequiredOptionsAreConfigured()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions
         {
             SuccessUrl = "https://meajudaai.com/success",
@@ -92,7 +80,7 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldReturnFailureWithMultipleErrors_WhenMultipleOptionsMissing()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions();
 
         var result = validator.Validate(PaymentsOptions.SectionName, options);
@@ -107,7 +95,7 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldReturnFailure_WhenSuccessUrlMissing()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions
         {
             CancelUrl = "https://meajudaai.com/cancel",
@@ -126,7 +114,7 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldReturnFailure_WhenCancelUrlMissing()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions
         {
             SuccessUrl = "https://meajudaai.com/success",
@@ -145,7 +133,7 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldReturnFailure_WhenPlansIsEmpty()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions
         {
             SuccessUrl = "https://meajudaai.com/success",
@@ -163,7 +151,7 @@ public class PaymentsOptionsValidatorTests : IDisposable
     public void Validate_ShouldReturnFailure_WhenClientBaseUrlMissing()
     {
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns((string?)null);
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions
         {
             SuccessUrl = "https://meajudaai.com/success",
@@ -183,7 +171,7 @@ public class PaymentsOptionsValidatorTests : IDisposable
     [Fact]
     public void Validate_ShouldPassForNullName_WhenSectionName()
     {
-        var validator = new PaymentsOptionsValidator(_configurationMock.Object);
+        var validator = new PaymentsOptionsValidator(_configurationMock.Object, _environmentMock.Object);
         var options = new PaymentsOptions
         {
             SuccessUrl = "https://meajudaai.com/success",
@@ -197,27 +185,5 @@ public class PaymentsOptionsValidatorTests : IDisposable
         var result = validator.Validate(null, options);
 
         result.Succeeded.Should().BeTrue();
-    }
-
-    private sealed class EnvironmentVariableRestorer
-    {
-        private readonly HashSet<string> _modifiedVariables = new();
-
-        public void SetVariable(string name, string value)
-        {
-            if (!_modifiedVariables.Contains(name))
-            {
-                _modifiedVariables.Add(name);
-            }
-            Environment.SetEnvironmentVariable(name, value);
-        }
-
-        public void Restore()
-        {
-            foreach (var name in _modifiedVariables)
-            {
-                Environment.SetEnvironmentVariable(name, null);
-            }
-        }
     }
 }
