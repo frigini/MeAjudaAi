@@ -14,13 +14,14 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Services;
 [Trait("Category", "Unit")]
 [Trait("Module", "Payments")]
 [Trait("Layer", "Infrastructure")]
-public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbContext>
+public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbContext>, IDisposable
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<PaymentCommandService>> _loggerMock;
     private readonly Mock<IRepository<InboxMessage, Guid>> _inboxRepositoryMock;
     private readonly PaymentCommandService _service;
+    private readonly EnvironmentVariableRestorer _envRestorer;
 
     public PaymentCommandServiceTests()
         : base(options => new PaymentsDbContext(options))
@@ -29,6 +30,7 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<PaymentCommandService>>();
         _inboxRepositoryMock = new Mock<IRepository<InboxMessage, Guid>>();
+        _envRestorer = new EnvironmentVariableRestorer();
 
         _configurationMock.Setup(x => x["Stripe:WebhookSecret"]).Returns("whsec_test_secret");
 
@@ -40,6 +42,12 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
             DbContext,
             _configurationMock.Object,
             _loggerMock.Object);
+    }
+
+    public new void Dispose()
+    {
+        _envRestorer.Restore();
+        GC.SuppressFinalize(this);
     }
 
     private static string GenerateStripeSignature(string payload, string secret)
@@ -176,59 +184,67 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
     [Fact]
     public async Task HandleStripeWebhookAsync_ShouldBypassSignature_WhenEmptySignatureAndBypassEnvironment()
     {
-        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        try
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
+        var service = new PaymentCommandService(
+            _uowMock.Object,
+            DbContext,
+            _configurationMock.Object,
+            _loggerMock.Object);
+
+        var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
+        var payload = $$"""
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-
-            var service = new PaymentCommandService(
-                _uowMock.Object,
-                DbContext,
-                _configurationMock.Object,
-                _loggerMock.Object);
-
-            var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
-            var payload = $$"""
-            {
-                "id": "{{eventId}}",
-                "type": "checkout.session.completed",
-                "created": 1234567890
-            }
-            """;
-
-            var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
-
-            result.IsSuccess.Should().BeTrue();
+            "id": "{{eventId}}",
+            "type": "checkout.session.completed",
+            "created": 1234567890
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
-        }
+        """;
+
+        var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
     public async Task HandleStripeWebhookAsync_ShouldFail_WhenBypassEnvironmentButInvalidMockPayload()
     {
-        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        try
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
+        var service = new PaymentCommandService(
+            _uowMock.Object,
+            DbContext,
+            _configurationMock.Object,
+            _loggerMock.Object);
+
+        var invalidPayload = "{ invalid json for mock }";
+
+        var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    private sealed class EnvironmentVariableRestorer
+    {
+        private readonly Dictionary<string, string?> _originalValues = new();
+
+        public void SetVariable(string name, string value)
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-
-            var service = new PaymentCommandService(
-                _uowMock.Object,
-                DbContext,
-                _configurationMock.Object,
-                _loggerMock.Object);
-
-            var invalidPayload = "{ invalid json for mock }";
-
-            var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
-
-            result.IsFailure.Should().BeTrue();
+            if (!_originalValues.ContainsKey(name))
+            {
+                _originalValues[name] = Environment.GetEnvironmentVariable(name);
+            }
+            Environment.SetEnvironmentVariable(name, value);
         }
-        finally
+
+        public void Restore()
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
+            foreach (var kvp in _originalValues)
+            {
+                Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
+            }
         }
     }
 }

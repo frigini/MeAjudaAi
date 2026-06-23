@@ -5,11 +5,34 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
 
-public class DapperConnectionTests
+public class DapperConnectionTests : IDisposable
 {
     private readonly DatabaseMetrics _metrics;
     private readonly Mock<ILogger<DapperConnection>> _loggerMock;
     private readonly PostgresOptions _postgresOptions;
+    private readonly EnvironmentVariableRestorer _envRestorer;
+
+    private sealed class EnvironmentVariableRestorer
+    {
+        private readonly Dictionary<string, string?> _originalValues = new();
+
+        public void SetVariable(string name, string value)
+        {
+            if (!_originalValues.ContainsKey(name))
+            {
+                _originalValues[name] = Environment.GetEnvironmentVariable(name);
+            }
+            Environment.SetEnvironmentVariable(name, value);
+        }
+
+        public void Restore()
+        {
+            foreach (var kvp in _originalValues)
+            {
+                Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
+            }
+        }
+    }
 
     public DapperConnectionTests()
     {
@@ -20,6 +43,13 @@ public class DapperConnectionTests
         {
             ConnectionString = DatabaseConstants.LocalWithPortConnectionString
         };
+        _envRestorer = new EnvironmentVariableRestorer();
+    }
+
+    public void Dispose()
+    {
+        _envRestorer.Restore();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -35,21 +65,13 @@ public class DapperConnectionTests
     [Fact]
     public void Constructor_UsesTestConnectionString_WhenInTestingEnvironment()
     {
-        // Arrange - Set both DOTNET_ENVIRONMENT and ASPNETCORE_ENVIRONMENT to ensure
-        // IsSecurityBypassEnvironment() works correctly (it checks DOTNET_ENVIRONMENT first)
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         var emptyOptions = new PostgresOptions();
 
-        // Act
         var connection = new DapperConnection(emptyOptions, _metrics, _loggerMock.Object);
 
-        // Assert
         connection.Should().NotBeNull();
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
     #pragma warning disable xUnit1004
@@ -65,31 +87,19 @@ public class DapperConnectionTests
     [Fact]
     public async Task QueryAsync_RecordsMetrics_OnSuccess()
     {
-        // Arrange
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         var connection = new DapperConnection(_postgresOptions, _metrics, _loggerMock.Object);
 
-        // Act & Assert
         // Não podemos executar query real sem banco, mas podemos verificar o comportamento esperado
         // através de testes de integração separados
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
     [Fact]
     public async Task QueryAsync_DoesNotRecordMetrics_OnCancellation()
     {
-        // Este teste verifica comportamento de cancelamento
-        // Implementação real requer teste de integração com banco de dados real
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-        
-        // Cleanup
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
     }
 
     [Fact]
