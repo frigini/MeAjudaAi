@@ -5,7 +5,6 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
@@ -87,7 +86,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
             query, cancellationToken);
 
         if (result.IsSuccess && result.Value == null)
-            return NotFound("Provider not found for the specified user");
+            return NotFound("Prestador não encontrado para o usuário especificado");
 
         return Handle(result);
     }

@@ -89,7 +89,7 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
         var result = await commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
             command, cancellationToken);
 
-        // Guard against failure or a null Value to avoid CS8602 when accessing result.Value.Id
+        // Protege contra falha ou valor nulo para evitar CS8602 ao acessar result.Value.Id
         if (!result.IsSuccess || result.Value is null)
             return Handle(result);
 

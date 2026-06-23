@@ -46,19 +46,28 @@ public class ProviderVerificationEventsEndpoint : BaseEndpoint, IEndpoint
         ISerializer serializer,
         CancellationToken ct)
     {
-        context.Response.Headers.Append("Content-Type", "text/event-stream");
-        context.Response.Headers.Append("Cache-Control", "no-cache");
-        context.Response.Headers.Append("Connection", "keep-alive");
+        context.Response.ContentType = "text/event-stream";
+        context.Response.Headers.CacheControl = "no-cache";
+        await context.Response.Body.FlushAsync(ct);
 
         var topic = SseTopic.ForProviderVerification(id);
         var stream = sseHub.SubscribeAsync(topic, ct);
 
-        await foreach (var @event in stream.WithCancellation(ct))
+        try
         {
-            var json = serializer.Serialize(@event);
+            await foreach (var @event in stream.WithCancellation(ct))
+            {
+                var json = serializer.Serialize(@event);
 
-            await context.Response.WriteAsync($"data: {json}\n\n", ct);
-            await context.Response.Body.FlushAsync(ct);
+                await context.Response.WriteAsync($"data: {json}\n\n", ct);
+                await context.Response.Body.FlushAsync(ct);
+
+                await context.Response.WriteAsync(": ping\n\n", ct);
+                await context.Response.Body.FlushAsync(ct);
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 }
