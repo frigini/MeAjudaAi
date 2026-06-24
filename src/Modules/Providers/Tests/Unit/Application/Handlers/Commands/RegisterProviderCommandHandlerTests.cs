@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -45,9 +46,13 @@ public class RegisterProviderCommandHandlerTests
             Type: EProviderType.Individual,
             DocumentNumber: "12345678901");
 
-        var existingProvider = new Provider(userId, "Existing Provider", EProviderType.Individual,
-            new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"),
-                new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")));
+        var existingProvider = new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName("Existing Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"),
+                new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")))
+            .Build();
 
         _providerQueriesMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
@@ -110,9 +115,13 @@ public class RegisterProviderCommandHandlerTests
             Type: EProviderType.Individual,
             DocumentNumber: "12345678901");
 
-        var existingProvider = new Provider(userId, "Existing Provider", EProviderType.Individual,
-            new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"),
-                new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")));
+        var existingProvider = new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName("Existing Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"),
+                new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")))
+            .Build();
 
         _providerQueriesMock
             .SetupSequence(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))

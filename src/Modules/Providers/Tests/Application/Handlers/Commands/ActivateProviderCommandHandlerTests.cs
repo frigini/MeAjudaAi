@@ -8,6 +8,7 @@ using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
@@ -193,13 +194,12 @@ public class ActivateProviderCommandHandlerTests
 
     private static Provider CreateProvider(Guid id)
     {
-         return new Provider(
-             new ProviderId(id),
-             Guid.NewGuid(),
-             "Name",
-             EProviderType.Individual,
-             new BusinessProfile("Legal", new ContactInfo("email@test.com"), new Address("Street", "1", "Neighborhood", "City", "ST", "12345678", "Country"))
-         );
+         return new ProviderBuilder()
+             .WithId(id)
+             .WithName("Name")
+             .WithType(EProviderType.Individual)
+             .WithBusinessProfile(new BusinessProfile("Legal", new ContactInfo("email@test.com"), new Address("Street", "1", "Neighborhood", "City", "ST", "12345678", "Country")))
+             .Build();
     }
 }
 

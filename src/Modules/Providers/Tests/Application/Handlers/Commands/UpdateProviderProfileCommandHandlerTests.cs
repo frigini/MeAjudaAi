@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
@@ -46,13 +47,12 @@ public class UpdateProviderProfileCommandHandlerTests
             "Tester"
         );
 
-        var existingProvider = new Provider(
-            new ProviderId(providerId),
-            Guid.NewGuid(),
-            "Original Name",
-            EProviderType.Individual,
-            new BusinessProfile("Old Legal", new ContactInfo("old@email.com"), new Address("Rua", "1", "Bairro", "Cidade", "ES", "CEP"), "Old Fantasy", "Old Desc")
-        );
+        var existingProvider = new ProviderBuilder()
+            .WithId(providerId)
+            .WithName("Original Name")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(new BusinessProfile("Old Legal", new ContactInfo("old@email.com"), new Address("Rua", "1", "Bairro", "Cidade", "ES", "CEP"), "Old Fantasy", "Old Desc"))
+            .Build();
 
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProvider);

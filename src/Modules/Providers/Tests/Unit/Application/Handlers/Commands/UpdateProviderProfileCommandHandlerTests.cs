@@ -201,7 +201,7 @@ public class UpdateProviderProfileCommandHandlerTests
             Times.Never);
     }
 
-[Fact]
+    [Fact]
     public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
@@ -298,6 +298,3 @@ public class UpdateProviderProfileCommandHandlerTests
             Times.Once);
     }
 }
-
-
-

@@ -11,15 +11,13 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// </summary>
 public sealed class Document : ValueObject
 {
+    public Guid Id { get; private set; }
     public string Number { get; private set; }
     public EDocumentType DocumentType { get; private set; }
     public string? FileName { get; private set; }
     public string? FileUrl { get; private set; }
     public bool IsPrimary { get; private set; }
 
-    /// <summary>
-    /// Construtor privado para Entity Framework
-    /// </summary>
     private Document()
     {
         Number = string.Empty;
@@ -27,13 +25,21 @@ public sealed class Document : ValueObject
         IsPrimary = false;
     }
 
-    [JsonConstructor]
     public Document(string number, EDocumentType documentType, string? fileName = null, string? fileUrl = null, bool isPrimary = false)
+        : this(Guid.NewGuid(), number, documentType, fileName, fileUrl, isPrimary)
     {
+    }
+
+    [JsonConstructor]
+    public Document(Guid id, string number, EDocumentType documentType, string? fileName = null, string? fileUrl = null, bool isPrimary = false)
+    {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Id do documento não pode ser vazio", nameof(id));
+
         if (string.IsNullOrWhiteSpace(number))
             throw new ArgumentException("Número do documento não pode ser vazio", nameof(number));
 
-        // Normalize CPF and CNPJ to digits-only, keep other document types trimmed as-is
+        Id = id;
         Number = documentType switch
         {
             EDocumentType.CPF or EDocumentType.CNPJ => Regex.Replace(number, @"[^\d]", ""),
@@ -56,7 +62,7 @@ public sealed class Document : ValueObject
     /// <returns>Nova instância do documento com o status primário atualizado</returns>
     public Document WithPrimaryStatus(bool isPrimary)
     {
-        return new Document(Number, DocumentType, FileName, FileUrl, isPrimary);
+        return new Document(Id, Number, DocumentType, FileName, FileUrl, isPrimary);
     }
 
     private bool IsValid()

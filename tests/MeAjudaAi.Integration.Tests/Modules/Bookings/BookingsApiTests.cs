@@ -14,6 +14,7 @@ using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Bookings;
 
@@ -231,11 +232,11 @@ public class BookingsApiTests : BaseApiTest
         
         var contactInfo = new ContactInfo("test@test.com", "12345678901");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
-        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
-            Guid.NewGuid(), 
-            "Test Provider", 
-            EProviderType.Individual, 
-            businessProfile);
+        var provider = new ProviderBuilder()
+            .WithName("Test Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
 
         context.Providers.Add(provider);
         await context.SaveChangesAsync();

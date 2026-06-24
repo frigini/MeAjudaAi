@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -130,11 +131,12 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
             fantasyName: _faker.Company.CompanyName(),
             description: _faker.Company.CatchPhrase());
 
-        return new Provider(
-            userId: userId ?? UuidGenerator.NewId(),
-            name: _faker.Name.FullName(),
-            type: EProviderType.Individual,
-            businessProfile: businessProfile);
+        return new ProviderBuilder()
+            .WithId(userId ?? UuidGenerator.NewId())
+            .WithName(_faker.Name.FullName())
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
     }
 
     private Provider CreateValidProviderWithAddress(string city, string state)

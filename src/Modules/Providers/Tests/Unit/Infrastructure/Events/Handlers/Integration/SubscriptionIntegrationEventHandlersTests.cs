@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Messaging.Messages.Payments;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events.Handlers.Integration;
@@ -25,7 +26,11 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
     {
         var contactInfo = new ContactInfo("test@test.com");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
-        var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithName("Test Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
         DbContext.Providers.Add(provider);
         await DbContext.SaveChangesAsync();
 
@@ -65,7 +70,11 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
     {
         var contactInfo = new ContactInfo("test@test.com");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
-        var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithName("Test Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
         provider.PromoteTier(EProviderTier.Gold, "setup");
         DbContext.Providers.Add(provider);
         await DbContext.SaveChangesAsync();
@@ -89,7 +98,11 @@ public class SubscriptionIntegrationEventHandlersTests : BaseInMemoryDatabaseTes
     {
         var contactInfo = new ContactInfo("test@test.com");
         var businessProfile = new BusinessProfile("Test Provider", contactInfo, null);
-        var provider = new Provider(Guid.NewGuid(), "Test Provider", EProviderType.Individual, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithName("Test Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
         provider.PromoteTier(EProviderTier.Gold, "setup");
         DbContext.Providers.Add(provider);
         await DbContext.SaveChangesAsync();

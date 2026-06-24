@@ -52,7 +52,7 @@ public sealed class CreateProviderCommandHandler(
             var businessProfile = command.BusinessProfile.ToDomain();
 
             // Cria a entidade de domínio
-            var provider = new Provider(
+            var provider = Provider.Create(
                 command.UserId,
                 command.Name,
                 command.Type,

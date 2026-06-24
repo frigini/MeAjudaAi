@@ -52,11 +52,15 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (ids == null || ids.Count == 0)
             return Array.Empty<Provider>();
 
-        var idList = ids.ToList();
-        return await GetProvidersQuery()
-            .Where(p => idList.Contains(p.Id.Value) && !p.IsDeleted)
-            .OrderBy(p => p.Id.Value)
+        var idSet = new HashSet<Guid>(ids);
+        var allProviders = await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
+
+        return allProviders
+            .Where(p => idSet.Contains(p.Id.Value))
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -87,11 +91,14 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         var escapedCity = EscapeLikePattern(city);
         var likePattern = $"%{escapedCity}%";
 
-        return await GetProvidersQuery()
+        var allProviders = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar))
-            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
+
+        return allProviders
+            .Where(p => LikeMatch(p.BusinessProfile!.PrimaryAddress!.City, likePattern))
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -100,11 +107,21 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         var escapedState = EscapeLikePattern(state);
         var likePattern = $"%{escapedState}%";
 
-        return await GetProvidersQuery()
+        var allProviders = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar))
-            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
+
+        return allProviders
+            .Where(p => LikeMatch(p.BusinessProfile!.PrimaryAddress!.State, likePattern))
+            .OrderBy(p => p.Id.Value)
+            .ToList();
+    }
+
+    private static bool LikeMatch(string value, string pattern)
+    {
+        if (value == null) return false;
+        var escaped = pattern.Replace("\\%", "%").Replace("\\_", "_");
+        return value.Contains(escaped.Trim('%'), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc />
@@ -177,40 +194,42 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
         if (page <= 0) throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than zero.");
         if (pageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than zero.");
 
-        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
+        var baseQuery = GetProvidersQuery().Where(p => !p.IsDeleted);
+
+        if (typeFilter.HasValue)
+        {
+            baseQuery = baseQuery.Where(p => p.Type == typeFilter.Value);
+        }
+
+        if (verificationStatusFilter.HasValue)
+        {
+            baseQuery = baseQuery.Where(p => p.VerificationStatus == verificationStatusFilter.Value);
+        }
+
+        var allProviders = await baseQuery
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenByDescending(p => p.Id)
+            .ToListAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
             var escapedFilter = EscapeLikePattern(nameFilter);
             var likePattern = $"%{escapedFilter}%";
-            query = query.Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar));
+            allProviders = allProviders
+                .Where(p => LikeMatch(p.Name, likePattern))
+                .ToList();
         }
 
-        // Aplica filtro por tipo
-        if (typeFilter.HasValue)
-        {
-            query = query.Where(p => p.Type == typeFilter.Value);
-        }
+        var totalCount = allProviders.Count;
 
-        // Aplica filtro por status de verificação
-        if (verificationStatusFilter.HasValue)
-        {
-            query = query.Where(p => p.VerificationStatus == verificationStatusFilter.Value);
-        }
-
-        // Ordena por data de criação (mais recentes primeiro) com ID como tiebreaker
-        query = query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var providers = await query
+        var pagedProviders = allProviders
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         return new PagedResult<Provider>
         {
-            Items = providers,
+            Items = pagedProviders,
             PageNumber = page,
             PageSize = pageSize,
             TotalItems = totalCount

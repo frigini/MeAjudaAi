@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -44,7 +45,13 @@ public class ProviderVerificationStatusUpdatedDomainEventHandlerTests : IDisposa
         var providerId = ProviderId.New();
         var userId = Guid.NewGuid();
 
-        var provider = new Provider(providerId, userId, "Test Provider", EProviderType.Individual, new BusinessProfile("Test", new ContactInfo("t@t.com", "123"), new Address("R", "1", "C", "S", "S", "1", "B")));
+        var provider = new ProviderBuilder()
+            .WithId(providerId)
+            .WithUserId(userId)
+            .WithName("Test Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(new BusinessProfile("Test", new ContactInfo("t@t.com", "123"), new Address("R", "1", "C", "S", "S", "1", "B")))
+            .Build();
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
 
@@ -73,7 +80,12 @@ public class ProviderVerificationStatusUpdatedDomainEventHandlerTests : IDisposa
     {
         // Arrange
         var providerId = ProviderId.New();
-        var provider = new Provider(providerId, Guid.NewGuid(), "Test", EProviderType.Individual, new BusinessProfile("T", new ContactInfo("t@t.com", "1"), new Address("R", "1", "C", "S", "S", "1", "B")));
+        var provider = new ProviderBuilder()
+            .WithId(providerId)
+            .WithName("Test")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(new BusinessProfile("T", new ContactInfo("t@t.com", "1"), new Address("R", "1", "C", "S", "S", "1", "B")))
+            .Build();
         _context.Providers.Add(provider);
         await _context.SaveChangesAsync();
 

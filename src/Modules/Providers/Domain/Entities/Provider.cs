@@ -126,14 +126,47 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public string? RejectionReason { get; private set; }
 
     /// <summary>
-    /// Construtor privado para uso do Entity Framework.
+    /// Construtor para uso do Entity Framework.
     /// </summary>
     private Provider() { }
 
     /// <summary>
-    /// Construtor para testes que permite especificar o ID.
+    /// Cria um novo prestador de serviços no sistema.
     /// </summary>
-    public Provider(
+    /// <param name="userId">ID do usuário no Keycloak</param>
+    /// <param name="name">Nome do prestador de serviços</param>
+    /// <param name="type">Tipo do prestador de serviços</param>
+    /// <param name="businessProfile">Perfil empresarial</param>
+    /// <exception cref="ProviderDomainException">Thrown when business rules are violated</exception>
+    public static Provider Create(
+        Guid userId,
+        string name,
+        EProviderType type,
+        BusinessProfile businessProfile)
+    {
+        var provider = new Provider(
+            ProviderId.New(),
+            userId,
+            name,
+            type,
+            businessProfile);
+
+        provider.AddDomainEvent(new ProviderRegisteredDomainEvent(
+            provider.Id.Value,
+            1,
+            provider.UserId,
+            provider.Name,
+            provider.Type,
+            provider.BusinessProfile.ContactInfo.Email,
+            provider.Slug));
+
+        return provider;
+    }
+
+    /// <summary>
+    /// Cria um prestador com ID específico (para testes via ProviderBuilder).
+    /// </summary>
+    internal Provider(
         ProviderId id,
         Guid userId,
         string name,
@@ -143,7 +176,6 @@ public sealed class Provider : AggregateRoot<ProviderId>
     {
         ArgumentNullException.ThrowIfNull(businessProfile);
 
-        // Validações de regras de negócio específicas para criação
         ValidateProviderCreation(userId, name);
 
         UserId = userId;
@@ -155,51 +187,6 @@ public sealed class Provider : AggregateRoot<ProviderId>
         VerificationStatus = EVerificationStatus.Pending;
         Tier = EProviderTier.Standard;
         IsActive = true;
-
-        // Não adiciona eventos de domínio para testes
-    }
-
-    /// <summary>
-    /// Cria um novo prestador de serviços no sistema.
-    /// </summary>
-    /// <param name="userId">ID do usuário no Keycloak</param>
-    /// <param name="name">Nome do prestador de serviços</param>
-    /// <param name="type">Tipo do prestador de serviços</param>
-    /// <param name="businessProfile">Perfil empresarial</param>
-    /// <remarks>
-    /// Este construtor dispara automaticamente o evento ProviderRegisteredDomainEvent.
-    /// </remarks>
-    /// <exception cref="ProviderDomainException">Thrown when business rules are violated</exception>
-    public Provider(
-        Guid userId,
-        string name,
-        EProviderType type,
-        BusinessProfile businessProfile)
-        : base(ProviderId.New())
-    {
-        ArgumentNullException.ThrowIfNull(businessProfile);
-
-        // Validações de regras de negócio específicas para criação
-        ValidateProviderCreation(userId, name);
-
-        UserId = userId;
-        Name = name.Trim();
-        Slug = SlugHelper.GenerateWithSuffix(Name, Id.Value.ToString("N")[..8]);
-        Type = type;
-        BusinessProfile = businessProfile;
-        Status = EProviderStatus.PendingBasicInfo;
-        VerificationStatus = EVerificationStatus.Pending;
-        Tier = EProviderTier.Standard;
-        IsActive = true;
-
-        AddDomainEvent(new ProviderRegisteredDomainEvent(
-            Id.Value,
-            1,
-            UserId,
-            Name,
-            Type,
-            BusinessProfile.ContactInfo.Email,
-            Slug));
     }
 
     /// <summary>

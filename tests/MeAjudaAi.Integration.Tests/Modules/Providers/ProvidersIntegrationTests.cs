@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -271,12 +272,12 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
             primaryAddress: address
         );
 
-        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
-            userId: userId,
-            name: name,
-            type: MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual,
-            businessProfile: businessProfile
-        );
+        var provider = new ProviderBuilder()
+            .WithId(userId)
+            .WithName(name)
+            .WithType(MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
 
         // Atualizar VerificationStatus usando o método público
         if (verificationStatus != MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus.Pending)

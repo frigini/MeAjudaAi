@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -134,7 +135,13 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             "Test Provider LTDA",
             new ContactInfo("test@test.com", "1234567890"),
             address);
-        return new Provider(providerId, userId, "Test Provider", EProviderType.Individual, businessProfile);
+        return new ProviderBuilder()
+            .WithId(providerId)
+            .WithUserId(userId)
+            .WithName("Test Provider")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(businessProfile)
+            .Build();
     }
 
     public void Dispose()

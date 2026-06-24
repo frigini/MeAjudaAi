@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -258,7 +259,12 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         BusinessProfile businessProfile,
         CancellationToken cancellationToken = default)
     {
-        var provider = new Provider(userId, name, type, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName(name)
+            .WithType(type)
+            .WithBusinessProfile(businessProfile)
+            .Build();
         var dbContext = DbContext;
         await dbContext.Providers.AddAsync(provider, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

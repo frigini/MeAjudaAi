@@ -24,6 +24,14 @@ public class ProviderBuilder : BaseBuilder<Provider>
 
     public static ProviderBuilder Create() => new();
 
+    public static ProviderBuilder CreateValid() => new ProviderBuilder()
+        .WithName("John Provider")
+        .WithType(EProviderType.Individual);
+
+    public static ProviderBuilder CreateValidCompany() => new ProviderBuilder()
+        .WithName("Acme Corp")
+        .WithType(EProviderType.Company);
+
     public ProviderBuilder()
     {
         Faker = new Faker<Provider>()
@@ -33,7 +41,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
 
                 var businessProfile = _businessProfile ?? CreateDefaultBusinessProfile(f, _city, _state);
 
-                provider =_providerId != null
+                provider = _providerId != null
                     ? new Provider(
                         _providerId,
                         _userId ?? f.Random.Guid(),
@@ -41,7 +49,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
                         _type ?? f.PickRandom<EProviderType>(),
                         businessProfile
                     )
-                    : new Provider(
+                    : Provider.Create(
                         _userId ?? f.Random.Guid(),
                         _name ?? f.Company.CompanyName(),
                         _type ?? f.PickRandom<EProviderType>(),
@@ -155,13 +163,13 @@ public class ProviderBuilder : BaseBuilder<Provider>
 
     public ProviderBuilder WithDocument(string number, EDocumentType type)
     {
-        _documents.Add(new Document(number, type));
+        _documents.Add(new Document(Guid.NewGuid(), number, type));
         return this;
     }
 
     public ProviderBuilder WithDocument(string number, EDocumentType type, string fileName, string fileUrl)
     {
-        _documents.Add(new Document(number, type, fileName, fileUrl));
+        _documents.Add(new Document(Guid.NewGuid(), number, type, fileName, fileUrl));
         return this;
     }
 
@@ -238,5 +246,17 @@ public class ProviderBuilder : BaseBuilder<Provider>
             legalName: faker.Company.CompanyName(),
             contactInfo: contactInfo,
             primaryAddress: address);
+    }
+
+    public static Provider CreateWithName(Guid userId, string? name, BusinessProfile businessProfile)
+    {
+        var providerId = new ProviderId(Guid.NewGuid());
+        return new Provider(providerId, userId, name!, EProviderType.Individual, businessProfile);
+    }
+
+    public static Provider CreateWithBusinessProfile(Guid userId, string name, BusinessProfile? businessProfile)
+    {
+        var providerId = new ProviderId(Guid.NewGuid());
+        return new Provider(providerId, userId, name, EProviderType.Individual, businessProfile!);
     }
 }

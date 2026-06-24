@@ -80,7 +80,7 @@ public class GetProvidersByCityQueryHandlerTests
     {
         // Arrange
         var city = "São Paulo";
-        var exception = new Exception("Database error");
+        var exception = new InvalidOperationException("Database error");
 
         _providerQueriesMock
             .Setup(x => x.GetByCityAsync(city, It.IsAny<CancellationToken>()))
@@ -89,7 +89,7 @@ public class GetProvidersByCityQueryHandlerTests
         var query = new GetProvidersByCityQuery(city);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(query, CancellationToken.None));
     }
 
     [Fact]

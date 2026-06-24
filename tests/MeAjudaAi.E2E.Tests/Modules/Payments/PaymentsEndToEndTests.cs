@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,12 +47,12 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
                 null,
                 description: "Test Description");
 
-            var provider = new Provider(
-                providerId,
-                Guid.NewGuid(),
-                "Test Provider",
-                EProviderType.Company,
-                businessProfile);
+            var provider = new ProviderBuilder()
+                .WithId(providerId)
+                .WithName("Test Provider")
+                .WithType(EProviderType.Company)
+                .WithBusinessProfile(businessProfile)
+                .Build();
 
             dbContext.Providers.Add(provider);
             await dbContext.SaveChangesAsync();

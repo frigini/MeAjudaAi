@@ -54,7 +54,7 @@ public sealed class RegisterProviderCommandHandler(
                 "Prestador de serviços"
             );
 
-            var provider = new Provider(
+            var provider = Provider.Create(
                 command.UserId,
                 command.Name,
                 command.Type,

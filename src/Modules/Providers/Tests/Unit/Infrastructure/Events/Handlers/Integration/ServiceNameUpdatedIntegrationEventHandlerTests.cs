@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -30,8 +31,11 @@ public class ServiceNameUpdatedIntegrationEventHandlerTests : IDisposable
     {
         // Arrange
         var serviceId = Guid.NewGuid();
-        var provider = new Provider(Guid.NewGuid(), "Provider Name", MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual, 
-            new MeAjudaAi.Modules.Providers.Domain.ValueObjects.BusinessProfile("Provider Name", new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo("test@test.com"), null));
+        var provider = new ProviderBuilder()
+            .WithName("Provider Name")
+            .WithType(MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual)
+            .WithBusinessProfile(new MeAjudaAi.Modules.Providers.Domain.ValueObjects.BusinessProfile("Provider Name", new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo("test@test.com"), null))
+            .Build();
         
         provider.AddService(serviceId, "Old Name");
         _dbContext.Providers.Add(provider);
