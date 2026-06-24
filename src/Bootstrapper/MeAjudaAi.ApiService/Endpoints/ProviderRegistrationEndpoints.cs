@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -62,7 +63,7 @@ public static class ProviderRegistrationEndpoints
             FirstName: firstName,
             LastName: lastName,
             Password: GenerateTemporaryPassword(), // Senha temporária forte gerada dinamicamente
-            Roles: [EProviderTier.Standard.ToRoleString()],
+            Roles: [TierToRoleString(EProviderTier.Standard)],
             PhoneNumber: request.PhoneNumber
         );
 
@@ -149,7 +150,15 @@ public static class ProviderRegistrationEndpoints
 
     private static string GenerateTemporaryPassword()
     {
-        // Gera uma senha forte aleatória que satisfaz requisitos do Keycloak (Maiúscula, Minúscula, Número, Especial)
         return $"Temp{Guid.NewGuid().ToString("N")[..8]}!123";
     }
+
+    private static string TierToRoleString(EProviderTier tier) => tier switch
+    {
+        EProviderTier.Standard => UserRoles.ProviderStandard,
+        EProviderTier.Silver => UserRoles.ProviderSilver,
+        EProviderTier.Gold => UserRoles.ProviderGold,
+        EProviderTier.Platinum => UserRoles.ProviderPlatinum,
+        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, null)
+    };
 }

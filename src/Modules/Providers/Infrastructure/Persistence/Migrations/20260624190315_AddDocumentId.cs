@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -12,6 +11,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("ALTER TABLE \"providers\".\"document\" ALTER COLUMN \"id\" DROP IDENTITY;");
+
             migrationBuilder.AlterColumn<Guid>(
                 name: "id",
                 schema: "providers",
@@ -32,8 +33,9 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 type: "integer",
                 nullable: false,
                 oldClrType: typeof(Guid),
-                oldType: "uuid")
-                .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                oldType: "uuid");
+
+            migrationBuilder.Sql("ALTER TABLE \"providers\".\"document\" ALTER COLUMN \"id\" ADD GENERATED ALWAYS AS IDENTITY;");
         }
     }
 }
