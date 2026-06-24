@@ -320,11 +320,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("provider_id");
 
-                            b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
                             b1.Property<string>("DocumentType")
                                 .IsRequired()
                                 .HasMaxLength(20)
@@ -351,7 +346,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("character varying(50)")
                                 .HasColumnName("number");
 
-                            b1.HasKey("ProviderId", "Id")
+                            b1.HasKey("ProviderId", "DocumentType")
                                 .HasName("pk_document");
 
                             b1.HasIndex("ProviderId", "DocumentType")

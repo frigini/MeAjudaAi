@@ -163,13 +163,13 @@ public class ProviderBuilder : BaseBuilder<Provider>
 
     public ProviderBuilder WithDocument(string number, EDocumentType type)
     {
-        _documents.Add(new Document(Guid.NewGuid(), number, type));
+        _documents.Add(new Document(number, type));
         return this;
     }
 
     public ProviderBuilder WithDocument(string number, EDocumentType type, string fileName, string fileUrl)
     {
-        _documents.Add(new Document(Guid.NewGuid(), number, type, fileName, fileUrl));
+        _documents.Add(new Document(number, type, fileName, fileUrl));
         return this;
     }
 

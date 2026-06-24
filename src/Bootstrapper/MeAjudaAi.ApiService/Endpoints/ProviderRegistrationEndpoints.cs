@@ -1,21 +1,12 @@
-using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.ApiService.Services.Orchestration;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Users.Application.Commands;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
-/// <summary>
-/// Endpoints públicos de registro de prestadores de serviços.
-/// Orquestra a criação de usuário (módulo Users) + entidade Provider (módulo Providers).
-/// Fica no ApiService pois é o único projeto que referencia ambos os módulos.
-/// </summary>
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class ProviderRegistrationEndpoints
 {
     public static IEndpointRouteBuilder MapProviderRegistrationEndpoints(this IEndpointRouteBuilder endpoints)
@@ -38,127 +29,18 @@ public static class ProviderRegistrationEndpoints
 
     private static async Task<IResult> RegisterProviderAsync(
         [FromBody] RegisterProviderRequest request,
-        ICommandDispatcher commandDispatcher,
-        ILoggerFactory loggerFactory,
+        [FromServices] IProviderRegistrationOrchestrator orchestrator,
         CancellationToken cancellationToken)
     {
-        var logger = loggerFactory.CreateLogger(typeof(ProviderRegistrationEndpoints).FullName!);
+        var result = await orchestrator.RegisterProviderAsync(request, cancellationToken);
 
-        if (!request.AcceptedTerms || !request.AcceptedPrivacyPolicy)
-            return Results.BadRequest("Você deve aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.");
-
-        // Passo 1: Criar usuário no Keycloak com role provider-standard (módulo Users)
-        // Sanitiza telefone mantendo apenas números
-        var phone = System.Text.RegularExpressions.Regex.Replace(request.PhoneNumber, @"\D", "");
-        var username = string.IsNullOrEmpty(phone) ? $"provider_{Guid.NewGuid():N}" : $"provider_{phone}";
-
-        // Usa o Primeiro Nome como fallback para o Sobrenome para satisfazer a validação do Keycloak
-        var nameParts = request.Name.Trim().Split(' ', 2);
-        var firstName = nameParts[0];
-        var lastName = nameParts.Length > 1 ? nameParts[1] : firstName; // Fallback para firstname se não houver lastname
-
-        var createUserCommand = new CreateUserCommand(
-            Username: username,
-            Email: request.Email,
-            FirstName: firstName,
-            LastName: lastName,
-            Password: GenerateTemporaryPassword(), // Senha temporária forte gerada dinamicamente
-            Roles: [TierToRoleString(EProviderTier.Standard)],
-            PhoneNumber: request.PhoneNumber
-        );
-
-        var userResult = await commandDispatcher.SendAsync<CreateUserCommand, Result<MeAjudaAi.Modules.Users.Application.DTOs.UserDto>>(
-            createUserCommand, cancellationToken);
-
-        if (userResult.IsFailure)
+        if (result.IsFailure)
         {
-            // Logar erro detalhado internamente
-            logger.LogError("Failed to create Keycloak user for provider registration. Error: {Error}", userResult.Error.Message);
-            return Results.BadRequest("Ocorreu um erro ao registrar o usuário.");
-        }
-
-        // Passo 2: Criar entidade Provider vinculada ao usuário (módulo Providers)
-        var createProviderCommand = new CreateProviderCommand(
-            UserId: userResult.Value!.Id,
-            Name: request.Name,
-            Type: request.Type,
-            BusinessProfile: new BusinessProfileDto(
-                LegalName: request.Name,
-                FantasyName: null,
-                Description: null,
-                ContactInfo: new ContactInfoDto(
-                    Email: request.Email,
-                    PhoneNumber: request.PhoneNumber,
-                    Website: null),
-                PrimaryAddress: new AddressDto(
-                    Street: string.Empty,
-                    Number: string.Empty,
-                    Complement: null,
-                    Neighborhood: string.Empty,
-                    City: string.Empty,
-                    State: string.Empty,
-                    ZipCode: string.Empty,
-                    Country: "BR")
-            )
-        );
-
-        var providerResult = await commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
-            createProviderCommand, cancellationToken);
-
-        if (providerResult.IsFailure)
-        {
-            // Compensação: Tentar remover o usuário criado para evitar orfãos
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                var deleteUserCommand = new DeleteUserCommand(userResult.Value!.Id);
-                var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cts.Token);
-
-                if (deleteResult.IsFailure)
-                {
-                    logger.LogError("Compensation failed: Could not delete orphaned user {UserId}. Error: {Error}", userResult.Value!.Id, deleteResult.Error.Message);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // O cancelamento foi solicitado — respeite-o e registre no nível de aviso.
-                logger.LogWarning("Compensation cancelled while attempting to delete orphaned user {UserId}.", userResult.Value!.Id);
-            }
-            catch (TimeoutException ex)
-            {
-                // Se o dispatcher puder exceder o tempo limite, registre e continue (compensação de melhor esforço).
-                logger.LogError(ex, "Compensation failed (timeout): Could not delete orphaned user {UserId}.", userResult.Value!.Id);
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Exemplo de outra falha específica esperada do dispatcher.
-                logger.LogError(ex, "Compensation failed (invalid operation): Could not delete orphaned user {UserId}.", userResult.Value!.Id);
-            }
-            catch (Exception ex)
-            {
-                // Erro inesperado na compensação - registra e ignora para manter a resposta original de BadRequest
-                logger.LogError(ex, "Unexpected error during compensation for orphaned user {UserId}.", userResult.Value!.Id);
-            }
-
-            return Results.BadRequest("Ocorreu um erro ao registrar o provedor.");
+            return Results.BadRequest(result.Error?.Message);
         }
 
         return Results.Created(
-            $"/api/v1/providers/{providerResult.Value!.Id}",
-            new Response<ProviderDto>(providerResult.Value));
+            $"/api/v1/providers/{result.Value.Id}",
+            new Response<ProviderDto>(result.Value));
     }
-
-    private static string GenerateTemporaryPassword()
-    {
-        return $"Temp{Guid.NewGuid().ToString("N")[..8]}!123";
-    }
-
-    private static string TierToRoleString(EProviderTier tier) => tier switch
-    {
-        EProviderTier.Standard => UserRoles.ProviderStandard,
-        EProviderTier.Silver => UserRoles.ProviderSilver,
-        EProviderTier.Gold => UserRoles.ProviderGold,
-        EProviderTier.Platinum => UserRoles.ProviderPlatinum,
-        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, null)
-    };
 }

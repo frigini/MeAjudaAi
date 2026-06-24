@@ -1,6 +1,7 @@
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Services.Authentication;
+using MeAjudaAi.ApiService.Services.Orchestration;
 using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Middleware;
@@ -27,6 +28,11 @@ public static class ServiceCollectionExtensions
         services.AddApiVersioning(); // Adiciona versionamento de API
         services.AddCustomAntiforgery();
         services.AddMemoryCache();
+
+        // Orchestration services
+        services.AddScoped<ICspReportService, CspReportService>();
+        services.AddScoped<IClientConfigurationService, ClientConfigurationService>();
+        services.AddScoped<IProviderRegistrationOrchestrator, ProviderRegistrationOrchestrator>();
 
         // Configuração de GeographicRestriction (vincula as opções do appsettings.json)
         services.Configure<GeographicRestrictionOptions>(

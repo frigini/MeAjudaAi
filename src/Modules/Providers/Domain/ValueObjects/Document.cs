@@ -11,7 +11,6 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// </summary>
 public sealed class Document : ValueObject
 {
-    public Guid Id { get; private set; }
     public string Number { get; private set; }
     public EDocumentType DocumentType { get; private set; }
     public string? FileName { get; private set; }
@@ -25,21 +24,12 @@ public sealed class Document : ValueObject
         IsPrimary = false;
     }
 
-    public Document(string number, EDocumentType documentType, string? fileName = null, string? fileUrl = null, bool isPrimary = false)
-        : this(Guid.NewGuid(), number, documentType, fileName, fileUrl, isPrimary)
-    {
-    }
-
     [JsonConstructor]
-    public Document(Guid id, string number, EDocumentType documentType, string? fileName = null, string? fileUrl = null, bool isPrimary = false)
+    public Document(string number, EDocumentType documentType, string? fileName = null, string? fileUrl = null, bool isPrimary = false)
     {
-        if (id == Guid.Empty)
-            throw new ArgumentException("Id do documento não pode ser vazio", nameof(id));
-
         if (string.IsNullOrWhiteSpace(number))
             throw new ArgumentException("Número do documento não pode ser vazio", nameof(number));
 
-        Id = id;
         Number = documentType switch
         {
             EDocumentType.CPF or EDocumentType.CNPJ => Regex.Replace(number, @"[^\d]", ""),
@@ -62,7 +52,7 @@ public sealed class Document : ValueObject
     /// <returns>Nova instância do documento com o status primário atualizado</returns>
     public Document WithPrimaryStatus(bool isPrimary)
     {
-        return new Document(Id, Number, DocumentType, FileName, FileUrl, isPrimary);
+        return new Document(Number, DocumentType, FileName, FileUrl, isPrimary);
     }
 
     private bool IsValid()
@@ -87,10 +77,8 @@ public sealed class Document : ValueObject
         if (string.IsNullOrWhiteSpace(cpf))
             return false;
 
-        // Remove caracteres não numéricos
         cpf = Regex.Replace(cpf, @"[^\d]", "");
 
-        // Verifica se tem 11 dígitos e não são todos iguais
         return cpf.Length == 11 && !cpf.All(c => c == cpf[0]);
     }
 
@@ -102,10 +90,8 @@ public sealed class Document : ValueObject
         if (string.IsNullOrWhiteSpace(cnpj))
             return false;
 
-        // Remove caracteres não numéricos
         cnpj = Regex.Replace(cnpj, @"[^\d]", "");
 
-        // Verifica se tem 14 dígitos e não são todos iguais
         return cnpj.Length == 14 && !cnpj.All(c => c == cnpj[0]);
     }
 

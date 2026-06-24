@@ -1,13 +1,9 @@
+using MeAjudaAi.ApiService.Services.Orchestration;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using MeAjudaAi.ApiService.Endpoints.Models;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
-/// <summary>
-/// Endpoint para receber relatórios de violação de CSP.
-/// Permite monitorar tentativas de XSS e outras violações de segurança.
-/// </summary>
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class CspReportEndpoints
 {
     public static IEndpointRouteBuilder MapCspReportEndpoints(this IEndpointRouteBuilder endpoints)
@@ -18,55 +14,25 @@ public static class CspReportEndpoints
         group.MapPost("/", ReceiveCspReport)
             .WithName("ReceiveCspReport")
             .WithSummary("Recebe relatórios de violação de Content Security Policy")
-            .AllowAnonymous(); // Deve ser anônimo para receber relatórios do browser
+            .AllowAnonymous();
 
         return endpoints;
     }
 
-    /// <summary>
-    /// Recebe e registra violações de CSP.
-    /// </summary>
-    internal static async Task<IResult> ReceiveCspReport(
+    private static async Task<IResult> ReceiveCspReport(
         HttpContext context,
-        [FromServices] ILogger<Program> logger)
+        [FromServices] ICspReportService cspReportService)
     {
-        try
+        using var reader = new StreamReader(context.Request.Body);
+        var reportJson = await reader.ReadToEndAsync();
+
+        var result = cspReportService.ProcessReport(reportJson);
+
+        if (result.IsFailure)
         {
-            using var reader = new StreamReader(context.Request.Body);
-            var reportJson = await reader.ReadToEndAsync();
-
-            if (string.IsNullOrWhiteSpace(reportJson))
-            {
-                return TypedResults.BadRequest("Relatório vazio");
-            }
-
-            // Analisar o relatório CSP
-            var report = JsonSerializer.Deserialize<CspViolationReport>(reportJson);
-
-            if (report?.CspReport != null)
-            {
-                logger.LogWarning(
-                    "CSP Violation: {DocumentUri} blocked {ViolatedDirective} from {BlockedUri}. Original Policy: {OriginalPolicy}",
-                    report.CspReport.DocumentUri,
-                    report.CspReport.ViolatedDirective,
-                    report.CspReport.BlockedUri,
-                    report.CspReport.OriginalPolicy);
-
-                // Em produção, você pode querer armazenar isso em um sistema de monitoramento
-                // ou enviar alertas se houver muitas violações
-            }
-
-            return TypedResults.NoContent();
+            return TypedResults.BadRequest(result.Error);
         }
-        catch (JsonException ex)
-        {
-            logger.LogError(ex, "Invalid CSP report payload");
-            return TypedResults.BadRequest("Invalid CSP report");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error processing CSP report");
-            return TypedResults.StatusCode(500);
-        }
+
+        return TypedResults.NoContent();
     }
 }

@@ -187,10 +187,6 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 
         builder.OwnsMany(p => p.Documents, doc =>
         {
-            doc.Property(d => d.Id)
-                .HasColumnName("id")
-                .IsRequired();
-
             doc.Property(d => d.Number)
                 .HasMaxLength(50)
                 .IsRequired()
@@ -209,7 +205,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasColumnName("is_primary")
                 .HasDefaultValue(false);
 
-            doc.HasKey("ProviderId", "Id");
+            doc.HasKey("ProviderId", "DocumentType");
             doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");
             doc.Property("ProviderId").HasColumnName("provider_id");
