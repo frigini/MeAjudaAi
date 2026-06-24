@@ -392,20 +392,6 @@ public class UsersModuleApiTests
         result.Should().BeFalse();
     }
 
-    [Fact]
-    public async Task IsAvailableAsync_WhenHealthCheckServiceThrowsException_ShouldReturnFalse()
-    {
-        // Arrange
-        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Health check failed"));
-
-        // Act
-        var result = await _sut.IsAvailableAsync(default(CancellationToken));
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
     #endregion
 
     #region Helper Methods

@@ -215,7 +215,12 @@ public sealed class ProvidersModuleApi(
 
         if (providerEntity == null) return Result<ModuleProviderIndexingDto?>.Success(null);
 
-        var address = providerEntity.BusinessProfile.PrimaryAddress;
+        var address = providerEntity.BusinessProfile?.PrimaryAddress;
+        if (address == null)
+        {
+            return Result<ModuleProviderIndexingDto?>.Success(null);
+        }
+
         var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
 
         var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);

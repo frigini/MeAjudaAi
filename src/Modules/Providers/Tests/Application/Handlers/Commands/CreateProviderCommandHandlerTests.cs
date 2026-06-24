@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -9,10 +10,6 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Commands;
-
-using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
-
-// ...
 
 public class CreateProviderCommandHandlerTests
 {
@@ -59,7 +56,7 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(ValidationMessages.Providers.AlreadyExists);
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.AlreadyExists);
     }
 
     [Fact]
@@ -88,15 +85,15 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Name.Should().Be("Provider Name");
-        result.Value.Type.Should().Be(EProviderType.Individual);
+        result.Value!.Name.Should().Be("Provider Name");
+        result.Value!.Type.Should().Be(EProviderType.Individual);
 
         _providerRepositoryMock.Verify(r => r.Add(It.IsAny<Provider>()), Times.Once);
         _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -116,14 +113,7 @@ public class CreateProviderCommandHandlerTests
         _providerQueriesMock.Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(ValidationMessages.Providers.CreationError);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

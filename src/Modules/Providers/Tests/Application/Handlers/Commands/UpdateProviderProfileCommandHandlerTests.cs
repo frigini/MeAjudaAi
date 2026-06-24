@@ -2,7 +2,6 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -63,8 +62,8 @@ public class UpdateProviderProfileCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Name.Should().Be("Updated Name");
-        result.Value.BusinessProfile.LegalName.Should().Be("Legal Name");
+        result.Value!.Name.Should().Be("Updated Name");
+        result.Value!.BusinessProfile.LegalName.Should().Be("Legal Name");
 
         _uowMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -94,12 +93,12 @@ public class UpdateProviderProfileCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
-        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
+        result.Error!.StatusCode.Should().Be(404);
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldCatchAndReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -118,14 +117,7 @@ public class UpdateProviderProfileCommandHandlerTests
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database connection failed"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error updating provider profile");
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

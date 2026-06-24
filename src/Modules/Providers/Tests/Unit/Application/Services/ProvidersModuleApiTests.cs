@@ -76,6 +76,54 @@ public class ProvidersModuleApiTests
             DeletedAt: null,
             IsActive: true);
     }
+
+    #region IsAvailableAsync Tests
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenCanConnectReturnsTrue_ShouldReturnTrue()
+    {
+        // Arrange
+        _providerQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
+
+        // Assert
+        result.Should().BeTrue();
+        _providerQueriesMock.Verify(x => x.CanConnectAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenCanConnectReturnsFalse_ShouldReturnFalse()
+    {
+        // Arrange
+        _providerQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenCancelled_ShouldThrowOperationCanceledException()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _providerQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            _sut.IsAvailableAsync(cts.Token));
+    }
+
+    #endregion
 }
 
 

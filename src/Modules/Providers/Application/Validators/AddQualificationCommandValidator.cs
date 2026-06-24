@@ -33,7 +33,7 @@ public class AddQualificationCommandValidator : AbstractValidator<AddQualificati
             .When(x => x.IssuingOrganization != null);
 
         RuleFor(x => x.IssueDate)
-            .LessThanOrEqualTo(DateTime.UtcNow)
+            .Must(date => date == null || date.Value <= DateTime.UtcNow)
             .WithMessage("A data de emissão não pode ser no futuro.")
             .When(x => x.IssueDate.HasValue);
 

@@ -56,7 +56,7 @@ public class GetProvidersQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrows_ShouldThrow()
     {
         // Arrange
         _providerQueriesMock
@@ -65,11 +65,7 @@ public class GetProvidersQueryHandlerTests
 
         var query = new GetProvidersQuery(1, 10);
 
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Erro interno ao buscar prestadores");
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query, CancellationToken.None));
     }
 }

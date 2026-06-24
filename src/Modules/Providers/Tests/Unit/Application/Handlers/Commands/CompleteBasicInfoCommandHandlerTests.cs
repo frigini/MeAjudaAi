@@ -64,14 +64,14 @@ public sealed class CompleteBasicInfoCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be("Prestador não encontrado");
 
         _mockRepository.Verify(r => r.TryFindAsync(It.Is<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithRepositoryException_ReturnsFailure()
+    public async Task HandleAsync_WithRepositoryException_Throws()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -87,12 +87,8 @@ public sealed class CompleteBasicInfoCommandHandlerTests
         _uowMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Be("Failed to complete provider basic info");
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
 

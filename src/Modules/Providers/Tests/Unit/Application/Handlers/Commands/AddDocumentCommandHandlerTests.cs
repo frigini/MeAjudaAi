@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -65,12 +66,12 @@ public class AddDocumentCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("Fornecedor não encontrado");
+        result.Error!.Message.Should().Be("Provedor não encontrado.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithInvalidDocumentNumber_ShouldReturnFailureResult()
+    public async Task HandleAsync_WithInvalidDocumentNumber_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -81,18 +82,13 @@ public class AddDocumentCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar o documento");
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _handler.HandleAsync(command, CancellationToken.None));
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -102,18 +98,12 @@ public class AddDocumentCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar o documento");
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Fact]
-    public async Task HandleAsync_WhenDuplicateDocumentType_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenDuplicateDocumentType_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -127,13 +117,8 @@ public class AddDocumentCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("Ocorreu um erro ao adicionar o documento");
+        // Act & Assert
+        await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

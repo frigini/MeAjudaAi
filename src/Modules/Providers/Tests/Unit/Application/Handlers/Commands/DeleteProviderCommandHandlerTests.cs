@@ -71,7 +71,7 @@ public class DeleteProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Fornecedor não encontrado");
+        result.Error!.Message.Should().Contain("Prestador não encontrado");
 
         _uowMock.Verify(
             u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),

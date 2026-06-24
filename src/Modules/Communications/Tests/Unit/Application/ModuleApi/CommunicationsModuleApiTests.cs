@@ -337,35 +337,35 @@ public class CommunicationsModuleApiTests
         result.Value.TotalItems.Should().Be(1);
     }
 
-    #region IsAvailableAsync Tests
-
     [Fact]
     public async Task IsAvailableAsync_WhenCanConnect_ReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
+        using var cts = new CancellationTokenSource();
         _templateQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         // Act
-        var result = await _api.IsAvailableAsync(default(CancellationToken));
+        var result = await _api.IsAvailableAsync(cts.Token);
 
         // Assert
         result.Should().BeTrue();
+        _templateQueriesMock.Verify(x => x.CanConnectAsync(cts.Token), Times.Once);
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenCanConnect_ReturnsFalse_ShouldReturnFalse()
     {
         // Arrange
+        using var cts = new CancellationTokenSource();
         _templateQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         // Act
-        var result = await _api.IsAvailableAsync(default(CancellationToken));
+        var result = await _api.IsAvailableAsync(cts.Token);
 
         // Assert
         result.Should().BeFalse();
+        _templateQueriesMock.Verify(x => x.CanConnectAsync(cts.Token), Times.Once);
     }
-
-    #endregion
 
     [Fact]
     public async Task GetLogsAsync_WhenSearchReturnsNullItems_ShouldReturnEmptyList()

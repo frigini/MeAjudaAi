@@ -14,6 +14,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
 namespace MeAjudaAi.Modules.Communications.Application.Services.Outbox;
@@ -76,7 +77,13 @@ public sealed class OutboxProcessorService(
         }
         catch (DbUpdateException ex)
         {
-            logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
+            logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}).",
+                message.Id, message.CorrelationId);
+            if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}). Invalid operation.",
                 message.Id, message.CorrelationId);
             if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
         }
@@ -109,7 +116,13 @@ public sealed class OutboxProcessorService(
             }
             catch (DbUpdateException ex)
             {
-                logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
+                logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}).",
+                    message.Id, message.CorrelationId);
+                if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}). Invalid operation.",
                     message.Id, message.CorrelationId);
                 if (log != null) uow.GetRepository<CommunicationLog, Guid>().Delete(log);
             }
@@ -117,6 +130,26 @@ public sealed class OutboxProcessorService(
 
         logger.LogWarning("Outbox message {Id} dispatch to {Channel} for {Recipient} failed. Attempt {Retry}/{Max}.",
             message.Id, message.Channel, recipientMasked, message.RetryCount, message.MaxRetries);
+    }
+
+    private T DeserializePayload<T>(string payload, string payloadType) where T : class
+    {
+        try
+        {
+            var envelope = serializer.Deserialize<MessageEnvelope>(payload);
+            if (envelope?.Version == 1)
+            {
+                return serializer.Deserialize<T>(envelope.Payload)
+                    ?? throw new InvalidOperationException($"Invalid {payloadType} payload in envelope.");
+            }
+            return serializer.Deserialize<T>(payload)
+                ?? throw new InvalidOperationException($"Invalid {payloadType} payload (legacy).");
+        }
+        catch (JsonException)
+        {
+            return serializer.Deserialize<T>(payload)
+                ?? throw new InvalidOperationException($"Invalid {payloadType} payload (fallback).");
+        }
     }
 
     private async Task<bool> DispatchInternalAsync(OutboxMessage message, CancellationToken cancellationToken)
@@ -132,27 +165,7 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchEmailAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        EmailOutboxPayload email;
-        try
-        {
-            var envelope = serializer.Deserialize<MessageEnvelope>(message.Payload);
-            if (envelope?.Version == 1)
-            {
-                email = serializer.Deserialize<EmailOutboxPayload>(envelope.Payload) 
-                    ?? throw new InvalidOperationException("Invalid email payload in envelope.");
-            }
-            else
-            {
-                email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
-                    ?? throw new InvalidOperationException("Invalid email payload (legacy).");
-            }
-        }
-        catch
-        {
-            // Fallback: tenta desserializar diretamente como legacy
-            email = serializer.Deserialize<EmailOutboxPayload>(message.Payload)
-                ?? throw new InvalidOperationException("Invalid email payload (fallback).");
-        }
+        var email = DeserializePayload<EmailOutboxPayload>(message.Payload, "email");
 
         string subject = email.Subject;
         string htmlBody;
@@ -204,26 +217,7 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchSmsAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        SmsOutboxPayload sms;
-        try
-        {
-            var envelope = serializer.Deserialize<MessageEnvelope>(message.Payload);
-            if (envelope?.Version == 1)
-            {
-                sms = serializer.Deserialize<SmsOutboxPayload>(envelope.Payload)
-                    ?? throw new InvalidOperationException("Invalid SMS payload in envelope.");
-            }
-            else
-            {
-                sms = serializer.Deserialize<SmsOutboxPayload>(message.Payload)
-                    ?? throw new InvalidOperationException("Invalid SMS payload (legacy).");
-            }
-        }
-        catch
-        {
-            sms = serializer.Deserialize<SmsOutboxPayload>(message.Payload)
-                ?? throw new InvalidOperationException("Invalid SMS payload (fallback).");
-        }
+        var sms = DeserializePayload<SmsOutboxPayload>(message.Payload, "SMS");
 
         return await smsSender.SendAsync(
             new SmsMessage(sms.PhoneNumber, sms.Body),
@@ -232,26 +226,7 @@ public sealed class OutboxProcessorService(
 
     private async Task<bool> DispatchPushAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        PushOutboxPayload push;
-        try
-        {
-            var envelope = serializer.Deserialize<MessageEnvelope>(message.Payload);
-            if (envelope?.Version == 1)
-            {
-                push = serializer.Deserialize<PushOutboxPayload>(envelope.Payload)
-                    ?? throw new InvalidOperationException("Invalid Push payload in envelope.");
-            }
-            else
-            {
-                push = serializer.Deserialize<PushOutboxPayload>(message.Payload)
-                    ?? throw new InvalidOperationException("Invalid Push payload (legacy).");
-            }
-        }
-        catch
-        {
-            push = serializer.Deserialize<PushOutboxPayload>(message.Payload)
-                ?? throw new InvalidOperationException("Invalid Push payload (fallback).");
-        }
+        var push = DeserializePayload<PushOutboxPayload>(message.Payload, "Push");
 
         return await pushSender.SendAsync(
             new PushNotification(push.DeviceToken, push.Title, push.Body, push.Data),
@@ -274,25 +249,10 @@ public sealed class OutboxProcessorService(
 
         try
         {
-            string payload = message.Payload;
-            
-            // Try to unwrap MessageEnvelope if present
-            try
-            {
-                var envelope = serializer.Deserialize<MessageEnvelope>(payload);
-                if (envelope?.Version == 1 && !string.IsNullOrWhiteSpace(envelope.Payload))
-                {
-                    payload = envelope.Payload;
-                }
-            }
-            catch
-            {
-                // Not an envelope, use raw payload
-            }
-
+            var payload = UnwrapEnvelopePayload(message.Payload);
             return serializer.Deserialize<EmailOutboxPayload>(payload)?.TemplateKey;
         }
-        catch (Exception)
+        catch (JsonException)
         {
             return null;
         }
@@ -305,21 +265,7 @@ public sealed class OutboxProcessorService(
 
         try
         {
-            string payload = message.Payload;
-            
-            // Try to unwrap MessageEnvelope if present
-            try
-            {
-                var envelope = serializer.Deserialize<MessageEnvelope>(payload);
-                if (envelope?.Version == 1 && !string.IsNullOrWhiteSpace(envelope.Payload))
-                {
-                    payload = envelope.Payload;
-                }
-            }
-            catch
-            {
-                // Not an envelope, use raw payload
-            }
+            var payload = UnwrapEnvelopePayload(message.Payload);
 
             return message.Channel switch
             {
@@ -329,9 +275,17 @@ public sealed class OutboxProcessorService(
                 _ => "unknown"
             };
         }
-        catch (Exception)
+        catch (JsonException)
         {
             return "error-extracting";
         }
+    }
+
+    private string UnwrapEnvelopePayload(string payload)
+    {
+        var envelope = serializer.Deserialize<MessageEnvelope>(payload);
+        return envelope?.Version == 1 && !string.IsNullOrWhiteSpace(envelope.Payload)
+            ? envelope.Payload
+            : payload;
     }
 }

@@ -18,8 +18,10 @@ public sealed class DbContextSearchableProviderQueries(
     SearchProvidersDbContext context,
     IDapperConnection dapper) : ISearchableProviderQueries
 {
-    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
-        await context.Database.CanConnectAsync(cancellationToken);
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+    {
+        return await context.Database.CanConnectAsync(cancellationToken);
+    }
 
     public async Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default)
     {

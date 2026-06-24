@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -83,7 +84,7 @@ public class RemoveDocumentCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider not found");
+        result.Error.Message.Should().Contain("Prestador não encontrado");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -95,7 +96,7 @@ public class RemoveDocumentCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenDocumentNotFound_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenDocumentNotFound_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -110,12 +111,8 @@ public class RemoveDocumentCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing the document");
+        // Act & Assert
+        await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -127,7 +124,7 @@ public class RemoveDocumentCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -140,16 +137,8 @@ public class RemoveDocumentCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing the document");
-
-        _uowMock.Verify(
-            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Theory]

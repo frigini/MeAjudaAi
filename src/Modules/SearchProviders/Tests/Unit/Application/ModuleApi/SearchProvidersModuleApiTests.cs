@@ -67,56 +67,26 @@ public class SearchProvidersModuleApiTests
     #region IsAvailableAsync Tests
 
     [Fact]
-    public async Task IsAvailableAsync_WhenSearchSucceeds_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenCanConnectReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
-        var pagedResult = new PagedResult<SearchableProviderDto>
-        {
-            Items = new List<SearchableProviderDto>(),
-            PageNumber = 1,
-            PageSize = 1,
-            TotalItems = 0
-        };
-
-        _queryDispatcherMock
-            .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
-                It.IsAny<SearchProvidersQuery>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<PagedResult<SearchableProviderDto>>.Success(pagedResult));
+        _queriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
+        _queriesMock.Verify(x => x.CanConnectAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenSearchFails_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenCanConnectReturnsFalse_ShouldReturnFalse()
     {
         // Arrange
-        _queryDispatcherMock
-            .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
-                It.IsAny<SearchProvidersQuery>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<PagedResult<SearchableProviderDto>>.Failure("Query failed"));
-
-        // Act
-        var result = await _sut.IsAvailableAsync(default(CancellationToken));
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenQueryThrows_ShouldReturnFalse()
-    {
-        // Arrange
-        _queryDispatcherMock
-            .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
-                It.IsAny<SearchProvidersQuery>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database unavailable"));
+        _queriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _sut.IsAvailableAsync(default(CancellationToken));
@@ -132,10 +102,7 @@ public class SearchProvidersModuleApiTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _queryDispatcherMock
-            .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
-                It.IsAny<SearchProvidersQuery>(),
-                It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act & Assert

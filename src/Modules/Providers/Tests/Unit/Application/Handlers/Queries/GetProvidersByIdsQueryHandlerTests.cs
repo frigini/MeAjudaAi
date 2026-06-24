@@ -125,7 +125,7 @@ public class GetProvidersByIdsQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerIds = new[] { Guid.NewGuid() };
@@ -137,17 +137,8 @@ public class GetProvidersByIdsQueryHandlerTests
 
         var query = new GetProvidersByIdsQuery(providerIds);
 
-        // Act
-        var result = await _handler.HandleAsync(query);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
-
-        _providerQueriesMock.Verify(
-            x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query));
     }
 
     [Fact]

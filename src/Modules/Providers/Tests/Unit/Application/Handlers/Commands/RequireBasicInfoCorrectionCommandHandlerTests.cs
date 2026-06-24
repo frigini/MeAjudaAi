@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Resources;
@@ -171,7 +172,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
     [InlineData(EProviderStatus.Active)]
     [InlineData(EProviderStatus.Suspended)]
     [InlineData(EProviderStatus.Rejected)]
-    public async Task HandleAsync_WhenProviderNotInPendingDocumentVerification_ShouldReturnDomainValidationMessage(EProviderStatus status)
+    public async Task HandleAsync_WhenProviderNotInPendingDocumentVerification_ShouldThrow(EProviderStatus status)
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -207,12 +208,9 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("Can only require basic info correction during document verification");
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
+        exception.Message.Should().Contain("Can only require basic info correction during document verification");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
@@ -220,7 +218,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -234,16 +232,8 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("BasicInfoCorrectionError");
-
-        _uowMock.Verify(
-            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Fact]

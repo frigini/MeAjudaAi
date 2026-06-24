@@ -137,7 +137,7 @@ public class RemoveQualificationCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -150,22 +150,14 @@ public class RemoveQualificationCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Erro ao remover qualificação");
-
-        _uowMock.Verify(
-            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task HandleAsync_WithInvalidQualificationName_ShouldReturnFailureResult(string qualificationName)
+    public async Task HandleAsync_WithInvalidQualificationName_ShouldThrow(string qualificationName)
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -180,12 +172,8 @@ public class RemoveQualificationCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Erro ao remover qualificação");
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _handler.HandleAsync(command, CancellationToken.None));
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

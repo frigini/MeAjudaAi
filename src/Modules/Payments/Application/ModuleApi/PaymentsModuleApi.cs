@@ -38,7 +38,7 @@ public sealed class PaymentsModuleApi(
     public async Task<Result<ModuleSubscriptionDto?>> GetActiveSubscriptionByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         var subscription = await subscriptionQueries.GetActiveByProviderIdAsync(providerId, cancellationToken);
-        
+
         if (subscription == null)
         {
             return Result<ModuleSubscriptionDto?>.Success(null);

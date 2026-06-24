@@ -15,27 +15,21 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 {
     private readonly ProvidersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    private const string PostgresProviderName = "Npgsql.EntityFrameworkCore.PostgreSQL";
     private const string LikeEscapeChar = "\\";
 
-    private bool IsPostgres => _context.Database.ProviderName == PostgresProviderName;
-    private bool IsRelational => _context.Database.IsRelational() && _context.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
-
     /// <inheritdoc />
-    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
-        await _context.Database.CanConnectAsync(cancellationToken);
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Database.CanConnectAsync(cancellationToken);
+    }
 
     private IQueryable<Provider> GetProvidersQuery()
     {
-        var query = _context.Providers
+        return _context.Providers
             .AsNoTracking()
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
             .Include(p => p.Services);
-
-        return IsRelational 
-            ? query.AsSplitQuery() 
-            : query;
     }
 
     /// <inheritdoc />
@@ -90,63 +84,27 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
-        
-        if (IsRelational)
-        {
-            var escapedCity = EscapeLikePattern(city);
-            var likePattern = $"%{escapedCity}%";
+        var escapedCity = EscapeLikePattern(city);
+        var likePattern = $"%{escapedCity}%";
 
-            if (IsPostgres)
-            {
-                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar));
-            }
-            else
-            {
-                query = query.Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar));
-            }
-        }
-        else
-        {
-            var lowerCity = city.ToLower();
-            query = query.Where(p => p.BusinessProfile != null && 
-                                     p.BusinessProfile.PrimaryAddress != null && 
-                                     p.BusinessProfile.PrimaryAddress.City != null && 
-                                     p.BusinessProfile.PrimaryAddress.City.ToLower().Contains(lowerCity));
-        }
-        
-        return await ApplyOrdering(query).ToListAsync(cancellationToken);
+        return await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
+            .Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.City, likePattern, LikeEscapeChar))
+            .OrderBy(p => p.Id.Value)
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        var query = GetProvidersQuery().Where(p => !p.IsDeleted);
-        
-        if (IsRelational)
-        {
-            var escapedState = EscapeLikePattern(state);
-            var likePattern = $"%{escapedState}%";
+        var escapedState = EscapeLikePattern(state);
+        var likePattern = $"%{escapedState}%";
 
-            if (IsPostgres)
-            {
-                query = query.Where(p => EF.Functions.ILike(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar));
-            }
-            else
-            {
-                query = query.Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar));
-            }
-        }
-        else
-        {
-            var lowerState = state.ToLower();
-            query = query.Where(p => p.BusinessProfile != null && 
-                                     p.BusinessProfile.PrimaryAddress != null && 
-                                     p.BusinessProfile.PrimaryAddress.State != null && 
-                                     p.BusinessProfile.PrimaryAddress.State.ToLower().Contains(lowerState));
-        }
-        
-        return await ApplyOrdering(query).ToListAsync(cancellationToken);
+        return await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
+            .Where(p => EF.Functions.Like(p.BusinessProfile!.PrimaryAddress!.State, likePattern, LikeEscapeChar))
+            .OrderBy(p => p.Id.Value)
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -223,42 +181,9 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            if (!_context.Database.IsRelational())
-            {
-                // Filtro client-side após ToListAsync para evitar erros de tradução
-                var allProviders = await query.ToListAsync(cancellationToken);
-                
-                if (typeFilter.HasValue) allProviders = allProviders.Where(p => p.Type == typeFilter.Value).ToList();
-                if (verificationStatusFilter.HasValue) allProviders = allProviders.Where(p => p.VerificationStatus == verificationStatusFilter.Value).ToList();
-                
-                var lowerNameFilter = nameFilter.ToLower();
-                var filtered = allProviders.Where(p => p.Name.ToLower().Contains(lowerNameFilter)).ToList();
-                
-                var filteredCount = filtered.Count;
-                var pagedItems = filtered
-                    .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
-                    .Skip((page - 1) * pageSize).Take(pageSize).ToList();
-                
-                return new PagedResult<Provider>
-                {
-                    Items = pagedItems,
-                    PageNumber = page,
-                    PageSize = pageSize,
-                    TotalItems = filteredCount
-                };
-            }
-            
             var escapedFilter = EscapeLikePattern(nameFilter);
             var likePattern = $"%{escapedFilter}%";
-            
-            if (IsPostgres)
-            {
-                query = query.Where(p => EF.Functions.ILike(p.Name, likePattern, LikeEscapeChar));
-            }
-            else
-            {
-                query = query.Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar));
-            }
+            query = query.Where(p => EF.Functions.Like(p.Name, likePattern, LikeEscapeChar));
         }
 
         // Aplica filtro por tipo
@@ -306,14 +231,5 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             .Replace("\\", "\\\\")
             .Replace("%", "\\%")
             .Replace("_", "\\_");
-    }
-
-    private IQueryable<Provider> ApplyOrdering(IQueryable<Provider> query)
-    {
-        // InMemory cannot order by ProviderId (no IComparable), so use .Value;
-        // relational providers translate .Id directly to the column.
-        return IsRelational
-            ? query.OrderBy(p => p.Id)
-            : query.OrderBy(p => p.Id.Value);
     }
 }

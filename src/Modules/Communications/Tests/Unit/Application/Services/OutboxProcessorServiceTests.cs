@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Modules.Communications.Application.DTOs;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
@@ -11,6 +12,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services;
@@ -404,7 +406,7 @@ public class OutboxProcessorServiceTests
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
-            .Throws(new Exception("Invalid envelope"));
+            .Throws(new JsonException("Invalid envelope"));
         _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(legacyPayload))
             .Returns(new EmailOutboxPayloadBuilder()
                 .WithTo("test@test.com")
@@ -502,7 +504,7 @@ public class OutboxProcessorServiceTests
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
-            .Throws(new Exception("Invalid envelope"));
+            .Throws(new JsonException("Invalid envelope"));
         _serializeMock.Setup(x => x.Deserialize<SmsOutboxPayload>(legacyPayload))
             .Returns(new SmsOutboxPayloadBuilder()
                 .WithPhoneNumber("+5511999999999")
@@ -527,7 +529,7 @@ public class OutboxProcessorServiceTests
         SetupPendingMessages(message);
 
         _serializeMock.Setup(x => x.Deserialize<MessageEnvelope>(It.IsAny<string>()))
-            .Throws(new Exception("Invalid envelope"));
+            .Throws(new JsonException("Invalid envelope"));
         _serializeMock.Setup(x => x.Deserialize<PushOutboxPayload>(legacyPayload))
             .Returns(new PushOutboxPayloadBuilder()
                 .WithDeviceToken("token")
@@ -589,7 +591,7 @@ public class OutboxProcessorServiceTests
         SetupEmailSender(true);
 
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB error"));
+            .ThrowsAsync(new DbUpdateException("DB error"));
 
         var result = await _service.ProcessPendingMessagesAsync();
 
@@ -609,7 +611,7 @@ public class OutboxProcessorServiceTests
         SetupEmailSender(false);
 
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB error"));
+            .ThrowsAsync(new DbUpdateException("DB error"));
 
         var result = await _service.ProcessPendingMessagesAsync();
 

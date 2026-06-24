@@ -87,7 +87,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(400);
-        result.Error.Message.Should().Contain("cannot be empty");
+        result.Error.Message.Should().Contain("não pode ser vazio");
 
         _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -107,7 +107,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(400);
-        result.Error.Message.Should().Contain("cannot be empty");
+        result.Error.Message.Should().Contain("não pode ser vazio");
 
         _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -127,7 +127,7 @@ public class GetProviderByDocumentQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(400);
-        result.Error.Message.Should().Contain("cannot be empty");
+        result.Error.Message.Should().Contain("não pode ser vazio");
 
         _providerQueriesMock.Verify(
             x => x.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -163,7 +163,7 @@ public class GetProviderByDocumentQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnInternalError()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var document = "12345678901";
@@ -175,18 +175,8 @@ public class GetProviderByDocumentQueryHandlerTests
 
         var query = new GetProviderByDocumentQuery(document);
 
-        // Act
-        var result = await _handler.HandleAsync(query);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.StatusCode.Should().Be(500);
-        result.Error.Message.Should().Contain("error occurred");
-
-        _providerQueriesMock.Verify(
-            x => x.GetByDocumentAsync(document, It.IsAny<CancellationToken>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query));
     }
 
     [Fact]

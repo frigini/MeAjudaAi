@@ -235,4 +235,136 @@ public class AddQualificationCommandValidatorTests
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Fact]
+    public async Task Validate_WithIssuingOrganizationExceeding200Characters_ShouldHaveValidationError()
+    {
+        // Arrange
+        var longOrganization = new string('A', 201);
+        var command = new AddQualificationCommand(
+            ProviderId: Guid.NewGuid(),
+            Name: "AWS Certification",
+            Description: null,
+            IssuingOrganization: longOrganization,
+            IssueDate: null,
+            ExpirationDate: null,
+            DocumentNumber: null
+        );
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.IssuingOrganization)
+            .WithErrorMessage("A organização emissora não pode exceder 200 caracteres.");
+    }
+
+    [Fact]
+    public async Task Validate_WithIssuingOrganizationAt200Characters_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var organization = new string('A', 200);
+        var command = new AddQualificationCommand(
+            ProviderId: Guid.NewGuid(),
+            Name: "AWS Certification",
+            Description: null,
+            IssuingOrganization: organization,
+            IssueDate: null,
+            ExpirationDate: null,
+            DocumentNumber: null
+        );
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.IssuingOrganization);
+    }
+
+    [Fact]
+    public async Task Validate_WithNullIssuingOrganization_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var command = new AddQualificationCommand(
+            ProviderId: Guid.NewGuid(),
+            Name: "AWS Certification",
+            Description: null,
+            IssuingOrganization: null,
+            IssueDate: null,
+            ExpirationDate: null,
+            DocumentNumber: null
+        );
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.IssuingOrganization);
+    }
+
+    [Fact]
+    public async Task Validate_WithDocumentNumberExceeding100Characters_ShouldHaveValidationError()
+    {
+        // Arrange
+        var longDocumentNumber = new string('1', 101);
+        var command = new AddQualificationCommand(
+            ProviderId: Guid.NewGuid(),
+            Name: "AWS Certification",
+            Description: null,
+            IssuingOrganization: null,
+            IssueDate: null,
+            ExpirationDate: null,
+            DocumentNumber: longDocumentNumber
+        );
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.DocumentNumber)
+            .WithErrorMessage("O número do documento não pode exceder 100 caracteres.");
+    }
+
+    [Fact]
+    public async Task Validate_WithDocumentNumberAt100Characters_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var documentNumber = new string('1', 100);
+        var command = new AddQualificationCommand(
+            ProviderId: Guid.NewGuid(),
+            Name: "AWS Certification",
+            Description: null,
+            IssuingOrganization: null,
+            IssueDate: null,
+            ExpirationDate: null,
+            DocumentNumber: documentNumber
+        );
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.DocumentNumber);
+    }
+
+    [Fact]
+    public async Task Validate_WithNullDocumentNumber_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var command = new AddQualificationCommand(
+            ProviderId: Guid.NewGuid(),
+            Name: "AWS Certification",
+            Description: null,
+            IssuingOrganization: null,
+            IssueDate: null,
+            ExpirationDate: null,
+            DocumentNumber: null
+        );
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.DocumentNumber);
+    }
 }

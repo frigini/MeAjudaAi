@@ -79,7 +79,7 @@ public class GetProvidersByVerificationStatusQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var status = EVerificationStatus.Pending;
@@ -90,12 +90,7 @@ public class GetProvidersByVerificationStatusQueryHandlerTests
 
         var query = new GetProvidersByVerificationStatusQuery(status);
 
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query, CancellationToken.None));
     }
 }

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -148,7 +149,7 @@ public class UpdateProviderProfileCommandHandlerTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task HandleAsync_WithInvalidName_ShouldReturnFailureResult(string invalidName)
+    public async Task HandleAsync_WithInvalidName_ShouldThrow(string invalidName)
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -188,12 +189,8 @@ public class UpdateProviderProfileCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error updating provider profile");
+        // Act & Assert
+        await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -204,8 +201,8 @@ public class UpdateProviderProfileCommandHandlerTests
             Times.Never);
     }
 
-    [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+[Fact]
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -244,16 +241,8 @@ public class UpdateProviderProfileCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error updating provider profile");
-
-        _uowMock.Verify(
-            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Fact]

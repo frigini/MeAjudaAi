@@ -73,7 +73,7 @@ public class GetProviderByUserIdQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -84,12 +84,7 @@ public class GetProviderByUserIdQueryHandlerTests
 
         var query = new GetProviderByUserIdQuery(userId);
 
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Erro ao buscar prestador");
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query, CancellationToken.None));
     }
 }

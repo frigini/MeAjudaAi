@@ -61,15 +61,12 @@ public class UsersModuleApiTests
         // Arrange
         _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-        _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
-
         // Act
         var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
-        _getUserByIdHandler.Verify(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userQueries.Verify(x => x.CanConnectAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
