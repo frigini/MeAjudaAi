@@ -51,32 +51,4 @@ public partial class DocumentsDbContext : BaseDbContext, IUnitOfWork
 
         base.OnModelCreating(modelBuilder);
     }
-
-    protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        // Se mais agregados com eventos de domínio forem adicionados a este contexto,
-        // considere generalizar esta query usando um tipo base comum (ex: IAggregateRoot)
-        // para capturar eventos de todas as entidades automaticamente
-        var domainEvents = ChangeTracker
-            .Entries<Document>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents)
-            .ToList();
-
-        return await Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        // Se mais agregados forem adicionados, generalize para capturar todos
-        var entities = ChangeTracker
-            .Entries<Document>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .Select(entry => entry.Entity);
-
-        foreach (var entity in entities)
-        {
-            entity.ClearDomainEvents();
-        }
-    }
 }

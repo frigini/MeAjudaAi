@@ -32,8 +32,8 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
             return repository;
 
         throw new InvalidOperationException(
-            $"RatingsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context only supports: Review(ReviewId)");
+            $"RatingsDbContext does not support repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name}. " +
+            $"Supported: Review(ReviewId).");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -41,30 +41,6 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
         modelBuilder.HasDefaultSchema(Schemas.Ratings);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries<AggregateRoot<ReviewId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents)
-            .ToList();
-
-        return Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        var entities = ChangeTracker
-            .Entries<AggregateRoot<ReviewId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .Select(entry => entry.Entity);
-
-        foreach (var entity in entities)
-        {
-            entity.ClearDomainEvents();
-        }
     }
 }
 

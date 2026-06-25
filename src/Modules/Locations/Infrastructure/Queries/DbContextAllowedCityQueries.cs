@@ -5,10 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 
-public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowedCityQueries
+public class DbContextAllowedCityQueries(LocationsDbContext _dbContext) : IAllowedCityQueries
 {
+    private readonly LocationsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
     public async Task<IReadOnlyList<AllowedCity>> GetAllActiveAsync(CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
+        await __dbContext.AllowedCities
             .Where(x => x.IsActive)
             .OrderBy(x => x.StateSigla)
             .ThenBy(x => x.CityName)
@@ -16,7 +18,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
             .ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<AllowedCity>> GetAllAsync(CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
+        await _dbContext.AllowedCities
             .OrderBy(x => x.StateSigla)
             .ThenBy(x => x.CityName)
             .AsNoTracking()
@@ -29,7 +31,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
 
         var normalizedState = state.Trim().ToUpperInvariant();
 
-        return await dbContext.AllowedCities
+        return await _dbContext.AllowedCities
             .Where(x => x.StateSigla == normalizedState)
             .OrderBy(x => x.CityName)
             .AsNoTracking()
@@ -37,7 +39,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
     }
 
     public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await dbContext.AllowedCities
+        await _dbContext.AllowedCities
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
@@ -48,7 +50,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
         var normalizedCity = cityName.Trim().ToUpperInvariant();
         var normalizedState = stateSigla.Trim().ToUpperInvariant();
 
-        return await dbContext.AllowedCities
+        return await _dbContext.AllowedCities
             .AsNoTracking()
             .FirstOrDefaultAsync(x =>
                 EF.Functions.ILike(x.CityName, normalizedCity) &&
@@ -64,7 +66,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
         var normalizedCity = cityName.Trim().ToUpperInvariant();
         var normalizedState = stateSigla.Trim().ToUpperInvariant();
 
-        return await dbContext.AllowedCities
+        return await _dbContext.AllowedCities
             .AsNoTracking()
             .AnyAsync(x =>
                 EF.Functions.ILike(x.CityName, normalizedCity) &&
@@ -81,7 +83,7 @@ public class DbContextAllowedCityQueries(LocationsDbContext dbContext) : IAllowe
         var normalizedCity = cityName.Trim().ToUpperInvariant();
         var normalizedState = stateSigla.Trim().ToUpperInvariant();
 
-        return await dbContext.AllowedCities
+        return await _dbContext.AllowedCities
             .AsNoTracking()
             .AnyAsync(x =>
                 EF.Functions.ILike(x.CityName, normalizedCity) &&

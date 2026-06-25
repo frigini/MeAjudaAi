@@ -6,30 +6,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
 
-public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQueries
+public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQueries
 {
+    private readonly BookingsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {
-        return await dbContext.Database.CanConnectAsync(cancellationToken);
+        return await __dbContext.Database.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Bookings
+        return await _dbContext.Bookings
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
     public async Task<Booking?> GetByIdTrackedAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Bookings
+        return await _dbContext.Bookings
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
     public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByProviderIdPagedAsync(
         Guid providerId, DateOnly? fromDate, DateOnly? toDate, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Bookings
+        var query = _dbContext.Bookings
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId);
 
@@ -39,7 +41,7 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
     public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByClientIdPagedAsync(
         Guid clientId, DateOnly? fromDate, DateOnly? toDate, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Bookings
+        var query = _dbContext.Bookings
             .AsNoTracking()
             .Where(b => b.ClientId == clientId);
 
@@ -49,7 +51,7 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
     public async Task<IReadOnlyList<Booking>> GetActiveByProviderAndDateAsync(
         Guid providerId, DateOnly date, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Bookings
+        return await _dbContext.Bookings
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId &&
                         b.Date == date &&
@@ -62,7 +64,7 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
     public async Task<IReadOnlyList<Booking>> GetByProviderAndPeriodAsync(
         Guid providerId, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Bookings
+        return await _dbContext.Bookings
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId && b.Date >= fromDate && b.Date <= toDate)
             .OrderBy(b => b.Date)
@@ -72,7 +74,7 @@ public class DbContextBookingQueries(BookingsDbContext dbContext) : IBookingQuer
 
     public async Task<bool> HasCompletedBookingAsync(Guid clientId, Guid providerId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Bookings
+        return await _dbContext.Bookings
             .AsNoTracking()
             .AnyAsync(b => b.ClientId == clientId &&
                            b.ProviderId == providerId &&

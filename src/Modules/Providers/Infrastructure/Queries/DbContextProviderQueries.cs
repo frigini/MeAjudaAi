@@ -15,8 +15,6 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
 {
     private readonly ProvidersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    private const string LikeEscapeChar = "\\";
-
     /// <inheritdoc />
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {

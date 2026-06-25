@@ -51,8 +51,8 @@ public static class Extensions
     {
         services.AddDbContext<PaymentsDbContext>(options =>
         {
-            var connStr = configuration.GetConnectionString("Payments") ??
-                          configuration.GetConnectionString("DefaultConnection") ?? 
+            var connStr = configuration.GetConnectionString("DefaultConnection") ??
+                          configuration.GetConnectionString("Payments") ??
                           configuration.GetConnectionString("meajudaai-db");
 
             if (string.IsNullOrWhiteSpace(connStr) && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
@@ -62,10 +62,26 @@ public static class Extensions
 
             if (string.IsNullOrWhiteSpace(connStr))
             {
-                throw new InvalidOperationException("Payments connection string is missing.");
+                throw new InvalidOperationException(
+                    "Connection string not found. Configure ConnectionStrings:DefaultConnection, Payments, or meajudaai-db.");
             }
 
-            options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "payments"));
+            options.UseNpgsql(connStr, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(PaymentsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Payments);
+                npgsqlOptions.CommandTimeout(60);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
+
+            if (environment.IsDevelopment())
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());

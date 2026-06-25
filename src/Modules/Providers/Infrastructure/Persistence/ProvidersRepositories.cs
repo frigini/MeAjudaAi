@@ -17,13 +17,16 @@ public partial class ProvidersDbContext : IRepository<Provider, Guid>, IReposito
     void IRepository<Provider, Guid>.Delete(Provider aggregate) =>
         Providers.Remove(aggregate);
 
-    async Task<Provider?> IRepository<Provider, ProviderId>.TryFindAsync(
-        ProviderId key, CancellationToken ct) =>
-        await Providers.FirstOrDefaultAsync(x => x.Id == key, ct);
+    public async Task<Provider?> TryFindAsync(ProviderId key, CancellationToken cancellationToken) =>
+        await Providers
+            .Include(p => p.Documents)
+            .Include(p => p.Qualifications)
+            .Include(p => p.Services)
+            .FirstOrDefaultAsync(p => p.Id == key && !p.IsDeleted, cancellationToken);
 
     void IRepository<Provider, ProviderId>.Add(Provider aggregate) =>
         Providers.Add(aggregate);
 
-    void IRepository<Provider, ProviderId>.Delete(Provider aggregate) =>
+    public void Delete(Provider aggregate) =>
         Providers.Remove(aggregate);
 }

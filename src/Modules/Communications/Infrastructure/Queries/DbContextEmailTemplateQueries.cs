@@ -5,11 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 
-public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : IEmailTemplateQueries
+public class DbContextEmailTemplateQueries(CommunicationsDbContext _dbContext) : IEmailTemplateQueries
 {
+    private readonly CommunicationsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {
-        return await dbContext.Database.CanConnectAsync(cancellationToken);
+        return await __dbContext.Database.CanConnectAsync(cancellationToken);
     }
 
     public async Task<EmailTemplate?> GetActiveByKeyAsync(
@@ -21,7 +23,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
         var templateKeyLower = templateKey.ToLowerInvariant();
         var languageLower = (language ?? "pt-BR").ToLowerInvariant();
 
-        var overrideTemplate = await dbContext.EmailTemplates
+        var overrideTemplate = await _dbContext.EmailTemplates
             .AsNoTracking()
             .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync(x => x.OverrideKey == templateKeyLower
@@ -29,7 +31,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
                                 && x.IsActive, cancellationToken);
         if (overrideTemplate != null) return overrideTemplate;
 
-        return await dbContext.EmailTemplates
+        return await _dbContext.EmailTemplates
             .AsNoTracking()
             .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync(x => x.TemplateKey == templateKeyLower
@@ -44,7 +46,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
         if (string.IsNullOrWhiteSpace(templateKey))
             throw new ArgumentException("Template key cannot be null or whitespace.", nameof(templateKey));
 
-        var result = await dbContext.EmailTemplates
+        var result = await _dbContext.EmailTemplates
             .AsNoTracking()
             .Where(x => x.TemplateKey == templateKey.ToLowerInvariant())
             .OrderBy(x => x.Language)
@@ -55,7 +57,7 @@ public class DbContextEmailTemplateQueries(CommunicationsDbContext dbContext) : 
 
     public async Task<IReadOnlyList<EmailTemplate>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await dbContext.EmailTemplates
+        return await _dbContext.EmailTemplates
             .AsNoTracking()
             .Where(x => x.IsActive)
             .OrderBy(x => x.TemplateKey)

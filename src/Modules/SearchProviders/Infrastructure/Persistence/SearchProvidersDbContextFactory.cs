@@ -1,11 +1,11 @@
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 
 /// <summary>
-/// Fábrica para criar instâncias de SearchProvidersDbContext em tempo de design (para migrações).
+/// Factory para criação do SearchProvidersDbContext em design time (para migrações).
 /// </summary>
 public class SearchProvidersDbContextFactory : IDesignTimeDbContextFactory<SearchProvidersDbContext>
 {
@@ -13,32 +13,18 @@ public class SearchProvidersDbContextFactory : IDesignTimeDbContextFactory<Searc
     {
         var optionsBuilder = new DbContextOptionsBuilder<SearchProvidersDbContext>();
 
-        // Read connection string from environment variable
         var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-            ?? "Host=localhost;Port=5432;Database=MeAjudaAi;Username=postgres;Password=postgres";
+            ?? throw new InvalidOperationException("DB_CONNECTION_STRING environment variable is required.");
 
         optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
         {
+            npgsqlOptions.MigrationsAssembly($"MeAjudaAi.Modules.SearchProviders.Infrastructure");
             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-            npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
+            npgsqlOptions.UseNetTopologySuite();
         });
 
         optionsBuilder.UseSnakeCaseNamingConvention();
 
-        // Criar processador de eventos de domínio no-op para design-time
-        var domainEventProcessor = new NoOpDomainEventProcessor();
-
-        return new SearchProvidersDbContext(optionsBuilder.Options, domainEventProcessor);
-    }
-
-    /// <summary>
-    /// Implementação no-op de IDomainEventProcessor para cenários de tempo de design.
-    /// </summary>
-    private sealed class NoOpDomainEventProcessor : IDomainEventProcessor
-    {
-        public Task ProcessDomainEventsAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
-        {
-            return Task.CompletedTask;
-        }
+        return new SearchProvidersDbContext(optionsBuilder.Options);
     }
 }

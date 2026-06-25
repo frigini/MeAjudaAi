@@ -16,7 +16,7 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
     }
 
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(
-        int batchSize,
+        int batchSize = 20,
         DateTime? utcNow = null,
         CancellationToken cancellationToken = default)
     {

@@ -79,7 +79,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ProvidersDbContext).Assembly.FullName);
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Providers);
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()
