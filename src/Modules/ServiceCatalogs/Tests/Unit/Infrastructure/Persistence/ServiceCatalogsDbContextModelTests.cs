@@ -44,6 +44,6 @@ public class ServiceCatalogsDbContextModelTests
         var act = () => context.GetRepository<object, Guid>();
 
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*ServiceCatalogsDbContext does not implement*");
+            .WithMessage("*ServiceCatalogsDbContext does not support repository for*");
     }
 }

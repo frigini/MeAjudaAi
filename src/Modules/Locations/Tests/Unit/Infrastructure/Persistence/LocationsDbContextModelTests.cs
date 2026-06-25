@@ -63,7 +63,7 @@ public class LocationsDbContextModelTests
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*LocationsDbContext does not implement*");
+            .WithMessage("*LocationsDbContext does not support repository for*");
     }
 
     private class SomeUnsupportedEntity { }

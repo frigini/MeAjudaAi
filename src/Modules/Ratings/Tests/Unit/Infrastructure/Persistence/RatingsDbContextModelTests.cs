@@ -39,6 +39,6 @@ public class RatingsDbContextModelTests
         var act = () => context.GetRepository<object, Guid>();
 
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*RatingsDbContext does not implement*");
+            .WithMessage("*RatingsDbContext does not support repository for*");
     }
 }
