@@ -5,9 +5,6 @@ using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure;
 

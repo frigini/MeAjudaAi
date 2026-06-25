@@ -65,7 +65,7 @@ public class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -87,7 +87,7 @@ public class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -124,6 +124,3 @@ public class SetPrimaryDocumentCommandHandlerTests
         await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

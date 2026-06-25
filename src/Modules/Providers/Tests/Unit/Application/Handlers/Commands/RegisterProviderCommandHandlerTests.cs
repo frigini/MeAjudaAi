@@ -168,7 +168,7 @@ public class RegisterProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(500);
+        result.Error!.StatusCode.Should().Be(500);
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class RegisterProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(500);
+        result.Error!.StatusCode.Should().Be(500);
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class RegisterProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(400);
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class RegisterProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(400);
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     private static DbUpdateException CreateUniqueConstraintException()
@@ -267,7 +267,3 @@ public class RegisterProviderCommandHandlerTests
         return new DbUpdateException("Unique constraint violation", pgEx);
     }
 }
-
-
-
-

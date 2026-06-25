@@ -86,7 +86,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Prestador não encontrado");
+        result.Error!.Message.Should().Be("Prestador não encontrado");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
@@ -114,7 +114,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Motivo da suspensão é obrigatório");
+        result.Error!.Message.Should().Be("Motivo da suspensão é obrigatório");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -138,7 +138,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Responsável pela suspensão é obrigatório");
+        result.Error!.Message.Should().Be("Responsável pela suspensão é obrigatório");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -191,6 +191,3 @@ public sealed class SuspendProviderCommandHandlerTests
             Times.Never);
     }
 }
-
-
-

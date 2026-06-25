@@ -68,7 +68,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Prestador não encontrado");
+        result.Error!.Message.Should().Be("Prestador não encontrado");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -110,6 +110,3 @@ public class RemoveServiceFromProviderCommandHandlerTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

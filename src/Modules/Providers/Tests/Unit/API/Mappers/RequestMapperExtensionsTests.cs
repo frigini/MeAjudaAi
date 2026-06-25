@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.API.Mappers;
 
@@ -17,7 +18,13 @@ public class RequestMapperExtensionsTests
         var userId = Guid.NewGuid();
         var contactInfo = new ContactInfoDto("test@example.com", "+5511999999999", "https://example.com");
         var address = new AddressDto("Main St", "123", "Suite 100", "Downtown", "São Paulo", "SP", "01310-000", "Brazil");
-        var businessProfile = new BusinessProfileDto("Legal Name", "Fantasy", "Description", contactInfo, address);
+        var businessProfile = new BusinessProfileDtoBuilder()
+            .WithLegalName("Legal Name")
+            .WithFantasyName("Fantasy")
+            .WithDescription("Description")
+            .WithContactInfo(contactInfo)
+            .WithAddress(address)
+            .Build();
         var request = new CreateProviderRequest
         {
             UserId = userId,
@@ -63,7 +70,11 @@ public class RequestMapperExtensionsTests
         var providerId = Guid.NewGuid();
         var contactInfo = new ContactInfoDto("updated@example.com", null, null);
         var address = new AddressDto("New St", "456", null, "Uptown", "Rio de Janeiro", "RJ", "20000-000", "Brazil");
-        var businessProfile = new BusinessProfileDto("Updated Name", null, null, contactInfo, address);
+        var businessProfile = new BusinessProfileDtoBuilder()
+            .WithLegalName("Updated Name")
+            .WithContactInfo(contactInfo)
+            .WithAddress(address)
+            .Build();
         var services = new List<ProviderServiceDto>
         {
             new(Guid.NewGuid(), "Service 1"),
@@ -94,7 +105,11 @@ public class RequestMapperExtensionsTests
         var providerId = Guid.NewGuid();
         var contactInfo = new ContactInfoDto("test@example.com", null, null);
         var address = new AddressDto("Main St", "123", null, "Downtown", "São Paulo", "SP", "01310-000", "Brazil");
-        var businessProfile = new BusinessProfileDto("Name", null, null, contactInfo, address);
+        var businessProfile = new BusinessProfileDtoBuilder()
+            .WithLegalName("Name")
+            .WithContactInfo(contactInfo)
+            .WithAddress(address)
+            .Build();
         var request = new UpdateProviderProfileRequest
         {
             Name = "Provider",

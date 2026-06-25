@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Persistence;
 
 [Trait("Category", "Unit")]
-public class ProvidersDbContextRepositoryTests : IDisposable
+public sealed class ProvidersDbContextRepositoryTests : IDisposable
 {
     private readonly ProvidersDbContext _context;
 
@@ -174,5 +174,3 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.Dispose();
     }
 }
-
-

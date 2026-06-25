@@ -944,16 +944,14 @@ public class ProviderTests
     [InlineData("")]
     [InlineData("  ")]
     [InlineData(null)]
-    public void AddService_WithInvalidName_ShouldThrowProviderDomainException(string? invalidName)
+    public void AddService_WithInvalidName_ShouldThrowProviderDomainException(string invalidName)
     {
         // Arrange
         var provider = CreateValidProvider();
         var serviceId = Guid.NewGuid();
 
         // Act & Assert
-#pragma warning disable CS8604 // Possible null reference argument
         var action = () => provider.AddService(serviceId, invalidName);
-#pragma warning restore CS8604
         
         action.Should().Throw<ProviderDomainException>()
             .WithMessage("ServiceName cannot be empty");
@@ -1087,4 +1085,3 @@ public class ProviderTests
 
     #endregion
 }
-

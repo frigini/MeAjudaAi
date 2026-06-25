@@ -60,16 +60,14 @@ public class ProviderServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_WithInvalidServiceName_ShouldThrowArgumentException(string? invalidName)
+    public void Create_WithInvalidServiceName_ShouldThrowArgumentException(string invalidName)
     {
         // Arrange
         var providerId = ProviderId.New();
         var serviceId = Guid.NewGuid();
 
         // Act
-#pragma warning disable CS8604 // Possible null reference argument
         var act = () => ProviderService.Create(providerId, serviceId, invalidName);
-#pragma warning restore CS8604
 
         // Assert
         act.Should().Throw<ArgumentException>()

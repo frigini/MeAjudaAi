@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
+namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events.Handlers.Integration;
 
 public class DocumentVerifiedIntegrationEventHandlerTests
 {

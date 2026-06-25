@@ -205,7 +205,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -267,7 +267,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
     [Fact]
     public async Task HandleAsync_WhenPrivacyFlagIsEnabled_ShouldReturnRestrictedProvider()

@@ -39,26 +39,12 @@ public class UpdateProviderProfileCommandHandlerTests
         var updatedBy = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Atualizado Ltda",
-            FantasyName: "Prestador Atualizado",
-            Description: "Prestador de serviços especializados",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador-atualizado.com",
-                PhoneNumber: "(11) 99999-8888",
-                Website: "https://www.exemplo-atualizado.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Atualizada",
-                Number: "456",
-                Complement: "Sala 10",
-                Neighborhood: "Bairro Novo",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Atualizado Ltda")
+            .WithFantasyName("Prestador Atualizado")
+            .WithDescription("Prestador de serviços especializados")
+            .WithEmail("contato@prestador-atualizado.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -97,26 +83,12 @@ public class UpdateProviderProfileCommandHandlerTests
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Ltda",
-            FantasyName: "Prestador",
-            Description: "Descrição atualizada",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador.com",
-                PhoneNumber: "(11) 99999-9999",
-                Website: "https://www.exemplo.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Exemplo",
-                Number: "123",
-                Complement: null,
-                Neighborhood: "Centro",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Ltda")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição atualizada")
+            .WithEmail("contato@prestador.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -135,7 +107,7 @@ public class UpdateProviderProfileCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -156,26 +128,12 @@ public class UpdateProviderProfileCommandHandlerTests
         var updatedBy = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Ltda",
-            FantasyName: "Prestador",
-            Description: "Descrição válida",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador.com",
-                PhoneNumber: "(11) 99999-9999",
-                Website: "https://www.exemplo.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Exemplo",
-                Number: "123",
-                Complement: null,
-                Neighborhood: "Centro",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Ltda")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição válida")
+            .WithEmail("contato@prestador.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -208,26 +166,12 @@ public class UpdateProviderProfileCommandHandlerTests
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Ltda",
-            FantasyName: "Prestador",
-            Description: "Descrição",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador.com",
-                PhoneNumber: "(11) 99999-9999",
-                Website: "https://www.exemplo.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Exemplo",
-                Number: "123",
-                Complement: null,
-                Neighborhood: "Centro",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Ltda")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição")
+            .WithEmail("contato@prestador.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -253,18 +197,17 @@ public class UpdateProviderProfileCommandHandlerTests
         var updatedBy = Guid.NewGuid();
         Provider provider = ProviderBuilder.Create().WithId(providerId);
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador",
-            FantasyName: "Prestador",
-            Description: "Descrição",
-            ContactInfo: new ContactInfoDto("test@test.com", "(11) 99999-9999", null),
-            PrimaryAddress: new AddressDto("Rua", "123", null, "Bairro", "Cidade", "SP", "00000-000", "Brasil")
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição")
+            .WithEmail("test@test.com")
+            .Build();
 
         var servicesList = new List<ProviderServiceDto>
         {
-            new ProviderServiceDto(Guid.NewGuid(), "Service A"),
-            new ProviderServiceDto(Guid.NewGuid(), "Service B")
+            new(Guid.NewGuid(), "Service A"),
+            new(Guid.NewGuid(), "Service B")
         };
 
         var command = new UpdateProviderProfileCommand(

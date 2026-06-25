@@ -93,7 +93,7 @@ public class UpdateVerificationStatusCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("ProviderNotFound");
+        result.Error!.Message.Should().Contain("ProviderNotFound");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -234,6 +234,3 @@ public class UpdateVerificationStatusCommandHandlerTests
             Times.Exactly(2));
     }
 }
-
-
-

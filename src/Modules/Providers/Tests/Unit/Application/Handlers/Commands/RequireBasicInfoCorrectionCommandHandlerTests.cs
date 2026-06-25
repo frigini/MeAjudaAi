@@ -302,6 +302,3 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         correctionEvent.RequestedBy.Should().Be("verifier@test.com");
     }
 }
-
-
-

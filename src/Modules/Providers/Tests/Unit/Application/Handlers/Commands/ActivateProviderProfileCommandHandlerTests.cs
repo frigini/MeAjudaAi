@@ -85,6 +85,3 @@ public class ActivateProviderProfileCommandHandlerTests
         await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

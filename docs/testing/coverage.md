@@ -1350,3 +1350,662 @@ classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;
 - Pipeline CI/CD: `.github/workflows/ci-backend.yml`
 - Configuração Coverlet: `config/coverlet.json`
 - Coverage local: `dotnet test --collect:"XPlat Code Coverage"`
+
+---
+
+# Plano de Testes de Integração - Módulos Faltantes
+
+**Data**: 25 Jun 2026
+**Última Atualização**: Documentada estrutura existente e plano futuro
+**Arquitetura**: Testes de integração em dois níveis (Módulo vs E2E)
+**Objetivo**: Documentar estado atual, módulos faltantes e plano de padronização
+
+---
+
+## 📐 Arquitetura de Testes de Integração
+
+### Nível 1: Testes de Integração de Módulo (Isolado)
+**Localização**: `src/Modules/{Module}/Tests/Integration/`
+**Objetivo**: Testar componentes de UM módulo com PostgreSQL real via Testcontainers
+**Uso quando**:
+- Módulo tem repositories ou queries complexas
+- Precisa testar lógica de persistência isoladamente
+- Quer feedback rápido (testa só um módulo)
+
+### Nível 2: Testes E2E (Aplicação Completa)
+**Localização**: `tests/MeAjudaAi.Integration.Tests/`
+**Objetivo**: Testar API HTTP completa, middleware, comunicação entre módulos
+**Uso quando**:
+- Precisa testar endpoints HTTP
+- Precisa testar autenticação/autorização
+- Precisa testar workflows que atravessam múltiplos módulos
+
+---
+
+## 📊 Status Atual dos Módulos
+
+| Módulo | Testes de Módulo | Complexidade | Necessita? |
+|--------|:----------------:|:------------:|:----------:|
+| **Users** | ✅ 1 arquivo | Alta | ✅ Tem |
+| **Providers** | ✅ 6 arquivos | Alta | ✅ Tem |
+| **SearchProviders** | ✅ 2 arquivos | Alta | ✅ Tem |
+| **Bookings** | ❌ | Alta | ❌ **FALTANDO** |
+| **Communications** | ❌ | Alta | ❌ **FALTANDO** |
+| **Payments** | ❌ | Alta | ❌ **FALTANDO** |
+| **Ratings** | ❌ | Média-Alta | ❌ **FALTANDO** |
+| **ServiceCatalogs** | ❌ | Média | ❌ **FALTANDO** |
+| **Locations** | ❌ | Baixa | ⚠️ Opcional |
+| **Documents** | ❌ | Baixa | ⚠️ Opcional |
+
+---
+
+## 🎯 Módulos que Precisam de Testes de Módulo
+
+### 1. Bookings (PRIORIDADE: ALTA)
+
+**Por que precisa**: Workflows complexos com autorizações, estados de reserva, eintegrações
+
+**Estrutura sugerida**:
+```
+src/Modules/Bookings/Tests/Integration/
+├── BookingsTestBase.cs                 # Base com Testcontainers
+├── Repository/
+│   ├── BookingsRepositoryTests.cs       # Add, Delete, TryFind de Booking
+│   └── ProviderSchedulesRepositoryTests.cs
+├── Queries/
+│   └── BookingsQueriesTests.cs         # GetByProviderIdAsync, GetByClientIdAsync
+└── Services/
+    └── BookingStateTransitionTests.cs   # Transições de estado
+```
+
+**Testes necessários**:
+
+```csharp
+// BookingsRepositoryTests.cs
+public class BookingsRepositoryTests : BookingsTestBase
+{
+    // Repository: IRepository<Booking, Guid>
+    [Fact] Task Add_WithValidBooking_ShouldPersist()
+    [Fact] Task Add_WithProviderSchedule_ShouldPersist()
+    [Fact] Task Delete_ShouldRemoveBooking()
+    [Fact] Task TryFindAsync_WithExistingBooking_ShouldReturn()
+    [Fact] Task TryFindAsync_WithDeletedBooking_ShouldReturnNull()
+    [Fact] Task TryFindAsync_WithNonExisting_ShouldReturnNull()
+    
+    // ProviderSchedule
+    [Fact] Task Add_ProviderSchedule_ShouldPersist()
+    [Fact] Task GetByProviderId_WithExistingSchedule_ShouldReturn()
+}
+
+// BookingsQueriesTests.cs
+public class BookingsQueriesTests : BookingsTestBase
+{
+    // Queries: IBookingQueries, IProviderScheduleQueries
+    [Fact] Task GetByIdAsync_WithExistingBooking_ShouldReturnDto()
+    [Fact] Task GetByProviderIdPagedAsync_ShouldReturnPaginatedResults()
+    [Fact] Task GetByClientIdPagedAsync_ShouldReturnPaginatedResults()
+    [Fact] Task GetActiveByProviderAndDate_ShouldReturnActiveBookings()
+    [Fact] Task HasCompletedBookingAsync_WithCompletedBooking_ShouldReturnTrue()
+    [Fact] Task HasCompletedBookingAsync_WithoutCompletedBooking_ShouldReturnFalse()
+}
+```
+
+**Dependências necessárias**:
+- `BookingsDbContext`
+- `IBookingQueries`
+- `IProviderScheduleQueries`
+- `IRepository<Booking, Guid>`
+- `IRepository<ProviderSchedule, Guid>`
+
+---
+
+### 2. Payments (PRIORIDADE: ALTA)
+
+**Por que precisa**: Transações, subscriptions, outbox pattern
+
+**Estrutura sugerida**:
+```
+src/Modules/Payments/Tests/Integration/
+├── PaymentsTestBase.cs
+├── Repository/
+│   ├── SubscriptionsRepositoryTests.cs
+│   ├── PaymentTransactionsRepositoryTests.cs
+│   └── InboxMessageRepositoryTests.cs    # Outbox pattern
+└── Queries/
+    ├── SubscriptionsQueriesTests.cs
+    └── PaymentTransactionsQueriesTests.cs
+```
+
+**Testes necessários**:
+
+```csharp
+// SubscriptionsRepositoryTests.cs
+public class SubscriptionsRepositoryTests : PaymentsTestBase
+{
+    [Fact] Task Add_WithValidSubscription_ShouldPersist()
+    [Fact] Task GetByIdAsync_WithExisting_ShouldReturn()
+    [Fact] Task GetActiveByProviderIdAsync_ShouldReturnActiveSubscription()
+    [Fact] Task GetLatestByProviderIdAsync_ShouldReturnMostRecent()
+    [Fact] Task UpdateStatus_ShouldPersist()
+}
+
+// PaymentTransactionsRepositoryTests.cs
+public class PaymentTransactionsRepositoryTests : PaymentsTestBase
+{
+    [Fact] Task Add_WithValidTransaction_ShouldPersist()
+    [Fact] Task GetByExternalIdAsync_WithExisting_ShouldReturn()
+    [Fact] Task GetBySubscriptionIdAsync_ShouldReturnTransactions()
+}
+
+// InboxMessageRepositoryTests.cs (Outbox Pattern)
+public class InboxMessageRepositoryTests : PaymentsTestBase
+{
+    [Fact] Task Add_OutboxMessage_ShouldPersist()
+    [Fact] Task GetPendingMessagesAsync_ShouldReturnUnprocessed()
+    [Fact] Task MarkAsProcessed_ShouldUpdateStatus()
+}
+```
+
+---
+
+### 3. Communications (PRIORIDADE: ALTA)
+
+**Por que precisa**: Outbox pattern, templates de email
+
+**Estrutura sugerida**:
+```
+src/Modules/Communications/Tests/Integration/
+├── CommunicationsTestBase.cs
+├── Repository/
+│   ├── EmailTemplatesRepositoryTests.cs
+│   └── CommunicationLogsRepositoryTests.cs
+└── Queries/
+    ├── EmailTemplateQueriesTests.cs
+    └── CommunicationLogQueriesTests.cs
+```
+
+**Testes necessários**:
+
+```csharp
+// EmailTemplatesRepositoryTests.cs
+public class EmailTemplatesRepositoryTests : CommunicationsTestBase
+{
+    [Fact] Task Add_WithValidTemplate_ShouldPersist()
+    [Fact] Task GetActiveByKeyAsync_WithOverride_ShouldReturnOverride()
+    [Fact] Task GetActiveByKeyAsync_WithoutOverride_ShouldReturnDefault()
+    [Fact] Task Update_ShouldPersist()
+    [Fact] Task GetAllByKeyAsync_ShouldReturnAllVersions()
+}
+
+// CommunicationLogsRepositoryTests.cs
+public class CommunicationLogsRepositoryTests : CommunicationsTestBase
+{
+    [Fact] Task Add_WithValidLog_ShouldPersist()
+    [Fact] Task ExistsByCorrelationIdAsync_WithExisting_ShouldReturnTrue()
+    [Fact] Task GetByRecipientAsync_ShouldReturnLogs()
+    [Fact] Task SearchAsync_WithFilters_ShouldReturnFilteredResults()
+}
+```
+
+---
+
+### 4. Ratings (PRIORIDADE: MÉDIA)
+
+**Por que precisa**: Agregação de reviews, cálculos de média
+
+**Estrutura sugerida**:
+```
+src/Modules/Ratings/Tests/Integration/
+├── RatingsTestBase.cs
+├── Repository/
+│   └── ReviewsRepositoryTests.cs
+└── Queries/
+    └── ReviewsQueriesTests.cs
+```
+
+**Testes necessários**:
+
+```csharp
+// ReviewsRepositoryTests.cs
+public class ReviewsRepositoryTests : RatingsTestBase
+{
+    [Fact] Task Add_WithValidReview_ShouldPersist()
+    [Fact] Task GetByIdAsync_WithExisting_ShouldReturn()
+    [Fact] Task Delete_ShouldRemoveReview()
+    [Fact] Task UpdateStatus_ShouldChangeStatus()
+}
+
+// ReviewsQueriesTests.cs
+public class ReviewsQueriesTests : RatingsTestBase
+{
+    [Fact] Task GetByIdAsync_WithExisting_ShouldReturn()
+    [Fact] Task GetByProviderIdAsync_ShouldReturnPaginatedResults()
+    [Fact] Task GetByProviderAndCustomerAsync_WithExisting_ShouldReturn()
+    [Fact] Task GetAverageRatingForProviderAsync_WithReviews_ShouldReturnAverage()
+    [Fact] Task GetAverageRatingForProviderAsync_WithoutReviews_ShouldReturnZero()
+}
+```
+
+---
+
+### 5. ServiceCatalogs (PRIORIDADE: MÉDIA)
+
+**Por que precisa**: Hierarquia de categorias, serviços ativos/inativos
+
+**Estrutura sugerida**:
+```
+src/Modules/ServiceCatalogs/Tests/Integration/
+├── ServiceCatalogsTestBase.cs
+├── Repository/
+│   ├── ServicesRepositoryTests.cs
+│   └── ServiceCategoriesRepositoryTests.cs
+└── Queries/
+    ├── ServiceQueriesTests.cs
+    └── ServiceCategoryQueriesTests.cs
+```
+
+**Testes necessários**:
+
+```csharp
+// ServicesRepositoryTests.cs
+public class ServicesRepositoryTests : ServiceCatalogsTestBase
+{
+    [Fact] Task Add_WithValidService_ShouldPersist()
+    [Fact] Task GetByIdAsync_WithExisting_ShouldReturn()
+    [Fact] Task GetByCategoryAsync_ShouldReturnServices()
+    [Fact] Task GetAllAsync_WithActiveOnly_ShouldReturnOnlyActive()
+    [Fact] Task Update_ShouldPersist()
+    [Fact] Task CountByCategoryAsync_ShouldReturnCorrectCount()
+}
+
+// ServiceCategoriesRepositoryTests.cs
+public class ServiceCategoriesRepositoryTests : ServiceCatalogsTestBase
+{
+    [Fact] Task Add_WithValidCategory_ShouldPersist()
+    [Fact] Task GetByIdAsync_WithExisting_ShouldReturn()
+    [Fact] Task GetAllAsync_ShouldReturnAllCategories()
+    [Fact] Task GetAllWithServiceCountAsync_ShouldReturnWithCounts()
+    [Fact] Task UpdateDisplayOrder_ShouldPersist()
+}
+```
+
+---
+
+## ⚠️ Módulos Opcionais (Não Prioritários)
+
+### Locations
+
+**Por que não precisa (atualmente)**: É mais simples - usa clientes HTTP externos (APIs de CEP) e não tem repositories complexos.
+
+**Se futuramente adicionar lógica complexa**:
+- `ILocationQueries` com cache
+- Repositório de `AllowedCity`
+
+### Documents
+
+**Por que não precisa (atualmente)**: Usa Azure Blob Storage (mockado em testes E2E) e não tem lógica de repository complexa.
+
+**Se futuramente adicionar lógica complexa**:
+- `IDocumentRepository` com operações batch
+- Queries complexas de documentos
+
+---
+
+## 📋 Resumo: Testes a Criar
+
+| Módulo | Arquivos | Testes | Linhas de Teste (est.) |
+|--------|----------|--------|------------------------|
+| **Bookings** | 4 | ~25 | ~400 |
+| **Payments** | 4 | ~20 | ~350 |
+| **Communications** | 4 | ~18 | ~300 |
+| **Ratings** | 2 | ~12 | ~200 |
+| **ServiceCatalogs** | 2 | ~15 | ~250 |
+| **TOTAL** | **16** | **~90** | **~1,500** |
+
+---
+
+## 🏗️ Como Criar a Estrutura Base
+
+### 1. Criar projeto de teste (se não existir)
+
+```powershell
+# Exemplo para Bookings
+cd src/Modules/Bookings/Tests
+dotnet new xunit -n MeAjudaAi.Modules.Bookings.Tests
+```
+
+### 2. Criar classe base de teste
+
+```csharp
+// BookingsTestBase.cs
+public abstract class BookingsTestBase : IAsyncLifetime
+{
+    private static PostgreSqlContainer? _container;
+    private static readonly SemaphoreSlim _lock = new(1, 1);
+    
+    protected ServiceProvider? Services { get; private set; }
+    
+    public async Task InitializeAsync()
+    {
+        await EnsureContainerAsync();
+        var services = new ServiceCollection();
+        services.AddDbContext<BookingsDbContext>(options =>
+            options.UseNpgsql(_container!.GetConnectionString()));
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());
+        Services = services.BuildServiceProvider();
+    }
+    
+    private static async Task EnsureContainerAsync()
+    {
+        // ... container management
+    }
+    
+    public async Task DisposeAsync()
+    {
+        if (Services != null) await Services.DisposeAsync();
+    }
+}
+```
+
+### 3. Modelo de Referência: Providers
+
+**ATUALMENTE**, `ProvidersIntegrationTestBase` é o modelo usado. Deve ser mantido como está até que a infraestrutura padronizada seja criada.
+
+Ver estrutura em:
+- `src/Modules/Providers/Tests/Integration/ProvidersIntegrationTestBase.cs` - Classe base com container compartilhado, banco isolado por classe
+- `src/Modules/Providers/Tests/Integration/Extensions/ProvidersTestInfrastructureExtensions.cs` - Registro de serviços
+
+**FUTURO**: Quando `BaseModuleIntegrationTest` for criado em `Shared.Tests`, os módulos existentes devem migrar gradualmente.
+
+---
+
+## 🏗️ Infraestrutura Padronizada em Shared.Tests
+
+Para evitar duplicação e garantir consistência, a infraestrutura de testes de módulo deve ser padronizada em `tests/MeAjudaAi.Shared.Tests/TestInfrastructure/`.
+
+### Estrutura Proposta
+
+```
+tests/MeAjudaAi.Shared.Tests/TestInfrastructure/
+├── Base/
+│   ├── BaseModuleIntegrationTest.cs      # NOVO: Classe base para testes de módulo
+│   ├── BaseDatabaseTest.cs             # Já existe
+│   └── BaseSqliteInMemoryDatabaseTest.cs
+├── Extensions/
+│   ├── ModuleTestServiceExtensions.cs  # NOVO: Extensions para registrar serviços
+│   └── TestInfrastructureExtensions.cs  # Já existe
+├── Options/
+│   ├── TestDatabaseOptions.cs          # Já existe
+│   └── TestInfrastructureOptions.cs    # Já existe
+└── Containers/
+    └── SharedTestContainers.cs         # Já existe
+```
+
+### BaseModuleIntegrationTest (NOVO)
+
+```csharp
+// tests/MeAjudaAi.Shared.Tests/TestInfrastructure/Base/BaseModuleIntegrationTest.cs
+
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.PostgreSql;
+
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+
+/// <summary>
+/// Classe base para testes de integração de módulo individual.
+/// Cada módulo recebe um banco de dados PostgreSQL isolado.
+/// </summary>
+public abstract class BaseModuleIntegrationTest<TDbContext> : IAsyncLifetime
+    where TDbContext : DbContext
+{
+    private static readonly ConcurrentDictionary<Type, Lazy<Task<PostgreSqlContainer>>> _containers = new();
+    private static readonly SemaphoreSlim _containerLock = new(1, 1);
+
+    private ServiceProvider? _serviceProvider;
+    private string? _connectionString;
+
+    protected abstract string ModuleSchema { get; }
+    protected abstract string ModuleName { get; }
+    protected abstract string MigrationsAssembly { get; }
+
+    protected ServiceProvider Services => _serviceProvider
+        ?? throw new InvalidOperationException("Test not initialized. Call InitializeAsync first.");
+
+    protected TDbContext DbContext => Services.GetRequiredService<TDbContext>();
+
+    protected IUnitOfWork UnitOfWork => Services.GetRequiredService<IUnitOfWork>();
+
+    public virtual async Task InitializeAsync()
+    {
+        var container = await GetOrCreateContainerAsync();
+        _connectionString = container.GetConnectionString();
+
+        var services = new ServiceCollection();
+        ConfigureServices(services);
+        _serviceProvider = services.BuildServiceProvider();
+
+        await InitializeDatabaseAsync();
+    }
+
+    protected virtual void ConfigureServices(IServiceCollection services)
+    {
+        services.AddDbContext<TDbContext>(options =>
+        {
+            options.UseNpgsql(_connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(MigrationsAssembly);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", ModuleSchema);
+                npgsqlOptions.CommandTimeout(60);
+            });
+            options.EnableServiceProviderCaching();
+            options.EnableSensitiveDataLogging(false);
+        });
+
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TDbContext>());
+    }
+
+    private async Task InitializeDatabaseAsync()
+    {
+        using var scope = Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        await dbContext.Database.EnsureCreatedAsync();
+    }
+
+    private static async Task<PostgreSqlContainer> GetOrCreateContainerAsync()
+    {
+        var moduleType = typeof(TDbContext).DeclaringType ?? typeof(TDbContext);
+        var key = moduleType.Assembly.GetName().Name ?? moduleType.Name;
+
+        return await _containers.GetOrAdd(key, _ => new Lazy<Task<PostgreSqlContainer>>(async () =>
+        {
+            await _containerLock.WaitAsync();
+            try
+            {
+                var container = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+                    .WithDatabase("test_db")
+                    .WithUsername("postgres")
+                    .WithPassword("postgres")
+                    .WithCleanUp(true)
+                    .Build();
+
+                await container.StartAsync();
+                return container;
+            }
+            finally
+            {
+                _containerLock.Release();
+            }
+        })).Value;
+    }
+
+    public virtual async Task DisposeAsync()
+    {
+        if (_serviceProvider != null)
+        {
+            await _serviceProvider.DisposeAsync();
+            _serviceProvider = null;
+        }
+    }
+}
+```
+
+### ModuleTestServiceExtensions (NOVO)
+
+```csharp
+// tests/MeAjudaAi.Shared.Tests/TestInfrastructure/Extensions/ModuleTestServiceExtensions.cs
+
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Commands;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Extensions;
+
+/// <summary>
+/// Extensões para registrar serviços de módulo em testes de integração.
+/// </summary>
+public static class ModuleTestServiceExtensions
+{
+    /// <summary>
+    /// Registra o UnitOfWork e QueryDispatcher padrões para testes de módulo.
+    /// </summary>
+    public static IServiceCollection AddModuleTestServices(
+        this IServiceCollection services)
+    {
+        services.AddScoped<IQueryDispatcher, QueryDispatcher>();
+        services.AddScoped<ICommandDispatcher, CommandDispatcher>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registra um Query Handler específico para testes.
+    /// </summary>
+    public static IServiceCollection AddTestQueryHandler<TQuery, TResult, THandler>(
+        this IServiceCollection services)
+        where THandler : class, IQueryHandler<TQuery, TResult>
+    {
+        services.AddScoped<IQueryHandler<TQuery, TResult>, THandler>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registra um Command Handler específico para testes.
+    /// </summary>
+    public static IServiceCollection AddTestCommandHandler<TCommand, TResult, THandler>(
+        this IServiceCollection services)
+        where THandler : class, ICommandHandler<TCommand, TResult>
+    {
+        services.AddScoped<ICommandHandler<TCommand, TResult>, THandler>();
+        return services;
+    }
+}
+```
+
+### Exemplo de Uso (Bookings)
+
+```csharp
+// src/Modules/Bookings/Tests/Integration/BookingsTestBase.cs
+
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Extensions;
+
+namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
+
+public abstract class BookingsTestBase : BaseModuleIntegrationTest<BookingsDbContext>
+{
+    protected override string ModuleSchema => "bookings";
+    protected override string ModuleName => "Bookings";
+    protected override string MigrationsAssembly => "MeAjudaAi.Modules.Bookings.Infrastructure";
+
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        base.ConfigureServices(services);
+        services.AddModuleTestServices();
+    }
+}
+```
+
+### Benefícios da Padronização
+
+| Benefício | Descrição |
+|-----------|-----------|
+| **Reutilização** | Uma classe base para todos os módulos |
+| **Consistência** | Mesma estrutura de container, DI, e cleanup |
+| **Manutenção** | Mudanças na infraestrutura afetam todos os módulos |
+| **Performance** | Container compartilhado por tipo de módulo |
+| **Simplicidade** | Cada módulo implementa só seus testes, não a infraestrutura |
+
+### Checklist de Infraestrutura
+
+- [ ] Criar `BaseModuleIntegrationTest.cs` em `Shared.Tests/TestInfrastructure/Base/`
+- [ ] Criar `ModuleTestServiceExtensions.cs` em `Shared.Tests/TestInfrastructure/Extensions/`
+- [ ] Migrar `ProvidersIntegrationTestBase.cs` para usar `BaseModuleIntegrationTest`
+- [ ] Refatorar `ProvidersTestInfrastructureExtensions.cs` para usar as novas extensions
+- [ ] Atualizar `SharedTestContainers.cs` para suportar bancos lógicos isolados
+- [ ] Documentar padrões no arquivo `test-infrastructure.md`
+
+---
+
+## ✅ Checklist de Implementação
+
+> **Nota**: Este checklist documenta o estado atual e o plano futuro. A infraestrutura padronizada em `Shared.Tests` será criada primeiro, depois os módulos seguirão o padrão.
+
+### Fase 1: Documentar e Planejar
+
+- [x] Documentar arquitetura de dois níveis (Módulo vs E2E) ✅
+- [x] Criar plano de testes faltantes para cada módulo ✅
+- [x] Documentar infraestrutura existente (ProvidersIntegrationTestBase) ✅
+- [ ] Documentar `test-infrastructure.md` com padrões de módulo
+
+### Fase 2: Criar Infraestrutura Padronizada (Futuro)
+
+- [ ] Criar `BaseModuleIntegrationTest<TDbContext>` em `Shared.Tests/TestInfrastructure/Base/`
+- [ ] Criar `ModuleTestServiceExtensions` em `Shared.Tests/TestInfrastructure/Extensions/`
+- [ ] Atualizar `SharedTestContainers` para bancos lógicos isolados
+
+### Fase 3: Migrar Módulos Existentes
+
+- [ ] Migrar Providers para usar infraestrutura padronizada
+- [ ] Migrar Users para usar infraestrutura padronizada
+- [ ] Migrar SearchProviders para usar infraestrutura padronizada
+
+### Fase 4: Criar Novos Testes de Módulo
+
+- [ ] Criar `Tests/Integration/` para **Bookings** seguindo padrão Providers
+- [ ] Implementar `BookingsTestBase.cs` baseado em `ProvidersIntegrationTestBase`
+- [ ] Implementar `BookingsRepositoryTests.cs`
+- [ ] Implementar `BookingsQueriesTests.cs`
+
+- [ ] Criar `Tests/Integration/` para **Payments**
+- [ ] Implementar `PaymentsTestBase.cs`
+- [ ] Implementar `SubscriptionsRepositoryTests.cs`
+- [ ] Implementar `InboxMessageRepositoryTests.cs` (Outbox)
+
+- [ ] Criar `Tests/Integration/` para **Communications**
+- [ ] Implementar `CommunicationsTestBase.cs`
+- [ ] Implementar `EmailTemplatesRepositoryTests.cs`
+- [ ] Implementar `CommunicationLogsRepositoryTests.cs`
+
+- [ ] Criar `Tests/Integration/` para **Ratings**
+- [ ] Implementar `RatingsTestBase.cs`
+- [ ] Implementar `ReviewsRepositoryTests.cs`
+
+- [ ] Criar `Tests/Integration/` para **ServiceCatalogs**
+- [ ] Implementar `ServiceCatalogsTestBase.cs`
+- [ ] Implementar `ServicesRepositoryTests.cs`
+
+### Fase 5: CI/CD
+
+- [ ] Atualizar CI/CD para incluir novos projetos de teste
+- [ ] Verificar coverage por módulo na pipeline
+
+---
+
+## 📚 Documentação Relacionada
+
+- [Estratégia de Testes de Integração](./integration-tests.md)
+- [Infraestrutura de Testes](./test-infrastructure.md)
+- [Exemplos de Testes E2E](./e2e-tests.md)

@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Shared.Streaming;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Events;
+namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Events;
 
 public class ProviderVerificationStatusUpdatedSseHandlerTests
 {

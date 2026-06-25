@@ -58,6 +58,3 @@ public class ActivateProviderCommandHandlerTests
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-
-
-

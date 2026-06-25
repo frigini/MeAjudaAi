@@ -86,6 +86,3 @@ public class AddQualificationCommandHandlerTests
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
-
-
-

@@ -89,7 +89,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Prestador não encontrado");
+        result.Error!.Message.Should().Contain("Prestador não encontrado");
         _serviceCatalogsMock.Verify(
             x => x.ValidateServicesAsync(It.IsAny<Guid[]>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -116,7 +116,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Falha ao validar serviço");
+        result.Error!.Message.Should().Contain("Falha ao validar serviço");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -176,7 +176,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("não está ativo");
+        result.Error!.Message.Should().Contain("não está ativo");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -210,12 +210,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Falha ao recuperar detalhes do serviço");
+        result.Error!.Message.Should().Contain("Falha ao recuperar detalhes do serviço");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
-
-
 }
-
-
-

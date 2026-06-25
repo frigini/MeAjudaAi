@@ -8,50 +8,33 @@ using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events.Handlers;
 
-/// <summary>
-/// Unit tests for <see cref="ProviderProfileUpdatedDomainEventHandler"/> testing the handler's behavior
-/// when processing provider profile update events and publishing integration events.
-/// </summary>
-public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
+public class ProviderProfileUpdatedDomainEventHandlerTests : BaseInMemoryDatabaseTest<ProvidersDbContext>
 {
     private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly Mock<ILogger<ProviderProfileUpdatedDomainEventHandler>> _mockLogger;
-    private readonly ProvidersDbContext _context;
-    private readonly ProviderProfileUpdatedDomainEventHandler _handler;
 
-    public ProviderProfileUpdatedDomainEventHandlerTests()
+    public ProviderProfileUpdatedDomainEventHandlerTests() : base(options => new ProvidersDbContext(options, null!))
     {
         _mockMessageBus = new Mock<IMessageBus>();
         _mockLogger = new Mock<ILogger<ProviderProfileUpdatedDomainEventHandler>>();
-
-        // Create in-memory database
-        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: UuidGenerator.NewId().ToString())
-            .Options;
-        _context = new ProvidersDbContext(options, null!);
-
-        _handler = new ProviderProfileUpdatedDomainEventHandler(_mockMessageBus.Object, _context, _mockLogger.Object);
     }
 
-    /// <summary>
-    /// Verifica que HandleAsync publica um ProviderProfileUpdatedIntegrationEvent
-    /// com os detalhes corretos do provider ao processar um evento de atualização de perfil válido.
-    /// </summary>
+    private ProviderProfileUpdatedDomainEventHandler CreateHandler() =>
+        new(_mockMessageBus.Object, DbContext, _mockLogger.Object);
+
     [Fact]
     public async Task HandleAsync_ShouldPublishIntegrationEvent()
     {
-        // Arrange
         var providerId = ProviderId.New();
         var userId = UuidGenerator.NewId();
 
         var provider = CreateTestProvider(providerId, userId);
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new ProviderProfileUpdatedDomainEvent(
             providerId.Value,
@@ -63,10 +46,8 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             new[] { "Name", "Email" }
         );
 
-        // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        await CreateHandler().HandleAsync(domainEvent, CancellationToken.None);
 
-        // Assert
         _mockMessageBus.Verify(
             x => x.PublishAsync(
                 It.Is<ProviderProfileUpdatedIntegrationEvent>(e =>
@@ -78,20 +59,15 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             Times.Once);
     }
 
-    /// <summary>
-    /// Verifica que quando a publicação no message bus falha, o handler registra
-    /// um erro contendo "Error handling ProviderProfileUpdatedDomainEvent" e relança a exceção.
-    /// </summary>
     [Fact]
     public async Task HandleAsync_WhenMessageBusFails_ShouldThrowException()
     {
-        // Arrange
         var providerId = ProviderId.New();
         var userId = UuidGenerator.NewId();
 
         var provider = CreateTestProvider(providerId, userId);
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new ProviderProfileUpdatedDomainEvent(
             providerId.Value,
@@ -110,10 +86,8 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Message bus error"));
 
-        // Act
-        var act = async () => await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        var act = async () => await CreateHandler().HandleAsync(domainEvent, CancellationToken.None);
 
-        // Assert
         var ex = await act.Should().ThrowAsync<InvalidOperationException>();
         ex.Which.InnerException.Should().BeOfType<Exception>();
         ex.Which.InnerException!.Message.Should().Be("Message bus error");
@@ -142,10 +116,5 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             .WithType(EProviderType.Individual)
             .WithBusinessProfile(businessProfile)
             .Build();
-    }
-
-    public void Dispose()
-    {
-        _context?.Dispose();
     }
 }

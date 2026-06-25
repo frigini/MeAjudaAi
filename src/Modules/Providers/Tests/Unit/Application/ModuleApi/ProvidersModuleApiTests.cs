@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Services;
@@ -60,10 +61,10 @@ public class ProvidersModuleApiTests
             Name: "Test Provider",
             Slug: "test-provider",
             Type: EProviderType.Individual,
-            BusinessProfile: new BusinessProfileDto(
-                "Legal Name", null, null,
-                new ContactInfoDto("e@e.com", null, null),
-                null),
+            BusinessProfile: new BusinessProfileDtoBuilder()
+                .WithLegalName("Legal Name")
+                .WithContactInfo(new ContactInfoDto("e@e.com", null, null))
+                .Build(),
             Status: EProviderStatus.Active,
             VerificationStatus: EVerificationStatus.Verified,
             Tier: EProviderTier.Standard,
@@ -76,8 +77,6 @@ public class ProvidersModuleApiTests
             DeletedAt: null,
             IsActive: true);
     }
-
-    #region IsAvailableAsync Tests
 
     [Fact]
     public async Task IsAvailableAsync_WhenCanConnectReturnsTrue_ShouldReturnTrue()
@@ -122,8 +121,4 @@ public class ProvidersModuleApiTests
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             _sut.IsAvailableAsync(cts.Token));
     }
-
-    #endregion
 }
-
-

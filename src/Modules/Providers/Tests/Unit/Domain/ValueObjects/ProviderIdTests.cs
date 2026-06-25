@@ -130,5 +130,4 @@ public class ProviderIdTests
         // Assert
         providerId.Value.Should().Be(guid);
     }
-
 }

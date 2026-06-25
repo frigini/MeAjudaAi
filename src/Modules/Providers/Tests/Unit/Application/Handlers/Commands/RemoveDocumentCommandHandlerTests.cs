@@ -179,6 +179,3 @@ public class RemoveDocumentCommandHandlerTests
             Times.Once);
     }
 }
-
-
-
