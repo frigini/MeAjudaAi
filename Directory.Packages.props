@@ -85,7 +85,7 @@
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.1" />
     <PackageVersion Include="Rebus" Version="8.9.2" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.1" />
