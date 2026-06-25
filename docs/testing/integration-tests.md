@@ -19,7 +19,7 @@ Estes testes validam **componentes de infraestrutura individuais** dentro de um 
 
 - **Escopo**: Componentes de módulo único (Repositories, Services, Queries)
 - **Infraestrutura**: TestContainers PostgreSQL isolados por classe de teste (um banco lógico por classe)
-- **Classes Base**: `{Module}IntegrationTestBase`
+- **Classes Base**: `{Module}IntegrationTestBase` (ex: `UsersIntegrationTestBase`)
 - **Velocidade**: Mais rápido (apenas componentes do módulo necessários carregados)
 - **Propósito**: Validar persistência de dados, lógica de repositório e queries específicas do módulo
 - **Isolamento**: Cada classe de teste usa um banco de dados PostgreSQL isolado criado via Testcontainers
@@ -35,7 +35,7 @@ Estes testes validam **componentes de infraestrutura individuais** dentro de um 
 **Estrutura de Exemplo**:
 ```csharp
 // Localização: src/Modules/Users/Tests/Integration/UserPersistenceIntegrationTests.cs
-public class UserPersistenceIntegrationTests : DatabaseTestBase
+public class UserPersistenceIntegrationTests : UsersIntegrationTestBase
 {
     private UsersDbContext _context;
     private IUserQueries _userQueries;

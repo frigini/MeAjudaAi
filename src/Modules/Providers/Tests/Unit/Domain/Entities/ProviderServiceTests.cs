@@ -60,7 +60,7 @@ public class ProviderServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_WithInvalidServiceName_ShouldThrowArgumentException(string invalidName)
+    public void Create_WithInvalidServiceName_ShouldThrowArgumentException(string? invalidName)
     {
         // Arrange
         var providerId = ProviderId.New();

@@ -8,10 +8,10 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 
 public class DbContextServiceQueries(ServiceCatalogsDbContext _dbContext) : IServiceQueries
 {
-    private readonly ServiceCatalogsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly ServiceCatalogsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<Service?> GetByIdAsync(ServiceId id, CancellationToken cancellationToken = default) =>
-        await __dbContext.Services
+        await _dbContext.Services
             .AsNoTracking()
             .Include(s => s.Category)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);

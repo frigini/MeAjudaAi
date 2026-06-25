@@ -1470,7 +1470,7 @@ src/Modules/Payments/Tests/Integration/
 ├── Repository/
 │   ├── SubscriptionsRepositoryTests.cs
 │   ├── PaymentTransactionsRepositoryTests.cs
-│   └── InboxMessageRepositoryTests.cs    # Outbox pattern
+│   └── OutboxMessageRepositoryTests.cs    # Outbox pattern
 └── Queries/
     ├── SubscriptionsQueriesTests.cs
     └── PaymentTransactionsQueriesTests.cs
@@ -1760,7 +1760,7 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 public abstract class BaseModuleIntegrationTest<TDbContext> : IAsyncLifetime
     where TDbContext : DbContext
 {
-    private static readonly ConcurrentDictionary<Type, Lazy<Task<PostgreSqlContainer>>> _containers = new();
+    private static readonly ConcurrentDictionary<string, Lazy<Task<PostgreSqlContainer>>> _containers = new();
     private static readonly SemaphoreSlim _containerLock = new(1, 1);
 
     private ServiceProvider? _serviceProvider;
@@ -1803,7 +1803,7 @@ public abstract class BaseModuleIntegrationTest<TDbContext> : IAsyncLifetime
             options.EnableSensitiveDataLogging(false);
         });
 
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TDbContext>());
+        services.AddScoped(sp => sp.GetRequiredService<TDbContext>()); // Register DbContext directly if needed
     }
 
     private async Task InitializeDatabaseAsync()

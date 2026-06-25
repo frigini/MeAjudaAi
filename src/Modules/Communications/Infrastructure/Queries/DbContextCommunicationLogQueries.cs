@@ -10,10 +10,10 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 
 public class DbContextCommunicationLogQueries(CommunicationsDbContext _dbContext) : ICommunicationLogQueries
 {
-    private readonly CommunicationsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly CommunicationsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<bool> ExistsByCorrelationIdAsync(string correlationId, CancellationToken cancellationToken = default)
-        => await __dbContext.CommunicationLogs.AsNoTracking().AnyAsync(x => x.CorrelationId == correlationId, cancellationToken);
+        => await _dbContext.CommunicationLogs.AsNoTracking().AnyAsync(x => x.CorrelationId == correlationId, cancellationToken);
 
     public async Task<IReadOnlyList<CommunicationLog>> GetByRecipientAsync(
         string recipient, int maxResults = 50, CancellationToken cancellationToken = default)

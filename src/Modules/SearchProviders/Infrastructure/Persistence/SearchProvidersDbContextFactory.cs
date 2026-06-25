@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -18,8 +19,8 @@ public class SearchProvidersDbContextFactory : IDesignTimeDbContextFactory<Searc
 
         optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
         {
-            npgsqlOptions.MigrationsAssembly($"MeAjudaAi.Modules.SearchProviders.Infrastructure");
-            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
+            npgsqlOptions.MigrationsAssembly(typeof(SearchProvidersDbContext).Assembly);
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.SearchProviders);
             npgsqlOptions.UseNetTopologySuite();
         });
 

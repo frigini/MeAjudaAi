@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 
 public class DbContextSubscriptionQueries(PaymentsDbContext _dbContext) : ISubscriptionQueries
 {
-    private readonly PaymentsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly PaymentsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<Subscription?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

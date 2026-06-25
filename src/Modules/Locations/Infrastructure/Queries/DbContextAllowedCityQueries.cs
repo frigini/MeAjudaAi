@@ -7,10 +7,10 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 
 public class DbContextAllowedCityQueries(LocationsDbContext _dbContext) : IAllowedCityQueries
 {
-    private readonly LocationsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly LocationsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<IReadOnlyList<AllowedCity>> GetAllActiveAsync(CancellationToken cancellationToken = default) =>
-        await __dbContext.AllowedCities
+        await _dbContext.AllowedCities
             .Where(x => x.IsActive)
             .OrderBy(x => x.StateSigla)
             .ThenBy(x => x.CityName)

@@ -9,11 +9,11 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 
 public class DbContextReviewQueries(RatingsDbContext _dbContext) : IReviewQueries
 {
-    private readonly RatingsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly RatingsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {
-        return await __dbContext.Database.CanConnectAsync(cancellationToken);
+        return await _dbContext.Database.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Review?> GetByIdAsync(ReviewId id, CancellationToken cancellationToken = default) =>

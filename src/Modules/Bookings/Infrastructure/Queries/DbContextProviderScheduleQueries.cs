@@ -7,11 +7,11 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
 
 public class DbContextProviderScheduleQueries(BookingsDbContext _dbContext) : IProviderScheduleQueries
 {
-    private readonly BookingsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly BookingsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<ProviderSchedule?> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        return await __dbContext.ProviderSchedules
+        return await _dbContext.ProviderSchedules
             .FirstOrDefaultAsync(ps => ps.ProviderId == providerId, cancellationToken);
     }
 

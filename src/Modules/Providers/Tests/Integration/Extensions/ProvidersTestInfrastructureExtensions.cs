@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Providers.Application;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
@@ -69,6 +70,8 @@ public static class Extensions
 
         services.AddScoped<IQueryDispatcher, QueryDispatcher>();
         services.AddScoped<ICommandDispatcher, CommandDispatcher>();
+
+        services.AddApplication();
 
         return services;
     }

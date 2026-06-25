@@ -7,10 +7,10 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 
 public class DbContextDocumentQueries(DocumentsDbContext _dbContext) : IDocumentQueries
 {
-    private readonly DocumentsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+    private readonly DocumentsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
 
     public async Task<Document?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await __dbContext.Documents
+        await _dbContext.Documents
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Document>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default) =>
