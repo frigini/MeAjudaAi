@@ -87,7 +87,7 @@ Estes testes validam **fluxos completos de aplicação** com todos os módulos i
 **Estrutura de Exemplo**:
 ```csharp
 // Localização: tests/MeAjudaAi.Integration.Tests/Modules/Users/UsersApiTests.cs
-public class UsersApiTests : ApiTestBase
+public class UsersApiTests : BaseApiTest
 {
     [Fact]
     public async Task RegisterUser_ValidData_ShouldReturnCreated()

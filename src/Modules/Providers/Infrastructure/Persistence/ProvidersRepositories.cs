@@ -17,7 +17,8 @@ public partial class ProvidersDbContext : IRepository<Provider, Guid>, IReposito
     void IRepository<Provider, Guid>.Delete(Provider aggregate) =>
         Providers.Remove(aggregate);
 
-    public async Task<Provider?> TryFindAsync(ProviderId key, CancellationToken cancellationToken) =>
+    async Task<Provider?> IRepository<Provider, ProviderId>.TryFindAsync(
+        ProviderId key, CancellationToken cancellationToken) =>
         await Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
@@ -28,6 +29,6 @@ public partial class ProvidersDbContext : IRepository<Provider, Guid>, IReposito
     void IRepository<Provider, ProviderId>.Add(Provider aggregate) =>
         Providers.Add(aggregate);
 
-    public void Delete(Provider aggregate) =>
+    void IRepository<Provider, ProviderId>.Delete(Provider aggregate) =>
         Providers.Remove(aggregate);
 }
