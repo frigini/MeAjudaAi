@@ -1,12 +1,17 @@
 using MeAjudaAi.ApiService.Services.Orchestration;
+using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
-[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+/// <summary>
+/// Endpoints públicos para registro de prestadores de serviços.
+/// </summary>
+[ExcludeFromCodeCoverage]
 public static class ProviderRegistrationEndpoints
 {
     public static IEndpointRouteBuilder MapProviderRegistrationEndpoints(this IEndpointRouteBuilder endpoints)

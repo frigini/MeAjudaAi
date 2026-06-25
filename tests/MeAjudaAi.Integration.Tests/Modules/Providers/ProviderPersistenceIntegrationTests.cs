@@ -1,11 +1,8 @@
-using Bogus;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
@@ -18,8 +15,6 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Providers;
 
-    private readonly Faker _faker = new("pt_BR");
-
     [Fact]
     public async Task Add_WithValidProvider_ShouldPersistToDatabase()
     {
@@ -28,7 +23,7 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
         var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
         var repository = uow.GetRepository<Provider, ProviderId>();
-        var provider = CreateValidProvider();
+        var provider = ProviderBuilder.CreateValid().Build();
 
         // Act
         repository.Add(provider);
@@ -49,7 +44,7 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
         var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
         var userId = Guid.NewGuid();
-        var provider = CreateValidProvider(userId);
+        var provider = ProviderBuilder.CreateValid().WithUserId(userId).Build();
         uow.GetRepository<Provider, ProviderId>().Add(provider);
         await uow.SaveChangesAsync();
 
@@ -69,7 +64,7 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
         var uow = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
         var userId = Guid.NewGuid();
-        var provider = CreateValidProvider(userId);
+        var provider = ProviderBuilder.CreateValid().WithUserId(userId).Build();
         uow.GetRepository<Provider, ProviderId>().Add(provider);
         await uow.SaveChangesAsync();
 
@@ -89,8 +84,8 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
         var providerQueries = scope.ServiceProvider.GetRequiredService<IProviderQueries>();
         var repository = uow.GetRepository<Provider, ProviderId>();
         var city = "São Paulo";
-        var provider1 = CreateValidProviderWithAddress(city, "SP");
-        var provider2 = CreateValidProviderWithAddress(city, "SP");
+        var provider1 = ProviderBuilder.CreateValid().WithCity(city).WithState("SP").Build();
+        var provider2 = ProviderBuilder.CreateValid().WithCity(city).WithState("SP").Build();
 
         repository.Add(provider1);
         repository.Add(provider2);
@@ -104,45 +99,4 @@ public class ProviderPersistenceIntegrationTests : BaseApiTest
         results.Should().Contain(p => p.Id == provider1.Id);
         results.Should().Contain(p => p.Id == provider2.Id);
     }
-
-    #region Helper Methods
-
-    private Provider CreateValidProvider(Guid? userId = null, string? city = null, string? state = null)
-    {
-        var contactInfo = new ContactInfo(
-            email: _faker.Internet.Email(),
-            phoneNumber: _faker.Phone.PhoneNumber("(##) #####-####"),
-            website: null);
-
-        var address = new Address(
-            street: _faker.Address.StreetAddress(),
-            number: _faker.Random.Number(1, 9999).ToString(),
-            neighborhood: _faker.Address.County(),
-            city: city ?? _faker.Address.City(),
-            state: state ?? _faker.Address.StateAbbr(),
-            zipCode: _faker.Address.ZipCode(),
-            country: "Brazil",
-            complement: null);
-
-        var businessProfile = new BusinessProfile(
-            legalName: _faker.Company.CompanyName(),
-            contactInfo: contactInfo,
-            primaryAddress: address,
-            fantasyName: _faker.Company.CompanyName(),
-            description: _faker.Company.CatchPhrase());
-
-        return new ProviderBuilder()
-            .WithId(userId ?? UuidGenerator.NewId())
-            .WithName(_faker.Name.FullName())
-            .WithType(EProviderType.Individual)
-            .WithBusinessProfile(businessProfile)
-            .Build();
-    }
-
-    private Provider CreateValidProviderWithAddress(string city, string state)
-        => CreateValidProvider(city: city, state: state);
-
-    #endregion
 }
-
-

@@ -2,10 +2,11 @@ using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.ApiService.Services.Orchestration;
-using MeAjudaAi.Shared.Middleware.GeographicRestriction;
+using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
+using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Middleware;
-using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
+using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
 using System.Diagnostics.CodeAnalysis;
@@ -29,7 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddCustomAntiforgery();
         services.AddMemoryCache();
 
-        // Orchestration services
+        // Serviços de orquestração
         services.AddScoped<ICspReportService, CspReportService>();
         services.AddScoped<IClientConfigurationService, ClientConfigurationService>();
         services.AddScoped<IProviderRegistrationOrchestrator, ProviderRegistrationOrchestrator>();

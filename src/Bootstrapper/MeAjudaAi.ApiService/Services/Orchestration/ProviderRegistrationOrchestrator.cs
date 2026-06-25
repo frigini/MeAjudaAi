@@ -1,65 +1,74 @@
+using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 
 namespace MeAjudaAi.ApiService.Services.Orchestration;
 
-public interface IProviderRegistrationOrchestrator
+/// <summary>
+/// Orquestra o registro de provedores, coordenando a criação de usuários e provedores com compensação em caso de falha.
+/// </summary>
+public sealed class ProviderRegistrationOrchestrator(
+    ICommandDispatcher commandDispatcher,
+    ILogger<ProviderRegistrationOrchestrator> logger) : IProviderRegistrationOrchestrator
 {
-    Task<Result<ProviderDto>> RegisterProviderAsync(
-        RegisterProviderRequest request,
-        CancellationToken cancellationToken);
-}
-
-public sealed class ProviderRegistrationOrchestrator : IProviderRegistrationOrchestrator
-{
-    private readonly ICommandDispatcher _commandDispatcher;
-    private readonly ILogger<ProviderRegistrationOrchestrator> _logger;
-
-    public ProviderRegistrationOrchestrator(
-        ICommandDispatcher commandDispatcher,
-        ILogger<ProviderRegistrationOrchestrator> logger)
-    {
-        _commandDispatcher = commandDispatcher;
-        _logger = logger;
-    }
-
     public async Task<Result<ProviderDto>> RegisterProviderAsync(
         RegisterProviderRequest request,
         CancellationToken cancellationToken)
     {
+        if (request is null)
+            throw new ArgumentNullException(nameof(request));
+
         if (!request.AcceptedTerms || !request.AcceptedPrivacyPolicy)
             return Result<ProviderDto>.Failure(
                 new Error("Você deve aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.", 400));
 
-        var phone = SanitizePhone(request.PhoneNumber);
+        var phone = SanitizePhone(request.PhoneNumber ?? string.Empty);
         var username = GenerateUsername(phone);
-        var (firstName, lastName) = SplitName(request.Name);
+        var (firstName, lastName) = SplitName(request.Name ?? string.Empty);
         var password = GenerateTemporaryPassword();
 
         var createUserResult = await CreateUserAsync(
-            username, request.Email, firstName, lastName, password, request.PhoneNumber, cancellationToken);
+            username,
+            request.Email ?? string.Empty,
+            firstName,
+            lastName,
+            password,
+            request.PhoneNumber ?? string.Empty,
+            cancellationToken
+        );
 
         if (createUserResult.IsFailure)
         {
-            _logger.LogError("Failed to create Keycloak user for provider registration. Error: {Error}",
-                createUserResult.Error.Message);
+            var errorMessage = createUserResult.Error?.Message ?? "Unknown error";
+            logger.LogError("Failed to create Keycloak user for provider registration. Error: {Error}", errorMessage);
             return Result<ProviderDto>.Failure(
                 new Error("Ocorreu um erro ao registrar o usuário.", 400));
         }
 
         var userDto = createUserResult.Value;
+        if (userDto is null)
+        {
+            logger.LogError("User creation returned success but value is null");
+            return Result<ProviderDto>.Failure(
+                new Error("Ocorreu um erro interno ao processar o cadastro.", 500));
+        }
 
         var providerResult = await CreateProviderAsync(
-            userDto.Id, request.Name, request.Type, request.Email, request.PhoneNumber, cancellationToken);
+            userDto.Id,
+            request.Name ?? string.Empty,
+            request.Type,
+            request.Email ?? string.Empty,
+            request.PhoneNumber ?? string.Empty,
+            cancellationToken
+        );
 
         if (providerResult.IsFailure)
         {
@@ -68,7 +77,15 @@ public sealed class ProviderRegistrationOrchestrator : IProviderRegistrationOrch
                 new Error("Ocorreu um erro ao registrar o provedor.", 400));
         }
 
-        return Result<ProviderDto>.Success(providerResult.Value);
+        var providerDto = providerResult.Value;
+        if (providerDto is null)
+        {
+            logger.LogError("Provider creation returned success but value is null");
+            return Result<ProviderDto>.Failure(
+                new Error("Ocorreu um erro interno ao processar o cadastro.", 500));
+        }
+
+        return Result<ProviderDto>.Success(providerDto);
     }
 
     private async Task<Result<UserDto>> CreateUserAsync(
@@ -89,7 +106,7 @@ public sealed class ProviderRegistrationOrchestrator : IProviderRegistrationOrch
             Roles: [TierToRoleString(EProviderTier.Standard)],
             PhoneNumber: phoneNumber);
 
-        return await _commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
+        return await commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
             createUserCommand, cancellationToken);
     }
 
@@ -123,7 +140,7 @@ public sealed class ProviderRegistrationOrchestrator : IProviderRegistrationOrch
                     ZipCode: string.Empty,
                     Country: "BR")));
 
-        return await _commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
+        return await commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
             createProviderCommand, cancellationToken);
     }
 
@@ -133,49 +150,58 @@ public sealed class ProviderRegistrationOrchestrator : IProviderRegistrationOrch
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             var deleteUserCommand = new DeleteUserCommand(userId);
-            await _commandDispatcher.SendAsync<DeleteUserCommand, MeAjudaAi.Contracts.Functional.Result>(deleteUserCommand, cts.Token);
+            var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, MeAjudaAi.Contracts.Functional.Result>(deleteUserCommand, cts.Token);
+
+            if (deleteResult.IsFailure)
+            {
+                var errorMessage = deleteResult.Error?.Message ?? "Unknown error";
+                logger.LogError(
+                    "Compensation failed: Could not delete orphaned user {UserId}. Error: {Error}",
+                    userId,
+                    errorMessage);
+            }
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("Compensation cancelled while attempting to delete orphaned user {UserId}.", userId);
+            logger.LogWarning("Compensation cancelled while attempting to delete orphaned user {UserId}.", userId);
         }
         catch (TimeoutException ex)
         {
-            _logger.LogError(ex, "Compensation failed (timeout): Could not delete orphaned user {UserId}.", userId);
+            logger.LogError(ex, "Compensation failed (timeout): Could not delete orphaned user {UserId}.", userId);
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Compensation failed (invalid operation): Could not delete orphaned user {UserId}.", userId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error during compensation for orphaned user {UserId}.", userId);
+            logger.LogError(ex, "Compensation failed (invalid operation): Could not delete orphaned user {UserId}.", userId);
         }
     }
 
-    public static string SanitizePhone(string? phoneNumber)
+    private static string SanitizePhone(string? phoneNumber)
     {
         return System.Text.RegularExpressions.Regex.Replace(phoneNumber ?? "", @"\D", "");
     }
 
-    public static string GenerateUsername(string phone)
+    private static string GenerateUsername(string phone)
     {
         return string.IsNullOrEmpty(phone)
             ? $"provider_{Guid.NewGuid():N}"
             : $"provider_{phone}";
     }
 
-    public static (string FirstName, string LastName) SplitName(string name)
+    private static (string FirstName, string LastName) SplitName(string? name)
     {
-        var nameParts = name.Trim().Split(' ', 2);
-        var firstName = nameParts[0];
+        var safeName = name ?? string.Empty;
+        var nameParts = safeName.Trim().Split(' ', 2);
+        var firstName = nameParts.Length > 0 && !string.IsNullOrEmpty(nameParts[0]) ? nameParts[0] : string.Empty;
         var lastName = nameParts.Length > 1 ? nameParts[1] : firstName;
         return (firstName, lastName);
     }
 
-    public static string GenerateTemporaryPassword()
+    private static string GenerateTemporaryPassword()
     {
-        return $"Temp{Guid.NewGuid().ToString("N")[..8]}!123";
+        var randomBytes = new byte[8];
+        RandomNumberGenerator.Fill(randomBytes);
+        var randomPart = Convert.ToHexString(randomBytes);
+        return $"Temp{randomPart}!123";
     }
 
     private static string TierToRoleString(EProviderTier tier) => tier switch

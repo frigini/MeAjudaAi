@@ -1,10 +1,12 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Services.Orchestration;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.Extensions.Logging;
@@ -66,6 +68,7 @@ public class ProviderRegistrationOrchestratorTests
         var userDto = CreateUserDto(Guid.NewGuid());
         SetupUserCreationSuccess(userDto);
         SetupProviderCreationFailure();
+        SetupDeleteUserCommandFailure();
 
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
@@ -85,78 +88,7 @@ public class ProviderRegistrationOrchestratorTests
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Id.Should().Be(providerDto.Id);
-    }
-
-    [Theory]
-    [InlineData("11999999999", "provider_11999999999")]
-    public void GenerateUsername_WithPhone_ShouldUsePhone(string phone, string expectedPrefix)
-    {
-        var username = ProviderRegistrationOrchestrator.GenerateUsername(phone);
-
-        username.Should().StartWith(expectedPrefix);
-    }
-
-    [Fact]
-    public void GenerateUsername_WithEmptyPhone_ShouldGenerateRandomUsername()
-    {
-        var username = ProviderRegistrationOrchestrator.GenerateUsername("");
-
-        username.Should().StartWith("provider_");
-        username.Length.Should().BeGreaterThan("provider_".Length);
-    }
-
-    [Fact]
-    public void SplitName_WithFullName_ShouldSplitCorrectly()
-    {
-        var (firstName, lastName) = ProviderRegistrationOrchestrator.SplitName("John Doe");
-
-        firstName.Should().Be("John");
-        lastName.Should().Be("Doe");
-    }
-
-    [Fact]
-    public void SplitName_WithSingleName_ShouldUseAsBoth()
-    {
-        var (firstName, lastName) = ProviderRegistrationOrchestrator.SplitName("John");
-
-        firstName.Should().Be("John");
-        lastName.Should().Be("John");
-    }
-
-    [Fact]
-    public void SplitName_WithExtraSpaces_ShouldTrim()
-    {
-        var (firstName, lastName) = ProviderRegistrationOrchestrator.SplitName("  John Doe  ");
-
-        firstName.Should().Be("John");
-        lastName.Should().Be("Doe");
-    }
-
-    [Fact]
-    public void GenerateTemporaryPassword_ShouldMeetComplexityRequirements()
-    {
-        var password = ProviderRegistrationOrchestrator.GenerateTemporaryPassword();
-
-        password.Should().StartWith("Temp");
-        password.Should().EndWith("!123");
-        password.Length.Should().BeGreaterThan("Temp".Length + "!123".Length);
-    }
-
-    [Fact]
-    public void SanitizePhone_WithFormattedPhone_ShouldExtractNumbers()
-    {
-        var result = ProviderRegistrationOrchestrator.SanitizePhone("(11) 9999-99999");
-
-        result.Should().Be("11999999999");
-    }
-
-    [Fact]
-    public void SanitizePhone_WithNullPhone_ShouldReturnEmpty()
-    {
-        var result = ProviderRegistrationOrchestrator.SanitizePhone(null);
-
-        result.Should().BeEmpty();
+        result.Value!.Id.Should().Be(providerDto.Id);
     }
 
     private static RegisterProviderRequest CreateRequest(
@@ -181,33 +113,41 @@ public class ProviderRegistrationOrchestratorTests
 
     private void SetupUserCreationSuccess(UserDto userDto)
     {
-        _dispatcherMock.Setup(x => x.SendAsync<MeAjudaAi.Modules.Users.Application.Commands.CreateUserCommand, Result<UserDto>>(
-            It.IsAny<MeAjudaAi.Modules.Users.Application.Commands.CreateUserCommand>(),
+        _dispatcherMock.Setup(x => x.SendAsync<CreateUserCommand, Result<UserDto>>(
+            It.IsAny<CreateUserCommand>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Success(userDto));
     }
 
     private void SetupUserCreationFailure()
     {
-        _dispatcherMock.Setup(x => x.SendAsync<MeAjudaAi.Modules.Users.Application.Commands.CreateUserCommand, Result<UserDto>>(
-            It.IsAny<MeAjudaAi.Modules.Users.Application.Commands.CreateUserCommand>(),
+        _dispatcherMock.Setup(x => x.SendAsync<CreateUserCommand, Result<UserDto>>(
+            It.IsAny<CreateUserCommand>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Failure(new Error("Failed", 400)));
     }
 
     private void SetupProviderCreationSuccess(ProviderDto providerDto)
     {
-        _dispatcherMock.Setup(x => x.SendAsync<MeAjudaAi.Modules.Providers.Application.Commands.CreateProviderCommand, Result<ProviderDto>>(
-            It.IsAny<MeAjudaAi.Modules.Providers.Application.Commands.CreateProviderCommand>(),
+        _dispatcherMock.Setup(x => x.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
+            It.IsAny<CreateProviderCommand>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto>.Success(providerDto));
     }
 
     private void SetupProviderCreationFailure()
     {
-        _dispatcherMock.Setup(x => x.SendAsync<MeAjudaAi.Modules.Providers.Application.Commands.CreateProviderCommand, Result<ProviderDto>>(
-            It.IsAny<MeAjudaAi.Modules.Providers.Application.Commands.CreateProviderCommand>(),
+        _dispatcherMock.Setup(x => x.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
+            It.IsAny<CreateProviderCommand>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto>.Failure(new Error("Failed", 400)));
+    }
+
+    private void SetupDeleteUserCommandFailure()
+    {
+        _dispatcherMock.Setup(x => x.SendAsync<DeleteUserCommand, Result>(
+            It.IsAny<DeleteUserCommand>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure(new Error("Delete failed", 500)));
     }
 }

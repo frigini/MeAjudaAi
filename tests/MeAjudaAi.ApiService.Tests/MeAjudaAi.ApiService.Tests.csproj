@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -33,10 +33,11 @@
     <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
     <ProjectReference Include="..\..\src\Modules\Providers\Tests\MeAjudaAi.Modules.Providers.Tests.csproj" />
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+  </ItemGroup>  <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="Moq" />
   </ItemGroup>
 
+	
 </Project>

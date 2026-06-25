@@ -137,7 +137,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <param name="name">Nome do prestador de serviços</param>
     /// <param name="type">Tipo do prestador de serviços</param>
     /// <param name="businessProfile">Perfil empresarial</param>
-    /// <exception cref="ProviderDomainException">Thrown when business rules are violated</exception>
+    /// <exception cref="ProviderDomainException">Lançada quando as regras de negócio são violadas</exception>
     public static Provider Create(
         Guid userId,
         string name,

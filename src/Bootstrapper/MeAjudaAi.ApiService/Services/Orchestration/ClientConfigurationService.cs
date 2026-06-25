@@ -1,3 +1,4 @@
+using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
 using MeAjudaAi.Contracts.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -5,65 +6,21 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.ApiService.Services.Orchestration;
 
-public interface IClientConfigurationService
+/// <summary>
+/// Serviço que extrai e compõe a configuração do cliente a partir das variáveis de ambiente e configuration files.
+/// </summary>
+public sealed class ClientConfigurationService(
+    IConfiguration configuration,
+    IHostEnvironment environment,
+    ILogger<ClientConfigurationService> logger) : IClientConfigurationService
 {
-    ClientConfiguration GetClientConfiguration();
-}
-
-public sealed class ClientConfigurationService : IClientConfigurationService
-{
-    private readonly IConfiguration _configuration;
-    private readonly IHostEnvironment _environment;
-    private readonly ILogger<ClientConfigurationService> _logger;
-
-    public ClientConfigurationService(
-        IConfiguration configuration,
-        IHostEnvironment environment,
-        ILogger<ClientConfigurationService> logger)
-    {
-        _configuration = configuration;
-        _environment = environment;
-        _logger = logger;
-    }
-
     public ClientConfiguration GetClientConfiguration()
     {
-        var apiBaseUrl = _configuration["ApiBaseUrl"]
-            ?? _configuration["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
-            ?? "https://localhost:7001";
-
-        apiBaseUrl = apiBaseUrl.TrimEnd('/');
-
-        var keycloakAuthority = _configuration["Keycloak:Authority"]?.TrimEnd('/');
-
-        if (string.IsNullOrWhiteSpace(keycloakAuthority))
-        {
-            var keycloakBaseUrl = _configuration["Keycloak:BaseUrl"];
-            if (string.IsNullOrWhiteSpace(keycloakBaseUrl))
-                throw new InvalidOperationException("Keycloak:BaseUrl ou Keycloak:Authority deve estar configurado");
-
-            keycloakBaseUrl = keycloakBaseUrl.TrimEnd('/');
-
-            var keycloakRealm = _configuration["Keycloak:Realm"];
-            if (string.IsNullOrWhiteSpace(keycloakRealm))
-                keycloakRealm = "meajudaai";
-
-            keycloakRealm = keycloakRealm.Trim('/');
-
-            keycloakAuthority = $"{keycloakBaseUrl}/realms/{keycloakRealm}";
-        }
-
-        var keycloakClientId = _configuration["Keycloak:ClientId"]
-            ?? throw new InvalidOperationException("Keycloak:ClientId não configurado");
-
-        var clientBaseUrl = _configuration["ClientBaseUrl"] ?? "http://localhost:5165";
-        var postLogoutRedirectUri = $"{clientBaseUrl.TrimEnd('/')}/";
-
-        var rawEnableFakeAuth = _configuration["FeatureFlags:EnableFakeAuth"]?.Trim();
-        if (!bool.TryParse(rawEnableFakeAuth, out var enableFakeAuth) && !string.IsNullOrEmpty(rawEnableFakeAuth))
-        {
-            _logger.LogWarning("Invalid value for FeatureFlags:EnableFakeAuth: '{Value}'. Treating as false.", rawEnableFakeAuth);
-        }
+        var apiBaseUrl = ExtractApiBaseUrl();
+        var keycloakAuthority = ExtractKeycloakAuthority();
+        var keycloakClientId = ExtractKeycloakClientId();
+        var (_, postLogoutRedirectUri) = ExtractClientBaseUrl();
+        var enableFakeAuth = ParseEnableFakeAuth();
 
         return new ClientConfiguration
         {
@@ -72,21 +29,78 @@ public sealed class ClientConfigurationService : IClientConfigurationService
             {
                 Authority = keycloakAuthority,
                 ClientId = keycloakClientId,
-                ResponseType = _configuration["Keycloak:ResponseType"] ?? "code",
-                Scope = _configuration["Keycloak:Scope"] ?? "openid profile email",
+                ResponseType = configuration["Keycloak:ResponseType"] ?? "code",
+                Scope = configuration["Keycloak:Scope"] ?? "openid profile email",
                 PostLogoutRedirectUri = postLogoutRedirectUri
             },
             External = new ExternalResources
             {
-                DocumentationUrl = _configuration["External:DocumentationUrl"],
-                SupportUrl = _configuration["External:SupportUrl"]
+                DocumentationUrl = configuration["External:DocumentationUrl"],
+                SupportUrl = configuration["External:SupportUrl"]
             },
             Features = new FeatureFlags
             {
-                EnableReduxDevTools = _environment.IsDevelopment(),
-                EnableDebugMode = _environment.IsDevelopment(),
+                EnableReduxDevTools = environment.IsDevelopment(),
+                EnableDebugMode = environment.IsDevelopment(),
                 EnableFakeAuth = enableFakeAuth
             }
         };
+    }
+
+    private string ExtractApiBaseUrl()
+    {
+        var apiBaseUrl = configuration["ApiBaseUrl"]
+            ?? configuration["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
+            ?? "https://localhost:7001";
+
+        return apiBaseUrl.TrimEnd('/');
+    }
+
+    private string ExtractKeycloakAuthority()
+    {
+        var keycloakAuthority = configuration["Keycloak:Authority"]?.TrimEnd('/');
+
+        if (!string.IsNullOrWhiteSpace(keycloakAuthority))
+            return keycloakAuthority;
+
+        var keycloakBaseUrl = configuration["Keycloak:BaseUrl"];
+        if (string.IsNullOrWhiteSpace(keycloakBaseUrl))
+            throw new InvalidOperationException("Keycloak:BaseUrl or Keycloak:Authority must be configured");
+
+        keycloakBaseUrl = keycloakBaseUrl.TrimEnd('/');
+
+        var keycloakRealm = configuration["Keycloak:Realm"];
+        if (string.IsNullOrWhiteSpace(keycloakRealm))
+            keycloakRealm = "meajudaai";
+
+        keycloakRealm = keycloakRealm.Trim('/');
+
+        return $"{keycloakBaseUrl}/realms/{keycloakRealm}";
+    }
+
+    private string ExtractKeycloakClientId()
+    {
+        return configuration["Keycloak:ClientId"]
+            ?? throw new InvalidOperationException("Keycloak:ClientId is not configured");
+    }
+
+    private (string ClientBaseUrl, string PostLogoutRedirectUri) ExtractClientBaseUrl()
+    {
+        var clientBaseUrl = configuration["ClientBaseUrl"] ?? "http://localhost:5165";
+        var postLogoutRedirectUri = $"{clientBaseUrl.TrimEnd('/')}/";
+        return (clientBaseUrl, postLogoutRedirectUri);
+    }
+
+    private bool ParseEnableFakeAuth()
+    {
+        var rawEnableFakeAuth = configuration["FeatureFlags:EnableFakeAuth"]?.Trim();
+
+        if (bool.TryParse(rawEnableFakeAuth, out var parsedValue))
+            return environment.IsDevelopment() && parsedValue;
+
+        if (!string.IsNullOrEmpty(rawEnableFakeAuth))
+            logger.LogWarning("Invalid value for FeatureFlags:EnableFakeAuth: '{Value}'. Treating as false.", rawEnableFakeAuth);
+
+        return false;
     }
 }

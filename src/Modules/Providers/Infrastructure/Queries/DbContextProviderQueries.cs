@@ -96,6 +96,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             .ToListAsync(cancellationToken);
 
         return allProviders
+            .Where(p => p.BusinessProfile?.PrimaryAddress != null)
             .Where(p => LikeMatch(p.BusinessProfile!.PrimaryAddress!.City, likePattern))
             .OrderBy(p => p.Id.Value)
             .ToList();
@@ -112,6 +113,7 @@ public sealed class DbContextProviderQueries(ProvidersDbContext context) : IProv
             .ToListAsync(cancellationToken);
 
         return allProviders
+            .Where(p => p.BusinessProfile?.PrimaryAddress != null)
             .Where(p => LikeMatch(p.BusinessProfile!.PrimaryAddress!.State, likePattern))
             .OrderBy(p => p.Id.Value)
             .ToList();

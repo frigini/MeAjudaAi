@@ -1,9 +1,15 @@
 using MeAjudaAi.ApiService.Services.Orchestration;
+using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
+using MeAjudaAi.Contracts.Configuration;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
-[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+/// <summary>
+/// Endpoints para obtaining configuração do cliente Blazor WASM.
+/// </summary>
+[ExcludeFromCodeCoverage]
 public static class ConfigurationEndpoints
 {
     public static IEndpointRouteBuilder MapConfigurationEndpoints(this IEndpointRouteBuilder endpoints)
@@ -15,7 +21,7 @@ public static class ConfigurationEndpoints
             .WithName("GetClientConfiguration")
             .WithSummary("Obtém a configuração do cliente Blazor WASM")
             .WithDescription("Retorna configurações não-sensíveis necessárias para o frontend (Keycloak, URLs, feature flags)")
-            .Produces<MeAjudaAi.Contracts.Configuration.ClientConfiguration>(StatusCodes.Status200OK)
+            .Produces<ClientConfiguration>(StatusCodes.Status200OK)
             .AllowAnonymous();
 
         return endpoints;
