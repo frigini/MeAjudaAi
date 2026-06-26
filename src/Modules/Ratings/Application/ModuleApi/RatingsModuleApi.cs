@@ -17,7 +17,7 @@ public sealed class RatingsModuleApi(
 {
     private static class ModuleMetadata
     {
-        public const string Name = ModuleNames.Bookings;
+        public const string Name = ModuleNames.Ratings;
         public const string Version = "1.0";
     }
 

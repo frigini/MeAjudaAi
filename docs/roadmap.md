@@ -89,7 +89,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 **Solução Proposta**: Substituir por Azure AI Content Safety API para moderação de conteúdo.
 
 **Benefícios**:
-- Detecção avançada de ofensas, hate speech, conteúdo sexual e auto-agressão
+- Detecção avançada de ofensas, hate speech, conteúdo sexual e autoagressão
 - Suporte a múltiplos idiomas (incluindo português)
 - Atualizações automáticas dos modelos de IA
 - Rate limiting e escalabilidade gerenciada pela Azure

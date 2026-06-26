@@ -10,7 +10,7 @@ using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Ratings")]

@@ -1,9 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Ratings.Application.ModuleApi;
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.ModuleApi;
 
@@ -36,7 +33,7 @@ public class RatingsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Error retrieving rating data.");
+        result.Error!.Message.Should().Be("Error retrieving rating data.");
     }
 
     [Fact]
@@ -55,5 +52,6 @@ public class RatingsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("Error checking review status.");
     }
 }

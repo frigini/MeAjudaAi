@@ -9,7 +9,7 @@ using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using ContractsEnumEReviewStatus = MeAjudaAi.Contracts.Modules.Ratings.Enums.EReviewStatus;
 
-namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Ratings")]
@@ -121,7 +121,7 @@ public class GetReviewStatusQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]

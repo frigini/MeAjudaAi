@@ -8,7 +8,7 @@ using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Ratings")]
@@ -63,7 +63,7 @@ public class GetReviewByIdQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class GetReviewByIdQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class GetReviewByIdQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -122,6 +122,6 @@ public class GetReviewByIdQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 }

@@ -36,7 +36,7 @@ public class GetProviderReviewsEndpoint : IEndpoint
             .WithName("GetProviderReviews")
             .WithSummary("Consultar avaliações do prestador")
             .WithDescription("Recupera todas as avaliações aprovadas de um prestador de serviço específico, com paginação.")
-            .Produces<IEnumerable<ProviderReviewResponse>>(StatusCodes.Status200OK)
+            .Produces<PagedResult<ProviderReviewResponse>>(StatusCodes.Status200OK)
             .AllowAnonymous();
     }
 
@@ -44,7 +44,7 @@ public class GetProviderReviewsEndpoint : IEndpoint
         Guid providerId,
         [FromServices] IQueryDispatcher dispatcher,
         [FromQuery] int page = Pagination.DefaultPageNumber,
-        [FromQuery] int pageSize = 10,
+        [FromQuery] int pageSize = Pagination.DefaultPageSize,
         CancellationToken cancellationToken = default)
     {
         var (normalizedPage, normalizedPageSize) = NormalizePagination(page, pageSize);

@@ -1,15 +1,13 @@
+using MeAjudaAi.Modules.Ratings.Infrastructure;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
+using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure;
 
@@ -24,11 +22,13 @@ public class ExtensionsTests
         var hostEnv = new Mock<IHostEnvironment>();
         services.AddLogging();
         
-        services.AddScoped(sp => new Mock<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>().Object);
+        services.AddScoped(sp => new Mock<IUnitOfWork>().Object);
         // Mock do MessageBus para evitar falha de resolução
-        services.AddSingleton(new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>().Object);
+        services.AddSingleton(new Mock<IMessageBus>().Object);
+        // Mock do CacheService para handlers que dependem dele
+        services.AddSingleton(new Mock<ICacheService>().Object);
 
-        MeAjudaAi.Modules.Ratings.Infrastructure.Extensions.AddInfrastructure(services, configuration, hostEnv.Object);
+        Extensions.AddInfrastructure(services, configuration, hostEnv.Object);
         var provider = services.BuildServiceProvider();
 
         provider.GetService<IEventHandler<ReviewApprovedDomainEvent>>().Should().NotBeNull();

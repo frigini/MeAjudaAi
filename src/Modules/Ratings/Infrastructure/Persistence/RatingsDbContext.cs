@@ -1,12 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using System.Reflection;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
@@ -43,5 +41,3 @@ public partial class RatingsDbContext : BaseDbContext, IUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
-
-

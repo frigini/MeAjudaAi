@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ public class ReviewApprovedDomainEventHandlerTests
 {
     private readonly Mock<IMessageBus> _messageBusMock;
     private readonly Mock<IReviewQueries> _queriesMock;
+    private readonly Mock<ICacheService> _cacheServiceMock;
     private readonly Mock<ILogger<ReviewApprovedDomainEventHandler>> _loggerMock;
     private readonly ReviewApprovedDomainEventHandler _handler;
 
@@ -18,10 +20,12 @@ public class ReviewApprovedDomainEventHandlerTests
     {
         _messageBusMock = new Mock<IMessageBus>();
         _queriesMock = new Mock<IReviewQueries>();
+        _cacheServiceMock = new Mock<ICacheService>();
         _loggerMock = new Mock<ILogger<ReviewApprovedDomainEventHandler>>();
         _handler = new ReviewApprovedDomainEventHandler(
             _messageBusMock.Object,
             _queriesMock.Object,
+            _cacheServiceMock.Object,
             _loggerMock.Object);
     }
 
@@ -145,5 +149,21 @@ public class ReviewApprovedDomainEventHandlerTests
 
         _queriesMock.Verify(r => r.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), cts.Token), Times.Once);
         _messageBusMock.Verify(m => m.PublishAsync(It.IsAny<ReviewApprovedIntegrationEvent>(), It.IsAny<string?>(), cts.Token), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldInvalidateCache_ForReviewId()
+    {
+        var reviewId = Guid.NewGuid();
+        var domainEvent = new ReviewApprovedDomainEvent(reviewId, 0, Guid.NewGuid(), 5, "Great");
+
+        _queriesMock.Setup(r => r.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((5.0m, 1));
+
+        await _handler.HandleAsync(domainEvent);
+
+        _cacheServiceMock.Verify(c => c.RemoveByTagAsync(
+            $"review:{reviewId}",
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }

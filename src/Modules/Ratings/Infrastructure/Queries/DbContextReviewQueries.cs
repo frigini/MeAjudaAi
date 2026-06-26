@@ -23,9 +23,6 @@ public class DbContextReviewQueries(RatingsDbContext _dbContext) : IReviewQuerie
 
     public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        page = page < 1 ? 1 : page;
-        pageSize = pageSize < 1 ? 10 : pageSize > 100 ? 100 : pageSize;
-
         return await _dbContext.Reviews
             .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)
@@ -39,6 +36,13 @@ public class DbContextReviewQueries(RatingsDbContext _dbContext) : IReviewQuerie
         await _dbContext.Reviews
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.ProviderId == providerId && r.CustomerId == customerId, cancellationToken);
+
+    public async Task<int> GetTotalApprovedCountByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Reviews
+            .AsNoTracking()
+            .CountAsync(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved, cancellationToken);
+    }
 
     public async Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {

@@ -25,6 +25,10 @@ public sealed class GetProviderReviewsQueryHandler(
             query.PageSize,
             cancellationToken);
 
+        var totalItems = await reviewQueries.GetTotalApprovedCountByProviderIdAsync(
+            query.ProviderId,
+            cancellationToken);
+
         var dtos = reviews.Select(r => new ProviderReviewResponse(
             r.Id.Value,
             r.Rating,
@@ -36,7 +40,7 @@ public sealed class GetProviderReviewsQueryHandler(
             Items = dtos.AsReadOnly(),
             PageNumber = query.Page,
             PageSize = query.PageSize,
-            TotalItems = dtos.Count
+            TotalItems = totalItems
         });
     }
 }
