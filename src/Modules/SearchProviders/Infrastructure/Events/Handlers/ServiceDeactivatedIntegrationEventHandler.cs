@@ -39,6 +39,3 @@ internal sealed class ServiceDeactivatedIntegrationEventHandler(
             integrationEvent.ServiceId, providers.Count);
     }
 }
-
-
-

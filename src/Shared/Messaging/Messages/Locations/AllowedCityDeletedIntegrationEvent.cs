@@ -9,5 +9,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Locations;
 [ExcludeFromCodeCoverage]
 public record AllowedCityDeletedIntegrationEvent(
     string Source,
-    Guid CityId
+    Guid CityId,
+    string CityName,
+    string StateSigla
 ) : IntegrationEvent(Source);

@@ -17,5 +17,3 @@ public partial class SearchProvidersDbContext : IRepository<SearchableProvider, 
     void IRepository<SearchableProvider, SearchableProviderId>.Delete(SearchableProvider aggregate) =>
         SearchableProviders.Remove(aggregate);
 }
-
-

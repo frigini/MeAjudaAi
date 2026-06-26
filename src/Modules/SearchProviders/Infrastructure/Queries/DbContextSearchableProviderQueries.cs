@@ -15,15 +15,15 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
 /// Implementação de ISearchableProviderQueries na camada de infraestrutura utilizando EF Core e Dapper.
 /// </summary>
 public sealed class DbContextSearchableProviderQueries(
-    SearchProvidersDbContext _context,
+    SearchProvidersDbContext context,
     IDapperConnection dapper) : ISearchableProviderQueries
 {
-    private readonly SearchProvidersDbContext __context = _context ?? throw new ArgumentNullException(nameof(_context));
+    private readonly SearchProvidersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
     private readonly IDapperConnection _dapper = dapper ?? throw new ArgumentNullException(nameof(dapper));
 
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
     {
-        return await __context.Database.CanConnectAsync(cancellationToken);
+        return await _context.Database.CanConnectAsync(cancellationToken);
     }
 
     public async Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default)
@@ -95,7 +95,7 @@ public sealed class DbContextSearchableProviderQueries(
             OFFSET @Skip LIMIT @Take
             """;
 
-        var results = await dapper.QueryAsync<ProviderSearchResultDto>(
+        var results = await _dapper.QueryAsync<ProviderSearchResultDto>(
             sql,
             new
             {
@@ -120,7 +120,7 @@ public sealed class DbContextSearchableProviderQueries(
             {whereClause}
             """;
 
-        var totalCount = await dapper.QuerySingleOrDefaultAsync<int?>(
+        var totalCount = await _dapper.QuerySingleOrDefaultAsync<int?>(
             countSql,
             new
             {
@@ -223,6 +223,28 @@ public sealed class DbContextSearchableProviderQueries(
             .Where(p => p.ServiceIds.Contains(serviceId))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<SearchableProvider>> GetByCityNameAsync(string cityName, bool track = false, CancellationToken cancellationToken = default)
+    {
+        var query = _context.SearchableProviders.AsQueryable();
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query
+            .Where(p => p.City != null && p.City == cityName && p.IsActive)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SearchableProvider>> GetByStateSiglaAsync(string stateSigla, bool track = false, CancellationToken cancellationToken = default)
+    {
+        var query = _context.SearchableProviders.AsQueryable();
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query
+            .Where(p => p.State != null && p.State == stateSigla && p.IsActive)
+            .ToListAsync(cancellationToken);
+    }
 }
-
-

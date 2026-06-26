@@ -89,14 +89,14 @@ public class AllowedCityDomainEventHandlersTests
     {
         // Arrange
         var handler = new AllowedCityDeletedDomainEventHandler(_messageBusMock.Object, _loggerDeletedMock.Object);
-        var domainEvent = new AllowedCityDeletedDomainEvent(Guid.NewGuid());
+        var domainEvent = new AllowedCityDeletedDomainEvent(Guid.NewGuid(), "City", "ST");
 
         // Act
         await handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
         _messageBusMock.Verify(m => m.PublishAsync(
-            It.Is<AllowedCityDeletedIntegrationEvent>(e => e.CityId == domainEvent.CityId),
+            It.Is<AllowedCityDeletedIntegrationEvent>(e => e.CityId == domainEvent.CityId && e.CityName == "City" && e.StateSigla == "ST"),
             null, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

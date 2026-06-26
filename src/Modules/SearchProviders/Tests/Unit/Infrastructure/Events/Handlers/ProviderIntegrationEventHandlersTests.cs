@@ -1,13 +1,10 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
-namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Events.Handlers.Integration;
+namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Events.Handlers;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "SearchProviders")]

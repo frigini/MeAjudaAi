@@ -404,4 +404,3 @@ public class SearchProvidersQueryHandlerTests
         return providers;
     }
 }
-

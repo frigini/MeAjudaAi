@@ -48,6 +48,3 @@ internal sealed class ReviewApprovedIntegrationEventHandler(
         }
     }
 }
-
-
-

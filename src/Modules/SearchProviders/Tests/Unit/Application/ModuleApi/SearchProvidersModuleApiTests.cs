@@ -1,19 +1,19 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
+using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.ModuleApi;
 
@@ -566,12 +566,8 @@ public class SearchProvidersModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("internal error");
+        result.Error!.Message.Should().Contain("internal error");
     }
 
     #endregion
 }
-
-
-
-

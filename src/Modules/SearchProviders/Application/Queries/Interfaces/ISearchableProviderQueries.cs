@@ -51,4 +51,20 @@ public interface ISearchableProviderQueries
     /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, bool track = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera todos os provedores pesquisáveis de uma cidade específica.
+    /// </summary>
+    /// <param name="cityName">Nome da cidade</param>
+    /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    Task<IReadOnlyList<SearchableProvider>> GetByCityNameAsync(string cityName, bool track = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera todos os provedores pesquisáveis de um estado específico.
+    /// </summary>
+    /// <param name="stateSigla">Sigla do estado (ex: "MG", "RJ")</param>
+    /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    Task<IReadOnlyList<SearchableProvider>> GetByStateSiglaAsync(string stateSigla, bool track = false, CancellationToken cancellationToken = default);
 }

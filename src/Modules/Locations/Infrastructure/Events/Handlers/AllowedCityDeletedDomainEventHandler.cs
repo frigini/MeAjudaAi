@@ -18,7 +18,9 @@ internal sealed class AllowedCityDeletedDomainEventHandler(
         {
             var integrationEvent = new AllowedCityDeletedIntegrationEvent(
                 ModuleNames.Locations,
-                domainEvent.CityId);
+                domainEvent.CityId,
+                domainEvent.CityName,
+                domainEvent.StateSigla);
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
             logger.LogInformation("Published AllowedCityDeletedIntegrationEvent for city {CityId}", domainEvent.CityId);
