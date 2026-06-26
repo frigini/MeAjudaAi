@@ -84,6 +84,10 @@ public static class ApiEndpoints
     public static class Ratings
     {
         public const string Base = "ratings";
+        public const string Create = "/";
+        public const string GetById = "/{id:guid}";
+        public const string GetByProvider = "/provider/{providerId:guid}";
+        public const string GetStatus = "/{id:guid}/status";
     }
 
     public static class SearchProviders

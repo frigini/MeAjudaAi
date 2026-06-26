@@ -17,27 +17,28 @@ vars:pre-request {
 docs {
   # Get Review Status
   
-  Retorna o status puro de uma avaliação existente, validando se está sob moderação, rejeitada ou aprovada.
+  Retorna o status de uma avaliação existente, validando se está sob moderação, aprovada, rejeitada ou sinalizada.
   
   ## Autorização
-  - **Política**: AllowAnonymous (Público/Integrador)
-  - **Requer token**: Não
+  - **Política**: AdminPolicy
+  - **Requer token**: Sim
   
   ## Parâmetros Route
   - `id` (guid): ID da avaliação a ser checada (Obrigatório)
   
   ## Comportamento
-  - Uma enumeração de status: 1 = Pending, 2 = Approved, 3 = Rejected.
+  - Uma enumeração de status: 0 = Pending, 1 = Approved, 2 = Rejected, 3 = Flagged.
   
   ## Resposta Esperada (200 OK)
   ```json
   {
     "id": "uuid-da-review",
-    "status": 2
+    "status": 1
   }
   ```
   
   ## Códigos de Status
   - **200**: Status devolvido com sucesso
   - **404**: Avaliação não existe
+  - **403**: Usuário não possui permissão de administrador
 }

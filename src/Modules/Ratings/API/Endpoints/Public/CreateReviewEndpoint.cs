@@ -1,22 +1,38 @@
-using MeAjudaAi.Modules.Ratings.Application.Commands;
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
+using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Contracts.Constants;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints.Public;
 
+/// <summary>
+/// Endpoint responsável pela criação de uma nova avaliação (review) de prestador de serviço.
+/// </summary>
+/// <remarks>
+/// Endpoint autenticado que permite ao cliente criar uma avaliação para um prestador.
+/// Valida se o cliente possui permissão antes de registrar a avaliação.
+/// </remarks>
 public class CreateReviewEndpoint : IEndpoint
 {
+    /// <summary>
+    /// Configura o mapeamento do endpoint de criação de avaliação.
+    /// </summary>
+    /// <param name="app">Builder de rotas do endpoint</param>
+    /// <remarks>
+    /// Configura endpoint POST em "/" com:
+    /// - Autorização obrigatória (usuário autenticado)
+    /// - Validação automática do corpo da requisição
+    /// - Respostas estruturadas para sucesso (201), erro de validação (400) e não autorizado (401)
+    /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPost("", CreateReviewAsync)
+        app.MapPost(ApiEndpoints.Ratings.Create, CreateReviewAsync)
             .WithName("CreateReview")
+            .WithSummary("Criar avaliação")
+            .WithDescription("Registra uma nova avaliação (review) para um prestador de serviço.")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
