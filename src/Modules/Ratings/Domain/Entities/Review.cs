@@ -66,7 +66,7 @@ public sealed class Review : AggregateRoot<ReviewId>
     {
         if (providerId == Guid.Empty) throw new ArgumentException("ProviderId não pode ser vazio", nameof(providerId));
         if (customerId == Guid.Empty) throw new ArgumentException("CustomerId não pode ser vazio", nameof(customerId));
-        if (rating < 1 || rating > 5) throw new ArgumentOutOfRangeException(nameof(rating), "Rating deve ser entre 1 e 5");
+        if (rating is < 1 or > 5) throw new ArgumentOutOfRangeException(nameof(rating), "Rating deve ser entre 1 e 5");
 
         return new Review(ReviewId.New(), providerId, customerId, rating, comment);
     }
