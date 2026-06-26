@@ -17,7 +17,7 @@ Esta coleção do Bruno contém os endpoints para o módulo de avaliações.
 |--------|----------|-----------|
 | POST | `/api/v1/ratings` | Criar uma avaliação (autenticado) |
 | GET | `/api/v1/ratings/{id}` | Buscar avaliação por ID (somente aprovadas) |
-| GET | `/api/v1/ratings/provider/{providerId}` | Listar avaliações de um prestador |
+| GET | `/api/v1/ratings/provider/{providerId}` | Listar avaliações aprovadas de um prestador (com paginação) |
 
 ### Admin
 

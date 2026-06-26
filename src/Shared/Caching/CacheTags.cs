@@ -66,6 +66,11 @@ public static class CacheTags
     public const string Configuration = "configuration";
     public const string Metadata = "metadata";
 
+    // Tags para o módulo Ratings
+    public const string Ratings = "ratings";
+    public static string ReviewTag(Guid id) => $"review:{id}";
+    public static string ProviderReviewsTag(Guid providerId) => $"provider-reviews:{providerId}";
+
     /// <summary>
     /// Combina múltiplas tags
     /// </summary>

@@ -7,7 +7,11 @@ meta {
 get {
   url: {{baseUrl}}/api/v1/ratings/{{id}}/status
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
 }
 
 vars:pre-request {

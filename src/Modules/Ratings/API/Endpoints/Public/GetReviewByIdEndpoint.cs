@@ -1,10 +1,11 @@
 using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Mvc;
-using DomainEnumEReviewStatus = MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints.Public;
 
@@ -13,7 +14,7 @@ namespace MeAjudaAi.Modules.Ratings.API.Endpoints.Public;
 /// </summary>
 /// <remarks>
 /// Endpoint público que permite consultar avaliações aprovadas pelo seu ID único.
-/// Apenas avaliações com status Approved são retornadas.
+/// Apenas avaliações com status aprovado são retornadas.
 /// </remarks>
 public class GetReviewByIdEndpoint : IEndpoint
 {
@@ -40,18 +41,15 @@ public class GetReviewByIdEndpoint : IEndpoint
 
     private static async Task<IResult> GetReviewByIdAsync(
         Guid id,
-        [FromServices] IReviewQueries queries,
+        [FromServices] IQueryDispatcher dispatcher,
         CancellationToken cancellationToken)
     {
-        var review = await queries.GetByIdAsync((ReviewId)id, cancellationToken);
+        var query = new GetReviewByIdQuery(id, Guid.NewGuid());
+        var result = await dispatcher.QueryAsync<GetReviewByIdQuery, Result<ProviderReviewResponse>>(query, cancellationToken);
 
-        if (review == null || review.Status != DomainEnumEReviewStatus.Approved)
-            return Results.NotFound();
-
-        return Results.Ok(new ProviderReviewResponse(
-            review.Id.Value,
-            review.Rating,
-            review.Comment,
-            review.CreatedAt));
+        return result.Match(
+            onSuccess: review => Results.Ok(review),
+            onFailure: error => error.ToProblem()
+        );
     }
 }

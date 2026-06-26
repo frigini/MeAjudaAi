@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 
-namespace MeAjudaAi.Modules.Ratings.Application.Queries;
+namespace MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 
 public interface IReviewQueries
 {

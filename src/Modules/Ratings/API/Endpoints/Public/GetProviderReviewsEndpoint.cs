@@ -1,11 +1,12 @@
-using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints.Public;
@@ -41,22 +42,32 @@ public class GetProviderReviewsEndpoint : IEndpoint
 
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
-        [FromServices] IReviewQueries queries,
+        [FromServices] IQueryDispatcher dispatcher,
         [FromQuery] int page = Pagination.DefaultPageNumber,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
+        var (normalizedPage, normalizedPageSize) = NormalizePagination(page, pageSize);
+
+        var query = new GetProviderReviewsQuery(providerId, normalizedPage, normalizedPageSize, Guid.NewGuid());
+        var result = await dispatcher.QueryAsync<GetProviderReviewsQuery, Result<PagedResult<ProviderReviewResponse>>>(query, cancellationToken);
+
+        return result.Match(
+            onSuccess: reviews => Results.Ok(reviews),
+            onFailure: error => error.ToProblem()
+        );
+    }
+
+    private static (int Page, int PageSize) NormalizePagination(int page, int pageSize)
+    {
         var normalizedPage = page < Pagination.DefaultPageNumber ? Pagination.DefaultPageNumber : page;
-        var normalizedPageSize = pageSize < Pagination.MinPageSize ? Pagination.MinPageSize : (pageSize > Pagination.MaxPageSize ? Pagination.MaxPageSize : pageSize);
+        var normalizedPageSize = pageSize;
 
-        var reviews = await queries.GetByProviderIdAsync(providerId, normalizedPage, normalizedPageSize, cancellationToken);
+        if (normalizedPageSize < Pagination.MinPageSize)
+            normalizedPageSize = Pagination.MinPageSize;
+        else if (normalizedPageSize > Pagination.MaxPageSize)
+            normalizedPageSize = Pagination.MaxPageSize;
 
-        var result = reviews.Select(r => new ProviderReviewResponse(
-            r.Id.Value,
-            r.Rating,
-            r.Comment,
-            r.CreatedAt));
-
-        return Results.Ok(result);
+        return (normalizedPage, normalizedPageSize);
     }
 }

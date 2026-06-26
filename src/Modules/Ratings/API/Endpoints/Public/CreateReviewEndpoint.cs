@@ -60,6 +60,6 @@ public class CreateReviewEndpoint : IEndpoint
 
         var reviewId = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.Created($"/api/v1/{ApiEndpoints.Ratings.Base}/{reviewId}/status", reviewId);
+        return Results.Created($"/api/v1/{ApiEndpoints.Ratings.Base}/{reviewId}", reviewId);
     }
 }

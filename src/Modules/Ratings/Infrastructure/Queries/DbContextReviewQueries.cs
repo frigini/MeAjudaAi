@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;

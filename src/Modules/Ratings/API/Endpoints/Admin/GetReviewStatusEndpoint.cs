@@ -1,11 +1,11 @@
 using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Mvc;
-using ContractsEnumEReviewStatus = MeAjudaAi.Contracts.Modules.Ratings.Enums.EReviewStatus;
-using DomainEnumEReviewStatus = MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus;
 
 namespace MeAjudaAi.Modules.Ratings.API.Endpoints.Admin;
 
@@ -27,7 +27,7 @@ public class GetReviewStatusEndpoint : IEndpoint
     /// Configura endpoint GET em "/{id:guid}/status" com:
     /// - Autorização AdminPolicy (apenas administradores)
     /// - Validação automática de GUID para o parâmetro ID
-    /// - Respostas estruturadas para sucesso (200) e não encontrado (404)
+    /// - Respostas estruturadas para sucesso (200), não encontrado (404), não autorizado (401) e proibido (403)
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -37,30 +37,22 @@ public class GetReviewStatusEndpoint : IEndpoint
             .WithDescription("Recupera o status atual de uma avaliação (review) pelo seu ID.")
             .Produces<ReviewStatusResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization("AdminPolicy");
     }
 
     private static async Task<IResult> GetReviewStatusAsync(
         Guid id,
-        [FromServices] IReviewQueries queries,
+        [FromServices] IQueryDispatcher dispatcher,
         CancellationToken cancellationToken)
     {
-        var review = await queries.GetByIdAsync((ReviewId)id, cancellationToken);
+        var query = new GetReviewStatusQuery(id, Guid.NewGuid());
+        var result = await dispatcher.QueryAsync<GetReviewStatusQuery, Result<ReviewStatusResponse>>(query, cancellationToken);
 
-        if (review == null)
-            return Results.NotFound();
-
-        return Results.Ok(new ReviewStatusResponse(
-            review.Id.Value,
-            MapReviewStatus(review.Status)));
+        return result.Match(
+            onSuccess: status => Results.Ok(status),
+            onFailure: error => error.ToProblem()
+        );
     }
-
-    private static ContractsEnumEReviewStatus MapReviewStatus(DomainEnumEReviewStatus status) => status switch
-    {
-        DomainEnumEReviewStatus.Pending => ContractsEnumEReviewStatus.Pending,
-        DomainEnumEReviewStatus.Approved => ContractsEnumEReviewStatus.Approved,
-        DomainEnumEReviewStatus.Rejected => ContractsEnumEReviewStatus.Rejected,
-        DomainEnumEReviewStatus.Flagged => ContractsEnumEReviewStatus.Flagged,
-        _ => throw new NotSupportedException($"Status {status} não é suportado")
-    };
 }

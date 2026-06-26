@@ -3,17 +3,26 @@ using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Ratings;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Application.ModuleApi;
 
-[ModuleApi("Ratings", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class RatingsModuleApi(
     IReviewQueries reviewQueries,
     ILogger<RatingsModuleApi> logger) : IRatingsModuleApi
 {
-    public string ModuleName => "Ratings";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = ModuleNames.Bookings;
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -28,7 +37,11 @@ public sealed class RatingsModuleApi(
             
             return Result<ProviderRatingDto>.Success(new ProviderRatingDto(providerId, average, total));
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
         {
             logger.LogError(ex, "Error getting rating for provider {ProviderId}", providerId);
             return Result<ProviderRatingDto>.Failure("Error retrieving rating data.");
@@ -42,7 +55,11 @@ public sealed class RatingsModuleApi(
             var review = await reviewQueries.GetByProviderAndCustomerAsync(providerId, customerId, cancellationToken);
             return Result<bool>.Success(review != null);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
         {
             logger.LogError(ex, "Error checking review for customer {CustomerId} and provider {ProviderId}", customerId, providerId);
             return Result<bool>.Failure("Error checking review status.");

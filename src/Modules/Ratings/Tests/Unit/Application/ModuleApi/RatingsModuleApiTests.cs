@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Ratings.Application.ModuleApi;
-using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -29,7 +29,7 @@ public class RatingsModuleApiTests
         // Arrange
         _reviewQueriesMock
             .Setup(x => x.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("db error"));
+            .ThrowsAsync(new InvalidOperationException("db error"));
 
         // Act
         var result = await _sut.GetProviderRatingAsync(Guid.NewGuid());
@@ -48,7 +48,7 @@ public class RatingsModuleApiTests
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("db error"));
+            .ThrowsAsync(new InvalidOperationException("db error"));
 
         // Act
         var result = await _sut.HasCustomerReviewedProviderAsync(Guid.NewGuid(), Guid.NewGuid());
