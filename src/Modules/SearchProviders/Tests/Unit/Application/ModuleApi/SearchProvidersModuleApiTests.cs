@@ -13,6 +13,7 @@ using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.ModuleApi;
 

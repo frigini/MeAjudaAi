@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Models;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 
-namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
+namespace MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 /// <summary>
 /// Interface para consultas do módulo SearchProviders.

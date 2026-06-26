@@ -1,13 +1,14 @@
-using FluentValidation;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.SearchProviders.Application;
 
@@ -25,8 +26,8 @@ public static class Extensions
         // Registrar query handlers
         services.AddScoped<IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>, Handlers.SearchProvidersQueryHandler>();
 
-        // Registrar validadores do FluentValidation
-        services.AddValidatorsFromAssembly(typeof(Extensions).Assembly);
+        // Registrar validadores FluentValidation
+        services.AddModuleValidators(Assembly.GetExecutingAssembly());
 
         // Registrar API do módulo
         services.AddScoped<ISearchProvidersModuleApi, SearchProvidersModuleApi>();

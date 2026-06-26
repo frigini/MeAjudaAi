@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;

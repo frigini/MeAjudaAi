@@ -24,3 +24,14 @@ Esta coleção do Bruno contém os endpoints para o módulo de avaliações.
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/api/v1/ratings/{id}/status` | Consultar status da moderação |
+
+## 📖 Parâmetros de Paginação
+
+O endpoint de listagem por prestador suporta paginação via query string:
+
+| Parâmetro | Tipo | Padrão | Descrição |
+|-----------|------|--------|-----------|
+| `page` | int | 1 | Número da página |
+| `pageSize` | int | 20 | Itens por página (máx: 100) |
+
+**Exemplo**: `GET /api/v1/ratings/provider/{providerId}?page=2&pageSize=10`
