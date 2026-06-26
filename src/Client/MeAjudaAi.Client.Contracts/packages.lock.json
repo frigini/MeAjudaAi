@@ -4,15 +4,40 @@
     "net10.0": {
       "Refit": {
         "type": "Direct",
-        "requested": "[11.2.0, )",
-        "resolved": "11.2.0",
-        "contentHash": "SNxsfTEq62dXvK/TGdm1FDr2IYOpj2YeyuJSW9URY6JzAn/q9R4psfem4qmBnUC474ov6/W/18IlJPds2LZTFw=="
+        "requested": "[12.0.0, )",
+        "resolved": "12.0.0",
+        "contentHash": "eJWs1m24UYaDhZXSaWXMXywCvY2V79hpXFQ35p+MmX1heX6WYkGdU1tAsGdiMhKSvpsar/BHaAhKqQKG8MKYFg==",
+        "dependencies": {
+          "ReactiveUI.Primitives": "5.6.0"
+        }
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
         "requested": "[10.27.0.140913, )",
         "resolved": "10.27.0.140913",
         "contentHash": "cxk12QjN9io1SjN36B1QO+9dRf+ek2CGfQGsOWtHBojE35cKchKJod48raxZwe47jHhzmAUO4AJSh7+hF0GS4g=="
+      },
+      "ReactiveUI.Disposables": {
+        "type": "Transitive",
+        "resolved": "5.6.0",
+        "contentHash": "yzIoFgb43KXXynWgUgS5FoJ6KG4XIAFFWksk05K53qb160wCIZOq+aHsJrMuePSDEm/MoFk1lBkN0TRWQ9MtBQ=="
+      },
+      "ReactiveUI.Primitives": {
+        "type": "Transitive",
+        "resolved": "5.6.0",
+        "contentHash": "qnxP2/RH+PYhzMQBMKnFzci/GO3N+eeQe5bZczoVgSGdTFsMYCuUXCfElgHGFvnlbYfiKfdWD0UdrrwMqr8y8Q==",
+        "dependencies": {
+          "ReactiveUI.Disposables": "5.6.0",
+          "ReactiveUI.Primitives.Core": "5.6.0"
+        }
+      },
+      "ReactiveUI.Primitives.Core": {
+        "type": "Transitive",
+        "resolved": "5.6.0",
+        "contentHash": "HrFby67lgpToIp4ZQEjsihyU073Fg6/jzgOHGgGV1BMYbQgHf7G/F3tQKss/4e5aJFsnom1mMhywpEax3TKKiw==",
+        "dependencies": {
+          "ReactiveUI.Disposables": "5.6.0"
+        }
       },
       "meajudaai.contracts": {
         "type": "Project",
