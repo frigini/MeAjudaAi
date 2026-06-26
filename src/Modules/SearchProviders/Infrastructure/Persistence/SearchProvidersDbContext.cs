@@ -24,8 +24,8 @@ public partial class SearchProvidersDbContext : BaseDbContext, IUnitOfWork
             return repository;
 
         throw new InvalidOperationException(
-            $"SearchProvidersDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context only supports: SearchableProvider(SearchableProviderId)");
+            $"SearchProvidersDbContext does not support repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name}. " +
+            $"Supported: SearchableProvider(SearchableProviderId).");
     }
 
     // Construtor para design-time (migrations)
@@ -50,38 +50,6 @@ public partial class SearchProvidersDbContext : BaseDbContext, IUnitOfWork
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries<AggregateRoot<SearchableProviderId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .SelectMany(entry => entry.Entity.DomainEvents)
-            .ToList();
-
-        return Task.FromResult(domainEvents);
-    }
-
-    /// <summary>
-    /// Limpa eventos de domínio após persistência.
-    /// 
-    /// NOTA: Específico para AggregateRoot&lt;SearchableProviderId&gt;.
-    /// Se novos agregados com tipos de ID diferentes forem adicionados,
-    /// considere usar interface base não-genérica (IAggregateRoot) para
-    /// suportar múltiplos tipos sem modificações no DbContext.
-    /// </summary>
-    protected override void ClearDomainEvents()
-    {
-        var entities = ChangeTracker
-            .Entries<AggregateRoot<SearchableProviderId>>()
-            .Where(entry => entry.Entity.DomainEvents.Count > 0)
-            .Select(entry => entry.Entity);
-
-        foreach (var entity in entities)
-        {
-            entity.ClearDomainEvents();
-        }
     }
 }
 

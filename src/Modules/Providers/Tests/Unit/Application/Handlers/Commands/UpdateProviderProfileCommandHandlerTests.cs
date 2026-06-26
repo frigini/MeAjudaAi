@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -38,26 +39,12 @@ public class UpdateProviderProfileCommandHandlerTests
         var updatedBy = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Atualizado Ltda",
-            FantasyName: "Prestador Atualizado",
-            Description: "Prestador de serviços especializados",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador-atualizado.com",
-                PhoneNumber: "(11) 99999-8888",
-                Website: "https://www.exemplo-atualizado.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Atualizada",
-                Number: "456",
-                Complement: "Sala 10",
-                Neighborhood: "Bairro Novo",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Atualizado Ltda")
+            .WithFantasyName("Prestador Atualizado")
+            .WithDescription("Prestador de serviços especializados")
+            .WithEmail("contato@prestador-atualizado.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -96,26 +83,12 @@ public class UpdateProviderProfileCommandHandlerTests
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Ltda",
-            FantasyName: "Prestador",
-            Description: "Descrição atualizada",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador.com",
-                PhoneNumber: "(11) 99999-9999",
-                Website: "https://www.exemplo.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Exemplo",
-                Number: "123",
-                Complement: null,
-                Neighborhood: "Centro",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Ltda")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição atualizada")
+            .WithEmail("contato@prestador.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -134,7 +107,7 @@ public class UpdateProviderProfileCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -148,33 +121,19 @@ public class UpdateProviderProfileCommandHandlerTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task HandleAsync_WithInvalidName_ShouldReturnFailureResult(string invalidName)
+    public async Task HandleAsync_WithInvalidName_ShouldThrow(string invalidName)
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Ltda",
-            FantasyName: "Prestador",
-            Description: "Descrição válida",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador.com",
-                PhoneNumber: "(11) 99999-9999",
-                Website: "https://www.exemplo.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Exemplo",
-                Number: "123",
-                Complement: null,
-                Neighborhood: "Centro",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Ltda")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição válida")
+            .WithEmail("contato@prestador.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -188,12 +147,8 @@ public class UpdateProviderProfileCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error updating provider profile");
+        // Act & Assert
+        await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -205,32 +160,18 @@ public class UpdateProviderProfileCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador Ltda",
-            FantasyName: "Prestador",
-            Description: "Descrição",
-            ContactInfo: new ContactInfoDto(
-                Email: "contato@prestador.com",
-                PhoneNumber: "(11) 99999-9999",
-                Website: "https://www.exemplo.com"
-            ),
-            PrimaryAddress: new AddressDto(
-                Street: "Rua Exemplo",
-                Number: "123",
-                Complement: null,
-                Neighborhood: "Centro",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brasil"
-            )
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador Ltda")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição")
+            .WithEmail("contato@prestador.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(
             ProviderId: providerId,
@@ -244,16 +185,8 @@ public class UpdateProviderProfileCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error updating provider profile");
-
-        _uowMock.Verify(
-            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Fact]
@@ -264,18 +197,17 @@ public class UpdateProviderProfileCommandHandlerTests
         var updatedBy = Guid.NewGuid();
         Provider provider = ProviderBuilder.Create().WithId(providerId);
 
-        var businessProfileDto = new BusinessProfileDto(
-            LegalName: "Prestador",
-            FantasyName: "Prestador",
-            Description: "Descrição",
-            ContactInfo: new ContactInfoDto("test@test.com", "(11) 99999-9999", null),
-            PrimaryAddress: new AddressDto("Rua", "123", null, "Bairro", "Cidade", "SP", "00000-000", "Brasil")
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Prestador")
+            .WithFantasyName("Prestador")
+            .WithDescription("Descrição")
+            .WithEmail("test@test.com")
+            .Build();
 
         var servicesList = new List<ProviderServiceDto>
         {
-            new ProviderServiceDto(Guid.NewGuid(), "Service A"),
-            new ProviderServiceDto(Guid.NewGuid(), "Service B")
+            new(Guid.NewGuid(), "Service A"),
+            new(Guid.NewGuid(), "Service B")
         };
 
         var command = new UpdateProviderProfileCommand(
@@ -309,6 +241,3 @@ public class UpdateProviderProfileCommandHandlerTests
             Times.Once);
     }
 }
-
-
-

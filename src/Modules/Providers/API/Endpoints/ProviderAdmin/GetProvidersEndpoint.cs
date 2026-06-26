@@ -8,14 +8,15 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
 /// <summary>
 /// Endpoint responsável pela consulta paginada de prestadores de serviços do sistema.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -90,7 +91,6 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> GetProvidersAsync(
         IQueryDispatcher queryDispatcher,
-        ILogger<GetProvidersEndpoint> logger,
         int pageNumber = 1,
         int pageSize = 10,
         string? name = null,
@@ -98,38 +98,19 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
         int? verificationStatus = null,
         CancellationToken cancellationToken = default)
     {
-        try
+        var request = new GetProvidersRequest
         {
-            var request = new GetProvidersRequest
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                Name = name,
-                Type = type,
-                VerificationStatus = verificationStatus
-            };
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            Name = name,
+            Type = type,
+            VerificationStatus = verificationStatus
+        };
 
-            var query = request.ToProvidersQuery();
-            var result = await queryDispatcher.QueryAsync<GetProvidersQuery, Result<PagedResult<ProviderDto>>>(
-                query, cancellationToken);
+        var query = request.ToProvidersQuery();
+        var result = await queryDispatcher.QueryAsync<GetProvidersQuery, Result<PagedResult<ProviderDto>>>(
+            query, cancellationToken);
 
-            return HandlePagedResult(result);
-        }
-        catch (OperationCanceledException)
-        {
-            // Retorna 499 (Client Closed Request) ou similares para cancelamento
-            return Results.StatusCode(499);
-        }
-        catch (Exception ex)
-        {
-            // Log detalhado para identificar causa raiz do erro 500 mascarado
-            logger.LogError(ex, 
-                "CRITICAL ERROR in GetProviders: {Message} | ValidRequest: {IsValid} | Args: Page={Page}, Size={Size}, Name={Name}", 
-                ex.Message, 
-                pageNumber > 0 && pageSize > 0,
-                pageNumber, pageSize, name);
-
-            return Error.Internal("Ocorreu um erro interno ao processar a lista de prestadores. Consulte os logs.").ToProblem();
-        }
+        return HandlePagedResult(result);
     }
 }

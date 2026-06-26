@@ -185,7 +185,6 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             });
         });
 
-        // Configuração dos documentos como owned entities
         builder.OwnsMany(p => p.Documents, doc =>
         {
             doc.Property(d => d.Number)
@@ -206,11 +205,10 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasColumnName("is_primary")
                 .HasDefaultValue(false);
 
-            doc.HasKey("ProviderId", "Id");
+            doc.HasKey("ProviderId", "DocumentType");
             doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");
             doc.Property("ProviderId").HasColumnName("provider_id");
-            doc.Property("Id").HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
             doc.HasIndex("ProviderId", "DocumentType").IsUnique();
         });
 

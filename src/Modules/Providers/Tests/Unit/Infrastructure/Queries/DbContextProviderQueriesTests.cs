@@ -1,25 +1,21 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Queries;
 
 [Trait("Category", "Unit")]
-public class DbContextProviderQueriesTests : IDisposable
+public class DbContextProviderQueriesTests : BaseSqliteInMemoryDatabaseTest<ProvidersDbContext>
 {
-    private readonly ProvidersDbContext _context;
     private readonly DbContextProviderQueries _queries;
 
     public DbContextProviderQueriesTests()
+        : base(options => new ProvidersDbContext(options, null!))
     {
-        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _context = new ProvidersDbContext(options, null!);
-        _queries = new DbContextProviderQueries(_context);
+        _queries = new DbContextProviderQueries(DbContext);
     }
 
     [Fact]
@@ -30,8 +26,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider2 = new ProviderBuilder().Build();
         var deletedProvider = new ProviderBuilder().WithDeleted().Build();
 
-        _context.Providers.AddRange(provider1, provider2, deletedProvider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2, deletedProvider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetPagedAsync(1, 10);
@@ -50,8 +46,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider2 = new ProviderBuilder().WithName("Jane Specialist").Build();
         var provider3 = new ProviderBuilder().WithName("Bob Provider").Build();
 
-        _context.Providers.AddRange(provider1, provider2, provider3);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2, provider3);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetPagedAsync(1, 10, nameFilter: "Provider");
@@ -68,8 +64,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var individual = new ProviderBuilder().WithType(EProviderType.Individual).Build();
         var company = new ProviderBuilder().WithType(EProviderType.Company).Build();
 
-        _context.Providers.AddRange(individual, company);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(individual, company);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetPagedAsync(1, 10, typeFilter: EProviderType.Individual);
@@ -87,8 +83,8 @@ public class DbContextProviderQueriesTests : IDisposable
             .Select(_ => new ProviderBuilder().Build())
             .ToList();
 
-        _context.Providers.AddRange(providers);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(providers);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var page1 = await _queries.GetPagedAsync(1, 10);
@@ -109,8 +105,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider1 = new ProviderBuilder().WithName("John Provider").Build();
         var provider2 = new ProviderBuilder().WithName("Jane Specialist").Build();
 
-        _context.Providers.AddRange(provider1, provider2);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetPagedAsync(1, 10, nameFilter: "provider"); // lowercase
@@ -131,8 +127,8 @@ public class DbContextProviderQueriesTests : IDisposable
             .WithVerificationStatus(EVerificationStatus.Pending)
             .Build();
 
-        _context.Providers.AddRange(verified, pending);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(verified, pending);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetPagedAsync(
@@ -161,8 +157,8 @@ public class DbContextProviderQueriesTests : IDisposable
             .WithType(EProviderType.Individual)
             .Build();
 
-        _context.Providers.AddRange(targetProvider, otherProvider1, otherProvider2);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(targetProvider, otherProvider1, otherProvider2);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetPagedAsync(
@@ -183,8 +179,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByIdAsync(provider.Id);
@@ -199,8 +195,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().WithDeleted().Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByIdAsync(provider.Id);
@@ -214,8 +210,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetBySlugAsync(provider.Slug);
@@ -231,8 +227,8 @@ public class DbContextProviderQueriesTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var provider = new ProviderBuilder().WithUserId(userId).Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByUserIdAsync(userId);
@@ -248,8 +244,8 @@ public class DbContextProviderQueriesTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var provider = new ProviderBuilder().WithUserId(userId).Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.ExistsByUserIdAsync(userId);
@@ -276,8 +272,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.ExistsAsync(provider.Id);
@@ -291,8 +287,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().WithDeleted().Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.ExistsAsync(provider.Id);
@@ -309,8 +305,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider2 = new ProviderBuilder().Build();
         var provider3 = new ProviderBuilder().Build();
 
-        _context.Providers.AddRange(provider1, provider2, provider3);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2, provider3);
+        await DbContext.SaveChangesAsync();
 
         var ids = new List<Guid> { provider1.Id.Value, provider2.Id.Value };
 
@@ -347,8 +343,8 @@ public class DbContextProviderQueriesTests : IDisposable
             .WithVerificationStatus(EVerificationStatus.Pending)
             .Build();
 
-        _context.Providers.AddRange(verified, pending);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(verified, pending);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByVerificationStatusAsync(EVerificationStatus.Verified);
@@ -365,8 +361,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var individual = new ProviderBuilder().WithType(EProviderType.Individual).Build();
         var company = new ProviderBuilder().WithType(EProviderType.Company).Build();
 
-        _context.Providers.AddRange(individual, company);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(individual, company);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByTypeAsync(EProviderType.Individual);
@@ -383,8 +379,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider = new ProviderBuilder()
             .WithVerificationStatus(EVerificationStatus.Verified)
             .Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var (exists, status) = await _queries.GetProviderStatusAsync(provider.Id);
@@ -415,8 +411,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var serviceId = Guid.NewGuid();
         var provider = new ProviderBuilder().Build();
         provider.UpdateServices(new[] { (serviceId, "Test Service") });
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.HasProvidersWithServiceAsync(serviceId);
@@ -446,8 +442,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider = new ProviderBuilder()
             .WithDocument(documentNumber, MeAjudaAi.Modules.Providers.Domain.Enums.EDocumentType.CPF)
             .Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByDocumentAsync(documentNumber);
@@ -501,8 +497,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().WithDeleted().Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetBySlugAsync(provider.Slug);
@@ -531,8 +527,8 @@ public class DbContextProviderQueriesTests : IDisposable
         // Arrange
         var provider1 = new ProviderBuilder().Build();
         var provider2 = new ProviderBuilder().Build();
-        _context.Providers.AddRange(provider1, provider2);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2);
+        await DbContext.SaveChangesAsync();
 
         // Act & Assert
         var act = async () => await _queries.GetPagedAsync(0, 10);
@@ -545,8 +541,8 @@ public class DbContextProviderQueriesTests : IDisposable
         // Arrange
         var provider1 = new ProviderBuilder().Build();
         var provider2 = new ProviderBuilder().Build();
-        _context.Providers.AddRange(provider1, provider2);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2);
+        await DbContext.SaveChangesAsync();
 
         // Act & Assert
         var act = async () => await _queries.GetPagedAsync(1, 0);
@@ -560,8 +556,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider1 = new ProviderBuilder().WithName("A_B Provider").Build();
         var provider2 = new ProviderBuilder().WithName("A%B Provider").Build();
         var provider3 = new ProviderBuilder().WithName("AB Provider").Build();
-        _context.Providers.AddRange(provider1, provider2, provider3);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2, provider3);
+        await DbContext.SaveChangesAsync();
 
         // Act - filter for "A_" should match only literal "A_"
         var result = await _queries.GetPagedAsync(1, 10, nameFilter: "A_");
@@ -579,8 +575,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider1 = new ProviderBuilder().WithCity("São Paulo").Build();
         var provider2 = new ProviderBuilder().WithCity("São Paulo").Build();
         var provider3 = new ProviderBuilder().WithCity("Rio de Janeiro").Build();
-        _context.Providers.AddRange(provider1, provider2, provider3);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2, provider3);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByCityAsync("São Paulo");
@@ -595,8 +591,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().WithCity("São Paulo").Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByCityAsync("Curitiba");
@@ -612,8 +608,8 @@ public class DbContextProviderQueriesTests : IDisposable
         var provider1 = new ProviderBuilder().WithState("SP").Build();
         var provider2 = new ProviderBuilder().WithState("SP").Build();
         var provider3 = new ProviderBuilder().WithState("RJ").Build();
-        _context.Providers.AddRange(provider1, provider2, provider3);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.AddRange(provider1, provider2, provider3);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByStateAsync("SP");
@@ -628,8 +624,8 @@ public class DbContextProviderQueriesTests : IDisposable
     {
         // Arrange
         var provider = new ProviderBuilder().WithState("SP").Build();
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByStateAsync("RJ");
@@ -646,8 +642,8 @@ public class DbContextProviderQueriesTests : IDisposable
         // Manually nullify address components if possible, or use a provider without them
         // In this case, ProviderBuilder usually creates them.
         
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByCityAsync("SomeCity");
@@ -662,19 +658,13 @@ public class DbContextProviderQueriesTests : IDisposable
         // Arrange
         var provider = new ProviderBuilder().Build();
         
-        _context.Providers.Add(provider);
-        await _context.SaveChangesAsync();
+        DbContext.Providers.Add(provider);
+        await DbContext.SaveChangesAsync();
 
         // Act
         var result = await _queries.GetByStateAsync("SomeState");
 
         // Assert
         result.Should().BeEmpty();
-    }
-
-    public void Dispose()
-    {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
     }
 }

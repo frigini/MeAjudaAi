@@ -1,12 +1,11 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Documents;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules.Documents;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -36,42 +35,33 @@ public sealed class ActivateProviderCommandHandler(
     /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(ActivateProviderCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Activating provider {ProviderId}", command.ProviderId);
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
+        if (provider == null)
         {
-            logger.LogInformation("Activating provider {ProviderId}", command.ProviderId);
-
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(ValidationMessages.Providers.ProviderNotFound);
-            }
-
-            // Validar que provider tem documentos verificados via Documents module
-            logger.LogDebug("Validating documents for provider {ProviderId} via IDocumentsModuleApi", command.ProviderId);
-
-            var documentValidation = await ValidateDocumentConditionsAsync(command.ProviderId, cancellationToken);
-            if (documentValidation.IsFailure)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
-                    command.ProviderId, documentValidation.Error);
-                return documentValidation;
-            }
-
-            logger.LogInformation("Provider {ProviderId} passed all document validations", command.ProviderId);
-
-            provider.Activate(command.ActivatedBy);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider {ProviderId} activated successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure(ValidationMessages.Providers.ProviderNotFound);
         }
-        catch (Exception ex)
+
+        logger.LogDebug("Validating documents for provider {ProviderId} via IDocumentsModuleApi", command.ProviderId);
+
+        var documentValidation = await ValidateDocumentConditionsAsync(command.ProviderId, cancellationToken);
+        if (documentValidation.IsFailure)
         {
-            logger.LogError(ex, "Error activating provider {ProviderId}", command.ProviderId);
-            return Result.Failure(ValidationMessages.Providers.ActivationFailed);
+            logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
+                command.ProviderId, documentValidation.Error);
+            return documentValidation;
         }
+
+        logger.LogInformation("Provider {ProviderId} passed all document validations", command.ProviderId);
+
+        provider.Activate(command.ActivatedBy);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider {ProviderId} activated successfully", command.ProviderId);
+        return Result.Success();
     }
 
     /// <summary>
@@ -126,5 +116,3 @@ public sealed class ActivateProviderCommandHandler(
         return rejectedDocsValidation;
     }
 }
-
-

@@ -1,7 +1,7 @@
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Domain;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
@@ -17,9 +17,6 @@ public sealed class Document : ValueObject
     public string? FileUrl { get; private set; }
     public bool IsPrimary { get; private set; }
 
-    /// <summary>
-    /// Construtor privado para Entity Framework
-    /// </summary>
     private Document()
     {
         Number = string.Empty;
@@ -33,7 +30,6 @@ public sealed class Document : ValueObject
         if (string.IsNullOrWhiteSpace(number))
             throw new ArgumentException("Número do documento não pode ser vazio", nameof(number));
 
-        // Normalize CPF and CNPJ to digits-only, keep other document types trimmed as-is
         Number = documentType switch
         {
             EDocumentType.CPF or EDocumentType.CNPJ => Regex.Replace(number, @"[^\d]", ""),
@@ -81,10 +77,8 @@ public sealed class Document : ValueObject
         if (string.IsNullOrWhiteSpace(cpf))
             return false;
 
-        // Remove caracteres não numéricos
         cpf = Regex.Replace(cpf, @"[^\d]", "");
 
-        // Verifica se tem 11 dígitos e não são todos iguais
         return cpf.Length == 11 && !cpf.All(c => c == cpf[0]);
     }
 
@@ -96,10 +90,8 @@ public sealed class Document : ValueObject
         if (string.IsNullOrWhiteSpace(cnpj))
             return false;
 
-        // Remove caracteres não numéricos
         cnpj = Regex.Replace(cnpj, @"[^\d]", "");
 
-        // Verifica se tem 14 dígitos e não são todos iguais
         return cnpj.Length == 14 && !cnpj.All(c => c == cnpj[0]);
     }
 

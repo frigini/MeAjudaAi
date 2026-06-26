@@ -1,7 +1,8 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -31,33 +32,25 @@ public sealed class GetProviderByDocumentQueryHandler(
     {
         logger.LogInformation("Searching for provider by document request");
 
-        try
+        var normalizedDocument = query.Document?.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedDocument))
         {
-            var normalizedDocument = query.Document?.Trim();
-
-            if (string.IsNullOrWhiteSpace(normalizedDocument))
-            {
-                logger.LogWarning("Invalid document provided for provider search");
-                return Result<ProviderDto?>.Failure(Error.BadRequest("Document cannot be empty"));
-            }
-
-            var provider = await providerQueries.GetByDocumentAsync(normalizedDocument, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogInformation("Provider not found for document request");
-                return Result<ProviderDto?>.Success(null);
-            }
-
-            var providerDto = provider.ToDto();
-            logger.LogInformation("Provider found for document request, ID: {ProviderId}", provider.Id.Value);
-
-            return Result<ProviderDto?>.Success(providerDto);
+            logger.LogWarning("Invalid document provided for provider search");
+            return Result<ProviderDto?>.Failure(Error.BadRequest("Documento não pode ser vazio"));
         }
-        catch (Exception ex)
+
+        var provider = await providerQueries.GetByDocumentAsync(normalizedDocument, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogError(ex, "Error occurred while searching for provider by document");
-            return Result<ProviderDto?>.Failure(Error.Internal("An error occurred while searching for the provider"));
+            logger.LogInformation("Provider not found for document request");
+            return Result<ProviderDto?>.Success(null);
         }
+
+        var providerDto = provider.ToDto();
+        logger.LogInformation("Provider found for document request, ID: {ProviderId}", provider.Id.Value);
+
+        return Result<ProviderDto?>.Success(providerDto);
     }
 }

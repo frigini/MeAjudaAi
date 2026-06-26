@@ -1,11 +1,11 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using DTOs = MeAjudaAi.Modules.Providers.Application.DTOs;
 
@@ -96,7 +96,7 @@ public class CreateProviderCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -110,17 +110,8 @@ public class CreateProviderCommandHandlerTests
             .Setup(x => x.ExistsByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be(ValidationMessages.Providers.CreationError);
-
-        _uowMock.Verify(
-            u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     private static DTOs.BusinessProfileDto CreateTestBusinessProfile()
@@ -145,6 +136,3 @@ public class CreateProviderCommandHandlerTests
         );
     }
 }
-
-
-

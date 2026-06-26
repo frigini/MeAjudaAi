@@ -5,23 +5,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 
-public class DbContextDocumentQueries(DocumentsDbContext dbContext) : IDocumentQueries
+public class DbContextDocumentQueries(DocumentsDbContext _dbContext) : IDocumentQueries
 {
+    private readonly DocumentsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
     public async Task<Document?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await dbContext.Documents
+        await _dbContext.Documents
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Document>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default) =>
-        await dbContext.Documents
+        await _dbContext.Documents
             .AsNoTracking()
             .Where(x => x.ProviderId == providerId)
             .ToListAsync(cancellationToken);
 
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await dbContext.Documents
+        await _dbContext.Documents
             .AsNoTracking()
             .AnyAsync(x => x.Id == id, cancellationToken);
 
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) =>
-        await dbContext.Database.CanConnectAsync(cancellationToken);
+        await _dbContext.Database.CanConnectAsync(cancellationToken);
 }

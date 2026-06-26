@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Events;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
@@ -78,7 +79,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ProvidersDbContext).Assembly.FullName);
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Providers);
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()
@@ -122,6 +123,9 @@ public static class Extensions
     /// </summary>
     private static void AddEventHandlers(this IServiceCollection services)
     {
+        // SSE Event Handlers
+        services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>, ProviderVerificationStatusUpdatedSseHandler>();
+
         // Domain Event Handlers
         services.AddScoped<IEventHandler<ProviderRegisteredDomainEvent>, ProviderRegisteredDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderDeletedDomainEvent>, ProviderDeletedDomainEventHandler>();

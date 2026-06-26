@@ -12,28 +12,30 @@ Este documento fornece orientação abrangente para escrever e manter testes de 
 
 O projeto implementa uma **arquitetura de testes de integração em dois níveis** para equilibrar cobertura de testes, desempenho e isolamento:
 
-### 1. Testes de Integração em Nível de Componente (Escopo de Módulo)
+### 1. Testes de Integração em Nível de Módulo (Escopo do Módulo)
 **Localização**: `src/Modules/{Module}/Tests/Integration/`
 
-Estes testes validam **componentes de infraestrutura individuais** dentro de um módulo usando dependências reais:
+Estes testes validam **componentes de infraestrutura individuais** dentro de um módulo usando dependências reais. Cada módulo gerencia sua própria infraestrutura de teste.
 
 - **Escopo**: Componentes de módulo único (Repositories, Services, Queries)
-- **Infraestrutura**: TestContainers isolados por classe de teste
-- **Classes Base**: `DatabaseTestBase`, `{Module}IntegrationTestBase`
-- **Velocidade**: Mais rápido (apenas componentes necessários carregados)
-- **Propósito**: Validar persistência de dados, lógica de repositório e serviços de infraestrutura
-- **Isolamento**: Cada módulo gerencia sua própria infraestrutura de teste
+- **Infraestrutura**: TestContainers PostgreSQL isolados por classe de teste (um banco lógico por classe)
+- **Classes Base**: `{Module}IntegrationTestBase` (ex: `UsersIntegrationTestBase`)
+- **Velocidade**: Mais rápido (apenas componentes do módulo necessários carregados)
+- **Propósito**: Validar persistência de dados, lógica de repositório e queries específicas do módulo
+- **Isolamento**: Cada classe de teste usa um banco de dados PostgreSQL isolado criado via Testcontainers
+
+**Diferença chave vs E2E**: Testes de módulo usam **banco PostgreSQL real via Testcontainers** mas **não carregam a aplicação completa**. Apenas os serviços do módulo são registrados, sem endpoints HTTP, middleware de pipeline, ou comunicação com outros módulos.
 
 **Casos de Uso de Exemplo**:
 - Testar `IUserQueries.GetByIdAsync()` com um banco de dados PostgreSQL real
 - Validar que consultas complexas retornam dados corretos
-- Testar migrações de banco de dados e compatibilidade de schema
+- Testar lógica de repository (Add, Delete, TryFind)
 - Verificar tratamento de transações via UnitOfWork
 
 **Estrutura de Exemplo**:
 ```csharp
 // Localização: src/Modules/Users/Tests/Integration/UserPersistenceIntegrationTests.cs
-public class UserPersistenceIntegrationTests : DatabaseTestBase
+public class UserPersistenceIntegrationTests : UsersIntegrationTestBase
 {
     private UsersDbContext _context;
     private IUserQueries _userQueries;
@@ -61,27 +63,31 @@ public class UserPersistenceIntegrationTests : DatabaseTestBase
 ```
 
 ### 2. Testes de Integração End-to-End (Centralizado)
-**Localização**: `tests/MeAjudaAi.Integration.Tests/Modules/{Module}/`
+**Localização**: `tests/MeAjudaAi.Integration.Tests/`
 
 Estes testes validam **fluxos completos de aplicação** com todos os módulos integrados:
 
-- **Escopo**: Aplicação completa (endpoints HTTP, container DI, todos os módulos)
-- **Infraestrutura**: Aplicação completa via `WebApplicationFactory`
-- **Classes Base**: `ApiTestBase`, `SharedIntegrationTestFixture`
-- **Velocidade**: Mais lento (pilha completa de aplicação)
-- **Propósito**: Validar workflows end-to-end, contratos de API, comunicação entre módulos
-- **Isolamento**: Infraestrutura de teste compartilhada para todos os testes E2E
+- **Escopo**: Aplicação completa (endpoints HTTP, container DI completo, todos os módulos)
+- **Infraestrutura**: Aplicação completa via `WebApplicationFactory` + TestContainers
+- **Classes Base**: `BaseIntegrationTest`, `BaseApiTest`
+- **Velocidade**: Mais lento (pilha completa de aplicação carregada)
+- **Propósito**: Validar workflows end-to-end, contratos de API, comunicação entre módulos, middleware, autenticação
+- **Isolamento**: Cada classe de teste pode usar banco isolado ou compartilhado
+
+**Diferença chave vs módulo**: Testes E2E carregam **toda a aplicação** com pipeline de middleware completo, autenticação, autorização, e todos os módulos registrados. Testam a **API HTTP completa**.
 
 **Casos de Uso de Exemplo**:
 - Testar que `POST /api/v1/users` cria usuário e retorna resposta HTTP correta
-- Validar fluxos de autenticação e autorização
-- Testar comunicação entre módulos (ex: criar um provider valida que o usuário existe)
-- Verificar workflows de negócio completos
+- Validar fluxos de autenticação e autorização via middleware
+- Testar comunicação entre módulos (ex: criar provider valida que usuário existe via módulo Users)
+- Verificar workflows de negócio completos atravessando múltiplos módulos
+- Testar políticas de segurança, headers, compressão
+- Testar integração com infraestrutura (RabbitMQ, Hangfire, Azure Blob Storage)
 
 **Estrutura de Exemplo**:
 ```csharp
 // Localização: tests/MeAjudaAi.Integration.Tests/Modules/Users/UsersApiTests.cs
-public class UsersApiTests : ApiTestBase
+public class UsersApiTests : BaseApiTest
 {
     [Fact]
     public async Task RegisterUser_ValidData_ShouldReturnCreated()
@@ -111,20 +117,21 @@ public class UsersApiTests : ApiTestBase
 
 ### Comparação de Módulos
 
-**Módulos com Testes em Nível de Componente**:
-- ✅ Users (4 arquivos de teste)
-- ✅ Providers (3 arquivos de teste)
-- ✅ Search (2 arquivos de teste)
+**Módulos com Testes em Nível de Módulo** (`src/Modules/{Module}/Tests/Integration/`):
+- ✅ Users - testes de repository e queries específicas do módulo
+- ✅ Providers - testes de repository, queries e lógica de persistência
+- ✅ SearchProviders - testes de queries e busca geoespacial
 
-**Módulos com Apenas Testes E2E**:
-- ✅ Documents (infraestrutura mais simples, sem repositórios complexos)
-- ✅ Locations (testes de integração em nível de serviço com clientes HTTP mockados para APIs externas - consulta de CEP e geocodificação)
+**Módulos com Apenas Testes E2E** (em `tests/MeAjudaAi.Integration.Tests/`):
+- ✅ Bookings - testes de API e workflow
+- ✅ Communications - testes de outbox pattern e API
+- ✅ Documents - testes de API e storage
+- ✅ Locations - testes de APIs externas (CEP, IBGE), geocoding, e API
+- ✅ Payments - testes de API e gateway mockado
+- ✅ Ratings - testes de API e module API
+- ✅ ServiceCatalogs - testes de API e ciclo de vida
 
-**Nota sobre o Módulo Locations**: Embora Locations não tenha testes E2E (sem endpoints HTTP), ele possui testes de integração em nível de módulo em `tests/MeAjudaAi.Integration.Tests/Modules/Locations/` que:
-- Usam injeção de dependência para conectar serviços reais
-- Mockam APIs HTTP externas (ViaCep, BrasilApi, OpenCep, Nominatim)
-- Testam comportamento de cache com HybridCache
-- Residem no projeto de teste de integração centralizado (não testes específicos de módulo)
+**Nota sobre Módulos sem Testes de Módulo**: Alguns módulos não possuem `Tests/Integration/` no nível do módulo pois suas funcionalidades são mais bem testadas via testes E2E que carregam a aplicação completa. Isso é uma decisão de design - testes de módulo são úteis quando há queries ou repositories complexos que se beneficiam de testes isolados.
 
 ### Categorias de Teste
 1. **Testes de Integração de API** - Testando ciclos completos de requisição/resposta HTTP (E2E)

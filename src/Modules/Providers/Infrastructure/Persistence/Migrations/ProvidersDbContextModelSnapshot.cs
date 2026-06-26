@@ -18,27 +18,10 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("providers")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("MeAjudaAi.Modules.Providers.Domain.Entities.ProcessedIntegrationEvent", b =>
-                {
-                    b.Property<string>("CorrelationId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("correlation_id");
-
-                    b.Property<DateTime>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_at");
-
-                    b.HasKey("CorrelationId")
-                        .HasName("pk_processed_integration_events");
-
-                    b.ToTable("processed_integration_events", "providers");
-                });
 
             modelBuilder.Entity("MeAjudaAi.Modules.Providers.Domain.Entities.Provider", b =>
                 {
@@ -55,7 +38,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<string>("DeviceToken")
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("device_token");
 
                     b.Property<bool>("IsActive")
@@ -336,13 +320,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("provider_id");
 
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("integer")
-                                .HasColumnName("id");
-
-                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
-
                             b1.Property<string>("DocumentType")
                                 .IsRequired()
                                 .HasMaxLength(20)
@@ -369,7 +346,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("character varying(50)")
                                 .HasColumnName("number");
 
-                            b1.HasKey("ProviderId", "Id")
+                            b1.HasKey("ProviderId", "DocumentType")
                                 .HasName("pk_document");
 
                             b1.HasIndex("ProviderId", "DocumentType")

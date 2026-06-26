@@ -10,8 +10,6 @@ using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.ModuleApi;
 
@@ -21,8 +19,6 @@ public class CommunicationsModuleApiTests
     private readonly Mock<IEmailTemplateQueries> _templateQueriesMock;
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<ISerializer> _serializerMock;
-    private readonly Mock<IServiceProvider> _serviceProviderMock;
-    private readonly Mock<ILogger<CommunicationsModuleApi>> _loggerMock;
     private readonly CommunicationsModuleApi _api;
 
     public CommunicationsModuleApiTests()
@@ -31,8 +27,6 @@ public class CommunicationsModuleApiTests
         _templateQueriesMock = new Mock<IEmailTemplateQueries>();
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _serializerMock = new Mock<ISerializer>();
-        _serviceProviderMock = new Mock<IServiceProvider>();
-        _loggerMock = new Mock<ILogger<CommunicationsModuleApi>>();
 
         _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{\"to\":\"test@test.com\"}");
         _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsOutboxPayload>())).Returns("{\"phone\":\"123456\"}");
@@ -43,9 +37,7 @@ public class CommunicationsModuleApiTests
             _outboxRepositoryMock.Object,
             _templateQueriesMock.Object,
             _logQueriesMock.Object,
-            _serializerMock.Object,
-            _serviceProviderMock.Object,
-            _loggerMock.Object);
+            _serializerMock.Object);
     }
 
     [Fact]
@@ -345,142 +337,34 @@ public class CommunicationsModuleApiTests
         result.Value.TotalItems.Should().Be(1);
     }
 
-    #region IsAvailableAsync Tests
-
     [Fact]
-    public async Task IsAvailableAsync_WhenHealthServiceUnavailableAndDbWorks_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenCanConnect_ReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
-        _serviceProviderMock.Setup(static x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { new EmailTemplateBuilder().WithKey("t").WithSubject("s").WithHtmlBody("h").WithTextBody("t").Build() });
+        using var cts = new CancellationTokenSource();
+        _templateQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         // Act
-        var result = await _api.IsAvailableAsync();
+        var result = await _api.IsAvailableAsync(cts.Token);
 
         // Assert
         result.Should().BeTrue();
+        _templateQueriesMock.Verify(x => x.CanConnectAsync(cts.Token), Times.Once);
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenHealthServiceReturnsHealthyAndDbWorks_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenCanConnect_ReturnsFalse_ShouldReturnFalse()
     {
         // Arrange
-        var healthCheckServiceMock = new Mock<HealthCheckService>();
-        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Healthy, TimeSpan.Zero));
-
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate> { new EmailTemplateBuilder().WithKey("t").WithSubject("s").WithHtmlBody("h").WithTextBody("t").Build() });
+        using var cts = new CancellationTokenSource();
+        _templateQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         // Act
-        var result = await _api.IsAvailableAsync();
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenHealthServiceReturnsUnhealthy_ShouldReturnFalse()
-    {
-        // Arrange
-        var healthCheckServiceMock = new Mock<HealthCheckService>();
-        var entries = new Dictionary<string, HealthReportEntry>
-        {
-            { "db", new HealthReportEntry(HealthStatus.Unhealthy, "Error", TimeSpan.Zero, null, null) }
-        };
-        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HealthReport(entries, HealthStatus.Unhealthy, TimeSpan.Zero));
-
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
-
-        // Act
-        var result = await _api.IsAvailableAsync();
+        var result = await _api.IsAvailableAsync(cts.Token);
 
         // Assert
         result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenDbOperationFails_ShouldReturnFalse()
-    {
-        // Arrange
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("DB Error"));
-
-        // Act
-        var result = await _api.IsAvailableAsync();
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenCancelled_ShouldThrowOperationCanceledException()
-    {
-        // Arrange
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
-
-        var healthCheckServiceMock = new Mock<HealthCheckService>();
-        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException(cts.Token));
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(() => _api.IsAvailableAsync(cts.Token));
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenHealthServiceReturnsDegraded_ShouldReturnFalse()
-    {
-        // Arrange
-        var healthCheckServiceMock = new Mock<HealthCheckService>();
-        var entries = new Dictionary<string, HealthReportEntry>
-        {
-            { "db", new HealthReportEntry(HealthStatus.Degraded, "Slow", TimeSpan.Zero, null, null) }
-        };
-        healthCheckServiceMock.Setup(x => x.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HealthReport(entries, HealthStatus.Degraded, TimeSpan.Zero));
-
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns(healthCheckServiceMock.Object);
-
-        // Act
-        var result = await _api.IsAvailableAsync();
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenNoTemplatesFound_ShouldStillReturnTrue()
-    {
-        // Arrange
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<EmailTemplate>());
-
-        // Act
-        var result = await _api.IsAvailableAsync();
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenBasicOperationsCancelled_ShouldReturnFalse()
-    {
-        // Arrange
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService))).Returns((HealthCheckService?)null);
-        var cts = new CancellationTokenSource();
-        _templateQueriesMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
-            .Returns(async (CancellationToken ct) =>
-            {
-                cts.Cancel();
-                await Task.Yield();
-                throw new OperationCanceledException(ct);
-            });
-
-        // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(() => _api.IsAvailableAsync(cts.Token));
+        _templateQueriesMock.Verify(x => x.CanConnectAsync(cts.Token), Times.Once);
     }
 
     [Fact]
@@ -595,6 +479,4 @@ public class CommunicationsModuleApiTests
     {
         _api.ApiVersion.Should().Be("1.0");
     }
-
-    #endregion
 }

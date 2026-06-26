@@ -1,11 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -32,48 +31,33 @@ public sealed class SuspendProviderCommandHandler(
     /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(SuspendProviderCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Suspending provider {ProviderId}. Reason: {Reason}",
+            command.ProviderId, command.Reason);
+
+        if (string.IsNullOrWhiteSpace(command.Reason))
         {
-            logger.LogInformation("Suspending provider {ProviderId}. Reason: {Reason}",
-                command.ProviderId, command.Reason);
-
-            if (string.IsNullOrWhiteSpace(command.Reason))
-            {
-                logger.LogWarning("Suspension reason is required but was not provided");
-                return Result.Failure("Suspension reason is required");
-            }
-
-            if (string.IsNullOrWhiteSpace(command.SuspendedBy))
-            {
-                logger.LogWarning("SuspendedBy is required but was not provided");
-                return Result.Failure("SuspendedBy is required");
-            }
-
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Provider not found");
-            }
-
-            provider.Suspend(command.Reason, command.SuspendedBy);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider {ProviderId} suspended successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Suspension reason is required but was not provided");
+            return Result.Failure("Motivo da suspensão é obrigatório");
         }
-        catch (ProviderDomainException ex)
+
+        if (string.IsNullOrWhiteSpace(command.SuspendedBy))
         {
-            logger.LogWarning(ex, "Domain validation failed while suspending provider {ProviderId}", command.ProviderId);
-            return Result.Failure(ex.Message);
+            logger.LogWarning("SuspendedBy is required but was not provided");
+            return Result.Failure("Responsável pela suspensão é obrigatório");
         }
-        catch (Exception ex)
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
+        if (provider == null)
         {
-            logger.LogError(ex, "Unexpected error suspending provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Failed to suspend provider");
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure("Prestador não encontrado");
         }
+
+        provider.Suspend(command.Reason, command.SuspendedBy);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider {ProviderId} suspended successfully", command.ProviderId);
+        return Result.Success();
     }
 }
-
-

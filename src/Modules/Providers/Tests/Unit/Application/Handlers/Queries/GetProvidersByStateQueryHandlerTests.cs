@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.Extensions.Logging;
 
@@ -131,7 +132,7 @@ public class GetProvidersByStateQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var state = "SP";
@@ -143,17 +144,8 @@ public class GetProvidersByStateQueryHandlerTests
 
         var query = new GetProvidersByStateQuery(state);
 
-        // Act
-        var result = await _handler.HandleAsync(query, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
-
-        _providerQueriesMock.Verify(
-            x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(query, CancellationToken.None));
     }
 
     [Fact]

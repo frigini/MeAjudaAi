@@ -133,6 +133,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             {
                 builder.UseEnvironment("Testing");
                 Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
+                Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
 
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
@@ -177,7 +178,9 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["RateLimit:WindowInSeconds"] = "3600",
                         ["GeographicRestriction:Enabled"] = "false",
                         ["GeographicRestriction:FailOpen"] = "true",
-                        ["FeatureManagement:GeographicRestriction"] = "false"
+                        ["FeatureManagement:GeographicRestriction"] = "false",
+                        // Stripe webhook configuration for test environment
+                        ["Stripe:WebhookSecret"] = "whsec_test_mock_secret_for_testing"
                     });
 
                     // Adicionar ambiente de teste

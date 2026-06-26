@@ -1,9 +1,10 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 
@@ -14,6 +15,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 /// Retorna um subconjunto do ProviderDto focado em status — evita expor dados sensíveis.
 /// Usado pelo frontend para polling durante o onboarding (aguardando aprovação).
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GetMyProviderStatusEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

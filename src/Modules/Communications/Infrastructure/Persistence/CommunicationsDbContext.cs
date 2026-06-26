@@ -1,6 +1,6 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -38,27 +38,5 @@ public partial class CommunicationsDbContext : BaseDbContext, IUnitOfWork
         modelBuilder.HasDefaultSchema(Schemas.Communications);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CommunicationsDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker.Entries<BaseEntity>()
-            .Select(x => x.Entity)
-            .SelectMany(x => x.DomainEvents)
-            .ToList();
-
-        return Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        var entities = ChangeTracker.Entries<BaseEntity>()
-            .Select(x => x.Entity)
-            .ToList();
-
-        foreach (var entity in entities)
-        {
-            entity.ClearDomainEvents();
-        }
     }
 }

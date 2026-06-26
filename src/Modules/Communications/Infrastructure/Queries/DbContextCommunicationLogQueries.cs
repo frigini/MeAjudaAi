@@ -8,16 +8,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 
-public class DbContextCommunicationLogQueries(CommunicationsDbContext dbContext) : ICommunicationLogQueries
+public class DbContextCommunicationLogQueries(CommunicationsDbContext _dbContext) : ICommunicationLogQueries
 {
+    private readonly CommunicationsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
     public async Task<bool> ExistsByCorrelationIdAsync(string correlationId, CancellationToken cancellationToken = default)
-        => await dbContext.CommunicationLogs.AsNoTracking().AnyAsync(x => x.CorrelationId == correlationId, cancellationToken);
+        => await _dbContext.CommunicationLogs.AsNoTracking().AnyAsync(x => x.CorrelationId == correlationId, cancellationToken);
 
     public async Task<IReadOnlyList<CommunicationLog>> GetByRecipientAsync(
         string recipient, int maxResults = 50, CancellationToken cancellationToken = default)
     {
         maxResults = Math.Clamp(maxResults, 1, 100);
-        return await dbContext.CommunicationLogs
+        return await _dbContext.CommunicationLogs
             .AsNoTracking()
             .Where(x => x.Recipient == recipient)
             .OrderByDescending(x => x.CreatedAt)
@@ -31,7 +33,7 @@ public class DbContextCommunicationLogQueries(CommunicationsDbContext dbContext)
         var pageNumber = Math.Max(1, queryParams.PageNumber);
         var pageSize = Math.Clamp(queryParams.PageSize, 1, 100);
 
-        var query = dbContext.CommunicationLogs.AsNoTracking();
+        var query = _dbContext.CommunicationLogs.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(queryParams.CorrelationId))
             query = query.Where(x => x.CorrelationId.Contains(queryParams.CorrelationId));
         if (!string.IsNullOrWhiteSpace(queryParams.Channel))

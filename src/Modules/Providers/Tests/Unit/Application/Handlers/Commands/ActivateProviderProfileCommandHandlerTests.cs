@@ -68,7 +68,7 @@ public class ActivateProviderProfileCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrows_ShouldThrow()
     {
         // Arrange
         var command = new ActivateProviderProfileCommand(Guid.NewGuid());
@@ -81,15 +81,7 @@ public class ActivateProviderProfileCommandHandlerTests
         _uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
                                .ThrowsAsync(new Exception("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once());
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

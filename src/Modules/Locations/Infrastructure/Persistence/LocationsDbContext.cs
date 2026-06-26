@@ -20,8 +20,8 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
             return repository;
 
         throw new InvalidOperationException(
-            $"LocationsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context only supports: AllowedCity(Guid)");
+            $"LocationsDbContext does not support repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name}. " +
+            $"Supported: AllowedCity(Guid).");
     }
 
     /// <summary>
@@ -50,42 +50,5 @@ public partial class LocationsDbContext : BaseDbContext, IUnitOfWork
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(LocationsDbContext).Assembly);
 
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        // Define tamanho máximo de 256 caracteres para todas as propriedades string
-        configurationBuilder.Properties<string>().HaveMaxLength(256);
-
-        base.ConfigureConventions(configurationBuilder);
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        base.OnConfiguring(optionsBuilder);
-
-        // Usa convenção snake_case para nomes de tabelas e colunas
-        optionsBuilder.UseSnakeCaseNamingConvention();
-
-        // Suprime warning de modelo pendente em ambiente de teste
-        // Isso é necessário porque ambientes de teste podem ter configurações ligeiramente diferentes
-        var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";
-        if (isTestEnvironment)
-        {
-            optionsBuilder.ConfigureWarnings(warnings =>
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        }
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        // Módulo Locations atualmente não possui entidades com eventos de domínio
-        // AllowedCity é uma entidade CRUD simples sem eventos de negócio
-        return Task.FromResult(new List<IDomainEvent>());
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        // Nenhum evento de domínio para limpar no módulo Locations
     }
 }

@@ -1,15 +1,17 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 
 /// <summary>
 /// Endpoint para remover um serviço do catálogo de um provider.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)

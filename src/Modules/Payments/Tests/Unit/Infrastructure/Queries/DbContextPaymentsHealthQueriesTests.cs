@@ -18,17 +18,17 @@ public class DbContextPaymentsHealthQueriesTests : BaseInMemoryDatabaseTest<Paym
     }
 
     [Fact]
-    public async Task PingAsync_ShouldReturnTrue_WhenDatabaseIsAvailable()
+    public async Task CanConnectAsync_ShouldReturnTrue_WhenDatabaseIsAvailable()
     {
-        var result = await _queries.PingAsync();
+        var result = await _queries.CanConnectAsync();
 
         result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task PingAsync_ShouldCompleteSuccessfully_WhenValidCancellationToken()
+    public async Task CanConnectAsync_ShouldCompleteSuccessfully_WhenValidCancellationToken()
     {
-        var result = await _queries.PingAsync(CancellationToken.None);
+        var result = await _queries.CanConnectAsync(CancellationToken.None);
 
         result.Should().BeTrue();
     }

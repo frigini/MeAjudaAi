@@ -1,20 +1,19 @@
-using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
+using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Application.Mappers;
+using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.ModuleApi;
 
@@ -29,7 +28,6 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByIdsHandler,
     ILocationsModuleApi locationApi,
     IProviderQueries providerQueries,
-    IServiceProvider serviceProvider,
     ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
     private static class ModuleMetadata
@@ -43,71 +41,7 @@ public sealed class ProvidersModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug("Checking Providers module availability");
-
-            var healthCheckService = serviceProvider.GetService<HealthCheckService>();
-            if (healthCheckService != null)
-            {
-                var healthReport = await healthCheckService.CheckHealthAsync(
-                    check => check.Tags.Contains("providers") || check.Tags.Contains("database"),
-                    cancellationToken);
-
-                if (healthReport.Status == HealthStatus.Unhealthy)
-                {
-                    logger.LogWarning("Providers module unavailable due to failed health checks: {FailedChecks}",
-                        string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
-                    return false;
-                }
-            }
-
-            var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
-            if (!canExecuteBasicOperations)
-            {
-                logger.LogWarning("Providers module unavailable - basic operations test failed");
-                return false;
-            }
-
-            logger.LogDebug("Providers module is available and healthy");
-            return true;
-        }
-
-        catch (OperationCanceledException)
-        {
-            throw; 
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking Providers module availability");
-            return false;
-        }
-    }
-
-    private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            var testId = Guid.NewGuid();
-            var result = await GetProviderByIdAsync(testId, cancellationToken);
-
-            if (result.IsSuccess && result.Value == null)
-                return true;
-
-            if (!result.IsSuccess && result.Error.StatusCode == 404)
-                return true;
-
-            return false;
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Basic operations test failed for Providers module");
-            return false;
-        }
+        return await providerQueries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default)
@@ -277,55 +211,44 @@ public sealed class ProvidersModuleApi(
     {
         logger.LogDebug("Getting provider indexing data for provider {ProviderId}", providerId);
 
-        try
+        var providerEntity = await providerQueries.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+
+        if (providerEntity == null) return Result<ModuleProviderIndexingDto?>.Success(null);
+
+        var address = providerEntity.BusinessProfile?.PrimaryAddress;
+        if (address == null)
         {
-            var providerEntity = await providerQueries.GetByIdAsync(new ProviderId(providerId), cancellationToken);
-
-            if (providerEntity == null) return Result<ModuleProviderIndexingDto?>.Success(null);
-
-            var address = providerEntity.BusinessProfile.PrimaryAddress;
-            var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
-
-            var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
-            if (coordinatesResult.IsFailure) return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
-
-            var coordinates = coordinatesResult.Value;
-            var indexingDto = new ModuleProviderIndexingDto(
-                ProviderId: providerEntity.Id.Value,
-                Name: providerEntity.Name,
-                Slug: providerEntity.Slug,
-                Latitude: coordinates.Latitude,
-                Longitude: coordinates.Longitude,
-                ServiceIds: providerEntity.GetServiceIds(),
-                AverageRating: 0, 
-                TotalReviews: 0, 
-                SubscriptionTier: ESubscriptionTier.Free,
-                IsActive: providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted,
-                Description: providerEntity.BusinessProfile.Description,
-                City: address.City,
-                State: address.State);
-
-            return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
+            return Result<ModuleProviderIndexingDto?>.Success(null);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting provider indexing data for {ProviderId}", providerId);
-            return Result<ModuleProviderIndexingDto?>.Failure(ProvidersErrorMessages.IndexingDataError);
-        }
+
+        var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
+
+        var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
+        if (coordinatesResult.IsFailure) return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
+
+        var coordinates = coordinatesResult.Value;
+        var indexingDto = new ModuleProviderIndexingDto(
+            ProviderId: providerEntity.Id.Value,
+            Name: providerEntity.Name,
+            Slug: providerEntity.Slug,
+            Latitude: coordinates.Latitude,
+            Longitude: coordinates.Longitude,
+            ServiceIds: providerEntity.GetServiceIds(),
+            AverageRating: 0, 
+            TotalReviews: 0, 
+            SubscriptionTier: ESubscriptionTier.Free,
+            IsActive: providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted,
+            Description: providerEntity.BusinessProfile.Description,
+            City: address.City,
+            State: address.State);
+
+        return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
     }
 
     public async Task<Result<IReadOnlyList<Guid>>> GetProvidersByServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var providers = await providerQueries.GetByServiceIdAsync(serviceId, cancellationToken);
-            return Result<IReadOnlyList<Guid>>.Success(providers.Select(p => p.Id.Value).ToList());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting provider IDs for service {ServiceId}", serviceId);
-            return Result<IReadOnlyList<Guid>>.Failure("Error retrieving providers.");
-        }
+        var providers = await providerQueries.GetByServiceIdAsync(serviceId, cancellationToken);
+        return Result<IReadOnlyList<Guid>>.Success(providers.Select(p => p.Id.Value).ToList());
     }
 
     public async Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)

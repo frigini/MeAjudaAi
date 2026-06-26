@@ -1,5 +1,6 @@
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
+using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;

@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -204,7 +205,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -224,7 +225,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -246,7 +247,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -266,7 +267,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
     [Fact]
     public async Task HandleAsync_WhenPrivacyFlagIsEnabled_ShouldReturnRestrictedProvider()

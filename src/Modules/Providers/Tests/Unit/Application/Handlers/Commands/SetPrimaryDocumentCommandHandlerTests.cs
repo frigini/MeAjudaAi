@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -64,7 +65,7 @@ public class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -86,12 +87,12 @@ public class SetPrimaryDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithDomainException_ReturnsFailure()
+    public async Task HandleAsync_WithDomainException_Throws()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -104,16 +105,13 @@ public class SetPrimaryDocumentCommandHandlerTests
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
+        // Act & Assert
+        await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithRepositoryException_ReturnsInternalError()
+    public async Task HandleAsync_WithRepositoryException_Throws()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -122,15 +120,7 @@ public class SetPrimaryDocumentCommandHandlerTests
         _providerRepositoryMock.Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new System.Exception("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(500);
-        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

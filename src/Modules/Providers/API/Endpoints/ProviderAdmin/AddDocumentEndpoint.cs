@@ -1,14 +1,15 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -19,8 +20,9 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// Implementa padrão de endpoint mínimo para adição de documentos de verificação
 /// utilizando arquitetura CQRS. Permite que prestadores adicionem documentos
 /// necessários para verificação ou administradores gerenciem documentos.
-/// </remarks>
-public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
     /// Configura o mapeamento do endpoint de adição de documento.

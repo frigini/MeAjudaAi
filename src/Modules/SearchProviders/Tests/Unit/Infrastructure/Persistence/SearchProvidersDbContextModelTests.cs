@@ -56,7 +56,7 @@ public class SearchProvidersDbContextModelTests
         var act = () => context.GetRepository<object, Guid>();
 
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*SearchProvidersDbContext does not implement*");
+            .WithMessage("*SearchProvidersDbContext does not support repository for*");
     }
 }
 

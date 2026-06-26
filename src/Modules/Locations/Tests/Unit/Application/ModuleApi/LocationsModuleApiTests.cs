@@ -60,7 +60,7 @@ public sealed class LocationsModuleApiTests
             .ReturnsAsync(address);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -75,7 +75,7 @@ public sealed class LocationsModuleApiTests
             .ThrowsAsync(new HttpRequestException("Service unavailable"));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -90,7 +90,7 @@ public sealed class LocationsModuleApiTests
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
-        var act = () => _sut.IsAvailableAsync();
+        var act = () => _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();

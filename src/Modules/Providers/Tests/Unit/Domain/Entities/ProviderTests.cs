@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.Extensions.Time.Testing;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
@@ -55,7 +56,12 @@ public class ProviderTests
         var businessProfile = CreateValidBusinessProfile();
 
         // Act
-        var provider = new Provider(userId, name, type, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName(name)
+            .WithType(type)
+            .WithBusinessProfile(businessProfile)
+            .Build();
 
         // Assert
         provider.Id.Should().NotBeNull();
@@ -82,7 +88,12 @@ public class ProviderTests
         var businessProfile = CreateValidBusinessProfile();
 
         // Act
-        var provider = new Provider(userId, name, type, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName(name)
+            .WithType(type)
+            .WithBusinessProfile(businessProfile)
+            .Build();
 
         // Assert
         provider.DomainEvents.Should().HaveCount(1);
@@ -107,13 +118,10 @@ public class ProviderTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var type = EProviderType.Individual;
         var businessProfile = CreateValidBusinessProfile();
 
-        // Act & Assert - Testing that null name is rejected (intentional null)
-#pragma warning disable CS8604 // Possible null reference argument - This is intentional for testing
-        var action = () => new Provider(userId, invalidName, type, businessProfile);
-#pragma warning restore CS8604
+        // Act & Assert
+        var action = () => ProviderBuilder.CreateWithName(userId, invalidName, businessProfile);
         action.Should().Throw<ProviderDomainException>()
             .WithMessage("Name cannot be empty");
     }
@@ -128,7 +136,12 @@ public class ProviderTests
         var businessProfile = CreateValidBusinessProfile();
 
         // Act & Assert
-        var action = () => new Provider(userId, name, type, businessProfile);
+        var action = () => new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName(name)
+            .WithType(type)
+            .WithBusinessProfile(businessProfile)
+            .Build();
         action.Should().Throw<ProviderDomainException>()
             .WithMessage("UserId cannot be empty");
     }
@@ -139,10 +152,9 @@ public class ProviderTests
         // Arrange
         var userId = Guid.NewGuid();
         var name = "John Provider";
-        var type = EProviderType.Individual;
 
         // Act & Assert
-        var action = () => new Provider(userId, name, type, null!);
+        var action = () => ProviderBuilder.CreateWithBusinessProfile(userId, name, null);
         action.Should().Throw<ArgumentNullException>();
     }
 
@@ -399,12 +411,7 @@ public class ProviderTests
 
     private static Provider CreateValidProvider()
     {
-        var userId = Guid.NewGuid();
-        var name = "Test Provider";
-        var type = EProviderType.Individual;
-        var businessProfile = CreateValidBusinessProfile();
-
-        return new Provider(userId, name, type, businessProfile);
+        return ProviderBuilder.Create().Build();
     }
 
     #region Status Transition Tests
@@ -937,16 +944,14 @@ public class ProviderTests
     [InlineData("")]
     [InlineData("  ")]
     [InlineData(null)]
-    public void AddService_WithInvalidName_ShouldThrowProviderDomainException(string? invalidName)
+    public void AddService_WithInvalidName_ShouldThrowProviderDomainException(string invalidName)
     {
         // Arrange
         var provider = CreateValidProvider();
         var serviceId = Guid.NewGuid();
 
         // Act & Assert
-#pragma warning disable CS8604 // Possible null reference argument
         var action = () => provider.AddService(serviceId, invalidName);
-#pragma warning restore CS8604
         
         action.Should().Throw<ProviderDomainException>()
             .WithMessage("ServiceName cannot be empty");
@@ -1080,4 +1085,3 @@ public class ProviderTests
 
     #endregion
 }
-

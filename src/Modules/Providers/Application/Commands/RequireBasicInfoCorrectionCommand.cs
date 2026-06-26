@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -15,4 +15,3 @@ public sealed record RequireBasicInfoCorrectionCommand(
     string Reason,
     string RequestedBy
 ) : Command<Result>;
-

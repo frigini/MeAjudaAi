@@ -1,6 +1,6 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -11,4 +11,3 @@ public sealed record RemoveQualificationCommand(
     Guid ProviderId,
     string QualificationName
 ) : Command<Result<ProviderDto>>;
-

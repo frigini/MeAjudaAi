@@ -53,34 +53,40 @@ public static class Extensions
         IHostEnvironment environment)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? configuration.GetConnectionString("Search")
+            ?? configuration.GetConnectionString("SearchProviders")
             ?? configuration.GetConnectionString("meajudaai-db");
 
-        if (string.IsNullOrWhiteSpace(connectionString) && !EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        if (string.IsNullOrWhiteSpace(connectionString) && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        {
+            connectionString = DatabaseConstants.DefaultTestConnectionString;
+        }
+
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                "Database connection string is not configured. " +
-                "Please set one of the following configuration keys: " +
-                "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Search', or 'ConnectionStrings:meajudaai-db'.");
+                "Connection string not found. Configure ConnectionStrings:DefaultConnection, SearchProviders, or meajudaai-db.");
         }
 
         // DbContext principal para escrita/comandos (EF Core)
         services.AddDbContext<SearchProvidersDbContext>(options =>
         {
-            if (!string.IsNullOrWhiteSpace(connectionString))
+            options.UseNpgsql(connectionString, npgsqlOptions =>
             {
-                options.UseNpgsql(connectionString, npgsqlOptions =>
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                    npgsqlOptions.EnableRetryOnFailure(3);
-                    npgsqlOptions.UseNetTopologySuite();
-                });
-            }
+                npgsqlOptions.MigrationsAssembly(typeof(SearchProvidersDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.SearchProviders);
+                npgsqlOptions.CommandTimeout(60);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+                npgsqlOptions.UseNetTopologySuite();
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
 
             if (environment.IsDevelopment())
             {
-                options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             }
         });
 

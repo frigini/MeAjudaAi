@@ -1,19 +1,23 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 
+/// <summary>
+/// Handler para registro de novos providers no sistema.
+/// </summary>
 public sealed class RegisterProviderCommandHandler(
     IUnitOfWork uow,
     IProviderQueries providerQueries,
@@ -50,7 +54,7 @@ public sealed class RegisterProviderCommandHandler(
                 "Prestador de serviços"
             );
 
-            var provider = new Provider(
+            var provider = Provider.Create(
                 command.UserId,
                 command.Name,
                 command.Type,
@@ -93,12 +97,5 @@ public sealed class RegisterProviderCommandHandler(
             logger.LogWarning(ex, "Validation error in RegisterProvider for user {UserId}: {Message}", command.UserId, ex.Message);
             return Result<ProviderDto>.Failure(new Error("Erro ao processar a requisição. Verifique os dados informados.", 400));
         }
-        catch (Exception ex)
-        {
-             logger.LogError(ex, "Error handling RegisterProviderCommand for user {UserId}", command.UserId);
-             return Result<ProviderDto>.Failure(new Error("Erro inesperado ao registrar prestador.", 500));
-        }
     }
 }
-
-

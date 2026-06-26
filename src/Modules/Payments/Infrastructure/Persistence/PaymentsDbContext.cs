@@ -33,8 +33,8 @@ public partial class PaymentsDbContext : BaseDbContext, IUnitOfWork
             return repository;
 
         throw new InvalidOperationException(
-            $"PaymentsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context supports: Subscription(Guid), PaymentTransaction(Guid), InboxMessage(Guid).");
+            $"PaymentsDbContext does not support repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name}. " +
+            $"Supported: Subscription(Guid), PaymentTransaction(Guid), InboxMessage(Guid).");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -42,29 +42,5 @@ public partial class PaymentsDbContext : BaseDbContext, IUnitOfWork
         modelBuilder.HasDefaultSchema(Schemas.Payments);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries<BaseEntity>()
-            .Where(entry => entry.Entity.DomainEvents.Any())
-            .SelectMany(entry => entry.Entity.DomainEvents)
-            .ToList();
-
-        return Task.FromResult(domainEvents);
-    }
-
-    protected override void ClearDomainEvents()
-    {
-        var entities = ChangeTracker
-            .Entries<BaseEntity>()
-            .Where(entry => entry.Entity.DomainEvents.Any())
-            .Select(entry => entry.Entity);
-
-        foreach (var entity in entities)
-        {
-            entity.ClearDomainEvents();
-        }
     }
 }

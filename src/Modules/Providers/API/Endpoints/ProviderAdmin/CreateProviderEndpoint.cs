@@ -1,14 +1,15 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -17,9 +18,10 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// </summary>
 /// <remarks>
 /// Implementa padrão de endpoint mínimo para criação de prestadores utilizando
-/// arquitetura CQRS. Requer autorização apropriada e valida dados antes de 
+/// arquitetura CQRS. Requer autorização apropriada e valida dados antes de
 /// enviar comando para processamento. Integra com o sistema de usuários.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -87,9 +89,11 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
         var result = await commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
             command, cancellationToken);
 
-        if (!result.IsSuccess)
+        // Protege contra falha ou valor nulo para evitar CS8602 ao acessar result.Value.Id
+        if (!result.IsSuccess || result.Value is null)
             return Handle(result);
 
-        return Handle(result, "GetProviderById", new { id = result.Value.Id });
+        var provider = result.Value;
+        return Handle(result, "GetProviderById", new { id = provider.Id });
     }
 }

@@ -45,12 +45,24 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
     /// </summary>
     protected DbContextOptions<TContext> CreateDbContextOptions<TContext>() where TContext : DbContext
     {
-        return new DbContextOptionsBuilder<TContext>()
-            .UseNpgsql(ConnectionString)
+        var builder = new DbContextOptionsBuilder<TContext>()
+            .UseNpgsql(ConnectionString, npgsqlOptions =>
+            {
+                if (!string.IsNullOrWhiteSpace(_databaseOptions.Schema))
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", _databaseOptions.Schema);
+                }
+            })
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .EnableSensitiveDataLogging()
-            .EnableDetailedErrors()
-            .Options;
+            .EnableDetailedErrors();
+
+        if (!string.IsNullOrWhiteSpace(_databaseOptions.Schema))
+        {
+            builder.UseSnakeCaseNamingConvention();
+        }
+
+        return builder.Options;
     }
 
     /// <summary>

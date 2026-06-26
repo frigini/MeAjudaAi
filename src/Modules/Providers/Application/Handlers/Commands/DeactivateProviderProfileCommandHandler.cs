@@ -1,10 +1,9 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -19,31 +18,21 @@ public sealed class DeactivateProviderProfileCommandHandler(
 {
     public async Task<Result> HandleAsync(DeactivateProviderProfileCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Deactivating provider profile {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Deactivating provider profile {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Prestador não encontrado"));
-            }
-
-            provider.DeactivateProfile(command.UpdatedBy);
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider profile {ProviderId} deactivated successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure(Error.NotFound("Prestador não encontrado"));
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error deactivating provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Erro ao desativar perfil do prestador");
-        }
+
+        provider.DeactivateProfile(command.UpdatedBy);
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider profile {ProviderId} deactivated successfully", command.ProviderId);
+        return Result.Success();
     }
 }
-
-

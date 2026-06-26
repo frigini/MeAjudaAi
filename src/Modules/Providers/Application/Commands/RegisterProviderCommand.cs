@@ -5,7 +5,6 @@ using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
-
 public record RegisterProviderCommand(
     Guid UserId,
     string Name,
@@ -17,4 +16,3 @@ public record RegisterProviderCommand(
 {
     public Guid CorrelationId { get; init; } = Guid.NewGuid();
 }
-

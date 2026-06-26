@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -67,12 +68,12 @@ public class RemoveServiceFromProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Prestador não encontrado");
+        result.Error!.Message.Should().Be("Prestador não encontrado");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRemovingNonExistentService_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRemovingNonExistentService_ShouldThrow()
     {
         // Arrange
         var serviceId = Guid.NewGuid();
@@ -83,17 +84,13 @@ public class RemoveServiceFromProviderCommandHandlerTests
             .Setup(x => x.TryFindAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _sut.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Ocorreu um erro ao remover serviço do prestador");
+        // Act & Assert
+        await Assert.ThrowsAsync<ProviderDomainException>(() => _sut.HandleAsync(command, CancellationToken.None));
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrows_ShouldThrow()
     {
         // Arrange
         var serviceId = Guid.NewGuid();
@@ -109,15 +106,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Act
-        var result = await _sut.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Ocorreu um erro ao remover serviço do prestador");
-        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

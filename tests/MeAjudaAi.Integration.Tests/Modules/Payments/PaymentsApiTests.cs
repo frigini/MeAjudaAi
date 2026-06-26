@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,7 +35,12 @@ public class PaymentsApiTests : BaseApiTest
         
         var contactInfo = new ContactInfo("test@company.com", "+5511999999999");
         var businessProfile = new BusinessProfile("Test Company", contactInfo, null);
-        var provider = new Provider(_seededProviderId, Guid.NewGuid(), "Test Provider", EProviderType.Company, businessProfile);
+        var provider = new ProviderBuilder()
+            .WithId(_seededProviderId)
+            .WithName("Test Provider")
+            .WithType(EProviderType.Company)
+            .WithBusinessProfile(businessProfile)
+            .Build();
         
         providersDb.Providers.Add(provider);
         await providersDb.SaveChangesAsync();

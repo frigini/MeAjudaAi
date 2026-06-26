@@ -77,7 +77,7 @@ public sealed class RejectProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Fornecedor não encontrado");
+        result.Error!.Message.Should().Be("Fornecedor não encontrado");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
@@ -101,7 +101,7 @@ public sealed class RejectProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Motivo da rejeição é obrigatório");
+        result.Error!.Message.Should().Be("Motivo da rejeição é obrigatório");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -125,7 +125,7 @@ public sealed class RejectProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Responsável pela rejeição é obrigatório");
+        result.Error!.Message.Should().Be("Responsável pela rejeição é obrigatório");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -133,7 +133,7 @@ public sealed class RejectProviderCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var command = new RejectProviderCommand(
@@ -145,14 +145,7 @@ public sealed class RejectProviderCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Falha ao rejeitar o fornecedor");
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 }
-
-
-

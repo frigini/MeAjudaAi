@@ -71,10 +71,9 @@ public sealed class SubscriptionExpiredIntegrationEventHandler(
                 "Subscription expired email enqueued for user {UserId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
                 integrationEvent.UserId, message.Id, correlationId);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
-            var processedException = PostgreSqlExceptionProcessor.ProcessException(
-                ex as DbUpdateException ?? new DbUpdateException(ex.Message, ex));
+            var processedException = PostgreSqlExceptionProcessor.ProcessException(ex);
 
             if (processedException is UniqueConstraintException)
             {

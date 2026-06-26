@@ -3,15 +3,9 @@ using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.ModuleApi;
 
-/// <summary>
-/// Testes unitários para UsersModuleApi
-/// Valida mapeamento de DTOs internos para DTOs de módulo
-/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Component", "ModuleApi")]
@@ -21,8 +15,7 @@ public class UsersModuleApiTests
     private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>> _getUserByEmailHandler;
     private readonly Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>> _getUserByUsernameHandler;
     private readonly Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>> _getUsersByIdsHandler;
-    private readonly Mock<IServiceProvider> _serviceProvider;
-    private readonly Mock<ILogger<UsersModuleApi>> _logger;
+    private readonly Mock<IUserQueries> _userQueries;
     private readonly UsersModuleApi _sut;
 
     public UsersModuleApiTests()
@@ -31,16 +24,16 @@ public class UsersModuleApiTests
         _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
         _getUserByUsernameHandler = new Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>();
         _getUsersByIdsHandler = new Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>>();
-        _serviceProvider = new Mock<IServiceProvider>();
-        _logger = new Mock<ILogger<UsersModuleApi>>();
+        _userQueries = new Mock<IUserQueries>();
+
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         _sut = new UsersModuleApi(
             _getUserByIdHandler.Object,
             _getUserByEmailHandler.Object,
             _getUserByUsernameHandler.Object,
             _getUsersByIdsHandler.Object,
-            _serviceProvider.Object,
-            _logger.Object);
+            _userQueries.Object);
     }
 
     #region Module Metadata
@@ -342,17 +335,14 @@ public class UsersModuleApiTests
     public async Task IsAvailableAsync_WhenNoHealthCheckServiceAndBasicOperationsSucceed_ShouldReturnTrue()
     {
         // Arrange
-        _serviceProvider
-            .Setup(sp => sp.GetService(typeof(HealthCheckService)))
-            .Returns(default(HealthCheckService));
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-        // Mock getUserByIdHandler for CanExecuteBasicOperationsAsync
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
@@ -362,43 +352,28 @@ public class UsersModuleApiTests
     public async Task IsAvailableAsync_WhenHealthCheckServiceReturnsHealthy_ShouldReturnTrue()
     {
         // Arrange
-        var healthCheckService = new Mock<HealthCheckService>();
-        healthCheckService
-            .Setup(h => h.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Healthy, TimeSpan.Zero));
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-        _serviceProvider
-            .Setup(sp => sp.GetService(typeof(HealthCheckService)))
-            .Returns(healthCheckService.Object);
-
-        // Mock getUserByIdHandler for CanExecuteBasicOperationsAsync
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
-        healthCheckService.Verify(h => h.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _userQueries.Verify(x => x.CanConnectAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenHealthCheckServiceReturnsUnhealthy_ShouldReturnFalse()
     {
         // Arrange
-        var healthCheckService = new Mock<HealthCheckService>();
-        healthCheckService
-            .Setup(h => h.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Unhealthy, TimeSpan.Zero));
-
-        _serviceProvider
-            .Setup(sp => sp.GetService(typeof(HealthCheckService)))
-            .Returns(healthCheckService.Object);
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -408,32 +383,10 @@ public class UsersModuleApiTests
     public async Task IsAvailableAsync_WhenNoHealthCheckServiceAndBasicOperationsFail_ShouldReturnFalse()
     {
         // Arrange
-        _serviceProvider
-            .Setup(sp => sp.GetService(typeof(HealthCheckService)))
-            .Returns((HealthCheckService?)null);
+        _userQueries.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_WhenHealthCheckServiceThrowsException_ShouldReturnFalse()
-    {
-        // Arrange
-        var healthCheckService = new Mock<HealthCheckService>();
-        healthCheckService
-            .Setup(h => h.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Health check failed"));
-
-        _serviceProvider
-            .Setup(sp => sp.GetService(typeof(HealthCheckService)))
-            .Returns(healthCheckService.Object);
-
-        // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();

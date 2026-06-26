@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -51,7 +52,7 @@ public sealed class CreateProviderCommandHandler(
             var businessProfile = command.BusinessProfile.ToDomain();
 
             // Cria a entidade de domínio
-            var provider = new Provider(
+            var provider = Provider.Create(
                 command.UserId,
                 command.Name,
                 command.Type,
@@ -88,11 +89,6 @@ public sealed class CreateProviderCommandHandler(
         catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
             logger.LogError(ex, "Database error creating provider for user {UserId}", command.UserId);
-            return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error creating provider for user {UserId}", command.UserId);
             return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
         }
     }

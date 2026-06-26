@@ -1,7 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Abstractions;
 

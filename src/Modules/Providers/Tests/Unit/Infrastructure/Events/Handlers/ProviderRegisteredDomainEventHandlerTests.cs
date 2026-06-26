@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -5,60 +6,43 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
 
-/// <summary>
-/// Unit tests for <see cref="ProviderRegisteredDomainEventHandler"/>.
-/// </summary>
-public class ProviderRegisteredDomainEventHandlerTests : IDisposable
+public class ProviderRegisteredDomainEventHandlerTests : BaseInMemoryDatabaseTest<ProvidersDbContext>
 {
     private readonly Mock<IMessageBus> _messageBusMock;
-    private readonly ProvidersDbContext _context;
-    private readonly ProviderRegisteredDomainEventHandler _handler;
 
-    /// <summary>
-    /// Inicializa o mock do message bus, ProvidersDbContext em memória, e o ProviderRegisteredDomainEventHandler sob teste com NullLogger.
-    /// </summary>
-    public ProviderRegisteredDomainEventHandlerTests()
+    public ProviderRegisteredDomainEventHandlerTests() : base(options => new ProvidersDbContext(options, null!))
     {
         _messageBusMock = new Mock<IMessageBus>();
-
-        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: $"TestDb_{UuidGenerator.NewId()}")
-            .Options;
-        _context = new ProvidersDbContext(options, null!);
-
-        _handler = new ProviderRegisteredDomainEventHandler(
-            _messageBusMock.Object,
-            _context,
-            NullLogger<ProviderRegisteredDomainEventHandler>.Instance);
     }
+
+    private ProviderRegisteredDomainEventHandler CreateHandler() =>
+        new(_messageBusMock.Object, DbContext, NullLogger<ProviderRegisteredDomainEventHandler>.Instance);
 
     [Fact]
     public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
     {
-        // Arrange
         var providerId = new ProviderId(UuidGenerator.NewId());
         var userId = UuidGenerator.NewId();
 
-        var businessProfile = new BusinessProfile(
-            legalName: "Test Company",
-            contactInfo: new ContactInfo("test@provider.com", "+55 11 99999-9999", "https://www.test.com"),
-            primaryAddress: new Address("Test St", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil"));
+        var provider = new ProviderBuilder()
+            .WithId(providerId)
+            .WithUserId(userId)
+            .WithName("Provider Test")
+            .WithType(EProviderType.Individual)
+            .WithBusinessProfile(new MeAjudaAi.Modules.Providers.Domain.ValueObjects.BusinessProfile(
+                "Test Company",
+                new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo("test@provider.com", "+55 11 99999-9999", "https://www.test.com"),
+                new MeAjudaAi.Modules.Providers.Domain.ValueObjects.Address("Test St", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil")))
+            .Build();
 
-        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
-            providerId,
-            userId,
-            "Provider Test",
-            EProviderType.Individual,
-            businessProfile);
-
-        await _context.Providers.AddAsync(provider);
-        await _context.SaveChangesAsync();
+        await DbContext.Providers.AddAsync(provider);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new ProviderRegisteredDomainEvent(
             providerId.Value,
@@ -70,10 +54,8 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
             "provider-test"
         );
 
-        // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        await CreateHandler().HandleAsync(domainEvent, CancellationToken.None);
 
-        // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.Is<ProviderRegisteredIntegrationEvent>(e =>
@@ -87,7 +69,6 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_WithMissingProvider_ShouldNotPublishEvent()
     {
-        // Arrange
         var domainEvent = new ProviderRegisteredDomainEvent(
             UuidGenerator.NewId(),
             1,
@@ -98,10 +79,8 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
             "nonexistent-provider"
         );
 
-        // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        await CreateHandler().HandleAsync(domainEvent, CancellationToken.None);
 
-        // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.IsAny<object>(),
@@ -113,7 +92,6 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_WhenCancelled_ShouldPropagateCancellation()
     {
-        // Arrange
         var providerId = new ProviderId(UuidGenerator.NewId());
         var domainEvent = new ProviderRegisteredDomainEvent(
             providerId.Value,
@@ -128,24 +106,16 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Act
-        var act = async () => await _handler.HandleAsync(domainEvent, cts.Token);
+        var act = async () => await CreateHandler().HandleAsync(domainEvent, cts.Token);
 
-        // Assert
         var ex = await act.Should().ThrowAsync<InvalidOperationException>();
         ex.Which.InnerException.Should().BeOfType<OperationCanceledException>();
 
-        // Verify PublishAsync was not successfully invoked
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.IsAny<object>(),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
-    }
-
-    public void Dispose()
-    {
-        _context?.Dispose();
     }
 }

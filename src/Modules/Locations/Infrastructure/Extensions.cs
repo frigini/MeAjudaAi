@@ -56,34 +56,35 @@ public static class Extensions
     {
         services.AddDbContext<LocationsDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                                 ?? configuration.GetConnectionString("Locations")
+                                 ?? configuration.GetConnectionString("meajudaai-db");
 
-            if (string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrWhiteSpace(connectionString) && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {
-                if (EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
-                {
-                    // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-                    connectionString = DatabaseConstants.DefaultTestConnectionString;
-                }
-                else
-                {
-                    throw new InvalidOperationException("DefaultConnection is not configured");
-                }
+                connectionString = DatabaseConstants.DefaultTestConnectionString;
             }
 
-            options.UseNpgsql(connectionString,
-                npgsqlOptions =>
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
-                    npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
-                });
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string not found. Configure ConnectionStrings:DefaultConnection, Locations, or meajudaai-db.");
+            }
 
-            options.EnableDetailedErrors();
-            options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(LocationsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Locations);
+                npgsqlOptions.CommandTimeout(60);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
 
-            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
             if (environment.IsDevelopment())
             {
+                options.EnableDetailedErrors();
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             }

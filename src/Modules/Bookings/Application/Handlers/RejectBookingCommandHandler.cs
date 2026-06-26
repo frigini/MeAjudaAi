@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
+/// <summary>
+/// Handler para processar comandos de rejeição de bookings.
+/// </summary>
 public sealed class RejectBookingCommandHandler(
     IBookingQueries bookingQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,

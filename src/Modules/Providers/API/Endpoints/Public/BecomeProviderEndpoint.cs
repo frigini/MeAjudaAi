@@ -2,14 +2,15 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
+[ExcludeFromCodeCoverage]
 public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
@@ -58,10 +59,3 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
         return Results.CreatedAtRoute("GetMyProviderProfile", null, new Response<ProviderDto>(result.Value));
     }
 }
-
-public record RegisterProviderApiRequest(
-    [Required, StringLength(100)] string Name,
-    [Required, EnumDataType(typeof(EProviderType))] EProviderType Type,
-    [Required, StringLength(20)] string DocumentNumber,
-    [Phone, StringLength(20)] string? PhoneNumber
-);

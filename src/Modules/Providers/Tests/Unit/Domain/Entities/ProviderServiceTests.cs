@@ -67,9 +67,7 @@ public class ProviderServiceTests
         var serviceId = Guid.NewGuid();
 
         // Act
-#pragma warning disable CS8604 // Possible null reference argument
         var act = () => ProviderService.Create(providerId, serviceId, invalidName);
-#pragma warning restore CS8604
 
         // Assert
         act.Should().Throw<ArgumentException>()

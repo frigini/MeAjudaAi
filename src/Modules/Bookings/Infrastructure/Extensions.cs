@@ -35,11 +35,11 @@ public static class Extensions
 
     private static void AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        services.AddDbContext<BookingsDbContext>(options =>
+        services.AddDbContext<BookingsDbContext>((serviceProvider, options) =>
         {
-            var connStr = configuration.GetConnectionString("Bookings") ??
-                          configuration.GetConnectionString("DefaultConnection") ?? 
-                          configuration.GetConnectionString("meajudaai-db");
+            var connStr = configuration.GetConnectionString("DefaultConnection")
+                          ?? configuration.GetConnectionString("Bookings")
+                          ?? configuration.GetConnectionString("meajudaai-db");
 
             if (string.IsNullOrWhiteSpace(connStr) && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {
@@ -48,15 +48,27 @@ public static class Extensions
 
             if (string.IsNullOrWhiteSpace(connStr))
             {
-                throw new InvalidOperationException("Bookings connection string is missing.");
+                throw new InvalidOperationException(
+                    "Connection string not found. Configure ConnectionStrings:DefaultConnection, Bookings, or meajudaai-db.");
             }
 
-            options.UseNpgsql(connStr, m => 
+            options.UseNpgsql(connStr, npgsqlOptions =>
             {
-                m.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
-                m.MigrationsHistoryTable("__EFMigrationsHistory", "bookings");
-                m.MigrationsAssembly(typeof(BookingsDbContext).Assembly.FullName);
-            });
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+                npgsqlOptions.MigrationsAssembly(typeof(BookingsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Bookings);
+                npgsqlOptions.CommandTimeout(60);
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
+
+            if (environment.IsDevelopment())
+            {
+                options.EnableDetailedErrors();
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());

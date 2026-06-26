@@ -41,41 +41,7 @@ public sealed class SearchProvidersModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug("Checking SearchProviders module availability");
-
-            // Teste básico: fazer uma busca com coordenadas válidas e radius pequeno
-            var testResult = await SearchProvidersAsync(
-                latitude: -23.561414,
-                longitude: -46.656559,
-                radiusInKm: 1.0,
-                pageNumber: 1,
-                pageSize: 1,
-                cancellationToken: cancellationToken);
-
-            // Módulo está disponível se conseguiu executar a busca (mesmo que retorne 0 resultados)
-            if (testResult.IsSuccess)
-            {
-                logger.LogDebug("SearchProviders module is available and healthy");
-            }
-            else
-            {
-                logger.LogWarning("SearchProviders module test query failed");
-            }
-            return testResult.IsSuccess;
-        }
-
-        catch (OperationCanceledException)
-        {
-            logger.LogDebug("SearchProviders availability check was cancelled");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking SearchProviders module availability");
-            return false;
-        }
+        return await queries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<ModulePagedSearchResultDto>> SearchProvidersAsync(

@@ -1,12 +1,11 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -30,33 +29,23 @@ public sealed class UpdateVerificationStatusCommandHandler(
     /// </summary>
     public async Task<Result<ProviderDto>> HandleAsync(UpdateVerificationStatusCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Updating verification status for provider {ProviderId} to {Status}",
+            command.ProviderId, command.Status);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Updating verification status for provider {ProviderId} to {Status}",
-                command.ProviderId, command.Status);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(localizer["ProviderNotFound"]);
-            }
-
-            provider.UpdateVerificationStatus(command.Status, command.UpdatedBy);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Verification status updated successfully for provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure(localizer["ProviderNotFound"]);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error updating verification status for provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure(localizer["VerificationStatusUpdateError"]);
-        }
+
+        provider.UpdateVerificationStatus(command.Status, command.UpdatedBy);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Verification status updated successfully for provider {ProviderId}", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }
-
-

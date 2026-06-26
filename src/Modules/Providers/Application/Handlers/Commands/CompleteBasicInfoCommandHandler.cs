@@ -1,10 +1,9 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -31,30 +30,20 @@ public sealed class CompleteBasicInfoCommandHandler(
     /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(CompleteBasicInfoCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Completing basic info for provider {ProviderId}", command.ProviderId);
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
+        if (provider == null)
         {
-            logger.LogInformation("Completing basic info for provider {ProviderId}", command.ProviderId);
-
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Provider not found");
-            }
-
-            provider.CompleteBasicInfo(command.UpdatedBy);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Basic info completed for provider {ProviderId}", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure("Prestador não encontrado");
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error completing basic info for provider {ProviderId}", command.ProviderId);
-            return Result.Failure("Failed to complete provider basic info");
-        }
+
+        provider.CompleteBasicInfo(command.UpdatedBy);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Basic info completed for provider {ProviderId}", command.ProviderId);
+        return Result.Success();
     }
 }
-
-

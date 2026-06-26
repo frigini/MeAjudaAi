@@ -48,6 +48,8 @@ public static class Extensions
         services.AddPostgresContext<CommunicationsDbContext>(builder =>
         {
             builder.UseSnakeCaseNamingConvention();
+            builder.EnableServiceProviderCaching();
+            builder.EnableSensitiveDataLogging(false);
         });
 
         // Unit of Work e Repositórios

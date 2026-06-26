@@ -229,7 +229,13 @@ public class ProviderMapperTests
         // Arrange
         var contactInfoDto = new ContactInfoDto("test@example.com", "+5511999999999", "https://example.com");
         var addressDto = new AddressDto("Main St", "123", "Suite 100", "Downtown", "São Paulo", "SP", "01310-000", "Brazil");
-        var dto = new BusinessProfileDto("Legal Name Ltd", "Fantasy Name", "Business description", contactInfoDto, addressDto);
+        var dto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Legal Name Ltd")
+            .WithFantasyName("Fantasy Name")
+            .WithDescription("Business description")
+            .WithContactInfo(contactInfoDto)
+            .WithAddress(addressDto)
+            .Build();
 
         // Act
         var businessProfile = dto.ToDomain();

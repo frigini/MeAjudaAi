@@ -1,8 +1,9 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -23,20 +24,11 @@ public sealed class GetProvidersByCityQueryHandler(
     /// </summary>
     public async Task<Result<IReadOnlyList<ProviderDto>>> HandleAsync(GetProvidersByCityQuery query, CancellationToken cancellationToken)
     {
-        try
-        {
-            logger.LogInformation("Getting providers by city {City}", query.City);
+        logger.LogInformation("Getting providers by city {City}", query.City);
 
-            var providers = await providerQueries.GetByCityAsync(query.City, cancellationToken);
+        var providers = await providerQueries.GetByCityAsync(query.City, cancellationToken);
 
-            logger.LogInformation("Found {Count} providers in city {City}", providers.Count, query.City);
-            return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting providers by city {City}", query.City);
-            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
-        }
+        logger.LogInformation("Found {Count} providers in city {City}", providers.Count, query.City);
+        return Result<IReadOnlyList<ProviderDto>>.Success(providers.ToDto());
     }
 }
-

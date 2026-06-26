@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
@@ -85,7 +86,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error!.Message.Should().Be("Prestador não encontrado");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
@@ -113,7 +114,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Suspension reason is required");
+        result.Error!.Message.Should().Be("Motivo da suspensão é obrigatório");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -137,7 +138,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("SuspendedBy is required");
+        result.Error!.Message.Should().Be("Responsável pela suspensão é obrigatório");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -146,7 +147,7 @@ public sealed class SuspendProviderCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldThrow()
     {
         // Arrange
         var command = new SuspendProviderCommand(
@@ -158,20 +159,12 @@ public sealed class SuspendProviderCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Failed to suspend provider");
-
-        _uowMock.Verify(
-            r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command, CancellationToken.None));
     }
 
     [Fact]
-    public async Task HandleAsync_WhenDomainValidationFails_ShouldReturnDomainErrorMessage()
+    public async Task HandleAsync_WhenDomainValidationFails_ShouldThrow()
     {
         // Arrange
         var command = new SuspendProviderCommand(
@@ -189,19 +182,12 @@ public sealed class SuspendProviderCommandHandlerTests
             .Setup(r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        // Domain exception message should be propagated
-        result.Error.Message.Should().StartWith("Invalid status transition");
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ProviderDomainException>(() => _handler.HandleAsync(command, CancellationToken.None));
+        exception.Message.Should().StartWith("Invalid status transition");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }
-
-
-

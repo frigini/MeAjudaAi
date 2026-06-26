@@ -27,13 +27,12 @@ public class UpdateMyProviderProfileIntegrationTests : ProvidersIntegrationTestB
         await DbContext.SaveChangesAsync();
 
         var newName = "Updated Name";
-        var businessProfileDto = new BusinessProfileDto(
-            "Legal Name",
-            "Fantasy Name",
-            "Updated Description",
-            new ContactInfoDto("new@email.com", "1234567890", "newsite.com"),
-            new AddressDto("Street", "1", "Comp", "Neigh", "City", "ST", "12345678", "BR")
-        );
+        var businessProfileDto = new BusinessProfileDtoBuilder()
+            .WithLegalName("Legal Name")
+            .WithFantasyName("Fantasy Name")
+            .WithDescription("Updated Description")
+            .WithEmail("new@email.com")
+            .Build();
 
         var command = new UpdateProviderProfileCommand(provider.Id.Value, newName, businessProfileDto, new List<ProviderServiceDto>());
 

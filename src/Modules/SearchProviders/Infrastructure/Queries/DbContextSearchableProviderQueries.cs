@@ -15,19 +15,27 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries;
 /// Implementação de ISearchableProviderQueries na camada de infraestrutura utilizando EF Core e Dapper.
 /// </summary>
 public sealed class DbContextSearchableProviderQueries(
-    SearchProvidersDbContext context,
+    SearchProvidersDbContext _context,
     IDapperConnection dapper) : ISearchableProviderQueries
 {
+    private readonly SearchProvidersDbContext __context = _context ?? throw new ArgumentNullException(nameof(_context));
+    private readonly IDapperConnection _dapper = dapper ?? throw new ArgumentNullException(nameof(dapper));
+
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+    {
+        return await __context.Database.CanConnectAsync(cancellationToken);
+    }
+
     public async Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default)
     {
-        return await context.SearchableProviders
+        return await _context.SearchableProviders
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
     public async Task<SearchableProvider?> GetByProviderIdAsync(Guid providerId, bool track = false, CancellationToken cancellationToken = default)
     {
-        var query = context.SearchableProviders.AsQueryable();
+        var query = _context.SearchableProviders.AsQueryable();
         if (!track)
         {
             query = query.AsNoTracking();
@@ -206,7 +214,7 @@ public sealed class DbContextSearchableProviderQueries(
 
     public async Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, bool track = false, CancellationToken cancellationToken = default)
     {
-        var query = context.SearchableProviders.AsQueryable();
+        var query = _context.SearchableProviders.AsQueryable();
         if (!track)
         {
             query = query.AsNoTracking();

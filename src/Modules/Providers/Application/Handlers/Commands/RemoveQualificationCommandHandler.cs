@@ -1,12 +1,12 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -26,43 +26,29 @@ public sealed class RemoveQualificationCommandHandler(
     /// </summary>
     public async Task<Result<ProviderDto>> HandleAsync(RemoveQualificationCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Removing qualification from provider {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Removing qualification from provider {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Fornecedor não encontrado");
-            }
-
-            try 
-            {
-                provider.RemoveQualification(command.QualificationName);
-            }
-            catch (MeAjudaAi.Modules.Providers.Domain.Exceptions.ProviderDomainException)
-            {
-                return Result<ProviderDto>.Failure("Qualificação não encontrada");
-            }
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Qualification removed successfully from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure("Fornecedor não encontrado");
         }
-        catch (OperationCanceledException)
+
+        try 
         {
-            throw;
+            provider.RemoveQualification(command.QualificationName);
         }
-        catch (Exception ex)
+        catch (ProviderDomainException)
         {
-            logger.LogError(ex, "Error removing qualification from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("Erro ao remover qualificação");
+            return Result<ProviderDto>.Failure("Qualificação não encontrada");
         }
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Qualification removed successfully from provider {ProviderId}", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }
-
-

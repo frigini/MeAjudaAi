@@ -8,9 +8,10 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Persistence;
 
 [Trait("Category", "Unit")]
-public class ProvidersDbContextRepositoryTests : IDisposable
+public sealed class ProvidersDbContextRepositoryTests : IDisposable
 {
     private readonly ProvidersDbContext _context;
+    private readonly IRepository<Provider, ProviderId> _repository;
 
     public ProvidersDbContextRepositoryTests()
     {
@@ -19,6 +20,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
             .Options;
 
         _context = new ProvidersDbContext(options, null!);
+        _repository = _context;
     }
 
     [Fact]
@@ -42,7 +44,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.ChangeTracker.Clear();
 
         // Act
-        var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
+        var result = await _repository.TryFindAsync(provider.Id, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -56,7 +58,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         var nonExistingId = new ProviderId(Guid.NewGuid());
 
         // Act
-        var result = await _context.TryFindAsync(nonExistingId, CancellationToken.None);
+        var result = await _repository.TryFindAsync(nonExistingId, CancellationToken.None);
 
         // Assert
         result.Should().BeNull();
@@ -72,7 +74,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.ChangeTracker.Clear();
 
         // Act
-        var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
+        var result = await _repository.TryFindAsync(provider.Id, CancellationToken.None);
 
         // Assert
         result.Should().BeNull();
@@ -103,7 +105,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        _context.Delete(provider);
+        _repository.Delete(provider);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -123,7 +125,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.ChangeTracker.Clear();
 
         // Act
-        var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
+        var result = await _repository.TryFindAsync(provider.Id, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -142,7 +144,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.ChangeTracker.Clear();
 
         // Act
-        var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
+        var result = await _repository.TryFindAsync(provider.Id, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -161,7 +163,7 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.ChangeTracker.Clear();
 
         // Act
-        var result = await _context.TryFindAsync(provider.Id, CancellationToken.None);
+        var result = await _repository.TryFindAsync(provider.Id, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -174,5 +176,3 @@ public class ProvidersDbContextRepositoryTests : IDisposable
         _context.Dispose();
     }
 }
-
-

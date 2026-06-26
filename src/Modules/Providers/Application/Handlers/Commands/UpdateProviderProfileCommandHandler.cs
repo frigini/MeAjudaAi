@@ -1,13 +1,12 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -22,38 +21,28 @@ public sealed class UpdateProviderProfileCommandHandler(
 {
     public async Task<Result<ProviderDto>> HandleAsync(UpdateProviderProfileCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Updating provider profile {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Updating provider profile {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
-            }
-
-            var businessProfile = command.BusinessProfile.ToDomain();
-            provider.UpdateProfile(command.Name, businessProfile, command.UpdatedBy);
-
-            if (command.Services != null)
-            {
-                provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
-            }
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);
-            return Result<ProviderDto>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result<ProviderDto>.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
         }
-        catch (Exception ex)
+
+        var businessProfile = command.BusinessProfile.ToDomain();
+        provider.UpdateProfile(command.Name, businessProfile, command.UpdatedBy);
+
+        if (command.Services != null)
         {
-            logger.LogError(ex, "Error updating provider profile {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("Error updating provider profile. Please try again later.");
+            provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
         }
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);
+        return Result<ProviderDto>.Success(provider.ToDto());
     }
 }
-
-

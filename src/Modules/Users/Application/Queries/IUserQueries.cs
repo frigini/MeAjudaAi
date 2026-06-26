@@ -9,6 +9,11 @@ namespace MeAjudaAi.Modules.Users.Application.Queries;
 public interface IUserQueries
 {
     /// <summary>
+    /// Verifica se o módulo consegue conectar ao banco de dados.
+    /// </summary>
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Busca um usuário pelo identificador único sem rastreamento do EF Core (AsNoTracking).
     /// </summary>
     Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);

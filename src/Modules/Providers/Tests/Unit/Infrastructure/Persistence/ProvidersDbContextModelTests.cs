@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Persistence;
@@ -8,12 +9,12 @@ public class ProvidersDbContextModelTests
     public void OnModelCreating_ShouldBuildModel()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>()
+        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         // Act
-        using var ctx = new MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext(options, null!);
+        using var ctx = new ProvidersDbContext(options, null!);
 
         // Assert
         ctx.Model.GetEntityTypes().Should().NotBeEmpty();

@@ -62,10 +62,9 @@ public sealed class UserRegisteredIntegrationEventHandler(
                 "Welcome email enqueued for user {UserId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
                 integrationEvent.UserId, message.Id, correlationId);
         }
-        catch (Exception ex)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
-            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
-                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
+            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(ex);
 
             if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
             {

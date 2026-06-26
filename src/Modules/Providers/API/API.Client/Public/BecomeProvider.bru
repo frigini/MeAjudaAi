@@ -1,0 +1,68 @@
+meta {
+  name: Become Provider
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers/become
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "name": "João Silva Provider",
+    "type": 1,
+    "documentNumber": "12345678901",
+    "phoneNumber": "(11) 99999-9999"
+  }
+}
+
+docs {
+  # Become Provider
+  
+  Transforma o usuário autenticado em um prestador de serviços.
+  
+  ## Autorização
+  - **Requer token**: Sim (JWT do usuário logado)
+  - **Email**: Extraído automaticamente do token
+  
+  ## Body Parameters
+  - `name` (string): Nome do prestador
+  - `type` (int): Tipo (1=Individual, 2=Company)
+  - `documentNumber` (string): CPF/CNPJ
+  - `phoneNumber` (string, opcional): Telefone
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "userId": "uuid",
+      "name": "João Silva Provider",
+      "type": 1,
+      "verificationStatus": 0,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    "message": "Provider created successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **201**: Criado com sucesso
+  - **400**: Dados inválidos
+  - **401**: Token inválido/expirado
+  - **409**: Usuário já possui prestador
+}

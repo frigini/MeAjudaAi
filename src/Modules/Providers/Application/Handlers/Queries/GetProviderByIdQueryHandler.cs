@@ -1,9 +1,10 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Constants;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -24,27 +25,18 @@ public sealed class GetProviderByIdQueryHandler(
     /// </summary>
     public async Task<Result<ProviderDto?>> HandleAsync(GetProviderByIdQuery query, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Getting provider by ID {ProviderId}", query.ProviderId);
+
+        var providerId = new ProviderId(query.ProviderId);
+        var provider = await providerQueries.GetByIdAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Getting provider by ID {ProviderId}", query.ProviderId);
-
-            var providerId = new ProviderId(query.ProviderId);
-            var provider = await providerQueries.GetByIdAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", query.ProviderId);
-                return Result<ProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
-            }
-
-            logger.LogInformation("Provider {ProviderId} found successfully", query.ProviderId);
-            return Result<ProviderDto?>.Success(provider.ToDto());
+            logger.LogWarning("Provider {ProviderId} not found", query.ProviderId);
+            return Result<ProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting provider by ID {ProviderId}", query.ProviderId);
-            return Result<ProviderDto?>.Failure("Erro ao buscar prestador");
-        }
+
+        logger.LogInformation("Provider {ProviderId} found successfully", query.ProviderId);
+        return Result<ProviderDto?>.Success(provider.ToDto());
     }
 }
-

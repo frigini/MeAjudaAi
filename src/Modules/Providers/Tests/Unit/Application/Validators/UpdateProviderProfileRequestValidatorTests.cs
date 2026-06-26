@@ -2,6 +2,7 @@ using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Application.Validators;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Validators;
 
@@ -363,17 +364,13 @@ public class UpdateProviderProfileRequestValidatorTests
 
     private static BusinessProfileDto CreateValidBusinessProfile()
     {
-        return new BusinessProfileDto(
-            LegalName: "Valid Legal Name",
-            FantasyName: "Valid Fantasy Name",
-            Description: "Valid Description",
-            ContactInfo: new ContactInfoDto(
-                Email: "valid@example.com",
-                PhoneNumber: "11987654321",
-                Website: "https://example.com"
-            ),
-            PrimaryAddress: CreateValidAddress()
-        );
+        return new BusinessProfileDtoBuilder()
+            .WithLegalName("Valid Legal Name")
+            .WithFantasyName("Valid Fantasy Name")
+            .WithDescription("Valid Description")
+            .WithEmail("valid@example.com")
+            .WithAddress(CreateValidAddress())
+            .Build();
     }
 
     private static AddressDto CreateValidAddress()

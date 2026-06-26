@@ -6,16 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 
-public class DbContextServiceCategoryQueries(ServiceCatalogsDbContext dbContext) : IServiceCategoryQueries
+public class DbContextServiceCategoryQueries(ServiceCatalogsDbContext _dbContext) : IServiceCategoryQueries
 {
+    private readonly ServiceCatalogsDbContext __dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+    {
+        return await __dbContext.Database.CanConnectAsync(cancellationToken);
+    }
+
     public async Task<ServiceCategory?> GetByIdAsync(ServiceCategoryId id, CancellationToken cancellationToken = default) =>
-        await dbContext.ServiceCategories
+        await _dbContext.ServiceCategories
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<ServiceCategory>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.ServiceCategories.AsNoTracking();
+        var query = _dbContext.ServiceCategories.AsNoTracking();
 
         if (activeOnly)
             query = query.Where(c => c.IsActive);
@@ -29,7 +36,7 @@ public class DbContextServiceCategoryQueries(ServiceCatalogsDbContext dbContext)
     public async Task<bool> ExistsWithNameAsync(string name, ServiceCategoryId? excludeId, CancellationToken cancellationToken = default)
     {
         var normalized = name?.Trim() ?? string.Empty;
-        var query = dbContext.ServiceCategories.AsNoTracking().Where(c => c.Name == normalized);
+        var query = _dbContext.ServiceCategories.AsNoTracking().Where(c => c.Name == normalized);
 
         if (excludeId is not null)
             query = query.Where(c => c.Id != excludeId);
@@ -39,7 +46,7 @@ public class DbContextServiceCategoryQueries(ServiceCatalogsDbContext dbContext)
 
     public async Task<IReadOnlyList<(ServiceCategory Category, int ServiceCount)>> GetAllWithServiceCountAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.ServiceCategories.AsNoTracking();
+        var query = _dbContext.ServiceCategories.AsNoTracking();
 
         if (activeOnly)
             query = query.Where(c => c.IsActive);
@@ -50,7 +57,7 @@ public class DbContextServiceCategoryQueries(ServiceCatalogsDbContext dbContext)
             .Select(c => new
             {
                 Category = c,
-                ServiceCount = dbContext.Services.Count(s => s.CategoryId == c.Id && (!activeOnly || s.IsActive))
+                ServiceCount = _dbContext.Services.Count(s => s.CategoryId == c.Id && (!activeOnly || s.IsActive))
             })
             .ToListAsync(cancellationToken);
 

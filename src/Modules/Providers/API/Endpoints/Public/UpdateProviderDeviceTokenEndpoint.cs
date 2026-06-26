@@ -1,16 +1,19 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint responsável por atualizar o token do dispositivo para notificações push do prestador.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class UpdateProviderDeviceTokenEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
@@ -43,5 +46,3 @@ public class UpdateProviderDeviceTokenEndpoint : IEndpoint
         return result.Error.ToProblem();
     }
 }
-
-public sealed record ProviderDeviceTokenRequest(string DeviceToken);

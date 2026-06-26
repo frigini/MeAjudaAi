@@ -1,10 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -19,31 +19,21 @@ public sealed class ActivateProviderProfileCommandHandler(
 {
     public async Task<Result> HandleAsync(ActivateProviderProfileCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation("Activating provider profile {ProviderId}", command.ProviderId);
+
+        var providerId = new ProviderId(command.ProviderId);
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation("Activating provider profile {ProviderId}", command.ProviderId);
-
-            var providerId = new ProviderId(command.ProviderId);
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(providerId, cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Prestador não encontrado"));
-            }
-
-            provider.ActivateProfile(command.UpdatedBy);
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Provider profile {ProviderId} activated successfully", command.ProviderId);
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure(Error.NotFound(ValidationMessages.Providers.ProviderNotFound));
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error activating provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Erro ao ativar perfil do prestador");
-        }
+
+        provider.ActivateProfile(command.UpdatedBy);
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider profile {ProviderId} activated successfully", command.ProviderId);
+        return Result.Success();
     }
 }
-
-

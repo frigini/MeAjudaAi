@@ -1,12 +1,13 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
-using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 /// <summary>
@@ -34,45 +35,32 @@ public class GetProvidersQueryHandler(
         GetProvidersQuery query,
         CancellationToken cancellationToken = default)
     {
-        try
+        logger.LogInformation(
+            "Processing provider search - Page: {Page}, Size: {PageSize}, Filters: Name='{Name}', Type={Type}, Status={Status}",
+            query.Page, query.PageSize, query.Name, query.Type, query.VerificationStatus);
+
+        var providers = await providerQueries.GetPagedAsync(
+            page: query.Page,
+            pageSize: query.PageSize,
+            nameFilter: query.Name,
+            typeFilter: query.Type.HasValue ? (EProviderType)query.Type.Value : null,
+            verificationStatusFilter: query.VerificationStatus.HasValue ? (EVerificationStatus)query.VerificationStatus.Value : null,
+            cancellationToken: cancellationToken);
+
+        var providerDtos = providers.Items.Select(ProviderMapper.ToDto).ToList();
+
+        var result = new PagedResult<ProviderDto>
         {
-            logger.LogInformation(
-                "Processando busca de prestadores - Página: {Page}, Tamanho: {PageSize}, Filtros: Nome='{Name}', Tipo={Type}, Status={Status}",
-                query.Page, query.PageSize, query.Name, query.Type, query.VerificationStatus);
+            Items = providerDtos,
+            PageNumber = query.Page,
+            PageSize = query.PageSize,
+            TotalItems = providers.TotalItems
+        };
 
-            // Aplica filtros na busca
-            var providers = await providerQueries.GetPagedAsync(
-                page: query.Page,
-                pageSize: query.PageSize,
-                nameFilter: query.Name,
-                typeFilter: query.Type.HasValue ? (EProviderType)query.Type.Value : null,
-                verificationStatusFilter: query.VerificationStatus.HasValue ? (EVerificationStatus)query.VerificationStatus.Value : null,
-                cancellationToken: cancellationToken);
+        logger.LogInformation(
+            "Provider search completed - Total: {Total}, Current page: {Page}/{TotalPages}",
+            result.TotalItems, result.PageNumber, result.TotalPages);
 
-            // Converte para DTOs usando o mapper existente
-            var providerDtos = providers.Items.Select(ProviderMapper.ToDto).ToList();
-
-            var result = new PagedResult<ProviderDto>
-            {
-                Items = providerDtos,
-                PageNumber = query.Page,
-                PageSize = query.PageSize,
-                TotalItems = providers.TotalItems
-            };
-
-            logger.LogInformation(
-                "Busca de prestadores concluída - Total: {Total}, Página atual: {Page}/{TotalPages}",
-                result.TotalItems, result.PageNumber, result.TotalPages);
-
-            return Result<PagedResult<ProviderDto>>.Success(result);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex,
-                "Erro ao buscar prestadores - Página: {Page}, Filtros: Nome='{Name}', Tipo={Type}, Status={Status}",
-                query.Page, query.Name, query.Type, query.VerificationStatus);
-
-            return Result<PagedResult<ProviderDto>>.Failure(Error.Internal("Erro interno ao buscar prestadores"));
-        }
+        return Result<PagedResult<ProviderDto>>.Success(result);
     }
 }

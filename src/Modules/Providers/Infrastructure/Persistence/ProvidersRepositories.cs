@@ -9,7 +9,7 @@ public partial class ProvidersDbContext : IRepository<Provider, Guid>, IReposito
 {
     async Task<Provider?> IRepository<Provider, Guid>.TryFindAsync(
         Guid key, CancellationToken ct) =>
-        await Providers.FirstOrDefaultAsync(x => x.Id == key, ct);
+        await Providers.FirstOrDefaultAsync(x => x.Id == key && !x.IsDeleted, ct);
 
     void IRepository<Provider, Guid>.Add(Provider aggregate) =>
         Providers.Add(aggregate);
@@ -18,8 +18,13 @@ public partial class ProvidersDbContext : IRepository<Provider, Guid>, IReposito
         Providers.Remove(aggregate);
 
     async Task<Provider?> IRepository<Provider, ProviderId>.TryFindAsync(
-        ProviderId key, CancellationToken ct) =>
-        await Providers.FirstOrDefaultAsync(x => x.Id == key, ct);
+        ProviderId key, CancellationToken cancellationToken) =>
+        await Providers
+            .Include(p => p.Documents)
+            .Include(p => p.Qualifications)
+            .Include(p => p.Services)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(p => p.Id == key && !p.IsDeleted, cancellationToken);
 
     void IRepository<Provider, ProviderId>.Add(Provider aggregate) =>
         Providers.Add(aggregate);

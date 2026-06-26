@@ -29,26 +29,7 @@ public sealed class ServiceCatalogsModuleApi(
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug("Checking ServiceCatalogs module availability");
-
-            // Simple database connectivity test
-            _ = await categoryQueries.GetAllAsync(activeOnly: true, cancellationToken);
-
-            logger.LogDebug("ServiceCatalogs module is available and healthy");
-            return true;
-        }
-        catch (OperationCanceledException ex)
-        {
-            logger.LogDebug(ex, "ServiceCatalogs module availability check was cancelled");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking ServiceCatalogs module availability");
-            return false;
-        }
+        return await categoryQueries.CanConnectAsync(cancellationToken);
     }
 
     public async Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(

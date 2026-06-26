@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;

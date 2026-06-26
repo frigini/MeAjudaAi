@@ -1,14 +1,17 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
 
+/// <summary>
+/// Handler para processar consultas de bookings por cliente.
+/// </summary>
 public sealed class GetBookingsByClientQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,

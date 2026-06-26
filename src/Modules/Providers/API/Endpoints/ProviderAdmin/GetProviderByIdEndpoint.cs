@@ -1,12 +1,13 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -16,9 +17,10 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// <remarks>
 /// Implementa padrão de endpoint mínimo para consulta de prestador único
 /// utilizando arquitetura CQRS. Permite que usuários consultem dados de
-/// prestadores com autorização apropriada. Valida autorização antes de 
+/// prestadores com autorização apropriada. Valida autorização antes de
 /// retornar os dados do prestador.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GetProviderByIdEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>

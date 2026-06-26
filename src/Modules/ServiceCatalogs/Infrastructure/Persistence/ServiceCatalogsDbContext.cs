@@ -41,8 +41,8 @@ public partial class ServiceCatalogsDbContext : BaseDbContext, IUnitOfWork
             return repository;
 
         throw new InvalidOperationException(
-            $"ServiceCatalogsDbContext does not implement IRepository<{typeof(TAggregate).Name}, {typeof(TKey).Name}>. " +
-            $"This context supports: Service(ServiceId), ServiceCategory(ServiceCategoryId).");
+            $"ServiceCatalogsDbContext does not support repository for {typeof(TAggregate).Name} with key {typeof(TKey).Name}. " +
+            $"Supported: Service(ServiceId), ServiceCategory(ServiceCategoryId).");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

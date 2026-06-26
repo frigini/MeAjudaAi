@@ -7,10 +7,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 
-public class DbContextReviewQueries(RatingsDbContext dbContext) : IReviewQueries
+public class DbContextReviewQueries(RatingsDbContext _dbContext) : IReviewQueries
 {
+    private readonly RatingsDbContext _dbContext = _dbContext ?? throw new ArgumentNullException(nameof(_dbContext));
+
+    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Database.CanConnectAsync(cancellationToken);
+    }
+
     public async Task<Review?> GetByIdAsync(ReviewId id, CancellationToken cancellationToken = default) =>
-        await dbContext.Reviews
+        await _dbContext.Reviews
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
@@ -19,7 +26,7 @@ public class DbContextReviewQueries(RatingsDbContext dbContext) : IReviewQueries
         page = page < 1 ? 1 : page;
         pageSize = pageSize < 1 ? 10 : pageSize > 100 ? 100 : pageSize;
 
-        return await dbContext.Reviews
+        return await _dbContext.Reviews
             .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)
             .OrderByDescending(r => r.CreatedAt)
@@ -29,13 +36,13 @@ public class DbContextReviewQueries(RatingsDbContext dbContext) : IReviewQueries
     }
 
     public async Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default) =>
-        await dbContext.Reviews
+        await _dbContext.Reviews
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.ProviderId == providerId && r.CustomerId == customerId, cancellationToken);
 
     public async Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Reviews
+        var query = _dbContext.Reviews
             .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved);
 

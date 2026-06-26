@@ -53,36 +53,29 @@ public class ServiceCatalogsModuleApiTests
     #region IsAvailableAsync Tests
 
     [Fact]
-    public async Task IsAvailableAsync_WhenRepositoryResponds_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenCanConnectReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
-        var categories = new List<ServiceCategory>
-        {
-            new ServiceCategoryBuilder().Build()
-        };
-
-        _categoryQueriesMock
-            .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(categories);
+        _categoryQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeTrue();
-        _categoryQueriesMock.Verify(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()), Times.Once);
+        _categoryQueriesMock.Verify(x => x.CanConnectAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenRepositoryThrows_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenCanConnectReturnsFalse_ShouldReturnFalse()
     {
         // Arrange
-        _categoryQueriesMock
-            .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database unavailable"));
+        _categoryQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         // Act
-        var result = await _sut.IsAvailableAsync();
+        var result = await _sut.IsAvailableAsync(default(CancellationToken));
 
         // Assert
         result.Should().BeFalse();
@@ -95,8 +88,7 @@ public class ServiceCatalogsModuleApiTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _categoryQueriesMock
-            .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
+        _categoryQueriesMock.Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act & Assert

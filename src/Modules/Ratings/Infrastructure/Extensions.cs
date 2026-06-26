@@ -52,19 +52,36 @@ public static class Extensions
     {
         services.AddDbContext<RatingsDbContext>((serviceProvider, options) =>
         {
-            var resolvedConfig = serviceProvider.GetRequiredService<IConfiguration>();
-            var connStr = resolvedConfig.GetConnectionString("DefaultConnection") ??
-                          resolvedConfig.GetConnectionString("Ratings") ??
-                          resolvedConfig.GetConnectionString("meajudaai-db");
+            var connStr = configuration.GetConnectionString("DefaultConnection") ??
+                          configuration.GetConnectionString("Ratings") ??
+                          configuration.GetConnectionString("meajudaai-db");
 
             if (string.IsNullOrWhiteSpace(connStr) && EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {
                 connStr = DatabaseConstants.DefaultTestConnectionString;
             }
 
-            if (!string.IsNullOrWhiteSpace(connStr))
+            if (string.IsNullOrWhiteSpace(connStr))
             {
-                options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "ratings"));
+                throw new InvalidOperationException(
+                    "Connection string not found. Configure ConnectionStrings:DefaultConnection, Ratings, or meajudaai-db.");
+            }
+
+            options.UseNpgsql(connStr, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(RatingsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Ratings);
+                npgsqlOptions.CommandTimeout(60);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
+
+            if (environment.IsDevelopment())
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             }
         });
 

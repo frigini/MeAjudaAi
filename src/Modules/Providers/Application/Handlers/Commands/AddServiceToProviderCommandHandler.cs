@@ -1,11 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -28,99 +27,78 @@ public sealed class AddServiceToProviderCommandHandler(
     /// <returns>Resultado da operação</returns>
     public async Task<Result> HandleAsync(AddServiceToProviderCommand command, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation(
+            "Adding service {ServiceId} to provider {ProviderId}",
+            command.ServiceId,
+            command.ProviderId);
+
+        var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(
+            new ProviderId(command.ProviderId),
+            cancellationToken);
+
+        if (provider == null)
         {
-            logger.LogInformation(
-                "Adding service {ServiceId} to provider {ProviderId}",
-                command.ServiceId,
-                command.ProviderId);
-
-            // 1. Buscar o provider
-            var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(
-                new ProviderId(command.ProviderId),
-                cancellationToken);
-
-            if (provider == null)
-            {
-                logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Prestador não encontrado");
-            }
-
-            // 2. Validar o serviço via IServiceCatalogsModuleApi
-            var validationResult = await serviceCatalogsModuleApi.ValidateServicesAsync(
-                new[] { command.ServiceId },
-                cancellationToken);
-
-            if (validationResult.IsFailure)
-            {
-                logger.LogWarning(
-                    "Failed to validate service {ServiceId}: {Error}",
-                    command.ServiceId,
-                    validationResult.Error.Message);
-                return Result.Failure($"Falha ao validar serviço: {validationResult.Error.Message}");
-            }
-
-            // 3. Verificar se o serviço é válido
-            if (!validationResult.Value.AllValid)
-            {
-                var reasons = new List<string>();
-
-                if (validationResult.Value.InvalidServiceIds.Any())
-                {
-                    reasons.Add($"Serviço {command.ServiceId} não existe");
-                }
-
-                if (validationResult.Value.InactiveServiceIds.Any())
-                {
-                    reasons.Add($"Serviço {command.ServiceId} não está ativo");
-                }
-
-                var errorMessage = string.Join("; ", reasons);
-                logger.LogWarning(
-                    "Service {ServiceId} validation failed: {Reasons}",
-                    command.ServiceId,
-                    errorMessage);
-
-                return Result.Failure(errorMessage);
-            }
-
-            // 3.1 Buscar detalhes do serviço para obter o nome (necessário para desnormalização)
-            var serviceResult = await serviceCatalogsModuleApi.GetServiceByIdAsync(
-                command.ServiceId,
-                cancellationToken);
-
-            if (serviceResult.IsFailure || serviceResult.Value is null)
-            {
-                logger.LogError("Service {ServiceId} validated but details could not be retrieved", command.ServiceId);
-                return Result.Failure("Falha ao recuperar detalhes do serviço.");
-            }
-
-            var serviceName = serviceResult.Value.Name;
-
-            // 4. Adicionar o serviço ao provider (domínio valida duplicatas)
-            provider.AddService(command.ServiceId, serviceName);
-
-            // 5. Persistir mudanças
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation(
-                "Service {ServiceId} successfully added to provider {ProviderId}",
-                command.ServiceId,
-                command.ProviderId);
-
-            return Result.Success();
+            logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
+            return Result.Failure("Prestador não encontrado");
         }
-        catch (Exception ex)
+
+        var validationResult = await serviceCatalogsModuleApi.ValidateServicesAsync(
+            new[] { command.ServiceId },
+            cancellationToken);
+
+        if (validationResult.IsFailure)
         {
-            logger.LogError(
-                ex,
-                "Error adding service {ServiceId} to provider {ProviderId}",
+            logger.LogWarning(
+                "Failed to validate service {ServiceId}: {Error}",
                 command.ServiceId,
-                command.ProviderId);
-
-            return Result.Failure($"Ocorreu um erro ao adicionar serviço ao prestador: {ex.Message}");
+                validationResult.Error.Message);
+            return Result.Failure($"Falha ao validar serviço: {validationResult.Error.Message}");
         }
+
+        if (!validationResult.Value.AllValid)
+        {
+            var reasons = new List<string>();
+
+            if (validationResult.Value.InvalidServiceIds.Any())
+            {
+                reasons.Add($"Serviço {command.ServiceId} não existe");
+            }
+
+            if (validationResult.Value.InactiveServiceIds.Any())
+            {
+                reasons.Add($"Serviço {command.ServiceId} não está ativo");
+            }
+
+            var errorMessage = string.Join("; ", reasons);
+            logger.LogWarning(
+                "Service {ServiceId} validation failed: {Reasons}",
+                command.ServiceId,
+                errorMessage);
+
+            return Result.Failure(errorMessage);
+        }
+
+        var serviceResult = await serviceCatalogsModuleApi.GetServiceByIdAsync(
+            command.ServiceId,
+            cancellationToken);
+
+        if (serviceResult.IsFailure || serviceResult.Value is null)
+        {
+            logger.LogError("Service {ServiceId} validated but details could not be retrieved", command.ServiceId);
+            return Result.Failure("Falha ao recuperar detalhes do serviço.");
+        }
+
+        var serviceName = serviceResult.Value.Name;
+
+        provider.AddService(command.ServiceId, serviceName);
+
+        await uow.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "Service {ServiceId} successfully added to provider {ProviderId}",
+            command.ServiceId,
+            command.ProviderId);
+
+        return Result.Success();
     }
 }
-
-
