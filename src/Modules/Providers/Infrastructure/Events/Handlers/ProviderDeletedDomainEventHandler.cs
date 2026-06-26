@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Events;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Mappers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
@@ -25,18 +26,16 @@ internal sealed class ProviderDeletedDomainEventHandler(
         {
             logger.LogInformation("Handling ProviderDeletedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
 
-            var providerData = await context.Providers
+            var provider = await context.Providers
                 .AsNoTracking()
                 .IgnoreQueryFilters()
-                .Where(p => p.Id.Value == domainEvent.AggregateId)
-                .Select(p => new { p.UserId, p.BusinessProfile.ContactInfo.Email })
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstOrDefaultAsync(p => p.Id == new ProviderId(domainEvent.AggregateId), cancellationToken);
 
-            if (providerData is not null)
+            if (provider is not null)
             {
                 var integrationEvent = domainEvent.ToIntegrationEvent(
-                    userId: providerData.UserId,
-                    email: providerData.Email ?? "unknown");
+                    userId: provider.UserId,
+                    email: provider.BusinessProfile?.ContactInfo?.Email ?? "unknown");
                 await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 
                 logger.LogInformation("Successfully published ProviderDeleted integration event for provider {ProviderId}", domainEvent.AggregateId);
