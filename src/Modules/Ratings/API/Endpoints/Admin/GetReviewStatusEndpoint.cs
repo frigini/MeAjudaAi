@@ -25,7 +25,7 @@ public class GetReviewStatusEndpoint : IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint GET em "/{id:guid}/status" com:
-    /// - Autorização AdminPolicy (apenas administradores)
+    /// - Autorização AdminOnly (apenas administradores)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Respostas estruturadas para sucesso (200), não encontrado (404), não autorizado (401) e proibido (403)
     /// </remarks>
@@ -39,7 +39,7 @@ public class GetReviewStatusEndpoint : IEndpoint
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization("AdminPolicy");
+            .RequireAuthorization("AdminOnly");
     }
 
     private static async Task<IResult> GetReviewStatusAsync(

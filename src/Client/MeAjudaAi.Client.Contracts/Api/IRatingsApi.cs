@@ -13,19 +13,19 @@ public interface IRatingsApi
         [Body] CreateReviewRequest request,
         CancellationToken cancellationToken = default);
 
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Ratings.Base}/{ApiEndpoints.Ratings.GetById}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Ratings.Base}{ApiEndpoints.Ratings.GetById}")]
     Task<Result<ProviderReviewResponse>> GetReviewByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default);
 
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Ratings.Base}/{ApiEndpoints.Ratings.GetByProvider}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Ratings.Base}{ApiEndpoints.Ratings.GetByProvider}")]
     Task<Result<PagedResult<ProviderReviewResponse>>> GetProviderReviewsAsync(
         Guid providerId,
         [Query] int page = 1,
         [Query] int pageSize = 20,
         CancellationToken cancellationToken = default);
 
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Ratings.Base}/{ApiEndpoints.Ratings.GetStatus}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.Ratings.Base}{ApiEndpoints.Ratings.GetStatus}")]
     Task<Result<ReviewStatusResponse>> GetReviewStatusAsync(
         Guid id,
         CancellationToken cancellationToken = default);
