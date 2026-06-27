@@ -1,17 +1,24 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-
-using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
+/// <summary>
+/// Endpoint para buscar uma categoria de serviço pelo seu ID.
+/// Retorna 404 se a categoria não for encontrada.
+/// </summary>
 public class GetServiceCategoryByIdEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint GET /{id} para buscar categoria por ID.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{id:guid}", GetByIdAsync)
+        => app.MapGet(ApiEndpoints.ServiceCatalogs.Categories.GetById, GetByIdAsync)
             .WithName("GetServiceCategoryById")
             .WithSummary("Buscar categoria por ID")
             .WithDescription("""
@@ -31,6 +38,9 @@ public class GetServiceCategoryByIdEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<ServiceCategoryDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
+    /// <summary>
+    /// Retorna a categoria correspondente ao ID informado, ou 404 se não encontrada.
+    /// </summary>
     private static async Task<IResult> GetByIdAsync(
         Guid id,
         IQueryDispatcher queryDispatcher,

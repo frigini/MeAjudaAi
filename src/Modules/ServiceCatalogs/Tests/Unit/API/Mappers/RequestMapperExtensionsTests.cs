@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.API.Mappers;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.API.Mappers;
 

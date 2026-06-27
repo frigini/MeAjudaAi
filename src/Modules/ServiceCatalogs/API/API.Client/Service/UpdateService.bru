@@ -22,9 +22,7 @@ body:json {
   {
     "name": "Instalação de Tomadas",
     "description": "Instalação de tomadas elétricas residenciais",
-    "categoryId": "{{categoryId}}",
-    "eligibilityCriteria": "Sem critérios específicos",
-    "requiredDocuments": ["RG", "CPF"]
+    "displayOrder": 2
   }
 }
 
@@ -37,11 +35,10 @@ docs {
   - `serviceId`: GUID do serviço
   
   ## Body
-  - `name`: Nome do serviço
+  - `name`: Nome do serviço (opcional)
   - `description`: Descrição (opcional)
-  - `categoryId`: ID da categoria
-  - `eligibilityCriteria`: Critérios de elegibilidade (opcional)
-  - `requiredDocuments`: Array de documentos necessários (opcional)
+  - `displayOrder`: Ordem de exibição (opcional)
+  - `categoryId`: ID da nova categoria (opcional, usar ChangeServiceCategory para mover)
   
-  ## Status: 200 OK | 404 Not Found
+  ## Status: 204 No Content | 404 Not Found
 }

@@ -1,20 +1,27 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
-public record GetAllCategoriesQuery(bool ActiveOnly = false);
-
+/// <summary>
+/// Endpoint para listar todas as categorias de serviços do catálogo.
+/// Suporta filtro opcional por categorias ativas.
+/// </summary>
 public class GetAllServiceCategoriesEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint GET / para listar todas as categorias.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/", GetAllAsync)
+        => app.MapGet(ApiEndpoints.ServiceCatalogs.Categories.GetAll, GetAllAsync)
             .WithName("GetAllServiceCategories")
             .WithSummary("Listar todas as categorias")
             .WithDescription("""
@@ -34,12 +41,15 @@ public class GetAllServiceCategoriesEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<IReadOnlyList<ServiceCategoryDto>>>(StatusCodes.Status200OK)
             .RequirePermission(EPermission.ServiceCatalogsRead);
 
+    /// <summary>
+    /// Retorna todas as categorias de serviços, com opção de filtrar apenas ativas.
+    /// </summary>
     private static async Task<IResult> GetAllAsync(
-        [AsParameters] GetAllCategoriesQuery query,
+        [AsParameters] GetAllServiceCategoriesRequest request,
         IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)
     {
-        var qry = new GetAllServiceCategoriesQuery(query.ActiveOnly);
+        var qry = new GetAllServiceCategoriesQuery(request.ActiveOnly);
         var result = await queryDispatcher.QueryAsync<GetAllServiceCategoriesQuery, Result<IReadOnlyList<ServiceCategoryDto>>>(
             qry, cancellationToken);
 

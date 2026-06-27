@@ -1,15 +1,23 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para desativar um serviço no catálogo.
+/// Requer privilégios de administrador.
+/// </summary>
 public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint POST /{id}/deactivate para desativar um serviço.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{id:guid}/deactivate", DeactivateAsync)
+        => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Deactivate, DeactivateAsync)
             .WithName("DeactivateService")
             .WithSummary("Desativar serviço")
             .WithDescription("""
@@ -27,6 +35,9 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Desativa o serviço, removendo-o do catálogo ativo.
+    /// </summary>
     private static async Task<IResult> DeactivateAsync(
         Guid id,
         ICommandDispatcher commandDispatcher,

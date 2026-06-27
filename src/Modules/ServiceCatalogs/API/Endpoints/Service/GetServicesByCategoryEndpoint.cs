@@ -1,18 +1,24 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Mvc;
 
-using MeAjudaAi.Contracts.Models;
-
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para listar serviços de uma categoria específica.
+/// </summary>
 public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint GET /category/{categoryId} para listar serviços por categoria.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/category/{categoryId:guid}", GetByCategoryAsync)
+        => app.MapGet(ApiEndpoints.ServiceCatalogs.Services.GetByCategory, GetByCategoryAsync)
             .WithName("GetServicesByCategory")
             .WithSummary("Listar serviços por categoria")
             .WithDescription("""
@@ -29,6 +35,9 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
                 """)
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK);
 
+    /// <summary>
+    /// Retorna todos os serviços da categoria informada.
+    /// </summary>
     private static async Task<IResult> GetByCategoryAsync(
         Guid categoryId,
         [FromQuery] bool? activeOnly,

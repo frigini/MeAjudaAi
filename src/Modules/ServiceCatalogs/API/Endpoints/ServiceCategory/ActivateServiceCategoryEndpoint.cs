@@ -1,15 +1,23 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
+/// <summary>
+/// Endpoint para ativar uma categoria de serviço.
+/// Requer privilégios de administrador.
+/// </summary>
 public class ActivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint POST /{id}/activate para ativar uma categoria.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{id:guid}/activate", ActivateAsync)
+        => app.MapPost(ApiEndpoints.ServiceCatalogs.Categories.Activate, ActivateAsync)
             .WithName("ActivateServiceCategory")
             .WithSummary("Ativar categoria de serviço")
             .WithDescription("""
@@ -25,6 +33,9 @@ public class ActivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Ativa a categoria, tornando-a visível e permitindo a criação de serviços nela.
+    /// </summary>
     private static async Task<IResult> ActivateAsync(
         Guid id,
         ICommandDispatcher commandDispatcher,

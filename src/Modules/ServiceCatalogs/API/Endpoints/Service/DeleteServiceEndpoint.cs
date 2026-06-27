@@ -1,15 +1,23 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para deletar um serviço do catálogo.
+/// Requer privilégios de administrador. Nenhum provedor pode estar oferecendo o serviço.
+/// </summary>
 public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint DELETE /{id} para deletar um serviço.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapDelete("/{id:guid}", DeleteAsync)
+        => app.MapDelete(ApiEndpoints.ServiceCatalogs.Services.Delete, DeleteAsync)
             .WithName("DeleteService")
             .WithSummary("Deletar serviço")
             .WithDescription("""
@@ -28,6 +36,9 @@ public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Deleta o serviço permanentemente. Falha se houver provedores oferecendo-o.
+    /// </summary>
     private static async Task<IResult> DeleteAsync(
         Guid id,
         ICommandDispatcher commandDispatcher,
