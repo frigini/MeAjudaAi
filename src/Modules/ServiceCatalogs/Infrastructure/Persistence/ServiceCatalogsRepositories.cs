@@ -21,5 +21,3 @@ public partial class ServiceCatalogsDbContext : IRepository<ServiceCategory, Ser
     void IRepository<ServiceCategory, ServiceCategoryId>.Delete(ServiceCategory aggregate) =>
         ServiceCategories.Remove(aggregate);
 }
-
-

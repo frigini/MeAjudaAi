@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
@@ -8,6 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 
+/// <summary>
+/// Manipulador de eventos de domínio para o evento ServiceUpdatedDomainEvent.
+/// </summary>
+/// <param name="serviceQueries"></param>
+/// <param name="messageBus"></param>
+/// <param name="logger"></param>
 internal sealed class ServiceUpdatedDomainEventHandler(
     IServiceQueries serviceQueries,
     IMessageBus messageBus,
@@ -17,12 +23,7 @@ internal sealed class ServiceUpdatedDomainEventHandler(
     {
         try
         {
-            var service = await serviceQueries.GetByIdAsync(domainEvent.ServiceId.Value, cancellationToken);
-            if (service == null)
-            {
-                throw new InvalidOperationException($"Service {domainEvent.ServiceId.Value} not found when handling update event.");
-            }
-
+            var service = await serviceQueries.GetByIdAsync(domainEvent.ServiceId.Value, cancellationToken)??throw new InvalidOperationException($"Service {domainEvent.ServiceId.Value} not found when handling update event.");
             var integrationEvent = new ServiceNameUpdatedIntegrationEvent(
                 ModuleNames.ServiceCatalogs,
                 service.Id,

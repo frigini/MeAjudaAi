@@ -1,17 +1,24 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-
-using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para buscar um serviço pelo seu ID.
+/// Retorna 404 se o serviço não for encontrado.
+/// </summary>
 public class GetServiceByIdEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint GET /{id} para buscar serviço por ID.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{id:guid}", GetByIdAsync)
+        => app.MapGet(ApiEndpoints.ServiceCatalogs.Services.GetById, GetByIdAsync)
             .WithName("GetServiceById")
             .WithSummary("Buscar serviço por ID")
             .WithDescription("""
@@ -30,6 +37,9 @@ public class GetServiceByIdEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<ServiceDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
+    /// <summary>
+    /// Retorna o serviço correspondente ao ID informado, ou 404 se não encontrado.
+    /// </summary>
     private static async Task<IResult> GetByIdAsync(
         Guid id,
         IQueryDispatcher queryDispatcher,

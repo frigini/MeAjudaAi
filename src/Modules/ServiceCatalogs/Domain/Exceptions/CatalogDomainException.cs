@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 

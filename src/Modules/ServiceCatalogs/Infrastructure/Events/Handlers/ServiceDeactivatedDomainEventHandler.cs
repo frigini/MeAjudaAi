@@ -7,6 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 
+/// <summary>
+/// Manipulador de eventos de domínio para o evento ServiceDeactivatedDomainEvent.
+/// </summary>
+/// <param name="messageBus"></param>
+/// <param name="logger"></param>
 internal sealed class ServiceDeactivatedDomainEventHandler(
     IMessageBus messageBus,
     ILogger<ServiceDeactivatedDomainEventHandler> logger) : IEventHandler<ServiceDeactivatedDomainEvent>

@@ -2,10 +2,10 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Logging.Abstractions;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.Service;
 

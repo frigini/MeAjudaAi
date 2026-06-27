@@ -1,15 +1,23 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
+/// <summary>
+/// Endpoint para desativar uma categoria de serviço.
+/// Requer privilégios de administrador.
+/// </summary>
 public class DeactivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint POST /{id}/deactivate para desativar uma categoria.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{id:guid}/deactivate", DeactivateAsync)
+        => app.MapPost(ApiEndpoints.ServiceCatalogs.Categories.Deactivate, DeactivateAsync)
             .WithName("DeactivateServiceCategory")
             .WithSummary("Desativar categoria de serviço")
             .WithDescription("""
@@ -27,6 +35,9 @@ public class DeactivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Desativa a categoria, removendo-a das listagens públicas.
+    /// </summary>
     private static async Task<IResult> DeactivateAsync(
         Guid id,
         ICommandDispatcher commandDispatcher,

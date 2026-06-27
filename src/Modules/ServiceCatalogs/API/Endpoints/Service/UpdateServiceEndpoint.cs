@@ -1,17 +1,25 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Mvc;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para atualizar um serviço existente.
+/// Requer privilégios de administrador.
+/// </summary>
 public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint PUT /{id} para atualizar um serviço.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPut("/{id:guid}", UpdateAsync)
+        => app.MapPut(ApiEndpoints.ServiceCatalogs.Services.Update, UpdateAsync)
             .WithName("UpdateService")
             .WithSummary("Atualizar serviço")
             .WithDescription("""
@@ -31,6 +39,9 @@ public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Atualiza os dados de um serviço existente.
+    /// </summary>
     private static async Task<IResult> UpdateAsync(
         Guid id,
         [FromBody] UpdateServiceRequest request,

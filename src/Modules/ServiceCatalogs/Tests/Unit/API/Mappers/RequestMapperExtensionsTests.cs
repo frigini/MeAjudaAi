@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.API.Mappers;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.API.Mappers;
 
@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.API.Mappers;
 [Trait("Layer", "API")]
 public class RequestMapperExtensionsTests
 {
-    // ========== Service Tests ==========
+    #region Service Tests
 
     [Fact]
     public void ToCommand_CreateServiceRequest_ShouldMapAllProperties()
@@ -137,7 +137,9 @@ public class RequestMapperExtensionsTests
         command.NewCategoryId.Should().Be(newCategoryId);
     }
 
-    // ========== ServiceCategory Tests ==========
+    #endregion
+
+    #region ServiceCategory Tests
 
     [Fact]
     public void ToCommand_CreateServiceCategoryRequest_ShouldMapAllProperties()
@@ -220,4 +222,6 @@ public class RequestMapperExtensionsTests
         command.Should().NotBeNull();
         command.Id.Should().Be(id);
     }
+
+    #endregion
 }

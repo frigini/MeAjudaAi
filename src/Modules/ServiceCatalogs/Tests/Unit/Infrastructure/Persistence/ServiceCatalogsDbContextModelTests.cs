@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Persistence;

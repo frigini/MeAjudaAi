@@ -1,21 +1,27 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Mvc;
-
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
-public record CreateServiceCategoryRequest(string Name, string? Description, int DisplayOrder);
-
+/// <summary>
+/// Endpoint para criar uma nova categoria de serviços.
+/// Requer privilégios de administrador.
+/// </summary>
 public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint POST / para criar uma categoria.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/", CreateAsync)
+        => app.MapPost(ApiEndpoints.ServiceCatalogs.Categories.Create, CreateAsync)
             .WithName("CreateServiceCategory")
             .WithSummary("Criar categoria de serviço")
             .WithDescription("""
@@ -36,6 +42,9 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<ServiceCategoryDto>>(StatusCodes.Status201Created)
             .RequireAdmin();
 
+    /// <summary>
+    /// Cria uma nova categoria de serviço a partir dos dados fornecidos.
+    /// </summary>
     private static async Task<IResult> CreateAsync(
         [FromBody] CreateServiceCategoryRequest request,
         ICommandDispatcher commandDispatcher,

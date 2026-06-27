@@ -1,11 +1,16 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 
+/// <summary>
+/// Handler para a consulta GetServiceCategoriesWithCountQuery, que retorna uma lista de categorias de serviço com contagem de serviços ativos e totais.
+/// </summary>
+/// <param name="categoryQueries"></param>
+/// <param name="serviceQueries"></param>
 public sealed class GetServiceCategoriesWithCountQueryHandler(
     IServiceCategoryQueries categoryQueries,
     IServiceQueries serviceQueries)

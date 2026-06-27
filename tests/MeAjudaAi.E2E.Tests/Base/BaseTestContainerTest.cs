@@ -9,7 +9,6 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
@@ -30,6 +29,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 
 
 // Disable parallel execution to prevent race conditions when using shared database containers

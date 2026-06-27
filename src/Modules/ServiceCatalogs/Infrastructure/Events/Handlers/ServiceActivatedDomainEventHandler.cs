@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
@@ -8,6 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 
+/// <summary>
+/// Manipulador de eventos de domínio para o evento ServiceActivatedDomainEvent.
+/// </summary>
+/// <param name="serviceQueries"></param>
+/// <param name="messageBus"></param>
+/// <param name="logger"></param>
 internal sealed class ServiceActivatedDomainEventHandler(
     IServiceQueries serviceQueries,
     IMessageBus messageBus,
@@ -17,12 +23,7 @@ internal sealed class ServiceActivatedDomainEventHandler(
     {
         try
         {
-            var service = await serviceQueries.GetByIdAsync(domainEvent.ServiceId, cancellationToken);
-            if (service == null)
-            {
-                throw new InvalidOperationException($"Service {domainEvent.ServiceId} not found when handling activation event.");
-            }
-
+            var service = await serviceQueries.GetByIdAsync(domainEvent.ServiceId, cancellationToken)??throw new InvalidOperationException($"Service {domainEvent.ServiceId} not found when handling activation event.");
             var integrationEvent = new ServiceActivatedIntegrationEvent(
                 ModuleNames.ServiceCatalogs,
                 service.Id.Value,
