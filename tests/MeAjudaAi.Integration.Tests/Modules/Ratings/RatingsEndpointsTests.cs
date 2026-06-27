@@ -159,7 +159,7 @@ public class RatingsEndpointsTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/ratings/{reviewId}/status");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var dto = await response.Content.ReadFromJsonAsync<ReviewStatusResponse>();
+        var dto = await ReadJsonAsync<ReviewStatusResponse>(response.Content);
         dto.Should().NotBeNull();
         dto!.Id.Should().Be(reviewId);
         dto.Status.Should().Be(Contracts.Modules.Ratings.Enums.EReviewStatus.Approved);
@@ -207,7 +207,7 @@ public class RatingsEndpointsTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/ratings/{reviewId}/status");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var dto = await response.Content.ReadFromJsonAsync<ReviewStatusResponse>();
+        var dto = await ReadJsonAsync<ReviewStatusResponse>(response.Content);
         dto!.Status.Should().Be(Contracts.Modules.Ratings.Enums.EReviewStatus.Pending);
     }
 
