@@ -33,15 +33,30 @@ public class DbContextSearchableProviderQueriesTests : IDisposable
         _dbContext.Dispose();
     }
 
-    private async Task<SearchableProvider> CreateProviderAsync(string name = "Test Provider", Guid? providerId = null, Guid[]? serviceIds = null)
+    private async Task<SearchableProvider> CreateProviderAsync(
+        string name = "Test Provider",
+        Guid? providerId = null,
+        Guid[]? serviceIds = null,
+        string? city = null,
+        string? state = null,
+        Guid? cityId = null,
+        bool isActive = true)
     {
         var provider = SearchableProvider.Create(
             providerId: providerId ?? Guid.NewGuid(),
             name: name,
             slug: name.ToLower().Replace(" ", "-"),
             location: new GeoPoint(-23.561, -46.656),
-            subscriptionTier: ESubscriptionTier.Standard
+            subscriptionTier: ESubscriptionTier.Standard,
+            city: city,
+            state: state,
+            cityId: cityId
         );
+
+        if (!isActive)
+        {
+            provider.Deactivate();
+        }
 
         if (serviceIds != null && serviceIds.Length > 0)
         {
@@ -119,6 +134,63 @@ public class DbContextSearchableProviderQueriesTests : IDisposable
 
         result.Should().HaveCount(1);
         _dbContext.Entry(result[0]).State.Should().Be(EntityState.Unchanged); // Tracked
+    }
+
+    [Fact]
+    public async Task GetByCityNameAsync_ShouldReturnOnlyActiveProvidersFromThatCity()
+    {
+        await CreateProviderAsync(name: "SP Active", city: "São Paulo", state: "SP");
+        await CreateProviderAsync(name: "SP Inactive", city: "São Paulo", state: "SP", isActive: false);
+        await CreateProviderAsync(name: "RJ Active", city: "Rio de Janeiro", state: "RJ");
+
+        var result = await _queries.GetByCityNameAsync("São Paulo");
+
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("SP Active");
+    }
+
+    [Fact]
+    public async Task GetByStateSiglaAsync_ShouldReturnOnlyActiveProvidersFromThatState()
+    {
+        await CreateProviderAsync(name: "MG Active", city: "Belo Horizonte", state: "MG");
+        await CreateProviderAsync(name: "MG Inactive", city: "Uberlândia", state: "MG", isActive: false);
+        await CreateProviderAsync(name: "SP Active", city: "São Paulo", state: "SP");
+
+        var result = await _queries.GetByStateSiglaAsync("MG");
+
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("MG Active");
+    }
+
+    [Fact]
+    public async Task GetByCityAndStateSiglaAsync_ShouldFilterByBothCityAndState()
+    {
+        await CreateProviderAsync(name: "Match", city: "Muriaé", state: "MG");
+        await CreateProviderAsync(name: "Wrong city", city: "Juiz de Fora", state: "MG");
+        await CreateProviderAsync(name: "Wrong state", city: "Muriaé", state: "RJ");
+        await CreateProviderAsync(name: "Inactive match", city: "Muriaé", state: "MG", isActive: false);
+
+        var result = await _queries.GetByCityAndStateSiglaAsync("Muriaé", "MG");
+
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("Match");
+    }
+
+    [Fact]
+    public async Task GetByCityIdAsync_ShouldReturnOnlyProvidersFromThatCityId()
+    {
+        var cityId = Guid.NewGuid();
+        var otherCityId = Guid.NewGuid();
+
+        await CreateProviderAsync(name: "City Match", cityId: cityId);
+        await CreateProviderAsync(name: "Inactive match", cityId: cityId, isActive: false);
+        await CreateProviderAsync(name: "Other city", cityId: otherCityId);
+        await CreateProviderAsync(name: "No city", cityId: null);
+
+        var result = await _queries.GetByCityIdAsync(cityId);
+
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("City Match");
     }
 
     [Fact]

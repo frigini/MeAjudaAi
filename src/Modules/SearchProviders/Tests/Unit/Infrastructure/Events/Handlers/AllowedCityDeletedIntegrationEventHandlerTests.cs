@@ -68,4 +68,50 @@ public class AllowedCityDeletedIntegrationEventHandlerTests
         // Assert
         _searchModuleApiMock.Verify(s => s.IndexProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenIndexThrows_ShouldContinueAndLogError()
+    {
+        // Arrange
+        var handler = new AllowedCityDeletedIntegrationEventHandler(
+            _searchModuleApiMock.Object,
+            _queriesMock.Object,
+            _loggerMock.Object);
+
+        var evt = new AllowedCityDeletedIntegrationEvent("Locations", Guid.NewGuid(), "Muriaé", "MG");
+
+        var providers = new List<SearchableProvider>
+        {
+            new SearchableProviderBuilder().WithCity("Muriaé").WithState("MG").Build(),
+            new SearchableProviderBuilder().WithCity("Muriaé").WithState("MG").Build()
+        };
+
+        _queriesMock.Setup(q => q.GetByCityAndStateSiglaAsync("Muriaé", "MG", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(providers);
+
+        var callCount = 0;
+        _searchModuleApiMock.Setup(s => s.IndexProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                if (callCount == 1)
+                    throw new InvalidOperationException("Index service unavailable");
+
+                return Result.Success();
+            });
+
+        // Act — should not throw even though one provider fails
+        await handler.HandleAsync(evt);
+
+        // Assert — both providers attempted
+        _searchModuleApiMock.Verify(s => s.IndexProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unexpected error reindexing provider")),
+                It.IsAny<InvalidOperationException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
 }
