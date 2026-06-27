@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
@@ -32,6 +33,7 @@ public sealed class SearchProvidersModuleApi(
     [FromKeyedServices(ModuleKeys.SearchProviders)] IUnitOfWork uow,
     ISearchableProviderQueries queries,
     IProvidersModuleApi providersApi,
+    ILocationsModuleApi locationsApi,
     ILogger<SearchProvidersModuleApi> logger) : ISearchProvidersModuleApi
 {
     private static class ModuleMetadata
@@ -129,6 +131,17 @@ public sealed class SearchProvidersModuleApi(
                 return Result.Failure($"Provider {providerId} not found");
             }
 
+            // Lookup CityId
+            Guid? cityId = null;
+            if (!string.IsNullOrWhiteSpace(providerData.City) && !string.IsNullOrWhiteSpace(providerData.State))
+            {
+                var cityIdResult = await locationsApi.GetAllowedCityIdAsync(providerData.City, providerData.State, cancellationToken);
+                if (cityIdResult.IsSuccess)
+                {
+                    cityId = cityIdResult.Value;
+                }
+            }
+
             // 2. Verificar se provider já existe no índice
             var existing = await queries.GetByProviderIdAsync(providerId, track: true, cancellationToken);
 
@@ -138,7 +151,7 @@ public sealed class SearchProvidersModuleApi(
 
                 // Atualizar informações do provider existente
                 var location = new GeoPoint(providerData.Latitude, providerData.Longitude);
-                existing.UpdateBasicInfo(providerData.Name, providerData.Slug, providerData.Description, providerData.City, providerData.State);
+                existing.UpdateBasicInfo(providerData.Name, providerData.Slug, providerData.Description, providerData.City, providerData.State, cityId);
                 existing.UpdateLocation(location);
                 existing.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
                 existing.UpdateSubscriptionTier(providerData.SubscriptionTier.ToDomainTier());
@@ -163,7 +176,8 @@ public sealed class SearchProvidersModuleApi(
                     subscriptionTier: providerData.SubscriptionTier.ToDomainTier(),
                     description: providerData.Description,
                     city: providerData.City,
-                    state: providerData.State);
+                    state: providerData.State,
+                    cityId: cityId);
 
                 // Atualizar dados adicionais
                 searchableProvider.UpdateRating(providerData.AverageRating, providerData.TotalReviews);

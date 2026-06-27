@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
@@ -10,6 +11,7 @@ public sealed class LocationsModuleApiTests
 {
     private readonly Mock<ICepLookupService> _mockCepLookupService;
     private readonly Mock<IGeocodingService> _mockGeocodingService;
+    private readonly Mock<IAllowedCityQueries> _mockAllowedCityQueries;
     private readonly Mock<ILogger<LocationsModuleApi>> _mockLogger;
     private readonly LocationsModuleApi _sut;
 
@@ -17,8 +19,9 @@ public sealed class LocationsModuleApiTests
     {
         _mockCepLookupService = new Mock<ICepLookupService>();
         _mockGeocodingService = new Mock<IGeocodingService>();
+        _mockAllowedCityQueries = new Mock<IAllowedCityQueries>();
         _mockLogger = new Mock<ILogger<LocationsModuleApi>>();
-        _sut = new LocationsModuleApi(_mockCepLookupService.Object, _mockGeocodingService.Object, _mockLogger.Object);
+        _sut = new LocationsModuleApi(_mockCepLookupService.Object, _mockGeocodingService.Object, _mockAllowedCityQueries.Object, _mockLogger.Object);
     }
 
     [Fact]

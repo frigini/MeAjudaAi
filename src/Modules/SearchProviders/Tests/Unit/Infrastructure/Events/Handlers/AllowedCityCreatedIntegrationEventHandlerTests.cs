@@ -34,7 +34,7 @@ public class AllowedCityCreatedIntegrationEventHandlerTests
             new SearchableProviderBuilder().WithCity("Muriaé").WithState("MG").Build()
         };
 
-        _queriesMock.Setup(q => q.GetByCityNameAsync("Muriaé", false, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(q => q.GetByCityAndStateSiglaAsync("Muriaé", "MG", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(providers);
 
         _searchModuleApiMock.Setup(s => s.IndexProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -58,7 +58,7 @@ public class AllowedCityCreatedIntegrationEventHandlerTests
 
         var evt = new AllowedCityCreatedIntegrationEvent("Locations", Guid.NewGuid(), "Muriaé", "MG");
 
-        _queriesMock.Setup(q => q.GetByCityNameAsync("Muriaé", false, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(q => q.GetByCityAndStateSiglaAsync("Muriaé", "MG", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<SearchableProvider>());
 
         // Act
@@ -85,7 +85,7 @@ public class AllowedCityCreatedIntegrationEventHandlerTests
             new SearchableProviderBuilder().WithCity("Muriaé").WithState("MG").Build()
         };
 
-        _queriesMock.Setup(q => q.GetByCityNameAsync("Muriaé", false, It.IsAny<CancellationToken>()))
+        _queriesMock.Setup(q => q.GetByCityAndStateSiglaAsync("Muriaé", "MG", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(providers);
 
         var callCount = 0;

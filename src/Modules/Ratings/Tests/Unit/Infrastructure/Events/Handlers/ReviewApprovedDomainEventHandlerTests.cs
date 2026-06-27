@@ -152,10 +152,11 @@ public class ReviewApprovedDomainEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldInvalidateCache_ForReviewId()
+    public async Task HandleAsync_ShouldInvalidateCache_ForReviewAndProvider()
     {
         var reviewId = Guid.NewGuid();
-        var domainEvent = new ReviewApprovedDomainEvent(reviewId, 0, Guid.NewGuid(), 5, "Great");
+        var providerId = Guid.NewGuid();
+        var domainEvent = new ReviewApprovedDomainEvent(reviewId, 0, providerId, 5, "Great");
 
         _queriesMock.Setup(r => r.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((5.0m, 1));
@@ -163,7 +164,11 @@ public class ReviewApprovedDomainEventHandlerTests
         await _handler.HandleAsync(domainEvent);
 
         _cacheServiceMock.Verify(c => c.RemoveByTagAsync(
-            $"review:{reviewId}",
+            CacheTags.ReviewTag(reviewId),
+            It.IsAny<CancellationToken>()), Times.Once);
+
+        _cacheServiceMock.Verify(c => c.RemoveByTagAsync(
+            CacheTags.ProviderReviewsTag(providerId),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

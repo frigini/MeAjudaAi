@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using System.Globalization;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -68,7 +68,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty("Search should find at least the nearby provider within 10km");
@@ -100,7 +100,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().NotContain(p => p.ProviderId == distantProviderId,
             "Provider outside radius should not appear in results");
@@ -153,7 +153,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().Contain(p => p.ProviderId == cleaningProviderId,
             "Provider with cleaning service should be found");
@@ -195,7 +195,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().Contain(p => p.ProviderId == electricianId);
         result!.Items.Should().Contain(p => p.ProviderId == plumberId);
@@ -243,7 +243,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
 
@@ -281,7 +281,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         response.StatusCode.Should().Be(HttpStatusCode.OK,
             "Search with minRating filter should succeed");
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         
         // All returned providers should have rating >= minRating
@@ -326,8 +326,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         page1Response.StatusCode.Should().Be(HttpStatusCode.OK);
         page2Response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var page1Result = await page1Response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
-        var page2Result = await page2Response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var page1Result = await page1Response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var page2Result = await page2Response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
 
         page1Result.Should().NotBeNull();
         page2Result.Should().NotBeNull();

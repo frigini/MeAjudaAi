@@ -22,16 +22,17 @@ internal sealed class AllowedCityCreatedIntegrationEventHandler(
             integrationEvent.CityName,
             integrationEvent.StateSigla);
 
-        // Buscar todos os provedores ativos desta cidade
-        var providers = await queries.GetByCityNameAsync(integrationEvent.CityName, track: false, cancellationToken);
+        // Buscar todos os provedores ativos desta cidade (com UF para evitar cidades homônimas)
+        var providers = await queries.GetByCityAndStateSiglaAsync(integrationEvent.CityName, integrationEvent.StateSigla, track: false, cancellationToken);
 
         if (providers.Count == 0)
         {
-            logger.LogInformation("No providers found in {CityName}, nothing to reindex", integrationEvent.CityName);
+            logger.LogInformation("No providers found in {CityName}/{StateSigla}, nothing to reindex", integrationEvent.CityName, integrationEvent.StateSigla);
             return;
         }
 
         var providerIds = providers.Select(provider => provider.ProviderId);
+        var successCount = 0;
         foreach (var providerId in providerIds)
         {
             var indexResult = await searchProvidersModuleApi.IndexProviderAsync(providerId, cancellationToken);
@@ -42,11 +43,17 @@ internal sealed class AllowedCityCreatedIntegrationEventHandler(
                     providerId,
                     indexResult.Error.Message);
             }
+            else
+            {
+                successCount++;
+            }
         }
 
         logger.LogInformation(
-            "Finished processing AllowedCityCreated for {CityName}. Reindexed {Count} providers.",
+            "Finished processing AllowedCityCreated for {CityName}/{StateSigla}. Reindexed {Count}/{Total} providers.",
             integrationEvent.CityName,
+            integrationEvent.StateSigla,
+            successCount,
             providers.Count);
     }
 }

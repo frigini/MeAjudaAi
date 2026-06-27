@@ -23,6 +23,7 @@ internal sealed class ReviewApprovedDomainEventHandler(
             var (average, total) = await queries.GetAverageRatingForProviderAsync(domainEvent.ProviderId, cancellationToken);
 
             await cacheService.RemoveByTagAsync(CacheTags.ReviewTag(domainEvent.AggregateId), cancellationToken);
+            await cacheService.RemoveByTagAsync(CacheTags.ProviderReviewsTag(domainEvent.ProviderId), cancellationToken);
 
             var integrationEvent = new ReviewApprovedIntegrationEvent(
                 Source: "Ratings",

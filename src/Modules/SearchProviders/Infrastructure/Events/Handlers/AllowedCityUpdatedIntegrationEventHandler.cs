@@ -22,12 +22,11 @@ internal sealed class AllowedCityUpdatedIntegrationEventHandler(
             integrationEvent.CityName,
             integrationEvent.StateSigla);
 
-        // Buscar todos os provedores ativos desta cidade
-        var providers = await queries.GetByCityNameAsync(integrationEvent.CityName, track: false, cancellationToken);
+        var providers = await queries.GetByCityIdAsync(integrationEvent.CityId, track: false, cancellationToken);
 
         if (providers.Count == 0)
         {
-            logger.LogInformation("No providers found in {CityName}, nothing to reindex", integrationEvent.CityName);
+            logger.LogInformation("No providers found in city {CityId} ({CityName}), nothing to reindex", integrationEvent.CityId, integrationEvent.CityName);
             return;
         }
 
@@ -45,8 +44,9 @@ internal sealed class AllowedCityUpdatedIntegrationEventHandler(
         }
 
         logger.LogInformation(
-            "Finished processing AllowedCityUpdated for {CityName}. Reindexed {Count} providers.",
+            "Finished processing AllowedCityUpdated for {CityName}/{StateSigla}. Reindexed {Count} providers.",
             integrationEvent.CityName,
+            integrationEvent.StateSigla,
             providers.Count);
     }
 }

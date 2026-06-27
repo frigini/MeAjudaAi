@@ -19,4 +19,9 @@ public interface ILocationsModuleApi : IModuleApi
     /// Utiliza geocoding API (Nominatim).
     /// </summary>
     Task<Result<ModuleCoordinatesDto>> GetCoordinatesFromAddressAsync(string address, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Obtém o ID de uma cidade permitida a partir do nome e sigla do estado.
+    /// </summary>
+    Task<Result<Guid?>> GetAllowedCityIdAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default);
 }

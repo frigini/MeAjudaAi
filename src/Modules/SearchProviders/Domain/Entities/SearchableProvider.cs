@@ -73,6 +73,11 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// </summary>
     public string? State { get; private set; }
 
+    /// <summary>
+    /// ID da cidade no módulo Locations.
+    /// </summary>
+    public Guid? CityId { get; private set; }
+
     // Construtor privado para EF Core
     private SearchableProvider()
     {
@@ -106,7 +111,8 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         ESubscriptionTier subscriptionTier = ESubscriptionTier.Free,
         string? description = null,
         string? city = null,
-        string? state = null)
+        string? state = null,
+        Guid? cityId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -127,7 +133,8 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             Slug = slug,
             Description = description?.Trim(),
             City = city?.Trim(),
-            State = state?.Trim()
+            State = state?.Trim(),
+            CityId = cityId
         };
 
         return searchableProvider;
@@ -155,7 +162,8 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         bool isActive,
         string? description = null,
         string? city = null,
-        string? state = null)
+        string? state = null,
+        Guid? cityId = null)
     {
         if (!TryNormalizeSlug(slug, out var normalizedSlug))
         {
@@ -176,7 +184,8 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             AverageRating = averageRating,
             TotalReviews = totalReviews,
             ServiceIds = serviceIds,
-            IsActive = isActive
+            IsActive = isActive,
+            CityId = cityId
         };
 
         return searchableProvider;
@@ -185,7 +194,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// <summary>
     /// Atualiza as informações básicas do provedor.
     /// </summary>
-    public void UpdateBasicInfo(string name, string slug, string? description, string? city, string? state)
+    public void UpdateBasicInfo(string name, string slug, string? description, string? city, string? state, Guid? cityId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -199,6 +208,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         Description = description?.Trim();
         City = city?.Trim();
         State = state?.Trim();
+        CityId = cityId;
         MarkAsUpdated();
     }
 

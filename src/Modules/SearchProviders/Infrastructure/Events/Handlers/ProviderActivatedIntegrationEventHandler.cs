@@ -1,3 +1,4 @@
+using System.Net.Http;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -53,15 +54,23 @@ internal sealed class ProviderActivatedIntegrationEventHandler(
                 integrationEvent.ProviderId,
                 integrationEvent.Name);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(
+                ex,
+                "HTTP error handling ProviderActivatedIntegrationEvent for provider {ProviderId}",
+                integrationEvent.ProviderId);
+        }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
                 "Error handling ProviderActivatedIntegrationEvent for provider {ProviderId}",
                 integrationEvent.ProviderId);
-
-            // Mesma lógica: não propagamos erro para não falhar a transação do módulo Providers
-            // A indexação é uma operação secundária que pode ser refeita
         }
     }
 }

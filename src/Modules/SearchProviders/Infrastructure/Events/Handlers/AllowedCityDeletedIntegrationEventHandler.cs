@@ -22,31 +22,38 @@ internal sealed class AllowedCityDeletedIntegrationEventHandler(
             integrationEvent.CityName,
             integrationEvent.StateSigla);
 
-        // Buscar todos os provedores ativos desta cidade
-        var providers = await queries.GetByCityNameAsync(integrationEvent.CityName, track: false, cancellationToken);
+        var providers = await queries.GetByCityAndStateSiglaAsync(integrationEvent.CityName, integrationEvent.StateSigla, track: false, cancellationToken);
 
         if (providers.Count == 0)
         {
-            logger.LogInformation("No providers found in {CityName}, nothing to reindex", integrationEvent.CityName);
+            logger.LogInformation("No providers found in {CityName}/{StateSigla}, nothing to reindex", integrationEvent.CityName, integrationEvent.StateSigla);
             return;
         }
 
         var providerIds = providers.Select(provider => provider.ProviderId);
         foreach (var providerId in providerIds)
         {
-            var indexResult = await searchProvidersModuleApi.IndexProviderAsync(providerId, cancellationToken);
-            if (indexResult.IsFailure)
+            try
             {
-                logger.LogError(
-                    "Failed to reindex provider {ProviderId} after city deletion: {Error}",
-                    providerId,
-                    indexResult.Error.Message);
+                var indexResult = await searchProvidersModuleApi.IndexProviderAsync(providerId, cancellationToken);
+                if (indexResult.IsFailure)
+                {
+                    logger.LogError(
+                        "Failed to reindex provider {ProviderId} after city deletion: {Error}",
+                        providerId,
+                        indexResult.Error.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unexpected error reindexing provider {ProviderId} after city deletion", providerId);
             }
         }
 
         logger.LogInformation(
-            "Finished processing AllowedCityDeleted for {CityName}. Reindexed {Count} providers.",
+            "Finished processing AllowedCityDeleted for {CityName}/{StateSigla}. Reindexed {Count} providers.",
             integrationEvent.CityName,
+            integrationEvent.StateSigla,
             providers.Count);
     }
 }

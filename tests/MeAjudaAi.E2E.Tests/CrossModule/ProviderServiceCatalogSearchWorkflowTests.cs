@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using Bogus;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.E2E.Tests.CrossModule;
@@ -237,7 +237,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Busca deve retornar sucesso");
 
-        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         searchResult.Should().NotBeNull();
         
         var itemsArray = searchResult!.Items.ToList();
@@ -559,7 +559,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         searchResult.Should().NotBeNull();
         var itemsArray = searchResult!.Items.ToList();
 

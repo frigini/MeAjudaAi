@@ -41,6 +41,9 @@ public class GetProviderReviewsQueryHandlerTests
         _queriesMock.Setup(q => q.GetByProviderIdAsync(providerId, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync(reviews);
 
+        _queriesMock.Setup(q => q.GetTotalApprovedCountByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+
         var query = new GetProviderReviewsQuery(providerId, 1, 10, Guid.NewGuid());
 
         // Act
@@ -52,6 +55,7 @@ public class GetProviderReviewsQueryHandlerTests
         result.Value!.Items.Should().HaveCount(2);
         result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(10);
+        result.Value.TotalItems.Should().Be(2);
     }
 
     [Fact]
@@ -64,6 +68,9 @@ public class GetProviderReviewsQueryHandlerTests
         _queriesMock.Setup(q => q.GetByProviderIdAsync(providerId, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync(reviews);
 
+        _queriesMock.Setup(q => q.GetTotalApprovedCountByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
         var query = new GetProviderReviewsQuery(providerId, 1, 10, Guid.NewGuid());
 
         // Act
@@ -73,6 +80,7 @@ public class GetProviderReviewsQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().BeEmpty();
+        result.Value.TotalItems.Should().Be(0);
     }
 
     [Fact]
@@ -88,6 +96,9 @@ public class GetProviderReviewsQueryHandlerTests
         _queriesMock.Setup(q => q.GetByProviderIdAsync(providerId, 2, 5, It.IsAny<CancellationToken>()))
             .ReturnsAsync(reviews);
 
+        _queriesMock.Setup(q => q.GetTotalApprovedCountByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(8);
+
         var query = new GetProviderReviewsQuery(providerId, 2, 5, Guid.NewGuid());
 
         // Act
@@ -98,6 +109,7 @@ public class GetProviderReviewsQueryHandlerTests
         result.Value!.PageNumber.Should().Be(2);
         result.Value.PageSize.Should().Be(5);
         result.Value.Items.Should().HaveCount(1);
+        result.Value.TotalItems.Should().Be(8);
     }
 
     [Fact]
@@ -110,6 +122,9 @@ public class GetProviderReviewsQueryHandlerTests
         _queriesMock.Setup(q => q.GetByProviderIdAsync(providerId, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Review> { review });
 
+        _queriesMock.Setup(q => q.GetTotalApprovedCountByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(5);
+
         var query = new GetProviderReviewsQuery(providerId, 1, 10, Guid.NewGuid());
 
         // Act
@@ -121,6 +136,36 @@ public class GetProviderReviewsQueryHandlerTests
         dto.Rating.Should().Be(3);
         dto.Comment.Should().Be("Average service");
         dto.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnCorrectTotalItems()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var reviews = new List<Review>
+        {
+            CreateApprovedReview(providerId, 5, "Excellent"),
+            CreateApprovedReview(providerId, 4, "Good")
+        };
+
+        _queriesMock.Setup(q => q.GetByProviderIdAsync(providerId, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(reviews);
+
+        _queriesMock.Setup(q => q.GetTotalApprovedCountByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(15);
+
+        var query = new GetProviderReviewsQuery(providerId, 1, 10, Guid.NewGuid());
+
+        // Act
+        var result = await _handler.HandleAsync(query);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.TotalItems.Should().Be(15,
+            "TotalItems should reflect the total count from GetTotalApprovedCountByProviderIdAsync");
+        result.Value.Items.Should().HaveCount(2,
+            "Items should contain only the page results");
     }
 
     private static Review CreateApprovedReview(Guid providerId, int rating, string? comment)

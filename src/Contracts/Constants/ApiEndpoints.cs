@@ -93,6 +93,7 @@ public static class ApiEndpoints
     public static class SearchProviders
     {
         public const string Base = "search";
+        public const string Providers = "search/providers";
     }
 
     public static class ServiceCatalogs

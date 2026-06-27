@@ -247,4 +247,28 @@ public sealed class DbContextSearchableProviderQueries(
             .Where(p => p.State != null && p.State == stateSigla && p.IsActive)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<SearchableProvider>> GetByCityAndStateSiglaAsync(string cityName, string stateSigla, bool track = false, CancellationToken cancellationToken = default)
+    {
+        var query = _context.SearchableProviders.AsQueryable();
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query
+            .Where(p => p.City != null && p.City == cityName && p.State != null && p.State == stateSigla && p.IsActive)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SearchableProvider>> GetByCityIdAsync(Guid cityId, bool track = false, CancellationToken cancellationToken = default)
+    {
+        var query = _context.SearchableProviders.AsQueryable();
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query
+            .Where(p => p.CityId.HasValue && p.CityId.Value == cityId && p.IsActive)
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
@@ -26,6 +27,7 @@ public class SearchProvidersModuleApiTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<ISearchableProviderQueries> _queriesMock;
     private readonly Mock<IProvidersModuleApi> _providersApiMock;
+    private readonly Mock<ILocationsModuleApi> _locationsApiMock;
     private readonly Mock<ILogger<SearchProvidersModuleApi>> _loggerMock;
     private readonly SearchProvidersModuleApi _sut;
 
@@ -35,6 +37,7 @@ public class SearchProvidersModuleApiTests
         _uowMock = new Mock<IUnitOfWork>();
         _queriesMock = new Mock<ISearchableProviderQueries>();
         _providersApiMock = new Mock<IProvidersModuleApi>();
+        _locationsApiMock = new Mock<ILocationsModuleApi>();
         _loggerMock = new Mock<ILogger<SearchProvidersModuleApi>>();
 
         _sut = new SearchProvidersModuleApi(
@@ -42,6 +45,7 @@ public class SearchProvidersModuleApiTests
             _uowMock.Object,
             _queriesMock.Object,
             _providersApiMock.Object,
+            _locationsApiMock.Object,
             _loggerMock.Object);
     }
 
@@ -313,6 +317,10 @@ public class SearchProvidersModuleApiTests
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(dto));
 
+        _locationsApiMock
+            .Setup(x => x.GetAllowedCityIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Guid?>.Success(Guid.NewGuid()));
+
         _queriesMock
             .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((SearchableProvider?)null);
@@ -363,6 +371,10 @@ public class SearchProvidersModuleApiTests
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(updatedData));
+
+        _locationsApiMock
+            .Setup(x => x.GetAllowedCityIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Guid?>.Success(Guid.NewGuid()));
 
         _queriesMock
             .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))
@@ -455,6 +467,10 @@ public class SearchProvidersModuleApiTests
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(providerData));
+
+        _locationsApiMock
+            .Setup(x => x.GetAllowedCityIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Guid?>.Success(Guid.NewGuid()));
 
         _queriesMock
             .Setup(x => x.GetByProviderIdAsync(providerId, true, It.IsAny<CancellationToken>()))

@@ -23,6 +23,9 @@ public class DbContextReviewQueries(RatingsDbContext _dbContext) : IReviewQuerie
 
     public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Max(1, pageSize);
+
         return await _dbContext.Reviews
             .AsNoTracking()
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)

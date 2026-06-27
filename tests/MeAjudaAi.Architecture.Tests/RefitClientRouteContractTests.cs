@@ -61,6 +61,24 @@ public class RefitClientRouteContractTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(AllRefitClientInterfaces))]
+    public void AllRefitClients_BodyDTOs_ShouldComeFromContractsNamespace(Type apiType)
+    {
+        var methods = apiType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+        foreach (var method in methods)
+        {
+            var bodyParams = method.GetParameters().Where(p => p.GetCustomAttribute<BodyAttribute>() != null);
+
+            foreach (var param in bodyParams)
+            {
+                param.ParameterType.Namespace.Should().StartWith("MeAjudaAi.Contracts",
+                    because: $"DTO parameter '{param.ParameterType.Name}' in {apiType.Name}.{method.Name} should come from Contracts namespace");
+            }
+        }
+    }
+
     private static string GetRefitRoute(MethodInfo method)
     {
         var customAttributes = method.GetCustomAttributes(true)

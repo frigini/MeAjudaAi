@@ -1,3 +1,4 @@
+using System.Net.Http;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -52,14 +53,23 @@ internal sealed class ProviderServicesUpdatedIntegrationEventHandler(
                 "Provider {ProviderId} successfully re-indexed in search module after services update",
                 integrationEvent.ProviderId);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(
+                ex,
+                "HTTP error handling ProviderServicesUpdatedIntegrationEvent for provider {ProviderId}",
+                integrationEvent.ProviderId);
+        }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
                 "Error handling ProviderServicesUpdatedIntegrationEvent for provider {ProviderId}",
                 integrationEvent.ProviderId);
-
-            // Não propagamos a exceção
         }
     }
 }

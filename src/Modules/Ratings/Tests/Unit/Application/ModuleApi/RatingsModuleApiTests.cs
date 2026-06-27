@@ -21,25 +21,100 @@ public class RatingsModuleApiTests
     }
 
     [Fact]
+    public async Task GetProviderRatingAsync_HappyPath_ShouldReturnCorrectRating()
+    {
+        var providerId = Guid.NewGuid();
+        _reviewQueriesMock
+            .Setup(x => x.GetAverageRatingForProviderAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((4.5m, 10));
+
+        var result = await _sut.GetProviderRatingAsync(providerId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ProviderId.Should().Be(providerId);
+        result.Value.AverageRating.Should().Be(4.5m);
+        result.Value.TotalReviews.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetProviderRatingAsync_NoReviews_ShouldReturnZeroes()
+    {
+        var providerId = Guid.NewGuid();
+        _reviewQueriesMock
+            .Setup(x => x.GetAverageRatingForProviderAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((0m, 0));
+
+        var result = await _sut.GetProviderRatingAsync(providerId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.AverageRating.Should().Be(0m);
+        result.Value.TotalReviews.Should().Be(0);
+    }
+
+    [Fact]
     public async Task GetProviderRatingAsync_WhenQueryThrows_ShouldReturnFailure()
     {
-        // Arrange
         _reviewQueriesMock
             .Setup(x => x.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("db error"));
 
-        // Act
         var result = await _sut.GetProviderRatingAsync(Guid.NewGuid());
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Error retrieving rating data.");
     }
 
     [Fact]
+    public async Task GetProviderRatingAsync_WhenCancelled_ShouldThrow()
+    {
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _reviewQueriesMock
+            .Setup(x => x.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), cts.Token))
+            .ThrowsAsync(new OperationCanceledException());
+
+        var act = () => _sut.GetProviderRatingAsync(Guid.NewGuid(), cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task HasCustomerReviewedProviderAsync_ReviewExists_ShouldReturnTrue()
+    {
+        var customerId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var review = MeAjudaAi.Modules.Ratings.Domain.Entities.Review.Create(providerId, customerId, 5, "Great");
+
+        _reviewQueriesMock
+            .Setup(x => x.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(review);
+
+        var result = await _sut.HasCustomerReviewedProviderAsync(customerId, providerId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HasCustomerReviewedProviderAsync_NoReview_ShouldReturnFalse()
+    {
+        var customerId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+
+        _reviewQueriesMock
+            .Setup(x => x.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((MeAjudaAi.Modules.Ratings.Domain.Entities.Review?)null);
+
+        var result = await _sut.HasCustomerReviewedProviderAsync(customerId, providerId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task HasCustomerReviewedProviderAsync_WhenQueryThrows_ShouldReturnFailure()
     {
-        // Arrange
         _reviewQueriesMock
             .Setup(x => x.GetByProviderAndCustomerAsync(
                 It.IsAny<Guid>(),
@@ -47,11 +122,48 @@ public class RatingsModuleApiTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("db error"));
 
-        // Act
         var result = await _sut.HasCustomerReviewedProviderAsync(Guid.NewGuid(), Guid.NewGuid());
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Error checking review status.");
+    }
+
+    [Fact]
+    public async Task HasCustomerReviewedProviderAsync_WhenCancelled_ShouldThrow()
+    {
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _reviewQueriesMock
+            .Setup(x => x.GetByProviderAndCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), cts.Token))
+            .ThrowsAsync(new OperationCanceledException());
+
+        var act = () => _sut.HasCustomerReviewedProviderAsync(Guid.NewGuid(), Guid.NewGuid(), cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_CanConnect_ShouldReturnTrue()
+    {
+        _reviewQueriesMock
+            .Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _sut.IsAvailableAsync();
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_CannotConnect_ShouldReturnFalse()
+    {
+        _reviewQueriesMock
+            .Setup(x => x.CanConnectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var result = await _sut.IsAvailableAsync();
+
+        result.Should().BeFalse();
     }
 }

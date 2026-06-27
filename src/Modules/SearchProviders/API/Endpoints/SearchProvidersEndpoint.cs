@@ -1,9 +1,10 @@
 using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
+using MeAjudaAi.Modules.SearchProviders.Application.Mappers;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +44,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
                 - Buscar prestadores que oferecem serviços específicos
                 - Filtrar por avaliação mínima ou nível de assinatura
                 """)
-            .Produces<PagedResult<SearchableProviderDto>>(StatusCodes.Status200OK)
+            .Produces<PagedResult<ModuleSearchableProviderDto>>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
     }
 
@@ -60,8 +61,8 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        // Nota: Validação de entrada é tratada automaticamente por FluentValidation via pipeline do IQueryDispatcher
-        // Veja SearchProvidersQueryValidator para as regras de validação
+        var domainTiers = subscriptionTiers?.Select(t => t.ToDomainTier()).ToArray();
+
         var query = new SearchProvidersQuery(
             latitude,
             longitude,
@@ -69,21 +70,51 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             term,
             serviceIds,
             minRating,
-            subscriptionTiers,
+            domainTiers,
             page,
             pageSize);
 
         var result = await queryDispatcher.QueryAsync<SearchProvidersQuery,
-            Result<PagedResult<SearchableProviderDto>>>(
+            Result<PagedResult<Application.DTOs.SearchableProviderDto>>>(
             query, cancellationToken);
 
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.BadRequest(new ProblemDetails
+        if (result.IsFailure)
+        {
+            return Results.BadRequest(new ProblemDetails
             {
                 Title = "Busca Falhou",
                 Detail = result.Error.Message,
                 Status = StatusCodes.Status400BadRequest
             });
+        }
+
+        var pagedResult = result.Value!;
+        var mappedItems = pagedResult.Items.Select(MapToModuleDto).ToList();
+
+        var response = new PagedResult<ModuleSearchableProviderDto>
+        {
+            Items = mappedItems,
+            PageNumber = pagedResult.PageNumber,
+            PageSize = pagedResult.PageSize,
+            TotalItems = pagedResult.TotalItems
+        };
+
+        return Results.Ok(response);
     }
+
+    private static ModuleSearchableProviderDto MapToModuleDto(Application.DTOs.SearchableProviderDto dto) => new(
+        ProviderId: dto.ProviderId,
+        Name: dto.Name,
+        Slug: dto.Slug,
+        Location: new ModuleLocationDto(
+            Latitude: dto.Location.Latitude,
+            Longitude: dto.Location.Longitude),
+        AverageRating: dto.AverageRating,
+        TotalReviews: dto.TotalReviews,
+        SubscriptionTier: dto.SubscriptionTier.ToModuleTier(),
+        ServiceIds: dto.ServiceIds,
+        Description: dto.Description,
+        DistanceInKm: dto.DistanceInKm,
+        City: dto.City,
+        State: dto.State);
 }
