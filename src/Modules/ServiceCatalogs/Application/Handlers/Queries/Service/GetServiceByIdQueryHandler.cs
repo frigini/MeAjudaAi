@@ -1,13 +1,17 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 
+/// <summary>
+/// Handler para processar a consulta GetServiceByIdQuery, retornando os detalhes de um serviço específico pelo seu ID.
+/// </summary>
+/// <param name="queries"></param>
 public sealed class GetServiceByIdQueryHandler(IServiceQueries queries)
     : IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>
 {

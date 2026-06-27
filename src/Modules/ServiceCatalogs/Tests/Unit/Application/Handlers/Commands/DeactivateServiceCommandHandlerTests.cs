@@ -113,6 +113,3 @@ public class DeactivateServiceCommandHandlerTests
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao desativar o serviço.");
     }
 }
-
-
-

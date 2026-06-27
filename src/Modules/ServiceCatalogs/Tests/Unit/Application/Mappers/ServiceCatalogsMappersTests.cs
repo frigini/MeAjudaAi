@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappers;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Mappings;
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
 [Trait("Layer", "Application")]
-public class ServiceCatalogsMappingExtensionsTests
+public class ServiceCatalogsMappersTests
 {
     #region ToListDto Tests
 

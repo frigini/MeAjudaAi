@@ -1,6 +1,6 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
@@ -13,4 +13,3 @@ public sealed record CreateServiceCommand(
     string? Description,
     int DisplayOrder = 0
 ) : Command<Result<ServiceDto>>;
-

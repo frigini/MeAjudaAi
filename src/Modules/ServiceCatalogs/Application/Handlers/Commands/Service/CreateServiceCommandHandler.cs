@@ -1,55 +1,42 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class CreateServiceCommandHandler : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
+/// <summary>
+/// Handler para o comando CreateServiceCommand, responsável por criar um novo serviço em uma categoria específica.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="serviceQueries"></param>
+/// <param name="categoryQueries"></param>
+/// <param name="logger"></param>
+public sealed class CreateServiceCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    IServiceQueries serviceQueries,
+    IServiceCategoryQueries categoryQueries,
+    ILogger<CreateServiceCommandHandler> logger) : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IServiceQueries _serviceQueries;
-    private readonly IServiceCategoryQueries _categoryQueries;
-    private readonly ILogger<CreateServiceCommandHandler> _logger;
-
-    public CreateServiceCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceQueries serviceQueries,
-        IServiceCategoryQueries categoryQueries,
-        ILogger<CreateServiceCommandHandler> logger)
-    {
-        _uow = uow;
-        _serviceQueries = serviceQueries;
-        _categoryQueries = categoryQueries;
-        _logger = logger;
-    }
-
     public async Task<Result<ServiceDto>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var serviceQueries = _serviceQueries;
-        var categoryQueries = _categoryQueries;
-
         try
         {
-            // ... (rest of logic) ...
             if (request.CategoryId == Guid.Empty)
                 return Result<ServiceDto>.Failure("Category ID cannot be empty.");
 
             var categoryId = ServiceCategoryId.From(request.CategoryId);
 
             // Verificar se a categoria existe e está ativa
-            var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken);
-            if (category is null)
-                throw new UnprocessableEntityException(
+            var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken) ?? throw new UnprocessableEntityException(
                     $"Categoria com ID '{request.CategoryId}' não encontrada.",
                     "ServiceCategory");
 
@@ -107,12 +94,9 @@ public sealed class CreateServiceCommandHandler : ICommandHandler<CreateServiceC
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while creating the service.");
+            logger.LogError(ex, "An unexpected error occurred while creating the service.");
             return Result<ServiceDto>.Failure("Ocorreu um erro inesperado ao criar o serviço.");
         }
 
     }
 }
-
-
-

@@ -1,14 +1,14 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
-using MeAjudaAi.Contracts.Utilities.Constants;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
+namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Mappers;
 
 /// <summary>
 /// Métodos de extensão para mapear entidades de domínio para DTOs.
 /// Centraliza a lógica de mapeamento para evitar duplicação entre handlers.
 /// </summary>
-public static class ServiceCatalogsMappingExtensions
+public static class ServiceCatalogsMappers
 {
     /// <summary>
     /// Mapeia uma entidade Service para ServiceListDto.

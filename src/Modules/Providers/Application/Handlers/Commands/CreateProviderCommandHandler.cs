@@ -6,9 +6,11 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -76,7 +78,7 @@ public sealed class CreateProviderCommandHandler(
 
             return Result<ProviderDto>.Success(provider.ToDto());
         }
-        catch (Domain.Exceptions.ProviderDomainException ex)
+        catch (ProviderDomainException ex)
         {
             logger.LogWarning(ex, "Domain validation error creating provider for user {UserId}", command.UserId);
             return Result<ProviderDto>.Failure(ex.Message);
@@ -86,7 +88,7 @@ public sealed class CreateProviderCommandHandler(
             logger.LogWarning(ex, "Invalid argument creating provider for user {UserId}", command.UserId);
             return Result<ProviderDto>.Failure(ex.Message);
         }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        catch (DbUpdateException ex)
         {
             logger.LogError(ex, "Database error creating provider for user {UserId}", command.UserId);
             return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);

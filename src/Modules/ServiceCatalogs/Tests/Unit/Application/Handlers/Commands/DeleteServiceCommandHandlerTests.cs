@@ -187,6 +187,3 @@ public class DeleteServiceCommandHandlerTests
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao excluir o serviço.");
     }
 }
-
-
-

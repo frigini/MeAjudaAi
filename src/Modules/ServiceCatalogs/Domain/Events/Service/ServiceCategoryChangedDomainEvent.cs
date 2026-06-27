@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 
 [ExcludeFromCodeCoverage]
-
 public sealed record ServiceCategoryChangedDomainEvent(
     ServiceId ServiceId,
     ServiceCategoryId OldCategoryId,

@@ -46,13 +46,13 @@ public sealed class AddServiceToProviderCommandHandler(
             new[] { command.ServiceId },
             cancellationToken);
 
-        if (validationResult.IsFailure)
+        if (validationResult.IsFailure || validationResult.Value is null)
         {
             logger.LogWarning(
                 "Failed to validate service {ServiceId}: {Error}",
                 command.ServiceId,
-                validationResult.Error.Message);
-            return Result.Failure($"Falha ao validar serviço: {validationResult.Error.Message}");
+                validationResult.Error?.Message ?? "Unknown error");
+            return Result.Failure($"Failed to validate service: {validationResult.Error?.Message ?? "Unknown error"}");
         }
 
         if (!validationResult.Value.AllValid)
