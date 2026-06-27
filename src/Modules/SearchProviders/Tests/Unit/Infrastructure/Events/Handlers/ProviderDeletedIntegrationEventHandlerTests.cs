@@ -73,6 +73,42 @@ public class ProviderDeletedIntegrationEventHandlerTests
         VerifyLog(_loggerMock, LogLevel.Error, $"Error handling ProviderDeletedIntegrationEvent for provider {providerId}", Times.Once());
     }
 
+    [Fact]
+    public async Task ProviderDeletedHandler_OnCancellation_ShouldRethrow()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        _searchApiMock.Setup(x => x.RemoveProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        var handler = new ProviderDeletedIntegrationEventHandler(_searchApiMock.Object, _loggerMock.Object);
+        var evt = CreateProviderDeletedEvent(providerId);
+
+        // Act & Assert
+        await handler.Invoking(h => h.HandleAsync(evt, cts.Token))
+            .Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task ProviderDeletedHandler_OnHttpRequestException_ShouldLogHttpError()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _searchApiMock.Setup(x => x.RemoveProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Service unavailable"));
+
+        var handler = new ProviderDeletedIntegrationEventHandler(_searchApiMock.Object, _loggerMock.Object);
+        var evt = CreateProviderDeletedEvent(providerId);
+
+        // Act
+        await handler.HandleAsync(evt);
+
+        // Assert
+        VerifyLog(_loggerMock, LogLevel.Error, $"HTTP error handling ProviderDeletedIntegrationEvent for provider {providerId}", Times.Once());
+    }
+
     private static ProviderDeletedIntegrationEvent CreateProviderDeletedEvent(Guid providerId)
         => new(
             Source: "Providers",

@@ -115,10 +115,14 @@ public sealed class LocationsModuleApi(
             var city = await allowedCityQueries.GetByCityAndStateAsync(cityName, stateSigla, cancellationToken);
             return Result<Guid?>.Success(city?.Id);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting allowed city ID for {CityName}/{StateSigla}", cityName, stateSigla);
-            return Result<Guid?>.Failure($"Erro ao buscar ID da cidade: {ex.Message}");
+            return Result<Guid?>.Failure("Erro ao buscar ID da cidade");
         }
     }
 }

@@ -73,6 +73,42 @@ public class ProviderProfileUpdatedIntegrationEventHandlerTests
         VerifyLog(_loggerMock, LogLevel.Error, $"Error handling ProviderProfileUpdatedIntegrationEvent for provider {providerId}", Times.Once());
     }
 
+    [Fact]
+    public async Task ProviderProfileUpdatedHandler_OnCancellation_ShouldRethrow()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        _searchApiMock.Setup(x => x.IndexProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        var handler = new ProviderProfileUpdatedIntegrationEventHandler(_searchApiMock.Object, _loggerMock.Object);
+        var evt = CreateProviderProfileUpdatedEvent(providerId);
+
+        // Act & Assert
+        await handler.Invoking(h => h.HandleAsync(evt, cts.Token))
+            .Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task ProviderProfileUpdatedHandler_OnHttpRequestException_ShouldLogHttpError()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _searchApiMock.Setup(x => x.IndexProviderAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Service unavailable"));
+
+        var handler = new ProviderProfileUpdatedIntegrationEventHandler(_searchApiMock.Object, _loggerMock.Object);
+        var evt = CreateProviderProfileUpdatedEvent(providerId);
+
+        // Act
+        await handler.HandleAsync(evt);
+
+        // Assert
+        VerifyLog(_loggerMock, LogLevel.Error, $"HTTP error handling ProviderProfileUpdatedIntegrationEvent for provider {providerId}", Times.Once());
+    }
+
     private static ProviderProfileUpdatedIntegrationEvent CreateProviderProfileUpdatedEvent(Guid providerId)
         => new(
             Source: "Providers",

@@ -43,24 +43,6 @@ public class RefitClientRouteContractTests
         headerAttr.Should().NotBeNull(because: "idempotencyKey parameter should have [Header] attribute");
     }
 
-    [Fact]
-    public void IPaymentsApi_DTOs_ShouldComeFromContractsNamespace()
-    {
-        var methods = typeof(IPaymentsApi).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-
-        foreach (var method in methods)
-        {
-            var bodyParams = method.GetParameters().Where(p => p.GetCustomAttribute<BodyAttribute>() != null);
-            bodyParams.Should().NotBeEmpty(because: $"{typeof(IPaymentsApi).Name}.{method.Name} should have a body parameter");
-
-            foreach (var param in bodyParams)
-            {
-                param.ParameterType.Namespace.Should().StartWith("MeAjudaAi.Contracts",
-                    because: $"DTO parameter '{param.ParameterType.Name}' should come from Contracts namespace");
-            }
-        }
-    }
-
     [Theory]
     [MemberData(nameof(AllRefitClientInterfaces))]
     public void AllRefitClients_BodyDTOs_ShouldComeFromContractsNamespace(Type apiType)

@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 
@@ -178,7 +179,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("inválido");
+        result.Error!.Message.Should().Contain("inválido");
     }
 
     [Fact]
@@ -194,7 +195,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("não encontrado");
+        result.Error!.Message.Should().Contain("não encontrado");
     }
 
     [Fact]
@@ -248,7 +249,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("não pode ser vazio");
+        result.Error!.Message.Should().Contain("não pode ser vazio");
     }
 
     [Fact]
@@ -264,6 +265,78 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("não encontradas");
+        result.Error!.Message.Should().Contain("não encontradas");
+    }
+
+    [Fact]
+    public async Task GetAllowedCityIdAsync_WhenCityExists_ShouldReturnId()
+    {
+        // Arrange
+        var city = new AllowedCity("São Paulo", "SP", "admin");
+        var cityId = city.Id;
+
+        _mockAllowedCityQueries
+            .Setup(x => x.GetByCityAndStateAsync("São Paulo", "SP", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(city);
+
+        // Act
+        var result = await _sut.GetAllowedCityIdAsync("São Paulo", "SP");
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(cityId);
+    }
+
+    [Fact]
+    public async Task GetAllowedCityIdAsync_WhenCityNotFound_ShouldReturnSuccessWithNull()
+    {
+        // Arrange
+        _mockAllowedCityQueries
+            .Setup(x => x.GetByCityAndStateAsync("Unknown", "XX", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AllowedCity?)null);
+
+        // Act
+        var result = await _sut.GetAllowedCityIdAsync("Unknown", "XX");
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetAllowedCityIdAsync_ShouldPassCancellationToken()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        _mockAllowedCityQueries
+            .Setup(x => x.GetByCityAndStateAsync(It.IsAny<string>(), It.IsAny<string>(), token))
+            .ReturnsAsync((AllowedCity?)null);
+
+        // Act
+        await _sut.GetAllowedCityIdAsync("City", "ST", token);
+
+        // Assert
+        _mockAllowedCityQueries.Verify(
+            x => x.GetByCityAndStateAsync("City", "ST", token),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllowedCityIdAsync_WhenExceptionThrown_ShouldReturnFailureWithoutExposingMessage()
+    {
+        // Arrange
+        _mockAllowedCityQueries
+            .Setup(x => x.GetByCityAndStateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Internal DB error"));
+
+        // Act
+        var result = await _sut.GetAllowedCityIdAsync("City", "ST");
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().NotContain("Internal DB error");
+        result.Error!.Message.Should().Contain("Erro ao buscar ID da cidade");
     }
 }

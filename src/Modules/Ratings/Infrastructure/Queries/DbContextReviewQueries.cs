@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
@@ -24,7 +25,7 @@ public class DbContextReviewQueries(RatingsDbContext _dbContext) : IReviewQuerie
     public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         page = Math.Max(1, page);
-        pageSize = Math.Max(1, pageSize);
+        pageSize = Math.Clamp(Math.Max(1, pageSize), 1, Pagination.MaxPageSize);
 
         return await _dbContext.Reviews
             .AsNoTracking()

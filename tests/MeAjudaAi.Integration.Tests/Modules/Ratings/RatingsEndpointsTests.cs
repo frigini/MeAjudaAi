@@ -97,6 +97,7 @@ public class RatingsEndpointsTests : BaseApiTest
         var result = await response.Content.ReadFromJsonAsync<PagedResult<ProviderReviewResponse>>();
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
+        result.TotalItems.Should().Be(2);
     }
 
     [Fact]
@@ -110,6 +111,7 @@ public class RatingsEndpointsTests : BaseApiTest
         var result = await response.Content.ReadFromJsonAsync<PagedResult<ProviderReviewResponse>>();
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
+        result.TotalItems.Should().Be(0);
     }
 
     [Fact]
@@ -126,6 +128,7 @@ public class RatingsEndpointsTests : BaseApiTest
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
         result.PageSize.Should().Be(2);
+        result.TotalItems.Should().Be(5);
     }
 
     [Fact]

@@ -135,10 +135,18 @@ public sealed class SearchProvidersModuleApi(
             Guid? cityId = null;
             if (!string.IsNullOrWhiteSpace(providerData.City) && !string.IsNullOrWhiteSpace(providerData.State))
             {
-                var cityIdResult = await locationsApi.GetAllowedCityIdAsync(providerData.City, providerData.State, cancellationToken);
-                if (cityIdResult.IsSuccess)
+                try
                 {
-                    cityId = cityIdResult.Value;
+                    var cityIdResult = await locationsApi.GetAllowedCityIdAsync(providerData.City, providerData.State, cancellationToken);
+                    if (cityIdResult.IsSuccess)
+                    {
+                        cityId = cityIdResult.Value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to lookup CityId for {City}/{State} during indexing of provider {ProviderId}, continuing without CityId",
+                        providerData.City, providerData.State, providerId);
                 }
             }
 
