@@ -1,12 +1,12 @@
-using System.Globalization;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
-
-using MeAjudaAi.Contracts.Models;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+
 namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
 
 /// <summary>

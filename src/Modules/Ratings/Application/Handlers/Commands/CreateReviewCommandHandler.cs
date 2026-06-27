@@ -1,19 +1,19 @@
 using MeAjudaAi.Contracts.Modules.Bookings;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-using MeAjudaAi.Shared.Database.Constants;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
+namespace MeAjudaAi.Modules.Ratings.Application.Handlers.Commands;
 
 public sealed class CreateReviewCommandHandler(
     [FromKeyedServices(ModuleKeys.Ratings)] IUnitOfWork uow,
@@ -82,5 +82,3 @@ public sealed class CreateReviewCommandHandler(
         return review.Id.Value;
     }
 }
-
-

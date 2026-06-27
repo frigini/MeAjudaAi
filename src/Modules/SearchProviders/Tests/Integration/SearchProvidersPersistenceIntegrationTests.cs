@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
@@ -8,6 +7,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 

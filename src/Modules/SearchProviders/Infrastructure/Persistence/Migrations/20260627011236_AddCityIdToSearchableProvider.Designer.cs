@@ -3,23 +3,26 @@ using System;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SearchProvidersDbContext))]
-    partial class SearchProvidersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260627011236_AddCityIdToSearchableProvider")]
+    partial class AddCityIdToSearchableProvider
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("search_providers")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
@@ -40,6 +43,10 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("city");
+
+                    b.Property<Guid?>("CityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("city_id");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -102,6 +109,12 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_searchable_providers");
 
+                    b.HasIndex("City")
+                        .HasDatabaseName("ix_searchable_providers_city");
+
+                    b.HasIndex("CityId")
+                        .HasDatabaseName("ix_searchable_providers_city_id");
+
                     b.HasIndex("IsActive")
                         .HasDatabaseName("ix_searchable_providers_is_active");
 
@@ -118,6 +131,9 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
                         .HasDatabaseName("ix_searchable_providers_service_ids");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("ServiceIds"), "gin");
+
+                    b.HasIndex("State")
+                        .HasDatabaseName("ix_searchable_providers_state");
 
                     b.HasIndex("SubscriptionTier")
                         .HasDatabaseName("ix_searchable_providers_subscription_tier");

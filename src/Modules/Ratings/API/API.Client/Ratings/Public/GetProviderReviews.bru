@@ -1,0 +1,55 @@
+meta {
+  name: Get Provider Reviews
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/ratings/provider/{{providerId}}?page={{page}}&pageSize={{pageSize}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+vars:pre-request {
+  providerId: 00000000-0000-0000-0000-000000000000
+  page: 1
+  pageSize: 20
+}
+
+docs {
+  # Get Provider Reviews
+  
+  Retorna avaliações aprovadas de um prestador de serviços com paginação.
+  
+  ## Autorização
+  - **Pública**
+  - **Requer token**: Não
+  
+  ## Parâmetros Path
+  - `providerId` (guid): ID do prestador (Obrigatório)
+  
+  ## Parâmetros Query
+  - `page` (int): Número da página (Opcional, padrão: 1)
+  - `pageSize` (int): Itens por página (Opcional, padrão: 20, máx: 100)
+  
+  ## Resposta Esperada (200 OK)
+  ```json
+  {
+    "items": [
+      {
+        "id": "uuid-da-review",
+        "rating": 5,
+        "comment": "Muito bom!",
+        "createdAt": "2026-04-13T10:00:00Z"
+      }
+    ],
+    "page": 1,
+    "pageSize": 20,
+    "totalCount": 1
+  }
+  ```
+}

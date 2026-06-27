@@ -1,16 +1,11 @@
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
+using MeAjudaAi.Shared.Messaging.Messages.Locations;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
-using MeAjudaAi.Shared.Messaging.Messages.Locations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure;
 

@@ -1,3 +1,4 @@
+using System.Net.Http;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -37,6 +38,17 @@ internal sealed class ProviderProfileUpdatedIntegrationEventHandler(
                     "Provider {ProviderId} reindexed successfully after profile update",
                     integrationEvent.ProviderId);
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(
+                ex,
+                "HTTP error handling ProviderProfileUpdatedIntegrationEvent for provider {ProviderId}",
+                integrationEvent.ProviderId);
         }
         catch (Exception ex)
         {

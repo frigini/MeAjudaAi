@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
-using MeAjudaAi.Modules.Ratings.Application.Handlers;
-using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;

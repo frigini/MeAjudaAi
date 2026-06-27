@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Models;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 
-namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
+namespace MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 /// <summary>
 /// Interface para consultas do módulo SearchProviders.
@@ -51,4 +51,37 @@ public interface ISearchableProviderQueries
     /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, bool track = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera todos os provedores pesquisáveis de uma cidade específica.
+    /// </summary>
+    /// <param name="cityName">Nome da cidade</param>
+    /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    Task<IReadOnlyList<SearchableProvider>> GetByCityNameAsync(string cityName, bool track = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera todos os provedores pesquisáveis de um estado específico.
+    /// </summary>
+    /// <param name="stateSigla">Sigla do estado (ex: "MG", "RJ")</param>
+    /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    Task<IReadOnlyList<SearchableProvider>> GetByStateSiglaAsync(string stateSigla, bool track = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera todos os provedores pesquisáveis de uma cidade e estado específicos.
+    /// </summary>
+    /// <param name="cityName">Nome da cidade</param>
+    /// <param name="stateSigla">Sigla do estado (ex: "MG", "RJ")</param>
+    /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    Task<IReadOnlyList<SearchableProvider>> GetByCityAndStateSiglaAsync(string cityName, string stateSigla, bool track = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera todos os provedores pesquisáveis de uma cidade específica pelo ID da cidade.
+    /// </summary>
+    /// <param name="cityId">ID da cidade no módulo Locations</param>
+    /// <param name="track">Se verdadeiro, as entidades retornadas serão rastreadas pelo EF Core (para modificações)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    Task<IReadOnlyList<SearchableProvider>> GetByCityIdAsync(Guid cityId, bool track = false, CancellationToken cancellationToken = default);
 }

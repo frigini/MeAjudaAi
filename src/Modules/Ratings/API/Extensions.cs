@@ -8,6 +8,9 @@ namespace MeAjudaAi.Modules.Ratings.API;
 [ExcludeFromCodeCoverage]
 public static class Extensions
 {
+    /// <summary>
+    /// Registra todos os serviços do módulo Ratings (Application + Infrastructure).
+    /// </summary>
     public static IServiceCollection AddRatingsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddApplication();
@@ -16,10 +19,12 @@ public static class Extensions
         return services;
     }
 
+    /// <summary>
+    /// Configura os endpoints do módulo Ratings no pipeline de rotas.
+    /// </summary>
     public static IEndpointRouteBuilder UseRatingsModule(this IEndpointRouteBuilder app)
     {
         RatingsEndpoints.Map(app);
         return app;
     }
 }
-

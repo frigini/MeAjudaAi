@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -16,6 +17,7 @@ namespace MeAjudaAi.Modules.Locations.Application.ModuleApi;
 public sealed class LocationsModuleApi(
     ICepLookupService cepLookupService,
     IGeocodingService geocodingService,
+    IAllowedCityQueries allowedCityQueries,
     ILogger<LocationsModuleApi> logger) : ILocationsModuleApi
 {
     private static class ModuleMetadata
@@ -48,10 +50,6 @@ public sealed class LocationsModuleApi(
 
             logger.LogWarning("Location module unavailable - basic operations test failed");
             return false;
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
         }
         catch (HttpRequestException ex)
         {
@@ -108,5 +106,23 @@ public sealed class LocationsModuleApi(
 
         var dto = new ModuleCoordinatesDto(coordinates.Latitude, coordinates.Longitude);
         return Result<ModuleCoordinatesDto>.Success(dto);
+    }
+
+    public async Task<Result<Guid?>> GetAllowedCityIdAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var city = await allowedCityQueries.GetByCityAndStateAsync(cityName, stateSigla, cancellationToken);
+            return Result<Guid?>.Success(city?.Id);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting allowed city ID for {CityName}/{StateSigla}", cityName, stateSigla);
+            return Result<Guid?>.Failure("Erro ao buscar ID da cidade");
+        }
     }
 }

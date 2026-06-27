@@ -1,5 +1,6 @@
-using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
@@ -10,6 +11,7 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 internal sealed class ReviewApprovedDomainEventHandler(
     IMessageBus messageBus,
     IReviewQueries queries,
+    ICacheService cacheService,
     ILogger<ReviewApprovedDomainEventHandler> logger) : IEventHandler<ReviewApprovedDomainEvent>
 {
     public async Task HandleAsync(ReviewApprovedDomainEvent domainEvent, CancellationToken cancellationToken = default)
@@ -19,6 +21,9 @@ internal sealed class ReviewApprovedDomainEventHandler(
             logger.LogInformation("Handling ReviewApprovedDomainEvent for provider {ProviderId}", domainEvent.ProviderId);
 
             var (average, total) = await queries.GetAverageRatingForProviderAsync(domainEvent.ProviderId, cancellationToken);
+
+            await cacheService.RemoveByTagAsync(CacheTags.ReviewTag(domainEvent.AggregateId), cancellationToken);
+            await cacheService.RemoveByTagAsync(CacheTags.ProviderReviewsTag(domainEvent.ProviderId), cancellationToken);
 
             var integrationEvent = new ReviewApprovedIntegrationEvent(
                 Source: "Ratings",

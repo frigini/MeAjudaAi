@@ -59,5 +59,3 @@ public class SearchProvidersDbContextModelTests
             .WithMessage("*SearchProvidersDbContext does not support repository for*");
     }
 }
-
-

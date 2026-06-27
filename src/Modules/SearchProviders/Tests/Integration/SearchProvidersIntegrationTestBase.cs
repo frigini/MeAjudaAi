@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Utilities;
 using Testcontainers.PostgreSql;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
@@ -87,7 +88,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         services.AddKeyedScoped<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders, (sp, key) => sp.GetRequiredService<SearchProvidersDbContext>());
 
         // Registrar Queries
-        services.AddScoped<MeAjudaAi.Modules.SearchProviders.Application.Queries.ISearchableProviderQueries,
+        services.AddScoped<ISearchableProviderQueries,
             MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries.DbContextSearchableProviderQueries>();
 
         _serviceProvider = services.BuildServiceProvider();

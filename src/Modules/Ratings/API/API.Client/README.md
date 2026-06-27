@@ -11,9 +11,27 @@ Esta coleção do Bruno contém os endpoints para o módulo de avaliações.
 
 ## 📋 Endpoints Disponíveis
 
+### Públicos
+
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| POST | `/api/v1/ratings` | Criar uma avaliação |
-| GET | `/api/v1/ratings/{id}` | Buscar avaliação por ID |
-| GET | `/api/v1/ratings/{id}/status` | Validar status da moderação |
-| GET | `/api/v1/ratings/provider/{providerId}` | Listar avaliações de um prestador |
+| POST | `/api/v1/ratings` | Criar uma avaliação (autenticado) |
+| GET | `/api/v1/ratings/{id}` | Buscar avaliação por ID (somente aprovadas) |
+| GET | `/api/v1/ratings/provider/{providerId}` | Listar avaliações aprovadas de um prestador (com paginação) |
+
+### Admin
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/v1/ratings/{id}/status` | Consultar status da moderação |
+
+## 📖 Parâmetros de Paginação
+
+O endpoint de listagem por prestador suporta paginação via query string:
+
+| Parâmetro | Tipo | Padrão | Descrição |
+|-----------|------|--------|-----------|
+| `page` | int | 1 | Número da página |
+| `pageSize` | int | 20 | Itens por página (máx: 100) |
+
+**Exemplo**: `GET /api/v1/ratings/provider/{providerId}?page=2&pageSize=10`

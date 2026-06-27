@@ -82,6 +82,47 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
     - **Administração**: Relatórios de crescimento da plataforma, hotspots geográficos de demanda e exportação de dados para contabilidade (CSV/PDF).
     - **Inteligência**: Sugestões de precificação baseadas na demanda da região.
 
+### Refatoração: ContentModerator → Azure AI Content Safety
+
+**Problema Atual**: O `ContentModerator` (`src/Modules/Ratings/Application/Services/ContentModerator.cs`) usa uma lista hardcodada de palavras proibidas com regex. Esta abordagem é limitada e requer manutenção manual.
+
+**Solução Proposta**: Substituir por Azure AI Content Safety API para moderação de conteúdo.
+
+**Benefícios**:
+- Detecção avançada de ofensas, hate speech, conteúdo sexual e autoagressão
+- Suporte a múltiplos idiomas (incluindo português)
+- Atualizações automáticas dos modelos de IA
+- Rate limiting e escalabilidade gerenciada pela Azure
+- Capacidade de customizar categorias de moderação
+
+**Plano de Implementação**:
+1. Criar `AzureContentModerator` implementando `IContentModerator`
+2. Configurar Azure Content Safety resource no Aspire AppHost
+3. Atualizar DI para usar a nova implementação
+4. Adicionar testes de integração com mock do Azure SDK
+5. Manter `ContentModerator` como fallback (feature flag)
+
+**Custos Estimados Azure AI Content Safety**:
+
+| Tier | Text API | Image API | Limite Mensal |
+|------|----------|-----------|---------------|
+| **Free (F0)** | $0 | $0 | 5.000 text records + 5.000 imagens |
+| **Standard (S1)** | $0.38/1.000 text records | $0.75/1.000 imagens | Sem limite |
+
+**Estimativa para o MeAjudaAi**:
+- Se ~1.000 reviews/mês com comentários (~500 caracteres cada)
+- **Custo mensal**: ~$0.19 (500 text records × $0.38/1.000)
+- **Com tier Free**: Custo zero até 5.000 reviews/mês
+- **Commitment Tier** (para alto volume): $207.765/ano para 720M text records
+
+**Rate Limits**:
+- Free: 5 RPS (requests per second)
+- Standard: 1.000 RP10S (requests per 10 seconds)
+
+**Referências**:
+- [Azure AI Content Safety Pricing](https://azure.microsoft.com/en-us/pricing/details/content-safety/)
+- [Documentação oficial](https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview)
+
 
 ---
 

@@ -1,15 +1,11 @@
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
-using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.SearchProviders;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Domain.Models;
 
 public class SearchResultTests
 {
-    private readonly Faker _faker = new();
-
     [Fact]
     public void SearchResult_WithProviders_ShouldStoreData()
     {
@@ -174,30 +170,10 @@ public class SearchResultTests
         result.Providers.Count.Should().BeLessThan(result.TotalCount);
     }
 
-    private IReadOnlyList<SearchableProvider> CreateProviders(int count)
+    private static IReadOnlyList<SearchableProvider> CreateProviders(int count)
     {
-        var providers = new List<SearchableProvider>();
-
-        for (int i = 0; i < count; i++)
-        {
-            var providerId = Guid.NewGuid();
-            var location = new GeoPoint(-23.5505 + i * 0.1, -46.6333 + i * 0.1);
-
-            var providerName = _faker.Company.CompanyName();
-            var provider = SearchableProvider.Create(
-                providerId: providerId,
-                name: providerName,
-                slug: SlugHelper.Generate(providerName),
-                location: location,
-                subscriptionTier: _faker.Random.Enum<ESubscriptionTier>(),
-                description: _faker.Lorem.Sentence(),
-                city: _faker.Address.City(),
-                state: _faker.Address.StateAbbr()
-            );
-
-            providers.Add(provider);
-        }
-
-        return providers;
+        return Enumerable.Range(0, count)
+            .Select(_ => new SearchableProviderBuilder().Build())
+            .ToList();
     }
 }

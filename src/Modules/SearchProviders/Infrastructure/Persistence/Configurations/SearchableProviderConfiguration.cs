@@ -53,9 +53,22 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
             .HasMaxLength(100)
             .HasColumnName("city");
 
+        builder.HasIndex(p => p.City)
+            .HasDatabaseName("ix_searchable_providers_city");
+
         builder.Property(p => p.State)
             .HasMaxLength(2)
             .HasColumnName("state");
+
+        builder.HasIndex(p => p.State)
+            .HasDatabaseName("ix_searchable_providers_state");
+
+        builder.Property(p => p.CityId)
+            .HasColumnName("city_id")
+            .IsRequired(false);
+
+        builder.HasIndex(p => p.CityId)
+            .HasDatabaseName("ix_searchable_providers_city_id");
 
         // Geolocation using PostGIS Point type
         builder.Property(p => p.Location)

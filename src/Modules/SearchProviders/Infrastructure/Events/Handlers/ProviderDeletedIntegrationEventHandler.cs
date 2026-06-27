@@ -1,3 +1,4 @@
+using System.Net.Http;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -36,6 +37,17 @@ internal sealed class ProviderDeletedIntegrationEventHandler(
                     "Provider {ProviderId} removed from search index successfully after deletion",
                     integrationEvent.ProviderId);
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(
+                ex,
+                "HTTP error handling ProviderDeletedIntegrationEvent for provider {ProviderId}",
+                integrationEvent.ProviderId);
         }
         catch (Exception ex)
         {

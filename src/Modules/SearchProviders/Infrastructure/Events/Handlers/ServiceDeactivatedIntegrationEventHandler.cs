@@ -1,10 +1,10 @@
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 
@@ -39,6 +39,3 @@ internal sealed class ServiceDeactivatedIntegrationEventHandler(
             integrationEvent.ServiceId, providers.Count);
     }
 }
-
-
-

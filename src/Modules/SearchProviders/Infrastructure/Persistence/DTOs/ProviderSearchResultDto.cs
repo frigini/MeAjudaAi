@@ -19,6 +19,7 @@ internal sealed class ProviderSearchResultDto
     public Guid[] ServiceIds { get; set; } = Array.Empty<Guid>();
     public string? City { get; set; }
     public string? State { get; set; }
+    public Guid? CityId { get; set; }
     public bool IsActive { get; set; }
     public double DistanceKm { get; set; }
 }

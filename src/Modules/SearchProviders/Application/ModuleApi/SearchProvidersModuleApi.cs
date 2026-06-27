@@ -1,18 +1,23 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
-using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Modules.SearchProviders.Application.Mappers;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
+using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
@@ -28,6 +33,7 @@ public sealed class SearchProvidersModuleApi(
     [FromKeyedServices(ModuleKeys.SearchProviders)] IUnitOfWork uow,
     ISearchableProviderQueries queries,
     IProvidersModuleApi providersApi,
+    ILocationsModuleApi locationsApi,
     ILogger<SearchProvidersModuleApi> logger) : ISearchProvidersModuleApi
 {
     private static class ModuleMetadata
@@ -52,12 +58,12 @@ public sealed class SearchProvidersModuleApi(
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         ESubscriptionTier[]? subscriptionTiers = null,
-        int pageNumber = 1,
-        int pageSize = 20,
+        int pageNumber = Pagination.DefaultPageNumber,
+        int pageSize = Pagination.DefaultPageSize,
         CancellationToken cancellationToken = default)
     {
         // Mapear enums do módulo para enums do domínio usando mapeamento explícito
-        DomainEnums.ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(ToDomainTier).ToArray();
+        DomainEnums.ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(t => t.ToDomainTier()).ToArray();
 
         var query = new SearchProvidersQuery(
             latitude,
@@ -88,7 +94,7 @@ public sealed class SearchProvidersModuleApi(
                     Longitude: p.Location.Longitude),
                 AverageRating: p.AverageRating,
                 TotalReviews: p.TotalReviews,
-                SubscriptionTier: ToModuleTier(p.SubscriptionTier),
+                SubscriptionTier: p.SubscriptionTier.ToModuleTier(),
                 ServiceIds: p.ServiceIds,
                 Description: p.Description,
                 DistanceInKm: p.DistanceInKm,
@@ -125,6 +131,25 @@ public sealed class SearchProvidersModuleApi(
                 return Result.Failure($"Provider {providerId} not found");
             }
 
+            // Lookup CityId
+            Guid? cityId = null;
+            if (!string.IsNullOrWhiteSpace(providerData.City) && !string.IsNullOrWhiteSpace(providerData.State))
+            {
+                try
+                {
+                    var cityIdResult = await locationsApi.GetAllowedCityIdAsync(providerData.City, providerData.State, cancellationToken);
+                    if (cityIdResult.IsSuccess)
+                    {
+                        cityId = cityIdResult.Value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to lookup CityId for {City}/{State} during indexing of provider {ProviderId}, continuing without CityId",
+                        providerData.City, providerData.State, providerId);
+                }
+            }
+
             // 2. Verificar se provider já existe no índice
             var existing = await queries.GetByProviderIdAsync(providerId, track: true, cancellationToken);
 
@@ -134,10 +159,10 @@ public sealed class SearchProvidersModuleApi(
 
                 // Atualizar informações do provider existente
                 var location = new GeoPoint(providerData.Latitude, providerData.Longitude);
-                existing.UpdateBasicInfo(providerData.Name, providerData.Slug, providerData.Description, providerData.City, providerData.State);
+                existing.UpdateBasicInfo(providerData.Name, providerData.Slug, providerData.Description, providerData.City, providerData.State, cityId);
                 existing.UpdateLocation(location);
                 existing.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
-                existing.UpdateSubscriptionTier(ToDomainTier(providerData.SubscriptionTier));
+                existing.UpdateSubscriptionTier(providerData.SubscriptionTier.ToDomainTier());
                 existing.UpdateServices(providerData.ServiceIds.ToArray());
 
                 if (providerData.IsActive)
@@ -156,10 +181,11 @@ public sealed class SearchProvidersModuleApi(
                     name: providerData.Name,
                     slug: providerData.Slug,
                     location: location,
-                    subscriptionTier: ToDomainTier(providerData.SubscriptionTier),
+                    subscriptionTier: providerData.SubscriptionTier.ToDomainTier(),
                     description: providerData.Description,
                     city: providerData.City,
-                    state: providerData.State);
+                    state: providerData.State,
+                    cityId: cityId);
 
                 // Atualizar dados adicionais
                 searchableProvider.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
@@ -176,7 +202,11 @@ public sealed class SearchProvidersModuleApi(
             logger.LogInformation("Provider {ProviderId} indexed successfully in search", providerId);
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
         {
             logger.LogError(ex, "Error indexing provider {ProviderId} in search", providerId);
             return Result.Failure("Failed to index provider due to an internal error");
@@ -203,37 +233,14 @@ public sealed class SearchProvidersModuleApi(
             logger.LogInformation("Provider {ProviderId} removed from search index successfully", providerId);
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
         {
             logger.LogError(ex, "Error removing provider {ProviderId} from search index", providerId);
             return Result.Failure("Failed to remove provider due to an internal error");
         }
     }
-
-    /// <summary>
-    /// Mapeia o enum de tier do módulo para o enum de tier do domínio com conversão explícita.
-    /// </summary>
-    private static DomainEnums.ESubscriptionTier ToDomainTier(ESubscriptionTier tier) => tier switch
-    {
-        ESubscriptionTier.Free => DomainEnums.ESubscriptionTier.Free,
-        ESubscriptionTier.Standard => DomainEnums.ESubscriptionTier.Standard,
-        ESubscriptionTier.Gold => DomainEnums.ESubscriptionTier.Gold,
-        ESubscriptionTier.Platinum => DomainEnums.ESubscriptionTier.Platinum,
-        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
-    };
-
-    /// <summary>
-    /// Mapeia o enum de tier do domínio para o enum de tier do módulo com conversão explícita.
-    /// </summary>
-    private static ESubscriptionTier ToModuleTier(DomainEnums.ESubscriptionTier tier) => tier switch
-    {
-        DomainEnums.ESubscriptionTier.Free => ESubscriptionTier.Free,
-        DomainEnums.ESubscriptionTier.Standard => ESubscriptionTier.Standard,
-        DomainEnums.ESubscriptionTier.Gold => ESubscriptionTier.Gold,
-        DomainEnums.ESubscriptionTier.Platinum => ESubscriptionTier.Platinum,
-        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
-    };
 }
-
-
-

@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts.Models;
 
@@ -83,7 +83,7 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         var searchResponse = await ApiClient.GetAsync($"/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10");
         searchResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         
-        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(MeAjudaAi.Shared.Serialization.SerializationDefaults.Default);
+        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(MeAjudaAi.Shared.Serialization.SerializationDefaults.Default);
         var providerInSearch = searchResult?.Items.FirstOrDefault(p => p.ProviderId == providerId);
         
         providerInSearch.Should().NotBeNull();

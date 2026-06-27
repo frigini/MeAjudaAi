@@ -4,7 +4,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Events;
+namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Infrastructure.Events.Handlers;
 
 public class ProviderActivatedIntegrationEventHandlerTests
 {

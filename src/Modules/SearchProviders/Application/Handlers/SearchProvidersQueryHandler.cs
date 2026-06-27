@@ -1,11 +1,12 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
-using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 
 /// <summary>

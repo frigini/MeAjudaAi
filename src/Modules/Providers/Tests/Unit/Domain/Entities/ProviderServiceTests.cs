@@ -67,7 +67,7 @@ public class ProviderServiceTests
         var serviceId = Guid.NewGuid();
 
         // Act
-        var act = () => ProviderService.Create(providerId, serviceId, invalidName);
+        var act = () => ProviderService.Create(providerId, serviceId, invalidName!);
 
         // Assert
         act.Should().Throw<ArgumentException>()

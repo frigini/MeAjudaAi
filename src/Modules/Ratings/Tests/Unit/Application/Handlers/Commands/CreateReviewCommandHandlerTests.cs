@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
-using MeAjudaAi.Modules.Ratings.Application.Handlers;
-using MeAjudaAi.Modules.Ratings.Application.Queries;
+using MeAjudaAi.Modules.Ratings.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
@@ -10,7 +10,7 @@ using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Ratings")]

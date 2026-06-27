@@ -8,7 +8,7 @@ public class ReviewIdTests
     public void Constructor_WithEmptyGuid_ShouldThrowArgumentException()
     {
         // Act
-        Action action = () => new ReviewId(Guid.Empty);
+        Action action = () => { var _ = new ReviewId(Guid.Empty); };
 
         // Assert
         action.Should().Throw<ArgumentException>();

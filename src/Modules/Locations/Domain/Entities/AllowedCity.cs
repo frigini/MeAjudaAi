@@ -169,7 +169,7 @@ public sealed class AllowedCity : AggregateRoot<Guid>
 
         UpdatedBy = updatedBy;
         UpdatedAt = DateTime.UtcNow;
-        AddDomainEvent(new AllowedCityDeletedDomainEvent(Id));
+        AddDomainEvent(new AllowedCityDeletedDomainEvent(Id, CityName, StateSigla));
     }
    
     public void Activate(string updatedBy)

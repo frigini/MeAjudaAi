@@ -16,4 +16,3 @@ public partial class RatingsDbContext : IRepository<Review, ReviewId>
     void IRepository<Review, ReviewId>.Delete(Review aggregate) =>
         Reviews.Remove(aggregate);
 }
-
