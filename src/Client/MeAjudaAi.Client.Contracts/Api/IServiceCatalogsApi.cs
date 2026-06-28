@@ -58,7 +58,7 @@ public interface IServiceCatalogsApi
         CancellationToken cancellationToken = default);
 
     [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/category/{{categoryId}}")]
-    Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
+    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetServicesByCategoryAsync(
         Guid categoryId,
         [Query] bool activeOnly = true,
         CancellationToken cancellationToken = default);
