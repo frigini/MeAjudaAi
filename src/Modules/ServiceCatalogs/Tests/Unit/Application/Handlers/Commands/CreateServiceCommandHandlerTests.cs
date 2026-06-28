@@ -126,7 +126,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("already exists");
+        result.Error!.Message.Should().Contain("Já existe");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -141,7 +141,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be empty");
+        result.Error!.Message.Should().Contain("não pode ser vazio");
         _categoryQueriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -164,7 +164,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("required");
+        result.Error!.Message.Should().Contain("obrigatório");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -188,7 +188,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be negative");
+        result.Error!.Message.Should().Contain("não pode ser negativa");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 

@@ -2,10 +2,10 @@ namespace MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
 /// <summary>
 /// Request DTO para atualização de serviço.
-/// Suporta atualizações parciais com campos nullable.
+/// Requer todos os campos (full-update pattern).
+/// Para alterar a categoria, use o endpoint ChangeServiceCategory.
 /// </summary>
 public sealed record UpdateServiceRequestDto(
-    Guid? CategoryId = null,
-    string? Name = null,
+    string Name,
     string? Description = null,
-    int? DisplayOrder = null);
+    int DisplayOrder = 0);

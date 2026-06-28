@@ -134,7 +134,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Category id must be provided");
+        result.Error.Message.Should().Contain("deve ser fornecido");
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Error retrieving service category");
+        result.Error!.Message.Should().Contain("Erro ao buscar categoria");
     }
 
     #endregion
@@ -255,7 +255,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Error retrieving service categories");
+        result.Error!.Message.Should().Contain("Erro ao buscar categorias");
     }
 
     #endregion
@@ -299,7 +299,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Service id must be provided");
+        result.Error!.Message.Should().Contain("deve ser fornecido");
     }
 
     [Fact]
@@ -398,7 +398,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Error retrieving services");
+        result.Error!.Message.Should().Contain("Erro ao buscar serviços");
     }
 
     #endregion
@@ -471,7 +471,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Category id must be provided");
+        result.Error!.Message.Should().Contain("deve ser fornecido");
     }
 
     [Fact]
@@ -487,7 +487,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Error retrieving services");
+        result.Error!.Message.Should().Contain("Erro ao buscar serviços");
     }
 
     #endregion
@@ -554,7 +554,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Service id must be provided");
+        result.Error!.Message.Should().Contain("deve ser fornecido");
     }
 
     #endregion
@@ -656,7 +656,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Service IDs collection cannot be null");
+        result.Error!.Message.Should().Contain("não pode ser nula");
     }
 
     [Fact]
@@ -727,7 +727,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Error validating services");
+        result.Error!.Message.Should().Contain("Erro ao validar serviços");
     }
 
     #endregion

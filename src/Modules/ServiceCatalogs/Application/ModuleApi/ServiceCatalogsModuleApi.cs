@@ -58,10 +58,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<ModuleServiceCategoryDto?>.Success(dto);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving service category {CategoryId}", categoryId);
-            return Result<ModuleServiceCategoryDto?>.Failure($"Erro ao buscar categoria de serviço: {ex.Message}");
+            return Result<ModuleServiceCategoryDto?>.Failure("Erro ao buscar categoria de serviço.");
         }
     }
 
@@ -83,10 +87,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving service categories");
-            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure($"Erro ao buscar categorias de serviço: {ex.Message}");
+            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure("Erro ao buscar categorias de serviço.");
         }
     }
 
@@ -119,10 +127,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<ModuleServiceDto?>.Success(dto);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving service {ServiceId}", serviceId);
-            return Result<ModuleServiceDto?>.Failure($"Erro ao buscar serviço: {ex.Message}");
+            return Result<ModuleServiceDto?>.Failure("Erro ao buscar serviço.");
         }
     }
 
@@ -145,10 +157,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<IReadOnlyList<ModuleServiceListDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving services");
-            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure($"Erro ao buscar serviços: {ex.Message}");
+            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure("Erro ao buscar serviços.");
         }
     }
 
@@ -177,10 +193,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<IReadOnlyList<ModuleServiceDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving services for category {CategoryId}", categoryId);
-            return Result<IReadOnlyList<ModuleServiceDto>>.Failure($"Erro ao buscar serviços: {ex.Message}");
+            return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Erro ao buscar serviços da categoria.");
         }
     }
 
@@ -202,10 +222,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<bool>.Success(service.IsActive);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error checking if service {ServiceId} is active", serviceId);
-            return Result<bool>.Failure($"Erro ao verificar status do serviço: {ex.Message}");
+            return Result<bool>.Failure("Erro ao verificar status do serviço.");
         }
     }
 
@@ -282,10 +306,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<ModuleServiceValidationResultDto>.Success(result);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error validating services");
-            return Result<ModuleServiceValidationResultDto>.Failure($"Erro ao validar serviços: {ex.Message}");
+            return Result<ModuleServiceValidationResultDto>.Failure("Erro ao validar serviços.");
         }
     }
 }

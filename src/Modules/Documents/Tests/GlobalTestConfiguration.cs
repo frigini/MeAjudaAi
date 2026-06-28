@@ -8,5 +8,4 @@ namespace MeAjudaAi.Modules.Documents.Tests;
 [CollectionDefinition("DocumentsIntegrationTests")]
 public class DocumentsIntegrationTestCollection : ICollectionFixture<SharedIntegrationTestFixture>
 {
-    // Esta classe não tem implementação - apenas define a collection específica do módulo Documents
 }

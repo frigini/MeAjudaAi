@@ -102,7 +102,7 @@ public static class ApiEndpoints
 
         public static class Categories
         {
-            public const string CategoryBase = $"{ServiceCatalogs.Base}/categories";
+            public const string Base = $"{ServiceCatalogs.Base}/categories";
             public const string GetAll = "/";
             public const string GetById = "/{id:guid}";
             public const string Create = "/";
@@ -114,7 +114,7 @@ public static class ApiEndpoints
 
         public static class Services
         {
-            public const string ServiceBase = $"{ServiceCatalogs.Base}/services";
+            public const string Base = $"{ServiceCatalogs.Base}/services";
             public const string GetAll = "/";
             public const string GetById = "/{id:guid}";
             public const string GetByCategory = "/category/{categoryId:guid}";

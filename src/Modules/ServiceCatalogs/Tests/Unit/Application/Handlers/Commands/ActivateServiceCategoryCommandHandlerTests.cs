@@ -70,7 +70,7 @@ public class ActivateServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Contain("não encontrada");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -85,7 +85,7 @@ public class ActivateServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be empty");
+        result.Error!.Message.Should().Contain("não pode ser vazio");
         _repositoryMock.Verify(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

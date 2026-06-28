@@ -51,6 +51,6 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new UpdateServiceCategoryCommand(id, request.Name, request.Description, request.DisplayOrder);
         var result = await commandDispatcher.SendAsync<UpdateServiceCategoryCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }

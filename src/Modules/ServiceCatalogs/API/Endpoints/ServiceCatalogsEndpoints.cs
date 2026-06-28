@@ -5,7 +5,7 @@ using MeAjudaAi.Contracts.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
 
-public static class ServiceCatalogsModuleEndpoints
+public static class ServiceCatalogsEndpoints
 {
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -15,7 +15,7 @@ public static class ServiceCatalogsModuleEndpoints
     public static void MapServiceCatalogsEndpoints(IEndpointRouteBuilder app)
     {
         // Service Categories endpoints
-        var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.ServiceCatalogs.Categories.CategoryBase, "ServiceCategories");
+        var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.ServiceCatalogs.Categories.Base, "ServiceCategories");
 
         categoriesEndpoints.MapEndpoint<GetAllServiceCategoriesEndpoint>()
             .MapEndpoint<GetServiceCategoryByIdEndpoint>()
@@ -26,7 +26,7 @@ public static class ServiceCatalogsModuleEndpoints
             .MapEndpoint<DeleteServiceCategoryEndpoint>();
 
         // Services endpoints
-        var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.ServiceCatalogs.Services.ServiceBase, "Services");
+        var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, ApiEndpoints.ServiceCatalogs.Services.Base, "Services");
 
         servicesEndpoints.MapEndpoint<GetAllServicesEndpoint>()
             .MapEndpoint<GetServiceByIdEndpoint>()
