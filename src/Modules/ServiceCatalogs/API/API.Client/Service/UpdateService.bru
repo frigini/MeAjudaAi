@@ -1,0 +1,43 @@
+meta {
+  name: Update Service
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{baseUrl}}/api/v1/service-catalogs/services/{{serviceId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Instalação de Tomadas",
+    "description": "Instalação de tomadas elétricas residenciais",
+    "displayOrder": 2
+  }
+}
+
+docs {
+  # Update Service
+  
+  Atualiza serviço existente (admin).
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Body
+  - `name`: Nome do serviço (opcional)
+  - `description`: Descrição (opcional)
+  - `displayOrder`: Ordem de exibição (opcional)
+  
+  ## Status: 204 No Content | 404 Not Found
+}

@@ -93,14 +93,39 @@ public static class ApiEndpoints
     public static class SearchProviders
     {
         public const string Base = "search";
-        public const string Providers = "search/providers";
+        public const string ProvidersSearch = "search/providers";
     }
 
     public static class ServiceCatalogs
     {
         public const string Base = "service-catalogs";
-        public const string Categories = "service-catalogs/categories";
-        public const string Services = "service-catalogs/services";
+
+        public static class Categories
+        {
+            public const string Base = $"{ServiceCatalogs.Base}/categories";
+            public const string GetAll = "/";
+            public const string GetById = "/{id:guid}";
+            public const string Create = "/";
+            public const string Update = "/{id:guid}";
+            public const string Activate = "/{id:guid}/activate";
+            public const string Deactivate = "/{id:guid}/deactivate";
+            public const string Delete = "/{id:guid}";
+        }
+
+        public static class Services
+        {
+            public const string Base = $"{ServiceCatalogs.Base}/services";
+            public const string GetAll = "/";
+            public const string GetById = "/{id:guid}";
+            public const string GetByCategory = "/category/{categoryId:guid}";
+            public const string Create = "/";
+            public const string Update = "/{id:guid}";
+            public const string ChangeCategory = "/{id:guid}/change-category";
+            public const string Activate = "/{id:guid}/activate";
+            public const string Deactivate = "/{id:guid}/deactivate";
+            public const string Delete = "/{id:guid}";
+            public const string Validate = "/validate";
+        }
     }
 
     public static class System

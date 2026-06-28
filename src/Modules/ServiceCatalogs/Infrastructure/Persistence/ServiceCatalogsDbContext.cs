@@ -1,10 +1,10 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using System.Reflection;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 

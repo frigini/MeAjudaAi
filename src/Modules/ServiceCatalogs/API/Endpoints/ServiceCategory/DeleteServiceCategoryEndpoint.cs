@@ -1,15 +1,23 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
+/// <summary>
+/// Endpoint para deletar uma categoria de serviço.
+/// Requer privilégios de administrador. A categoria não pode ter serviços associados.
+/// </summary>
 public class DeleteServiceCategoryEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint DELETE /{id} para deletar uma categoria.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapDelete("/{id:guid}", DeleteAsync)
+        => app.MapDelete(ApiEndpoints.ServiceCatalogs.Categories.Delete, DeleteAsync)
             .WithName("DeleteServiceCategory")
             .WithSummary("Deletar categoria de serviço")
             .WithDescription("""
@@ -28,6 +36,9 @@ public class DeleteServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Deleta a categoria permanentemente. Falha se houver serviços associados.
+    /// </summary>
     private static async Task<IResult> DeleteAsync(
         Guid id,
         ICommandDispatcher commandDispatcher,

@@ -1,12 +1,16 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappers;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 
+/// <summary>
+/// Handler para processar a consulta GetAllServiceCategoriesQuery, retornando uma lista de categorias de serviço.
+/// </summary>
+/// <param name="queries"></param>
 public sealed class GetAllServiceCategoriesQueryHandler(IServiceCategoryQueries queries)
     : IQueryHandler<GetAllServiceCategoriesQuery, Result<IReadOnlyList<ServiceCategoryDto>>>
 {

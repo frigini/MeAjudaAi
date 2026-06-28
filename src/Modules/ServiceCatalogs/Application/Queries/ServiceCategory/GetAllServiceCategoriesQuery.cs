@@ -1,13 +1,16 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 
+/// <summary>
+/// Query para obter todas as categorias de serviço, com opção de filtrar apenas as ativas.
+/// </summary>
+/// <param name="ActiveOnly"></param>
 [ExcludeFromCodeCoverage]
-
 public sealed record GetAllServiceCategoriesQuery(bool ActiveOnly = false)
     : Query<Result<IReadOnlyList<ServiceCategoryDto>>>, ICacheableQuery
 {

@@ -1,36 +1,29 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
-public sealed class DeleteServiceCategoryCommandHandler : ICommandHandler<DeleteServiceCategoryCommand, Result>
+/// <summary>
+/// Handler para o comando DeleteServiceCategoryCommand, responsável por deletar uma categoria de serviço do catálogo.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="serviceQueries"></param>
+/// <param name="logger"></param>
+public sealed class DeleteServiceCategoryCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    IServiceQueries serviceQueries,
+    ILogger<DeleteServiceCategoryCommandHandler> logger) : ICommandHandler<DeleteServiceCategoryCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IServiceQueries _serviceQueries;
-    private readonly ILogger<DeleteServiceCategoryCommandHandler> _logger;
-
-    public DeleteServiceCategoryCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceQueries serviceQueries,
-        ILogger<DeleteServiceCategoryCommandHandler> logger)
-    {
-        _uow = uow;
-        _serviceQueries = serviceQueries;
-        _logger = logger;
-    }
-
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var serviceQueries = _serviceQueries;
         try
         {
             if (request.Id == Guid.Empty)
@@ -59,11 +52,8 @@ public sealed class DeleteServiceCategoryCommandHandler : ICommandHandler<Delete
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while deleting the service category.");
+            logger.LogError(ex, "Unexpected error while deleting service category.");
             return Result.Failure("Ocorreu um erro inesperado ao excluir a categoria de serviço.");
         }
     }
 }
-
-
-

@@ -55,7 +55,7 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
         var svcId = GetResponseData(await ReadJsonAsync<JsonElement>(svcResponse.Content)).GetProperty("id").GetGuid();
 
         // 4. Update Service
-        var updateSvcResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}", new { name = svcName + "_Updated", categoryId = catId });
+        var updateSvcResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}", new { name = svcName + "_Updated", displayOrder = 2 });
         updateSvcResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
 
         // 5. Deactivate & Activate
@@ -84,17 +84,7 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
     public async Task ServiceCatalogs_GetServicesByCategory_ShouldReturnOk()
     {
         // Act
-        var response = await Client.GetAsync($"/api/v1/service-catalogs/categories/{Guid.NewGuid()}/services");
-
-        // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task ServiceCatalogs_GetCategoriesWithCount_ShouldReturnOk()
-    {
-        // Act
-        var response = await Client.GetAsync("/api/v1/service-catalogs/categories/with-count");
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/category/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);

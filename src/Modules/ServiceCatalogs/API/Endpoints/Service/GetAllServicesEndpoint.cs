@@ -1,17 +1,24 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
-
-using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para listar todos os serviços do catálogo.
+/// Suporta filtro opcional por serviços ativos.
+/// </summary>
 public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint GET / para listar todos os serviços.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/", GetAllAsync)
+        => app.MapGet(ApiEndpoints.ServiceCatalogs.Services.GetAll, GetAllAsync)
             .WithName("GetAllServices")
             .WithSummary("Listar todos os serviços")
             .WithDescription("""
@@ -28,6 +35,9 @@ public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK)
             .AllowAnonymous();
 
+    /// <summary>
+    /// Retorna todos os serviços, com opção de filtrar apenas ativos.
+    /// </summary>
     private static async Task<IResult> GetAllAsync(
         [AsParameters] GetAllServicesQuery query,
         IQueryDispatcher queryDispatcher,

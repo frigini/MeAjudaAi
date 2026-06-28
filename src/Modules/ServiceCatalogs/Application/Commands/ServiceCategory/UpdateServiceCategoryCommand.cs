@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 
@@ -15,4 +15,3 @@ public sealed record UpdateServiceCategoryCommand(
     string? Description,
     int DisplayOrder = 0
 ) : Command<Result>;
-

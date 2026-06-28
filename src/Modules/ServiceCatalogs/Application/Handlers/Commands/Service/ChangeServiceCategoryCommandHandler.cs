@@ -1,41 +1,32 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<ChangeServiceCategoryCommand, Result>
+/// <summary>
+/// Handler para o comando ChangeServiceCategoryCommand, responsável por alterar a categoria de um serviço existente.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="serviceQueries"></param>
+/// <param name="categoryQueries"></param>
+/// <param name="logger"></param>
+public sealed class ChangeServiceCategoryCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    IServiceQueries serviceQueries,
+    IServiceCategoryQueries categoryQueries,
+    ILogger<ChangeServiceCategoryCommandHandler> logger) : ICommandHandler<ChangeServiceCategoryCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IServiceQueries _serviceQueries;
-    private readonly IServiceCategoryQueries _categoryQueries;
-    private readonly ILogger<ChangeServiceCategoryCommandHandler> _logger;
-
-    public ChangeServiceCategoryCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceQueries serviceQueries,
-        IServiceCategoryQueries categoryQueries,
-        ILogger<ChangeServiceCategoryCommandHandler> logger)
-    {
-        _uow = uow;
-        _serviceQueries = serviceQueries;
-        _categoryQueries = categoryQueries;
-        _logger = logger;
-    }
-
     public async Task<Result> HandleAsync(ChangeServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var serviceQueries = _serviceQueries;
-        var categoryQueries = _categoryQueries;
         try
         {
             if (request.ServiceId == Guid.Empty)
@@ -51,10 +42,7 @@ public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<Change
                 return Result.Failure(Error.NotFound($"Serviço com ID '{request.ServiceId}' não encontrado."));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
-            var newCategory = await categoryQueries.GetByIdAsync(newCategoryId, cancellationToken);
-
-            if (newCategory is null)
-                throw new UnprocessableEntityException(
+            var newCategory = await categoryQueries.GetByIdAsync(newCategoryId, cancellationToken) ?? throw new UnprocessableEntityException(
                     $"Categoria com ID '{request.NewCategoryId}' não encontrada.",
                     "ServiceCategory");
 
@@ -94,11 +82,8 @@ public sealed class ChangeServiceCategoryCommandHandler : ICommandHandler<Change
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ocorreu um erro inesperado ao alterar a categoria do serviço.");
+            logger.LogError(ex, "Unexpected error while changing service category.");
             return Result.Failure("Ocorreu um erro inesperado ao alterar a categoria do serviço.");
         }
     }
 }
-
-
-

@@ -1,10 +1,11 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
@@ -20,7 +21,7 @@ public sealed class ServiceCatalogsModuleApi(
 {
     private static class ModuleMetadata
     {
-        public const string Name = "ServiceCatalogs";
+        public const string Name = ModuleNames.ServiceCatalogs;
         public const string Version = "1.0";
     }
 
@@ -39,7 +40,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<ModuleServiceCategoryDto?>.Failure("Category id must be provided");
+                return Result<ModuleServiceCategoryDto?>.Failure("O ID da categoria deve ser fornecido.");
 
             var id = ServiceCategoryId.From(categoryId);
             var category = await categoryQueries.GetByIdAsync(id, cancellationToken);
@@ -57,10 +58,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<ModuleServiceCategoryDto?>.Success(dto);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving service category {CategoryId}", categoryId);
-            return Result<ModuleServiceCategoryDto?>.Failure($"Error retrieving service category: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving service category {CategoryId}", categoryId);
+            return Result<ModuleServiceCategoryDto?>.Failure("Erro ao buscar categoria de serviço.");
         }
     }
 
@@ -82,10 +87,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving service categories");
-            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure($"Error retrieving service categories: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving service categories");
+            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure("Erro ao buscar categorias de serviço.");
         }
     }
 
@@ -96,7 +105,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceId == Guid.Empty)
-                return Result<ModuleServiceDto?>.Failure("Service id must be provided");
+                return Result<ModuleServiceDto?>.Failure("O ID do serviço deve ser fornecido.");
 
             var id = ServiceId.From(serviceId);
             var service = await serviceQueries.GetByIdAsync(id, cancellationToken);
@@ -118,10 +127,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<ModuleServiceDto?>.Success(dto);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving service {ServiceId}", serviceId);
-            return Result<ModuleServiceDto?>.Failure($"Error retrieving service: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving service {ServiceId}", serviceId);
+            return Result<ModuleServiceDto?>.Failure("Erro ao buscar serviço.");
         }
     }
 
@@ -144,10 +157,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<IReadOnlyList<ModuleServiceListDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving services");
-            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure($"Error retrieving services: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving services");
+            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure("Erro ao buscar serviços.");
         }
     }
 
@@ -159,7 +176,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Category id must be provided");
+                return Result<IReadOnlyList<ModuleServiceDto>>.Failure("O ID da categoria deve ser fornecido.");
 
             var id = ServiceCategoryId.From(categoryId);
             var services = await serviceQueries.GetByCategoryAsync(id, activeOnly, cancellationToken);
@@ -176,10 +193,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<IReadOnlyList<ModuleServiceDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving services for category {CategoryId}", categoryId);
-            return Result<IReadOnlyList<ModuleServiceDto>>.Failure($"Error retrieving services: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving services for category {CategoryId}", categoryId);
+            return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Erro ao buscar serviços da categoria.");
         }
     }
 
@@ -190,7 +211,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceId == Guid.Empty)
-                return Result<bool>.Failure("Service id must be provided");
+                return Result<bool>.Failure("O ID do serviço deve ser fornecido.");
 
             var serviceIdValue = ServiceId.From(serviceId);
             var service = await serviceQueries.GetByIdAsync(serviceIdValue, cancellationToken);
@@ -201,10 +222,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<bool>.Success(service.IsActive);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error checking if service {ServiceId} is active", serviceId);
-            return Result<bool>.Failure($"Error checking service status: {ex.Message}");
+            logger.LogError(ex, "Unexpected error checking if service {ServiceId} is active", serviceId);
+            return Result<bool>.Failure("Erro ao verificar status do serviço.");
         }
     }
 
@@ -221,7 +246,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceIds is null)
-                return Result<ModuleServiceValidationResultDto>.Failure("Service IDs collection cannot be null");
+                return Result<ModuleServiceValidationResultDto>.Failure("A coleção de IDs de serviços não pode ser nula.");
 
             // Short-circuit for empty collection
             if (serviceIds.Count == 0)
@@ -281,10 +306,14 @@ public sealed class ServiceCatalogsModuleApi(
 
             return Result<ModuleServiceValidationResultDto>.Success(result);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error validating services");
-            return Result<ModuleServiceValidationResultDto>.Failure($"Error validating services: {ex.Message}");
+            logger.LogError(ex, "Unexpected error validating services");
+            return Result<ModuleServiceValidationResultDto>.Failure("Erro ao validar serviços.");
         }
     }
 }

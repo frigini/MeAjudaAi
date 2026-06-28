@@ -1,13 +1,17 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappers;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 
+/// <summary>
+/// Handler para processar a consulta GetServiceCategoryByIdQuery, retornando os detalhes de uma categoria de serviço específica com base no ID fornecido.
+/// </summary>
+/// <param name="queries"></param>
 public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryQueries queries)
     : IQueryHandler<GetServiceCategoryByIdQuery, Result<ServiceCategoryDto?>>
 {
@@ -16,7 +20,7 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryQueries q
         CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result<ServiceCategoryDto?>.Failure("Service Category ID cannot be empty.");
+            return Result<ServiceCategoryDto?>.Failure("O ID da categoria não pode ser vazio.");
 
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await queries.GetByIdAsync(categoryId, cancellationToken);

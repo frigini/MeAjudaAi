@@ -1,38 +1,31 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceCommand, Result>
+/// <summary>
+/// Handler para o comando UpdateServiceCommand, responsável por atualizar os detalhes de um serviço existente.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="serviceQueries"></param>
+/// <param name="logger"></param>
+public sealed class UpdateServiceCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    IServiceQueries serviceQueries,
+    ILogger<UpdateServiceCommandHandler> logger) : ICommandHandler<UpdateServiceCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IServiceQueries _serviceQueries;
-    private readonly ILogger<UpdateServiceCommandHandler> _logger;
-
-    public UpdateServiceCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceQueries serviceQueries,
-        ILogger<UpdateServiceCommandHandler> logger)
-    {
-        _uow = uow;
-        _serviceQueries = serviceQueries;
-        _logger = logger;
-    }
-
     public async Task<Result> HandleAsync(UpdateServiceCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var serviceQueries = _serviceQueries;
         try
         {
             if (request.Id == Guid.Empty)
@@ -73,11 +66,8 @@ public sealed class UpdateServiceCommandHandler : ICommandHandler<UpdateServiceC
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while updating the service.");
+            logger.LogError(ex, "Unexpected error while updating service.");
             return Result.Failure("Ocorreu um erro inesperado.");
         }
     }
 }
-
-
-

@@ -1,39 +1,31 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 
-public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<UpdateServiceCategoryCommand, Result>
+/// <summary>
+/// Handler para o comando UpdateServiceCategoryCommand, responsável por atualizar as informações de uma categoria de serviço existente.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="categoryQueries"></param>
+/// <param name="logger"></param>
+public sealed class UpdateServiceCategoryCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    IServiceCategoryQueries categoryQueries,
+    ILogger<UpdateServiceCategoryCommandHandler> logger) : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IServiceCategoryQueries _categoryQueries;
-    private readonly ILogger<UpdateServiceCategoryCommandHandler> _logger;
-
-    public UpdateServiceCategoryCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IServiceCategoryQueries categoryQueries,
-        ILogger<UpdateServiceCategoryCommandHandler> logger)
-    {
-        _uow = uow;
-        _categoryQueries = categoryQueries;
-        _logger = logger;
-    }
-
-
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var categoryQueries = _categoryQueries;
         try
         {
             if (request.Id == Guid.Empty)
@@ -72,11 +64,8 @@ public sealed class UpdateServiceCategoryCommandHandler : ICommandHandler<Update
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while updating the service category.");
+            logger.LogError(ex, "Unexpected error while updating service category.");
             return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
         }
     }
 }
-
-
-

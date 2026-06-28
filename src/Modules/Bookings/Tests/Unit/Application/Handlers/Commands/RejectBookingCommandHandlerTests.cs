@@ -1,0 +1,214 @@
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
+
+[Trait("Category", "Unit")]
+public class RejectBookingCommandHandlerTests
+{
+    private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<ILogger<RejectBookingCommandHandler>> _loggerMock = new();
+    private readonly RejectBookingCommandHandler _sut;
+
+    public RejectBookingCommandHandlerTests()
+    {
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        _sut = new RejectBookingCommandHandler(
+            _bookingQueriesMock.Object,
+            _uowMock.Object,
+            _loggerMock.Object);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Reject_When_UserIsProviderOwner()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
+        
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(EBookingStatus.Rejected);
+        _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Reject_When_OwnerIdentifiedByProviderId()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
+        
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        // Act - Simulando o ID vindo do claim mapeado para UserProviderId no comando
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(EBookingStatus.Rejected);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_UserIsNotOwner()
+    {
+        // Arrange
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = new BookingBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
+        
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, Guid.NewGuid(), Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_BookingNotFound()
+    {
+        // Arrange
+        var command = new RejectBookingCommand(Guid.NewGuid(), "Reason", false, Guid.NewGuid(), Guid.NewGuid());
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Booking?)null);
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_BookingAlreadyConfirmed()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .AsConfirmed()
+            .Build();
+        booking.ClearDomainEvents();
+        
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Succeed_When_UserIsSystemAdmin()
+    {
+        // Arrange
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = new BookingBuilder()
+            .WithProviderId(Guid.NewGuid())
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
+        
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        var command = new RejectBookingCommand(booking.Id, "Admin Reason", true, null, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(EBookingStatus.Rejected);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_ReturnConflict_When_ConcurrencyOccurs()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(tomorrow)
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(10, 0)).WithEnd(new TimeOnly(11, 0)).Build())
+            .Build();
+        
+        _bookingQueriesMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
+    }
+}

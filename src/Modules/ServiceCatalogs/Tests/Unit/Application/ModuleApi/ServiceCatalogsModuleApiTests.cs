@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
@@ -134,7 +134,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Category id must be provided");
+        result.Error.Message.Should().Contain("deve ser fornecido");
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error retrieving service category");
+        result.Error!.Message.Should().Contain("Erro ao buscar categoria");
     }
 
     #endregion
@@ -255,7 +255,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error retrieving service categories");
+        result.Error!.Message.Should().Contain("Erro ao buscar categorias");
     }
 
     #endregion
@@ -299,7 +299,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Service id must be provided");
+        result.Error!.Message.Should().Contain("deve ser fornecido");
     }
 
     [Fact]
@@ -398,7 +398,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error retrieving services");
+        result.Error!.Message.Should().Contain("Erro ao buscar serviços");
     }
 
     #endregion
@@ -471,7 +471,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Category id must be provided");
+        result.Error!.Message.Should().Contain("deve ser fornecido");
     }
 
     [Fact]
@@ -487,7 +487,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error retrieving services");
+        result.Error!.Message.Should().Contain("Erro ao buscar serviços");
     }
 
     #endregion
@@ -554,7 +554,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Service id must be provided");
+        result.Error!.Message.Should().Contain("deve ser fornecido");
     }
 
     #endregion
@@ -579,7 +579,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.AllValid.Should().BeTrue();
+        result.Value!.AllValid.Should().BeTrue();
         result.Value.InvalidServiceIds.Should().BeEmpty();
         result.Value.InactiveServiceIds.Should().BeEmpty();
     }
@@ -604,7 +604,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.AllValid.Should().BeFalse();
+        result.Value!.AllValid.Should().BeFalse();
         result.Value.InvalidServiceIds.Should().Contain(invalidServiceId);
         result.Value.InactiveServiceIds.Should().BeEmpty();
     }
@@ -630,7 +630,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.AllValid.Should().BeFalse();
+        result.Value!.AllValid.Should().BeFalse();
         result.Value.InvalidServiceIds.Should().BeEmpty();
         result.Value.InactiveServiceIds.Should().Contain(inactiveServiceId);
     }
@@ -643,7 +643,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.AllValid.Should().BeTrue();
+        result.Value!.AllValid.Should().BeTrue();
         result.Value.InvalidServiceIds.Should().BeEmpty();
         result.Value.InactiveServiceIds.Should().BeEmpty();
     }
@@ -656,7 +656,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Service IDs collection cannot be null");
+        result.Error!.Message.Should().Contain("não pode ser nula");
     }
 
     [Fact]
@@ -679,7 +679,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.AllValid.Should().BeFalse();
+        result.Value!.AllValid.Should().BeFalse();
         result.Value.InvalidServiceIds.Should().Contain(Guid.Empty);
     }
 
@@ -702,7 +702,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.AllValid.Should().BeTrue();
+        result.Value!.AllValid.Should().BeTrue();
 
         // Verify repository was called only once per unique ID
         _serviceQueriesMock.Verify(
@@ -727,7 +727,7 @@ public class ServiceCatalogsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error validating services");
+        result.Error!.Message.Should().Contain("Erro ao validar serviços");
     }
 
     #endregion

@@ -1,18 +1,25 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Mvc;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
-public record UpdateServiceCategoryRequest(string Name, string? Description, int DisplayOrder);
-
+/// <summary>
+/// Endpoint para atualizar uma categoria de serviço existente.
+/// Requer privilégios de administrador.
+/// </summary>
 public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint PUT /{id} para atualizar uma categoria.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPut("/{id:guid}", UpdateAsync)
+        => app.MapPut(ApiEndpoints.ServiceCatalogs.Categories.Update, UpdateAsync)
             .WithName("UpdateServiceCategory")
             .WithSummary("Atualizar categoria de serviço")
             .WithDescription("""
@@ -33,6 +40,9 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .Produces<Result>(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Atualiza os dados de uma categoria existente.
+    /// </summary>
     private static async Task<IResult> UpdateAsync(
         Guid id,
         [FromBody] UpdateServiceCategoryRequest request,
@@ -41,6 +51,6 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new UpdateServiceCategoryCommand(id, request.Name, request.Description, request.DisplayOrder);
         var result = await commandDispatcher.SendAsync<UpdateServiceCategoryCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }

@@ -2,38 +2,24 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
-using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Queries;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
 [Trait("Layer", "Infrastructure")]
-public class DbContextServiceQueriesTests : IDisposable
+public class DbContextServiceQueriesTests : BaseInMemoryDatabaseTest<ServiceCatalogsDbContext>
 {
-    private readonly ServiceCatalogsDbContext _dbContext;
-    private readonly DbContextServiceQueries _queries;
-
     public DbContextServiceQueriesTests()
+        : base(options => new ServiceCatalogsDbContext(options))
     {
-        var options = new DbContextOptionsBuilder<ServiceCatalogsDbContext>()
-            .UseInMemoryDatabase(databaseName: "ServiceQueriesTest_" + Guid.NewGuid())
-            .Options;
-
-        _dbContext = new ServiceCatalogsDbContext(options);
-        _queries = new DbContextServiceQueries(_dbContext);
-    }
-
-    public void Dispose()
-    {
-        _dbContext.Dispose();
     }
 
     private async Task<ServiceCategory> CreateCategoryAsync(string name = "Test Category")
     {
         var category = ServiceCategory.Create(name, "Description", 1);
-        _dbContext.ServiceCategories.Add(category);
-        await _dbContext.SaveChangesAsync();
+        DbContext.ServiceCategories.Add(category);
+        await DbContext.SaveChangesAsync();
         return category;
     }
 
@@ -42,19 +28,23 @@ public class DbContextServiceQueriesTests : IDisposable
         var service = Service.Create(categoryId, name, "Description", 1);
         if (active) service.Activate();
         else service.Deactivate();
-        _dbContext.Services.Add(service);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Services.Add(service);
+        await DbContext.SaveChangesAsync();
         return service;
     }
 
     [Fact]
     public async Task GetByIdAsync_WithExistingService_ShouldReturnServiceWithCategory()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         var service = await CreateServiceAsync(category.Id);
 
-        var result = await _queries.GetByIdAsync(service.Id);
+        // Act
+        var queries = new DbContextServiceQueries(DbContext);
+        var result = await queries.GetByIdAsync(service.Id);
 
+        // Assert
         result.Should().NotBeNull();
         result!.Name.Should().Be("Test Service");
         result.Category.Should().NotBeNull();
@@ -64,32 +54,45 @@ public class DbContextServiceQueriesTests : IDisposable
     [Fact]
     public async Task GetByIdAsync_WithNonExistingId_ShouldReturnNull()
     {
-        var result = await _queries.GetByIdAsync(ServiceId.From(Guid.NewGuid()));
+        // Arrange
+        var queries = new DbContextServiceQueries(DbContext);
 
+        // Act
+        var result = await queries.GetByIdAsync(ServiceId.From(Guid.NewGuid()));
+
+        // Assert
         result.Should().BeNull();
     }
 
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllServices()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         await CreateServiceAsync(category.Id, "Service A");
         await CreateServiceAsync(category.Id, "Service B");
+        var queries = new DbContextServiceQueries(DbContext);
 
-        var result = await _queries.GetAllAsync();
+        // Act
+        var result = await queries.GetAllAsync();
 
+        // Assert
         result.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task GetAllAsync_WithActiveOnly_ShouldReturnOnlyActiveServices()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         await CreateServiceAsync(category.Id, "Active Service", active: true);
         await CreateServiceAsync(category.Id, "Inactive Service", active: false);
+        var queries = new DbContextServiceQueries(DbContext);
 
-        var result = await _queries.GetAllAsync(activeOnly: true);
+        // Act
+        var result = await queries.GetAllAsync(activeOnly: true);
 
+        // Assert
         result.Should().HaveCount(1);
         result[0].Name.Should().Be("Active Service");
     }
@@ -97,13 +100,17 @@ public class DbContextServiceQueriesTests : IDisposable
     [Fact]
     public async Task GetByCategoryAsync_ShouldFilterByCategory()
     {
+        // Arrange
         var category1 = await CreateCategoryAsync("Category 1");
         var category2 = await CreateCategoryAsync("Category 2");
         await CreateServiceAsync(category1.Id, "Service 1");
         await CreateServiceAsync(category2.Id, "Service 2");
+        var queries = new DbContextServiceQueries(DbContext);
 
-        var result = await _queries.GetByCategoryAsync(category1.Id);
+        // Act
+        var result = await queries.GetByCategoryAsync(category1.Id);
 
+        // Assert
         result.Should().HaveCount(1);
         result[0].Name.Should().Be("Service 1");
     }
@@ -111,12 +118,16 @@ public class DbContextServiceQueriesTests : IDisposable
     [Fact]
     public async Task GetByCategoryAsync_WithActiveOnly_ShouldFilterBothCategoryAndActive()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         await CreateServiceAsync(category.Id, "Active Service", active: true);
         await CreateServiceAsync(category.Id, "Inactive Service", active: false);
+        var queries = new DbContextServiceQueries(DbContext);
 
-        var result = await _queries.GetByCategoryAsync(category.Id, activeOnly: true);
+        // Act
+        var result = await queries.GetByCategoryAsync(category.Id, activeOnly: true);
 
+        // Assert
         result.Should().HaveCount(1);
         result[0].Name.Should().Be("Active Service");
     }
@@ -124,13 +135,17 @@ public class DbContextServiceQueriesTests : IDisposable
     [Fact]
     public async Task GetByIdsAsync_ShouldReturnByMultipleIds()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         var service1 = await CreateServiceAsync(category.Id, "Service 1");
         var service2 = await CreateServiceAsync(category.Id, "Service 2");
         var service3 = await CreateServiceAsync(category.Id, "Service 3");
+        var queries = new DbContextServiceQueries(DbContext);
 
-        var result = await _queries.GetByIdsAsync(new[] { service1.Id, service3.Id });
+        // Act
+        var result = await queries.GetByIdsAsync(new[] { service1.Id, service3.Id });
 
+        // Assert
         result.Should().HaveCount(2);
         result.Select(s => s.Id).Should().Contain(new[] { service1.Id, service3.Id });
     }
@@ -138,95 +153,116 @@ public class DbContextServiceQueriesTests : IDisposable
     [Fact]
     public async Task GetByIdsAsync_WithEmptyList_ShouldReturnEmpty()
     {
-        var result = await _queries.GetByIdsAsync(Array.Empty<ServiceId>());
+        // Arrange & Act
+        var result = await new DbContextServiceQueries(DbContext).GetByIdsAsync(Array.Empty<ServiceId>());
 
+        // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task GetByIdsAsync_WithNonExistingIds_ShouldReturnEmpty()
     {
-        var result = await _queries.GetByIdsAsync(new[] { ServiceId.From(Guid.NewGuid()) });
+        // Arrange & Act
+        var result = await new DbContextServiceQueries(DbContext).GetByIdsAsync(new[] { ServiceId.From(Guid.NewGuid()) });
 
+        // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task ExistsWithNameAsync_WhenExists_ShouldReturnTrue()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         await CreateServiceAsync(category.Id, "UniqueService");
 
-        var result = await _queries.ExistsWithNameAsync("UniqueService", null, null);
+        // Act
+        var result = await new DbContextServiceQueries(DbContext).ExistsWithNameAsync("UniqueService", null, null);
 
+        // Assert
         result.Should().BeTrue();
     }
 
     [Fact]
     public async Task ExistsWithNameAsync_WhenNotExists_ShouldReturnFalse()
     {
-        var result = await _queries.ExistsWithNameAsync("NonExistent", null, null);
+        // Arrange & Act
+        var result = await new DbContextServiceQueries(DbContext).ExistsWithNameAsync("NonExistent", null, null);
 
+        // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
     public async Task ExistsWithNameAsync_WithExcludeId_ShouldExcludeService()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         var service = await CreateServiceAsync(category.Id, "ToExclude");
 
-        var result = await _queries.ExistsWithNameAsync("ToExclude", excludeId: service.Id, categoryId: null);
+        // Act
+        var result = await new DbContextServiceQueries(DbContext).ExistsWithNameAsync("ToExclude", excludeId: service.Id, categoryId: null);
 
+        // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
     public async Task ExistsWithNameAsync_WithCategoryId_ShouldFilterByCategory()
     {
+        // Arrange
         var category1 = await CreateCategoryAsync("Category 1");
         var category2 = await CreateCategoryAsync("Category 2");
         await CreateServiceAsync(category1.Id, "SameName");
-        var serviceInCat2 = await CreateServiceAsync(category2.Id, "SameName");
+        await CreateServiceAsync(category2.Id, "SameName");
+        var queries = new DbContextServiceQueries(DbContext);
 
-        var result = await _queries.ExistsWithNameAsync("SameName", null, category1.Id);
+        // Act
+        var resultInCat1 = await queries.ExistsWithNameAsync("SameName", null, category1.Id);
+        var resultInCat2 = await queries.ExistsWithNameAsync("SameName", null, category2.Id);
 
-        result.Should().BeTrue();
-
-        var resultInCat2 = await _queries.ExistsWithNameAsync("SameName", null, category2.Id);
-
+        // Assert
+        resultInCat1.Should().BeTrue();
         resultInCat2.Should().BeTrue();
     }
 
     [Fact]
     public async Task CountByCategoryAsync_ShouldReturnCorrectCount()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         await CreateServiceAsync(category.Id, "Service 1");
         await CreateServiceAsync(category.Id, "Service 2");
         await CreateServiceAsync(category.Id, "Service 3");
 
-        var result = await _queries.CountByCategoryAsync(category.Id);
+        // Act
+        var result = await new DbContextServiceQueries(DbContext).CountByCategoryAsync(category.Id);
 
+        // Assert
         result.Should().Be(3);
     }
 
     [Fact]
     public async Task CountByCategoryAsync_WithActiveOnly_ShouldCountOnlyActive()
     {
+        // Arrange
         var category = await CreateCategoryAsync();
         await CreateServiceAsync(category.Id, "Active 1", active: true);
         await CreateServiceAsync(category.Id, "Active 2", active: true);
         await CreateServiceAsync(category.Id, "Inactive", active: false);
 
-        var result = await _queries.CountByCategoryAsync(category.Id, activeOnly: true);
+        // Act
+        var result = await new DbContextServiceQueries(DbContext).CountByCategoryAsync(category.Id, activeOnly: true);
 
+        // Assert
         result.Should().Be(2);
     }
 
     [Fact]
     public async Task CountByCategoriesAsync_ShouldReturnDictionaryWithTotalAndActive()
     {
+        // Arrange
         var category1 = await CreateCategoryAsync("Category 1");
         var category2 = await CreateCategoryAsync("Category 2");
         await CreateServiceAsync(category1.Id, "Cat1 Active 1", active: true);
@@ -234,8 +270,10 @@ public class DbContextServiceQueriesTests : IDisposable
         await CreateServiceAsync(category1.Id, "Cat1 Inactive", active: false);
         await CreateServiceAsync(category2.Id, "Cat2 Active", active: true);
 
-        var result = await _queries.CountByCategoriesAsync(new[] { category1.Id, category2.Id });
+        // Act
+        var result = await new DbContextServiceQueries(DbContext).CountByCategoriesAsync(new[] { category1.Id, category2.Id });
 
+        // Assert
         result.Should().HaveCount(2);
         result[category1.Id].Total.Should().Be(3);
         result[category1.Id].Active.Should().Be(2);
@@ -246,8 +284,10 @@ public class DbContextServiceQueriesTests : IDisposable
     [Fact]
     public async Task CountByCategoriesAsync_WithEmptyList_ShouldReturnEmptyDictionary()
     {
-        var result = await _queries.CountByCategoriesAsync(Array.Empty<ServiceCategoryId>());
+        // Arrange & Act
+        var result = await new DbContextServiceQueries(DbContext).CountByCategoriesAsync(Array.Empty<ServiceCategoryId>());
 
+        // Assert
         result.Should().BeEmpty();
     }
 }

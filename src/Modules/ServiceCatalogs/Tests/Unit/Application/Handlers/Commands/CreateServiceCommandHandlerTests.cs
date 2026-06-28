@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
@@ -8,6 +8,8 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 using Microsoft.Extensions.Logging.Abstractions;
+
+namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -124,7 +126,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("already exists");
+        result.Error!.Message.Should().Contain("Já existe");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -139,7 +141,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be empty");
+        result.Error!.Message.Should().Contain("não pode ser vazio");
         _categoryQueriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -162,7 +164,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("required");
+        result.Error!.Message.Should().Contain("obrigatório");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -186,7 +188,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be negative");
+        result.Error!.Message.Should().Contain("não pode ser negativa");
         _serviceRepositoryMock.Verify(x => x.Add(It.IsAny<Service>()), Times.Never);
     }
 
@@ -239,6 +241,3 @@ public class CreateServiceCommandHandlerTests
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao criar o serviço.");
     }
 }
-
-
-

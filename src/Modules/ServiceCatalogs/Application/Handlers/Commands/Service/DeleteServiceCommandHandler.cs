@@ -1,37 +1,30 @@
-using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Commands;
-using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Shared.Database.Constants;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class DeleteServiceCommandHandler : ICommandHandler<DeleteServiceCommand, Result>
+/// <summary>
+/// Handler para o comando DeleteServiceCommand, responsável por deletar um serviço do catálogo.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="providersModuleApi"></param>
+/// <param name="logger"></param>
+public sealed class DeleteServiceCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    IProvidersModuleApi providersModuleApi,
+    ILogger<DeleteServiceCommandHandler> logger) : ICommandHandler<DeleteServiceCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IProvidersModuleApi _providersModuleApi;
-    private readonly ILogger<DeleteServiceCommandHandler> _logger;
-
-    public DeleteServiceCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        IProvidersModuleApi providersModuleApi,
-        ILogger<DeleteServiceCommandHandler> logger)
-    {
-        _uow = uow;
-        _providersModuleApi = providersModuleApi;
-        _logger = logger;
-    }
-
     public async Task<Result> HandleAsync(DeleteServiceCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
-        var providersModuleApi = _providersModuleApi;
-        
+       
         try
         {
             if (request.Id == Guid.Empty)
@@ -64,10 +57,8 @@ public sealed class DeleteServiceCommandHandler : ICommandHandler<DeleteServiceC
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while deleting the service.");
+            logger.LogError(ex, "Unexpected error while deleting service.");
             return Result.Failure("Ocorreu um erro inesperado ao excluir o serviço.");
         }
     }
 }
-
-

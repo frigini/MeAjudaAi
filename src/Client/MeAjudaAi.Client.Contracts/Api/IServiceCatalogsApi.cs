@@ -7,76 +7,96 @@ namespace MeAjudaAi.Client.Contracts.Api;
 
 public interface IServiceCatalogsApi
 {
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}")]
+    // ── Categories ──────────────────────────────────────────────
+
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}")]
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(
         [Query] bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}")]
-    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
-        [Query] bool activeOnly = true,
-        CancellationToken cancellationToken = default);
-
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}")]
-    Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
-        Guid serviceId,
-        CancellationToken cancellationToken = default);
-
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/category/{{categoryId}}")]
-    Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}/{{categoryId}}")]
+    Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(
         Guid categoryId,
-        [Query] bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
-    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}")]
     Task<Result<ModuleServiceCategoryDto>> CreateCategoryAsync(
         [Body] CreateServiceCatalogCategoryRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}/{{categoryId}}")]
     Task<Result<Unit>> UpdateCategoryAsync(
         Guid categoryId,
         [Body] UpdateServiceCatalogCategoryRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Delete($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}")]
+    [Delete($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}/{{categoryId}}")]
     Task<Result<Unit>> DeleteCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
-    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}/activate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}/{{categoryId}}/activate")]
     Task<Result<Unit>> ActivateCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
-    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories}/{{categoryId}}/deactivate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Categories.Base}/{{categoryId}}/deactivate")]
     Task<Result<Unit>> DeactivateCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
-    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}")]
+    // ── Services ────────────────────────────────────────────────
+
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}")]
+    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
+        [Query] bool activeOnly = true,
+        CancellationToken cancellationToken = default);
+
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/{{serviceId}}")]
+    Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
+        Guid serviceId,
+        CancellationToken cancellationToken = default);
+
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/category/{{categoryId}}")]
+    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetServicesByCategoryAsync(
+        Guid categoryId,
+        [Query] bool activeOnly = true,
+        CancellationToken cancellationToken = default);
+
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}")]
     Task<Result<ModuleServiceDto>> CreateServiceAsync(
         [Body] CreateServiceRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}")]
+    [Put($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/{{serviceId}}")]
     Task<Result<Unit>> UpdateServiceAsync(
         Guid serviceId,
         [Body] UpdateServiceRequestDto request,
         CancellationToken cancellationToken = default);
 
-    [Delete($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/{{serviceId}}/change-category")]
+    Task<Result<Unit>> ChangeServiceCategoryAsync(
+        Guid serviceId,
+        [Body] ChangeServiceCategoryRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    [Delete($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/{{serviceId}}")]
     Task<Result<Unit>> DeleteServiceAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
-    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}/activate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/{{serviceId}}/activate")]
     Task<Result<Unit>> ActivateServiceAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
-    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services}/{{serviceId}}/deactivate")]
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/{{serviceId}}/deactivate")]
     Task<Result<Unit>> DeactivateServiceAsync(
         Guid serviceId,
+        CancellationToken cancellationToken = default);
+
+    [Post($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.ServiceCatalogs.Services.Base}/validate")]
+    Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
+        [Body] ValidateServicesRequestDto request,
         CancellationToken cancellationToken = default);
 }

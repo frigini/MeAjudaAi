@@ -1,31 +1,23 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.DependencyInjection;
-
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 
-public sealed class ActivateServiceCommandHandler : ICommandHandler<ActivateServiceCommand, Result>
+/// <summary>
+/// Handler para o comando ActivateServiceCommand, responsável por ativar um serviço existente no catálogo.
+/// </summary>
+public sealed class ActivateServiceCommandHandler(
+    [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
+    ILogger<ActivateServiceCommandHandler> logger) : ICommandHandler<ActivateServiceCommand, Result>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly ILogger<ActivateServiceCommandHandler> _logger;
-
-    public ActivateServiceCommandHandler(
-        [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-        ILogger<ActivateServiceCommandHandler> logger)
-    {
-        _uow = uow;
-        _logger = logger;
-    }
-
     public async Task<Result> HandleAsync(ActivateServiceCommand request, CancellationToken cancellationToken = default)
     {
-        var uow = _uow;
         try
         {
             if (request.Id == Guid.Empty)
@@ -49,11 +41,8 @@ public sealed class ActivateServiceCommandHandler : ICommandHandler<ActivateServ
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while activating the service.");
+            logger.LogError(ex, "Unexpected error while activating service.");
             return Result.Failure("Ocorreu um erro inesperado ao ativar o serviço.");
         }
     }
 }
-
-
-

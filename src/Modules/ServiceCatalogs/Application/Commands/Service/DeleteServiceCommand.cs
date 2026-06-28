@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
@@ -9,4 +9,3 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 /// histórico de auditoria e prevenir deleção quando provedores referenciam este serviço. Veja TODO no handler.
 /// </summary>
 public sealed record DeleteServiceCommand(Guid Id) : Command<Result>;
-

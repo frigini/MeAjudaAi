@@ -1,18 +1,25 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
-using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
-using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
-using Microsoft.AspNetCore.Mvc;
-
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para validar a existência e status de múltiplos serviços.
+/// Requer privilégios de administrador.
+/// </summary>
 public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint POST /validate para validar serviços em lote.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("validate", ValidateAsync)
+        => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Validate, ValidateAsync)
             .WithName("ValidateServices")
             .WithSummary("Validar múltiplos serviços")
             .WithDescription("""
@@ -33,6 +40,9 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<ValidateServicesResponse>>(StatusCodes.Status200OK)
             .RequireAdmin();
 
+    /// <summary>
+    /// Valida a existência e status dos serviços informados.
+    /// </summary>
     private static async Task<IResult> ValidateAsync(
         [FromBody] ValidateServicesRequest request,
         [FromServices] IServiceCatalogsModuleApi moduleApi,

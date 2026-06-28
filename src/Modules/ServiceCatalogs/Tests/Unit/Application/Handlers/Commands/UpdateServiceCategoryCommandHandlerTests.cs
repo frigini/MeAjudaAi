@@ -1,10 +1,11 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -24,7 +25,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         _queriesMock = new Mock<IServiceCategoryQueries>();
-        
+
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_repositoryMock.Object);
         _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object, NullLogger<UpdateServiceCategoryCommandHandler>.Instance);
     }
@@ -39,7 +40,6 @@ public class UpdateServiceCategoryCommandHandlerTests
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
-
         _queriesMock
             .Setup(x => x.ExistsWithNameAsync(command.Name, category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -56,14 +56,17 @@ public class UpdateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithNonExistentCategory_ShouldReturnFailure()
     {
+        // Arrange
         var categoryId = ServiceCategoryId.From(Guid.NewGuid());
         _repositoryMock
             .Setup(x => x.TryFindAsync(categoryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
         var command = new UpdateServiceCategoryCommand(categoryId.Value, "Name", "Desc", 1);
 
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Contain("não encontrada");
@@ -74,6 +77,7 @@ public class UpdateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithDuplicateName_ShouldReturnFailure()
     {
+        // Arrange
         var category = new ServiceCategoryBuilder().WithName("Original").Build();
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
@@ -83,8 +87,10 @@ public class UpdateServiceCategoryCommandHandlerTests
             .ReturnsAsync(true);
         var command = new UpdateServiceCategoryCommand(category.Id.Value, "Duplicate", "Desc", 1);
 
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Contain("Duplicate");
@@ -95,10 +101,13 @@ public class UpdateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithEmptyId_ShouldReturnFailure()
     {
+        // Arrange
         var command = new UpdateServiceCategoryCommand(Guid.Empty, "Name", "Desc", 1);
 
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Be(ValidationMessages.Required.Id);
@@ -109,14 +118,17 @@ public class UpdateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithEmptyName_ShouldReturnFailure()
     {
+        // Arrange
         var category = new ServiceCategoryBuilder().Build();
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);
         var command = new UpdateServiceCategoryCommand(category.Id.Value, string.Empty, "Desc", 1);
 
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Contain("nome");
@@ -128,6 +140,7 @@ public class UpdateServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
     {
+        // Arrange
         var category = new ServiceCategoryBuilder().WithName("Original").Build();
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
@@ -140,22 +153,12 @@ public class UpdateServiceCategoryCommandHandlerTests
             .ThrowsAsync(new Exception("DB failure"));
 
         var command = new UpdateServiceCategoryCommand(category.Id.Value, "New Name", "Desc", 1);
+
+        // Act
         var result = await _handler.HandleAsync(command);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
     }
 }
-
-// Minimal Builder for test
-internal class ServiceCategoryBuilder
-{
-    private ServiceCategory _category = ServiceCategory.Create("Default", "Desc", 1);
-    public ServiceCategoryBuilder WithName(string name) { _category.Update(name, _category.Description, _category.DisplayOrder); return this; }
-    public ServiceCategoryBuilder AsActive() { _category.Activate(); return this; }
-    public ServiceCategoryBuilder AsInactive() { _category.Deactivate(); return this; }
-    public ServiceCategory Build() => _category;
-}
-
-
-

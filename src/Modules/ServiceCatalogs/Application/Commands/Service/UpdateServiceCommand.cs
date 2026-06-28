@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Commands;
+using System.ComponentModel.DataAnnotations;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
@@ -19,4 +19,3 @@ public sealed record UpdateServiceCommand(
     [Range(0, int.MaxValue)]
     int DisplayOrder
 ) : Command<Result>;
-

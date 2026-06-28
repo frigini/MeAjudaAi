@@ -1,15 +1,23 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
+/// <summary>
+/// Endpoint para ativar um serviço no catálogo.
+/// Requer privilégios de administrador.
+/// </summary>
 public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
 {
+    /// <summary>
+    /// Mapeia o endpoint POST /{id}/activate para ativar um serviço.
+    /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{id:guid}/activate", ActivateAsync)
+        => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Activate, ActivateAsync)
             .WithName("ActivateService")
             .WithSummary("Ativar serviço")
             .WithDescription("""
@@ -25,6 +33,9 @@ public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
+    /// <summary>
+    /// Ativa o serviço, tornando-o disponível no catálogo.
+    /// </summary>
     private static async Task<IResult> ActivateAsync(
         Guid id,
         ICommandDispatcher commandDispatcher,

@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Mappers;
 
@@ -74,7 +75,7 @@ public static class RequestMapperExtensions
     /// <summary>
     /// Mapeia CreateServiceCategoryRequest (API) para CreateServiceCategoryCommand.
     /// </summary>
-    public static CreateServiceCategoryCommand ToCommand(this Endpoints.ServiceCategory.CreateServiceCategoryRequest request)
+    public static CreateServiceCategoryCommand ToCommand(this CreateServiceCategoryRequest request)
     {
         return new CreateServiceCategoryCommand(
             request.Name,
@@ -85,7 +86,7 @@ public static class RequestMapperExtensions
     /// <summary>
     /// Mapeia UpdateServiceCategoryRequest (API) para UpdateServiceCategoryCommand.
     /// </summary>
-    public static UpdateServiceCategoryCommand ToCommand(this Endpoints.ServiceCategory.UpdateServiceCategoryRequest request, Guid id)
+    public static UpdateServiceCategoryCommand ToCommand(this UpdateServiceCategoryRequest request, Guid id)
     {
         return new UpdateServiceCategoryCommand(
             id,
