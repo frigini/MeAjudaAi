@@ -52,7 +52,7 @@ public sealed class AddServiceToProviderCommandHandler(
                 "Failed to validate service {ServiceId}: {Error}",
                 command.ServiceId,
                 validationResult.Error?.Message ?? "Unknown error");
-            return Result.Failure($"Failed to validate service: {validationResult.Error?.Message ?? "Unknown error"}");
+            return Result.Failure($"Falha ao validar serviço: {validationResult.Error?.Message ?? "erro desconhecido"}");
         }
 
         if (!validationResult.Value.AllValid)

@@ -57,7 +57,7 @@ public sealed class DeleteServiceCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while deleting the service.");
+            logger.LogError(ex, "Unexpected error while deleting service.");
             return Result.Failure("Ocorreu um erro inesperado ao excluir o serviço.");
         }
     }

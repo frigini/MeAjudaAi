@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -40,9 +39,9 @@ public sealed class ActivateServiceCommandHandler(
         {
             throw;
         }
-        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException) 
+        catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while activating the service.");
+            logger.LogError(ex, "Unexpected error while activating service.");
             return Result.Failure("Ocorreu um erro inesperado ao ativar o serviço.");
         }
     }

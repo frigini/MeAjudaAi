@@ -10,7 +10,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 
 /// <summary>
 /// Handler para processar comandos de definição de agenda do prestador.

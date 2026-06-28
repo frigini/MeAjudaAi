@@ -82,7 +82,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ocorreu um erro inesperado ao alterar a categoria do serviço.");
+            logger.LogError(ex, "Unexpected error while changing service category.");
             return Result.Failure("Ocorreu um erro inesperado ao alterar a categoria do serviço.");
         }
     }

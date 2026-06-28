@@ -40,7 +40,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<ModuleServiceCategoryDto?>.Failure("Category id must be provided");
+                return Result<ModuleServiceCategoryDto?>.Failure("O ID da categoria deve ser fornecido.");
 
             var id = ServiceCategoryId.From(categoryId);
             var category = await categoryQueries.GetByIdAsync(id, cancellationToken);
@@ -60,8 +60,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving service category {CategoryId}", categoryId);
-            return Result<ModuleServiceCategoryDto?>.Failure($"Error retrieving service category: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving service category {CategoryId}", categoryId);
+            return Result<ModuleServiceCategoryDto?>.Failure($"Erro ao buscar categoria de serviço: {ex.Message}");
         }
     }
 
@@ -85,8 +85,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving service categories");
-            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure($"Error retrieving service categories: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving service categories");
+            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure($"Erro ao buscar categorias de serviço: {ex.Message}");
         }
     }
 
@@ -97,7 +97,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceId == Guid.Empty)
-                return Result<ModuleServiceDto?>.Failure("Service id must be provided");
+                return Result<ModuleServiceDto?>.Failure("O ID do serviço deve ser fornecido.");
 
             var id = ServiceId.From(serviceId);
             var service = await serviceQueries.GetByIdAsync(id, cancellationToken);
@@ -121,8 +121,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving service {ServiceId}", serviceId);
-            return Result<ModuleServiceDto?>.Failure($"Error retrieving service: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving service {ServiceId}", serviceId);
+            return Result<ModuleServiceDto?>.Failure($"Erro ao buscar serviço: {ex.Message}");
         }
     }
 
@@ -147,8 +147,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving services");
-            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure($"Error retrieving services: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving services");
+            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure($"Erro ao buscar serviços: {ex.Message}");
         }
     }
 
@@ -160,7 +160,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Category id must be provided");
+                return Result<IReadOnlyList<ModuleServiceDto>>.Failure("O ID da categoria deve ser fornecido.");
 
             var id = ServiceCategoryId.From(categoryId);
             var services = await serviceQueries.GetByCategoryAsync(id, activeOnly, cancellationToken);
@@ -179,8 +179,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving services for category {CategoryId}", categoryId);
-            return Result<IReadOnlyList<ModuleServiceDto>>.Failure($"Error retrieving services: {ex.Message}");
+            logger.LogError(ex, "Unexpected error retrieving services for category {CategoryId}", categoryId);
+            return Result<IReadOnlyList<ModuleServiceDto>>.Failure($"Erro ao buscar serviços: {ex.Message}");
         }
     }
 
@@ -191,7 +191,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceId == Guid.Empty)
-                return Result<bool>.Failure("Service id must be provided");
+                return Result<bool>.Failure("O ID do serviço deve ser fornecido.");
 
             var serviceIdValue = ServiceId.From(serviceId);
             var service = await serviceQueries.GetByIdAsync(serviceIdValue, cancellationToken);
@@ -204,8 +204,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error checking if service {ServiceId} is active", serviceId);
-            return Result<bool>.Failure($"Error checking service status: {ex.Message}");
+            logger.LogError(ex, "Unexpected error checking if service {ServiceId} is active", serviceId);
+            return Result<bool>.Failure($"Erro ao verificar status do serviço: {ex.Message}");
         }
     }
 
@@ -222,7 +222,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceIds is null)
-                return Result<ModuleServiceValidationResultDto>.Failure("Service IDs collection cannot be null");
+                return Result<ModuleServiceValidationResultDto>.Failure("A coleção de IDs de serviços não pode ser nula.");
 
             // Short-circuit for empty collection
             if (serviceIds.Count == 0)
@@ -284,8 +284,8 @@ public sealed class ServiceCatalogsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error validating services");
-            return Result<ModuleServiceValidationResultDto>.Failure($"Error validating services: {ex.Message}");
+            logger.LogError(ex, "Unexpected error validating services");
+            return Result<ModuleServiceValidationResultDto>.Failure($"Erro ao validar serviços: {ex.Message}");
         }
     }
 }

@@ -11,19 +11,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 
 /// <summary>
-/// Handler para processar comandos de conclusão de booking.
+/// Handler para processar comandos de rejeição de bookings.
 /// </summary>
-public sealed class CompleteBookingCommandHandler(
+public sealed class RejectBookingCommandHandler(
     IBookingQueries bookingQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
-    ILogger<CompleteBookingCommandHandler> logger) : ICommandHandler<CompleteBookingCommand, Result>
+    ILogger<RejectBookingCommandHandler> logger) : ICommandHandler<RejectBookingCommand, Result>
 {
-    public async Task<Result> HandleAsync(CompleteBookingCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result> HandleAsync(RejectBookingCommand command, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Completing booking {BookingId}", command.BookingId);
+        logger.LogInformation("Rejecting booking {BookingId}", command.BookingId);
 
         var booking = await bookingQueries.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
@@ -45,21 +45,21 @@ public sealed class CompleteBookingCommandHandler(
 
         try
         {
-            booking.Complete();
+            booking.Reject(command.Reason);
             await uow.SaveChangesAsync(cancellationToken);
         }
         catch (InvalidBookingStateException ex)
         {
-            logger.LogWarning(ex, "Business rule error completing booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.BadRequest("Apenas agendamentos confirmados podem ser concluídos.", ErrorCodes.Bookings.InvalidState));
+            logger.LogWarning(ex, "Business rule error rejecting booking {BookingId}", command.BookingId);
+            return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes podem ser rejeitados.", ErrorCodes.Bookings.InvalidState));
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            logger.LogWarning(ex, "Concurrency conflict completing booking {BookingId}", command.BookingId);
+            logger.LogWarning(ex, "Concurrency conflict rejecting booking {BookingId}", command.BookingId);
             return Result.Failure(Error.Conflict("O agendamento foi modificado por outro usuário."));
         }
 
-        logger.LogInformation("Booking {BookingId} completed successfully.", command.BookingId);
+        logger.LogInformation("Booking {BookingId} rejected successfully.", command.BookingId);
 
         return Result.Success();
     }

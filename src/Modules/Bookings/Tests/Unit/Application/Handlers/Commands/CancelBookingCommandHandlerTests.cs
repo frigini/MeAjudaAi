@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 public class CancelBookingCommandHandlerTests

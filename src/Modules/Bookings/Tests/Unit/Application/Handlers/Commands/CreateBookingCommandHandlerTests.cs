@@ -3,7 +3,7 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
@@ -11,7 +11,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
 
 public class CreateBookingCommandHandlerTests
 {

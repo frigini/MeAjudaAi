@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
+namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
 /// <summary>
 /// Classe base para testes de integração específicos do módulo ServiceCatalogs.

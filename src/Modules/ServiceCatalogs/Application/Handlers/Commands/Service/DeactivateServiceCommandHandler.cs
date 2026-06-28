@@ -45,7 +45,7 @@ public sealed class DeactivateServiceCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while deactivating the service.");
+            logger.LogError(ex, "Unexpected error while deactivating service.");
             return Result.Failure("Ocorreu um erro inesperado ao desativar o serviço.");
         }
     }

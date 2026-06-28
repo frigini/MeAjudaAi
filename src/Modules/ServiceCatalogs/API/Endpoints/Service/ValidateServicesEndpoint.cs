@@ -40,6 +40,9 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<ValidateServicesResponse>>(StatusCodes.Status200OK)
             .RequireAdmin();
 
+    /// <summary>
+    /// Valida a existência e status dos serviços informados.
+    /// </summary>
     private static async Task<IResult> ValidateAsync(
         [FromBody] ValidateServicesRequest request,
         [FromServices] IServiceCatalogsModuleApi moduleApi,

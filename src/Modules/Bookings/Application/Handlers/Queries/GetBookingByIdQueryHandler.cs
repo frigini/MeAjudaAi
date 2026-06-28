@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Bookings.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 
 /// <summary>
 /// Handler para processar consultas de booking por ID.

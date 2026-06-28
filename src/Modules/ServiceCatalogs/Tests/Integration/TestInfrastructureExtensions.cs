@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
+namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
 public static class TestInfrastructureExtensions
 {

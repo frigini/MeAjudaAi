@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -42,17 +43,15 @@ public class ChangeServiceCategoryCommandHandlerTests
         var oldCategory = new ServiceCategoryBuilder().AsActive().WithName("Original").Build();
         var newCategory = new ServiceCategoryBuilder().AsActive().WithName("New").Build();
         var service = Service.Create(oldCategory.Id, "Service", "Desc", 1);
-        
+
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
 
         _repositoryMock
             .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
-
         _categoryQueriesMock
             .Setup(x => x.GetByIdAsync(newCategory.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(newCategory);
-
         _serviceQueriesMock
             .Setup(x => x.ExistsWithNameAsync(service.Name, service.Id, newCategory.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -69,10 +68,13 @@ public class ChangeServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithEmptyServiceId_ShouldThrow()
     {
+        // Arrange
         var command = new ChangeServiceCategoryCommand(Guid.Empty, Guid.NewGuid());
 
+        // Act
         var act = () => _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
             .WithMessage("*serviço*não pode ser vazio*");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -81,10 +83,13 @@ public class ChangeServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithEmptyCategoryId_ShouldThrow()
     {
+        // Arrange
         var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.Empty);
 
+        // Act
         var act = () => _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
             .WithMessage("*categoria*não pode ser vazio*");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -93,10 +98,13 @@ public class ChangeServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithNonExistentService_ShouldReturnFailure()
     {
+        // Arrange
         var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.NewGuid());
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -104,6 +112,7 @@ public class ChangeServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithNonExistentCategory_ShouldThrow()
     {
+        // Arrange
         var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service", "Desc", 1);
         var command = new ChangeServiceCategoryCommand(service.Id.Value, Guid.NewGuid());
 
@@ -111,8 +120,10 @@ public class ChangeServiceCategoryCommandHandlerTests
             .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
+        // Act
         var act = () => _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
             .WithMessage("*Categoria*não encontrada*");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -121,6 +132,7 @@ public class ChangeServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithInactiveCategory_ShouldThrow()
     {
+        // Arrange
         var inactiveCategory = new ServiceCategoryBuilder().AsInactive().Build();
         var service = Service.Create(inactiveCategory.Id, "Service", "Desc", 1);
         var command = new ChangeServiceCategoryCommand(service.Id.Value, inactiveCategory.Id.Value);
@@ -132,8 +144,10 @@ public class ChangeServiceCategoryCommandHandlerTests
             .Setup(x => x.GetByIdAsync(inactiveCategory.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(inactiveCategory);
 
+        // Act
         var act = () => _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
             .WithMessage("*categoria inativa*");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -142,6 +156,7 @@ public class ChangeServiceCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_WithDuplicateNameInTargetCategory_ShouldReturnFailure()
     {
+        // Arrange
         var newCategory = new ServiceCategoryBuilder().AsActive().Build();
         var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Service", "Desc", 1);
         var command = new ChangeServiceCategoryCommand(service.Id.Value, newCategory.Id.Value);
@@ -156,8 +171,10 @@ public class ChangeServiceCategoryCommandHandlerTests
             .Setup(x => x.ExistsWithNameAsync(service.Name, service.Id, newCategory.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

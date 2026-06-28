@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
+// ServiceCatalogsIntegrationTestBase and TestInfrastructureExtensions are in the same namespace
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;

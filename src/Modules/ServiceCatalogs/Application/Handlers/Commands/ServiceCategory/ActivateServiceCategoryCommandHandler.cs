@@ -23,13 +23,13 @@ public sealed class ActivateServiceCategoryCommandHandler(
         try
         {
             if (request.Id == Guid.Empty)
-                return Result.Failure("Category ID cannot be empty.");
+                return Result.Failure("O ID da categoria não pode ser vazio.");
 
             var categoryId = ServiceCategoryId.From(request.Id);
             var category = await uow.GetRepository<Domain.Entities.ServiceCategory, ServiceCategoryId>().TryFindAsync(categoryId, cancellationToken);
 
             if (category is null)
-                return Result.Failure($"Category with ID '{request.Id}' not found.");
+                return Result.Failure($"Categoria com ID '{request.Id}' não encontrada.");
 
             category.Activate();
 
@@ -37,9 +37,13 @@ public sealed class ActivateServiceCategoryCommandHandler(
 
             return Result.Success();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ocorreu um erro inesperado ao ativar a categoria de serviço.");
+            logger.LogError(ex, "Unexpected error while activating service category.");
             return Result.Failure("Ocorreu um erro inesperado ao ativar a categoria de serviço.");
         }
     }

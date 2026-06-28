@@ -8,7 +8,7 @@ namespace MeAjudaAi.Client.Contracts.Api;
 
 public interface ISearchProvidersApi
 {
-    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.SearchProviders.Providers}")]
+    [Get($"{ApiEndpoints.VersionPrefix}/{ApiEndpoints.SearchProviders.ProvidersSearch}")]
     Task<PagedResult<ModuleSearchableProviderDto>> SearchProvidersAsync(
         [Query] double latitude,
         [Query] double longitude,

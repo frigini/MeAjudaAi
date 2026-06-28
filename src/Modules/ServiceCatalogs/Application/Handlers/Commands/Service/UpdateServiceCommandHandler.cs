@@ -66,7 +66,7 @@ public sealed class UpdateServiceCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while updating the service.");
+            logger.LogError(ex, "Unexpected error while updating service.");
             return Result.Failure("Ocorreu um erro inesperado.");
         }
     }

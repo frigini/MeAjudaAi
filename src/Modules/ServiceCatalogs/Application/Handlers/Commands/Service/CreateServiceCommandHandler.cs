@@ -31,7 +31,7 @@ public sealed class CreateServiceCommandHandler(
         try
         {
             if (request.CategoryId == Guid.Empty)
-                return Result<ServiceDto>.Failure("Category ID cannot be empty.");
+                return Result<ServiceDto>.Failure("O ID da categoria não pode ser vazio.");
 
             var categoryId = ServiceCategoryId.From(request.CategoryId);
 
@@ -48,15 +48,15 @@ public sealed class CreateServiceCommandHandler(
             var normalizedName = request.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceDto>.Failure("Service name is required.");
+                return Result<ServiceDto>.Failure("O nome do serviço é obrigatório.");
 
             // Verificar se já existe serviço com o mesmo nome na categoria
             if (await serviceQueries.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
-                return Result<ServiceDto>.Failure($"A service with name '{normalizedName}' already exists in this category.");
+                return Result<ServiceDto>.Failure($"Já existe um serviço com o nome '{normalizedName}' nesta categoria.");
 
             // Validar DisplayOrder
             if (request.DisplayOrder < 0)
-                return Result<ServiceDto>.Failure("Display order cannot be negative.");
+                return Result<ServiceDto>.Failure("A ordem de exibição não pode ser negativa.");
 
             var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
@@ -94,7 +94,7 @@ public sealed class CreateServiceCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while creating the service.");
+            logger.LogError(ex, "Unexpected error while creating service.");
             return Result<ServiceDto>.Failure("Ocorreu um erro inesperado ao criar o serviço.");
         }
 

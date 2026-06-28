@@ -93,7 +93,7 @@ public static class ApiEndpoints
     public static class SearchProviders
     {
         public const string Base = "search";
-        public const string Providers = "search/providers";
+        public const string ProvidersSearch = "search/providers";
     }
 
     public static class ServiceCatalogs
@@ -102,7 +102,7 @@ public static class ApiEndpoints
 
         public static class Categories
         {
-            public const string Base = "service-catalogs/categories";
+            public const string CategoryBase = $"{ServiceCatalogs.Base}/categories";
             public const string GetAll = "/";
             public const string GetById = "/{id:guid}";
             public const string Create = "/";
@@ -114,7 +114,7 @@ public static class ApiEndpoints
 
         public static class Services
         {
-            public const string Base = "service-catalogs/services";
+            public const string ServiceBase = $"{ServiceCatalogs.Base}/services";
             public const string GetAll = "/";
             public const string GetById = "/{id:guid}";
             public const string GetByCategory = "/category/{categoryId:guid}";

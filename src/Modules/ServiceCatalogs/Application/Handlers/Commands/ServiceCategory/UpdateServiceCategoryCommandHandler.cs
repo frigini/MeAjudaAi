@@ -64,7 +64,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while updating the service category.");
+            logger.LogError(ex, "Unexpected error while updating service category.");
             return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
         }
     }

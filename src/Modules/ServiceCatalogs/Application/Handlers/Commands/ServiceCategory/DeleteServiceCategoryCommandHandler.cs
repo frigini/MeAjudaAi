@@ -52,7 +52,7 @@ public sealed class DeleteServiceCategoryCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while deleting the service category.");
+            logger.LogError(ex, "Unexpected error while deleting service category.");
             return Result.Failure("Ocorreu um erro inesperado ao excluir a categoria de serviço.");
         }
     }

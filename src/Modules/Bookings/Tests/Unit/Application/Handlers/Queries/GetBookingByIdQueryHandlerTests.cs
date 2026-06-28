@@ -1,12 +1,12 @@
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Queries;
 
 public class GetBookingByIdQueryHandlerTests
 {

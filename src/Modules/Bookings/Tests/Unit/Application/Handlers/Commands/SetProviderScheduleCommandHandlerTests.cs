@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
-using MeAjudaAi.Modules.Bookings.Application.Handlers;
+using MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -10,7 +10,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
 
 public class SetProviderScheduleCommandHandlerTests
 {

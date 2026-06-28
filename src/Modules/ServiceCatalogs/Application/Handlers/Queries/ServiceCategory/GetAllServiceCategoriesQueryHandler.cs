@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappers;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Shared.Queries;

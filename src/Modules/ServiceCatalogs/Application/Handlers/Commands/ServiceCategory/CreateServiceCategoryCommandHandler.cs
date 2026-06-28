@@ -67,7 +67,7 @@ public sealed class CreateServiceCategoryCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while processing the request.");
+            logger.LogError(ex, "Unexpected error while creating service category.");
             return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao processar a solicitação.");
         }
     }
