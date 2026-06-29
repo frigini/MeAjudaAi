@@ -172,7 +172,7 @@ public class EndpointExtensionsTests
     }
 
     [Fact]
-    public void HandleNoContent_Success_ShouldReturnOk()
+    public void HandleNoContent_Success_ShouldReturnNoContent()
     {
         // Arrange
         var result = Result<string>.Success("ignore me");
@@ -181,10 +181,9 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandleNoContent(result);
 
         // Assert
-        response.Should().BeOfType<Ok<Response<string>>>();
-        var okResult = (Ok<Response<string>>)response;
-        okResult.StatusCode.Should().Be(200);
-        okResult.Value.Data.Should().Be("ignore me");
+        response.Should().BeOfType<NoContent>();
+        var noContentResult = (NoContent)response;
+        noContentResult.StatusCode.Should().Be(204);
     }
 
     [Fact]

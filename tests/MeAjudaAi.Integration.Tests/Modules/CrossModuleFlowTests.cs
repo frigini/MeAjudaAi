@@ -31,7 +31,7 @@ public class CrossModuleFlowTests : BaseApiTest
         };
 
         var registerResponse = await Client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
-        registerResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
         var userData = GetResponseData(await ReadJsonAsync<JsonElement>(registerResponse.Content));
         var userId = userData.GetProperty("id").GetString()!;

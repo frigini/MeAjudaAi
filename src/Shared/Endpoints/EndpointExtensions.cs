@@ -86,8 +86,7 @@ public static class EndpointExtensions
     {
         if (result.IsSuccess)
         {
-            var response = new Response<T>(result.Value);
-            return TypedResults.Ok(response);
+            return TypedResults.NoContent();
         }
 
         return CreateErrorResponse<T>(result.Error);
@@ -100,7 +99,7 @@ public static class EndpointExtensions
     {
         if (result.IsSuccess)
         {
-            return TypedResults.Ok(new Response<object>(null));
+            return TypedResults.NoContent();
         }
 
         return CreateErrorResponse<object>(result.Error);

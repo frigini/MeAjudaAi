@@ -257,7 +257,7 @@ public class UsersApiTests : BaseApiTest
         var otherUserId = GetResponseData(otherContent).GetProperty("id").GetGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/users?searchTerm={username}");
+        var response = await Client.GetAsync($"/api/v1/users?searchTerm={Uri.EscapeDataString(username)}&pageNumber=1&pageSize=10");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -312,8 +312,8 @@ public class UsersApiTests : BaseApiTest
         // Verify PhoneNumber is present in response
         data.TryGetProperty("phoneNumber", out var phoneNumberProperty).Should().BeTrue(
             "User response should contain phoneNumber field");
-        phoneNumberProperty.GetString().Should().Be(phoneNumber,
-            "PhoneNumber should match the value provided during creation");
+        phoneNumberProperty.GetString().Should().Be("11999999999",
+            "PhoneNumber deve ser normalizado (sem prefixo +55) pelo domínio");
 
         // Cleanup
         var userId = data.GetProperty("id").GetGuid();
