@@ -20,6 +20,7 @@ public static class ApiEndpoints
         public static class Names
         {
             public const string Create = "CreateUser";
+            public const string Register = "RegisterCustomer";
             public const string GetAll = "GetUsers";
             public const string GetById = "GetUserById";
             public const string Delete = "DeleteUser";

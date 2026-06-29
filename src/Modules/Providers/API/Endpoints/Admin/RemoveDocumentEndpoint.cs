@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -38,7 +39,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete("/{id:guid}/documents/{documentType}", RemoveDocumentAsync)
-            .WithName("RemoveDocument")
+            .WithName(ApiEndpoints.Providers.Names.RemoveDocument)
             .WithSummary("Remover documento do prestador")
             .WithDescription("""
                 Remove um documento específico do perfil do prestador de serviços.

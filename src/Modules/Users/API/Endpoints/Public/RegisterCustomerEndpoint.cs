@@ -33,7 +33,7 @@ public class RegisterCustomerEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("register", RegisterCustomerAsync)
-            .WithName(ApiEndpoints.Users.Names.Create)
+            .WithName(ApiEndpoints.Users.Names.Register)
             .WithTags("Users")
             .WithSummary("Registrar novo cliente")
             .WithDescription("Cria uma nova conta de usuário com papel de cliente.")

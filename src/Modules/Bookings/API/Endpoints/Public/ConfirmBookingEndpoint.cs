@@ -26,7 +26,7 @@ public class ConfirmBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("ConfirmBooking")
+        .WithName(ApiEndpoints.Bookings.Names.Confirm)
         .WithSummary("Confirma um agendamento")
         .WithDescription("Confirma um agendamento pendente.");
     }

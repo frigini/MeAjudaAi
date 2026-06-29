@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -28,7 +29,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("me/documents", UploadMyDocumentAsync)
-            .WithName("UploadMyDocument")
+            .WithName(ApiEndpoints.Providers.Names.UploadMyDocument)
             .WithTags("Providers - Me")
             .WithSummary("Upload de documento pelo próprio prestador")
             .WithDescription("Permite que o prestador adicione documentos ao seu próprio perfil.")

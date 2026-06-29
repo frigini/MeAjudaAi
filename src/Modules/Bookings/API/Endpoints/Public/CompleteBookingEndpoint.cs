@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
@@ -6,7 +7,6 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Contracts.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
@@ -26,7 +26,7 @@ public class CompleteBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("CompleteBooking")
+        .WithName(ApiEndpoints.Bookings.Names.Complete)
         .WithSummary("Completa um agendamento")
         .WithDescription("Marca um agendamento confirmado como concluído.");
     }

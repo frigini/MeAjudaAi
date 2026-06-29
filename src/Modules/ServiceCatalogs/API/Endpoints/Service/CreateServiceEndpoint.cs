@@ -22,7 +22,7 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Create, CreateAsync)
-            .WithName("CreateService")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.Create)
             .WithSummary("Criar serviço")
             .WithDescription("""
                 Cria um novo serviço no catálogo.
@@ -52,6 +52,6 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
         if (!result.IsSuccess)
             return Handle(result);
 
-        return Handle(result, "GetServiceById", new { id = result.Value.Id });
+        return Handle(result, ApiEndpoints.ServiceCatalogs.Services.Names.GetById, new { id = result.Value.Id });
     }
 }

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -38,7 +39,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/verification-status/{status}", GetProvidersByVerificationStatusAsync)
-            .WithName("GetProvidersByVerificationStatus")
+            .WithName(ApiEndpoints.Providers.Names.GetByVerificationStatus)
             .WithSummary("Consultar prestadores por status de verificação")
             .WithDescription("""
                 Recupera lista de prestadores filtrados por status de verificação.

@@ -27,7 +27,7 @@ public class RejectBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("RejectBooking")
+        .WithName(ApiEndpoints.Bookings.Names.Reject)
         .WithSummary("Rejeita um agendamento")
         .WithDescription("Rejeita um agendamento pendente.");
     }

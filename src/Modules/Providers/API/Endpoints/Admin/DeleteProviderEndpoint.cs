@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
@@ -35,7 +36,7 @@ public class DeleteProviderEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete("/{id:guid}", DeleteProviderAsync)
-            .WithName("DeleteProvider")
+            .WithName(ApiEndpoints.Providers.Names.Delete)
             .WithSummary("Excluir prestador de serviços")
             .WithDescription("""
                 Realiza exclusão lógica (soft delete) de um prestador de serviços.

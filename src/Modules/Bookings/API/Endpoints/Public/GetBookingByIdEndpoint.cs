@@ -25,7 +25,7 @@ public class GetBookingByIdEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("GetBookingById")
+        .WithName(ApiEndpoints.Bookings.Names.GetById)
         .WithSummary("Obtém agendamento")
         .WithDescription("Obtém os detalhes de um agendamento pelo ID.");
     }

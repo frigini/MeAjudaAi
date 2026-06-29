@@ -27,7 +27,7 @@ public class CancelBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("CancelBooking")
+        .WithName(ApiEndpoints.Bookings.Names.Cancel)
         .WithSummary("Cancela um agendamento")
         .WithDescription("Cancela um agendamento existente.");
     }

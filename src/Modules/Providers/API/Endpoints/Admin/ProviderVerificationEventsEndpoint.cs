@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
@@ -32,7 +33,7 @@ public class ProviderVerificationEventsEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/{id:guid}/verification-events", GetVerificationEventsAsync)
-            .WithName("GetProviderVerificationEvents")
+            .WithName(ApiEndpoints.Providers.Names.VerificationEvents)
             .WithTags("Providers")
             .WithSummary("Stream de eventos de verificação do prestador")
             .WithDescription("Estabelece conexão SSE para receber eventos de alteração no status de verificação do prestador em tempo real.")

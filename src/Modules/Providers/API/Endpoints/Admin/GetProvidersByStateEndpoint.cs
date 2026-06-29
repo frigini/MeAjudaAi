@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -37,7 +38,7 @@ public class GetProvidersByStateEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/by-state/{state}", GetProvidersByStateAsync)
-            .WithName("GetProvidersByState")
+            .WithName(ApiEndpoints.Providers.Names.GetByState)
             .WithSummary("Consultar prestadores por estado")
             .WithDescription("""
                 Recupera lista de prestadores de serviços ativos em um estado específico.

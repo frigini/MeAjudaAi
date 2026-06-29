@@ -20,7 +20,7 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Validate, ValidateAsync)
-            .WithName("ValidateServices")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.Validate)
             .WithSummary("Validar múltiplos serviços")
             .WithDescription("""
                 Valida a existência e status de uma lista de serviços.

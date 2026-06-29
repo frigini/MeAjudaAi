@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.DTOs;
@@ -19,7 +20,7 @@ public class GetBookingEventsEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet("/{id:guid}/events", GetBookingEventsAsync)
-            .WithName("GetBookingEvents")
+            .WithName(ApiEndpoints.Bookings.Names.GetEvents)
             .WithTags(BookingsEndpoints.Tag)
             .WithSummary("Obtém o stream de eventos")
             .WithDescription("Obtém o stream de eventos de um agendamento via Server-Sent Events (SSE).")

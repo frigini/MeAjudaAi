@@ -41,6 +41,6 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             return result.Error.ToProblem();
         }
 
-        return Results.CreatedAtRoute("GetAllowedCityById", new { id = result.Value }, new Response<Guid>(result.Value, 201));
+        return Results.CreatedAtRoute(ApiEndpoints.Locations.Names.GetById, new { id = result.Value }, new Response<Guid>(result.Value, 201));
     }
 }

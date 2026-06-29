@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -38,7 +39,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/{id:guid}/documents", AddDocumentAsync)
-            .WithName("AddDocument")
+            .WithName(ApiEndpoints.Providers.Names.AddDocument)
             .WithSummary("Adicionar documento ao prestador")
             .WithDescription("""
                 Adiciona um novo documento de verificação ao perfil do prestador de serviços.

@@ -20,7 +20,7 @@ public class ChangeServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.ChangeCategory, ChangeAsync)
-            .WithName("ChangeServiceCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.ChangeCategory)
             .WithSummary("Alterar categoria do serviço")
             .WithDescription("""
                 Move um serviço para uma categoria diferente.

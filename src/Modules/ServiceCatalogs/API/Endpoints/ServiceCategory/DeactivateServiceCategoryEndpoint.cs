@@ -18,7 +18,7 @@ public class DeactivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Categories.Deactivate, DeactivateAsync)
-            .WithName("DeactivateServiceCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.Deactivate)
             .WithSummary("Desativar categoria de serviço")
             .WithDescription("""
                 Desativa uma categoria de serviços.

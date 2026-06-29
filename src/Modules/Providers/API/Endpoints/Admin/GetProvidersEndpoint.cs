@@ -33,7 +33,7 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet(ApiEndpoints.Providers.GetAll, GetProvidersAsync)
-            .WithName("GetProviders")
+            .WithName(ApiEndpoints.Providers.Names.GetAll)
             .WithSummary("Consultar prestadores paginados")
             .WithDescription("""
                 Recupera uma lista paginada de prestadores de serviços do sistema com suporte a filtros de busca.

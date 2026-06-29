@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -37,7 +38,7 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/", CreateProviderAsync)
-            .WithName("CreateProvider")
+            .WithName(ApiEndpoints.Providers.Names.Create)
             .WithSummary("Criar novo prestador de serviços")
             .WithDescription("""
                 Cria um novo prestador de serviços no sistema associado a um usuário.
@@ -94,6 +95,6 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
             return Handle(result);
 
         var provider = result.Value;
-        return Handle(result, "GetProviderById", new { id = provider.Id });
+        return Handle(result, ApiEndpoints.Providers.Names.GetById, new { id = provider.Id });
     }
 }

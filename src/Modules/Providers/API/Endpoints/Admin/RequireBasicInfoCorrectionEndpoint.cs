@@ -37,7 +37,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.Providers.RequireBasicInfoCorrection, RequireBasicInfoCorrectionAsync)
-            .WithName("RequireBasicInfoCorrection")
+            .WithName(ApiEndpoints.Providers.Names.RequireBasicInfoCorrection)
             .WithSummary("Solicitar correção de informações básicas")
             .WithDescription("""
                 Retorna um prestador de serviços para correção de informações básicas

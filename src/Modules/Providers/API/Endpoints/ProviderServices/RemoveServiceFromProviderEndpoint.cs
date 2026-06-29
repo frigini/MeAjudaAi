@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.Providers.Application.Commands;
@@ -16,7 +17,7 @@ public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete("/{providerId:guid}/services/{serviceId:guid}", RemoveServiceAsync)
-            .WithName("RemoveServiceFromProvider")
+            .WithName(ApiEndpoints.Providers.Names.RemoveService)
             .WithTags("Providers - Services")
             .WithSummary("Remove serviço do provider")
             .WithDescription("""

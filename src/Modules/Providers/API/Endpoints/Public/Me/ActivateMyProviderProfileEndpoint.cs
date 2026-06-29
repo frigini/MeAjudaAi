@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
@@ -14,7 +15,7 @@ public class ActivateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("me/activate", ActivateMyProfileAsync)
-            .WithName("ActivateMyProviderProfile")
+            .WithName(ApiEndpoints.Providers.Names.ActivateMyProfile)
             .WithTags("Providers - Me")
             .WithSummary("Ativar meu perfil de prestador")
             .WithDescription("Permite que o prestador autenticado ative seu próprio perfil.")

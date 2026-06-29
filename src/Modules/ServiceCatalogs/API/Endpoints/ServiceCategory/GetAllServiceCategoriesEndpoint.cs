@@ -22,7 +22,7 @@ public class GetAllServiceCategoriesEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.ServiceCatalogs.Categories.GetAll, GetAllAsync)
-            .WithName("GetAllServiceCategories")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.GetAll)
             .WithSummary("Listar todas as categorias")
             .WithDescription("""
                 Retorna todas as categorias de serviços do catálogo.

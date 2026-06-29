@@ -17,7 +17,7 @@ public class GetPublicProviderByIdOrSlugEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.Providers.GetPublicByIdOrSlug, GetPublicProviderAsync)
-            .WithName("GetPublicProviderByIdOrSlug")
+            .WithName(ApiEndpoints.Providers.Names.GetPublicByIdOrSlug)
             .WithSummary("Consultar perfil público do prestador")
             .WithDescription("""
                 Recupera dados públicos e seguros de um prestador para exibição no site.

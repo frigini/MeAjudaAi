@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -37,7 +38,7 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/by-city/{city}", GetProvidersByCityAsync)
-            .WithName("GetProvidersByCity")
+            .WithName(ApiEndpoints.Providers.Names.GetByCity)
             .WithSummary("Consultar prestadores por cidade")
             .WithDescription("""
                 Recupera lista de prestadores de serviços ativos em uma cidade específica.

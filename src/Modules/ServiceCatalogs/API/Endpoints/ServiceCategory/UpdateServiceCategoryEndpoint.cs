@@ -20,7 +20,7 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut(ApiEndpoints.ServiceCatalogs.Categories.Update, UpdateAsync)
-            .WithName("UpdateServiceCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.Update)
             .WithSummary("Atualizar categoria de serviço")
             .WithDescription("""
                 Atualiza as informações de uma categoria existente.

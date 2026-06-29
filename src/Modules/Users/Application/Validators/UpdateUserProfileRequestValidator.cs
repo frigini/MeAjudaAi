@@ -18,7 +18,12 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
             .WithMessage(ValidationMessages.Required.FirstName);
 
         RuleFor(x => x.FirstName)
-            .Length(ValidationConstants.UserLimits.FirstNameMinLength, ValidationConstants.UserLimits.FirstNameMaxLength)
+            .MinimumLength(ValidationConstants.UserLimits.FirstNameMinLength)
+            .WithMessage(ValidationMessages.Length.FirstNameTooShort)
+            .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
+
+        RuleFor(x => x.FirstName)
+            .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength)
             .WithMessage(ValidationMessages.Length.FirstNameTooLong)
             .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
 
@@ -32,7 +37,12 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
             .WithMessage(ValidationMessages.Required.LastName);
 
         RuleFor(x => x.LastName)
-            .Length(ValidationConstants.UserLimits.LastNameMinLength, ValidationConstants.UserLimits.LastNameMaxLength)
+            .MinimumLength(ValidationConstants.UserLimits.LastNameMinLength)
+            .WithMessage(ValidationMessages.Length.LastNameTooShort)
+            .When(x => !string.IsNullOrWhiteSpace(x.LastName));
+
+        RuleFor(x => x.LastName)
+            .MaximumLength(ValidationConstants.UserLimits.LastNameMaxLength)
             .WithMessage(ValidationMessages.Length.LastNameTooLong)
             .When(x => !string.IsNullOrWhiteSpace(x.LastName));
 

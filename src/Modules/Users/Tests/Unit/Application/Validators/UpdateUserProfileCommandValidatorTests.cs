@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Validators;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 
@@ -94,6 +95,42 @@ public class UpdateUserProfileCommandValidatorTests
     }
 
     [Fact]
+    public void Validate_WithTooShortFirstName_ShouldHaveError()
+    {
+        // Arrange
+        var command = new UpdateUserProfileCommand(
+            UserId: Guid.NewGuid(),
+            FirstName: "A",
+            LastName: "User"
+        );
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.FirstName)
+            .WithErrorMessage(ValidationMessages.Length.FirstNameTooShort);
+    }
+
+    [Fact]
+    public void Validate_WithTooLongFirstName_ShouldHaveError()
+    {
+        // Arrange
+        var command = new UpdateUserProfileCommand(
+            UserId: Guid.NewGuid(),
+            FirstName: new string('A', 101),
+            LastName: "User"
+        );
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.FirstName)
+            .WithErrorMessage(ValidationMessages.Length.FirstNameTooLong);
+    }
+
+    [Fact]
     public void Validate_WithEmptyLastName_ShouldHaveError()
     {
         // Arrange
@@ -142,6 +179,42 @@ public class UpdateUserProfileCommandValidatorTests
 
         // Assert
         result.ShouldNotHaveValidationErrorFor(c => c.LastName);
+    }
+
+    [Fact]
+    public void Validate_WithTooShortLastName_ShouldHaveError()
+    {
+        // Arrange
+        var command = new UpdateUserProfileCommand(
+            UserId: Guid.NewGuid(),
+            FirstName: "Test",
+            LastName: "U"
+        );
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.LastName)
+            .WithErrorMessage(ValidationMessages.Length.LastNameTooShort);
+    }
+
+    [Fact]
+    public void Validate_WithTooLongLastName_ShouldHaveError()
+    {
+        // Arrange
+        var command = new UpdateUserProfileCommand(
+            UserId: Guid.NewGuid(),
+            FirstName: "Test",
+            LastName: new string('U', 101)
+        );
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.LastName)
+            .WithErrorMessage(ValidationMessages.Length.LastNameTooLong);
     }
 
     [Fact]

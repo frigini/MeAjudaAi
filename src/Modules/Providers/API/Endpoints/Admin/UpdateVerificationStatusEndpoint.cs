@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -38,7 +39,7 @@ public class UpdateVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut("/{id:guid}/verification-status", UpdateVerificationStatusAsync)
-            .WithName("UpdateVerificationStatus")
+            .WithName(ApiEndpoints.Providers.Names.UpdateVerificationStatus)
             .WithSummary("Atualizar status de verificação")
             .WithDescription("""
                 Atualiza o status de verificação de um prestador de serviços.

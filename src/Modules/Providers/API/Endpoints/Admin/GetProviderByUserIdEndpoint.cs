@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -36,7 +37,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/by-user/{userId:guid}", GetProviderByUserAsync)
-            .WithName("GetProviderByUserId")
+            .WithName(ApiEndpoints.Providers.Names.GetByUserId)
             .WithSummary("Consultar prestador por ID do usuário")
             .WithDescription("""
                 Recupera dados do prestador de serviços associado a um usuário específico.

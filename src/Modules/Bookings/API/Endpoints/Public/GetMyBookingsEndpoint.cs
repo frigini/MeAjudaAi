@@ -26,7 +26,7 @@ public class GetMyBookingsEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("GetMyBookings")
+        .WithName(ApiEndpoints.Bookings.Names.GetMy)
         .WithSummary("Lista agendamentos do cliente")
         .WithDescription("Retorna uma lista paginada de agendamentos realizados pelo cliente autenticado, com suporte a filtros de data.");
     }

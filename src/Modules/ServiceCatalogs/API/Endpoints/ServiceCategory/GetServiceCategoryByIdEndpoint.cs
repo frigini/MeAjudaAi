@@ -19,7 +19,7 @@ public class GetServiceCategoryByIdEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.ServiceCatalogs.Categories.GetById, GetByIdAsync)
-            .WithName("GetServiceCategoryById")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.GetById)
             .WithSummary("Buscar categoria por ID")
             .WithDescription("""
                 Retorna os detalhes completos de uma categoria específica.

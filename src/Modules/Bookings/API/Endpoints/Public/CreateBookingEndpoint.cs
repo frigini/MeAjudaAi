@@ -25,7 +25,7 @@ public class CreateBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("CreateBooking")
+        .WithName(ApiEndpoints.Bookings.Names.Create)
         .WithSummary("Cria um novo agendamento.")
         .WithDescription("Cria um novo agendamento de serviço.");
     }

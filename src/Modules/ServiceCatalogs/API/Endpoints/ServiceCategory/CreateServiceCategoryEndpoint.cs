@@ -22,7 +22,7 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Categories.Create, CreateAsync)
-            .WithName("CreateServiceCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.Create)
             .WithSummary("Criar categoria de serviço")
             .WithDescription("""
                 Cria uma nova categoria de serviços no catálogo.
@@ -60,6 +60,6 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         if (result.Value is null)
             return Results.BadRequest("Unexpected null value in successful result.");
 
-        return Handle(result, "GetServiceCategoryById", new { id = result.Value.Id });
+        return Handle(result, ApiEndpoints.ServiceCatalogs.Categories.Names.GetById, new { id = result.Value.Id });
     }
 }

@@ -25,7 +25,7 @@ public class GetProviderAvailabilityEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("GetProviderAvailability")
+        .WithName(ApiEndpoints.Bookings.Names.GetProviderAvailability)
         .WithSummary("Consulta disponibilidade")
         .WithDescription("Consulta a disponibilidade de um prestador em uma data específica.");
     }

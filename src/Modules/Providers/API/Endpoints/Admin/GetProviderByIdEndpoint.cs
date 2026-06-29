@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -36,7 +37,7 @@ public class GetProviderByIdEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/{id:guid}", GetProviderAsync)
-            .WithName("GetProviderById")
+            .WithName(ApiEndpoints.Providers.Names.GetById)
             .WithSummary("Consultar prestador por ID")
             .WithDescription("""
                 Recupera dados completos de um prestador de serviços através de seu identificador único.

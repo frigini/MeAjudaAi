@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -36,7 +37,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/by-type/{type}", GetProvidersByTypeAsync)
-            .WithName("GetProvidersByType")
+            .WithName(ApiEndpoints.Providers.Names.GetByType)
             .WithSummary("Consultar prestadores por tipo")
             .WithDescription("""
                 Recupera lista de prestadores de serviços filtrados por tipo organizacional.

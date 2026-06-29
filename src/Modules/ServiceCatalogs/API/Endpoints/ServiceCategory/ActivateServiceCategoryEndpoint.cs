@@ -18,7 +18,7 @@ public class ActivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Categories.Activate, ActivateAsync)
-            .WithName("ActivateServiceCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.Activate)
             .WithSummary("Ativar categoria de serviço")
             .WithDescription("""
                 Ativa uma categoria de serviços.
