@@ -294,7 +294,10 @@ public class KeycloakPermissionResolverTests
         var userId = "nonexistent-user";
 
         SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        // Mock direct ID lookup to return 404
         SetupNotFoundHttpMessage(HttpMethod.Get, $"users/{userId}");
+        // Mock username-based fallback search to return empty array
+        SetupHttpMessage(HttpMethod.Get, $"users?username={userId}&exact=true", Array.Empty<object>());
 
         // Act
         var result = await _resolver.GetUserPermissionsAsync(userId);

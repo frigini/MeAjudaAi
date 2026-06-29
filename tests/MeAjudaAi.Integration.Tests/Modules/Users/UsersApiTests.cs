@@ -226,7 +226,7 @@ public class UsersApiTests : BaseApiTest
         var username = $"searchtest_{uniqueId}";
         var email = $"search_{uniqueId}@example.com";
 
-        // Create a user to search for
+        // Cria usuário para busca
         var createResponse = await Client.PostAsJsonAsync("/api/v1/users", new
         {
             username = username,
@@ -237,6 +237,8 @@ public class UsersApiTests : BaseApiTest
             keycloakId = Guid.NewGuid().ToString()
         });
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var createdContent = await ReadJsonAsync<JsonElement>(createResponse.Content);
+        var createdUserId = GetResponseData(createdContent).GetProperty("id").GetGuid();
 
         // Act
         var response = await Client.GetAsync($"/api/v1/users?searchTerm={username}");
@@ -246,16 +248,15 @@ public class UsersApiTests : BaseApiTest
         var content = await ReadJsonAsync<JsonElement>(response.Content);
         var data = GetResponseData(content);
 
-        // Verify the search returns results
-        data.ValueKind.Should().NotBe(JsonValueKind.Null);
+        // Verifica que a busca retornou resultados e contém o usuário criado
+        data.ValueKind.Should().Be(JsonValueKind.Array, "Dados paginados devem ser um array");
+        var users = data.EnumerateArray().ToList();
+        users.Should().Contain(u =>
+            u.TryGetProperty("id", out var id) && id.GetGuid() == createdUserId,
+            "O resultado da busca deve conter o usuário criado");
 
         // Cleanup
-        if (createResponse.IsSuccessStatusCode)
-        {
-            var createdContent = await ReadJsonAsync<JsonElement>(createResponse.Content);
-            var userId = GetResponseData(createdContent).GetProperty("id").GetGuid();
-            await Client.DeleteAsync($"/api/v1/users/{userId}");
-        }
+        await Client.DeleteAsync($"/api/v1/users/{createdUserId}");
     }
 
     [Fact]
@@ -354,18 +355,16 @@ public class UsersApiTests : BaseApiTest
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Verify user is marked as inactive (soft delete)
+        // Verifica que o usuário foi marcado como inativo (soft delete)
         var getResponse = await Client.GetAsync($"/api/v1/users/{userId}");
-        if (getResponse.StatusCode == HttpStatusCode.OK)
-        {
-            var getContent = await ReadJsonAsync<JsonElement>(getResponse.Content);
-            var userData = GetResponseData(getContent);
-            if (userData.TryGetProperty("isActive", out var isActiveAfterDelete))
-            {
-                isActiveAfterDelete.GetBoolean().Should().BeFalse(
-                    "Deleted user should have isActive = false");
-            }
-        }
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Usuário deletado deve ser acessível via GET");
+        var getContent = await ReadJsonAsync<JsonElement>(getResponse.Content);
+        var userData = GetResponseData(getContent);
+        userData.TryGetProperty("isActive", out var isActiveAfterDelete).Should().BeTrue(
+            "Resposta deve conter campo isActive");
+        isActiveAfterDelete.GetBoolean().Should().BeFalse(
+            "Usuário deletado deve ter isActive = false");
     }
 
     #endregion

@@ -178,6 +178,37 @@ public class GetUsersQueryHandlerTests
             Times.Never);
     }
 
+    [Theory]
+    [InlineData("   ")]
+    [InlineData("\t")]
+    [InlineData("  \n  ")]
+    public async Task HandleAsync_WithWhitespaceSearchTerm_ShouldCallGetPagedAsync(string whitespaceSearchTerm)
+    {
+        // Arrange
+        var query = new GetUsersQuery(Page: 1, PageSize: 10, SearchTerm: whitespaceSearchTerm);
+        var users = CreateTestUsers(5);
+        var totalCount = 25;
+
+        _userQueriesMock
+            .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((users, totalCount));
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+
+        _userQueriesMock.Verify(
+            x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetPagedWithSearchAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     [Fact]
     public async Task HandleAsync_WithoutSearchTerm_ShouldCallGetPagedAsync()
     {

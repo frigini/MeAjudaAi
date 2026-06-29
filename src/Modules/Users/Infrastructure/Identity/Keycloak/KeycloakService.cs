@@ -111,8 +111,7 @@ public class KeycloakService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Exception occurred while creating user in Keycloak. Payload: {Payload}",
-                _serializer.Serialize(new { username, email, firstName, lastName }));
+            logger.LogError(ex, "Exception occurred while creating user in Keycloak");
             return Result<string>.Failure($"Exception: {ex.Message}");
         }
     }

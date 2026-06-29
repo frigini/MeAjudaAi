@@ -4,6 +4,7 @@ using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using MeAjudaAi.Shared.Authorization.Services;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Authorization.Extensions;
@@ -89,8 +91,16 @@ public static class AuthorizationExtensions
         });
 
         // Registra o resolvedor de permissões do Keycloak como IPermissionProvider
-        // (KeycloakPermissionResolver resolve permissões de todos os módulos via roles)
-        services.AddScoped<IPermissionProvider, KeycloakPermissionResolver>();
+        // Usa factory para garantir que o HttpClient configurado via AddHttpClient<> seja utilizado
+        services.AddScoped<IPermissionProvider>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient(nameof(KeycloakPermissionResolver));
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var cache = sp.GetRequiredService<ICacheService>();
+            var logger = sp.GetRequiredService<ILogger<KeycloakPermissionResolver>>();
+            return new KeycloakPermissionResolver(httpClient, configuration, cache, logger);
+        });
 
         // Configura opções do Keycloak a partir da configuração
         var optionsBuilder = services.AddOptions<KeycloakPermissionOptions>()

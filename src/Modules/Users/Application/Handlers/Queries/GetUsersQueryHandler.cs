@@ -115,7 +115,8 @@ internal sealed class GetUsersQueryHandler(
         System.Diagnostics.Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        logger.LogDebug("Executing repository query for users (SearchTerm: {SearchTerm})", query.SearchTerm);
+        logger.LogDebug("Executando query no repositório de usuários (HasSearchTerm: {HasSearchTerm})",
+            !string.IsNullOrWhiteSpace(query.SearchTerm));
 
         var repositoryStart = stopwatch.ElapsedMilliseconds;
         var (users, totalCount) = string.IsNullOrWhiteSpace(query.SearchTerm)

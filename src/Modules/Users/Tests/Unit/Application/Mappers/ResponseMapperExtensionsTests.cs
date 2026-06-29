@@ -49,6 +49,7 @@ public class ResponseMapperExtensionsTests
         contract.LastName.Should().Be("Doe");
         contract.FullName.Should().Be("John Doe");
         contract.DeviceToken.Should().Be("token123");
+        contract.PhoneNumber.Should().Be("+5511999999999");
     }
 
     [Fact]
@@ -79,6 +80,21 @@ public class ResponseMapperExtensionsTests
         contract.Username.Should().Be("testuser");
         contract.Email.Should().Be("test@example.com");
         contract.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToBasicContract_WithInactiveUser_ShouldMapIsActiveFalse()
+    {
+        // Arrange
+        var user = CreateTestUser(isActive: false);
+
+        // Act
+        var contract = user.ToBasicContract();
+
+        // Assert
+        contract.Should().NotBeNull();
+        contract.IsActive.Should().BeFalse(
+            "Usuário inativo deve ter isActive = false no contrato básico");
     }
 
     [Fact]

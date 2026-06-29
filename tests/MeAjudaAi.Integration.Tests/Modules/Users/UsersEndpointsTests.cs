@@ -40,9 +40,10 @@ public class UsersEndpointsTests : BaseApiTest
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
+        var uniqueEmail = $"nonexistent_{Guid.NewGuid():N}@example.com";
 
         // Act
-        var response = await Client.GetAsync("/api/v1/users/by-email/nonexistent@example.com");
+        var response = await Client.GetAsync($"/api/v1/users/by-email/{uniqueEmail}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -103,5 +104,45 @@ public class UsersEndpointsTests : BaseApiTest
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateUserProfile_WithValidId_ShouldReturnOk()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var email = $"update_{Guid.NewGuid():N}@example.com";
+        var createRequest = new
+        {
+            username = $"updateuser_{Guid.NewGuid():N}"[..20],
+            email = email,
+            firstName = "Original",
+            lastName = "Name",
+            password = "Password123!",
+            keycloakId = Guid.NewGuid().ToString()
+        };
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/users", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var createdContent = await ReadJsonAsync<JsonElement>(createResponse.Content);
+        var userId = GetResponseData(createdContent).GetProperty("id").GetGuid();
+
+        var updateRequest = new
+        {
+            FirstName = "Updated",
+            LastName = "Name"
+        };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await ReadJsonAsync<JsonElement>(response.Content);
+        var data = GetResponseData(content);
+        data.GetProperty("firstName").GetString().Should().Be("Updated");
+        data.GetProperty("lastName").GetString().Should().Be("Name");
+
+        // Cleanup
+        await Client.DeleteAsync($"/api/v1/users/{userId}");
     }
 }

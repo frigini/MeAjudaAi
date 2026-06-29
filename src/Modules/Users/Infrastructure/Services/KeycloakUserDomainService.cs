@@ -98,7 +98,7 @@ internal class KeycloakUserDomainService(
         UserId userId,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Synchronizing user {UserId} with Keycloak - operation completed", userId.Value);
+        logger.LogDebug("SyncUserWithKeycloakAsync called for user {UserId} - not yet implemented, returning success", userId.Value);
         return Task.FromResult(Result.Success());
     }
 
