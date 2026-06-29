@@ -13,15 +13,26 @@ public class UserBuilder : BaseBuilder<User>
     private string? _firstName;
     private string? _lastName;
     private string? _keycloakId;
-    private Guid? _id;
-    private DateTime? _createdAt;
-    private DateTime? _updatedAt;
+    private UserId? _id;
 
     public UserBuilder()
     {
         Faker = new Faker<User>()
             .CustomInstantiator(f =>
             {
+                if (_id is not null)
+                {
+                    return new User(
+                        _id,
+                        _username ?? new Username(f.Internet.UserName()),
+                        _email ?? new Email(f.Internet.Email()),
+                        _firstName ?? f.Name.FirstName(),
+                        _lastName ?? f.Name.LastName(),
+                        _keycloakId ?? Guid.NewGuid().ToString(),
+                        null
+                    );
+                }
+
                 var userResult = User.Create(
                     _username ?? new Username(f.Internet.UserName()),
                     _email ?? new Email(f.Internet.Email()),
@@ -35,28 +46,17 @@ public class UserBuilder : BaseBuilder<User>
                     throw new InvalidOperationException(userResult.Error?.Message ?? "User creation failed");
                 }
 
-                var user = userResult.Value ?? throw new InvalidOperationException("User creation returned null");
-
-                if (_id.HasValue)
-                {
-                    user.SetIdForTesting(new UserId(_id.Value));
-                }
-
-                if (_createdAt.HasValue)
-                {
-                    user.SetCreatedAtForTesting(_createdAt.Value);
-                }
-
-                if (_updatedAt.HasValue)
-                {
-                    user.SetUpdatedAtForTesting(_updatedAt.Value);
-                }
-
-                return user;
+                return userResult.Value ?? throw new InvalidOperationException("User creation returned null");
             });
     }
 
     public UserBuilder WithId(Guid id)
+    {
+        _id = new UserId(id);
+        return this;
+    }
+
+    public UserBuilder WithId(UserId id)
     {
         _id = id;
         return this;
@@ -122,18 +122,6 @@ public class UserBuilder : BaseBuilder<User>
     {
         var dateTimeProvider = new FakeTimeProvider(new DateTimeOffset(deletedAt));
         WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
-        return this;
-    }
-
-    public UserBuilder WithCreatedAt(DateTime createdAt)
-    {
-        _createdAt = createdAt;
-        return this;
-    }
-
-    public UserBuilder WithUpdatedAt(DateTime? updatedAt)
-    {
-        _updatedAt = updatedAt;
         return this;
     }
 }

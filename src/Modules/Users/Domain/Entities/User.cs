@@ -1,11 +1,8 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("MeAjudaAi.Modules.Users.Tests")]
-[assembly: InternalsVisibleTo("MeAjudaAi.Shared.Tests")]
 
 namespace MeAjudaAi.Modules.Users.Domain.Entities;
 
@@ -104,9 +101,9 @@ public sealed class User : AggregateRoot<UserId>
     private User() { }
 
     /// <summary>
-    /// Instancia um novo usuário já com o ID formatado. Usado internamente pelo Factory Method <see cref="Create"/>.
+    /// Construtor interno para uso de testes e builders. Permite definir o ID na construção.
     /// </summary>
-    private User(UserId id, Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
+    internal User(UserId id, Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
         : base(id)
     {
         ArgumentNullException.ThrowIfNull(username);
@@ -127,31 +124,6 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>
-    /// Helper interno de testes para definir o Id. Acessível apenas a partir de assemblies de teste.
-    /// </summary>
-    internal void SetIdForTesting(UserId id)
-    {
-        Id = id;
-    }
-
-    /// <summary>
-    /// Helper interno de testes para definir CreatedAt. Acessível apenas a partir de assemblies de teste.
-    /// </summary>
-    internal void SetCreatedAtForTesting(DateTime createdAt)
-    {
-        CreatedAt = createdAt;
-    }
-
-    /// <summary>
-    /// Helper interno de testes para definir UpdatedAt. Acessível apenas a partir de assemblies de teste.
-    /// </summary>
-    internal void SetUpdatedAtForTesting(DateTime? updatedAt)
-    {
-        UpdatedAt = updatedAt;
-    }
-
-
-    /// <summary>
     /// Cria um novo usuário no sistema validando as regras de negócio primeiro.
     /// </summary>
     /// <param name="username">Nome de usuário único</param>
@@ -165,7 +137,7 @@ public sealed class User : AggregateRoot<UserId>
     /// Este método valida o formato do Keycloak ID antes de criar a entidade base, prevenindo
     /// exceções de formatação prematuras.
     /// </remarks>
-    public static MeAjudaAi.Contracts.Functional.Result<User> Create(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
+    public static Result<User> Create(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
     {
         try
         {
@@ -173,22 +145,22 @@ public sealed class User : AggregateRoot<UserId>
         }
         catch (UserDomainException ex)
         {
-            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest(ex.Message));
+            return Result<User>.Failure(Error.BadRequest(ex.Message));
         }
 
         if (!Guid.TryParse(keycloakId, out var parsedGuid))
         {
-            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest("O ID do Keycloak deve ser um GUID válido."));
+            return Result<User>.Failure(Error.BadRequest("O ID do Keycloak deve ser um GUID válido."));
         }
 
         try
         {
             var user = new User(new UserId(parsedGuid), username, email, firstName, lastName, keycloakId, phoneNumber);
-            return MeAjudaAi.Contracts.Functional.Result<User>.Success(user);
+            return Result<User>.Success(user);
         }
         catch (Exception ex)
         {
-            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest(ex.Message));
+            return Result<User>.Failure(Error.BadRequest(ex.Message));
         }
     }
 

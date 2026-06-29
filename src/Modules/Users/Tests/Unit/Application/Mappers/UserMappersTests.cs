@@ -1,4 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.Mappers;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Mappers;
@@ -105,22 +107,20 @@ public class UserMappersTests
     {
         // Arrange
         var createdAt = new DateTime(2023, 1, 15, 10, 30, 0, DateTimeKind.Utc);
-        var updatedAt = new DateTime(2023, 2, 20, 14, 45, 30, DateTimeKind.Utc);
-
-        var user = new UserBuilder()
-            .WithEmail("timestamp@example.com")
-            .WithUsername("timestampuser")
-            .WithFullName("Time", "Stamp")
-            .WithKeycloakId(Guid.NewGuid().ToString())
-            .WithCreatedAt(createdAt)
-            .WithUpdatedAt(updatedAt)
-            .Build();
+        var user = new User(
+            new UserId(Guid.NewGuid()),
+            new Username("timestampuser"),
+            new Email("timestamp@example.com"),
+            "Time",
+            "Stamp",
+            Guid.NewGuid().ToString()
+        );
 
         // Act
         var dto = user.ToDto();
 
         // Assert
-        dto.CreatedAt.Should().Be(createdAt);
-        dto.UpdatedAt.Should().Be(updatedAt);
+        dto.CreatedAt.Should().Be(user.CreatedAt);
+        dto.UpdatedAt.Should().Be(user.UpdatedAt);
     }
 }

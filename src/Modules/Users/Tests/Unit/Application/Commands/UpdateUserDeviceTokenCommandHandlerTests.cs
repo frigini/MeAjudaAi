@@ -33,8 +33,7 @@ public class UpdateUserDeviceTokenCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = User.Create(new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString()).Value!;
-        user.SetIdForTesting(new UserId(userId));
+        var user = new User(new UserId(userId), new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString());
         
         _repositoryMock.Setup(r => r.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
@@ -74,8 +73,7 @@ public class UpdateUserDeviceTokenCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = User.Create(new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString()).Value!;
-        user.SetIdForTesting(new UserId(userId));
+        var user = new User(new UserId(userId), new Username("user"), new Email("test@test.com"), "first", "last", Guid.NewGuid().ToString());
         user.UpdateDeviceToken("existing-token");
         
         _repositoryMock.Setup(r => r.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
