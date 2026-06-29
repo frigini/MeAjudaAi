@@ -4,7 +4,7 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes para nomes de módulos para evitar magic strings e garantir consistência.
-/// Usado principalmente pelos IModulePermissionResolver para identificação de módulos.
+/// Usado por IPermissionProvider e IKeycloakPermissionResolver para identificação de módulos.
 /// </summary>
 [ExcludeFromCodeCoverage]
 public static class ModuleNames

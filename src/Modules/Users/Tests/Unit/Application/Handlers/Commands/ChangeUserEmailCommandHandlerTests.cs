@@ -4,40 +4,36 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Shared.Database.Abstractions;
-using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Application")]
-public class ChangeUserUsernameCommandHandlerTests
+public class ChangeUserEmailCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserQueries> _userQueriesMock;
-    private readonly FakeTimeProvider _dateTimeProvider;
-    private readonly Mock<ILogger<ChangeUserUsernameCommandHandler>> _loggerMock;
-    private readonly ChangeUserUsernameCommandHandler _handler;
+    private readonly Mock<ILogger<ChangeUserEmailCommandHandler>> _loggerMock;
+    private readonly ChangeUserEmailCommandHandler _handler;
 
-    public ChangeUserUsernameCommandHandlerTests()
+    public ChangeUserEmailCommandHandlerTests()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userQueriesMock = new Mock<IUserQueries>();
-        _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        _loggerMock = new Mock<ILogger<ChangeUserUsernameCommandHandler>>();
+        _loggerMock = new Mock<ILogger<ChangeUserEmailCommandHandler>>();
 
         _unitOfWorkMock
             .Setup(x => x.GetRepository<User, UserId>())
             .Returns(_userRepositoryMock.Object);
 
-        _handler = new ChangeUserUsernameCommandHandler(
+        _handler = new ChangeUserEmailCommandHandler(
             _unitOfWorkMock.Object,
             _userQueriesMock.Object,
-            _dateTimeProvider,
             _loggerMock.Object);
     }
 
@@ -46,15 +42,14 @@ public class ChangeUserUsernameCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(
+        var command = new ChangeUserEmailCommand(
             UserId: userId,
-            NewUsername: "newusername",
-            UpdatedBy: null,
-            BypassRateLimit: true);
+            NewEmail: "newemail@example.com",
+            UpdatedBy: null);
 
         var existingUser = new UserBuilder()
             .WithId(new UserId(userId))
-            .WithUsername("oldusername")
+            .WithEmail("old@example.com")
             .Build();
 
         _userRepositoryMock
@@ -62,7 +57,7 @@ public class ChangeUserUsernameCommandHandlerTests
             .ReturnsAsync(existingUser);
 
         _userQueriesMock
-            .Setup(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         _unitOfWorkMock
@@ -75,14 +70,14 @@ public class ChangeUserUsernameCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Username.Should().Be("newusername");
+        result.Value.Email.Should().Be("newemail@example.com");
 
         _userRepositoryMock.Verify(
             x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
             Times.Once);
 
         _userQueriesMock.Verify(
-            x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()),
+            x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
         _unitOfWorkMock.Verify(
@@ -95,11 +90,10 @@ public class ChangeUserUsernameCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(
+        var command = new ChangeUserEmailCommand(
             UserId: userId,
-            NewUsername: "newusername",
-            UpdatedBy: null,
-            BypassRateLimit: true);
+            NewEmail: "newemail@example.com",
+            UpdatedBy: null);
 
         _userRepositoryMock
             .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
@@ -117,29 +111,28 @@ public class ChangeUserUsernameCommandHandlerTests
             Times.Once);
 
         _userQueriesMock.Verify(
-            x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()),
+            x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithExistingUsername_ShouldReturnFailure()
+    public async Task HandleAsync_WithExistingEmail_ShouldReturnFailure()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(
+        var command = new ChangeUserEmailCommand(
             UserId: userId,
-            NewUsername: "takenusername",
-            UpdatedBy: null,
-            BypassRateLimit: true);
+            NewEmail: "taken@example.com",
+            UpdatedBy: null);
 
         var existingUser = new UserBuilder()
             .WithId(new UserId(userId))
-            .WithUsername("oldusername")
+            .WithEmail("old@example.com")
             .Build();
 
         var otherUser = new UserBuilder()
             .WithId(Guid.NewGuid())
-            .WithUsername("takenusername")
+            .WithEmail("taken@example.com")
             .Build();
 
         _userRepositoryMock
@@ -147,7 +140,7 @@ public class ChangeUserUsernameCommandHandlerTests
             .ReturnsAsync(existingUser);
 
         _userQueriesMock
-            .Setup(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(otherUser);
 
         // Act
@@ -155,14 +148,14 @@ public class ChangeUserUsernameCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Username is already taken");
+        result.Error.Message.Should().Contain("Email address is already in use");
 
         _userRepositoryMock.Verify(
             x => x.TryFindAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),
             Times.Once);
 
         _userQueriesMock.Verify(
-            x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()),
+            x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -171,11 +164,10 @@ public class ChangeUserUsernameCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new ChangeUserUsernameCommand(
+        var command = new ChangeUserEmailCommand(
             UserId: userId,
-            NewUsername: "newusername",
-            UpdatedBy: null,
-            BypassRateLimit: true);
+            NewEmail: "newemail@example.com",
+            UpdatedBy: null);
 
         _userRepositoryMock
             .Setup(x => x.TryFindAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
@@ -189,5 +181,3 @@ public class ChangeUserUsernameCommandHandlerTests
         result.Error.Should().NotBeNull();
     }
 }
-
-

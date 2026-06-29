@@ -106,7 +106,6 @@ public class UserMappersTests
     public void ToDto_ShouldPreserveExactTimestamps()
     {
         // Arrange
-        var createdAt = new DateTime(2023, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         var user = new User(
             new UserId(Guid.NewGuid()),
             new Username("timestampuser"),
@@ -115,12 +114,14 @@ public class UserMappersTests
             "Stamp",
             Guid.NewGuid().ToString()
         );
+        var expectedCreatedAt = user.CreatedAt;
+        var expectedUpdatedAt = user.UpdatedAt;
 
         // Act
         var dto = user.ToDto();
 
         // Assert
-        dto.CreatedAt.Should().Be(user.CreatedAt);
-        dto.UpdatedAt.Should().Be(user.UpdatedAt);
+        dto.CreatedAt.Should().Be(expectedCreatedAt);
+        dto.UpdatedAt.Should().Be(expectedUpdatedAt);
     }
 }

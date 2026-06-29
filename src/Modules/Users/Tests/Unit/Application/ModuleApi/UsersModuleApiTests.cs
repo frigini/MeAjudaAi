@@ -1,9 +1,9 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
+using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.ModuleApi;
 

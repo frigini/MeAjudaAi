@@ -227,7 +227,7 @@ public sealed class PermissionSystemHealthCheck(
                 IsHealthy = true,
                 Status = "healthy",
                 Issue = "",
-                ResolverCount = 1 // Pelo menos o UsersPermissionResolver deve estar presente
+                ResolverCount = 1 // Pelo menos o KeycloakPermissionResolver deve estar presente
             };
         }
         catch (InvalidOperationException ex)

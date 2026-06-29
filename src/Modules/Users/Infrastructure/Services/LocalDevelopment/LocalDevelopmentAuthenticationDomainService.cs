@@ -1,9 +1,9 @@
-using System.Security.Cryptography;
-using System.Text;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Utilities.Constants;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 

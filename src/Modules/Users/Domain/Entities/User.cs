@@ -109,6 +109,12 @@ public sealed class User : AggregateRoot<UserId>
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(email);
 
+        if (string.IsNullOrWhiteSpace(keycloakId))
+            throw UserDomainException.ForValidationError(nameof(keycloakId), keycloakId, "Keycloak ID is required for user creation");
+
+        if (!Guid.TryParse(keycloakId, out _))
+            throw UserDomainException.ForValidationError(nameof(keycloakId), keycloakId, "O ID do Keycloak deve ser um GUID válido.");
+
         Username = username;
         Email = email;
         FirstName = firstName;

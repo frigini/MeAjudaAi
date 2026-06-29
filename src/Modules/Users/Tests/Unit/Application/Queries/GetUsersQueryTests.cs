@@ -1,10 +1,10 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
 
-using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 
 [Trait("Category", "Unit")]

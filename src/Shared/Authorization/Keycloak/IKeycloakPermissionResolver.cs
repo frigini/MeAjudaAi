@@ -4,9 +4,9 @@ namespace MeAjudaAi.Shared.Authorization.Keycloak;
 
 /// <summary>
 /// Interface específica para o resolver de permissões do Keycloak.
-/// Estende IModulePermissionResolver com funcionalidades específicas do Keycloak.
+/// Estende IPermissionProvider com funcionalidades específicas do Keycloak.
 /// </summary>
-public interface IKeycloakPermissionResolver : IModulePermissionResolver
+public interface IKeycloakPermissionResolver : IPermissionProvider
 {
     /// <summary>
     /// Obtém as roles do usuário diretamente do Keycloak.

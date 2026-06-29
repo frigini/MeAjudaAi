@@ -74,7 +74,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Users);
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()

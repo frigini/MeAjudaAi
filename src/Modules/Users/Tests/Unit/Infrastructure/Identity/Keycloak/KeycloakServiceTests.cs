@@ -1,12 +1,13 @@
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
+using MeAjudaAi.Shared.Serialization;
+using Microsoft.Extensions.Logging;
+using Moq.Protected;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
-using Microsoft.Extensions.Logging;
-using Moq.Protected;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity.Keycloak;
 
 [Trait("Category", "Unit")]
 [Trait("Layer", "Infrastructure")]
@@ -17,6 +18,7 @@ public class KeycloakServiceTests : IDisposable
     private readonly HttpClient _httpClient;
     private readonly KeycloakOptions _options;
     private readonly Mock<ILogger<KeycloakService>> _mockLogger;
+    private readonly Mock<ISerializer> _mockSerializer;
     private readonly KeycloakService _keycloakService;
 
     public KeycloakServiceTests()
@@ -35,7 +37,22 @@ public class KeycloakServiceTests : IDisposable
         };
 
         _mockLogger = new Mock<ILogger<KeycloakService>>();
-        _keycloakService = new KeycloakService(_httpClient, _options, _mockLogger.Object);
+        _mockSerializer = new Mock<ISerializer>();
+
+        // Configura o serializer mock para serializar/deserializar usando System.Text.Json
+        _mockSerializer
+            .Setup(s => s.Serialize(It.IsAny<object>()))
+            .Returns((object obj) => JsonSerializer.Serialize(obj, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            }));
+
+        _mockSerializer
+            .Setup(s => s.Deserialize<KeycloakTokenResponse>(It.IsAny<string>()))
+            .Returns((string json) => JsonSerializer.Deserialize<KeycloakTokenResponse>(json));
+
+        _keycloakService = new KeycloakService(_httpClient, _options, _mockLogger.Object, _mockSerializer.Object);
     }
 
     [Fact]

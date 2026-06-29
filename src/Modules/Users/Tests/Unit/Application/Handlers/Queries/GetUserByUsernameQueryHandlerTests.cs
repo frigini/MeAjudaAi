@@ -7,7 +7,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]

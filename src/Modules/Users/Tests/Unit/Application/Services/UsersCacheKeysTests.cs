@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Caching;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Services;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]

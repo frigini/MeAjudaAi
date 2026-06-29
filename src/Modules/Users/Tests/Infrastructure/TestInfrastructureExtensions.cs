@@ -108,4 +108,3 @@ public static class UsersTestInfrastructureExtensions
         return services;
     }
 }
-

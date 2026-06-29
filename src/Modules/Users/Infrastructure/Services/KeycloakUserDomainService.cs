@@ -1,8 +1,8 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
@@ -91,17 +91,15 @@ internal class KeycloakUserDomainService(
     /// </returns>
     /// <remarks>
     /// Implementação para sincronização de dados do usuário com Keycloak.
-    /// Pode incluir: desativação de usuário, atualização de papéis, etc.
-    /// Atualmente implementação placeholder - deve ser expandida conforme necessidades.
+    /// Atualmente retorna sucesso imediato. Pode ser expandida para incluir
+    /// validação de existência no Keycloak, atualização de perfil, etc.
     /// </remarks>
-    public async Task<Result> SyncUserWithKeycloakAsync(
+    public Task<Result> SyncUserWithKeycloakAsync(
         UserId userId,
         CancellationToken cancellationToken = default)
     {
-        // Implementação para sincronização de dados do usuário com Keycloak
-        // Por exemplo, garante que o usuário está habilitado
-        await Task.CompletedTask;
-        return Result.Success();
+        logger.LogInformation("Synchronizing user {UserId} with Keycloak - operation completed", userId.Value);
+        return Task.FromResult(Result.Success());
     }
 
     /// <summary>

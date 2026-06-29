@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Caching;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Services.Implementations;
 
 [Trait("Category", "Unit")]
 public class UsersCacheServiceTests

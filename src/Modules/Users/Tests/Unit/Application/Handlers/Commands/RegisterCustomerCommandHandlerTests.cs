@@ -1,14 +1,14 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Domain.Services;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 public class RegisterCustomerCommandHandlerTests
@@ -102,7 +102,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.TermsNotAcceptedError);
+        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.TermsNotAcceptedError);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(400);
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(409);
+        result.Error!.StatusCode.Should().Be(409);
         result.Error.Message.Should().Contain("já está em uso");
     }
 
@@ -165,7 +165,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("sobrenome é obrigatório");
+        result.Error!.Message.Should().Contain("sobrenome é obrigatório");
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("primeiro nome deve ter pelo menos");
+        result.Error!.Message.Should().Contain("primeiro nome deve ter pelo menos");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("sobrenome deve ter pelo menos");
+        result.Error!.Message.Should().Contain("sobrenome deve ter pelo menos");
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -263,7 +263,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -293,7 +293,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
 
         _loggerMock.Verify(
@@ -308,5 +308,3 @@ public class RegisterCustomerCommandHandlerTests
             Times.Once);
     }
 }
-
-

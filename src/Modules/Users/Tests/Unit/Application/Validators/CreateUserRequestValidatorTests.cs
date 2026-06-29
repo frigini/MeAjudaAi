@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Validators;
-using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 

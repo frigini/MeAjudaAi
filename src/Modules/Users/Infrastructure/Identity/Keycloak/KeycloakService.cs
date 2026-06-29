@@ -1,13 +1,15 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Domain.Services.Models;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
+using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 
@@ -21,15 +23,15 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 public class KeycloakService(
     HttpClient httpClient,
     KeycloakOptions options,
-    ILogger<KeycloakService> logger) : IKeycloakService
+    ILogger<KeycloakService> logger,
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer) : IKeycloakService, IDisposable
 {
     private readonly KeycloakOptions _options = options;
+    private readonly ISerializer _serializer = serializer;
     private string? _adminToken;
     private DateTime _adminTokenExpiry = DateTime.MinValue;
     private readonly SemaphoreSlim _adminTokenSemaphore = new(1, 1);
-
-    // Usando configurações padrão de serialização do projeto
-    private static readonly JsonSerializerOptions JsonOptions = SerializationDefaults.Api;
+    private bool _disposed;
 
     public async Task<Result<string>> CreateUserAsync(
         string username,
@@ -68,7 +70,7 @@ public class KeycloakService(
                 ]
             };
 
-            var json = System.Text.Json.JsonSerializer.Serialize(createUserPayload, JsonOptions);
+            var json = _serializer.Serialize(createUserPayload);
             using var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
@@ -110,7 +112,7 @@ public class KeycloakService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred while creating user in Keycloak. Payload: {Payload}",
-                System.Text.Json.JsonSerializer.Serialize(new { username, email, firstName, lastName }, JsonOptions));
+                _serializer.Serialize(new { username, email, firstName, lastName }));
             return Result<string>.Failure($"Exception: {ex.Message}");
         }
     }
@@ -141,7 +143,8 @@ public class KeycloakService(
                 return Result<AuthenticationResult>.Failure("Invalid username/email or password");
             }
 
-            var tokenResponse = await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(cancellationToken);
+            var tokenResponseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+            var tokenResponse = _serializer.Deserialize<KeycloakTokenResponse>(tokenResponseJson);
             if (tokenResponse == null)
                 return Result<AuthenticationResult>.Failure("Invalid token response from Keycloak");
 
@@ -228,7 +231,7 @@ public class KeycloakService(
                 return adminToken.Error;
 
             var updatePayload = new { enabled = false };
-            var json = System.Text.Json.JsonSerializer.Serialize(updatePayload, JsonOptions);
+            var json = _serializer.Serialize(updatePayload);
             using var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
@@ -285,8 +288,8 @@ public class KeycloakService(
                 return Result<string>.Failure("Failed to authenticate admin user");
             }
 
-            var tokenResponse = await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(
-                JsonOptions, cancellationToken);
+            var tokenResponseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+            var tokenResponse = _serializer.Deserialize<KeycloakTokenResponse>(tokenResponseJson);
 
             if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.AccessToken))
                 return Result<string>.Failure("Invalid admin token response");
@@ -332,8 +335,7 @@ public class KeycloakService(
             }
 
             var availableRolesJson = await availableRolesResponse.Content.ReadAsStringAsync(cancellationToken);
-            var availableRoles = System.Text.Json.JsonSerializer.Deserialize<KeycloakRole[]>(availableRolesJson,
-                JsonOptions) ?? [];
+            var availableRoles = _serializer.Deserialize<KeycloakRole[]>(availableRolesJson) ?? [];
 
             // 2. Mapear nomes de papéis para objetos de papel
             var rolesToAssign = new List<KeycloakRole>();
@@ -364,7 +366,7 @@ public class KeycloakService(
             assignRolesRequest.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", adminToken);
 
-            var rolesJson = System.Text.Json.JsonSerializer.Serialize(rolesToAssign, JsonOptions);
+            var rolesJson = _serializer.Serialize(rolesToAssign);
             using var requestContent = new StringContent(rolesJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
             assignRolesRequest.Content = requestContent;
 
@@ -448,9 +450,27 @@ public class KeycloakService(
             // Se não conseguir analisar como JSON, pode ser um valor simples
             return string.IsNullOrEmpty(claimValue) ? Enumerable.Empty<string>() : new[] { claimValue };
         }
-        catch
+        catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException or ArgumentException)
         {
             return [];
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _adminTokenSemaphore.Dispose();
+            }
+            _disposed = true;
         }
     }
 }

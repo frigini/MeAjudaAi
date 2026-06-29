@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Domain.Services.Models;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 

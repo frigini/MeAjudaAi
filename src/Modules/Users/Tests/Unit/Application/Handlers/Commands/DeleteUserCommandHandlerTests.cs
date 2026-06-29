@@ -10,7 +10,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 public class DeleteUserCommandHandlerTests
@@ -91,5 +91,3 @@ public class DeleteUserCommandHandlerTests
             Times.Once);
     }
 }
-
-

@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Queries;
 
 public class GetUsersQueryHandlerTests
 {

@@ -5,11 +5,8 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using FluentAssertions;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
 
 public class UpdateUserDeviceTokenCommandHandlerTests
 {

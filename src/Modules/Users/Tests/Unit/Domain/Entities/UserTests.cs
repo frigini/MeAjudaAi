@@ -28,7 +28,7 @@ public class UserTests
         var keycloakId = Guid.NewGuid().ToString();
 
         // Act
-        var user = User.Create(username, email, firstName, lastName, keycloakId).Value;
+        var user = User.Create(username, email, firstName, lastName, keycloakId).Value!;
 
         // Assert
         user.Id.Should().NotBeNull();
@@ -54,7 +54,7 @@ public class UserTests
         var keycloakId = Guid.NewGuid().ToString();
 
         // Act
-        var user = User.Create(username, email, firstName, lastName, keycloakId).Value;
+        var user = User.Create(username, email, firstName, lastName, keycloakId).Value!;
 
         // Assert
         user.DomainEvents.Should().HaveCount(1);

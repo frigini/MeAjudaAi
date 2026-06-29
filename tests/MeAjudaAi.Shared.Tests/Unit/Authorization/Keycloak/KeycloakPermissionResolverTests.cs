@@ -2,7 +2,6 @@ using System.Net;
 using System.Text.Json;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Keycloak;
-using MeAjudaAi.Shared.Authorization.ValueObjects;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -87,7 +86,7 @@ public class KeycloakPermissionResolverTests
     }
 
     [Fact]
-    public async Task ResolvePermissionsAsync_WithValidUser_ShouldReturnPermissions()
+    public async Task GetUserPermissionsAsync_WithValidUser_ShouldReturnPermissions()
     {
         // Arrange
         var userId = "user-123";
@@ -102,7 +101,7 @@ public class KeycloakPermissionResolverTests
         SetupHttpMessage(HttpMethod.Get, "role-mappings/realm", new[] { new { name = "admin" } });
 
         // Act
-        var result = await _resolver.ResolvePermissionsAsync(userId);
+        var result = await _resolver.GetUserPermissionsAsync(userId);
 
         // Assert
         result.Should().NotBeEmpty();
@@ -279,25 +278,17 @@ public class KeycloakPermissionResolverTests
     }
 
     [Fact]
-    public async Task ResolvePermissionsAsync_WithNullUserId_ShouldThrowArgumentNullException()
-    {
-        // Act & Assert - the code throws ArgumentNullException
-        var act = () => _resolver.ResolvePermissionsAsync((UserId?)null!);
-        await act.Should().ThrowAsync<ArgumentNullException>();
-    }
-
-    [Fact]
-    public async Task ResolvePermissionsAsync_WithEmptyUserId_ShouldReturnEmptyList()
+    public async Task GetUserPermissionsAsync_WithEmptyUserId_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _resolver.ResolvePermissionsAsync("   ");
+        var result = await _resolver.GetUserPermissionsAsync("   ");
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task ResolvePermissionsAsync_WithUserNotFound_ShouldReturnEmptyList()
+    public async Task GetUserPermissionsAsync_WithUserNotFound_ShouldReturnEmptyList()
     {
         // Arrange
         var userId = "nonexistent-user";
@@ -306,14 +297,14 @@ public class KeycloakPermissionResolverTests
         SetupNotFoundHttpMessage(HttpMethod.Get, $"users/{userId}");
 
         // Act
-        var result = await _resolver.ResolvePermissionsAsync(userId);
+        var result = await _resolver.GetUserPermissionsAsync(userId);
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task ResolvePermissionsAsync_WithHttpException_ShouldReturnEmptyList()
+    public async Task GetUserPermissionsAsync_WithHttpException_ShouldReturnEmptyList()
     {
         // Arrange
         var userId = "user-123";
@@ -323,7 +314,7 @@ public class KeycloakPermissionResolverTests
         SetupThrowingHttpMessage(HttpMethod.Get, "role-mappings/realm", new HttpRequestException("Connection failed"));
 
         // Act
-        var result = await _resolver.ResolvePermissionsAsync(userId);
+        var result = await _resolver.GetUserPermissionsAsync(userId);
 
         // Assert
         result.Should().BeEmpty();
@@ -385,13 +376,13 @@ public class KeycloakPermissionResolverTests
     }
 
     [Fact]
-    public void ModuleName_ShouldReturnUsersModule()
+    public void ModuleName_ShouldReturnWildcard()
     {
         // Act
         var result = _resolver.ModuleName;
 
         // Assert
-        result.Should().Be("Users");
+        result.Should().Be("*");
     }
 
     private void SetupNotFoundHttpMessage(HttpMethod method, string pathPart)

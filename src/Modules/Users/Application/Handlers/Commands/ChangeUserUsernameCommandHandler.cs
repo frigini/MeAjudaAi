@@ -119,17 +119,17 @@ public sealed class ChangeUserUsernameCommandHandler(
         }
         catch (ArgumentException)
         {
-            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            // Permite que ArgumentException (erros de validação) sejam propagadas para o GlobalExceptionHandler
             throw;
         }
         catch (ValidationException)
         {
-            // Allow ValidationException to propagate to GlobalExceptionHandler
+            // Permite que ValidationException seja propagada para o GlobalExceptionHandler
             throw;
         }
         catch (DomainException)
         {
-            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            // Permite que DomainException (violações de regras de negócio) seja propagada para o GlobalExceptionHandler
             throw;
         }
         catch (Exception ex)

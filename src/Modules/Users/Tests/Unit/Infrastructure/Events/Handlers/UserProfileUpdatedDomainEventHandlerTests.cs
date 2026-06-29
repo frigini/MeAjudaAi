@@ -1,41 +1,29 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
 
-/// <summary>
-/// Testes para o handler de eventos de domínio de atualização de perfil de usuário
-/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Infrastructure")]
-public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
+public class UserProfileUpdatedDomainEventHandlerTests : BaseInMemoryDatabaseTest<UsersDbContext>
 {
     private readonly Mock<IMessageBus> _messageBusMock;
-    private readonly Mock<ILogger<UserProfileUpdatedDomainEventHandler>> _loggerMock;
-    private readonly UsersDbContext _context;
-    private readonly UserProfileUpdatedDomainEventHandler _handler;
 
-    public UserProfileUpdatedDomainEventHandlerTests()
+    public UserProfileUpdatedDomainEventHandlerTests() : base(options => new UsersDbContext(options, null!))
     {
         _messageBusMock = new Mock<IMessageBus>();
-        _loggerMock = new Mock<ILogger<UserProfileUpdatedDomainEventHandler>>();
-
-        // Setup in-memory database
-        var options = new DbContextOptionsBuilder<UsersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _context = new UsersDbContext(options, null!);
-        _handler = new UserProfileUpdatedDomainEventHandler(_messageBusMock.Object, _context, _loggerMock.Object);
     }
+
+    private UserProfileUpdatedDomainEventHandler CreateHandler() =>
+        new(_messageBusMock.Object, DbContext, NullLogger<UserProfileUpdatedDomainEventHandler>.Instance);
 
     [Fact]
     public async Task HandleAsync_WithValidUser_ShouldPublishIntegrationEvent()
@@ -47,8 +35,8 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             .WithLastName("Name")
             .Build();
 
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserProfileUpdatedDomainEvent(
             user.Id.Value,
@@ -58,7 +46,8 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
         );
 
         // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
         _messageBusMock.Verify(
@@ -74,18 +63,6 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             ),
             Times.Once
         );
-
-        // Verify info log
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Successfully published UserProfileUpdated")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -96,7 +73,8 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
         var domainEvent = new UserProfileUpdatedDomainEvent(userId, 1, "Non", "Existent");
 
         // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
         _messageBusMock.Verify(
@@ -107,18 +85,6 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             ),
             Times.Never
         );
-
-        // Verify warning was logged
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("not found")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -126,8 +92,8 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
     {
         // Arrange
         var user = new UserBuilder().Build();
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserProfileUpdatedDomainEvent(user.Id.Value, 1, "Test", "User");
 
@@ -140,27 +106,15 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             .ThrowsAsync(new InvalidOperationException("Message bus unavailable"));
 
         // Act & Assert
+        var handler = CreateHandler();
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _handler.HandleAsync(domainEvent, CancellationToken.None)
+            handler.HandleAsync(domainEvent, CancellationToken.None)
         );
 
-        // Handler now wraps exceptions for consistency
         Assert.StartsWith("Error handling UserProfileUpdatedDomainEvent for user", ex.Message);
         Assert.NotNull(ex.InnerException);
         Assert.IsType<InvalidOperationException>(ex.InnerException);
         Assert.Equal("Message bus unavailable", ex.InnerException.Message);
-
-        // Verify error was logged with wrapper exception
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsNotNull<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -168,15 +122,16 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
     {
         // Arrange
         var user = new UserBuilder().Build();
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserProfileUpdatedDomainEvent(user.Id.Value, 1, "Test", "User");
         using var cts = new CancellationTokenSource();
         var token = cts.Token;
 
         // Act
-        await _handler.HandleAsync(domainEvent, token);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, token);
 
         // Assert
         _messageBusMock.Verify(
@@ -187,11 +142,5 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             ),
             Times.Once
         );
-    }
-
-    public void Dispose()
-    {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
     }
 }

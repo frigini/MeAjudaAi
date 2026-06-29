@@ -1,7 +1,10 @@
-using System.Net;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
+using System.Net;
+using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity.Keycloak;
 
@@ -19,6 +22,19 @@ public class KeycloakServiceTokenConcurrencyTests
             AdminPassword = "password"
         };
         var loggerMock = new Mock<ILogger<KeycloakService>>();
+        
+        var serializerMock = new Mock<ISerializer>();
+        serializerMock
+            .Setup(s => s.Serialize(It.IsAny<object>()))
+            .Returns((object obj) => JsonSerializer.Serialize(obj, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            }));
+
+        serializerMock
+            .Setup(s => s.Deserialize<KeycloakTokenResponse>(It.IsAny<string>()))
+            .Returns((string json) => JsonSerializer.Deserialize<KeycloakTokenResponse>(json));
         
         var handlerMock = new Mock<HttpMessageHandler>();
         var tokenCallCount = 0;
@@ -53,7 +69,7 @@ public class KeycloakServiceTokenConcurrencyTests
             });
 
         var httpClient = new HttpClient(handlerMock.Object);
-        var service = new KeycloakService(httpClient, options, loggerMock.Object);
+        var service = new KeycloakService(httpClient, options, loggerMock.Object, serializerMock.Object);
 
         // Act
         // Call CreateUserAsync multiple times concurrently

@@ -3,11 +3,11 @@ using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
@@ -225,5 +225,3 @@ public class UpdateUserProfileCommandHandlerTests
             Times.Once);
     }
 }
-
-

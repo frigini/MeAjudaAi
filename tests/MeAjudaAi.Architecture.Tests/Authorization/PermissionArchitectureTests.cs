@@ -21,26 +21,6 @@ public class PermissionArchitectureTests
     private readonly Assembly _sharedAssembly = typeof(Permission).Assembly;
 
     [Fact]
-    public void PermissionResolver_ShouldImplementIModulePermissionResolver()
-    {
-        // Arrange & Act
-        var result = Types.InCurrentDomain()
-            .That()
-            .HaveNameEndingWith("PermissionResolver")
-            .And()
-            .AreNotInterfaces() // Excluir interfaces da verificação
-            .And()
-            .AreClasses() // Apenas classes concretas
-            .Should()
-            .ImplementInterface(typeof(IModulePermissionResolver))
-            .GetResult();
-
-        // Assert
-        Assert.True(result.IsSuccessful,
-            $"Todos os PermissionResolvers devem implementar IModulePermissionResolver. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
-    }
-
-    [Fact]
     public void PermissionResolver_ShouldBeSealed()
     {
         // Arrange & Act
@@ -74,26 +54,6 @@ public class PermissionArchitectureTests
         // Assert
         Assert.True(result.IsSuccessful,
             $"PermissionService não deve depender de módulos específicos para manter a modularidade. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
-    }
-
-    [Fact]
-    public void ModulePermissionResolver_ShouldOnlyBeInApplicationLayer()
-    {
-        // Arrange & Act
-        var result = Types.InCurrentDomain()
-            .That()
-            .ImplementInterface(typeof(IModulePermissionResolver))
-            .And()
-            .DoNotHaveNameMatching(@".*Keycloak.*")  // Permitir resolvers específicos do Keycloak no namespace Shared
-            .And()
-            .AreClasses() // Apenas classes concretas
-            .Should()
-            .ResideInNamespaceMatching(@".*\.Application\.Authorization")
-            .GetResult();
-
-        // Assert
-        Assert.True(result.IsSuccessful,
-            $"ModulePermissionResolvers devem residir apenas na camada Application/Authorization. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
     [Fact]

@@ -1,7 +1,10 @@
-using System.Net;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
+using System.Net;
+using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity.Keycloak;
 
@@ -15,7 +18,23 @@ public class KeycloakServiceErrorPathsTests
         AdminPassword = "password"
     };
     private readonly Mock<ILogger<KeycloakService>> _loggerMock = new();
+    private readonly Mock<ISerializer> _serializerMock = new();
     private readonly Mock<HttpMessageHandler> _handlerMock = new();
+
+    public KeycloakServiceErrorPathsTests()
+    {
+        _serializerMock
+            .Setup(s => s.Serialize(It.IsAny<object>()))
+            .Returns((object obj) => JsonSerializer.Serialize(obj, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            }));
+
+        _serializerMock
+            .Setup(s => s.Deserialize<KeycloakTokenResponse>(It.IsAny<string>()))
+            .Returns((string json) => JsonSerializer.Deserialize<KeycloakTokenResponse>(json));
+    }
 
     [Fact]
     public async Task GetAdminTokenAsync_ShouldReturnFailure_WhenTokenEndpointReturns401()
@@ -33,7 +52,7 @@ public class KeycloakServiceErrorPathsTests
             });
 
         var httpClient = new HttpClient(_handlerMock.Object);
-        var service = new KeycloakService(httpClient, _options, _loggerMock.Object);
+        var service = new KeycloakService(httpClient, _options, _loggerMock.Object, _serializerMock.Object);
 
         // Act
         var result = await service.CreateUserAsync("u", "e", "f", "l", "p", []);
@@ -72,7 +91,7 @@ public class KeycloakServiceErrorPathsTests
             });
 
         var httpClient = new HttpClient(_handlerMock.Object);
-        var service = new KeycloakService(httpClient, _options, _loggerMock.Object);
+        var service = new KeycloakService(httpClient, _options, _loggerMock.Object, _serializerMock.Object);
 
         // Act
         var result = await service.CreateUserAsync("u", "e", "f", "l", "p", []);
@@ -109,7 +128,7 @@ public class KeycloakServiceErrorPathsTests
             });
 
         var httpClient = new HttpClient(_handlerMock.Object);
-        var service = new KeycloakService(httpClient, _options, _loggerMock.Object);
+        var service = new KeycloakService(httpClient, _options, _loggerMock.Object, _serializerMock.Object);
 
         // Act
         var result = await service.CreateUserAsync("u", "e", "f", "l", "p", []);

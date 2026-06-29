@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
-using MeAjudaAi.Shared.Authorization.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
@@ -222,23 +221,6 @@ public class AuthorizationExtensionsTests
 
         // Assert
         result.Should().BeFalse();
-    }
-
-    // Test helper class
-    private class TestModulePermissionResolver : IModulePermissionResolver
-    {
-        public string ModuleName => "Test";
-
-        public Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
-        {
-            IReadOnlyList<EPermission> permissions = [EPermission.UsersRead];
-            return Task.FromResult(permissions);
-        }
-
-        public bool CanResolve(EPermission permission)
-        {
-            return permission == EPermission.UsersRead || permission == EPermission.UsersCreate;
-        }
     }
 }
 

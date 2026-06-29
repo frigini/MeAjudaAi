@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
