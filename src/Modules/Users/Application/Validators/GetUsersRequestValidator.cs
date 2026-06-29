@@ -1,6 +1,6 @@
 using FluentValidation;
-using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 
 namespace MeAjudaAi.Modules.Users.Application.Validators;
 

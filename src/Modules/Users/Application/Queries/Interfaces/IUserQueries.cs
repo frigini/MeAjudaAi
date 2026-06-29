@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
-namespace MeAjudaAi.Modules.Users.Application.Queries;
+namespace MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
 /// <summary>
 /// Interface para consultas otimizadas de leitura (NoTracking) do módulo Users.

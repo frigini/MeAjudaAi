@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Database.Abstractions;

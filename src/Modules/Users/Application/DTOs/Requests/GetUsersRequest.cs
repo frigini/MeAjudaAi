@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 
 [ExcludeFromCodeCoverage]
-
 public record GetUsersRequest
 {
     public string? SearchTerm { get; init; }

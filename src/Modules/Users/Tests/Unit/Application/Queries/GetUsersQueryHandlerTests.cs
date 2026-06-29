@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;

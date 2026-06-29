@@ -11,6 +11,12 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 
+/// <summary>
+/// Handler responsável por processar comandos de atualização do token de dispositivo de usuários.
+/// </summary>
+/// <param name="uow"></param>
+/// <param name="usersCacheService"></param>
+/// <param name="logger"></param>
 public sealed class UpdateUserDeviceTokenCommandHandler(
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUsersCacheService usersCacheService,

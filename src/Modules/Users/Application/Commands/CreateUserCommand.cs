@@ -1,6 +1,6 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 
@@ -16,4 +16,3 @@ public sealed record CreateUserCommand(
     IEnumerable<string> Roles,
     string? PhoneNumber = null
 ) : Command<Result<UserDto>>;
-

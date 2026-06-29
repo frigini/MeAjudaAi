@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 

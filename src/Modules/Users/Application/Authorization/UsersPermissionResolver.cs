@@ -1,10 +1,10 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Authorization.Keycloak;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Modules.Users.Application.Authorization;
 
@@ -57,7 +57,7 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
 
             // Filtra apenas permissões do módulo Users
             var usersPermissions = allPermissions
-                .Where(permission => CanResolve(permission))
+                .Where(CanResolve)
                 .Distinct()
                 .ToList();
 

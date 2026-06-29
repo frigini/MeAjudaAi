@@ -1,8 +1,8 @@
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Contracts.Models;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Application.Queries;

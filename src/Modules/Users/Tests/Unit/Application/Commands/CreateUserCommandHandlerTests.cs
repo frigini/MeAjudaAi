@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
@@ -8,6 +7,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 

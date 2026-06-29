@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 
 [ExcludeFromCodeCoverage]
-
 public record CreateUserRequest
 {
     public string Username { get; init; } = string.Empty;

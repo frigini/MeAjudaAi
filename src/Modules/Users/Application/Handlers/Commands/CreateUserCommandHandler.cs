@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;

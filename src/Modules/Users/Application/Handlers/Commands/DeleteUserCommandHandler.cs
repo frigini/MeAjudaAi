@@ -163,5 +163,3 @@ internal sealed class DeleteUserCommandHandler(
         logger.LogDebug("User {UserId} deletion persisted successfully", user.Id);
     }
 }
-
-

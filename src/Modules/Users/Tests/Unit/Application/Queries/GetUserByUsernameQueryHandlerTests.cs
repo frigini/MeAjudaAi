@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 
