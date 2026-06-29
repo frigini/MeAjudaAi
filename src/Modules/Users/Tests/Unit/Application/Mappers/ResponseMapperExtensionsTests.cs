@@ -11,6 +11,8 @@ public class ResponseMapperExtensionsTests
 {
     private static UserDto CreateTestUser(
         string? deviceToken = "token123",
+        string? phoneNumber = "+5511999999999",
+        bool isActive = true,
         string email = "test@example.com",
         string username = "testuser")
     {
@@ -22,6 +24,8 @@ public class ResponseMapperExtensionsTests
             LastName: "Doe",
             FullName: "John Doe",
             DeviceToken: deviceToken,
+            PhoneNumber: phoneNumber,
+            IsActive: isActive,
             KeycloakId: Guid.NewGuid().ToString(),
             CreatedAt: DateTime.UtcNow.AddDays(-30),
             UpdatedAt: DateTime.UtcNow);

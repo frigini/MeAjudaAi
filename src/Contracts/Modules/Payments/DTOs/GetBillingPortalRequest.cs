@@ -5,4 +5,4 @@ namespace MeAjudaAi.Contracts.Modules.Payments.DTOs;
 /// </summary>
 /// <param name="ProviderId">Identificador único do prestador cujo portal será acessado.</param>
 /// <param name="ReturnUrl">URL de retorno opcional para redirecionamento após acesso ao portal.</param>
-public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);
+public sealed record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);

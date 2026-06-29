@@ -20,7 +20,8 @@ public static class ResponseMapperExtensions
             user.FirstName,
             user.LastName,
             user.FullName,
-            user.DeviceToken);
+            user.DeviceToken,
+            user.PhoneNumber);
     }
 
     /// <summary>
@@ -32,7 +33,7 @@ public static class ResponseMapperExtensions
             user.Id,
             user.Username,
             user.Email,
-            IsActive: true);
+            IsActive: user.IsActive);
     }
 
     /// <summary>

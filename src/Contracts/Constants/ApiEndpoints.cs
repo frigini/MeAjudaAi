@@ -15,7 +15,8 @@ public static class ApiEndpoints
         public const string GetByEmail = "/by-email/{email}";
         public const string UpdateProfile = "/{id:guid}/profile";
         public const string UpdateDeviceToken = "/{id:guid}/device-token";
-        public const string GetAuthProviders = "/auth-providers";
+        public const string GetAuthProviders = "/auth/providers";
+        public const string Register = "/register";
 
         public static class Names
         {

@@ -41,6 +41,8 @@ public class UsersCacheServiceTests
             LastName: "User",
             FullName: "Test User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -90,6 +92,8 @@ public class UsersCacheServiceTests
             LastName: "User",
             FullName: "Cached User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: "keycloak456",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -155,6 +159,8 @@ public class UsersCacheServiceTests
             LastName: "User",
             FullName: "Test User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -237,6 +243,8 @@ public class UsersCacheServiceTests
             LastName: "User",
             FullName: "Test User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
@@ -372,6 +380,8 @@ public class UsersCacheServiceTests
             LastName: "User",
             FullName: "Test User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: "keycloak123",
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null

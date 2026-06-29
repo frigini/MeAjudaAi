@@ -124,4 +124,35 @@ public class UserMappersTests
         dto.CreatedAt.Should().Be(expectedCreatedAt);
         dto.UpdatedAt.Should().Be(expectedUpdatedAt);
     }
+
+    [Fact]
+    public void ToDto_WithActiveUser_ShouldMapIsActiveTrue()
+    {
+        // Arrange
+        var user = new UserBuilder()
+            .WithKeycloakId(Guid.NewGuid().ToString())
+            .Build();
+
+        // Act
+        var dto = user.ToDto();
+
+        // Assert
+        dto.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToDto_WithDeletedUser_ShouldMapIsActiveFalse()
+    {
+        // Arrange
+        var user = new UserBuilder()
+            .WithKeycloakId(Guid.NewGuid().ToString())
+            .Build();
+        user.MarkAsDeleted(TimeProvider.System);
+
+        // Act
+        var dto = user.ToDto();
+
+        // Assert
+        dto.IsActive.Should().BeFalse();
+    }
 }

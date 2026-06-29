@@ -150,13 +150,41 @@ public class GetUsersQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithSearchTerm_ShouldPassToRepository()
+    public async Task HandleAsync_WithSearchTerm_ShouldCallGetPagedWithSearchAsync()
     {
         // Arrange
         var searchTerm = "john";
         var query = new GetUsersQuery(Page: 1, PageSize: 10, SearchTerm: searchTerm);
         var users = CreateTestUsers(3);
         var totalCount = 3;
+
+        _userQueriesMock
+            .Setup(x => x.GetPagedWithSearchAsync(query.Page, query.PageSize, searchTerm, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((users, totalCount));
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+
+        _userQueriesMock.Verify(
+            x => x.GetPagedWithSearchAsync(query.Page, query.PageSize, searchTerm, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetPagedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithoutSearchTerm_ShouldCallGetPagedAsync()
+    {
+        // Arrange
+        var query = new GetUsersQuery(Page: 1, PageSize: 10, SearchTerm: null);
+        var users = CreateTestUsers(5);
+        var totalCount = 25;
 
         _userQueriesMock
             .Setup(x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()))
@@ -172,6 +200,10 @@ public class GetUsersQueryHandlerTests
         _userQueriesMock.Verify(
             x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _userQueriesMock.Verify(
+            x => x.GetPagedWithSearchAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]

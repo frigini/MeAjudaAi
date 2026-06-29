@@ -32,7 +32,7 @@ public class RegisterCustomerEndpoint : BaseEndpoint, IEndpoint
     /// - Nome único para referência
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("register", RegisterCustomerAsync)
+        => app.MapPost(ApiEndpoints.Users.Register, RegisterCustomerAsync)
             .WithName(ApiEndpoints.Users.Names.Register)
             .WithTags("Users")
             .WithSummary("Registrar novo cliente")
@@ -74,6 +74,6 @@ public class RegisterCustomerEndpoint : BaseEndpoint, IEndpoint
         var result = await commandDispatcher.SendAsync<RegisterCustomerCommand, Result<UserDto>>(
             command, cancellationToken);
 
-        return Handle(result);
+        return Handle(result, ApiEndpoints.Users.Names.GetById, new { id = result.Value?.Id });
     }
 }

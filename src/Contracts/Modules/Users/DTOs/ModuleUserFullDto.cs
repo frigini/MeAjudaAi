@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.Application.DTOs;
+namespace MeAjudaAi.Contracts.Modules.Users.DTOs;
 
+/// <summary>
+/// DTO completo de usuário retornado pela API.
+/// </summary>
 [ExcludeFromCodeCoverage]
-
-public sealed record UserDto(
+public sealed record ModuleUserFullDto(
     Guid Id,
     string Username,
     string Email,

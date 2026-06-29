@@ -10,7 +10,7 @@ namespace MeAjudaAi.Contracts.Modules.Documents.DTOs;
 /// <param name="BlobName">Nome do blob no Azure Storage.</param>
 /// <param name="ExpiresAt">Data de expiração do SAS token.</param>
 [ExcludeFromCodeCoverage]
-public record UploadDocumentResponse(
+public sealed record UploadDocumentResponse(
     Guid DocumentId,
     string UploadUrl,
     string BlobName,

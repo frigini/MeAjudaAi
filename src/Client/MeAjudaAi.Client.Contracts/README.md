@@ -103,7 +103,7 @@ MeAjudaAi.Client.Contracts/
 │   ├── IServiceCatalogsApi.cs    # Catálogo de serviços (categorias + serviços)
 │   ├── ILocationsApi.cs          # Restrições geográficas (cidades permitidas)
 │   ├── IBookingsApi.cs           # Agendamentos (CRUD, lifecycle, availability, schedule)
-│   └── IUsersApi.cs              # (FUTURO) Gestão de usuários
+│   └── IUsersApi.cs              # Gestão de usuários (CRUD, registro, perfil)
 └── Models/
     └── PagedResult.cs            # Modelo de paginação genérico
 ```
@@ -117,7 +117,7 @@ MeAjudaAi.Client.Contracts/
 | **ServiceCatalogs** | ✅ IServiceCatalogsApi | Admin Portal (Sprint 6-7) | Completo |
 | **Locations** | ✅ ILocationsApi | Admin Portal (Sprint 7) | Completo |
 | **Bookings** | ✅ IBookingsApi | Customer App | Completo |
-| **Users** | ⏳ Planejado | Admin Portal (Sprint 8+) | Pendente |
+| **Users** | ✅ IUsersApi | Admin Portal (Sprint 8+) | Completo |
 | **SearchProviders** | ❌ Não necessário | Customer App (API interna) | N/A |
 
 ## 🔧 Uso em Projetos .NET

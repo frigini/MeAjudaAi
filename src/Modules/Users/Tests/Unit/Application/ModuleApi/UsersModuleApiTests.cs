@@ -407,6 +407,8 @@ public class UsersModuleApiTests
             LastName: "User",
             FullName: "Test User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: Guid.NewGuid().ToString(),
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null);

@@ -115,11 +115,12 @@ internal sealed class GetUsersQueryHandler(
         System.Diagnostics.Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        logger.LogDebug("Executing repository query for users");
+        logger.LogDebug("Executing repository query for users (SearchTerm: {SearchTerm})", query.SearchTerm);
 
         var repositoryStart = stopwatch.ElapsedMilliseconds;
-        var (users, totalCount) = await userQueries.GetPagedAsync(
-            query.Page, query.PageSize, cancellationToken);
+        var (users, totalCount) = string.IsNullOrWhiteSpace(query.SearchTerm)
+            ? await userQueries.GetPagedAsync(query.Page, query.PageSize, cancellationToken)
+            : await userQueries.GetPagedWithSearchAsync(query.Page, query.PageSize, query.SearchTerm, cancellationToken);
 
         logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users",
             stopwatch.ElapsedMilliseconds - repositoryStart, totalCount);

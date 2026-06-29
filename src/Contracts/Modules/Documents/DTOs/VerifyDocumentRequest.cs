@@ -8,4 +8,4 @@ namespace MeAjudaAi.Contracts.Modules.Documents.DTOs;
 /// <param name="IsVerified">True para aprovar, False para rejeitar.</param>
 /// <param name="VerificationNotes">Notas da verificação (obrigatório ao rejeitar).</param>
 [ExcludeFromCodeCoverage]
-public record VerifyDocumentRequest(bool IsVerified, string? VerificationNotes);
+public sealed record VerifyDocumentRequest(bool IsVerified, string? VerificationNotes);

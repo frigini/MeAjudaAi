@@ -1,3 +1,3 @@
 namespace MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 
-public record CancelBookingRequestDto(string Reason);
+public sealed record CancelBookingRequestDto(string Reason);

@@ -5,4 +5,4 @@ namespace MeAjudaAi.Contracts.Modules.Payments.DTOs;
 /// </summary>
 /// <param name="ProviderId">Identificador único do prestador que irá assinar o plano.</param>
 /// <param name="PlanId">Identificador do plano de assinatura no Stripe.</param>
-public record CreateSubscriptionRequest(Guid ProviderId, string PlanId);
+public sealed record CreateSubscriptionRequest(Guid ProviderId, string PlanId);
