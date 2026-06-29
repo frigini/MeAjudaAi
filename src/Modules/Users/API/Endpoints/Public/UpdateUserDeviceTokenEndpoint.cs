@@ -1,13 +1,20 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints.Public;
 
+/// <summary>
+/// Endpoint público responsável por atualizar o token do dispositivo do usuário para notificações push.
+/// </summary>
+[ExcludeFromCodeCoverage]
 public class UpdateUserDeviceTokenEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
@@ -18,11 +25,19 @@ public class UpdateUserDeviceTokenEndpoint : IEndpoint
            .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags("Users")
-           .WithName("UpdateUserDeviceToken")
+           .WithName(ApiEndpoints.Users.Names.UpdateDeviceToken)
            .WithSummary("Atualiza o token do dispositivo do usuário")
            .WithDescription("Registra ou atualiza o token do dispositivo para notificações push.");
     }
 
+    /// <summary>
+    /// Atualiza o token do dispositivo do usuário para notificações push.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="request"></param>
+    /// <param name="dispatcher"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
     private static async Task<IResult> UpdateDeviceTokenAsync(
         [FromRoute] Guid id,
         [FromBody] DeviceTokenRequest request,
@@ -39,6 +54,3 @@ public class UpdateUserDeviceTokenEndpoint : IEndpoint
         return result.Error.ToProblem();
     }
 }
-
-
-public sealed record DeviceTokenRequest(string? DeviceToken);

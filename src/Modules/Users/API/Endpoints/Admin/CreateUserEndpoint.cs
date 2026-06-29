@@ -1,16 +1,17 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+namespace MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela criação de novos usuários no sistema.
@@ -21,6 +22,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 /// antes de enviar comando para processamento. Integra com Keycloak para
 /// gerenciamento de identidade.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class CreateUserEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -36,7 +38,7 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.Users.Create, CreateUserAsync)
-            .WithName("CreateUser")
+            .WithName(ApiEndpoints.Users.Names.Create)
             .WithSummary("Create new user")
             .WithDescription("Creates a new user in the system with Keycloak integration")
             .Produces<Response<UserDto>>(StatusCodes.Status201Created)
@@ -70,6 +72,6 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
         var result = await commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
             command, cancellationToken);
 
-        return Handle(result, "GetUser", new { id = result.Value?.Id });
+        return Handle(result, ApiEndpoints.Users.Names.GetById, new { id = result.Value?.Id });
     }
 }

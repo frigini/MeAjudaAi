@@ -23,3 +23,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the API layer for the Communications module, including controllers, endpoints, and HTTP-related configurations. -->

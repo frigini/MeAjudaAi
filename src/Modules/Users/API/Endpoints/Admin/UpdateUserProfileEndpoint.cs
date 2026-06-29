@@ -1,17 +1,17 @@
-using FluentValidation;
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+namespace MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela atualização de perfil de usuários existentes.
@@ -22,6 +22,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 /// dados ou administradores atualizem dados de qualquer usuário. Valida
 /// permissões e dados antes de processar a atualização.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -37,7 +38,7 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut(ApiEndpoints.Users.UpdateProfile, UpdateUserAsync)
-            .WithName("UpdateUserProfile")
+            .WithName(ApiEndpoints.Users.Names.UpdateProfile)
             .WithSummary("Update user profile")
             .WithDescription("Updates profile information for an existing user")
             .RequireSelfOrAdmin()
@@ -59,35 +60,18 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
     /// </returns>
     /// <remarks>
     /// Fluxo de execução:
-    /// 1. Valida ID do usuário no formato GUID
-    /// 2. Cria comando de atualização com dados da requisição
-    /// 3. Envia comando através do dispatcher CQRS
-    /// 4. Retorna resposta HTTP com dados atualizados
+    /// 1. Converte request em comando CQRS
+    /// 2. Envia comando através do dispatcher (validação via pipeline)
+    /// 3. Retorna resposta HTTP com dados atualizados
     ///
     /// Dados atualizáveis: FirstName, LastName, Email, PhoneNumber
     /// </remarks>
-    /// <param name="validator">Validador de requisição</param>
     private static async Task<IResult> UpdateUserAsync(
         Guid id,
         [FromBody] UpdateUserProfileRequest request,
         ICommandDispatcher commandDispatcher,
-        IValidator<UpdateUserProfileRequest> validator,
         CancellationToken cancellationToken)
     {
-        // Validar request
-        var validationResult = await validator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-        {
-            var errors = validationResult.Errors
-                .GroupBy(e => e.PropertyName)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.ErrorMessage).ToArray()
-                );
-            
-            return Results.ValidationProblem(errors);
-        }
-
         var command = request.ToCommand(id);
         var result = await commandDispatcher.SendAsync<UpdateUserProfileCommand, Result<UserDto>>(
             command, cancellationToken);

@@ -9,7 +9,7 @@ API.Client/
 ├── collection.bru.example       # Template de configuração (copie para collection.bru)
 ├── collection.bru               # Configuração local (não versionado - criar local)
 ├── README.md                    # Documentação completa  
-└── UserAdmin/
+└── Admin/
     ├── GetUsers.bru            # GET /api/v1/users (paginado)
     ├── CreateUser.bru          # POST /api/v1/users
     ├── GetUserById.bru         # GET /api/v1/users/{id}

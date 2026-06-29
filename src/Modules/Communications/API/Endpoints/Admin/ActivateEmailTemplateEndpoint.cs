@@ -22,7 +22,7 @@ public class ActivateEmailTemplateEndpoint : IEndpoint
            .Produces(StatusCodes.Status204NoContent)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("ActivateEmailTemplate")
+           .WithName(ApiEndpoints.Communications.Names.ActivateTemplate)
            .WithSummary("Ativa um template de e-mail")
            .WithDescription("Torna um template de e-mail ativo para uso.");
     }

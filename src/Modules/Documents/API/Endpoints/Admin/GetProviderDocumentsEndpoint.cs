@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
@@ -18,7 +19,7 @@ public class GetProviderDocumentsEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/provider/{providerId:guid}", GetProviderDocumentsAsync)
-            .WithName("GetProviderDocuments")
+            .WithName(ApiEndpoints.Documents.Names.GetByProvider)
             .WithSummary("Listar documentos de um prestador")
             .WithDescription("""
                 Retorna todos os documentos associados a um prestador específico.

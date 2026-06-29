@@ -10,9 +10,6 @@ public static class Extensions
 {
     public static IServiceCollection AddUsersModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configuration);
-
         services.AddApplication();
         services.AddInfrastructure(configuration, environment);
 
@@ -21,7 +18,7 @@ public static class Extensions
 
     public static IEndpointRouteBuilder UseUsersModule(this IEndpointRouteBuilder app)
     {
-        UsersModuleEndpoints.Map(app);
+        UsersEndpoints.Map(app);
         return app;
     }
 }

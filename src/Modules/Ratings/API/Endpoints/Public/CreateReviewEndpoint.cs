@@ -30,7 +30,7 @@ public class CreateReviewEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapPost(ApiEndpoints.Ratings.Create, CreateReviewAsync)
-            .WithName("CreateReview")
+            .WithName(ApiEndpoints.Ratings.Names.Create)
             .WithSummary("Criar avaliação")
             .WithDescription("Registra uma nova avaliação (review) para um prestador de serviço.")
             .Produces<Guid>(StatusCodes.Status201Created)

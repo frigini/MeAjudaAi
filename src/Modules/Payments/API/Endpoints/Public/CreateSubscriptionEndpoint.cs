@@ -28,7 +28,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status502BadGateway)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(PaymentsEndpoints.Tag)
-        .WithName("CreateSubscription")
+        .WithName(ApiEndpoints.Payments.Names.CreateSubscription)
         .WithSummary("Cria uma nova assinatura")
         .WithDescription("Cria uma nova assinatura e retorna a URL do checkout do Stripe.");
     }

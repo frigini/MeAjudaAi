@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 /// Requer autenticação com role provider-*.
 /// </summary>
 /// <remarks>
-/// Versão self-service do <see cref="ProviderAdmin.AddDocumentEndpoint"/> (admin-only).
+/// Versão self-service do <see cref="Admin.AddDocumentEndpoint"/> (admin-only).
 /// Reutiliza o mesmo <see cref="AddDocumentCommand"/> e <see cref="AddDocumentRequest"/>.
     /// </remarks>
     // TODO: Enforce "ProviderPolicy" or specific roles when authorization policies are defined globally.

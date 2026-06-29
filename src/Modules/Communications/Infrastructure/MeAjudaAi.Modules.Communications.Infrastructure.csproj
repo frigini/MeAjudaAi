@@ -25,3 +25,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the infrastructure layer for the Communications module, including data access, external service integrations, and persistence implementations. -->

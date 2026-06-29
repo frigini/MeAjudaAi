@@ -1,14 +1,15 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+namespace MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela consulta de usuário específico por email.
@@ -19,6 +20,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 /// à sensibilidade dos dados de email. Realiza busca direta no sistema
 /// para localizar usuário através do endereço de email.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GetUserByEmailEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -34,7 +36,7 @@ public class GetUserByEmailEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.Users.GetByEmail, GetUserByEmailAsync)
-            .WithName("GetUserByEmail")
+            .WithName(ApiEndpoints.Users.Names.GetByEmail)
             .WithSummary("Consultar usuário por email")
             .WithDescription("""
                 Recupera dados completos de um usuário específico através de seu endereço de email.

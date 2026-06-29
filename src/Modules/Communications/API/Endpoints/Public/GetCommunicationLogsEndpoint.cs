@@ -25,7 +25,7 @@ public class GetCommunicationLogsEndpoint : IEndpoint
            .Produces(StatusCodes.Status403Forbidden)
            .ProducesProblem(StatusCodes.Status500InternalServerError)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("GetCommunicationLogs")
+           .WithName(ApiEndpoints.Communications.Names.GetLogs)
            .WithSummary("Obtém logs de comunicação")
            .WithDescription("Obtém a lista de logs de comunicações enviadas.");
     }

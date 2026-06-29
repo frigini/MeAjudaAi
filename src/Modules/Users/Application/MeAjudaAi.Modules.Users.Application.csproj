@@ -25,4 +25,4 @@
   </ItemGroup>
 
 </Project>
-<!-- This project file is for the Users application layer of the MeAjudaAi application. It references the domain layer and shared components, enabling the application to handle user-related operations. --><!-- This project file is for the Users application layer of the MeAjudaAi application. It references the domain layer and shared components, enabling the application to handle user-related operations. -->
+<!-- This project contains the application layer for the Users module, including application services, DTOs, and use cases. -->

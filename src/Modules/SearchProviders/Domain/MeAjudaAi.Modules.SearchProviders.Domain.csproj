@@ -10,3 +10,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the domain layer for the SearchProviders module, including domain entities, value objects, and domain services. -->

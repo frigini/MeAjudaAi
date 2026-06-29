@@ -1,12 +1,12 @@
 using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+using MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 using MeAjudaAi.Modules.Users.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints;
 
-public static class UsersModuleEndpoints
+public static class UsersEndpoints
 {
     public static void Map(IEndpointRouteBuilder app)
     {

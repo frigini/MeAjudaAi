@@ -28,3 +28,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains Aspire service defaults, including telemetry, health checks, and service discovery configurations. -->

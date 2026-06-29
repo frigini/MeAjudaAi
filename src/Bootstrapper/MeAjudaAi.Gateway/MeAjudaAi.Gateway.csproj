@@ -24,3 +24,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the API Gateway configuration, including reverse proxy routing, authentication, and request filtering. -->

@@ -11,7 +11,7 @@ using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela criação de novos prestadores de serviços no sistema.

@@ -119,3 +119,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains end-to-end integration tests that validate the full application stack using Aspire test infrastructure. -->

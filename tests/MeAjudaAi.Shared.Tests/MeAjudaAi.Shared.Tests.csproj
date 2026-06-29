@@ -68,3 +68,4 @@
     <Using Include="AutoFixture" />
   </ItemGroup>
 </Project>
+<!-- This project contains shared test infrastructure, base classes, and utilities used across all test projects. -->

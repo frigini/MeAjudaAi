@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
@@ -16,7 +17,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut("{id:guid}", UpdateAsync)
-            .WithName("UpdateAllowedCity")
+            .WithName(ApiEndpoints.Locations.Names.Update)
             .WithSummary("Atualizar cidade permitida")
             .WithDescription("Atualiza uma cidade permitida existente")
             .Produces<Result<Unit>>(StatusCodes.Status200OK)

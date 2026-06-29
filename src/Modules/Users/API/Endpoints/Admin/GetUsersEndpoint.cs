@@ -1,17 +1,17 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Contracts.Functional;
-
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Authorization.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+namespace MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela consulta paginada de usuários do sistema.
@@ -22,6 +22,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 /// para otimizar performance em grandes volumes de dados. Requer autorização
 /// apropriada para acesso aos dados dos usuários.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GetUsersEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -37,7 +38,7 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.Users.GetAll, GetUsersAsync)
-            .WithName("GetUsers")
+            .WithName(ApiEndpoints.Users.Names.GetAll)
             .WithSummary("Consultar usuários paginados")
             .WithDescription("""
                 Recupera uma lista paginada de usuários do sistema com suporte a filtros de busca.

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.API.Mappers;
@@ -18,7 +19,7 @@ public class DeleteDocumentEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete("/{documentId:guid}", DeleteDocumentAsync)
-            .WithName("DeleteDocument")
+            .WithName(ApiEndpoints.Documents.Names.Delete)
             .WithSummary("Excluir documento")
             .WithDescription("""
                 Exclui um documento e seu blob associado do Azure Blob Storage.

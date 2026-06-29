@@ -32,7 +32,7 @@ public class GetReviewStatusEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet(ApiEndpoints.Ratings.GetStatus, GetReviewStatusAsync)
-            .WithName("GetReviewStatus")
+            .WithName(ApiEndpoints.Ratings.Names.GetStatus)
             .WithSummary("Consultar status de avaliação")
             .WithDescription("Recupera o status atual de uma avaliação (review) pelo seu ID.")
             .Produces<ReviewStatusResponse>(StatusCodes.Status200OK)

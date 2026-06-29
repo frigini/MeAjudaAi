@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint SSE (Server-Sent Events) para streaming de eventos de verificação de prestador em tempo real.

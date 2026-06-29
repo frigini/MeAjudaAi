@@ -10,7 +10,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela remoção de documentos de prestadores de serviços.

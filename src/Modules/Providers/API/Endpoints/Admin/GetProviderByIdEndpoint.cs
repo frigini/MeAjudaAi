@@ -9,7 +9,7 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela consulta de prestador específico por ID.

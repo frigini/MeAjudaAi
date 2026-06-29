@@ -11,4 +11,4 @@
   </ItemGroup>
 
 </Project>
-<!-- This project file is for the MeAjudaAi.Modules.Users.Domain module, which is part of the MeAjudaAi system. -->
+<!-- This project contains the domain layer for the Users module, including domain entities, value objects, and domain services. -->

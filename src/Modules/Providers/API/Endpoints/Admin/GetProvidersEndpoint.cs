@@ -11,7 +11,7 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+namespace MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela consulta paginada de prestadores de serviços do sistema.

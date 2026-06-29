@@ -1,12 +1,13 @@
+using MeAjudaAi.Contracts.Constants;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.Commands;
-using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Endpoints;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+namespace MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela exclusão de usuários do sistema.
@@ -17,6 +18,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 /// à criticidade da operação. Realiza soft delete preservando dados para
 /// auditoria e possível recuperação futura.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -32,7 +34,7 @@ public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete(ApiEndpoints.Users.Delete, DeleteUserAsync)
-            .WithName("DeleteUser")
+            .WithName(ApiEndpoints.Users.Names.Delete)
             .WithSummary("Excluir usuário")
             .WithDescription("""
                 Realiza exclusão lógica (soft delete) de um usuário específico no sistema.

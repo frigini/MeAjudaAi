@@ -33,7 +33,7 @@ public class GetProviderReviewsEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet(ApiEndpoints.Ratings.GetByProvider, GetProviderReviewsAsync)
-            .WithName("GetProviderReviews")
+            .WithName(ApiEndpoints.Ratings.Names.GetByProvider)
             .WithSummary("Consultar avaliações do prestador")
             .WithDescription("Recupera todas as avaliações aprovadas de um prestador de serviço específico, com paginação.")
             .Produces<PagedResult<ProviderReviewResponse>>(StatusCodes.Status200OK)

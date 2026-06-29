@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Shared.Authorization.Extensions;
@@ -13,7 +14,7 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete("{id:guid}", DeleteAsync)
-            .WithName("DeleteAllowedCity")
+            .WithName(ApiEndpoints.Locations.Names.Delete)
             .WithSummary("Deletar cidade permitida")
             .WithDescription("Deleta uma cidade permitida")
             .Produces<Result<Unit>>(StatusCodes.Status200OK)

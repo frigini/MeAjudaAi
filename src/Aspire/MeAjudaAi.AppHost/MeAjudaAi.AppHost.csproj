@@ -40,3 +40,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project is the Aspire AppHost, responsible for orchestrating service dependencies and local development infrastructure. -->

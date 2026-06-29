@@ -7,8 +7,9 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+namespace MeAjudaAi.Modules.Users.API.Endpoints.Admin;
 
 /// <summary>
 /// Endpoint responsável pela consulta de usuário específico por ID.
@@ -19,6 +20,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 /// dados ou administradores consultem dados de qualquer usuário. Valida
 /// autorização antes de retornar os dados do usuário.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GetUserByIdEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -34,7 +36,7 @@ public class GetUserByIdEndpoint : BaseEndpoint, IEndpoint
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.Users.GetById, GetUserAsync)
-            .WithName("GetUser")
+            .WithName(ApiEndpoints.Users.Names.GetById)
             .WithSummary("Consultar usuário por ID")
             .WithDescription("""
                 Recupera dados completos de um usuário específico através de seu identificador único.
