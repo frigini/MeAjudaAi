@@ -1,34 +1,23 @@
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents;
 
 /// <summary>
-/// Mock implementation of IDocumentIntelligenceService for testing environments
+/// Mock de IDocumentIntelligenceService para testes de integração e E2E.
+/// Simula operações OCR sem Azure Document Intelligence real.
 /// </summary>
-/// <remarks>
-/// Por padrão, retorna resultados de sucesso com alta confiança.
-/// Para testar cenários de falha, use os métodos configuráveis:
-/// - SetNextResultToLowConfidence() para simular baixa qualidade de OCR
-/// - SetNextResultToError() para simular erro na API
-/// </remarks>
 public sealed class MockDocumentIntelligenceService : IDocumentIntelligenceService
 {
     private bool _simulateLowConfidence;
     private bool _simulateError;
     private string? _errorMessage;
 
-    /// <summary>
-    /// Configura o próximo resultado para retornar baixa confiança (útil para testar fluxo de rejeição)
-    /// </summary>
     public void SetNextResultToLowConfidence()
     {
         _simulateLowConfidence = true;
         _simulateError = false;
     }
 
-    /// <summary>
-    /// Configura o próximo resultado para retornar erro (útil para testar fluxo de falha)
-    /// </summary>
     public void SetNextResultToError(string errorMessage = "OCR service unavailable")
     {
         _simulateError = true;
@@ -36,9 +25,6 @@ public sealed class MockDocumentIntelligenceService : IDocumentIntelligenceServi
         _errorMessage = errorMessage;
     }
 
-    /// <summary>
-    /// Reseta para o comportamento padrão (sucesso com alta confiança)
-    /// </summary>
     public void Reset()
     {
         _simulateLowConfidence = false;
@@ -52,21 +38,14 @@ public sealed class MockDocumentIntelligenceService : IDocumentIntelligenceServi
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(blobUrl))
-        {
             throw new ArgumentException("Blob URL cannot be null or empty", nameof(blobUrl));
-        }
 
         if (string.IsNullOrWhiteSpace(documentType))
-        {
             throw new ArgumentException("Document type cannot be null or empty", nameof(documentType));
-        }
 
         if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out _))
-        {
             throw new ArgumentException($"Invalid blob URL format: {blobUrl}", nameof(blobUrl));
-        }
 
-        // Simular erro de API se configurado
         if (_simulateError)
         {
             var errorResult = new OcrResult(
@@ -80,7 +59,6 @@ public sealed class MockDocumentIntelligenceService : IDocumentIntelligenceServi
             return Task.FromResult(errorResult);
         }
 
-        // Simular baixa confiança se configurado
         if (_simulateLowConfidence)
         {
             var lowConfidenceFields = new Dictionary<string, string>
@@ -93,14 +71,13 @@ public sealed class MockDocumentIntelligenceService : IDocumentIntelligenceServi
                 Success: true,
                 ExtractedData: "{\"quality\":\"low\"}",
                 Fields: lowConfidenceFields,
-                Confidence: 0.45f, // Abaixo do threshold típico de 0.7
+                Confidence: 0.45f,
                 ErrorMessage: null
             );
             Reset();
             return Task.FromResult(lowConfidenceResult);
         }
 
-        // Retorna dados OCR mockados para happy path
         var mockFields = new Dictionary<string, string>
         {
             ["documentNumber"] = "123456789",

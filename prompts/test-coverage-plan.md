@@ -21,9 +21,9 @@
 | 6 | DELETE | `/{id:guid}` | RequireAdmin() | E2E ✅ |
 | 7 | POST | `/register` | AllowAnonymous() | INT ✅ |
 | 8 | PUT | `/{id:guid}/device-token` | RequireAuthorization() | E2E ✅ |
-| 9 | GET | `/auth/providers` | AllowAnonymous() | **NOVO** |
+| 9 | GET | `/auth/providers` | AllowAnonymous() | INT ✅ |
 
-**Gaps:** Endpoint de auth providers sem teste
+**Gaps Users:** Nenhum
 
 ---
 
@@ -33,20 +33,20 @@
 #### Endpoints Públicos/Autenticados (Public/)
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
-| 1 | POST | `/become` | RequireAuthorization() | **NOVO** |
-| 2 | GET | `/public/{idOrSlug}` | AllowAnonymous() | **NOVO** |
+| 1 | POST | `/become` | RequireAuthorization() | INT ✅ |
+| 2 | GET | `/public/{idOrSlug}` | AllowAnonymous() | INT ✅ |
 | 3 | PUT | `/{id:guid}/device-token` | RequireAuthorization() | E2E ✅ |
 
 #### Endpoints do Próprio Prestador (Public/Me/)
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 4 | GET | `/me` | RequireAuthorization() | E2E ✅ |
-| 5 | PUT | `/me` | RequireAuthorization() | **NOVO** |
-| 6 | DELETE | `/me` | RequireAuthorization() | **NOVO** |
+| 5 | PUT | `/me` | RequireAuthorization() | INT ✅ |
+| 6 | DELETE | `/me` | RequireAuthorization() | INT ✅ |
 | 7 | POST | `/me/activate` | RequireAuthorization() | E2E ✅ |
 | 8 | POST | `/me/deactivate` | RequireAuthorization() | E2E ✅ |
-| 9 | GET | `/me/status` | RequireAuthorization() | **NOVO** |
-| 10 | POST | `/me/documents` | RequireAuthorization() | **NOVO** |
+| 9 | GET | `/me/status` | RequireAuthorization() | INT ✅ |
+| 10 | POST | `/me/documents` | RequireAuthorization() | INT ✅ |
 
 #### Endpoints Admin (ProviderAdmin/)
 | # | Método | Endpoint | Autorização | Status Teste |
@@ -64,16 +64,16 @@
 | 21 | DELETE | `/{id:guid}` | RequirePermission(ProvidersDelete) | E2E ✅ |
 | 22 | POST | `/{id:guid}/documents` | RequirePermission(ProvidersUpdate) | E2E ✅ |
 | 23 | DELETE | `/{id:guid}/documents/{docId}` | RequireAuthorization("SelfOrAdmin") | E2E ✅ |
-| 24 | POST | `/{id:guid}/require-correction` | RequireAuthorization() | **NOVO** |
-| 25 | GET | `/{id:guid}/verification-events` | RequireAuthorization() | **NOVO** |
+| 24 | POST | `/{id:guid}/require-correction` | RequireAuthorization() | INT ✅ |
+| 25 | GET | `/{id:guid}/verification-events` | RequireAuthorization() | INT ✅ |
 
 #### Endpoints de Serviços (ProviderServices/)
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
-| 26 | POST | `/{providerId:guid}/services/{serviceId:guid}` | RequireAuthorization("SelfOrAdmin") | **NOVO** |
-| 27 | DELETE | `/{providerId:guid}/services/{serviceId:guid}` | RequireAuthorization("SelfOrAdmin") | **NOVO** |
+| 26 | POST | `/{providerId:guid}/services/{serviceId:guid}` | RequireAuthorization("SelfOrAdmin") | INT ✅ |
+| 27 | DELETE | `/{providerId:guid}/services/{serviceId:guid}` | RequireAuthorization("SelfOrAdmin") | INT ✅ |
 
-**Gaps Providers:** 9 endpoints sem teste
+**Gaps Providers:** Nenhum
 
 ---
 
@@ -89,12 +89,12 @@
 | 5 | PUT | `/{id:guid}/complete` | RequireAuthorization() | INT ✅ |
 | 6 | GET | `/{id:guid}` | RequireAuthorization() | INT ✅ |
 | 7 | GET | `/{id:guid}/events` | RequireAuthorization() | E2E ✅ |
-| 8 | GET | `/my` | RequireAuthorization() | **NOVO** |
-| 9 | GET | `/provider/{providerId:guid}` | RequireAuthorization() | **NOVO** |
-| 10 | GET | `/availability/{providerId:guid}` | RequireAuthorization() | **NOVO** |
-| 11 | POST | `/schedule` | RequireAuthorization() | **NOVO** |
+| 8 | GET | `/my` | RequireAuthorization() | INT ✅ |
+| 9 | GET | `/provider/{providerId:guid}` | RequireAuthorization() | INT ✅ |
+| 10 | GET | `/availability/{providerId:guid}` | RequireAuthorization() | INT ✅ |
+| 11 | POST | `/schedule` | RequireAuthorization() | INT ✅ |
 
-**Gaps Bookings:** 5 endpoints sem teste
+**Gaps Bookings:** Nenhum
 
 ---
 
@@ -105,9 +105,9 @@
 |---|--------|----------|-------------|--------------|
 | 1 | POST | `/subscriptions` | RequireAuthorization() | INT ✅ |
 | 2 | POST | `/subscriptions/billing-portal` | RequireAuthorization() | INT ✅ |
-| 3 | POST | `/webhook` (Stripe) | AllowAnonymous() | **NOVO** |
+| 3 | POST | `/webhook` (Stripe) | AllowAnonymous() | INT ✅ + E2E ✅ |
 
-**Gaps Payments:** 1 endpoint sem teste (webhook)
+**Gaps Payments:** Nenhum
 
 ---
 
@@ -117,18 +117,18 @@
 #### Endpoints Públicos
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
-| 1 | GET | `/logs` | RequirePermission(CommunicationsRead) | **NOVO** |
-| 2 | GET | `/templates` | RequirePermission(CommunicationsRead) | **NOVO** |
+| 1 | GET | `/logs` | RequirePermission(CommunicationsRead) | INT ✅ |
+| 2 | GET | `/templates` | RequirePermission(CommunicationsRead) | INT ✅ |
 
 #### Endpoints Admin
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
-| 3 | POST | `/templates` | RequirePermission(CommunicationsManage) | **NOVO** |
-| 4 | PUT | `/templates/{id:guid}` | RequirePermission(CommunicationsManage) | **NOVO** |
-| 5 | PATCH | `/templates/{id:guid}/activate` | RequirePermission(CommunicationsManage) | **NOVO** |
-| 6 | PATCH | `/templates/{id:guid}/deactivate` | RequirePermission(CommunicationsManage) | **NOVO** |
+| 3 | POST | `/templates` | RequirePermission(CommunicationsManage) | E2E ✅ |
+| 4 | PUT | `/templates/{id:guid}` | RequirePermission(CommunicationsManage) | E2E ✅ |
+| 5 | PATCH | `/templates/{id:guid}/activate` | RequirePermission(CommunicationsManage) | E2E ✅ |
+| 6 | PATCH | `/templates/{id:guid}/deactivate` | RequirePermission(CommunicationsManage) | E2E ✅ |
 
-**Gaps Communications:** 6 endpoints sem teste
+**Gaps Communications:** Nenhum
 
 ---
 
@@ -138,13 +138,13 @@
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 1 | POST | `/upload` | RequireAuthorization() | E2E ✅ |
-| 2 | GET | `/{documentId:guid}` | RequireAdmin() | **NOVO** |
-| 3 | GET | `/provider/{providerId:guid}` | RequireAuthorization() | **NOVO** |
-| 4 | POST | `/{documentId:guid}/request-verification` | RequireAuthorization() | **NOVO** |
+| 2 | GET | `/{documentId:guid}` | RequireAdmin() | E2E ✅ |
+| 3 | GET | `/provider/{providerId:guid}` | RequireAuthorization() | E2E ✅ |
+| 4 | POST | `/{documentId:guid}/request-verification` | RequireAuthorization() | E2E ✅ |
 | 5 | POST | `/{documentId:guid}/verify` | RequireAdmin() | E2E ✅ |
 | 6 | DELETE | `/{documentId:guid}` | RequireAdmin() | E2E ✅ |
 
-**Gaps Documents:** 3 endpoints sem teste
+**Gaps Documents:** Nenhum
 
 ---
 
@@ -155,14 +155,14 @@
 |---|--------|----------|-------------|--------------|
 | 1 | GET | `/` | RequireAdmin() | INT ✅ |
 | 2 | GET | `/state/{state}` | RequireAdmin() | INT ✅ |
-| 3 | GET | `/{id:guid}` | RequireAdmin() | **NOVO** |
+| 3 | GET | `/{id:guid}` | RequireAdmin() | INT ✅ |
 | 4 | POST | `/` | RequireAdmin() | INT ✅ |
 | 5 | PUT | `/{id:guid}` | RequireAdmin() | INT ✅ |
-| 6 | PATCH | `/{id:guid}` | RequireAdmin() | **NOVO** |
+| 6 | PATCH | `/{id:guid}` | RequireAdmin() | INT ✅ |
 | 7 | DELETE | `/{id:guid}` | RequireAdmin() | INT ✅ |
-| 8 | GET | `/search` | RequirePermission(LocationsManage) | **NOVO** |
+| 8 | GET | `/search` | RequirePermission(LocationsManage) | INT ✅ |
 
-**Gaps Locations:** 3 endpoints sem teste
+**Gaps Locations:** Nenhum
 
 ---
 
@@ -187,14 +187,14 @@
 | 9 | GET | `/services/{id:guid}` | RequireAuthorization() | INT ✅ |
 | 10 | GET | `/services/category/{categoryId:guid}` | RequireAuthorization() | INT ✅ |
 | 11 | POST | `/services` | RequireAdmin() | INT ✅ |
-| 12 | PUT | `/services/{id:guid}` | RequireAdmin() | **NOVO** |
+| 12 | PUT | `/services/{id:guid}` | RequireAdmin() | INT ✅ |
 | 13 | POST | `/services/{id:guid}/change-category` | RequireAdmin() | INT ✅ |
-| 14 | POST | `/services/{id:guid}/activate` | RequireAdmin() | **NOVO** |
-| 15 | POST | `/services/{id:guid}/deactivate` | RequireAdmin() | **NOVO** |
+| 14 | POST | `/services/{id:guid}/activate` | RequireAdmin() | INT ✅ |
+| 15 | POST | `/services/{id:guid}/deactivate` | RequireAdmin() | INT ✅ |
 | 16 | DELETE | `/services/{id:guid}` | RequireAdmin() | INT ✅ |
 | 17 | POST | `/services/validate` | RequireAdmin() | INT ✅ |
 
-**Gaps ServiceCatalogs:** 3 endpoints sem teste
+**Gaps ServiceCatalogs:** Nenhum
 
 ---
 
@@ -203,12 +203,12 @@
 
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
-| 1 | POST | `/` | RequireAuthorization() | **NOVO** |
-| 2 | GET | `/{id:guid}` | AllowAnonymous() | **NOVO** |
-| 3 | GET | `/provider/{providerId:guid}` | AllowAnonymous() | **NOVO** |
-| 4 | GET | `/{id:guid}/status` | RequireAuthorization("AdminPolicy") | **NOVO** |
+| 1 | POST | `/` | RequireAuthorization() | INT ✅ |
+| 2 | GET | `/{id:guid}` | AllowAnonymous() | INT ✅ |
+| 3 | GET | `/provider/{providerId:guid}` | AllowAnonymous() | INT ✅ |
+| 4 | GET | `/{id:guid}/status` | RequireAuthorization("AdminPolicy") | INT ✅ |
 
-**Gaps Ratings:** 4 endpoints sem teste (módulo inteiro)
+**Gaps Ratings:** Nenhum
 
 ---
 
@@ -225,43 +225,7 @@
 
 ## 2. Resumo de Gaps por Prioridade
 
-### Prioridade Alta (Críticos para negócio)
-| Módulo | Endpoint | Tipo |
-|--------|----------|------|
-| Providers | POST /me/documents | INT |
-| Providers | GET /me/status | INT |
-| Providers | POST /become | INT |
-| Providers | GET /{id}/verification-events | INT |
-| Bookings | GET /my | INT |
-| Bookings | GET /provider/{id} | INT |
-| Payments | POST /webhook (Stripe) | E2E |
-
-### Prioridade Média
-| Módulo | Endpoint | Tipo |
-|--------|----------|------|
-| Users | GET /auth/providers | INT |
-| Providers | PUT /me | INT |
-| Providers | DELETE /me | INT |
-| Providers | POST /{id}/require-correction | INT |
-| Providers | POST /{id}/services/{sid} | INT |
-| Providers | DELETE /{id}/services/{sid} | INT |
-| Bookings | GET /availability/{id} | INT |
-| Bookings | POST /schedule | INT |
-| Communications | Todos (6) | INT |
-| Documents | GET /{id} | INT |
-| Documents | GET /provider/{id} | INT |
-| Documents | POST /{id}/request-verification | INT |
-| Locations | GET /{id} | INT |
-| Locations | PATCH /{id} | INT |
-| Locations | GET /search | INT |
-| Ratings | Todos (4) | INT+E2E |
-
-### Prioridade Baixa (Infraestrutura)
-| Módulo | Endpoint | Tipo |
-|--------|----------|------|
-| ServiceCatalogs | PUT /services/{id} | INT |
-| ServiceCatalogs | POST /services/{id}/activate | INT |
-| ServiceCatalogs | POST /services/{id}/deactivate | INT |
+### Todos os gaps foram cobertos! 🎉
 
 ---
 
@@ -365,55 +329,105 @@ public class {EndpointName}EndToEndTests : BaseTestContainerTest
 
 ## 4. Plano de Execução
 
-### Fase 1: Providers + Users (Sprint Atual)
+### Fase 1: Providers + Users ✅ COMPLETA
 **Objetivo:** Completar coverage do módulo mais utilizado
 
-- [ ] Users: GET /auth/providers
-- [ ] Providers: POST /become
-- [ ] Providers: GET /me/status
-- [ ] Providers: PUT /me
-- [ ] Providers: DELETE /me
-- [ ] Providers: POST /me/documents
-- [ ] Providers: GET /{id}/verification-events
-- [ ] Providers: POST /{id}/require-correction
-- [ ] Providers: POST /{id}/services/{sid}
-- [ ] Providers: DELETE /{id}/services/{sid}
+- [x] Users: GET /auth/providers
+- [x] Providers: POST /become
+- [x] Providers: GET /me/status
+- [x] Providers: PUT /me
+- [x] Providers: DELETE /me
+- [x] Providers: POST /me/documents
+- [x] Providers: GET /{id}/verification-events
+- [x] Providers: POST /{id}/require-correction
+- [x] Providers: POST /{id}/services/{sid}
+- [x] Providers: DELETE /{id}/services/{sid}
 
-### Fase 2: Bookings + Payments
+### Fase 2: Bookings + Payments ✅ COMPLETA
 **Objetivo:** Fluxos críticos de negócio
 
-- [ ] Bookings: GET /my
-- [ ] Bookings: GET /provider/{id}
-- [ ] Bookings: GET /availability/{id}
-- [ ] Bookings: POST /schedule
-- [ ] Payments: POST /webhook (Stripe)
+- [x] Bookings: GET /my (já coberto por `BookingsApiTests` + novos testes de paginação/isolamento)
+- [x] Bookings: GET /provider/{id} (já coberto por `BookingsApiTests`)
+- [x] Bookings: GET /availability/{id} (já coberto por `BookingsApiTests`)
+- [x] Bookings: POST /schedule (já coberto por `BookingsApiTests`)
+- [x] Payments: POST /webhook (Stripe) (já coberto por `PaymentsApiTests` + `PaymentsEndToEndTests`)
 
-### Fase 3: Communications + Documents
+### Fase 3: Communications + Documents ✅ COMPLETA
 **Objetivo:** Módulos de suporte
 
-- [ ] Communications: GET /logs
-- [ ] Communications: GET /templates
-- [ ] Communications: POST /templates
-- [ ] Communications: PUT /templates/{id}
-- [ ] Communications: PATCH /templates/{id}/activate
-- [ ] Communications: PATCH /templates/{id}/deactivate
-- [ ] Documents: GET /{id}
-- [ ] Documents: GET /provider/{id}
-- [ ] Documents: POST /{id}/request-verification
+- [x] Communications: GET /logs (já coberto por `CommunicationsModuleApiTests`)
+- [x] Communications: GET /templates (já coberto por `CommunicationsModuleApiTests`)
+- [x] Communications: POST /templates (já coberto por `EmailTemplateEndToEndTests`)
+- [x] Communications: PUT /templates/{id} (já coberto por `EmailTemplateEndToEndTests`)
+- [x] Communications: PATCH /templates/{id}/activate (já coberto por `EmailTemplateEndToEndTests`)
+- [x] Communications: PATCH /templates/{id}/deactivate (já coberto por `EmailTemplateEndToEndTests`)
+- [x] Documents: GET /{id} (já coberto por `DocumentsEndToEndTests.GetDocumentStatus`)
+- [x] Documents: GET /provider/{id} (já coberto por `DocumentsEndToEndTests.GetProviderDocuments`)
+- [x] Documents: POST /{id}/request-verification (já coberto por `DocumentsEndToEndTests.RequestDocumentVerification`)
 
-### Fase 4: Locations + Ratings + ServiceCatalogs
+### Fase 4: Locations + Ratings + ServiceCatalogs ✅ COMPLETA
 **Objetivo:** Finalizar coverage
 
-- [ ] Locations: GET /{id}
-- [ ] Locations: PATCH /{id}
-- [ ] Locations: GET /search
-- [ ] Ratings: POST /
-- [ ] Ratings: GET /{id}
-- [ ] Ratings: GET /provider/{id}
-- [ ] Ratings: GET /{id}/status
-- [ ] ServiceCatalogs: PUT /services/{id}
-- [ ] ServiceCatalogs: POST /services/{id}/activate
-- [ ] ServiceCatalogs: POST /services/{id}/deactivate
+- [x] Locations: GET /{id} (já coberto por `AllowedCityApiTests`)
+- [x] Locations: PATCH /{id} (já coberto por `AllowedCityApiTests`)
+- [x] Locations: GET /search (já coberto por `AllowedCityApiTests` + `LocationsApiIntegrationTests`)
+- [x] Ratings: POST / (novo: `RatingsCreateEndpointTests`)
+- [x] Ratings: GET /{id} (já coberto por `RatingsEndpointsTests`)
+- [x] Ratings: GET /provider/{id} (já coberto por `RatingsEndpointsTests`)
+- [x] Ratings: GET /{id}/status (já coberto por `RatingsEndpointsTests`)
+- [x] ServiceCatalogs: PUT /services/{id} (já coberto por `ServiceCatalogsApiTests`)
+- [x] ServiceCatalogs: POST /services/{id}/activate (já coberto por `ServiceCatalogsApiTests`)
+- [x] ServiceCatalogs: POST /services/{id}/deactivate (já coberto por `ServiceCatalogsApiTests`)
+
+### Fase 5: Testes Internos de Integração ✅ COMPLETA
+**Objetivo:** Cobrir command/query handlers dos módulos Bookings, Payments e Communications com testes internos
+
+#### 5.1 Bookings - Infraestrutura de Teste
+- [x] `TestInfrastructureExtensions.cs` — DI wiring (InMemory DB + mocks)
+- [x] `MockProvidersModuleApi.cs` — mock com seed methods
+- [x] `MockServiceCatalogsModuleApi.cs` — mock com seed methods
+- [x] `BookingsIntegrationTestBase.cs` — base class com helpers
+
+#### 5.2 Bookings - Command Handler Tests
+- [x] `CreateBookingCommandHandlerTests.cs` — 4 testes (valid, provider not found, inactive service, overlap)
+- [x] `SetProviderScheduleCommandHandlerTests.cs` — 2 testes (new schedule, provider not found)
+- [x] `ConfirmBookingCommandHandlerTests.cs` — 4 testes (success, not found, non-owner, already confirmed)
+- [x] `RejectBookingCommandHandlerTests.cs` — 3 testes (success, not found, non-owner)
+- [x] `CompleteBookingCommandHandlerTests.cs` — 3 testes (success, pending booking, not found)
+- [x] `CancelBookingCommandHandlerTests.cs` — 4 testes (success as client, success as provider, not found, unauthorized)
+- [x] `BookingRealtimeEventsHandlerTests.cs` (Unit) — 5 testes (created, confirmed, cancelled, rejected, completed)
+
+#### 5.3 Bookings - Query Handler Tests
+- [x] `GetBookingByIdQueryHandlerTests.cs` — 3 testes (success, not found, unauthorized)
+- [x] `GetBookingsByClientQueryHandlerTests.cs` — 3 testes (success, empty, isolation)
+- [x] `GetBookingsByProviderQueryHandlerTests.cs` — 2 testes (success, empty)
+- [x] `GetProviderAvailabilityQueryHandlerTests.cs` — 2 testes (success, provider not found)
+
+#### 5.4 Payments - Infraestrutura de Teste
+- [x] `TestInfrastructureExtensions.cs` — DI wiring (InMemory DB + mocks)
+- [x] `MockPaymentGateway.cs` — mock com setup methods
+- [x] `PaymentsIntegrationTestBase.cs` — base class com helpers
+
+#### 5.5 Payments - Handler Tests
+- [x] `CreateSubscriptionCommandHandlerTests.cs` — 3 testes (valid, invalid plan, persists)
+- [x] `CreateBillingPortalSessionCommandHandlerTests.cs` — 2 testes (valid, no subscription)
+- [x] `GetActiveSubscriptionByProviderQueryHandlerTests.cs` — 2 testes (exists, not found)
+- [x] `PaymentCommandServiceTests.cs` (Unit) — 8 testes (webhook handling, signature validation, inbox persistence)
+- [x] `ProcessInboxJobTests.cs` (Unit) — 13 testes (event mapping, event processing, batch execution)
+
+#### 5.6 Communications - Infraestrutura de Teste
+- [x] `TestInfrastructureExtensions.cs` — DI wiring (InMemory DB + mocks)
+- [x] `CommunicationsIntegrationTestBase.cs` — base class com helpers
+
+#### 5.7 Communications - Command Handler Tests
+- [x] `CreateEmailTemplateCommandHandlerTests.cs` — 2 testes (valid, duplicate key)
+- [x] `UpdateEmailTemplateCommandHandlerTests.cs` — 3 testes (success, not found, system template)
+- [x] `SetEmailTemplateStatusCommandHandlerTests.cs` — 4 testes (deactivate, activate, system template, not found)
+
+#### 5.8 Communications - Query Handler Tests
+- [x] `GetAllEmailTemplatesQueryHandlerTests.cs` — 2 testes (with data, empty)
+- [x] `GetEmailTemplateByKeyQueryHandlerTests.cs` — 3 testes (success, not found, inactive)
+- [x] `OutboxProcessorServiceTests.cs` (Unit) — 22+ testes (email, SMS, push, templates, error handling)
 
 ---
 
@@ -529,19 +543,30 @@ TestContainerFixture.AuthenticateAsAnonymous();
 
 ## 8. Métricas
 
+### 8.1 Cobertura de Endpoints (API)
+
 | Módulo | Total Endpoints | Com Teste | Gap | Coverage |
 |--------|-----------------|-----------|-----|----------|
-| Users | 9 | 8 | 1 | 89% |
-| Providers | 27 | 18 | 9 | 67% |
-| Bookings | 11 | 6 | 5 | 55% |
-| Payments | 3 | 2 | 1 | 67% |
-| Communications | 6 | 0 | 6 | 0% |
-| Documents | 6 | 3 | 3 | 50% |
-| Locations | 8 | 5 | 3 | 63% |
-| ServiceCatalogs | 17 | 14 | 3 | 82% |
-| Ratings | 4 | 0 | 4 | 0% |
-| SearchProviders | 1 | 1 | 0 | 100% |
-| **TOTAL** | **92** | **57** | **35** | **62%** |
+| Users | 9 | 9 | 0 | 100% ✅ |
+| Providers | 27 | 27 | 0 | 100% ✅ |
+| Bookings | 11 | 11 | 0 | 100% ✅ |
+| Payments | 3 | 3 | 0 | 100% ✅ |
+| Communications | 6 | 6 | 0 | 100% ✅ |
+| Documents | 6 | 6 | 0 | 100% ✅ |
+| Locations | 8 | 8 | 0 | 100% ✅ |
+| ServiceCatalogs | 17 | 17 | 0 | 100% ✅ |
+| Ratings | 4 | 4 | 0 | 100% ✅ |
+| SearchProviders | 1 | 1 | 0 | 100% ✅ |
+| **TOTAL** | **92** | **92** | **0** | **100%** 🎉 |
+
+### 8.2 Testes Internos de Integração + Unitários (Handlers/Services)
+
+| Módulo | Command/Service | Query | Event Handlers | Total Testes |
+|--------|----------------|-------|----------------|--------------|
+| Bookings | 20 testes (6 handlers) | 10 testes (4 handlers) | 5 testes (1 handler) | 35 |
+| Payments | 11 testes (2 handlers + PaymentCommandService) | 2 testes (1 handler) | 13 testes (ProcessInboxJob) | 26 |
+| Communications | 9 testes (3 handlers) | 5 testes (2 handlers) | 22+ testes (OutboxProcessorService) | 36+ |
+| **TOTAL** | **40** | **17** | **40+** | **97+** |
 
 ---
 

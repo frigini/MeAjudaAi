@@ -13,8 +13,6 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
     public async Task GetPublicProviderById_ActiveProvider_ShouldReturnDto()
     {
         // Arrange
-        await CleanupDatabase();
-        
         var businessProfile = CreateTestBusinessProfile("active@test.com");
         var provider = await CreateProviderAsync(
             Guid.NewGuid(),
@@ -22,9 +20,8 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
             EProviderType.Individual,
             businessProfile);
             
-        // Bypass domain transitions to set required state for test
-        typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Active);
-        typeof(Provider).GetProperty(nameof(Provider.VerificationStatus))?.SetValue(provider, EVerificationStatus.Verified);
+        provider.CompleteBasicInfo();
+        provider.Activate();
         
         DbContext.Providers.Update(provider);
         await DbContext.SaveChangesAsync();
@@ -47,8 +44,6 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
     public async Task GetPublicProviderById_InactiveProvider_ShouldReturnNotFound()
     {
         // Arrange
-        await CleanupDatabase();
-        
         var businessProfile = CreateTestBusinessProfile("suspended@test.com");
         var provider = await CreateProviderAsync(
             Guid.NewGuid(),
@@ -78,7 +73,6 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
     public async Task GetPublicProviderById_NonExistentProvider_ShouldReturnNotFound()
     {
         // Arrange
-        await CleanupDatabase();
         var dispatcher = GetService<IQueryDispatcher>();
         var query = new GetPublicProviderByIdOrSlugQuery(Guid.NewGuid().ToString());
 

@@ -3,9 +3,11 @@ using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -38,7 +40,7 @@ public static class UsersTestInfrastructureExtensions
 
         // Adicionar serviços de cache do Shared (incluindo ICacheService)
         // Para testes, usar implementação simples sem dependências complexas
-        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
+        services.AddSingleton<ICacheService, TestCacheService>();
 
         // Configurar banco de dados específico do módulo Users
         services.AddTestDatabase<UsersDbContext>(

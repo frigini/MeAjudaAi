@@ -13,7 +13,6 @@ public sealed class ProviderQueriesIntegrationTests : ProvidersIntegrationTestBa
     public async Task GetProvidersAsync_WithValidFilters_ShouldReturnFilteredResults()
     {
         // Arrange
-        await CleanupDatabase(); // Garantir isolamento
         var queryService = GetService<IProviderQueries>();
 
         // Criar dados de teste
@@ -50,8 +49,6 @@ public sealed class ProviderQueriesIntegrationTests : ProvidersIntegrationTestBa
     public async Task GetProvidersAsync_WithTypeFilter_ShouldReturnOnlyMatchingType()
     {
         // Arrange
-        await CleanupDatabase();
-
         var queryService = GetService<IProviderQueries>();
 
         var businessProfile = CreateTestBusinessProfile("individual@test.com");
@@ -77,7 +74,6 @@ public sealed class ProviderQueriesIntegrationTests : ProvidersIntegrationTestBa
     public async Task GetProvidersAsync_WithPagination_ShouldReturnCorrectPage()
     {
         // Arrange
-        await CleanupDatabase(); // Garantir isolamento
         var queryService = GetService<IProviderQueries>();
 
         // Criar múltiplos providers
@@ -107,8 +103,7 @@ public sealed class ProviderQueriesIntegrationTests : ProvidersIntegrationTestBa
     public async Task GetProvidersAsync_EmptyDatabase_ShouldReturnEmptyResult()
     {
         // Arrange
-        await ForceCleanDatabase();
-
+        // InitializeAsync already TRUNCATEs all tables, so DB is clean
         var queryService = GetService<IProviderQueries>();
 
         // Act - teste com banco vazio usando container-backed services

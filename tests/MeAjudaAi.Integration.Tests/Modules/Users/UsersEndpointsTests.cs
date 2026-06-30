@@ -60,6 +60,38 @@ public class UsersEndpointsTests : BaseApiTest
     }
 
     [Fact]
+    public async Task GetAuthProviders_ShouldReturnAllProviderNames()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/v1/users/auth/providers");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await response.Content.ReadAsStringAsync();
+        var providers = JsonSerializer.Deserialize<string[]>(content);
+        providers.Should().NotBeNull();
+        providers.Should().Contain("Google");
+        providers.Should().Contain("Microsoft");
+        providers.Should().Contain("Facebook");
+        providers.Should().Contain("Apple");
+        providers.Should().Contain("Instagram");
+        providers.Length.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task GetAuthProviders_WithoutAuth_ShouldStillReturnOk()
+    {
+        // Arrange - endpoint is AllowAnonymous
+        AuthConfig.ClearConfiguration();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/users/auth/providers");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task CreateAndDeleteUser_ShouldWork()
     {
         // Arrange

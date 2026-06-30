@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
@@ -47,9 +48,10 @@ public class UpdateMyProviderProfileIntegrationTests : ProvidersIntegrationTestB
         result.Value.Name.Should().Be(newName);
         result.Value.BusinessProfile.Description.Should().Be("Updated Description");
 
-        // Verify DB
-        var dbContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        var updatedProvider = await dbContext.Providers.FindAsync(provider.Id);
+        // Verify DB with cold read (new scope to avoid cached entity)
+        using var verifyScope = CreateScope();
+        var verifyDbContext = verifyScope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var updatedProvider = await verifyDbContext.Providers.AsNoTracking().FirstOrDefaultAsync(p => p.Id == provider.Id);
         updatedProvider.Should().NotBeNull();
         updatedProvider!.Name.Should().Be(newName);
         updatedProvider.BusinessProfile.Description.Should().Be("Updated Description");

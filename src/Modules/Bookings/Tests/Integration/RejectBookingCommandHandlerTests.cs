@@ -1,0 +1,74 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
+using MeAjudaAi.Modules.Bookings.Application.Commands;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Commands;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
+
+public class RejectBookingCommandHandlerTests : BookingsIntegrationTestBase
+{
+    [Fact]
+    public async Task Reject_ExistingPendingBooking_ShouldSucceed()
+    {
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+
+        GetMockProvidersApi().SeedProvider(providerId, Guid.NewGuid());
+        GetMockServiceCatalogsApi().SeedService(serviceId, Guid.NewGuid());
+
+        var booking = await CreateBookingAsync(providerId, clientId, serviceId);
+
+        using var scope = CreateScope();
+        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<RejectBookingCommand, Result>>();
+        var command = new RejectBookingCommand(booking.Id, "Schedule conflict", false, providerId, Guid.NewGuid());
+
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+
+        using var verifyScope = CreateScope();
+        var db = verifyScope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+        var updated = await db.Bookings.AsNoTracking().FirstAsync(b => b.Id == booking.Id);
+        updated.Status.Should().Be(EBookingStatus.Rejected);
+        updated.RejectionReason.Should().Be("Schedule conflict");
+    }
+
+    [Fact]
+    public async Task Reject_NonExistingBooking_ShouldReturnNotFound()
+    {
+        using var scope = CreateScope();
+        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<RejectBookingCommand, Result>>();
+        var command = new RejectBookingCommand(Guid.NewGuid(), "reason", false, Guid.NewGuid(), Guid.NewGuid());
+
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(404);
+    }
+
+    [Fact]
+    public async Task Reject_ByNonOwner_ShouldReturnForbidden()
+    {
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+
+        GetMockProvidersApi().SeedProvider(providerId, Guid.NewGuid());
+        GetMockServiceCatalogsApi().SeedService(serviceId, Guid.NewGuid());
+
+        var booking = await CreateBookingAsync(providerId, clientId, serviceId);
+
+        using var scope = CreateScope();
+        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<RejectBookingCommand, Result>>();
+        var command = new RejectBookingCommand(booking.Id, "reason", false, Guid.NewGuid(), Guid.NewGuid());
+
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(403);
+    }
+}
