@@ -475,7 +475,12 @@ public class TestContainerFixture : IAsyncLifetime
             var idParam = uri.Query.TrimStart('?').Split('&').FirstOrDefault(p => p.StartsWith("id="));
             if (idParam != null) return Guid.Parse(idParam.Split('=')[1]);
         }
-        return Guid.Parse(locationHeader.Split('/')[^1]);
+
+        var lastSegment = locationHeader.Split('/')[^1].Split('?')[0];
+        if (Guid.TryParse(lastSegment, out var id))
+            return id;
+
+        throw new FormatException($"Cannot extract GUID from Location header: {locationHeader}");
     }
 
     public static void AuthenticateAsAdmin()

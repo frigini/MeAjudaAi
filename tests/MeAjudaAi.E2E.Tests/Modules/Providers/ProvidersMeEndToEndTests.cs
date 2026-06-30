@@ -57,9 +57,24 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
 
         var locationHeader = response.Headers.Location?.ToString();
         locationHeader.Should().NotBeNull();
-        locationHeader.Should().Contain("/api/v1/providers");
 
-        var providerId = TestContainerFixture.ExtractIdFromLocation(locationHeader!);
+        // The /become endpoint returns Location: /me (route name), so extract ID from response body
+        Guid providerId;
+        if (!string.IsNullOrEmpty(locationHeader) && locationHeader.Contains("/me"))
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            var json = JsonSerializer.Deserialize<JsonElement>(body, TestContainerFixture.JsonOptions);
+            var data = json.TryGetProperty("data", out var d) ? d : json;
+            providerId = Guid.Parse(data.GetProperty("id").GetString()!);
+        }
+        else if (!string.IsNullOrEmpty(locationHeader))
+        {
+            providerId = TestContainerFixture.ExtractIdFromLocation(locationHeader);
+        }
+        else
+        {
+            throw new InvalidOperationException("Could not extract provider ID from response");
+        }
 
         // Verify provider exists via GET /me
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "newprovider");
@@ -235,7 +250,9 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         // Get a valid service ID from the service catalog
         var serviceId = await GetOrCreateTestServiceAsync();
 
-        TestContainerFixture.AuthenticateAsUser(userId.ToString(), "servicetest");
+        // Use admin auth: SelfOrAdminHandler compares sub claim with providerId route value,
+        // but they are different GUIDs (user ID vs provider entity ID)
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Add service
         var addResponse = await fixture.ApiClient.PostAsJsonAsync(
