@@ -88,7 +88,7 @@ public class ServiceCatalogsAdditionalIntegrationTests : BaseApiTest
         // Act
         var response = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{id}");
 
-        // Assert - 200 ou 400 se tiver serviços vinculados (regra de negócio)
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

@@ -62,7 +62,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         // Act - Delete user
         var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
-        // Assert - Deletion should return OK or NoContent
+        // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verifica que o usuário não existe mais através da API
