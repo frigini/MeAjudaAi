@@ -384,6 +384,57 @@ public class DbContextUserQueriesTests : BaseInMemoryDatabaseTest<UsersDbContext
     }
 
     [Fact]
+    public async Task GetPagedWithSearchAsync_WithUsernamePrefix_ShouldReturnOnlyMatchingUsers()
+    {
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var targetUser = new UserBuilder()
+            .WithUsername($"searchtest_{uniqueId}")
+            .WithFirstName("Search")
+            .WithLastName("Test")
+            .WithEmail($"search_{uniqueId}@example.com")
+            .Build();
+        var nonTargetUser = new UserBuilder()
+            .WithUsername($"zzzother_{uniqueId}")
+            .WithFirstName("Other")
+            .WithLastName("User")
+            .WithEmail($"zzzother_{uniqueId}@example.com")
+            .Build();
+
+        DbContext.Users.AddRange(targetUser, nonTargetUser);
+        await DbContext.SaveChangesAsync();
+
+        var (users, total) = await _queries.GetPagedWithSearchAsync(1, 10, $"searchtest_{uniqueId}");
+
+        users.Should().HaveCount(1);
+        total.Should().Be(1);
+        users.First().Id.Should().Be(targetUser.Id);
+        users.Should().NotContain(u => u.Id == nonTargetUser.Id);
+    }
+
+    [Fact]
+    public async Task GetPagedWithSearchAsync_WithPartialMatch_ShouldReturnOnlyExactContains()
+    {
+        var user1 = new UserBuilder()
+            .WithUsername("admin")
+            .WithEmail("admin@example.com")
+            .WithFirstName("Admin")
+            .Build();
+        var user2 = new UserBuilder()
+            .WithUsername("superadmin")
+            .WithEmail("superadmin@example.com")
+            .WithFirstName("Super")
+            .Build();
+
+        DbContext.Users.AddRange(user1, user2);
+        await DbContext.SaveChangesAsync();
+
+        var (users, total) = await _queries.GetPagedWithSearchAsync(1, 10, "admin");
+
+        users.Should().HaveCount(2, "both usernames contain 'admin'");
+        total.Should().Be(2);
+    }
+
+    [Fact]
     public async Task GetPagedWithSearchAsync_WithNoMatches_ShouldReturnEmpty()
     {
         var user = new UserBuilder()
