@@ -275,7 +275,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
         var response = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/categories/{id}", updateData);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         
         // Verify the update by getting the category
         var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/categories/{id}");
@@ -295,7 +295,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
 
         // Act - Deactivate
         var deactivateResponse = await Client.PostAsync($"/api/v1/service-catalogs/categories/{id}/deactivate", null);
-        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Assert Inactive
         var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/categories/{id}");
@@ -307,7 +307,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
 
         // Act - Activate
         var activateResponse = await Client.PostAsync($"/api/v1/service-catalogs/categories/{id}/activate", null);
-        activateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Assert Active
         getResponse = await Client.GetAsync($"/api/v1/service-catalogs/categories/{id}");
@@ -358,7 +358,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
         var response = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{id}", updateData);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         
         // Verify update by getting the service
         var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/services/{id}");
@@ -419,7 +419,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
         var response = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{id}");
 
         // Assert - allow 400 if service is offered by providers
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
     }
 
     #endregion

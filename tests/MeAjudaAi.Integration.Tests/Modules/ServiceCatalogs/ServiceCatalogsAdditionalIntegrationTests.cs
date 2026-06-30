@@ -55,7 +55,7 @@ public class ServiceCatalogsAdditionalIntegrationTests : BaseApiTest
         var changeResponse = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/change-category", new { newCategoryId = cat2Id });
 
         // Assert
-        changeResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+        changeResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
         
         // Verificar se mudou mesmo
         var getSvcRes = await Client.GetAsync($"/api/v1/service-catalogs/services/{svcId}");
@@ -89,6 +89,6 @@ public class ServiceCatalogsAdditionalIntegrationTests : BaseApiTest
         var response = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{id}");
 
         // Assert - 200 ou 400 se tiver serviços vinculados (regra de negócio)
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
     }
 }

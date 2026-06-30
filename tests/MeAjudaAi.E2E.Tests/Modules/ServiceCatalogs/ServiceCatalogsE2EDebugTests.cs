@@ -29,12 +29,12 @@ public class ServiceCatalogsE2EDebugTests : BaseTestContainerTest
         // 2. Attempt deactivation
         var response = await client.PostAsync($"/api/v1/service-catalogs/categories/{categoryId}/deactivate", null);
         
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
         {
             var content = await response.Content.ReadAsStringAsync();
             throw new Exception($"DEBUG: Deactivate failed with {response.StatusCode}. Full Content: {content}");
         }
         
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
     }
 }

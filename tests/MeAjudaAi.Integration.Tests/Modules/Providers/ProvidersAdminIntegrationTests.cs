@@ -66,7 +66,7 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
         var response = await Client.DeleteAsync($"/api/v1/providers/{providerId}");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         
         // Verify it's gone (or soft-deleted)
         var getResponse = await Client.GetAsync($"/api/v1/providers/{providerId}");

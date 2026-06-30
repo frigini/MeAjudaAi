@@ -303,15 +303,15 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         {
             // Provider deletion should succeed or resource already deleted
             var deleteProviderResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
-            deleteProviderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteProviderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             // Service deletion should succeed or resource already deleted
             var deleteServiceResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
-            deleteServiceResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteServiceResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             // Category deletion should succeed or resource already deleted
             var deleteCategoryResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
-            deleteCategoryResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteCategoryResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
         }
         catch (Exception ex)
         {
@@ -581,22 +581,22 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         try
         {
             var deleteProvider1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
-            deleteProvider1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteProvider1Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             var deleteProvider2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
-            deleteProvider2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteProvider2Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             var deleteService1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
-            deleteService1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteService1Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             var deleteService2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
-            deleteService2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteService2Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             var deleteCategory1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
-            deleteCategory1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteCategory1Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             var deleteCategory2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
-            deleteCategory2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+            deleteCategory2Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
         }
         catch (Exception ex)
         {

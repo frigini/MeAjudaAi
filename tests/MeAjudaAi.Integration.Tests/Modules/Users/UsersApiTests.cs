@@ -380,16 +380,11 @@ public class UsersApiTests : BaseApiTest
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Verifica que o usuário foi marcado como inativo (soft delete)
+        // Usuário deletado (soft delete) é filtrado pelo HasQueryFilter(u => !u.IsDeleted) no EF Core,
+        // portanto GET retorna 404 NotFound para usuários soft-deleted.
         var getResponse = await Client.GetAsync($"/api/v1/users/{userId}");
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Usuário deletado deve ser acessível via GET");
-        var getContent = await ReadJsonAsync<JsonElement>(getResponse.Content);
-        var userData = GetResponseData(getContent);
-        userData.TryGetProperty("isActive", out var isActiveAfterDelete).Should().BeTrue(
-            "Resposta deve conter campo isActive");
-        isActiveAfterDelete.GetBoolean().Should().BeFalse(
-            "Usuário deletado deve ter isActive = false");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Soft-deleted users are filtered by EF Core global query filter, so GET returns 404");
     }
 
     #endregion

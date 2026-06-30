@@ -185,8 +185,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
             var updateResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/categories/{categoryId}", updateData);
 
             // Assert 2: Update successful
-            updateResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+            updateResponse.StatusCode.Should().Be(
+                HttpStatusCode.NoContent,
                 "Update should succeed for existing categories");
 
             // Act 3: Get Category by ID
@@ -219,8 +219,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
                 var deleteResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
 
                 // Assert 4: Deletion successful
-                deleteResponse.StatusCode.Should().BeOneOf(
-                    [HttpStatusCode.OK, HttpStatusCode.NoContent],
+                deleteResponse.StatusCode.Should().Be(
+                    HttpStatusCode.NoContent,
                     "Delete should succeed for existing categories");
             }
         }
@@ -287,8 +287,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
             var updateResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{serviceId}", updateData);
 
             // Assert 2: Update successful
-            updateResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+            updateResponse.StatusCode.Should().Be(
+                HttpStatusCode.NoContent,
                 "Update should succeed for existing services");
 
             // Act 3: Get Service by ID
@@ -310,8 +310,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
             var deactivateResponse = await Client.PostAsync($"/api/v1/service-catalogs/services/{serviceId}/deactivate", null);
 
             // Assert 4: Deactivation successful
-            deactivateResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+            deactivateResponse.StatusCode.Should().Be(
+                HttpStatusCode.NoContent,
                 "Deactivate should succeed for existing services");
         }
         catch (Exception ex)
