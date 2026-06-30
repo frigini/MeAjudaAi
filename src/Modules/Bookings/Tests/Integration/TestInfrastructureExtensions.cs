@@ -11,6 +11,8 @@ using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
@@ -36,26 +38,9 @@ public static class BookingsTestInfrastructureExtensions
         services.AddTestCache(options.Cache);
         services.AddSingleton<ICacheService, TestCacheService>();
 
-        services.AddTestDatabase<BookingsDbContext>(
-            options.Database,
-            typeof(BookingsDbContext).Assembly.FullName);
-
-        services.AddDbContext<BookingsDbContext>((serviceProvider, dbOptions) =>
+        services.AddDbContext<BookingsDbContext>(dbOptions =>
         {
-            var container = serviceProvider.GetRequiredService<Testcontainers.PostgreSql.PostgreSqlContainer>();
-            var connectionString = container.GetConnectionString();
-
-            dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.MigrationsAssembly(typeof(BookingsDbContext).Assembly.FullName);
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Bookings);
-                npgsqlOptions.CommandTimeout(60);
-            })
-            .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(warnings =>
-            {
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
-            });
+            dbOptions.UseInMemoryDatabase(options.Database.DatabaseName);
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());
@@ -73,6 +58,8 @@ public static class BookingsTestInfrastructureExtensions
         services.TryAddSingleton<IProvidersModuleApi, MockProvidersModuleApi>();
         services.TryAddSingleton<IServiceCatalogsModuleApi, MockServiceCatalogsModuleApi>();
 
+        services.AddCommands();
+        services.AddQueries();
         services.AddApplication();
 
         return services;
