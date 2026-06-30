@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +41,8 @@ public static class TestInfrastructureExtensions
             }
         });
 
+        services.AddCommands();
+        services.AddQueries();
         services.AddApplication();
 
         services.AddLogging();
