@@ -321,7 +321,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
         services.AddDbContext<TContext>(options =>
         {
-            options.UseNpgsql(_postgresContainer!.GetConnectionString(), npgsqlOptions =>
+                options.UseNpgsql(_postgresContainer!.GetConnectionString(), npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
@@ -335,7 +335,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 npgsqlOptions.CommandTimeout(120);
             })
                 .UseSnakeCaseNamingConvention()
-                .EnableSensitiveDataLogging(true)
+                .EnableSensitiveDataLogging(EnableSensitiveDataLogging)
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
@@ -632,6 +632,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     /// Usado para testes que dependem de eventos de integração entre módulos (ex: Ratings -> SearchProviders).
     /// </summary>
     protected virtual bool EnableEventsAndMessageBus => false;
+    protected virtual bool EnableSensitiveDataLogging => false;
     protected Faker Faker { get; } = new();
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;

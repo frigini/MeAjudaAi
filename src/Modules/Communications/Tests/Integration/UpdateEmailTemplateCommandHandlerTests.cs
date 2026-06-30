@@ -43,14 +43,12 @@ public class UpdateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
     public async Task Update_SystemTemplate_ShouldReturnBadRequest()
     {
-        var template = await CreateEmailTemplateAsync();
-        template.IsSystemTemplate.Should().BeFalse();
-
         using var scope = CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
         var systemTemplate = EmailTemplate.Create("system_test", "System", "<p>System</p>", "System", "pt-BR", null, true);
@@ -64,5 +62,6 @@ public class UpdateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
+        result.Error!.StatusCode.Should().Be(400);
     }
 }

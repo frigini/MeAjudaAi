@@ -287,12 +287,19 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         }
 
         var location = response.Headers.Location?.ToString();
-        if (string.IsNullOrEmpty(location))
+        if (!string.IsNullOrEmpty(location) && location.Contains("/me"))
         {
-            throw new InvalidOperationException("Location header not found in become provider response");
+            var body = await response.Content.ReadAsStringAsync();
+            var json = JsonSerializer.Deserialize<JsonElement>(body, TestContainerFixture.JsonOptions);
+            var data = json.GetProperty("data");
+            return Guid.Parse(data.GetProperty("id").GetString()!);
+        }
+        if (!string.IsNullOrEmpty(location))
+        {
+            return TestContainerFixture.ExtractIdFromLocation(location);
         }
 
-        return TestContainerFixture.ExtractIdFromLocation(location);
+        throw new InvalidOperationException("Could not extract provider ID from response");
     }
 
     private async Task<Guid> GetOrCreateTestServiceAsync()

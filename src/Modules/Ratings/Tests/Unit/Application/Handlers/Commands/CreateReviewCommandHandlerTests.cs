@@ -2,10 +2,12 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
+using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -193,7 +195,7 @@ public class CreateReviewCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_DuplicateReview_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_DuplicateReview_ShouldThrowDuplicateReviewException()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -207,6 +209,6 @@ public class CreateReviewCommandHandlerTests
         Func<Task> act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Você já avaliou este prestador.");
+        await act.Should().ThrowAsync<DuplicateReviewException>();
     }
 }

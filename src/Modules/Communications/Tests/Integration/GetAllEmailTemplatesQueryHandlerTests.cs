@@ -36,5 +36,6 @@ public class GetAllEmailTemplatesQueryHandlerTests : CommunicationsIntegrationTe
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
+        result.Value!.Should().BeEmpty();
     }
 }

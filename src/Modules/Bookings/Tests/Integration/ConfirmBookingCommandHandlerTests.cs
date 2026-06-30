@@ -87,7 +87,8 @@ public class ConfirmBookingCommandHandlerTests : BookingsIntegrationTestBase
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<ConfirmBookingCommand, Result>>();
 
         var cmd1 = new ConfirmBookingCommand(booking.Id, false, providerId, Guid.NewGuid());
-        await handler.HandleAsync(cmd1, CancellationToken.None);
+        var firstResult = await handler.HandleAsync(cmd1, CancellationToken.None);
+        firstResult.IsSuccess.Should().BeTrue("the first confirmation must succeed to establish confirmed state");
 
         var cmd2 = new ConfirmBookingCommand(booking.Id, false, providerId, Guid.NewGuid());
         var result = await handler.HandleAsync(cmd2, CancellationToken.None);

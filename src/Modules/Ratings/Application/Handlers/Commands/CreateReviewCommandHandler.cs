@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
+using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
@@ -31,7 +32,7 @@ public sealed class CreateReviewCommandHandler(
         if (existingReview != null)
         {
             logger.LogWarning("Customer {CustomerId} already reviewed provider {ProviderId}", command.CustomerId, command.ProviderId);
-            throw new InvalidOperationException("Você já avaliou este prestador.");
+            throw new DuplicateReviewException(command.ProviderId, command.CustomerId);
         }
 
         // 2. Verificar se o cliente possui um agendamento concluído com o prestador
@@ -74,7 +75,7 @@ public sealed class CreateReviewCommandHandler(
         {
             logger.LogWarning(ex, "Duplicate review detected at persistence level for Provider {ProviderId} and Customer {CustomerId}",
                 command.ProviderId, command.CustomerId);
-            throw new InvalidOperationException("Você já avaliou este prestador.");
+            throw new DuplicateReviewException(command.ProviderId, command.CustomerId);
         }
 
         logger.LogInformation("Review {ReviewId} created with status {Status}", review.Id.Value, review.Status);

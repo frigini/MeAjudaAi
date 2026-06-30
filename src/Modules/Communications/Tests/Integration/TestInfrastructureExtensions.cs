@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Communications.Application;
 using MeAjudaAi.Modules.Communications.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
@@ -25,6 +26,8 @@ public static class TestInfrastructureExtensions
 
         services.AddScoped<IRepository<EmailTemplate, Guid>>(sp => sp.GetRequiredService<CommunicationsDbContext>());
         services.AddScoped<IEmailTemplateQueries, DbContextEmailTemplateQueries>();
+
+        services.AddApplication();
 
         services.AddLogging();
 

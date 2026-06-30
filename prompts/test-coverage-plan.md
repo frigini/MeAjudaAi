@@ -31,6 +31,7 @@
 **Base Path:** `/api/v1/providers`
 
 #### Endpoints Públicos/Autenticados (Public/)
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 1 | POST | `/become` | RequireAuthorization() | INT ✅ |
@@ -38,6 +39,7 @@
 | 3 | PUT | `/{id:guid}/device-token` | RequireAuthorization() | E2E ✅ |
 
 #### Endpoints do Próprio Prestador (Public/Me/)
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 4 | GET | `/me` | RequireAuthorization() | E2E ✅ |
@@ -49,6 +51,7 @@
 | 10 | POST | `/me/documents` | RequireAuthorization() | INT ✅ |
 
 #### Endpoints Admin (ProviderAdmin/)
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 11 | POST | `/` | RequirePermission(ProvidersCreate) | E2E ✅ |
@@ -68,6 +71,7 @@
 | 25 | GET | `/{id:guid}/verification-events` | RequireAuthorization() | INT ✅ |
 
 #### Endpoints de Serviços (ProviderServices/)
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 26 | POST | `/{providerId:guid}/services/{serviceId:guid}` | RequireAuthorization("SelfOrAdmin") | INT ✅ |
@@ -115,12 +119,14 @@
 **Base Path:** `/api/v1/communications`
 
 #### Endpoints Públicos
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 1 | GET | `/logs` | RequirePermission(CommunicationsRead) | INT ✅ |
 | 2 | GET | `/templates` | RequirePermission(CommunicationsRead) | INT ✅ |
 
 #### Endpoints Admin
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 3 | POST | `/templates` | RequirePermission(CommunicationsManage) | E2E ✅ |
@@ -170,6 +176,7 @@
 **Base Path:** `/api/v1/service-catalogs`
 
 #### Categories
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 1 | GET | `/categories` | RequirePermission(ServiceCatalogsRead) | INT ✅ |
@@ -181,6 +188,7 @@
 | 7 | DELETE | `/categories/{id:guid}` | RequireAdmin() | INT ✅ |
 
 #### Services
+
 | # | Método | Endpoint | Autorização | Status Teste |
 |---|--------|----------|-------------|--------------|
 | 8 | GET | `/services` | AllowAnonymous() | INT ✅ |
@@ -400,7 +408,7 @@ public class {EndpointName}EndToEndTests : BaseTestContainerTest
 #### 5.3 Bookings - Query Handler Tests
 - [x] `GetBookingByIdQueryHandlerTests.cs` — 3 testes (success, not found, unauthorized)
 - [x] `GetBookingsByClientQueryHandlerTests.cs` — 3 testes (success, empty, isolation)
-- [x] `GetBookingsByProviderQueryHandlerTests.cs` — 2 testes (success, empty)
+- [x] `GetBookingsByProviderQueryHandlerTests.cs` — 3 testes (success, empty, provider isolation)
 - [x] `GetProviderAvailabilityQueryHandlerTests.cs` — 2 testes (success, provider not found)
 
 #### 5.4 Payments - Infraestrutura de Teste
@@ -563,10 +571,10 @@ TestContainerFixture.AuthenticateAsAnonymous();
 
 | Módulo | Command/Service | Query | Event Handlers | Total Testes |
 |--------|----------------|-------|----------------|--------------|
-| Bookings | 20 testes (6 handlers) | 10 testes (4 handlers) | 5 testes (1 handler) | 35 |
+| Bookings | 20 testes (6 handlers) | 11 testes (4 handlers) | 5 testes (1 handler) | 36 |
 | Payments | 11 testes (2 handlers + PaymentCommandService) | 2 testes (1 handler) | 13 testes (ProcessInboxJob) | 26 |
 | Communications | 9 testes (3 handlers) | 5 testes (2 handlers) | 22+ testes (OutboxProcessorService) | 36+ |
-| **TOTAL** | **40** | **17** | **40+** | **97+** |
+| **TOTAL** | **40** | **18** | **40+** | **98+** |
 
 ---
 

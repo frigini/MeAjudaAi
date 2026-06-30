@@ -10,18 +10,29 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
 
 public class SetProviderScheduleCommandHandlerTests : BookingsIntegrationTestBase
 {
+    private static DateTimeOffset GetNextWeekday(DayOfWeek day, int hour)
+    {
+        var today = DateTime.UtcNow.Date;
+        int daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
+        if (daysUntil == 0) daysUntil = 7;
+        var target = today.AddDays(daysUntil);
+        return new DateTimeOffset(target.Year, target.Month, target.Day, hour, 0, 0, TimeSpan.Zero);
+    }
+
     [Fact]
     public async Task SetSchedule_NewProvider_ShouldCreateSchedule()
     {
         var providerId = Guid.NewGuid();
         GetMockProvidersApi().SeedProvider(providerId, Guid.NewGuid());
 
+        var start = GetNextWeekday(DayOfWeek.Monday, 8);
+        var end = GetNextWeekday(DayOfWeek.Monday, 18);
+
         var availabilities = new List<AvailabilityDto>
         {
             new(DayOfWeek.Monday, new List<AvailableSlotDto>
             {
-                new(new DateTimeOffset(2026, 7, 6, 8, 0, 0, TimeSpan.Zero),
-                    new DateTimeOffset(2026, 7, 6, 18, 0, 0, TimeSpan.Zero))
+                new(start, end)
             })
         };
 
@@ -43,12 +54,14 @@ public class SetProviderScheduleCommandHandlerTests : BookingsIntegrationTestBas
     [Fact]
     public async Task SetSchedule_NonExistingProvider_ShouldReturnNotFound()
     {
+        var start = GetNextWeekday(DayOfWeek.Monday, 8);
+        var end = GetNextWeekday(DayOfWeek.Monday, 18);
+
         var availabilities = new List<AvailabilityDto>
         {
             new(DayOfWeek.Monday, new List<AvailableSlotDto>
             {
-                new(new DateTimeOffset(2026, 7, 6, 8, 0, 0, TimeSpan.Zero),
-                    new DateTimeOffset(2026, 7, 6, 18, 0, 0, TimeSpan.Zero))
+                new(start, end)
             })
         };
 

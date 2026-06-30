@@ -67,9 +67,10 @@ public class MockServiceCatalogsModuleApi : IServiceCatalogsModuleApi
 
     public Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(IReadOnlyCollection<Guid> serviceIds, CancellationToken cancellationToken = default)
     {
-        var invalidIds = serviceIds.Where(id => !_services.ContainsKey(id) || !_services[id].IsActive).ToList();
-        var isValid = invalidIds.Count == 0;
+        var invalidIds = serviceIds.Where(id => !_services.ContainsKey(id)).ToList();
+        var inactiveIds = serviceIds.Where(id => _services.TryGetValue(id, out var svc) && !svc.IsActive).ToList();
+        var isValid = invalidIds.Count == 0 && inactiveIds.Count == 0;
         return Task.FromResult(Result<ModuleServiceValidationResultDto>.Success(
-            new ModuleServiceValidationResultDto(isValid, invalidIds, Array.Empty<Guid>())));
+            new ModuleServiceValidationResultDto(isValid, invalidIds, inactiveIds)));
     }
 }

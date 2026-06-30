@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Payments.Application;
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
@@ -37,6 +38,8 @@ public static class TestInfrastructureExtensions
                 ["pro"] = new() { Amount = 79.90m, Currency = "BRL", StripePriceId = "price_pro" }
             }
         });
+
+        services.AddApplication();
 
         services.AddLogging();
 
