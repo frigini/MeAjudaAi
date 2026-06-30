@@ -33,4 +33,5 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+<!-- This project contains unit and integration tests for the API Gateway module. -->
 </Project>

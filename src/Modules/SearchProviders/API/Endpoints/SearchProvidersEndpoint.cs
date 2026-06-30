@@ -24,7 +24,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         var group = CreateVersionedGroup(app, ApiEndpoints.SearchProviders.Base, "Search");
 
         group.MapGet("/providers", SearchProvidersAsync)
-            .WithName("SearchProviders")
+            .WithName(ApiEndpoints.SearchProviders.Names.Search)
             .WithSummary("Buscar prestadores de serviço")
             .WithDescription("""
                 Busca prestadores de serviço ativos com base em geolocalização e filtros.

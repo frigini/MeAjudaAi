@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Validators;
-using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 
@@ -57,15 +57,32 @@ public class UpdateUserProfileRequestValidatorTests
               .WithErrorMessage(ValidationMessages.Required.FirstName);
     }
 
-    [Theory]
-    [InlineData("A")] // Muito curto
-    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Muito longo
-    public void Validate_InvalidFirstNameLength_ShouldHaveValidationError(string firstName)
+    [Fact]
+    public void Validate_TooShortFirstName_ShouldHaveValidationError()
     {
         // Arrange
         var request = new UpdateUserProfileRequest
         {
-            FirstName = firstName,
+            FirstName = "A",
+            LastName = "Silva",
+            Email = "test@example.com"
+        };
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.FirstName)
+              .WithErrorMessage(ValidationMessages.Length.FirstNameTooShort);
+    }
+
+    [Fact]
+    public void Validate_TooLongFirstName_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = new UpdateUserProfileRequest
+        {
+            FirstName = "ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem",
             LastName = "Silva",
             Email = "test@example.com"
         };
@@ -147,16 +164,33 @@ public class UpdateUserProfileRequestValidatorTests
               .WithErrorMessage(ValidationMessages.Required.LastName);
     }
 
-    [Theory]
-    [InlineData("S")] // Muito curto
-    [InlineData("ThisIsAVeryLongLastNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Muito longo
-    public void Validate_InvalidLastNameLength_ShouldHaveValidationError(string lastName)
+    [Fact]
+    public void Validate_TooShortLastName_ShouldHaveValidationError()
     {
         // Arrange
         var request = new UpdateUserProfileRequest
         {
             FirstName = "João",
-            LastName = lastName,
+            LastName = "S",
+            Email = "test@example.com"
+        };
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.LastName)
+              .WithErrorMessage(ValidationMessages.Length.LastNameTooShort);
+    }
+
+    [Fact]
+    public void Validate_TooLongLastName_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = new UpdateUserProfileRequest
+        {
+            FirstName = "João",
+            LastName = "ThisIsAVeryLongLastNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem",
             Email = "test@example.com"
         };
 

@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Services;
@@ -74,7 +74,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Users);
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()

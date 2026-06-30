@@ -77,3 +77,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains end-to-end tests that validate complete user workflows across multiple services. -->

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
@@ -17,7 +18,7 @@ public class GetAllowedCitiesByStateEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/state/{state}", GetByStateAsync)
-            .WithName("GetAllowedCitiesByState")
+            .WithName(ApiEndpoints.Locations.Names.GetByState)
             .WithSummary("Buscar cidades permitidas por estado")
             .WithDescription("Recupera todas as cidades permitidas de um estado específico (UF)")
             .Produces<Result<IReadOnlyList<ModuleAllowedCityDto>>>(StatusCodes.Status200OK)

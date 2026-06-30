@@ -22,4 +22,5 @@
     <Folder Include="API.Client\Admin\" />
   </ItemGroup>
 
+<!-- This project contains the API layer for the Communications module, including controllers, endpoints, and HTTP-related configurations. -->
 </Project>

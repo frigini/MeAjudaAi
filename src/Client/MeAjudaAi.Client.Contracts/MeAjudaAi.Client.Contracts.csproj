@@ -15,3 +15,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains client-side contracts and Refit interfaces for consuming the MeAjudaAi API. -->

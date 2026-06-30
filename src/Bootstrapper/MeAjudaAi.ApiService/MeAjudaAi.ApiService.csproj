@@ -48,3 +48,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project is the main API service host, responsible for bootstrapping all modules, middleware, and application configuration. -->

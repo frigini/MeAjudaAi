@@ -62,10 +62,8 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         // Act - Delete user
         var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
-        // Assert - Deletion should return OK or NoContent
-        deleteResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NoContent);
+        // Assert
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verifica que o usuário não existe mais através da API
         var getAfterDelete = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
@@ -512,7 +510,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         // Act & Assert - DELETE
         TestContainerFixture.AuthenticateAsAdmin();
         var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
-        deleteResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify DELETE worked
         TestContainerFixture.AuthenticateAsAdmin();

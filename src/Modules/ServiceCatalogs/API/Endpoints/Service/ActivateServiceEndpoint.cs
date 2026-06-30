@@ -18,7 +18,7 @@ public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Activate, ActivateAsync)
-            .WithName("ActivateService")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.Activate)
             .WithSummary("Ativar serviço")
             .WithDescription("""
                 Ativa um serviço, tornando-o disponível no catálogo.

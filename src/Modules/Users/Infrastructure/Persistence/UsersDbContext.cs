@@ -52,5 +52,3 @@ public partial class UsersDbContext : BaseDbContext, IUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
-
-

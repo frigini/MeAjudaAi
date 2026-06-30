@@ -2,11 +2,12 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -118,17 +119,17 @@ public sealed class ChangeUserUsernameCommandHandler(
         }
         catch (ArgumentException)
         {
-            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            // Permite que ArgumentException (erros de validação) sejam propagadas para o GlobalExceptionHandler
             throw;
         }
-        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        catch (ValidationException)
         {
-            // Allow ValidationException to propagate to GlobalExceptionHandler
+            // Permite que ValidationException seja propagada para o GlobalExceptionHandler
             throw;
         }
-        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        catch (DomainException)
         {
-            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            // Permite que DomainException (violações de regras de negócio) seja propagada para o GlobalExceptionHandler
             throw;
         }
         catch (Exception ex)

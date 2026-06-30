@@ -2,10 +2,10 @@ using Bogus;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 

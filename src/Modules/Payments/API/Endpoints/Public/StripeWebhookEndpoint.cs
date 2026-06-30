@@ -18,7 +18,7 @@ public class StripeWebhookEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(PaymentsEndpoints.Tag)
-        .WithName("StripeWebhook")
+        .WithName(ApiEndpoints.Payments.Names.StripeWebhook)
         .WithSummary("Recebe webhooks do Stripe")
         .WithDescription("Recebe e processa webhooks do Stripe de forma assíncrona.");
     }

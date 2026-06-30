@@ -28,7 +28,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("GetProviderBookings")
+        .WithName(ApiEndpoints.Bookings.Names.GetProviderBookings)
         .WithSummary("Lista agendamentos do prestador")
         .WithDescription("Retorna uma lista paginada de agendamentos para um prestador específico.");
     }

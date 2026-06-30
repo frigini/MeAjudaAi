@@ -67,4 +67,5 @@
     <Using Include="Bogus" />
     <Using Include="AutoFixture" />
   </ItemGroup>
+<!-- This project contains shared test infrastructure, base classes, and utilities used across all test projects. -->
 </Project>

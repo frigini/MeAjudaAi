@@ -17,3 +17,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the application layer for the Bookings module, including application services, DTOs, and use cases. -->

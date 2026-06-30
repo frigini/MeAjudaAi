@@ -20,7 +20,7 @@ public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut(ApiEndpoints.ServiceCatalogs.Services.Update, UpdateAsync)
-            .WithName("UpdateService")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.Update)
             .WithSummary("Atualizar serviço")
             .WithDescription("""
                 Atualiza as informações de um serviço existente.

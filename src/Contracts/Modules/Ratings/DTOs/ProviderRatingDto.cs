@@ -1,6 +1,6 @@
 namespace MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 
-public record ProviderRatingDto(
+public sealed record ProviderRatingDto(
     Guid ProviderId,
     decimal AverageRating,
     int TotalReviews

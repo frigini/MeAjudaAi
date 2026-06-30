@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Keycloak.Models;
-using MeAjudaAi.Shared.Authorization.ValueObjects;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -26,7 +25,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private readonly ICacheService _cache;
     private readonly ILogger<KeycloakPermissionResolver> _logger;
 
-    public string ModuleName => ModuleNames.Users; // Keycloak resolver é usado principalmente pelo módulo Users
+    public string ModuleName => "*"; // Keycloak resolve permissões para todos os módulos
 
     public KeycloakPermissionResolver(
         HttpClient httpClient,
@@ -68,13 +67,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         LocalCacheExpiration = TimeSpan.FromMinutes(5)
     };
 
-    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(userId);
-        return await ResolvePermissionsAsync(userId.Value.ToString(), cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<EPermission>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return Array.Empty<EPermission>();

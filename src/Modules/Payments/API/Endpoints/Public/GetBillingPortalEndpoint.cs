@@ -25,7 +25,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(PaymentsEndpoints.Tag)
-        .WithName("GetBillingPortal")
+        .WithName(ApiEndpoints.Payments.Names.GetBillingPortal)
         .WithSummary("Gera link do portal de faturamento")
         .WithDescription("Gera um link para o portal de gerenciamento de faturamento do Stripe.");
     }

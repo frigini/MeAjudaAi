@@ -19,3 +19,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the application layer for the Providers module, including application services, DTOs, and use cases. -->

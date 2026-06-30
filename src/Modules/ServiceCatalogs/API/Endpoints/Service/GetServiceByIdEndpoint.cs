@@ -19,7 +19,7 @@ public class GetServiceByIdEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.ServiceCatalogs.Services.GetById, GetByIdAsync)
-            .WithName("GetServiceById")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.GetById)
             .WithSummary("Buscar serviço por ID")
             .WithDescription("""
                 Retorna os detalhes completos de um serviço específico.

@@ -20,3 +20,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the domain layer for the Communications module, including domain entities, value objects, and domain services. -->

@@ -32,7 +32,7 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status504GatewayTimeout)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
-        .WithName("SetProviderSchedule")
+        .WithName(ApiEndpoints.Bookings.Names.SetProviderSchedule)
         .WithSummary("Define agenda")
         .WithDescription("Define a agenda de horários de trabalho de um prestador.");
     }

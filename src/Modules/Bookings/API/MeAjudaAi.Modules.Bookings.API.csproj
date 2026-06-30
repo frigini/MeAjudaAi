@@ -23,4 +23,5 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the API layer for the Bookings module, including controllers, endpoints, and HTTP-related configurations. -->
 

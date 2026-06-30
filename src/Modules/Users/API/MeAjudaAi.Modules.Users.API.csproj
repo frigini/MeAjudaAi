@@ -19,5 +19,5 @@
   </ItemGroup>
 
 </Project>
-<!-- This project file is for the Users API module of the MeAjudaAi application. It references the application layer and includes necessary packages for HTTP handling and dependency injection. -->
+<!-- This project contains the API layer for the Users module, including controllers, endpoints, and HTTP-related configurations. -->
 

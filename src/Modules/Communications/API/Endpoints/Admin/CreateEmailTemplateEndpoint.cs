@@ -21,7 +21,7 @@ public class CreateEmailTemplateEndpoint : IEndpoint
            .Produces<Guid>(StatusCodes.Status201Created)
            .ProducesProblem(StatusCodes.Status400BadRequest)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("CreateEmailTemplate")
+           .WithName(ApiEndpoints.Communications.Names.CreateTemplate)
            .WithSummary("Cria um template de e-mail")
            .WithDescription("Cria um novo template de e-mail no sistema.");
     }

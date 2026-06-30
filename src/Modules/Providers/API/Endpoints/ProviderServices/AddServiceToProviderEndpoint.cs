@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Modules.Providers.Application.Commands;
@@ -16,7 +17,7 @@ public class AddServiceToProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/{providerId:guid}/services/{serviceId:guid}", AddServiceAsync)
-            .WithName("AddServiceToProvider")
+            .WithName(ApiEndpoints.Providers.Names.AddService)
             .WithTags("Providers - Services")
             .WithSummary("Adiciona serviço ao provider")
             .WithDescription("""

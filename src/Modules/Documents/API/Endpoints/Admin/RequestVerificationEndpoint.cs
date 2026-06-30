@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.API.Mappers;
@@ -17,7 +18,7 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/{documentId:guid}/request-verification", RequestVerificationAsync)
-            .WithName("RequestVerification")
+            .WithName(ApiEndpoints.Documents.Names.RequestVerification)
             .WithSummary("Solicitar verificação manual")
             .WithDescription("""
                 Solicita verificação manual de um documento quando OCR falha ou precisa validação adicional.

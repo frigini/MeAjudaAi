@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
@@ -13,7 +14,7 @@ public class GetMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("me", GetMyProfileAsync)
-            .WithName("GetMyProviderProfile")
+            .WithName(ApiEndpoints.Providers.Names.GetMyProfile)
             .WithTags("Providers - Me")
             .WithSummary("Obter meu perfil de prestador")
             .WithDescription("Retorna os dados completos do perfil do prestador autenticado.")

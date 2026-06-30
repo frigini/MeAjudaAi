@@ -78,3 +78,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains shared components, utilities, and common infrastructure used across all modules in the MeAjudaAi system. -->

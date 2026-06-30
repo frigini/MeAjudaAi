@@ -1,7 +1,8 @@
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.ModuleApi;
@@ -406,6 +407,8 @@ public class UsersModuleApiTests
             LastName: "User",
             FullName: "Test User",
             DeviceToken: null,
+            PhoneNumber: null,
+            IsActive: true,
             KeycloakId: Guid.NewGuid().ToString(),
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null);

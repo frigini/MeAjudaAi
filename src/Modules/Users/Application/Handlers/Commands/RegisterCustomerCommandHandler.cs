@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -16,6 +16,13 @@ using System.Text.RegularExpressions;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 
+/// <summary>
+/// Handler responsável por processar comandos de registro de clientes.
+/// </summary>
+/// <param name="userDomainService"></param>
+/// <param name="uow"></param>
+/// <param name="userQueries"></param>
+/// <param name="logger"></param>
 public sealed partial class RegisterCustomerCommandHandler(
     IUserDomainService userDomainService,
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,

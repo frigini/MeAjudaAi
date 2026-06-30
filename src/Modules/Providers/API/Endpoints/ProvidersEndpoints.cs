@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+using MeAjudaAi.Modules.Providers.API.Endpoints.Admin;
 using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;

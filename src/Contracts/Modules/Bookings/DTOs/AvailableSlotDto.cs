@@ -1,3 +1,3 @@
 namespace MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 
-public record AvailableSlotDto(DateTimeOffset Start, DateTimeOffset End);
+public sealed record AvailableSlotDto(DateTimeOffset Start, DateTimeOffset End);

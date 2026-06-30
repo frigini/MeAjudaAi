@@ -18,7 +18,7 @@ public class DeleteServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete(ApiEndpoints.ServiceCatalogs.Categories.Delete, DeleteAsync)
-            .WithName("DeleteServiceCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Categories.Names.Delete)
             .WithSummary("Deletar categoria de serviço")
             .WithDescription("""
                 Deleta uma categoria de serviços permanentemente.

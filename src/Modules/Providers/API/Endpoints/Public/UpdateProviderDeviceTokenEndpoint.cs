@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
@@ -24,7 +25,7 @@ public class UpdateProviderDeviceTokenEndpoint : IEndpoint
            .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags("Providers")
-           .WithName("UpdateProviderDeviceToken")
+           .WithName(ApiEndpoints.Providers.Names.UpdateDeviceToken)
            .WithSummary("Atualiza o token do dispositivo do prestador")
            .WithDescription("Registra ou atualiza o token do dispositivo para notificações push do prestador.");
     }

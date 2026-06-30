@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
@@ -18,7 +19,7 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         =>         app.MapPost(string.Empty, CreateAsync)
-            .WithName("CreateAllowedCity")
+            .WithName(ApiEndpoints.Locations.Names.Create)
             .WithSummary("Criar nova cidade permitida")
             .WithDescription("Cria uma nova cidade permitida para operações de prestadores (apenas Admin)")
             .WithTags(LocationsEndpoints.Tag)
@@ -40,6 +41,6 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             return result.Error.ToProblem();
         }
 
-        return Results.CreatedAtRoute("GetAllowedCityById", new { id = result.Value }, new Response<Guid>(result.Value, 201));
+        return Results.CreatedAtRoute(ApiEndpoints.Locations.Names.GetById, new { id = result.Value }, new Response<Guid>(result.Value, 201));
     }
 }

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Commands;
@@ -16,7 +17,7 @@ public class PatchAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPatch("/{id:guid}", HandleAsync)
-            .WithName("PatchAllowedCity")
+            .WithName(ApiEndpoints.Locations.Names.Patch)
             .WithSummary("Atualizar parcialmente cidade permitida")
             .WithDescription("Atualiza campos específicos de uma cidade permitida (Raio, Ativo)")
             .Produces<Result<Unit>>(StatusCodes.Status200OK)

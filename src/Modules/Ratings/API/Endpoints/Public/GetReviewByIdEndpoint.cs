@@ -31,7 +31,7 @@ public class GetReviewByIdEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet(ApiEndpoints.Ratings.GetById, GetReviewByIdAsync)
-            .WithName("GetReviewById")
+            .WithName(ApiEndpoints.Ratings.Names.GetById)
             .WithSummary("Consultar avaliação por ID")
             .WithDescription("Recupera os dados de uma avaliação (review) aprovada pelo seu ID único.")
             .Produces<ProviderReviewResponse>(StatusCodes.Status200OK)

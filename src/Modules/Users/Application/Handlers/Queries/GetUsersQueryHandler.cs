@@ -1,11 +1,12 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
-using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 
 /// <summary>
@@ -114,11 +115,13 @@ internal sealed class GetUsersQueryHandler(
         System.Diagnostics.Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        logger.LogDebug("Executing repository query for users");
+        logger.LogDebug("Executando query no repositório de usuários (HasSearchTerm: {HasSearchTerm})",
+            !string.IsNullOrWhiteSpace(query.SearchTerm));
 
         var repositoryStart = stopwatch.ElapsedMilliseconds;
-        var (users, totalCount) = await userQueries.GetPagedAsync(
-            query.Page, query.PageSize, cancellationToken);
+        var (users, totalCount) = string.IsNullOrWhiteSpace(query.SearchTerm)
+            ? await userQueries.GetPagedAsync(query.Page, query.PageSize, cancellationToken)
+            : await userQueries.GetPagedWithSearchAsync(query.Page, query.PageSize, query.SearchTerm, cancellationToken);
 
         logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users",
             stopwatch.ElapsedMilliseconds - repositoryStart, totalCount);

@@ -5,7 +5,7 @@ namespace MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 /// <summary>
 /// DTO de agendamento para uso entre módulos.
 /// </summary>
-public record ModuleBookingDto(
+public sealed record ModuleBookingDto(
     Guid Id,
     Guid ProviderId,
     Guid ClientId,

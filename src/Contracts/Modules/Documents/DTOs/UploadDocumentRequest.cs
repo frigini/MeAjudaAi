@@ -11,7 +11,7 @@ namespace MeAjudaAi.Contracts.Modules.Documents.DTOs;
 /// <param name="ContentType">Tipo de conteúdo (MIME type).</param>
 /// <param name="FileSizeBytes">Tamanho do arquivo em bytes.</param>
 [ExcludeFromCodeCoverage]
-public record UploadDocumentRequest(
+public sealed record UploadDocumentRequest(
     Guid ProviderId,
     string DocumentType,
     string FileName,

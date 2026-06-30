@@ -23,7 +23,7 @@ public class DeactivateEmailTemplateEndpoint : IEndpoint
            .ProducesProblem(StatusCodes.Status400BadRequest)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("DeactivateEmailTemplate")
+           .WithName(ApiEndpoints.Communications.Names.DeactivateTemplate)
            .WithSummary("Desativa um template de e-mail")
            .WithDescription("Torna um template de e-mail inativo.");
     }

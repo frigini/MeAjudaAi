@@ -74,8 +74,8 @@ public class UsersAdditionalIntegrationTests : BaseApiTest
         // Act
         var response = await Client.DeleteAsync($"/api/v1/users/{userId}");
 
-        // Assert - Endpoint returns 200 OK with the result object
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        // Assert - Endpoint returns 204 NoContent
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         
         // Verify deletion - trying to get the user should return NotFound (or indicate deleted state)
         var getResponse = await Client.GetAsync($"/api/v1/users/{userId}");

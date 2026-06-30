@@ -10,7 +10,7 @@ API.Client/
 ├── collection.bru          # Variáveis globais (não versionado - crie local)
 ├── README.md               # Este arquivo
 │
-├── ProviderAdmin/          # Endpoints administrativos
+├── Admin/               # Endpoints administrativos
 │   ├── CreateProvider.bru
 │   ├── GetProviders.bru
 │   ├── GetProviderById.bru
@@ -67,7 +67,7 @@ A maioria dos endpoints requer autenticação via Bearer Token. O token é geren
 
 ## 📝 Endpoints por Categoria
 
-### ProviderAdmin - Gestão Administrativa
+### Admin - Gestão Administrativa
 
 | Arquivo | Método | Endpoint | Descrição |
 |---------|--------|----------|-----------|
@@ -116,7 +116,7 @@ A maioria dos endpoints requer autenticação via Bearer Token. O token é geren
 
 ## 🏷️ Tags e Organização
 
-- **ProviderAdmin**: Operações administrativas de prestadores
+- **Admin**: Operações administrativas de prestadores
 - **Public**: Endpoints públicos ou para usuários autenticados
 - **Public/Me**: Endpoints específicos para o próprio prestador
 - **ProviderServices**: Gerenciamento de serviços do catálogo

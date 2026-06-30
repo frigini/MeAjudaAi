@@ -139,7 +139,8 @@ public class UsersApiTests : BaseApiTest
         var response = await Client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
+            "RegisterCustomer should return 201 Created for successful registration");
         var content = await ReadJsonAsync<JsonElement>(response.Content);
         GetResponseData(content).GetProperty("email").GetString().Should().Be(registerRequest.Email);
     }
@@ -210,6 +211,113 @@ public class UsersApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var data = GetResponseData(await ReadJsonAsync<JsonElement>(response.Content));
         data.GetProperty("email").GetString().Should().Be(email);
+    }
+
+    #endregion
+
+    #region Search and Contract Tests
+
+    [Fact]
+    public async Task CreateUser_ShouldReturnPhoneNumberInResponse()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var phoneNumber = "+5511999999999";
+        var createRequest = new
+        {
+            username = $"phonetest_{Guid.NewGuid():N}"[..20],
+            email = $"phone_{Guid.NewGuid():N}@example.com",
+            firstName = "Phone",
+            lastName = "Test",
+            password = "Password123!",
+            keycloakId = Guid.NewGuid().ToString(),
+            phoneNumber = phoneNumber
+        };
+
+        // Act
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/users", createRequest);
+
+        // Assert
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var content = await ReadJsonAsync<JsonElement>(createResponse.Content);
+        var data = GetResponseData(content);
+
+        // Verify PhoneNumber is present in response
+        data.TryGetProperty("phoneNumber", out var phoneNumberProperty).Should().BeTrue(
+            "User response should contain phoneNumber field");
+        phoneNumberProperty.GetString().Should().Be("11999999999",
+            "PhoneNumber deve ser normalizado (sem prefixo +55) pelo domínio");
+
+        // Cleanup
+        var userId = data.GetProperty("id").GetGuid();
+        await Client.DeleteAsync($"/api/v1/users/{userId}");
+    }
+
+    [Fact]
+    public async Task CreateUser_ShouldReturnIsActiveField()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var createRequest = new
+        {
+            username = $"activetest_{Guid.NewGuid():N}"[..20],
+            email = $"active_{Guid.NewGuid():N}@example.com",
+            firstName = "Active",
+            lastName = "Test",
+            password = "Password123!",
+            keycloakId = Guid.NewGuid().ToString()
+        };
+
+        // Act
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/users", createRequest);
+
+        // Assert
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var content = await ReadJsonAsync<JsonElement>(createResponse.Content);
+        var data = GetResponseData(content);
+
+        // Verify IsActive is present and true for new user
+        data.TryGetProperty("isActive", out var isActiveProperty).Should().BeTrue(
+            "User response should contain isActive field");
+        isActiveProperty.GetBoolean().Should().BeTrue(
+            "Newly created user should have isActive = true");
+
+        // Cleanup
+        var userId = data.GetProperty("id").GetGuid();
+        await Client.DeleteAsync($"/api/v1/users/{userId}");
+    }
+
+    [Fact]
+    public async Task DeleteUser_ShouldSetIsActiveToFalse()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var createRequest = new
+        {
+            username = $"deletetest_{Guid.NewGuid():N}"[..20],
+            email = $"delete_{Guid.NewGuid():N}@example.com",
+            firstName = "Delete",
+            lastName = "Test",
+            password = "Password123!",
+            keycloakId = Guid.NewGuid().ToString()
+        };
+
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/users", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var createdContent = await ReadJsonAsync<JsonElement>(createResponse.Content);
+        var userId = GetResponseData(createdContent).GetProperty("id").GetGuid();
+
+        // Act
+        var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
+
+        // Assert
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Usuário deletado (soft delete) é filtrado pelo HasQueryFilter(u => !u.IsDeleted) no EF Core,
+        // portanto GET retorna 404 NotFound para usuários soft-deleted.
+        var getResponse = await Client.GetAsync($"/api/v1/users/{userId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Soft-deleted users are filtered by EF Core global query filter, so GET returns 404");
     }
 
     #endregion

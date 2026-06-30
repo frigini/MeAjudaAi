@@ -104,7 +104,7 @@ public class ProviderRegistrationOrchestratorTests
     };
 
     private static UserDto CreateUserDto(Guid id) => new(
-        id, "username", "test@test.com", "First", "Last", "First Last", null, id.ToString(), DateTime.UtcNow, null);
+        id, "username", "test@test.com", "First", "Last", "First Last", null, null, true, id.ToString(), DateTime.UtcNow, null);
 
     private static ProviderDto CreateProviderDto(Guid id, Guid userId) => new(
         id, userId, "Test Provider", "test-provider", EProviderType.Individual, null!,

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Shared.Authorization.Core;
@@ -11,7 +12,7 @@ public class SearchLocationsEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet("search", SearchAsync)
-            .WithName("SearchLocations")
+            .WithName(ApiEndpoints.Locations.Names.Search)
             .WithSummary("Busca cidades/endereços para cadastro")
             .WithDescription("Retorna candidatos de localização baseados na query")
             .Produces<LocationCandidate[]>(StatusCodes.Status200OK)

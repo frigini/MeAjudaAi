@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
@@ -20,7 +21,7 @@ public class GetMyProviderStatusEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("me/status", GetMyStatusAsync)
-            .WithName("GetMyProviderStatus")
+            .WithName(ApiEndpoints.Providers.Names.GetMyStatus)
             .WithTags("Providers - Me")
             .WithSummary("Status de aprovação do prestador")
             .WithDescription("Retorna o status atual de aprovação e tier do prestador autenticado.")

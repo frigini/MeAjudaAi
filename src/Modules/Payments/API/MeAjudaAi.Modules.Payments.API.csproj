@@ -16,4 +16,5 @@
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
   </ItemGroup>
 
+<!-- This project contains the API layer for the Payments module, including controllers, endpoints, and HTTP-related configurations. -->
 </Project>

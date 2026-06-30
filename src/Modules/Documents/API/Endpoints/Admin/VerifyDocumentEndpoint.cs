@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Commands;
@@ -15,7 +16,7 @@ public class VerifyDocumentEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/{documentId:guid}/verify", VerifyDocumentAsync)
-            .WithName("VerifyDocument")
+            .WithName(ApiEndpoints.Documents.Names.Verify)
             .WithSummary("Aprovar ou rejeitar documento")
             .WithDescription("""
                 Aprova ou rejeita um documento após verificação manual.

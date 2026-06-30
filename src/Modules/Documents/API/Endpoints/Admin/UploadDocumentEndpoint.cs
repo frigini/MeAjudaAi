@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Commands;
@@ -19,7 +20,7 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/upload", UploadDocumentAsync)
-            .WithName("UploadDocument")
+            .WithName(ApiEndpoints.Documents.Names.Upload)
             .WithSummary("Gerar URL de upload com SAS token")
             .WithDescription("""
                 Gera uma URL de upload com SAS token para envio direto ao Azure Blob Storage.

@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Mappers;
@@ -18,7 +19,7 @@ public class UpdateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut("me", UpdateMyProfileAsync)
-            .WithName("UpdateMyProviderProfile")
+            .WithName(ApiEndpoints.Providers.Names.UpdateMyProfile)
             .WithTags("Providers - Me")
             .WithSummary("Atualizar meu perfil de prestador")
             .WithDescription("Permite que o prestador autenticado atualize os dados do seu próprio perfil.")

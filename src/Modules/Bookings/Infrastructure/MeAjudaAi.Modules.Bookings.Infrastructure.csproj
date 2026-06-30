@@ -18,3 +18,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the infrastructure layer for the Bookings module, including data access, external service integrations, and persistence implementations. -->

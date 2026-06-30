@@ -192,10 +192,9 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 
             var updateResponse = await Client.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateData);
 
-            // Assert 2: Update successful (or method not allowed if not implemented)
-            updateResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.MethodNotAllowed],
-                "Update should succeed or be not implemented yet");
+            // Assert 2: Update successful
+            updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+                "Update profile should return 200 OK for existing user");
 
             // Act 3: Get User by ID
             var getResponse = await Client.GetAsync($"/api/v1/users/{userId}");
@@ -213,10 +212,9 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             // Act 4: Delete User
             var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
 
-            // Assert 4: Deletion successful (or method not allowed if soft delete only)
-            deleteResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.MethodNotAllowed],
-                "Delete should succeed or be not implemented for hard deletes");
+            // Assert 4: Deletion successful
+            deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent,
+                "Delete user should return 204 No Content for successful soft delete");
         }
         catch (Exception ex)
         {

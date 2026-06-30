@@ -18,7 +18,7 @@ public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete(ApiEndpoints.ServiceCatalogs.Services.Delete, DeleteAsync)
-            .WithName("DeleteService")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.Delete)
             .WithSummary("Deletar serviço")
             .WithDescription("""
                 Deleta um serviço do catálogo permanentemente.

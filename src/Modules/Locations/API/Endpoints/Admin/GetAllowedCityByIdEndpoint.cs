@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
@@ -16,7 +17,7 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("{id:guid}", GetByIdAsync)
-            .WithName("GetAllowedCityById")
+            .WithName(ApiEndpoints.Locations.Names.GetById)
             .WithSummary("Buscar cidade permitida por ID")
             .WithDescription("Recupera uma cidade permitida específica pelo seu ID")
             .Produces<Result<ModuleAllowedCityDto>>(StatusCodes.Status200OK)

@@ -19,7 +19,7 @@ public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.ServiceCatalogs.Services.GetAll, GetAllAsync)
-            .WithName("GetAllServices")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.GetAll)
             .WithSummary("Listar todos os serviços")
             .WithDescription("""
                 Retorna todos os serviços do catálogo.

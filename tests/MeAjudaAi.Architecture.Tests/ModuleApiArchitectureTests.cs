@@ -149,7 +149,7 @@ public class ModuleApiArchitectureTests
         // Arrange & Act
         var result = Types.InAssembly(typeof(ModuleUserDto).Assembly)
             .That()
-            .ResideInNamespaceMatching(@"MeAjudaAi\.Shared\.Contracts\.Modules\.\w+")
+            .ResideInNamespaceMatching(@"MeAjudaAi\.Contracts\.Modules\.\w+")
             .And()
             .HaveNameEndingWith("Dto")
             .Should()

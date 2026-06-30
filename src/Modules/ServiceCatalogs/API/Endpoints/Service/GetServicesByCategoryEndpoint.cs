@@ -19,7 +19,7 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet(ApiEndpoints.ServiceCatalogs.Services.GetByCategory, GetByCategoryAsync)
-            .WithName("GetServicesByCategory")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.GetByCategory)
             .WithSummary("Listar serviços por categoria")
             .WithDescription("""
                 Retorna todos os serviços de uma categoria específica.

@@ -18,7 +18,7 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost(ApiEndpoints.ServiceCatalogs.Services.Deactivate, DeactivateAsync)
-            .WithName("DeactivateService")
+            .WithName(ApiEndpoints.ServiceCatalogs.Services.Names.Deactivate)
             .WithSummary("Desativar serviço")
             .WithDescription("""
                 Desativa um serviço, removendo-o do catálogo ativo.

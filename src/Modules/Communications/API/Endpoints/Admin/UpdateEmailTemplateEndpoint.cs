@@ -23,7 +23,7 @@ public class UpdateEmailTemplateEndpoint : IEndpoint
            .Produces(StatusCodes.Status204NoContent)
            .ProducesProblem(StatusCodes.Status404NotFound)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("UpdateEmailTemplate")
+           .WithName(ApiEndpoints.Communications.Names.UpdateTemplate)
            .WithSummary("Atualiza um template de e-mail")
            .WithDescription("Atualiza o conteúdo de um template de e-mail existente.");
     }

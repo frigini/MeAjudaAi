@@ -55,4 +55,9 @@
     <Using Include="MeAjudaAi.Shared.Tests.TestInfrastructure.Base" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Unit\Application\Caching\" />
+  </ItemGroup>
+
 </Project>
+<!-- This project contains unit and integration tests for the Users module. -->

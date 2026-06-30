@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 using MeAjudaAi.Modules.Documents.API.Mappers;
@@ -20,7 +21,7 @@ public class GetDocumentByIdEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/{documentId:guid}", GetDocumentByIdAsync)
-            .WithName("GetDocumentById")
+            .WithName(ApiEndpoints.Documents.Names.GetById)
             .WithSummary("Obter documento por ID")
             .WithDescription("""
                 Retorna informações detalhadas sobre um documento específico.

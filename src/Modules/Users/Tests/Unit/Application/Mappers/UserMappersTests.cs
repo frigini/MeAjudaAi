@@ -1,4 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.Mappers;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Mappers;
@@ -104,23 +106,53 @@ public class UserMappersTests
     public void ToDto_ShouldPreserveExactTimestamps()
     {
         // Arrange
-        var createdAt = new DateTime(2023, 1, 15, 10, 30, 0, DateTimeKind.Utc);
-        var updatedAt = new DateTime(2023, 2, 20, 14, 45, 30, DateTimeKind.Utc);
+        var user = new User(
+            new UserId(Guid.NewGuid()),
+            new Username("timestampuser"),
+            new Email("timestamp@example.com"),
+            "Time",
+            "Stamp",
+            Guid.NewGuid().ToString()
+        );
+        var expectedCreatedAt = user.CreatedAt;
+        var expectedUpdatedAt = user.UpdatedAt;
 
+        // Act
+        var dto = user.ToDto();
+
+        // Assert
+        dto.CreatedAt.Should().Be(expectedCreatedAt);
+        dto.UpdatedAt.Should().Be(expectedUpdatedAt);
+    }
+
+    [Fact]
+    public void ToDto_WithActiveUser_ShouldMapIsActiveTrue()
+    {
+        // Arrange
         var user = new UserBuilder()
-            .WithEmail("timestamp@example.com")
-            .WithUsername("timestampuser")
-            .WithFullName("Time", "Stamp")
             .WithKeycloakId(Guid.NewGuid().ToString())
-            .WithCreatedAt(createdAt)
-            .WithUpdatedAt(updatedAt)
             .Build();
 
         // Act
         var dto = user.ToDto();
 
         // Assert
-        dto.CreatedAt.Should().Be(createdAt);
-        dto.UpdatedAt.Should().Be(updatedAt);
+        dto.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToDto_WithDeletedUser_ShouldMapIsActiveFalse()
+    {
+        // Arrange
+        var user = new UserBuilder()
+            .WithKeycloakId(Guid.NewGuid().ToString())
+            .Build();
+        user.MarkAsDeleted(TimeProvider.System);
+
+        // Act
+        var dto = user.ToDto();
+
+        // Assert
+        dto.IsActive.Should().BeFalse();
     }
 }

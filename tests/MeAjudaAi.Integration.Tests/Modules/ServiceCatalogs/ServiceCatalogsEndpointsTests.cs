@@ -46,7 +46,7 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
 
         // 2. Update Category
         var updateCatResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/categories/{catId}", new { name = catName + "_Updated", displayOrder = 2 });
-        updateCatResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
+        updateCatResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 3. Create Service
         var svcName = $"Service_{Guid.NewGuid():N}";
@@ -56,7 +56,7 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
 
         // 4. Update Service
         var updateSvcResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}", new { name = svcName + "_Updated", displayOrder = 2 });
-        updateSvcResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
+        updateSvcResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 5. Deactivate & Activate
         await Client.PostAsync($"/api/v1/service-catalogs/services/{svcId}/deactivate", null);
@@ -131,6 +131,6 @@ public class ServiceCatalogsEndpointsTests : BaseApiTest
         var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/change-category", new { newCategoryId = targetCatId });
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

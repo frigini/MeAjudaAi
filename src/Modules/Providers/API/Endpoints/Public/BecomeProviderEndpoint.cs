@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.Commands;
@@ -15,7 +16,7 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("become", BecomeProviderAsync)
-            .WithName("BecomeProvider")
+            .WithName(ApiEndpoints.Providers.Names.Become)
             .WithTags("Providers")
             .WithSummary("Tornar-se prestador (usuário já autenticado)")
             .WithDescription("Transforma o usuário autenticado em um prestador de serviços. Requer token de usuário.")
@@ -56,6 +57,6 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
             return Handle(result);
             
         // Retorna 201 Created com a localização do recurso (perfil do prestador)
-        return Results.CreatedAtRoute("GetMyProviderProfile", null, new Response<ProviderDto>(result.Value));
+        return Results.CreatedAtRoute(ApiEndpoints.Providers.Names.GetMyProfile, null, new Response<ProviderDto>(result.Value));
     }
 }

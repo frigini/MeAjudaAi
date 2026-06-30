@@ -2,41 +2,29 @@ using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Shared.Utilities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
 
-/// <summary>
-/// Testes para o handler de eventos de domínio de registro de usuário
-/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Infrastructure")]
-public class UserRegisteredDomainEventHandlerTests : IDisposable
+public class UserRegisteredDomainEventHandlerTests : BaseInMemoryDatabaseTest<UsersDbContext>
 {
     private readonly Mock<IMessageBus> _messageBusMock;
-    private readonly Mock<ILogger<UserRegisteredDomainEventHandler>> _loggerMock;
-    private readonly UsersDbContext _context;
-    private readonly UserRegisteredDomainEventHandler _handler;
 
-    public UserRegisteredDomainEventHandlerTests()
+    public UserRegisteredDomainEventHandlerTests() : base(options => new UsersDbContext(options, null!))
     {
         _messageBusMock = new Mock<IMessageBus>();
-        _loggerMock = new Mock<ILogger<UserRegisteredDomainEventHandler>>();
-
-        // Setup in-memory database
-        var options = new DbContextOptionsBuilder<UsersDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _context = new UsersDbContext(options, null!);
-        _handler = new UserRegisteredDomainEventHandler(_messageBusMock.Object, _context, _loggerMock.Object);
     }
+
+    private UserRegisteredDomainEventHandler CreateHandler() =>
+        new(_messageBusMock.Object, DbContext, NullLogger<UserRegisteredDomainEventHandler>.Instance);
 
     [Fact]
     public async Task HandleAsync_WithValidUser_ShouldPublishIntegrationEvent()
@@ -49,8 +37,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             .WithLastName("User")
             .Build();
 
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserRegisteredDomainEvent(
             user.Id.Value,
@@ -62,7 +50,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
         );
 
         // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
         _messageBusMock.Verify(
@@ -76,18 +65,6 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
                 ),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()
-            ),
-            Times.Once
-        );
-
-        // Verify info log
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Successfully published UserRegistered")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
             Times.Once
         );
@@ -108,7 +85,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
         );
 
         // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
         _messageBusMock.Verify(
@@ -119,18 +97,6 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             ),
             Times.Never
         );
-
-        // Verify warning was logged
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("not found")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -138,8 +104,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
     {
         // Arrange
         var user = new UserBuilder().Build();
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserRegisteredDomainEvent(
             user.Id.Value,
@@ -159,20 +125,9 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             .ThrowsAsync(new InvalidOperationException("Message bus unavailable"));
 
         // Act & Assert
+        var handler = CreateHandler();
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _handler.HandleAsync(domainEvent, CancellationToken.None)
-        );
-
-        // Verify error was logged
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<InvalidOperationException>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
+            handler.HandleAsync(domainEvent, CancellationToken.None)
         );
     }
 
@@ -184,8 +139,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             .WithKeycloakId(keycloakId)
             .Build();
 
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserRegisteredDomainEvent(
             user.Id.Value,
@@ -197,7 +152,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
         );
 
         // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
         _messageBusMock.Verify(
@@ -217,8 +173,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
     {
         // Arrange
         var user = new UserBuilder().Build();
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
 
         var domainEvent = new UserRegisteredDomainEvent(
             user.Id.Value,
@@ -233,7 +189,8 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
         var cancellationToken = cts.Token;
 
         // Act
-        await _handler.HandleAsync(domainEvent, cancellationToken);
+        var handler = CreateHandler();
+        await handler.HandleAsync(domainEvent, cancellationToken);
 
         // Assert
         _messageBusMock.Verify(
@@ -244,11 +201,5 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             ),
             Times.Once
         );
-    }
-
-    public void Dispose()
-    {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
     }
 }

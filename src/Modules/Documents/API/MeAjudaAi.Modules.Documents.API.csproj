@@ -20,3 +20,4 @@
   </ItemGroup>
 
 </Project>
+<!-- This project contains the API layer for the Documents module, including controllers, endpoints, and HTTP-related configurations. -->

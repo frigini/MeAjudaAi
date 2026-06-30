@@ -205,8 +205,9 @@ public sealed class PermissionService(
         var permissions = new List<EPermission>();
 
         // Obtém provedores de permissão específicos do módulo
+        // "*" atua como wildcard, resolvendo permissões para todos os módulos
         var providers = serviceProvider.GetServices<IPermissionProvider>()
-            .Where(p => p.ModuleName.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
+            .Where(p => p.ModuleName == "*" || p.ModuleName.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
 
         foreach (var provider in providers)
         {

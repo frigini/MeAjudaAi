@@ -1,10 +1,11 @@
-using MeAjudaAi.Modules.Users.Application.DTOs;
-using MeAjudaAi.Modules.Users.Application.Mappers;
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Contracts.Modules.Users.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.Application.Mappers;
+using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Users.Application.ModuleApi;
@@ -39,7 +40,7 @@ public sealed class UsersModuleApi(
         var query = new GetUserByIdQuery(userId);
         var result = await getUserByIdHandler.HandleAsync(query, cancellationToken);
 
-        return result.Match<Result<ModuleUserDto?>>(
+        return result.Match(
             user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Success(user.ToContract()),
@@ -53,7 +54,7 @@ public sealed class UsersModuleApi(
         var query = new GetUserByEmailQuery(email);
         var result = await getUserByEmailHandler.HandleAsync(query, cancellationToken);
 
-        return result.Match<Result<ModuleUserDto?>>(
+        return result.Match(
             user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Success(user.ToContract()),

@@ -18,7 +18,7 @@ public class GetEmailTemplatesEndpoint : IEndpoint
            .Produces(StatusCodes.Status200OK)
            .ProducesProblem(StatusCodes.Status400BadRequest)
            .WithTags(CommunicationsEndpoints.Tag)
-           .WithName("GetEmailTemplates")
+           .WithName(ApiEndpoints.Communications.Names.GetTemplates)
            .WithSummary("Obtém templates de e-mail")
            .WithDescription("Obtém a lista de todos os templates de e-mail disponíveis.");
     }

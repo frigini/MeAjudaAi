@@ -15,6 +15,8 @@ public static class UserMappers
             user.LastName,
             user.GetFullName(),
             user.DeviceToken,
+            user.PhoneNumber?.Value,
+            !user.IsDeleted,
             user.KeycloakId,
             user.CreatedAt,
             user.UpdatedAt

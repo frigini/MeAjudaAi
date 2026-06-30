@@ -315,9 +315,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
 
         // Assert
-        deleteResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NoContent);
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify provider is deleted
         if (deleteResponse.IsSuccessStatusCode)

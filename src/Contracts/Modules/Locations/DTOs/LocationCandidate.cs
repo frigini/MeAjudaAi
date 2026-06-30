@@ -1,6 +1,6 @@
 namespace MeAjudaAi.Contracts.Modules.Locations.DTOs;
 
-public record LocationCandidate(
+public sealed record LocationCandidate(
     string DisplayName,
     string City,
     string State,

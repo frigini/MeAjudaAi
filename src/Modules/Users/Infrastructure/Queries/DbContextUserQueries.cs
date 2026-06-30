@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -95,12 +95,12 @@ public sealed class DbContextUserQueries(UsersDbContext context) : IUserQueries
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var search = searchTerm.Trim().ToLower();
+            var search = searchTerm.Trim().ToLowerInvariant();
             query = query.Where(u =>
-                u.Email.Value.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
-                u.Username.Value.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
-                u.FirstName.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
-                u.LastName.Contains(search, StringComparison.CurrentCultureIgnoreCase));
+                u.Email.Value.ToLower().Contains(search) ||
+                u.Username.Value.ToLower().Contains(search) ||
+                u.FirstName.ToLower().Contains(search) ||
+                u.LastName.ToLower().Contains(search));
         }
 
         var countTask = query.CountAsync(cancellationToken);

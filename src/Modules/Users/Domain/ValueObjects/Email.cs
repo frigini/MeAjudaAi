@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using MeAjudaAi.Shared.Utilities.Constants;
+using System.Text.RegularExpressions;
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 

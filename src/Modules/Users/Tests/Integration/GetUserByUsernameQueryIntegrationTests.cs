@@ -10,6 +10,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration;
 
