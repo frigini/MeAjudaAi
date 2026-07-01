@@ -33,6 +33,18 @@ public class AddServiceToProviderCommandHandlerTests
         _localizerMock
             .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
             .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado"));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceValidationFailed"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Falha ao validar serviço: {args[0]}"));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceNotFound"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Serviço {args[0]} não existe."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceInactive"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Serviço {args[0]} não está ativo."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceDetailsRetrievalFailed")])
+            .Returns(new LocalizedString("ServiceDetailsRetrievalFailed", "Falha ao recuperar detalhes do serviço."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         _handler = new AddServiceToProviderCommandHandler(
@@ -124,7 +136,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Falha ao validar serviço");
+        result.Error!.Message.Should().Contain("Falha ao validar serviço: Validation service unavailable");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -154,7 +166,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("não existe");
+        result.Error.Message.Should().Contain("não existe.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -184,7 +196,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("não está ativo");
+        result.Error!.Message.Should().Contain("não está ativo.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -218,7 +230,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Falha ao recuperar detalhes do serviço");
+        result.Error!.Message.Should().Contain("Falha ao recuperar detalhes do serviço.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

@@ -85,4 +85,16 @@
   <data name="VerificationStatusUpdateError" xml:space="preserve">
     <value>An error occurred while updating the verification status.</value>
   </data>
+  <data name="ServiceValidationFailed" xml:space="preserve">
+    <value>Failed to validate service: {0}</value>
+  </data>
+  <data name="ServiceNotFound" xml:space="preserve">
+    <value>Service {0} does not exist.</value>
+  </data>
+  <data name="ServiceInactive" xml:space="preserve">
+    <value>Service {0} is not active.</value>
+  </data>
+  <data name="ServiceDetailsRetrievalFailed" xml:space="preserve">
+    <value>Failed to retrieve service details.</value>
+  </data>
 </root>

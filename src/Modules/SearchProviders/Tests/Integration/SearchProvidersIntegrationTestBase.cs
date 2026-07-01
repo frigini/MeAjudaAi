@@ -59,10 +59,9 @@ public abstract class SearchProvidersIntegrationTestBase : BaseIntegrationTest
         services.AddSearchProvidersTestInfrastructure(options);
     }
 
-    protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
+    protected override async Task OnInitializeAsync()
     {
-        var dbContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-        await dbContext.Database.EnsureCreatedAsync();
+        var dbContext = GetService<SearchProvidersDbContext>();
 
         var connection = dbContext.Database.GetDbConnection();
         var wasOpen = connection.State == System.Data.ConnectionState.Open;
