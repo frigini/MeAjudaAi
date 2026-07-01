@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -15,14 +17,16 @@ public class ActivateServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly ActivateServiceCommandHandler _handler;
 
     public ActivateServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_repositoryMock.Object);
-        _handler = new ActivateServiceCommandHandler(_uowMock.Object, NullLogger<ActivateServiceCommandHandler>.Instance);
+        _handler = new ActivateServiceCommandHandler(_uowMock.Object, NullLogger<ActivateServiceCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -62,6 +66,8 @@ public class ActivateServiceCommandHandlerTests
         var serviceId = Guid.NewGuid();
         var command = new ActivateServiceCommand(serviceId);
 
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceNotFoundById"), It.IsAny<object[]>()]).Returns(new LocalizedString("ServiceNotFoundById", $"Serviço com ID '{serviceId}' não encontrado."));
+
         _repositoryMock
             .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
@@ -80,6 +86,8 @@ public class ActivateServiceCommandHandlerTests
     {
         // Arrange
         var command = new ActivateServiceCommand(Guid.Empty);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdRequired")]).Returns(new LocalizedString("ServiceIdRequired", "O ID do serviço não pode ser vazio."));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -129,6 +137,8 @@ public class ActivateServiceCommandHandlerTests
             .AsInactive()
             .Build();
         var command = new ActivateServiceCommand(service.Id.Value);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceActivateError")]).Returns(new LocalizedString("ServiceActivateError", "Ocorreu um erro inesperado ao ativar o serviço."));
 
         _repositoryMock
             .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))

@@ -1,6 +1,7 @@
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Integration.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Jobs;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
@@ -202,7 +203,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     // Sempre simular IUserDomainService para evitar chamadas ao Keycloak nos testes
                     var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
                     foreach (var descriptor in userDomainDescriptors) services.Remove(descriptor);
-                    services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
+                    services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users.MockUserDomainService>();
 
                     // Register dummy Stripe client to satisfy DI validation
                     services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));

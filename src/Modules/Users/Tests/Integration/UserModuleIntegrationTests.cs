@@ -37,22 +37,21 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
         var createResult = await userDomainService.CreateUserAsync(
             username, email, firstName, lastName, password, roles);
 
-        Assert.True(createResult.IsSuccess);
+        createResult.IsSuccess.Should().BeTrue();
 
         var createdUser = createResult.Value;
         uow.GetRepository<User, UserId>().Add(createdUser);
         await uow.SaveChangesAsync();
 
-        // Assert - Verificar se foi persistido no banco
+        // Assert
         var retrievedUser = await userQueries.GetByIdAsync(createdUser.Id);
-        Assert.NotNull(retrievedUser);
-        Assert.Equal(username.Value, retrievedUser.Username.Value);
-        Assert.Equal(email.Value, retrievedUser.Email.Value);
-        Assert.Equal(firstName, retrievedUser.FirstName);
-        Assert.Equal(lastName, retrievedUser.LastName);
+        retrievedUser.Should().NotBeNull();
+        retrievedUser!.Username.Value.Should().Be(username.Value);
+        retrievedUser.Email.Value.Should().Be(email.Value);
+        retrievedUser.FirstName.Should().Be(firstName);
+        retrievedUser.LastName.Should().Be(lastName);
 
-        // Assert - Verificar se o message bus está configurado (mock)
-        Assert.NotNull(messageBus);
+        messageBus.Should().NotBeNull();
     }
 
     [Fact]
@@ -66,10 +65,10 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
         var authResult = await authService.AuthenticateAsync("validuser", "validpassword");
 
         // Assert
-        Assert.True(authResult.IsSuccess);
-        Assert.NotNull(authResult.Value);
-        Assert.NotNull(authResult.Value.AccessToken);
-        Assert.Contains("customer", authResult.Value.Roles!);
+        authResult.IsSuccess.Should().BeTrue();
+        authResult.Value.Should().NotBeNull();
+        authResult.Value!.AccessToken.Should().NotBeNull();
+        authResult.Value.Roles.Should().Contain("customer");
     }
 
     [Fact]
@@ -83,8 +82,9 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
         var authResult = await authService.AuthenticateAsync("invaliduser", "wrongpassword");
 
         // Assert
-        Assert.True(authResult.IsFailure);
-        Assert.Equal("Invalid credentials", authResult.Error.Message);
+        authResult.IsFailure.Should().BeTrue();
+        authResult.Error.Should().NotBeNull();
+        authResult.Error!.Message.Should().Be("Invalid credentials");
     }
 
     [Fact]
@@ -98,9 +98,9 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
         var validationResult = await authService.ValidateTokenAsync("mock_token_12345");
 
         // Assert
-        Assert.True(validationResult.IsSuccess);
-        Assert.NotNull(validationResult.Value.UserId);
-        Assert.Contains("customer", validationResult.Value.Roles!);
+        validationResult.IsSuccess.Should().BeTrue();
+        validationResult.Value.UserId.Should().NotBeNull();
+        validationResult.Value.Roles.Should().Contain("customer");
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class UserModuleIntegrationTests : UsersIntegrationTestBase
         var syncResult = await userDomainService.SyncUserWithKeycloakAsync(userId);
 
         // Assert
-        Assert.True(syncResult.IsSuccess);
+        syncResult.IsSuccess.Should().BeTrue();
     }
 }
 

@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Queries;
 
@@ -13,12 +15,15 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Quer
 public class GetServiceByIdQueryHandlerTests
 {
     private readonly Mock<IServiceQueries> _queriesMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly GetServiceByIdQueryHandler _handler;
 
     public GetServiceByIdQueryHandlerTests()
     {
         _queriesMock = new Mock<IServiceQueries>();
-        _handler = new GetServiceByIdQueryHandler(_queriesMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdRequired")]).Returns(new LocalizedString("ServiceIdRequired", "O ID do serviço é obrigatório."));
+        _handler = new GetServiceByIdQueryHandler(_queriesMock.Object, _localizerMock.Object);
     }
 
     [Fact]

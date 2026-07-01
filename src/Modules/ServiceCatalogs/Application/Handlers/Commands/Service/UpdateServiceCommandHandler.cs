@@ -8,7 +8,9 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -19,10 +21,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="uow"></param>
 /// <param name="serviceQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class UpdateServiceCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceQueries serviceQueries,
-    ILogger<UpdateServiceCommandHandler> logger) : ICommandHandler<UpdateServiceCommand, Result>
+    ILogger<UpdateServiceCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<UpdateServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCommand request, CancellationToken cancellationToken = default)
     {
@@ -67,7 +71,7 @@ public sealed class UpdateServiceCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while updating service.");
-            return Result.Failure("Ocorreu um erro inesperado.");
+            return Result.Failure(localizer["ServiceUpdateError"]);
         }
     }
 }

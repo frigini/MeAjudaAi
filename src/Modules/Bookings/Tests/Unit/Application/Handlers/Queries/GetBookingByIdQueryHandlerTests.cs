@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Queries;
@@ -13,17 +15,18 @@ public class GetBookingByIdQueryHandlerTests
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<ILogger<GetBookingByIdQueryHandler>> _loggerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
     private readonly GetBookingByIdQueryHandler _sut;
 
     private const int ExpectedNotFoundStatusCode = 404;
-    private const string ExpectedNotFoundMessage = "Agendamento não encontrado.";
 
     public GetBookingByIdQueryHandlerTests()
     {
         _sut = new GetBookingByIdQueryHandler(
             _bookingQueriesMock.Object,
             _scheduleQueriesMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -160,6 +163,8 @@ public class GetBookingByIdQueryHandlerTests
             .Build();
         booking.ClearDomainEvents();
 
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "BookingNotFound")]).Returns(new LocalizedString("BookingNotFound", "Agendamento não encontrado."));
+
         _bookingQueriesMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
@@ -169,7 +174,7 @@ public class GetBookingByIdQueryHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(ExpectedNotFoundStatusCode);
-        result.Error!.Message.Should().Be(ExpectedNotFoundMessage);
+        result.Error!.Message.Should().Contain("não encontrado");
     }
 
     [Fact]
@@ -188,6 +193,8 @@ public class GetBookingByIdQueryHandlerTests
             .Build();
         booking.ClearDomainEvents();
 
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "BookingNotFound")]).Returns(new LocalizedString("BookingNotFound", "Agendamento não encontrado."));
+
         _bookingQueriesMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
@@ -197,13 +204,15 @@ public class GetBookingByIdQueryHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(ExpectedNotFoundStatusCode);
-        result.Error!.Message.Should().Be(ExpectedNotFoundMessage);
+        result.Error!.Message.Should().Contain("não encontrado");
     }
 
     [Fact]
     public async Task HandleAsync_Should_Return_NotFound_When_BookingDoesNotExist()
     {
         // Arrange
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "BookingNotFound")]).Returns(new LocalizedString("BookingNotFound", "Agendamento não encontrado."));
+
         _bookingQueriesMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
@@ -213,6 +222,6 @@ public class GetBookingByIdQueryHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(ExpectedNotFoundStatusCode);
-        result.Error!.Message.Should().Be(ExpectedNotFoundMessage);
+        result.Error!.Message.Should().Contain("não encontrado");
     }
 }

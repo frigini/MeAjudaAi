@@ -3,8 +3,12 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Functional;
 
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 
+/// <summary>
+/// Mock de IUserDomainService para testes de integração e E2E.
+/// Simula operações de domínio do usuário sem Keycloak real.
+/// </summary>
 public class MockUserDomainService : IUserDomainService
 {
     public Task<Result<User>> CreateUserAsync(
@@ -17,21 +21,18 @@ public class MockUserDomainService : IUserDomainService
         string? phoneNumber = null,
         CancellationToken cancellationToken = default)
     {
-        // Para testes, criar usuário mock
         var userResult = User.Create(username, email, firstName, lastName, Guid.NewGuid().ToString(), phoneNumber);
-        if (userResult.IsFailure) return Task.FromResult(Result<User>.Failure(userResult.Error));
-        return Task.FromResult(Result<User>.Success(userResult.Value));
+        if (userResult.IsFailure) return Task.FromResult(Result<User>.Failure(userResult.Error!));
+        return Task.FromResult(Result<User>.Success(userResult.Value!));
     }
 
     public Task<Result> SyncUserWithKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
     {
-        // Para testes, simular sincronização bem-sucedida
         return Task.FromResult(Result.Success());
     }
 
     public Task<Result> DeactivateUserInKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
     {
-        // Para testes, simular desativação bem-sucedida
         return Task.FromResult(Result.Success());
     }
 }

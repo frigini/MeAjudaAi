@@ -1,158 +1,91 @@
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Utilities;
-using Testcontainers.PostgreSql;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 /// <summary>
 /// Classe base para testes de integração do módulo SearchProviders.
-/// Usa Testcontainers PostgreSQL com extensão PostGIS.
+/// Usa Testcontainers PostgreSQL com extensão PostGIS via BaseIntegrationTest.
 /// </summary>
-public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
+public abstract class SearchProvidersIntegrationTestBase : BaseIntegrationTest
 {
-    private PostgreSqlContainer? _container;
-    private ServiceProvider? _serviceProvider;
-    private readonly string _testClassId;
-
-    protected SearchProvidersIntegrationTestBase()
+    protected override TestInfrastructureOptions GetTestOptions()
     {
-        _testClassId = $"{GetType().Name}_{Guid.NewGuid():N}";
+        var testClassName = GetType().Name;
+        if (testClassName.Length > 50)
+            testClassName = testClassName[..50];
+
+        var options = new TestInfrastructureOptions
+        {
+            Database = new TestDatabaseOptions
+            {
+                DatabaseName = $"search_test_{testClassName}",
+                Username = "test_user",
+                Password = "test_password",
+                Schema = Schemas.SearchProviders
+            },
+            Cache = new TestCacheOptions { Enabled = false },
+            ExternalServices = new TestExternalServicesOptions
+            {
+                UseKeycloakMock = true,
+                UseMessageBusMock = true
+            }
+        };
+
+        var baseConnectionString = SharedTestContainers.PostgreSql.GetConnectionString();
+        var builder = new NpgsqlConnectionStringBuilder(baseConnectionString)
+        {
+            Database = options.Database.DatabaseName
+        };
+        options.Database.ConnectionString = builder.ToString();
+
+        return options;
     }
 
-    /// <summary>
-    /// Inicialização executada antes de cada classe de teste
-    /// </summary>
-    public async ValueTask InitializeAsync()
+    protected override void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
     {
-        // Criar container PostgreSQL com PostGIS
-        _container = new PostgreSqlBuilder("postgis/postgis:16-3.4") // Imagem com PostGIS
-            .WithDatabase($"search_test_{_testClassId}")
-            .WithUsername("test_user")
-            .WithPassword("test_password")
-            .Build();
-
-        await _container.StartAsync();
-
-        // Configurar serviços
-        var services = new ServiceCollection();
-
-        services.AddSingleton(_container);
-
-        services.AddLogging(builder =>
-        {
-            builder.SetMinimumLevel(LogLevel.Warning);
-            builder.AddConsole();
-        });
-
-        // Configurar DbContext com connection string do container
-        services.AddDbContext<SearchProvidersDbContext>(options =>
-        {
-            options.UseNpgsql(
-                _container.GetConnectionString(),
-                npgsqlOptions =>
-                {
-                    npgsqlOptions.UseNetTopologySuite();
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                });
-
-            // Use same naming convention as production
-            options.UseSnakeCaseNamingConvention();
-
-            // Suppress pending model changes warning for tests (EnsureCreatedAsync doesn't use migrations)
-            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-
-        // Registrar PostgresOptions para Dapper
-        var connectionString = _container.GetConnectionString();
-        services.AddSingleton(new PostgresOptions { ConnectionString = connectionString });
-
-        // Registrar métricas (IMeterFactory requerido por DatabaseMetrics)
-        services.AddMetrics();
-
-        // Registrar DatabaseMetrics + Interceptor (via AddDatabaseMonitoring do Shared)
-        services.AddDatabaseMonitoring();
-
-        // Registrar Dapper connection (necessário para as queries geoespaciais em DbContextSearchableProviderQueries)
-        services.AddScoped<IDapperConnection, DapperConnection>();
-
-        // Registrar Unit of Work
-        services.AddKeyedScoped<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.SearchProviders, (sp, key) => sp.GetRequiredService<SearchProvidersDbContext>());
-
-        // Registrar Queries
-        services.AddScoped<ISearchableProviderQueries,
-            MeAjudaAi.Modules.SearchProviders.Infrastructure.Queries.DbContextSearchableProviderQueries>();
-
-        _serviceProvider = services.BuildServiceProvider();
-
-        // Inicializar banco de dados
-        await InitializeDatabaseAsync();
+        services.AddSearchProvidersTestInfrastructure(options);
     }
 
-    /// <summary>
-    /// Inicializa o banco de dados com PostGIS
-    /// </summary>
-    private async Task InitializeDatabaseAsync()
+    protected override async Task OnInitializeAsync()
     {
-        var dbContext = _serviceProvider!.GetRequiredService<SearchProvidersDbContext>();
+        var dbContext = GetService<SearchProvidersDbContext>();
 
-        // IMPORTANTE: Usar EnsureCreatedAsync para testes (não migrations)
-        // Migrations tem problema com schema 'search' vs 'search_providers'
-        await dbContext.Database.EnsureCreatedAsync();
+        var connection = dbContext.Database.GetDbConnection();
+        var wasOpen = connection.State == System.Data.ConnectionState.Open;
 
-        // Verificar se PostGIS está disponível
         try
         {
-            var connection = dbContext.Database.GetDbConnection();
-            var wasOpen = connection.State == System.Data.ConnectionState.Open;
+            if (!wasOpen) await connection.OpenAsync();
 
-            if (!wasOpen)
-            {
-                await connection.OpenAsync();
-            }
-
-            try
-            {
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT PostGIS_Version()";
-                var version = await command.ExecuteScalarAsync();
-                if (version == null)
-                {
-                    throw new InvalidOperationException("PostGIS extension is not available in the test database");
-                }
-            }
-            finally
-            {
-                if (!wasOpen && connection.State == System.Data.ConnectionState.Open)
-                {
-                    await connection.CloseAsync();
-                }
-            }
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT PostGIS_Version()";
+            var version = await command.ExecuteScalarAsync();
+            if (version == null)
+                throw new InvalidOperationException("PostGIS extension is not available in the test database");
         }
-        catch (Exception ex) when (ex is not InvalidOperationException)
+        finally
         {
-            throw new InvalidOperationException("PostGIS extension is not available in the test database", ex);
+            if (!wasOpen && connection.State == System.Data.ConnectionState.Open)
+                await connection.CloseAsync();
         }
 
-        // Verificar isolamento
-        var count = await dbContext.SearchableProviders.CountAsync();
-        if (count > 0)
-        {
-            throw new InvalidOperationException($"Database isolation failed: found {count} existing providers");
-        }
+        await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE FROM search_providers.searchable_providers WHERE true;");
     }
 
-    /// <summary>
-    /// Cria um SearchableProvider para teste
-    /// </summary>
     protected SearchableProvider CreateTestSearchableProvider(
         string name,
         double latitude,
@@ -165,22 +98,17 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var providerId = Guid.NewGuid();
         var location = new GeoPoint(latitude, longitude);
 
-        var provider = SearchableProvider.Create(
+        return SearchableProvider.Create(
             providerId: providerId,
             name: name,
-            slug: BuildTestSlug(name, providerId),
+            slug: SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
             location: location,
             subscriptionTier: tier,
             description: description,
             city: city,
             state: state);
-
-        return provider;
     }
 
-    /// <summary>
-    /// Cria um SearchableProvider com ProviderId específico para teste
-    /// </summary>
     protected SearchableProvider CreateTestSearchableProviderWithProviderId(
         Guid providerId,
         string name,
@@ -193,22 +121,17 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
     {
         var location = new GeoPoint(latitude, longitude);
 
-        var provider = SearchableProvider.Create(
+        return SearchableProvider.Create(
             providerId: providerId,
             name: name,
-            slug: BuildTestSlug(name, providerId),
+            slug: SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
             location: location,
             subscriptionTier: tier,
             description: description,
             city: city,
             state: state);
-
-        return provider;
     }
 
-    /// <summary>
-    /// Persiste um SearchableProvider no banco de dados
-    /// </summary>
     protected async Task<SearchableProvider> PersistSearchableProviderAsync(SearchableProvider provider)
     {
         var dbContext = GetService<SearchProvidersDbContext>();
@@ -217,9 +140,6 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         return provider;
     }
 
-    /// <summary>
-    /// Limpa dados das tabelas
-    /// </summary>
     protected async Task CleanupDatabase()
     {
         var dbContext = GetService<SearchProvidersDbContext>();
@@ -235,61 +155,6 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
 
         var remainingCount = await dbContext.SearchableProviders.CountAsync();
         if (remainingCount > 0)
-        {
             throw new InvalidOperationException($"Database cleanup failed: {remainingCount} providers remain");
-        }
-    }
-
-    /// <summary>
-    /// Limpeza executada após cada classe de teste
-    /// </summary>
-    public virtual async ValueTask DisposeAsync()
-    {
-        if (_serviceProvider != null)
-        {
-            await _serviceProvider.DisposeAsync();
-        }
-
-        if (_container != null)
-        {
-            await _container.StopAsync();
-            await _container.DisposeAsync();
-        }
-    }
-
-    /// <summary>
-    /// Obtém um serviço do provider
-    /// </summary>
-    protected T GetService<T>() where T : notnull
-    {
-        if (_serviceProvider == null)
-            throw new InvalidOperationException("Service provider not initialized");
-        return _serviceProvider.GetRequiredService<T>();
-    }
-
-    /// <summary>
-    /// Cria um escopo de serviços
-    /// </summary>
-    protected IServiceScope CreateScope()
-    {
-        if (_serviceProvider == null)
-            throw new InvalidOperationException("Service provider not initialized");
-        return _serviceProvider.CreateScope();
-    }
-
-    /// <summary>
-    /// Número de caracteres do GUID usados como sufixo (deve coincidir com SlugHelper.GenerateWithSuffix).
-    /// </summary>
-    private const int GuidSuffixLength = 8;
-
-    /// <summary>
-    /// Constrói o slug usado nos testes a partir do nome e do ID do provedor.
-    /// </summary>
-    private static string BuildTestSlug(string name, Guid providerId)
-    {
-        return SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..GuidSuffixLength]);
     }
 }
-
-
-

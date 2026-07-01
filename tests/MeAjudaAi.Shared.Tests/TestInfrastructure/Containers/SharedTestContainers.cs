@@ -168,20 +168,27 @@ public static class SharedTestContainers
     /// <param name="schema">Schema específico para limpar. Se null, usa o schema padrão das configurações</param>
     public static async Task CleanupDataAsync(string? schema = null)
     {
-        if (!_isInitialized) return;
+        if (!_isInitialized || _postgreSqlContainer == null) return;
+
+        // Verifica se o container foi iniciado antes de tentar executar comandos
+        try
+        {
+            _ = _postgreSqlContainer.Id;
+        }
+        catch (InvalidOperationException)
+        {
+            // Container não foi iniciado, nada a limpar
+            return;
+        }
 
         _databaseOptions ??= GetDefaultDatabaseOptions();
 
-        // Limpa PostgreSQL
-        if (_postgreSqlContainer != null)
-        {
-            var schemaToClean = schema ?? _databaseOptions.Schema ?? "public";
-            await _postgreSqlContainer.ExecAsync(
-            [
-                "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-c",
-                $"DROP SCHEMA IF EXISTS {schemaToClean} CASCADE; CREATE SCHEMA {schemaToClean};"
-            ]);
-        }
+        var schemaToClean = schema ?? _databaseOptions.Schema ?? "public";
+        await _postgreSqlContainer.ExecAsync(
+        [
+            "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-c",
+            $"DROP SCHEMA IF EXISTS {schemaToClean} CASCADE; CREATE SCHEMA {schemaToClean};"
+        ]);
     }
 
     /// <summary>

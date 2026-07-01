@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Stripe;
 using Stripe.Checkout;
@@ -19,16 +21,19 @@ public class StripePaymentGateway : IPaymentGateway
     private readonly IStripeService _stripeService;
     private readonly ILogger<StripePaymentGateway> _logger;
     private readonly PaymentsOptions _options;
+    private readonly IStringLocalizer<Strings> _localizer;
 
     public StripePaymentGateway(
         IConfiguration configuration,
         PaymentsOptions paymentsOptions,
         ILogger<StripePaymentGateway> logger,
-        IStripeService stripeService)
+        IStripeService stripeService,
+        IStringLocalizer<Strings> localizer)
     {
         _options = paymentsOptions;
         _logger = logger;
         _stripeService = stripeService;
+        _localizer = localizer;
 
         var apiKey = configuration["Stripe:ApiKey"]!;
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -53,7 +58,7 @@ public class StripePaymentGateway : IPaymentGateway
         if (CurrencyUtils.IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
         {
             _logger.LogWarning("Attempt to create subscription with fractional amount for zero-decimal currency: {Currency} {Amount}", amount.Currency, amount.Amount);
-            return SubscriptionGatewayResponse.Failed($"Moeda zero-decimal ({amount.Currency}) não aceita valores fracionários: {amount.Amount}");
+            return SubscriptionGatewayResponse.Failed(_localizer["StripeCurrencyFractionalError", amount.Currency, amount.Amount]);
         }
 
         try
@@ -68,7 +73,7 @@ public class StripePaymentGateway : IPaymentGateway
             {
                 _logger.LogError("Price mismatch detected. Stripe: {StripeAmount} {StripeCurrency}, Expected: {ExpectedAmount} {ExpectedCurrency}", 
                     price.UnitAmount, price.Currency, expectedAmount, amount.Currency);
-                return SubscriptionGatewayResponse.Failed("O valor ou moeda do plano não corresponde às informações do provedor de pagamento.");
+                return SubscriptionGatewayResponse.Failed(_localizer["StripePlanMismatch"]);
             }
 
             var options = new SessionCreateOptions
@@ -96,7 +101,7 @@ public class StripePaymentGateway : IPaymentGateway
             if (string.IsNullOrWhiteSpace(session.Url))
             {
                 _logger.LogError("Stripe returned session with null or empty URL for Provider {ProviderId}", providerId);
-                return SubscriptionGatewayResponse.Failed("Provedor de pagamento retornou URL de checkout inválida.");
+                return SubscriptionGatewayResponse.Failed(_localizer["StripeInvalidCheckoutUrl"]);
             }
 
             return SubscriptionGatewayResponse.Succeeded(null, session.Url);
@@ -104,7 +109,7 @@ public class StripePaymentGateway : IPaymentGateway
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Stripe error creating subscription for Provider {ProviderId}", providerId);
-            return SubscriptionGatewayResponse.Failed("Falha na comunicação com o provedor de pagamento.");
+            return SubscriptionGatewayResponse.Failed(_localizer["StripeCommunicationFailed"]);
         }
     }
 

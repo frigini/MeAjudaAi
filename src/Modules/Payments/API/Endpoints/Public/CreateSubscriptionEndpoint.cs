@@ -8,7 +8,9 @@ using MeAjudaAi.Modules.Payments.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
@@ -40,6 +42,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
     /// <param name="dispatcher">Disparador de comandos.</param>
     /// <param name="providersApi">API do módulo de prestadores para validação cruzada.</param>
     /// <param name="logger">Logger do endpoint.</param>
+    /// <param name="localizer">Serviço de localização de strings.</param>
     /// <param name="httpContext">Contexto da requisição HTTP para extração de identidade e headers.</param>
     /// <param name="cancellationToken">Token de cancelamento da requisição.</param>
     /// <returns>URL de checkout do Stripe.</returns>
@@ -48,6 +51,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
         [FromServices] ICommandDispatcher dispatcher,
         [FromServices] IProvidersModuleApi providersApi,
         [FromServices] ILogger<CreateSubscriptionEndpoint> logger,
+        [FromServices] IStringLocalizer<Strings> localizer,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
@@ -55,8 +59,8 @@ public class CreateSubscriptionEndpoint : IEndpoint
         {
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
-                ["ProviderId"] = request.ProviderId == Guid.Empty ? ["O campo ProviderId é obrigatório."] : [],
-                ["PlanId"] = string.IsNullOrWhiteSpace(request.PlanId) ? ["O campo PlanId é obrigatório."] : []
+                ["ProviderId"] = request.ProviderId == Guid.Empty ? [localizer["ProviderIdRequired"]] : [],
+                ["PlanId"] = string.IsNullOrWhiteSpace(request.PlanId) ? [localizer["PlanIdRequired"]] : []
             });
         }
 
@@ -72,12 +76,12 @@ public class CreateSubscriptionEndpoint : IEndpoint
         {
             logger.LogError("Error checking provider existence for {ProviderId}: {Error}",
                 request.ProviderId, existsResult.Error);
-            return new Error("Erro ao validar prestador. Tente novamente mais tarde.", StatusCodes.Status502BadGateway).ToProblem();
+            return new Error(localizer["ProviderValidationErrorMessage"], StatusCodes.Status502BadGateway).ToProblem();
         }
 
         if (!existsResult.Value)
         {
-            return Error.NotFound("Prestador não encontrado.").ToProblem();
+            return Error.NotFound(localizer["ProviderNotFound"]).ToProblem();
         }
 
         string? idempotencyKey = null;

@@ -6,8 +6,10 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -20,6 +22,7 @@ public class CreateServiceCommandHandlerTests
     private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
     private readonly Mock<IServiceCategoryQueries> _categoryQueriesMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly CreateServiceCommandHandler _handler;
 
     public CreateServiceCommandHandlerTests()
@@ -28,6 +31,14 @@ public class CreateServiceCommandHandlerTests
         _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
         _categoryQueriesMock = new Mock<IServiceCategoryQueries>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryIdRequired")]).Returns(new LocalizedString("CategoryIdRequired", "O ID da categoria é obrigatório."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryNotFoundById"), It.IsAny<object[]>()]).Returns((string key, object[] args) => new LocalizedString(key, $"Categoria com ID '{args[0]}' não encontrada."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CannotCreateServiceInInactiveCategory")]).Returns(new LocalizedString("CannotCreateServiceInInactiveCategory", "Não é possível criar serviço em categoria inativa."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceNameRequired")]).Returns(new LocalizedString("ServiceNameRequired", "O nome do serviço é obrigatório."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceNameAlreadyExistsInCategory"), It.IsAny<object[]>()]).Returns((string key, object[] args) => new LocalizedString(key, $"Já existe um serviço com o nome '{args[0]}' nesta categoria."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceDisplayOrderNegative")]).Returns(new LocalizedString("ServiceDisplayOrderNegative", "A ordem de exibição não pode ser negativa."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceCreateError")]).Returns(new LocalizedString("ServiceCreateError", "Ocorreu um erro inesperado ao criar o serviço."));
 
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
 
@@ -35,7 +46,8 @@ public class CreateServiceCommandHandlerTests
             _uowMock.Object,
             _serviceQueriesMock.Object,
             _categoryQueriesMock.Object,
-            NullLogger<CreateServiceCommandHandler>.Instance);
+            NullLogger<CreateServiceCommandHandler>.Instance,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -141,7 +153,7 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("não pode ser vazio");
+        result.Error!.Message.Should().Contain("obrigatório");
         _categoryQueriesMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

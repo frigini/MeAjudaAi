@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.ModuleApi;
@@ -22,6 +24,7 @@ public class DocumentsModuleApiTests
     private readonly Mock<IDocumentQueries> _documentQueriesMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<DocumentsModuleApi>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DocumentsModuleApi _sut;
 
     public DocumentsModuleApiTests()
@@ -31,13 +34,15 @@ public class DocumentsModuleApiTests
         _documentQueriesMock = new Mock<IDocumentQueries>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<DocumentsModuleApi>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _sut = new DocumentsModuleApi(
             _getDocumentByIdHandlerMock.Object,
             _getProviderDocumentsHandlerMock.Object,
             _documentQueriesMock.Object,
             _serviceProviderMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]

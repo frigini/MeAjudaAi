@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -17,10 +19,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="uow"></param>
 /// <param name="providersModuleApi"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class DeleteServiceCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IProvidersModuleApi providersModuleApi,
-    ILogger<DeleteServiceCommandHandler> logger) : ICommandHandler<DeleteServiceCommand, Result>
+    ILogger<DeleteServiceCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<DeleteServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(DeleteServiceCommand request, CancellationToken cancellationToken = default)
     {
@@ -58,7 +62,7 @@ public sealed class DeleteServiceCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while deleting service.");
-            return Result.Failure("Ocorreu um erro inesperado ao excluir o serviço.");
+            return Result.Failure(localizer["ServiceDeleteError"]);
         }
     }
 }

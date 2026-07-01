@@ -201,6 +201,78 @@ public class BookingsApiTests : BaseApiTest
         result!.Items.Should().NotBeEmpty();
     }
 
+    [Fact]
+    public async Task GetMyBookings_WithoutAuth_ShouldReturn401()
+    {
+        AuthConfig.ClearConfiguration();
+
+        var response = await Client.GetAsync("/api/v1/bookings/my");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetMyBookings_NoBookings_ShouldReturn200WithEmpty()
+    {
+        var clientId = Guid.NewGuid();
+        AuthConfig.ConfigureRegularUser(clientId.ToString());
+
+        var response = await Client.GetAsync("/api/v1/bookings/my");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
+        result.Should().NotBeNull();
+        result!.Items.Should().BeEmpty();
+        result.TotalItems.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetMyBookings_WithPagination_ShouldRespectPageSize()
+    {
+        var providerId = await CreateTestProviderAsync();
+        await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
+
+        var clientId = Guid.NewGuid();
+        for (int i = 0; i < 5; i++)
+            await CreateTestBookingAsync(providerId, clientId, serviceId);
+
+        AuthConfig.ConfigureRegularUser(clientId.ToString());
+
+        var response = await Client.GetAsync("/api/v1/bookings/my?page=1&pageSize=2");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
+        result.Should().NotBeNull();
+        result!.Items.Should().HaveCount(2);
+        result.PageSize.Should().Be(2);
+        result.TotalItems.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task GetMyBookings_OnlyReturnsOwnBookings_ShouldExcludeOtherClients()
+    {
+        var providerId = await CreateTestProviderAsync();
+        await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
+
+        var myClientId = Guid.NewGuid();
+        var otherClientId = Guid.NewGuid();
+        await CreateTestBookingAsync(providerId, myClientId, serviceId);
+        await CreateTestBookingAsync(providerId, otherClientId, serviceId);
+
+        AuthConfig.ConfigureRegularUser(myClientId.ToString());
+
+        var response = await Client.GetAsync("/api/v1/bookings/my");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await ReadJsonAsync<PagedResult<ModuleBookingDto>>(response.Content);
+        result!.Items.Should().HaveCount(1);
+        result.Items.First().ClientId.Should().Be(myClientId);
+    }
+
     private async Task<Guid> CreateTestBookingAsync(Guid providerId, Guid clientId, Guid serviceId)
     {
         using var scope = Services.CreateScope();

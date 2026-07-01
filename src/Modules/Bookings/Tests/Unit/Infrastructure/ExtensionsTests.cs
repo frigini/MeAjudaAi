@@ -3,9 +3,11 @@ using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure;
 
@@ -29,6 +31,7 @@ public class ExtensionsTests
         environment.Setup(e => e.EnvironmentName).Returns("Testing");
         services.AddLogging();
         services.AddSingleton(new Mock<MeAjudaAi.Shared.Messaging.IMessageBus>().Object);
+        services.AddSingleton(new Mock<IStringLocalizer<Strings>>().Object);
 
         // Act
         MeAjudaAi.Modules.Bookings.Infrastructure.Extensions.AddInfrastructure(services, configuration, environment.Object);

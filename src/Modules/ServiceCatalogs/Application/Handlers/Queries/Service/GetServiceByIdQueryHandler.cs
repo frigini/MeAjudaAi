@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 
@@ -12,7 +14,9 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service
 /// Handler para processar a consulta GetServiceByIdQuery, retornando os detalhes de um serviço específico pelo seu ID.
 /// </summary>
 /// <param name="queries"></param>
-public sealed class GetServiceByIdQueryHandler(IServiceQueries queries)
+public sealed class GetServiceByIdQueryHandler(
+    IServiceQueries queries,
+    IStringLocalizer<Strings> localizer)
     : IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>
 {
     public async Task<Result<ServiceDto?>> HandleAsync(
@@ -21,7 +25,7 @@ public sealed class GetServiceByIdQueryHandler(IServiceQueries queries)
     {
         // Trata Guid.Empty como erro de validação para consistência com os command handlers
         if (request.Id == Guid.Empty)
-            return Result<ServiceDto?>.Failure("O ID do serviço não pode ser vazio.");
+            return Result<ServiceDto?>.Failure(localizer["ServiceIdRequired"]);
 
         var serviceId = ServiceId.From(request.Id);
         var service = await queries.GetByIdAsync(serviceId, cancellationToken);

@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCat
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
@@ -17,15 +19,17 @@ public class DeactivateServiceCategoryCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeactivateServiceCategoryCommandHandler _handler;
 
     public DeactivateServiceCategoryCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_repositoryMock.Object);
-        _handler = new DeactivateServiceCategoryCommandHandler(_uowMock.Object, NullLogger<DeactivateServiceCategoryCommandHandler>.Instance);
+        _handler = new DeactivateServiceCategoryCommandHandler(_uowMock.Object, NullLogger<DeactivateServiceCategoryCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -124,6 +128,8 @@ public class DeactivateServiceCategoryCommandHandlerTests
     {
         var category = new ServiceCategoryBuilder().AsActive().Build();
         var command = new DeactivateServiceCategoryCommand(category.Id.Value);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryDeactivateError")]).Returns(new LocalizedString("CategoryDeactivateError", "Ocorreu um erro inesperado ao desativar a categoria de serviço."));
 
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))

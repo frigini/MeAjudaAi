@@ -43,6 +43,9 @@ public static class TestInfrastructureExtensions
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
 
+        // Adicionar suporte a localização
+        services.AddLocalization();
+
         // Adicionar serviços de cache do Shared
         services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
 

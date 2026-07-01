@@ -5,9 +5,11 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
@@ -18,6 +20,7 @@ public class RejectBookingCommandHandlerTests
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly Mock<ILogger<RejectBookingCommandHandler>> _loggerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
     private readonly RejectBookingCommandHandler _sut;
 
     public RejectBookingCommandHandlerTests()
@@ -27,7 +30,8 @@ public class RejectBookingCommandHandlerTests
         _sut = new RejectBookingCommandHandler(
             _bookingQueriesMock.Object,
             _uowMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]

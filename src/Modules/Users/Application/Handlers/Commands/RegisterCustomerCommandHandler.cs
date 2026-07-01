@@ -8,9 +8,11 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
@@ -27,13 +29,16 @@ public sealed partial class RegisterCustomerCommandHandler(
     IUserDomainService userDomainService,
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUserQueries userQueries,
-    ILogger<RegisterCustomerCommandHandler> logger
+    ILogger<RegisterCustomerCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<RegisterCustomerCommand, Result<UserDto>>
 {
     public const string TermsNotAcceptedError = "Você deve aceitar os termos de uso para se cadastrar.";
     public const string PrivacyPolicyNotAcceptedError = "Você deve aceitar a política de privacidade para se cadastrar.";
     public const string FailedToCompensateKeycloakUserMessage = "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.";
     public const string FailedToSaveRegistrationError = "Falha ao salvar o cadastro. Tente novamente mais tarde.";
+
+    private readonly IStringLocalizer<Strings> _localizer = localizer;
 
     [GeneratedRegex(@"[^a-zA-Z0-9._\-]", RegexOptions.Compiled)]
     private static partial Regex SanitizationRegex();
@@ -42,12 +47,12 @@ public sealed partial class RegisterCustomerCommandHandler(
     {
         if (!command.TermsAccepted)
         {
-            return Result<UserDto>.Failure(Error.BadRequest(TermsNotAcceptedError));
+            return Result<UserDto>.Failure(Error.BadRequest(_localizer["TermsAcceptanceRequired"]));
         }
 
         if (!command.AcceptedPrivacyPolicy)
         {
-            return Result<UserDto>.Failure(Error.BadRequest(PrivacyPolicyNotAcceptedError));
+            return Result<UserDto>.Failure(Error.BadRequest(_localizer["PrivacyPolicyAcceptanceRequired"]));
         }
 
         Email emailAsValueObject;
@@ -95,7 +100,7 @@ public sealed partial class RegisterCustomerCommandHandler(
         var existingEmail = await userQueries.GetByEmailAsync(emailAsValueObject, cancellationToken);
         if (existingEmail is not null)
         {
-            return Result<UserDto>.Failure(Error.Conflict("Este email já está em uso."));
+            return Result<UserDto>.Failure(Error.Conflict(_localizer["EmailAlreadyExists"]));
         }
 
         // Cria usuário com papel de "cliente"
@@ -107,16 +112,16 @@ public sealed partial class RegisterCustomerCommandHandler(
         
         if (firstName.Length < ValidationConstants.UserLimits.FirstNameMinLength)
         {
-            return Result<UserDto>.Failure(Error.BadRequest($"O primeiro nome deve ter pelo menos {ValidationConstants.UserLimits.FirstNameMinLength} caracteres."));
+            return Result<UserDto>.Failure(Error.BadRequest(_localizer["FirstNameMinLength", ValidationConstants.UserLimits.FirstNameMinLength]));
         }
         
         if (string.IsNullOrWhiteSpace(lastName))
         {
-            return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome é obrigatório e deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));
+            return Result<UserDto>.Failure(Error.BadRequest(_localizer["LastNameRequired", ValidationConstants.UserLimits.LastNameMinLength]));
         }
         if (lastName.Length < ValidationConstants.UserLimits.LastNameMinLength)
         {
-            return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));
+            return Result<UserDto>.Failure(Error.BadRequest(_localizer["LastNameMinLength", ValidationConstants.UserLimits.LastNameMinLength]));
         }
         
         var userResult = await userDomainService.CreateUserAsync(
@@ -139,7 +144,7 @@ public sealed partial class RegisterCustomerCommandHandler(
         if (userResult.Value is null)
         {
             logger.LogCritical("User returned null from success result for {Email}", maskedEmail);
-            return Result<UserDto>.Failure(Error.Internal("Falha crítica ao criar o usuário. Dados nulos retornados."));
+            return Result<UserDto>.Failure(Error.Internal(_localizer["UserCreateCriticalError"]));
         }
 
         var user = userResult.Value;
@@ -192,7 +197,7 @@ public sealed partial class RegisterCustomerCommandHandler(
             if (ex is OperationCanceledException)
                 throw;
 
-            return Result<UserDto>.Failure(Error.Internal(FailedToSaveRegistrationError));
+            return Result<UserDto>.Failure(Error.Internal(_localizer["RegistrationSaveError"]));
         }
 
         logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, user.Id);

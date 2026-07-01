@@ -7,7 +7,9 @@ using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
@@ -19,6 +21,7 @@ public class SetProviderScheduleCommandHandlerTests
     private readonly Mock<IRepository<ProviderSchedule, Guid>> _repoMock = new();
     private readonly Mock<IProvidersModuleApi> _providersApiMock = new();
     private readonly Mock<ILogger<SetProviderScheduleCommandHandler>> _loggerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
     private readonly SetProviderScheduleCommandHandler _sut;
 
     public SetProviderScheduleCommandHandlerTests()
@@ -26,11 +29,17 @@ public class SetProviderScheduleCommandHandlerTests
         _uowMock.Setup(x => x.GetRepository<ProviderSchedule, Guid>()).Returns(_repoMock.Object);
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ProviderScheduleDataInvalid")])
+            .Returns(new LocalizedString("ProviderScheduleDataInvalid", "Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
+
         _sut = new SetProviderScheduleCommandHandler(
             _scheduleQueriesMock.Object,
             _uowMock.Object,
             _providersApiMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]

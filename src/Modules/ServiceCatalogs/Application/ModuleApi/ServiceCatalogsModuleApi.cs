@@ -5,7 +5,9 @@ using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
@@ -17,7 +19,8 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 public sealed class ServiceCatalogsModuleApi(
     IServiceCategoryQueries categoryQueries,
     IServiceQueries serviceQueries,
-    ILogger<ServiceCatalogsModuleApi> logger) : IServiceCatalogsModuleApi
+    ILogger<ServiceCatalogsModuleApi> logger,
+    IStringLocalizer<Strings> localizer) : IServiceCatalogsModuleApi
 {
     private static class ModuleMetadata
     {
@@ -40,7 +43,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<ModuleServiceCategoryDto?>.Failure("O ID da categoria deve ser fornecido.");
+                return Result<ModuleServiceCategoryDto?>.Failure(localizer["CategoryIdMustBeProvided"]);
 
             var id = ServiceCategoryId.From(categoryId);
             var category = await categoryQueries.GetByIdAsync(id, cancellationToken);
@@ -65,7 +68,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving service category {CategoryId}", categoryId);
-            return Result<ModuleServiceCategoryDto?>.Failure("Erro ao buscar categoria de serviço.");
+            return Result<ModuleServiceCategoryDto?>.Failure(localizer["ErrorFetchingServiceCategory"]);
         }
     }
 
@@ -94,7 +97,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving service categories");
-            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure("Erro ao buscar categorias de serviço.");
+            return Result<IReadOnlyList<ModuleServiceCategoryDto>>.Failure(localizer["ErrorFetchingServiceCategories"]);
         }
     }
 
@@ -105,7 +108,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceId == Guid.Empty)
-                return Result<ModuleServiceDto?>.Failure("O ID do serviço deve ser fornecido.");
+                return Result<ModuleServiceDto?>.Failure(localizer["ServiceIdMustBeProvided"]);
 
             var id = ServiceId.From(serviceId);
             var service = await serviceQueries.GetByIdAsync(id, cancellationToken);
@@ -134,7 +137,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving service {ServiceId}", serviceId);
-            return Result<ModuleServiceDto?>.Failure("Erro ao buscar serviço.");
+            return Result<ModuleServiceDto?>.Failure(localizer["ErrorFetchingService"]);
         }
     }
 
@@ -164,7 +167,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving services");
-            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure("Erro ao buscar serviços.");
+            return Result<IReadOnlyList<ModuleServiceListDto>>.Failure(localizer["ErrorFetchingServices"]);
         }
     }
 
@@ -176,7 +179,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<IReadOnlyList<ModuleServiceDto>>.Failure("O ID da categoria deve ser fornecido.");
+                return Result<IReadOnlyList<ModuleServiceDto>>.Failure(localizer["CategoryIdMustBeProvided"]);
 
             var id = ServiceCategoryId.From(categoryId);
             var services = await serviceQueries.GetByCategoryAsync(id, activeOnly, cancellationToken);
@@ -200,7 +203,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error retrieving services for category {CategoryId}", categoryId);
-            return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Erro ao buscar serviços da categoria.");
+            return Result<IReadOnlyList<ModuleServiceDto>>.Failure(localizer["ErrorFetchingCategoryServices"]);
         }
     }
 
@@ -211,7 +214,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceId == Guid.Empty)
-                return Result<bool>.Failure("O ID do serviço deve ser fornecido.");
+                return Result<bool>.Failure(localizer["ServiceIdMustBeProvided"]);
 
             var serviceIdValue = ServiceId.From(serviceId);
             var service = await serviceQueries.GetByIdAsync(serviceIdValue, cancellationToken);
@@ -229,7 +232,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error checking if service {ServiceId} is active", serviceId);
-            return Result<bool>.Failure("Erro ao verificar status do serviço.");
+            return Result<bool>.Failure(localizer["ErrorCheckingServiceStatus"]);
         }
     }
 
@@ -246,7 +249,7 @@ public sealed class ServiceCatalogsModuleApi(
         try
         {
             if (serviceIds is null)
-                return Result<ModuleServiceValidationResultDto>.Failure("A coleção de IDs de serviços não pode ser nula.");
+                return Result<ModuleServiceValidationResultDto>.Failure(localizer["ServiceIdsCollectionRequired"]);
 
             // Short-circuit for empty collection
             if (serviceIds.Count == 0)
@@ -313,7 +316,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error validating services");
-            return Result<ModuleServiceValidationResultDto>.Failure("Erro ao validar serviços.");
+            return Result<ModuleServiceValidationResultDto>.Failure(localizer["ErrorValidatingServices"]);
         }
     }
 }

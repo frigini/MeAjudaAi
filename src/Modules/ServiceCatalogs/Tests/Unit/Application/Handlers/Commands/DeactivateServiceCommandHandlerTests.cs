@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -16,17 +18,19 @@ public class DeactivateServiceCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Service, ServiceId>> _repositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeactivateServiceCommandHandler _handler;
 
     public DeactivateServiceCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<Service, ServiceId>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
         
         _uowMock.Setup(u => u.GetRepository<Service, ServiceId>())
             .Returns(_repositoryMock.Object);
             
-        _handler = new DeactivateServiceCommandHandler(_uowMock.Object, NullLogger<DeactivateServiceCommandHandler>.Instance);
+        _handler = new DeactivateServiceCommandHandler(_uowMock.Object, NullLogger<DeactivateServiceCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -99,6 +103,8 @@ public class DeactivateServiceCommandHandlerTests
             .AsActive()
             .Build();
         var command = new DeactivateServiceCommand(service.Id.Value);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceDeactivateError")]).Returns(new LocalizedString("ServiceDeactivateError", "Ocorreu um erro inesperado ao desativar o serviço."));
 
         _repositoryMock
             .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))

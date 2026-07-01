@@ -2,7 +2,7 @@ using Azure.Storage;
 using Azure.Storage.Blobs;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
-using MeAjudaAi.Modules.Documents.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

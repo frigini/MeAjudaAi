@@ -8,7 +8,9 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -30,7 +32,8 @@ internal sealed class CreateUserCommandHandler(
     IUserDomainService userDomainService,
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUserQueries userQueries,
-    ILogger<CreateUserCommandHandler> logger
+    ILogger<CreateUserCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<CreateUserCommand, Result<UserDto>>
 {
     /// <summary>
@@ -108,7 +111,7 @@ internal sealed class CreateUserCommandHandler(
             // Capturar erros de infraestrutura (database, cache, etc.) e logar com detalhes completos
             logger.LogError(ex, "Unexpected error creating user with email {Email}. ExceptionType: {ExceptionType}, Message: {Message}",
                 command.Email, ex.GetType().Name, ex.Message);
-            return Result<UserDto>.Failure("Falha ao criar usuário. Tente novamente mais tarde.");
+            return Result<UserDto>.Failure(localizer["UserCreateError"]);
         }
     }
 
@@ -126,7 +129,7 @@ internal sealed class CreateUserCommandHandler(
         if (existingByEmail != null)
         {
             logger.LogWarning("User creation failed: Email {Email} already exists", command.Email);
-            return Result<Unit>.Failure("Usuário com este email já existe");
+            return Result<Unit>.Failure(localizer["EmailAlreadyExists"]);
         }
 
         // Verifica se já existe usuário com o username informado
@@ -136,7 +139,7 @@ internal sealed class CreateUserCommandHandler(
         if (existingByUsername != null)
         {
             logger.LogWarning("User creation failed: Username {Username} already exists", command.Username);
-            return Result<Unit>.Failure("Nome de usuário já está sendo utilizado");
+            return Result<Unit>.Failure(localizer["UsernameAlreadyExists"]);
         }
 
         return Result<Unit>.Success(Unit.Value);

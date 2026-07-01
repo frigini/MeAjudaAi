@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 using Microsoft.Extensions.Logging;
 
@@ -16,9 +18,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// </summary>
 /// <param name="uow"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class DeactivateServiceCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-    ILogger<DeactivateServiceCommandHandler> logger) : ICommandHandler<DeactivateServiceCommand, Result>
+    ILogger<DeactivateServiceCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<DeactivateServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(DeactivateServiceCommand request, CancellationToken cancellationToken = default)
     {
@@ -46,7 +50,7 @@ public sealed class DeactivateServiceCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while deactivating service.");
-            return Result.Failure("Ocorreu um erro inesperado ao desativar o serviço.");
+            return Result.Failure(localizer["ServiceDeactivateError"]);
         }
     }
 }

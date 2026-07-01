@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.SearchProviders.Application.Handlers;
@@ -14,7 +16,8 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 /// </summary>
 public sealed class SearchProvidersQueryHandler(
     ISearchableProviderQueries queries,
-    ILogger<SearchProvidersQueryHandler> logger)
+    ILogger<SearchProvidersQueryHandler> logger,
+    IStringLocalizer<Strings> localizer)
     : IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>
 {
     public async Task<Result<PagedResult<SearchableProviderDto>>> HandleAsync(
@@ -71,7 +74,7 @@ public sealed class SearchProvidersQueryHandler(
                 searchResult.DistancesInKm.Count,
                 searchResult.Providers.Count);
             return Result<PagedResult<SearchableProviderDto>>.Failure(
-                Error.Internal("As distâncias retornadas não correspondem ao número de prestadores."));
+                Error.Internal(localizer["DistanceProviderCountMismatch"]));
         }
         
         var providerDtos = searchResult.Providers

@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -16,6 +18,7 @@ public class UpdateServiceCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly UpdateServiceCommandHandler _handler;
 
     public UpdateServiceCommandHandlerTests()
@@ -23,10 +26,11 @@ public class UpdateServiceCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
 
-        _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, NullLogger<UpdateServiceCommandHandler>.Instance);
+        _handler = new UpdateServiceCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, NullLogger<UpdateServiceCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -137,6 +141,8 @@ public class UpdateServiceCommandHandlerTests
         var categoryId = ServiceCategoryId.From(Guid.NewGuid());
         var service = Service.Create(categoryId, "Original", "Desc", 1);
         var command = new UpdateServiceCommand(service.Id.Value, "New Name", "Desc", 1);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceUpdateError")]).Returns(new LocalizedString("ServiceUpdateError", "Ocorreu um erro inesperado."));
 
         _serviceRepositoryMock
             .Setup(x => x.TryFindAsync(service.Id, It.IsAny<CancellationToken>()))

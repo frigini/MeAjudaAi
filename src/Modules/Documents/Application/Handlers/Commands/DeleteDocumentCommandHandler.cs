@@ -6,9 +6,11 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
@@ -18,7 +20,8 @@ public class DeleteDocumentCommandHandler(
     IDocumentQueries documentQueries,
     IBlobStorageService blobStorageService,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<DeleteDocumentCommandHandler> logger)
+    ILogger<DeleteDocumentCommandHandler> logger,
+    IStringLocalizer<Strings> localizer)
     : ICommandHandler<DeleteDocumentCommand, Result>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
@@ -26,6 +29,7 @@ public class DeleteDocumentCommandHandler(
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<DeleteDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IStringLocalizer<Strings> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     public async Task<Result> HandleAsync(DeleteDocumentCommand command, CancellationToken cancellationToken = default)
     {
@@ -42,10 +46,10 @@ public class DeleteDocumentCommandHandler(
                 throw new NotFoundException("Document", command.DocumentId.ToString());
             }
 
-            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException("Contexto HTTP não disponível");
+            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException(_localizer["HttpContextNotAvailable"]);
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("É necessário estar autenticado para excluir documentos");
+                throw new UnauthorizedAccessException(_localizer["DocumentDeleteNotAllowed"]);
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)
@@ -54,7 +58,7 @@ public class DeleteDocumentCommandHandler(
                 _logger.LogWarning(
                     "User {UserId} attempted to delete document {DocumentId} without admin privileges",
                     userId, command.DocumentId);
-                throw new ForbiddenAccessException("Apenas administradores podem excluir documentos");
+                throw new ForbiddenAccessException(_localizer["AdminOnlyCanDeleteDocuments"]);
             }
 
             if (!string.IsNullOrEmpty(document.FileUrl))
@@ -88,7 +92,7 @@ public class DeleteDocumentCommandHandler(
             _logger.LogError(ex,
                 "Unexpected error deleting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Falha ao excluir o documento. Por favor, tente novamente mais tarde.", "InternalError"));
+            return Result.Failure(Error.Internal(_localizer["DocumentDeleteError"], "InternalError"));
         }
     }
 

@@ -8,8 +8,10 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers.Commands;
@@ -22,7 +24,8 @@ public sealed class CreateAllowedCityHandler(
     IAllowedCityQueries queries,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
+    ILogger<CreateAllowedCityHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
@@ -30,7 +33,7 @@ public sealed class CreateAllowedCityHandler(
         var exists = await queries.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
         if (exists)
         {
-            return Result<Guid>.Failure(Error.Conflict($"Cidade '{command.CityName}-{command.StateSigla}' já cadastrada"));
+            return Result<Guid>.Failure(Error.Conflict(localizer["CityAlreadyRegistered", $"{command.CityName}-{command.StateSigla}"]));
         }
 
         // Tentar obter coordenadas se não informadas

@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -20,7 +22,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class SuspendProviderCommandHandler(
     IUnitOfWork uow,
-    ILogger<SuspendProviderCommandHandler> logger
+    ILogger<SuspendProviderCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<SuspendProviderCommand, Result>
 {
     /// <summary>
@@ -37,20 +40,20 @@ public sealed class SuspendProviderCommandHandler(
         if (string.IsNullOrWhiteSpace(command.Reason))
         {
             logger.LogWarning("Suspension reason is required but was not provided");
-            return Result.Failure("Motivo da suspensão é obrigatório");
+            return Result.Failure(localizer["SuspensionReasonRequired"]);
         }
 
         if (string.IsNullOrWhiteSpace(command.SuspendedBy))
         {
             logger.LogWarning("SuspendedBy is required but was not provided");
-            return Result.Failure("Responsável pela suspensão é obrigatório");
+            return Result.Failure(localizer["SuspendedByRequired"]);
         }
 
         var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure("Prestador não encontrado");
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         provider.Suspend(command.Reason, command.SuspendedBy);

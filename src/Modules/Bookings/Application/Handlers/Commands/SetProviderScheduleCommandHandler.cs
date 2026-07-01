@@ -7,7 +7,9 @@ using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
@@ -19,7 +21,8 @@ public sealed class SetProviderScheduleCommandHandler(
     IProviderScheduleQueries scheduleQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
     IProvidersModuleApi providersApi,
-    ILogger<SetProviderScheduleCommandHandler> logger) : ICommandHandler<SetProviderScheduleCommand, Result>
+    ILogger<SetProviderScheduleCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<SetProviderScheduleCommand, Result>
 {
     public async Task<Result> HandleAsync(SetProviderScheduleCommand command, CancellationToken cancellationToken = default)
     {
@@ -33,7 +36,7 @@ public sealed class SetProviderScheduleCommandHandler(
         
         if (!providerExists.Value)
         {
-            return Result.Failure(Error.NotFound("Prestador não encontrado."));
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         var newAvailabilities = new List<Availability>();
@@ -49,12 +52,12 @@ public sealed class SetProviderScheduleCommandHandler(
         catch (ArgumentException ex)
         {
             logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
+            return Result.Failure(Error.BadRequest(localizer["ProviderScheduleDataInvalid"]));
         }
         catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
+            return Result.Failure(Error.BadRequest(localizer["ProviderScheduleDataInvalid"]));
         }
 
         var schedule = await scheduleQueries.GetByProviderIdAsync(command.ProviderId, cancellationToken);

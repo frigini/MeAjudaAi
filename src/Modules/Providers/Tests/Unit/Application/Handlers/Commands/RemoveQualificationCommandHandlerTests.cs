@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
@@ -16,6 +18,7 @@ public class RemoveQualificationCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<RemoveQualificationCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly RemoveQualificationCommandHandler _handler;
 
     public RemoveQualificationCommandHandlerTests()
@@ -23,9 +26,17 @@ public class RemoveQualificationCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<RemoveQualificationCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "QualificationNotFound")])
+            .Returns(new LocalizedString("QualificationNotFound", "Qualificação não encontrada."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new RemoveQualificationCommandHandler(_uowMock.Object, _loggerMock.Object);
+        _handler = new RemoveQualificationCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
@@ -93,7 +104,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Fornecedor não encontrado");
+        result.Error!.Message.Should().Be("Prestador não encontrado.");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -125,7 +136,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Qualificação não encontrada");
+        result.Error!.Message.Should().Be("Qualificação não encontrada.");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

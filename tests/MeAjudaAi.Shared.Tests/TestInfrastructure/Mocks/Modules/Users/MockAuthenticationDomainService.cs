@@ -2,16 +2,19 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Contracts.Functional;
 
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 
-internal class MockAuthenticationDomainService : IAuthenticationDomainService
+/// <summary>
+/// Mock de IAuthenticationDomainService para testes.
+/// Simula autenticação e validação de token.
+/// </summary>
+public class MockAuthenticationDomainService : IAuthenticationDomainService
 {
     public Task<Result<AuthenticationResult>> AuthenticateAsync(
         string usernameOrEmail,
         string password,
         CancellationToken cancellationToken = default)
     {
-        // Para testes, validar apenas credenciais específicas
         if (usernameOrEmail == "validuser" && password == "validpassword")
         {
             var result = new AuthenticationResult(
@@ -31,7 +34,6 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
         string token,
         CancellationToken cancellationToken = default)
     {
-        // Para testes, validar tokens que começam com "mock_token_"
         if (token.StartsWith("mock_token_"))
         {
             var result = new TokenValidationResult(

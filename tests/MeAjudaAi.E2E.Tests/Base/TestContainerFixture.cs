@@ -1,17 +1,33 @@
 using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
-using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
+using MeAjudaAi.E2E.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
-using MeAjudaAi.Modules.Documents.Tests.Mocks;
+using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Payments.Domain.Abstractions;
+using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
+using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -104,22 +120,16 @@ public class TestContainerFixture : IAsyncLifetime
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         // Configurar containers com timeouts aumentados para WSL2/Docker Desktop (Windows)
-        if (_postgresContainer == null)
-        {
-            _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+        _postgresContainer ??= new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("meajudaai_test")
                 .WithUsername("postgres")
                 .WithPassword("test123")
                 .WithCleanUp(true)
                 .Build();
-        }
 
-        if (_redisContainer == null)
-        {
-            _redisContainer = new RedisBuilder("redis:7-alpine")
+        _redisContainer ??= new RedisBuilder("redis:7-alpine")
                 .WithCleanUp(true)
                 .Build();
-        }
 
         // Iniciar containers em paralelo
         var startTasks = new List<Task>();
@@ -135,7 +145,7 @@ public class TestContainerFixture : IAsyncLifetime
         Console.WriteLine("✅ TestContainers initialized successfully");
     }
 
-    private async Task InitializeFactoryAsync()
+    private Task InitializeFactoryAsync()
     {
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -219,14 +229,15 @@ public class TestContainerFixture : IAsyncLifetime
         };
 
         Services = _factory.Services;
+        return Task.CompletedTask;
     }
 
     private void ConfigureMockServices(IServiceCollection services)
     {
-        services.AddAuthentication(MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName)
+        services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
             .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
-                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler>(
-                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName,
+                ConfigurableTestAuthenticationHandler>(
+               ConfigurableTestAuthenticationHandler.SchemeName,
                 _ => { });
         
         if (!services.Any(d => d.ServiceType == typeof(Microsoft.AspNetCore.Authorization.IAuthorizationService)))
@@ -238,9 +249,9 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in keycloakDescriptors) services.Remove(d);
         services.AddSingleton<IKeycloakService, MockKeycloakService>();
 
-        var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
+        var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(IUserDomainService)).ToList();
         foreach (var d in userDomainDescriptors) services.Remove(d);
-        services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
+        services.AddScoped<IUserDomainService, MockUserDomainService>();
 
         var blobDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
         foreach (var d in blobDescriptors) services.Remove(d);
@@ -250,46 +261,46 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in ocrDescriptors) services.Remove(d);
         services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
 
-        var gatewayDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway)).ToList();
+        var gatewayDescriptors = services.Where(d => d.ServiceType == typeof(IPaymentGateway)).ToList();
         foreach (var d in gatewayDescriptors) services.Remove(d);
-        services.AddScoped<MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway, MockPaymentGateway>();
+        services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 
         // Register dummy Stripe client to satisfy DI validation
         services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
 
         // Message Bus Condicional para E2E
-        var busDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
+        var busDescriptors = services.Where(d => d.ServiceType == typeof(IMessageBus)).ToList();
         foreach (var d in busDescriptors) services.Remove(d);
 
-        var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
+        var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(IDomainEventProcessor)).ToList();
         foreach (var d in domainProcessorDescriptors) services.Remove(d);
 
         if (EnableEventsAndMessageBus)
         {
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
-            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>();
+            services.AddSingleton<IMessageBus, SynchronousInMemoryMessageBus>();
+            services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
         }
         else
         {
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
-            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+            services.AddSingleton<IMessageBus, MockMessageBus>();
+            services.AddScoped<IDomainEventProcessor, MockDomainEventProcessor>();
         }
     }
 
     private void ReconfigureDbContexts(IServiceCollection services)
     {
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services, ModuleKeys.Users);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services, ModuleKeys.Providers);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
+        ReconfigureDbContextWithUnitOfWork<UsersDbContext>(services, ModuleKeys.Users);
+        ReconfigureDbContextWithUnitOfWork<ProvidersDbContext>(services, ModuleKeys.Providers);
+        ReconfigureDbContextWithUnitOfWork<BookingsDbContext>(services, ModuleKeys.Bookings);
+        ReconfigureDbContextWithUnitOfWork<DocumentsDbContext>(services, ModuleKeys.Documents);
+        ReconfigureDbContextWithUnitOfWork<ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services, ModuleKeys.Communications);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services, ModuleKeys.SearchProviders);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services, ModuleKeys.Ratings);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services, ModuleKeys.Payments);
+        ReconfigureDbContextWithUnitOfWork<LocationsDbContext>(services, ModuleKeys.Locations);
+        ReconfigureDbContextWithUnitOfWork<CommunicationsDbContext>(services, ModuleKeys.Communications);
+        ReconfigureDbContextWithUnitOfWork<SearchProvidersDbContext>(services, ModuleKeys.SearchProviders);
+        ReconfigureDbContextWithUnitOfWork<RatingsDbContext>(services, ModuleKeys.Ratings);
+        ReconfigureDbContextWithUnitOfWork<PaymentsDbContext>(services, ModuleKeys.Payments);
 
         // Remove ALL non-keyed IUnitOfWork registrations (production modules each register their own,
         // but only the last one wins in MS DI — Payments. This causes handlers to use the wrong DbContext.)
@@ -368,16 +379,16 @@ public class TestContainerFixture : IAsyncLifetime
 
         try
         {
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<UsersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ServiceCatalogsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ProvidersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<SearchProvidersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<RatingsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<PaymentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<BookingsDbContext>());
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -393,16 +404,16 @@ public class TestContainerFixture : IAsyncLifetime
         using var scope = Services.CreateScope();
         var services = scope.ServiceProvider;
 
-        await CleanupContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services);
+        await CleanupContext<UsersDbContext>(services);
+        await CleanupContext<ProvidersDbContext>(services);
+        await CleanupContext<DocumentsDbContext>(services);
+        await CleanupContext<ServiceCatalogsDbContext>(services);
+        await CleanupContext<LocationsDbContext>(services);
+        await CleanupContext<CommunicationsDbContext>(services);
+        await CleanupContext<SearchProvidersDbContext>(services);
+        await CleanupContext<RatingsDbContext>(services);
+        await CleanupContext<PaymentsDbContext>(services);
+        await CleanupContext<BookingsDbContext>(services);
 
         if (_redisContainer != null)
         {
@@ -464,24 +475,29 @@ public class TestContainerFixture : IAsyncLifetime
             var idParam = uri.Query.TrimStart('?').Split('&').FirstOrDefault(p => p.StartsWith("id="));
             if (idParam != null) return Guid.Parse(idParam.Split('=')[1]);
         }
-        return Guid.Parse(locationHeader.Split('/')[^1]);
+
+        var lastSegment = locationHeader.Split('/')[^1].Split('?')[0];
+        if (Guid.TryParse(lastSegment, out var id))
+            return id;
+
+        throw new FormatException($"Cannot extract GUID from Location header: {locationHeader}");
     }
 
     public static void AuthenticateAsAdmin()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
     }
 
     public static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
     }
 
     public static void AuthenticateAsAnonymous()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
     /// <summary>
@@ -491,8 +507,8 @@ public class TestContainerFixture : IAsyncLifetime
     /// <param name="providerId">O identificador do prestador ao qual o usuário será vinculado.</param>
     public static void AuthenticateAsAdminWithProvider(Guid providerId)
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(
             providerId: providerId,
             userId: "admin-provider-id",
             username: "admin-provider",
@@ -502,7 +518,7 @@ public class TestContainerFixture : IAsyncLifetime
 
     public static void BeforeEachTest()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
     public async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
@@ -573,4 +589,3 @@ public class TestContainerFixture : IAsyncLifetime
         return ExtractIdFromLocation(locationHeader);
     }
 }
-

@@ -82,13 +82,16 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
         lock (_startupLock)
         {
             if (_containersStarted) return;
-            _containersStarted = true;
         }
 
         Console.WriteLine("Starting shared containers...");
 
-        // Inicia containers fora do lock
         await SharedTestContainers.StartAllAsync();
+
+        lock (_startupLock)
+        {
+            _containersStarted = true;
+        }
 
         Console.WriteLine("Shared containers started successfully!");
     }

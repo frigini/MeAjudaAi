@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using System.Data;
@@ -13,7 +15,8 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Services;
 
 internal sealed class DbContextBookingCommandService(
     BookingsDbContext context,
-    ILogger<DbContextBookingCommandService> logger) : IBookingCommandService
+    ILogger<DbContextBookingCommandService> logger,
+    IStringLocalizer<Strings> localizer) : IBookingCommandService
 {
     public async Task<Result> AddIfNoOverlapAsync(Booking booking, CancellationToken cancellationToken = default)
     {
@@ -51,7 +54,7 @@ internal sealed class DbContextBookingCommandService(
 
                     if (existingBookings.Any())
                     {
-                        return Result.Failure(Error.Conflict("Já existe um agendamento para este horário.", ErrorCodes.Bookings.Overlap));
+                        return Result.Failure(Error.Conflict(localizer["BookingAlreadyExistsForTimeSlot"], ErrorCodes.Bookings.Overlap));
                     }
 
                     context.Bookings.Add(booking);
@@ -92,7 +95,7 @@ internal sealed class DbContextBookingCommandService(
                     if (IsConcurrencyError(ex))
                     {
                         logger.LogWarning(ex, "Concurrency conflict after max retries while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);
-                        return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes.", ErrorCodes.Bookings.ConcurrencyConflict));
+                        return Result.Failure(Error.Conflict(localizer["BookingConcurrencyConflict"], ErrorCodes.Bookings.ConcurrencyConflict));
                     }
 
                     logger.LogError(ex, "Fatal error while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);

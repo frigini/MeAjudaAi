@@ -859,7 +859,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             
-            if (ocrService is MeAjudaAi.Modules.Documents.Tests.Mocks.MockDocumentIntelligenceService mockService)
+            if (ocrService is MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents.MockDocumentIntelligenceService mockService)
             {
                 // Configurar mock para retornar baixa confiança
                 mockService.SetNextResultToLowConfidence();
@@ -885,7 +885,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             
-            if (ocrService is MeAjudaAi.Modules.Documents.Tests.Mocks.MockDocumentIntelligenceService mockService)
+            if (ocrService is MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents.MockDocumentIntelligenceService mockService)
             {
                 // Configurar mock para simular erro
                 mockService.SetNextResultToError("OCR service unavailable");

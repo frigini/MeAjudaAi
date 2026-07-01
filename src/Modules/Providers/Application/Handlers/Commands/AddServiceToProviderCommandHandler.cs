@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -16,7 +18,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 public sealed class AddServiceToProviderCommandHandler(
     IUnitOfWork uow,
     IServiceCatalogsModuleApi serviceCatalogsModuleApi,
-    ILogger<AddServiceToProviderCommandHandler> logger
+    ILogger<AddServiceToProviderCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<AddServiceToProviderCommand, Result>
 {
     /// <summary>
@@ -39,7 +42,7 @@ public sealed class AddServiceToProviderCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure("Prestador não encontrado");
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         var validationResult = await serviceCatalogsModuleApi.ValidateServicesAsync(
@@ -52,7 +55,7 @@ public sealed class AddServiceToProviderCommandHandler(
                 "Failed to validate service {ServiceId}: {Error}",
                 command.ServiceId,
                 validationResult.Error?.Message ?? "Unknown error");
-            return Result.Failure($"Falha ao validar serviço: {validationResult.Error?.Message ?? "erro desconhecido"}");
+            return Result.Failure(localizer["ServiceValidationFailed", validationResult.Error?.Message ?? "erro desconhecido"]);
         }
 
         if (!validationResult.Value.AllValid)
@@ -61,12 +64,12 @@ public sealed class AddServiceToProviderCommandHandler(
 
             if (validationResult.Value.InvalidServiceIds.Any())
             {
-                reasons.Add($"Serviço {command.ServiceId} não existe");
+                reasons.Add(localizer["ServiceNotFound", command.ServiceId]);
             }
 
             if (validationResult.Value.InactiveServiceIds.Any())
             {
-                reasons.Add($"Serviço {command.ServiceId} não está ativo");
+                reasons.Add(localizer["ServiceInactive", command.ServiceId]);
             }
 
             var errorMessage = string.Join("; ", reasons);
@@ -85,7 +88,7 @@ public sealed class AddServiceToProviderCommandHandler(
         if (serviceResult.IsFailure || serviceResult.Value is null)
         {
             logger.LogError("Service {ServiceId} validated but details could not be retrieved", command.ServiceId);
-            return Result.Failure("Falha ao recuperar detalhes do serviço.");
+            return Result.Failure(localizer["ServiceDetailsRetrievalFailed"]);
         }
 
         var serviceName = serviceResult.Value.Name;

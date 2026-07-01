@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Handlers;
@@ -20,13 +22,20 @@ public class SearchProvidersQueryHandlerTests
 {
     private readonly Mock<ISearchableProviderQueries> _queriesMock;
     private readonly Mock<ILogger<SearchProvidersQueryHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly SearchProvidersQueryHandler _sut;
 
     public SearchProvidersQueryHandlerTests()
     {
         _queriesMock = new Mock<ISearchableProviderQueries>();
         _loggerMock = new Mock<ILogger<SearchProvidersQueryHandler>>();
-        _sut = new SearchProvidersQueryHandler(_queriesMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "DistanceProviderCountMismatch")])
+            .Returns(new LocalizedString("DistanceProviderCountMismatch", "As distâncias retornadas não correspondem ao número de prestadores."));
+
+        _sut = new SearchProvidersQueryHandler(_queriesMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]

@@ -2,10 +2,11 @@ using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Contracts.Functional;
 
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 
 /// <summary>
-/// Implementações mock específicas para testes do módulo Users
+/// Mock de IKeycloakService para testes de integração e E2E.
+/// Simula operações do Keycloak sem dependência de infraestrutura externa.
 /// </summary>
 public class MockKeycloakService : IKeycloakService
 {
@@ -18,7 +19,6 @@ public class MockKeycloakService : IKeycloakService
         IEnumerable<string> roles,
         CancellationToken cancellationToken = default)
     {
-        // Para testes, simular criação bem-sucedida
         var keycloakId = Guid.NewGuid().ToString();
         return Task.FromResult(Result<string>.Success(keycloakId));
     }
@@ -28,7 +28,6 @@ public class MockKeycloakService : IKeycloakService
         string password,
         CancellationToken cancellationToken = default)
     {
-        // Para testes, validar apenas credenciais específicas
         if (usernameOrEmail == "validuser" && password == "validpassword")
         {
             var result = new AuthenticationResult(
@@ -50,7 +49,6 @@ public class MockKeycloakService : IKeycloakService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
 
-        // Para testes, validar tokens que começam com "mock_token_"
         if (token.StartsWith("mock_token_", StringComparison.OrdinalIgnoreCase))
         {
             var result = new TokenValidationResult(
@@ -66,7 +64,6 @@ public class MockKeycloakService : IKeycloakService
 
     public Task<Result> DeactivateUserAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
-        // Para testes, simular desativação bem-sucedida
         return Task.FromResult(Result.Success());
     }
 }

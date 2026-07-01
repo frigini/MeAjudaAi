@@ -2,12 +2,16 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Ratings.Application.Queries;
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
+using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Commands;
@@ -23,6 +27,7 @@ public class CreateReviewCommandHandlerTests
     private readonly Mock<IContentModerator> _moderatorMock;
     private readonly Mock<ILogger<CreateReviewCommandHandler>> _loggerMock;
     private readonly Mock<IRepository<Review, ReviewId>> _repositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly CreateReviewCommandHandler _handler;
 
     public CreateReviewCommandHandlerTests()
@@ -33,6 +38,7 @@ public class CreateReviewCommandHandlerTests
         _moderatorMock = new Mock<IContentModerator>();
         _loggerMock = new Mock<ILogger<CreateReviewCommandHandler>>();
         _repositoryMock = new Mock<IRepository<Review, ReviewId>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(u => u.GetRepository<Review, ReviewId>()).Returns(_repositoryMock.Object);
         _moderatorMock.Setup(m => m.IsClean(It.IsAny<string>())).Returns(true);
@@ -41,12 +47,17 @@ public class CreateReviewCommandHandlerTests
         _bookingsApiMock.Setup(b => b.HasCompletedBookingAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ReviewOnlyForCompletedBookings")])
+            .Returns(new LocalizedString("ReviewOnlyForCompletedBookings", "Você só pode avaliar prestadores com quem possui agendamentos concluídos."));
+
         _handler = new CreateReviewCommandHandler(
             _uowMock.Object,
             _queriesMock.Object,
             _bookingsApiMock.Object,
             _moderatorMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -193,7 +204,7 @@ public class CreateReviewCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_DuplicateReview_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_DuplicateReview_ShouldThrowDuplicateReviewException()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -207,6 +218,6 @@ public class CreateReviewCommandHandlerTests
         Func<Task> act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Você já avaliou este prestador.");
+        await act.Should().ThrowAsync<DuplicateReviewException>();
     }
 }

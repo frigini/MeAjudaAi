@@ -4,9 +4,12 @@ using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Modules.Communications.Application.Handlers;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Events;
+using MeAjudaAi.Modules.Communications.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Communications.Application.ModuleApi;
+using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Application.Services.Outbox;
 using MeAjudaAi.Modules.Communications.Application.Workers;
+using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Extensions;
@@ -16,6 +19,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -42,6 +46,10 @@ public static class Extensions
         services.AddScoped<ICommandHandler<CreateEmailTemplateCommand, Result<Guid>>, EmailTemplateCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateEmailTemplateCommand, Result>, EmailTemplateCommandHandler>();
         services.AddScoped<ICommandHandler<SetEmailTemplateStatusCommand, Result>, EmailTemplateCommandHandler>();
+
+        // Query Handlers
+        services.AddScoped<IQueryHandler<GetAllEmailTemplatesQuery, Result<IReadOnlyList<EmailTemplate>>>, GetAllEmailTemplatesHandler>();
+        services.AddScoped<IQueryHandler<GetEmailTemplateByKeyQuery, Result<EmailTemplate?>>, GetEmailTemplateByKeyHandler>();
 
         // Integration Event Handlers
         services.AddScoped<IEventHandler<UserRegisteredIntegrationEvent>, UserRegisteredIntegrationEventHandler>();
