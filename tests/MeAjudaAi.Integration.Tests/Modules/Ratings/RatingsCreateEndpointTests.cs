@@ -2,11 +2,15 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Ratings;
 
@@ -14,7 +18,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Ratings;
 [Trait("Module", "Ratings")]
 public class RatingsCreateEndpointTests : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.Ratings;
+    protected override TestModule RequiredModules => TestModule.Ratings | TestModule.Providers | TestModule.Bookings;
 
     private async Task<Guid> CreateTestProviderAsync()
     {
@@ -35,6 +39,23 @@ public class RatingsCreateEndpointTests : BaseApiTest
         return provider.Id.Value;
     }
 
+    private async Task SeedCompletedBookingAsync(Guid providerId, Guid customerId)
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+
+        if (await context.Bookings.AnyAsync(b => b.ProviderId == providerId && b.ClientId == customerId))
+            return;
+
+        var timeSlot = TimeSlot.FromDateTime(DateTime.Today.AddHours(9), DateTime.Today.AddHours(10));
+        var booking = Booking.Create(providerId, customerId, TestServiceId, DateOnly.FromDateTime(DateTime.Today), timeSlot);
+        booking.Confirm();
+        booking.Complete();
+
+        context.Bookings.Add(booking);
+        await context.SaveChangesAsync();
+    }
+
     [Fact]
     public async Task CreateReview_WithValidData_ShouldReturn201()
     {
@@ -42,6 +63,7 @@ public class RatingsCreateEndpointTests : BaseApiTest
         var providerId = await CreateTestProviderAsync();
         var customerId = Guid.NewGuid();
         AuthConfig.ConfigureRegularUser(customerId.ToString());
+        await SeedCompletedBookingAsync(providerId, customerId);
 
         var request = new { ProviderId = providerId, Rating = 5, Comment = "Excellent service" };
 
@@ -79,7 +101,9 @@ public class RatingsCreateEndpointTests : BaseApiTest
     {
         // Arrange
         var providerId = await CreateTestProviderAsync();
-        AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
+        var customerId = Guid.NewGuid();
+        AuthConfig.ConfigureRegularUser(customerId.ToString());
+        await SeedCompletedBookingAsync(providerId, customerId);
 
         var request = new { ProviderId = providerId, Rating = 10, Comment = "Invalid rating" };
 
@@ -97,6 +121,7 @@ public class RatingsCreateEndpointTests : BaseApiTest
         var providerId = await CreateTestProviderAsync();
         var customerId = Guid.NewGuid();
         AuthConfig.ConfigureRegularUser(customerId.ToString());
+        await SeedCompletedBookingAsync(providerId, customerId);
 
         var request = new { ProviderId = providerId, Rating = 4, Comment = "First review" };
 
@@ -118,6 +143,7 @@ public class RatingsCreateEndpointTests : BaseApiTest
         var providerId = await CreateTestProviderAsync();
         var customerId = Guid.NewGuid();
         AuthConfig.ConfigureRegularUser(customerId.ToString());
+        await SeedCompletedBookingAsync(providerId, customerId);
 
         var request = new { ProviderId = providerId, Rating = 4, Comment = "Very good professional" };
 
@@ -140,6 +166,7 @@ public class RatingsCreateEndpointTests : BaseApiTest
         var providerId = await CreateTestProviderAsync();
         var customerId = Guid.NewGuid();
         AuthConfig.ConfigureRegularUser(customerId.ToString());
+        await SeedCompletedBookingAsync(providerId, customerId);
 
         var request = new { ProviderId = providerId, Rating = 3 };
 

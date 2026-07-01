@@ -6,6 +6,9 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +22,28 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Providers | TestModule.ServiceCatalogs | TestModule.Users;
+
+    private async Task SeedTestServiceAsync()
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+        var categoryId = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+        var serviceId = TestServiceId;
+
+        if (!await context.ServiceCategories.AnyAsync(c => c.Id == new ServiceCategoryId(categoryId)))
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO service_catalogs.service_categories (id, name, description, is_active, display_order, created_at) VALUES ({0}, 'Test Category', NULL, true, 0, NOW()) ON CONFLICT DO NOTHING",
+                categoryId);
+        }
+
+        if (!await context.Services.AnyAsync(s => s.Id == new ServiceId(serviceId)))
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO service_catalogs.services (id, category_id, name, description, is_active, display_order, created_at) VALUES ({0}, {1}, 'Test Service', NULL, true, 0, NOW()) ON CONFLICT DO NOTHING",
+                serviceId, categoryId);
+        }
+    }
 
     #region POST /become
 
@@ -360,7 +385,8 @@ public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTe
         {
             var context = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
             var deletedProvider = await context.Providers.FirstOrDefaultAsync(p => p.UserId == userId);
-            deletedProvider.Should().BeNull("provider should be deleted after DELETE /me");
+            deletedProvider.Should().NotBeNull("provider entity should still exist after soft delete");
+            deletedProvider!.IsDeleted.Should().BeTrue("provider should be soft-deleted after DELETE /me");
         }
     }
 
@@ -468,7 +494,7 @@ public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTe
             .WithUserId(Guid.NewGuid())
             .WithName("Correction Test Provider")
             .AsIndividual()
-            .WithStatus(EProviderStatus.PendingBasicInfo)
+            .WithStatus(EProviderStatus.PendingDocumentVerification)
             .Build();
 
         using (var scope = Services.CreateScope())
@@ -557,6 +583,7 @@ public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTe
     public async Task AddServiceToProvider_WithValidData_ShouldReturnNoContent()
     {
         // Arrange
+        await SeedTestServiceAsync();
         var userId = Guid.NewGuid();
         var provider = ProviderBuilder.Create()
             .WithUserId(userId)
@@ -575,7 +602,7 @@ public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTe
             await context.SaveChangesAsync();
         }
 
-        AuthConfig.ConfigureUser(userId.ToString(), "serviceuser", "service@test.com");
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.PostAsJsonAsync($"/api/v1/providers/{provider.Id.Value}/services/{serviceId}", (object?)null);
@@ -610,6 +637,7 @@ public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTe
     public async Task RemoveServiceFromProvider_WithValidData_ShouldReturnNoContent()
     {
         // Arrange
+        await SeedTestServiceAsync();
         var userId = Guid.NewGuid();
         var provider = ProviderBuilder.Create()
             .WithUserId(userId)
@@ -631,7 +659,7 @@ public class ProvidersMeEndpointsTests(ITestOutputHelper testOutput) : BaseApiTe
             await context.SaveChangesAsync();
         }
 
-        AuthConfig.ConfigureUser(userId.ToString(), "removeserviceuser", "removeservice@test.com");
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.DeleteAsync($"/api/v1/providers/{provider.Id.Value}/services/{serviceId}");

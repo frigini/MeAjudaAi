@@ -56,7 +56,7 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure(localizer["ProviderNotFound"]);
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         provider.RequireBasicInfoCorrection(command.Reason, command.RequestedBy);
