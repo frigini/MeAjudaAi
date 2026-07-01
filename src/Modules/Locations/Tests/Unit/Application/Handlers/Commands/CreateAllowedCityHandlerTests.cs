@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers.Commands;
@@ -19,6 +21,7 @@ public class CreateAllowedCityHandlerTests
     private readonly Mock<IAllowedCityQueries> _queriesMock;
     private readonly Mock<IRepository<AllowedCity, Guid>> _repositoryMock;
     private readonly Mock<IUnitOfWork> _uowMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
 
     public CreateAllowedCityHandlerTests()
     {
@@ -28,15 +31,21 @@ public class CreateAllowedCityHandlerTests
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _loggerMock = new Mock<ILogger<CreateAllowedCityHandler>>();
         _repositoryMock = new Mock<IRepository<AllowedCity, Guid>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(x => x.GetRepository<AllowedCity, Guid>()).Returns(_repositoryMock.Object);
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "CityAlreadyRegistered"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Cidade '{args[0]}' já cadastrada."));
 
         _handler = new CreateAllowedCityHandler(
             _uowMock.Object,
             _queriesMock.Object,
             _geocodingServiceMock.Object,
             _httpContextAccessorMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     private void SetupHttpContext(string? userEmail)

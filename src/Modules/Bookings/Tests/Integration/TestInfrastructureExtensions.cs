@@ -20,6 +20,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,6 +38,7 @@ public static class BookingsTestInfrastructureExtensions
         services.AddSingleton(options);
         services.AddSingleton(TimeProvider.System);
 
+        services.AddLocalization();
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
         services.AddSingleton<ICacheService, TestCacheService>();

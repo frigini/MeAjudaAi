@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -20,7 +22,8 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 public sealed class UpdateUserDeviceTokenCommandHandler(
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUsersCacheService usersCacheService,
-    ILogger<UpdateUserDeviceTokenCommandHandler> logger
+    ILogger<UpdateUserDeviceTokenCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<UpdateUserDeviceTokenCommand, Result>
 {
     public async Task<Result> HandleAsync(
@@ -33,7 +36,7 @@ public sealed class UpdateUserDeviceTokenCommandHandler(
         if (user == null)
         {
             logger.LogWarning("User {UserId} not found for device token update.", command.UserId);
-            return Result.Failure(Error.NotFound("Usuário não encontrado."));
+            return Result.Failure(Error.NotFound(localizer["UserNotFound"]));
         }
 
         user.UpdateDeviceToken(command.DeviceToken);

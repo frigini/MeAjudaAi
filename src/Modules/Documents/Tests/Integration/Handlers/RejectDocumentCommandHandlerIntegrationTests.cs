@@ -6,9 +6,11 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -25,6 +27,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : BaseDatabaseT
     private RejectDocumentCommandHandler _handler = null!;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor = new();
     private readonly Mock<ILogger<RejectDocumentCommandHandler>> _mockLogger = new();
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer = new();
 
     public RejectDocumentCommandHandlerIntegrationTests() : base(schema: Schemas.Documents) { }
 
@@ -43,7 +46,8 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : BaseDatabaseT
             _uow,
             _queries,
             _mockHttpContextAccessor.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockLocalizer.Object);
     }
 
     public override async ValueTask DisposeAsync()

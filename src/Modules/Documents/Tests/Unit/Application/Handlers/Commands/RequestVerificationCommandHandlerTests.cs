@@ -5,8 +5,10 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using System.Security.Claims;
@@ -21,6 +23,7 @@ public class RequestVerificationCommandHandlerTests
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<RequestVerificationCommandHandler>> _mockLogger;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly RequestVerificationCommandHandler _handler;
 
     public RequestVerificationCommandHandlerTests()
@@ -31,15 +34,39 @@ public class RequestVerificationCommandHandlerTests
         _mockQueries = new Mock<IDocumentQueries>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<RequestVerificationCommandHandler>>();
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
 
         _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
         _mockUow.Setup(x => x.GetRepository<OutboxMessage, Guid>()).Returns(_mockOutboxRepo.Object);
+
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentNotFound"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Documento com ID {args[0]} não encontrado."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "HttpContextNotAvailable")])
+            .Returns(new LocalizedString("HttpContextNotAvailable", "Contexto HTTP não disponível."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "UserNotAuthenticated")])
+            .Returns(new LocalizedString("UserNotAuthenticated", "Usuário não autenticado."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "UserIdNotFoundInToken")])
+            .Returns(new LocalizedString("UserIdNotFoundInToken", "ID do usuário não encontrado no token."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentVerificationNotAllowed")])
+            .Returns(new LocalizedString("DocumentVerificationNotAllowed", "Você não tem autorização para solicitar a verificação deste documento."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentStatusInvalidForVerification"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Documento está com status {args[0]} e não pode ser marcado para verificação."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentVerificationError")])
+            .Returns(new LocalizedString("DocumentVerificationError", "Erro ao solicitar verificação do documento, tente novamente mais tarde."));
 
         _handler = new RequestVerificationCommandHandler(
             _mockUow.Object,
             _mockQueries.Object,
             _mockHttpContextAccessor.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockLocalizer.Object);
     }
 
     private void SetupAuthenticatedUser(Guid? userId, string role = "provider", bool isAuthenticated = true)

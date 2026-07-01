@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
@@ -13,6 +15,7 @@ public class UpdateUserDeviceTokenCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<User, UserId>> _repositoryMock;
     private readonly Mock<IUsersCacheService> _cacheServiceMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly UpdateUserDeviceTokenCommandHandler _handler;
 
     public UpdateUserDeviceTokenCommandHandlerTests()
@@ -20,9 +23,15 @@ public class UpdateUserDeviceTokenCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<User, UserId>>();
         _cacheServiceMock = new Mock<IUsersCacheService>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(u => u.GetRepository<User, UserId>()).Returns(_repositoryMock.Object);
-        _handler = new UpdateUserDeviceTokenCommandHandler(_uowMock.Object, _cacheServiceMock.Object, Mock.Of<ILogger<UpdateUserDeviceTokenCommandHandler>>());
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "UserNotFound")])
+            .Returns(new LocalizedString("UserNotFound", "Usuário não encontrado."));
+
+        _handler = new UpdateUserDeviceTokenCommandHandler(_uowMock.Object, _cacheServiceMock.Object, Mock.Of<ILogger<UpdateUserDeviceTokenCommandHandler>>(), _localizerMock.Object);
     }
 
     [Fact]

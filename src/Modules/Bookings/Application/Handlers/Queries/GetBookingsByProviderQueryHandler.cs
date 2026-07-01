@@ -4,6 +4,8 @@ using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
@@ -22,7 +24,8 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 public sealed class GetBookingsByProviderQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,
-    ILogger<GetBookingsByProviderQueryHandler> logger) : IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>
+    ILogger<GetBookingsByProviderQueryHandler> logger,
+    IStringLocalizer<Strings> localizer) : IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>
 {
     public async Task<Result<PagedResult<ModuleBookingDto>>> HandleAsync(GetBookingsByProviderQuery query, CancellationToken cancellationToken = default)
     {
@@ -47,7 +50,7 @@ public sealed class GetBookingsByProviderQueryHandler(
         if (tz == null)
         {
             logger.LogError("Could not resolve time zone for provider {ProviderId}", query.ProviderId);
-            return Result<PagedResult<ModuleBookingDto>>.Failure(Error.Internal("Não foi possível processar o fuso horário do prestador."));
+            return Result<PagedResult<ModuleBookingDto>>.Failure(Error.Internal(localizer["ProviderScheduleLoadError"]));
         }
 
         var dtos = new List<ModuleBookingDto>();

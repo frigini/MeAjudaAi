@@ -7,6 +7,8 @@ using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -18,7 +20,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado</param>
 public sealed class RemoveQualificationCommandHandler(
     IUnitOfWork uow,
-    ILogger<RemoveQualificationCommandHandler> logger
+    ILogger<RemoveQualificationCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<RemoveQualificationCommand, Result<ProviderDto>>
 {
     /// <summary>
@@ -34,7 +37,7 @@ public sealed class RemoveQualificationCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result<ProviderDto>.Failure("Fornecedor não encontrado");
+            return Result<ProviderDto>.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         try 
@@ -43,7 +46,7 @@ public sealed class RemoveQualificationCommandHandler(
         }
         catch (ProviderDomainException)
         {
-            return Result<ProviderDto>.Failure("Qualificação não encontrada");
+            return Result<ProviderDto>.Failure(localizer["QualificationNotFound"]);
         }
 
         await uow.SaveChangesAsync(cancellationToken);

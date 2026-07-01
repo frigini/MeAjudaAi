@@ -2,7 +2,9 @@ using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Modules.Communications.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers.Commands;
 
@@ -10,15 +12,22 @@ public class EmailTemplateCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<EmailTemplate, Guid>> _repositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly EmailTemplateCommandHandler _handler;
 
     public EmailTemplateCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<EmailTemplate, Guid>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
         _uowMock.Setup(x => x.GetRepository<EmailTemplate, Guid>()).Returns(_repositoryMock.Object);
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _handler = new EmailTemplateCommandHandler(_uowMock.Object);
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "TemplateNotFound")])
+            .Returns(new LocalizedString("TemplateNotFound", "Template não encontrado."));
+
+        _handler = new EmailTemplateCommandHandler(_uowMock.Object, _localizerMock.Object);
     }
 
     [Fact]

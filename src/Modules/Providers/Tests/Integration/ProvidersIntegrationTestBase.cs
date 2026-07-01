@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Testcontainers.PostgreSql;
 using Npgsql;
 
@@ -135,6 +136,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         {
             builder.ConfigureTestLogging();
         });
+
+        services.AddLocalization();
 
         // Configurar serviços específicos do módulo
         ConfigureModuleServices(services, options);

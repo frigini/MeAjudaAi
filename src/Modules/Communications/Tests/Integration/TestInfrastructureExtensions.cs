@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Integration;
 
@@ -29,6 +30,7 @@ public static class TestInfrastructureExtensions
 
         services.AddApplication();
 
+        services.AddLocalization();
         services.AddLogging();
 
         return services;

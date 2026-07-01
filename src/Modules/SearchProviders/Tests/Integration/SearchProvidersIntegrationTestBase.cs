@@ -82,9 +82,8 @@ public abstract class SearchProvidersIntegrationTestBase : BaseIntegrationTest
                 await connection.CloseAsync();
         }
 
-        var count = await dbContext.SearchableProviders.CountAsync();
-        if (count > 0)
-            throw new InvalidOperationException($"Database isolation failed: found {count} existing providers");
+        await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE FROM search_providers.searchable_providers WHERE true;");
     }
 
     protected SearchableProvider CreateTestSearchableProvider(

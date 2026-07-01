@@ -12,6 +12,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.FeatureManagement;
 using System.Diagnostics.CodeAnalysis;
 
@@ -31,6 +32,7 @@ public static class TestInfrastructureExtensions
         services.AddSingleton(TimeProvider.System);
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
+        services.AddLocalization();
 
         var configBuilder = new ConfigurationBuilder();
         if (options.FeatureFlags?.Any() == true)

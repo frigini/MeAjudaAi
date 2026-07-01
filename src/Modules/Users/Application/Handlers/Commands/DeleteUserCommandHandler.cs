@@ -7,7 +7,9 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -30,7 +32,8 @@ internal sealed class DeleteUserCommandHandler(
     IUserDomainService userDomainService,
     IUsersCacheService usersCacheService,
     TimeProvider dateTimeProvider,
-    ILogger<DeleteUserCommandHandler> logger
+    ILogger<DeleteUserCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<DeleteUserCommand, Result>
 {
     /// <summary>
@@ -100,7 +103,7 @@ internal sealed class DeleteUserCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error deleting user {UserId}", command.UserId);
-            return Result.Failure("Falha ao excluir usuário.");
+            return Result.Failure(localizer["UserDeleteError"]);
         }
     }
 

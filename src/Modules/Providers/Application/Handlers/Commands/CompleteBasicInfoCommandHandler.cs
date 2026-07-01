@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -19,7 +21,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 public sealed class CompleteBasicInfoCommandHandler(
     IUnitOfWork uow,
-    ILogger<CompleteBasicInfoCommandHandler> logger
+    ILogger<CompleteBasicInfoCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<CompleteBasicInfoCommand, Result>
 {
     /// <summary>
@@ -36,7 +39,7 @@ public sealed class CompleteBasicInfoCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure("Prestador não encontrado");
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         provider.CompleteBasicInfo(command.UpdatedBy);

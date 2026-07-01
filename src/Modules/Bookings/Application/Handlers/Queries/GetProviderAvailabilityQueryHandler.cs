@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
@@ -14,7 +16,8 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 public sealed class GetProviderAvailabilityQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,
-    ILogger<GetProviderAvailabilityQueryHandler> logger) : IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>
+    ILogger<GetProviderAvailabilityQueryHandler> logger,
+    IStringLocalizer<Strings> localizer) : IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>
 {
     public async Task<Result<AvailabilityDto>> HandleAsync(GetProviderAvailabilityQuery query, CancellationToken cancellationToken = default)
     {
@@ -24,7 +27,7 @@ public sealed class GetProviderAvailabilityQueryHandler(
         var schedule = await scheduleQueries.GetByProviderIdReadOnlyAsync(query.ProviderId, cancellationToken);
         if (schedule == null)
         {
-            return Result<AvailabilityDto>.Failure(Error.NotFound("Agenda do prestador não encontrada."));
+            return Result<AvailabilityDto>.Failure(Error.NotFound(localizer["ProviderScheduleNotFound"]));
         }
 
         var daySchedule = schedule.Availabilities.FirstOrDefault(a => a.DayOfWeek == query.Date.DayOfWeek);
@@ -39,7 +42,7 @@ public sealed class GetProviderAvailabilityQueryHandler(
         var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger);
         if (tz == null)
         {
-            return Result<AvailabilityDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido."));
+            return Result<AvailabilityDto>.Failure(Error.BadRequest(localizer["InvalidTimezone"]));
         }
 
         var availableSlots = daySchedule.Slots

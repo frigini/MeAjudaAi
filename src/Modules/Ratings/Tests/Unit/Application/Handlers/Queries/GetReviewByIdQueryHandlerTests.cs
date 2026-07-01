@@ -6,6 +6,8 @@ using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Queries;
@@ -17,13 +19,20 @@ public class GetReviewByIdQueryHandlerTests
 {
     private readonly Mock<IReviewQueries> _queriesMock;
     private readonly Mock<ILogger<GetReviewByIdQueryHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly GetReviewByIdQueryHandler _handler;
 
     public GetReviewByIdQueryHandlerTests()
     {
         _queriesMock = new Mock<IReviewQueries>();
         _loggerMock = new Mock<ILogger<GetReviewByIdQueryHandler>>();
-        _handler = new GetReviewByIdQueryHandler(_queriesMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ReviewNotFound")])
+            .Returns(new LocalizedString("ReviewNotFound", "Avaliação não encontrada."));
+
+        _handler = new GetReviewByIdQueryHandler(_queriesMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]

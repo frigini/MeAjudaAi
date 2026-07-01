@@ -3,6 +3,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCat
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
@@ -16,14 +18,16 @@ public class ActivateServiceCategoryCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly ActivateServiceCategoryCommandHandler _handler;
 
     public ActivateServiceCategoryCommandHandlerTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_repositoryMock.Object);
-        _handler = new ActivateServiceCategoryCommandHandler(_uowMock.Object, NullLogger<ActivateServiceCategoryCommandHandler>.Instance);
+        _handler = new ActivateServiceCategoryCommandHandler(_uowMock.Object, NullLogger<ActivateServiceCategoryCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -61,6 +65,8 @@ public class ActivateServiceCategoryCommandHandlerTests
         var categoryId = Guid.NewGuid();
         var command = new ActivateServiceCategoryCommand(categoryId);
 
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryNotFoundById"), It.IsAny<object[]>()]).Returns(new LocalizedString("CategoryNotFoundById", $"Categoria com ID '{categoryId}' não encontrada."));
+
         _repositoryMock
             .Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ServiceCategory?)null);
@@ -79,6 +85,8 @@ public class ActivateServiceCategoryCommandHandlerTests
     {
         // Arrange
         var command = new ActivateServiceCategoryCommand(Guid.Empty);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryIdRequired")]).Returns(new LocalizedString("CategoryIdRequired", "O ID da categoria não pode ser vazio."));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -122,6 +130,8 @@ public class ActivateServiceCategoryCommandHandlerTests
     {
         var category = new ServiceCategoryBuilder().AsInactive().Build();
         var command = new ActivateServiceCategoryCommand(category.Id.Value);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryActivateError")]).Returns(new LocalizedString("CategoryActivateError", "Ocorreu um erro inesperado ao ativar a categoria de serviço."));
 
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))

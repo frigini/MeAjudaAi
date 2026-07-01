@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
@@ -16,6 +18,7 @@ public class DeleteProviderCommandHandlerTests
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly FakeTimeProvider _timeProvider;
     private readonly Mock<ILogger<DeleteProviderCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeleteProviderCommandHandler _handler;
 
     public DeleteProviderCommandHandlerTests()
@@ -24,9 +27,14 @@ public class DeleteProviderCommandHandlerTests
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<DeleteProviderCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new DeleteProviderCommandHandler(_uowMock.Object, _timeProvider, _loggerMock.Object);
+        _handler = new DeleteProviderCommandHandler(_uowMock.Object, _timeProvider, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
@@ -71,7 +79,7 @@ public class DeleteProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Prestador não encontrado");
+        result.Error!.Message.Should().Be("Prestador não encontrado.");
 
         _uowMock.Verify(
             u => u.SaveChangesAsync(It.IsAny<CancellationToken>()),

@@ -97,4 +97,232 @@
   <data name="ServiceDetailsRetrievalFailed" xml:space="preserve">
     <value>Failed to retrieve service details.</value>
   </data>
+  <!-- Providers -->
+  <data name="ProviderRejectionReasonRequired" xml:space="preserve">
+    <value>Rejection reason is required.</value>
+  </data>
+  <data name="RejectedByRequired" xml:space="preserve">
+    <value>Rejection responsible party is required.</value>
+  </data>
+  <data name="SuspensionReasonRequired" xml:space="preserve">
+    <value>Suspension reason is required.</value>
+  </data>
+  <data name="SuspendedByRequired" xml:space="preserve">
+    <value>Suspension responsible party is required.</value>
+  </data>
+  <data name="QualificationNotFound" xml:space="preserve">
+    <value>Qualification not found.</value>
+  </data>
+  <data name="ProviderDocumentNotFound" xml:space="preserve">
+    <value>Document of type {0} not found for provider {1}.</value>
+  </data>
+  <!-- ServiceCatalogs -->
+  <data name="CategoryIdRequired" xml:space="preserve">
+    <value>Category ID cannot be empty.</value>
+  </data>
+  <data name="CategoryNotFoundById" xml:space="preserve">
+    <value>Category with ID '{0}' not found.</value>
+  </data>
+  <data name="CategoryActivateError" xml:space="preserve">
+    <value>An unexpected error occurred while activating the service category.</value>
+  </data>
+  <data name="CategoryDeactivateError" xml:space="preserve">
+    <value>An unexpected error occurred while deactivating the service category.</value>
+  </data>
+  <data name="CategoryDeleteError" xml:space="preserve">
+    <value>An unexpected error occurred while deleting the service category.</value>
+  </data>
+  <data name="CategoryUpdateError" xml:space="preserve">
+    <value>An unexpected error occurred while updating the service category.</value>
+  </data>
+  <data name="ServiceIdRequired" xml:space="preserve">
+    <value>Service ID cannot be empty.</value>
+  </data>
+  <data name="ServiceNotFoundById" xml:space="preserve">
+    <value>Service with ID '{0}' not found.</value>
+  </data>
+  <data name="ServiceActivateError" xml:space="preserve">
+    <value>An unexpected error occurred while activating the service.</value>
+  </data>
+  <data name="ServiceDeactivateError" xml:space="preserve">
+    <value>An unexpected error occurred while deactivating the service.</value>
+  </data>
+  <data name="ServiceDeleteError" xml:space="preserve">
+    <value>An unexpected error occurred while deleting the service.</value>
+  </data>
+  <data name="ServiceUpdateError" xml:space="preserve">
+    <value>An unexpected error occurred while updating the service.</value>
+  </data>
+  <data name="NewCategoryIdRequired" xml:space="preserve">
+    <value>New category ID cannot be empty.</value>
+  </data>
+  <data name="CannotMoveToInactiveCategory" xml:space="preserve">
+    <value>Cannot move service to an inactive category.</value>
+  </data>
+  <data name="ServiceNameExistsInCategory" xml:space="preserve">
+    <value>A service with the name '{0}' already exists in the target category.</value>
+  </data>
+  <data name="ServiceCategoryChangeError" xml:space="preserve">
+    <value>An unexpected error occurred while changing the service category.</value>
+  </data>
+  <!-- Bookings -->
+  <data name="BookingStartTimeMustBeFuture" xml:space="preserve">
+    <value>Start time must be in the future (minimum 1 minute in advance).</value>
+  </data>
+  <data name="BookingNotFound" xml:space="preserve">
+    <value>Booking not found.</value>
+  </data>
+  <data name="ServiceNotActive" xml:space="preserve">
+    <value>Service not found or inactive.</value>
+  </data>
+  <data name="ProviderScheduleNotFound" xml:space="preserve">
+    <value>Provider does not have a configured schedule.</value>
+  </data>
+  <data name="ServiceNotOfferedByProvider" xml:space="preserve">
+    <value>Service not found or not offered by this provider.</value>
+  </data>
+  <data name="InvalidTimezone" xml:space="preserve">
+    <value>Provider timezone is invalid.</value>
+  </data>
+  <data name="ProviderUnavailable" xml:space="preserve">
+    <value>Provider is not available at the requested time.</value>
+  </data>
+  <data name="BookingCrossesMidnight" xml:space="preserve">
+    <value>Bookings cannot cross midnight. Please split into two separate bookings.</value>
+  </data>
+  <data name="ProviderScheduleDataInvalid" xml:space="preserve">
+    <value>The provided schedule data is invalid. Check for overlaps or negative times.</value>
+  </data>
+  <data name="BookingConfirmOnlyPending" xml:space="preserve">
+    <value>Only pending bookings can be confirmed.</value>
+  </data>
+  <data name="BookingCancelOnlyPendingOrConfirmed" xml:space="preserve">
+    <value>Only pending or confirmed bookings can be cancelled.</value>
+  </data>
+  <data name="BookingCompleteOnlyConfirmed" xml:space="preserve">
+    <value>Only confirmed bookings can be completed.</value>
+  </data>
+  <data name="BookingRejectOnlyPending" xml:space="preserve">
+    <value>Only pending bookings can be rejected.</value>
+  </data>
+  <data name="BookingModifiedByOtherUser" xml:space="preserve">
+    <value>The booking was modified by another user.</value>
+  </data>
+  <data name="ProviderScheduleLoadError" xml:space="preserve">
+    <value>Failed to process the provider's timezone.</value>
+  </data>
+  <!-- Users -->
+  <data name="UserDeleteError" xml:space="preserve">
+    <value>Failed to delete user.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found.</value>
+  </data>
+  <data name="UserCreateError" xml:space="preserve">
+    <value>Failed to create user. Please try again later.</value>
+  </data>
+  <data name="EmailAlreadyExists" xml:space="preserve">
+    <value>This email is already in use.</value>
+  </data>
+  <data name="UsernameAlreadyExists" xml:space="preserve">
+    <value>Username is already taken.</value>
+  </data>
+  <data name="TermsAcceptanceRequired" xml:space="preserve">
+    <value>You must accept the terms of use to register.</value>
+  </data>
+  <data name="PrivacyPolicyAcceptanceRequired" xml:space="preserve">
+    <value>You must accept the privacy policy to register.</value>
+  </data>
+  <data name="RegistrationSaveError" xml:space="preserve">
+    <value>Failed to save registration. Please try again later.</value>
+  </data>
+  <data name="FirstNameMinLength" xml:space="preserve">
+    <value>First name must have at least {0} characters.</value>
+  </data>
+  <data name="LastNameRequired" xml:space="preserve">
+    <value>Last name is required and must have at least {0} characters.</value>
+  </data>
+  <data name="LastNameMinLength" xml:space="preserve">
+    <value>Last name must have at least {0} characters.</value>
+  </data>
+  <data name="UserCreateCriticalError" xml:space="preserve">
+    <value>Critical error creating user. Null data returned.</value>
+  </data>
+  <data name="UserProfileUpdateError" xml:space="preserve">
+    <value>Failed to update user profile due to an unexpected error.</value>
+  </data>
+  <!-- Documents -->
+  <data name="DocumentNotFound" xml:space="preserve">
+    <value>Document with ID {0} not found.</value>
+  </data>
+  <data name="HttpContextNotAvailable" xml:space="preserve">
+    <value>HTTP context not available.</value>
+  </data>
+  <data name="UserNotAuthenticated" xml:space="preserve">
+    <value>User is not authenticated.</value>
+  </data>
+  <data name="UserIdNotFoundInToken" xml:space="preserve">
+    <value>User ID not found in token.</value>
+  </data>
+  <data name="DocumentVerificationNotAllowed" xml:space="preserve">
+    <value>You are not authorized to request verification of this document.</value>
+  </data>
+  <data name="DocumentStatusInvalidForVerification" xml:space="preserve">
+    <value>Document has status {0} and cannot be marked for verification.</value>
+  </data>
+  <data name="DocumentVerificationError" xml:space="preserve">
+    <value>Error requesting document verification, please try again later.</value>
+  </data>
+  <data name="DocumentStatusInvalidForRejection" xml:space="preserve">
+    <value>Document has status {0} and can only be rejected when in Pending Verification.</value>
+  </data>
+  <data name="DocumentRejectionReasonRequired" xml:space="preserve">
+    <value>Rejection reason is required.</value>
+  </data>
+  <data name="DocumentRejectError" xml:space="preserve">
+    <value>Failed to reject document. Please try again later.</value>
+  </data>
+  <data name="DocumentDeleteNotAllowed" xml:space="preserve">
+    <value>You must be authenticated to delete documents.</value>
+  </data>
+  <data name="AdminOnlyCanDeleteDocuments" xml:space="preserve">
+    <value>Only administrators can delete documents.</value>
+  </data>
+  <data name="DocumentDeleteError" xml:space="preserve">
+    <value>Failed to delete document. Please try again later.</value>
+  </data>
+  <data name="DocumentApproveNotAllowed" xml:space="preserve">
+    <value>You must be authenticated to approve documents.</value>
+  </data>
+  <data name="AdminOnlyCanApproveDocuments" xml:space="preserve">
+    <value>Only administrators can approve documents.</value>
+  </data>
+  <data name="DocumentStatusInvalidForApproval" xml:space="preserve">
+    <value>Document has status {0} and can only be approved when in Pending Verification.</value>
+  </data>
+  <data name="DocumentApproveError" xml:space="preserve">
+    <value>Failed to approve document. Please try again later.</value>
+  </data>
+  <!-- Ratings -->
+  <data name="ReviewNotFound" xml:space="preserve">
+    <value>Review not found.</value>
+  </data>
+  <data name="ReviewStatusUnsupported" xml:space="preserve">
+    <value>Status {0} is not supported.</value>
+  </data>
+  <data name="ReviewOnlyForCompletedBookings" xml:space="preserve">
+    <value>You can only review providers with whom you have completed bookings.</value>
+  </data>
+  <!-- Communications -->
+  <data name="TemplateNotFound" xml:space="preserve">
+    <value>Template not found.</value>
+  </data>
+  <!-- Locations -->
+  <data name="CityAlreadyRegistered" xml:space="preserve">
+    <value>City '{0}' is already registered.</value>
+  </data>
+  <!-- SearchProviders -->
+  <data name="DistanceProviderCountMismatch" xml:space="preserve">
+    <value>The returned distances do not match the number of providers.</value>
+  </data>
 </root>

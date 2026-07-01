@@ -7,9 +7,11 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
@@ -18,13 +20,15 @@ public class RejectDocumentCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<RejectDocumentCommandHandler> logger)
+    ILogger<RejectDocumentCommandHandler> logger,
+    IStringLocalizer<Strings> localizer)
     : ICommandHandler<RejectDocumentCommand, Result>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RejectDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IStringLocalizer<Strings> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     public async Task<Result> HandleAsync(RejectDocumentCommand command, CancellationToken cancellationToken = default)
     {
@@ -65,12 +69,12 @@ public class RejectDocumentCommandHandler(
                 var statusDescricao = document.Status.ToPortuguese();
                 
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com status {statusDescricao} e só pode ser recusado quando estiver em Verificação Pendente", "BadRequest"));
+                    _localizer["DocumentStatusInvalidForRejection", statusDescricao], "BadRequest"));
             }
 
             if (string.IsNullOrWhiteSpace(command.RejectionReason))
             {
-                return Result.Failure(Error.BadRequest("Motivo de recusa é obrigatório", "BadRequest"));
+                return Result.Failure(Error.BadRequest(_localizer["DocumentRejectionReasonRequired"], "BadRequest"));
             }
 
             document.MarkAsRejected(command.RejectionReason);
@@ -94,7 +98,7 @@ public class RejectDocumentCommandHandler(
             _logger.LogError(ex,
                 "Unexpected error rejecting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Falha ao rejeitar o documento. Por favor, tente novamente mais tarde.", "InternalError"));
+            return Result.Failure(Error.Internal(_localizer["DocumentRejectError"], "InternalError"));
         }
     }
 

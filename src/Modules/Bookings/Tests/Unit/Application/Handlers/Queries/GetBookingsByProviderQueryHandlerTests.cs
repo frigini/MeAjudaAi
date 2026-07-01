@@ -2,7 +2,9 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Queries;
@@ -12,6 +14,7 @@ public class GetBookingsByProviderQueryHandlerTests
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IProviderScheduleQueries> _scheduleQueriesMock = new();
     private readonly Mock<ILogger<GetBookingsByProviderQueryHandler>> _loggerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
     private readonly GetBookingsByProviderQueryHandler _sut;
 
     private static DateOnly FutureBookingDate() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
@@ -21,7 +24,8 @@ public class GetBookingsByProviderQueryHandlerTests
         _sut = new GetBookingsByProviderQueryHandler(
             _bookingQueriesMock.Object,
             _scheduleQueriesMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
