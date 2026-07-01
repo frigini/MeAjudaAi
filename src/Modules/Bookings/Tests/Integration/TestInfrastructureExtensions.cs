@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Providers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Modules.Bookings.Application;

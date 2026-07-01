@@ -2,7 +2,7 @@ using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.E2E.Tests.Base.Helpers;
 using MeAjudaAi.E2E.Tests.Infrastructure;
-using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;

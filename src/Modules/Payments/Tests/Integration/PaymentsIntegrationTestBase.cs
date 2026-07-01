@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 

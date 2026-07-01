@@ -22,10 +22,11 @@ public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegra
     private IUnitOfWork Uow => ScopedProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.SearchProviders);
     private ISearchableProviderQueries Queries => ScopedProvider.GetRequiredService<ISearchableProviderQueries>();
 
-    public override async ValueTask DisposeAsync()
+    protected override Task OnDisposeAsync()
     {
         _scope?.Dispose();
-        await base.DisposeAsync();
+        _scope = null;
+        return Task.CompletedTask;
     }
 
     [Fact]

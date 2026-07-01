@@ -29,7 +29,7 @@ public static class TestInfrastructureExtensions
             (sp, key) => sp.GetRequiredService<PaymentsDbContext>());
 
         services.AddScoped<IRepository<Subscription, Guid>>(sp => sp.GetRequiredService<PaymentsDbContext>());
-        services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+        services.AddScoped<IPaymentGateway, MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments.MockPaymentGateway>();
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
 
         services.AddSingleton(new PaymentsOptions

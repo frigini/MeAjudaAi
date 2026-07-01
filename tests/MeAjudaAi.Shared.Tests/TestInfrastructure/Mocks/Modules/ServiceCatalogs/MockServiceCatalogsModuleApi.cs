@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.ServiceCatalogs;
 
 public class MockServiceCatalogsModuleApi : IServiceCatalogsModuleApi
 {

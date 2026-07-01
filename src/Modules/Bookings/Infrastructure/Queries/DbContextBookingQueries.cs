@@ -82,7 +82,7 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
                 cancellationToken);
     }
 
-    private static async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
+    private async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
         IQueryable<Booking> query,
         DateOnly? fromDate,
         DateOnly? toDate,
@@ -98,19 +98,29 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Load all matching items, then sort and paginate in memory.
-        // EF Core InMemory cannot translate ThenByDescending on TimeOnly.
-        var allItems = await query.ToListAsync(cancellationToken);
+        if (_dbContext.Database.ProviderName?.Contains("InMemory") == true)
+        {
+            // EF Core InMemory cannot translate ThenByDescending on TimeOnly.
+            var allItems = await query.ToListAsync(cancellationToken);
+            var items = allItems
+                .OrderByDescending(b => b.Date)
+                .ThenByDescending(b => b.TimeSlot.Start)
+                .ThenBy(b => b.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            return (items, totalCount);
+        }
 
-        var items = allItems
+        var pagedItems = await query
             .OrderByDescending(b => b.Date)
             .ThenByDescending(b => b.TimeSlot.Start)
             .ThenBy(b => b.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToList();
+            .ToListAsync(cancellationToken);
 
-        return (items, totalCount);
+        return (pagedItems, totalCount);
     }
 }
 

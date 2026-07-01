@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Providers;
 
 public class MockProvidersModuleApi : IProvidersModuleApi
 {
