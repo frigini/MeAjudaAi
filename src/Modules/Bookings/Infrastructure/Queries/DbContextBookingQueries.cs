@@ -97,13 +97,18 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
         if (toDate.HasValue) query = query.Where(b => b.Date <= toDate.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
+
+        // Load all matching items, then sort and paginate in memory.
+        // EF Core InMemory cannot translate ThenByDescending on TimeOnly.
+        var allItems = await query.ToListAsync(cancellationToken);
+
+        var items = allItems
             .OrderByDescending(b => b.Date)
             .ThenByDescending(b => b.TimeSlot.Start)
             .ThenBy(b => b.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         return (items, totalCount);
     }

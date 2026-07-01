@@ -18,6 +18,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -40,7 +41,8 @@ public static class BookingsTestInfrastructureExtensions
 
         services.AddDbContext<BookingsDbContext>(dbOptions =>
         {
-            dbOptions.UseInMemoryDatabase(options.Database.DatabaseName);
+            dbOptions.UseInMemoryDatabase(options.Database.DatabaseName)
+                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());
