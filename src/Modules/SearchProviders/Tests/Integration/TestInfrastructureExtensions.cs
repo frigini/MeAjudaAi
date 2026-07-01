@@ -13,9 +13,9 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration.Extensions;
+namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
-public static class SearchProvidersTestInfrastructureExtensions
+public static class TestInfrastructureExtensions
 {
     public static IServiceCollection AddSearchProvidersTestInfrastructure(
         this IServiceCollection services,

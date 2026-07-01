@@ -15,10 +15,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Integration.Extensions;
+namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 [ExcludeFromCodeCoverage]
-public static class Extensions
+public static class TestInfrastructureExtensions
 {
     public static IServiceCollection AddProvidersTestInfrastructure(
         this IServiceCollection services,

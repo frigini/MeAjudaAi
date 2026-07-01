@@ -1,16 +1,17 @@
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
-using MeAjudaAi.Modules.SearchProviders.Tests.Integration.Extensions;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
@@ -26,7 +27,7 @@ public abstract class SearchProvidersIntegrationTestBase : BaseIntegrationTest
         if (testClassName.Length > 50)
             testClassName = testClassName[..50];
 
-        return new TestInfrastructureOptions
+        var options = new TestInfrastructureOptions
         {
             Database = new TestDatabaseOptions
             {
@@ -42,6 +43,15 @@ public abstract class SearchProvidersIntegrationTestBase : BaseIntegrationTest
                 UseMessageBusMock = true
             }
         };
+
+        var baseConnectionString = SharedTestContainers.PostgreSql.GetConnectionString();
+        var builder = new NpgsqlConnectionStringBuilder(baseConnectionString)
+        {
+            Database = options.Database.DatabaseName
+        };
+        options.Database.ConnectionString = builder.ToString();
+
+        return options;
     }
 
     protected override void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
