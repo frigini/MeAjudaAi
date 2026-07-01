@@ -39,7 +39,8 @@ public sealed class CancelBookingCommandHandler(
             command.UserProviderId,
             command.UserClientId,
             booking.ClientId,
-            booking.ProviderId);
+            booking.ProviderId,
+            localizer);
 
         if (authResult.IsFailure)
         {

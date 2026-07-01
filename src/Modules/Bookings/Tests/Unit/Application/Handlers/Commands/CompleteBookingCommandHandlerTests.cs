@@ -27,6 +27,16 @@ public class CompleteBookingCommandHandlerTests
     {
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "BookingNotFound")])
+            .Returns(new LocalizedString("BookingNotFound", "Agendamento não encontrado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "BookingCompleteOnlyConfirmed")])
+            .Returns(new LocalizedString("BookingCompleteOnlyConfirmed", "Apenas agendamentos confirmados podem ser concluídos."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "BookingModifiedByOtherUser")])
+            .Returns(new LocalizedString("BookingModifiedByOtherUser", "O agendamento foi modificado por outro usuário."));
+
         _sut = new CompleteBookingCommandHandler(
             _bookingQueriesMock.Object,
             _uowMock.Object,
@@ -128,6 +138,7 @@ public class CompleteBookingCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        result.Error.Message.Should().Be("Agendamento não encontrado.");
     }
 
     [Fact]

@@ -12,9 +12,11 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Communications.Application.ModuleApi;
 
@@ -23,10 +25,12 @@ public sealed class CommunicationsModuleApi(
     IOutboxMessageRepository outboxRepository,
     IEmailTemplateQueries templateQueries,
     ICommunicationLogQueries logQueries,
-    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer)
+    [FromKeyedServices(SerializationKeys.Api)] ISerializer serializer,
+    IStringLocalizer<Strings> localizer)
     : ICommunicationsModuleApi
 {
     private readonly IEmailTemplateQueries _templateQueries = templateQueries;
+    private readonly IStringLocalizer<Strings> _localizer = localizer;
 
     public string ModuleName => ModuleNames.Communications;
     public string ApiVersion => "1.0";
@@ -41,12 +45,12 @@ public sealed class CommunicationsModuleApi(
         ECommunicationPriority priority = ECommunicationPriority.Normal,
         CancellationToken ct = default)
     {
-        if (email == null) return Result<Guid>.Failure(Error.BadRequest("A mensagem de e-mail não pode ser nula."));
-        if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest("O e-mail do destinatário é obrigatório."));
-        if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest("O assunto do e-mail é obrigatório."));
+        if (email == null) return Result<Guid>.Failure(Error.BadRequest(_localizer["EmailMessageCannotBeNull"]));
+        if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest(_localizer["RecipientEmailRequired"]));
+        if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest(_localizer["EmailSubjectRequired"]));
         
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
-            return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
+            return Result<Guid>.Failure(Error.BadRequest(_localizer["InvalidCommunicationPriority"]));
 
         EmailOutboxPayload payload;
 
@@ -61,7 +65,7 @@ public sealed class CommunicationsModuleApi(
         else
         {
             if (string.IsNullOrWhiteSpace(email.Body))
-                return Result<Guid>.Failure(Error.BadRequest("O corpo do e-mail é obrigatório quando TemplateKey não é informado."));
+                return Result<Guid>.Failure(Error.BadRequest(_localizer["EmailBodyRequired"]));
 
             payload = email.IsHtml
                 ? EmailOutboxPayload.Create(to: email.To, subject: email.Subject, htmlBody: email.Body)
@@ -95,12 +99,12 @@ public sealed class CommunicationsModuleApi(
         ECommunicationPriority priority = ECommunicationPriority.Normal,
         CancellationToken ct = default)
     {
-        if (sms == null) return Result<Guid>.Failure(Error.BadRequest("A mensagem SMS não pode ser nula."));
-        if (string.IsNullOrWhiteSpace(sms.PhoneNumber)) return Result<Guid>.Failure(Error.BadRequest("O número de telefone é obrigatório."));
-        if (string.IsNullOrWhiteSpace(sms.Message)) return Result<Guid>.Failure(Error.BadRequest("O corpo da mensagem SMS é obrigatório."));
+        if (sms == null) return Result<Guid>.Failure(Error.BadRequest(_localizer["SmsMessageCannotBeNull"]));
+        if (string.IsNullOrWhiteSpace(sms.PhoneNumber)) return Result<Guid>.Failure(Error.BadRequest(_localizer["PhoneNumberRequired"]));
+        if (string.IsNullOrWhiteSpace(sms.Message)) return Result<Guid>.Failure(Error.BadRequest(_localizer["SmsBodyRequired"]));
 
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
-            return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
+            return Result<Guid>.Failure(Error.BadRequest(_localizer["InvalidCommunicationPriority"]));
 
         var payload = new SmsOutboxPayload(sms.PhoneNumber, sms.Message);
         return await EnqueueOutboxAsync(ECommunicationChannel.Sms, payload, priority, ct);
@@ -111,13 +115,13 @@ public sealed class CommunicationsModuleApi(
         ECommunicationPriority priority = ECommunicationPriority.Normal,
         CancellationToken ct = default)
     {
-        if (push == null) return Result<Guid>.Failure(Error.BadRequest("A notificação push não pode ser nula."));
-        if (string.IsNullOrWhiteSpace(push.DeviceToken)) return Result<Guid>.Failure(Error.BadRequest("O token do dispositivo é obrigatório."));
-        if (string.IsNullOrWhiteSpace(push.Title)) return Result<Guid>.Failure(Error.BadRequest("O título do push é obrigatório."));
-        if (string.IsNullOrWhiteSpace(push.Body)) return Result<Guid>.Failure(Error.BadRequest("O corpo do push é obrigatório."));
+        if (push == null) return Result<Guid>.Failure(Error.BadRequest(_localizer["PushNotificationCannotBeNull"]));
+        if (string.IsNullOrWhiteSpace(push.DeviceToken)) return Result<Guid>.Failure(Error.BadRequest(_localizer["DeviceTokenRequired"]));
+        if (string.IsNullOrWhiteSpace(push.Title)) return Result<Guid>.Failure(Error.BadRequest(_localizer["PushTitleRequired"]));
+        if (string.IsNullOrWhiteSpace(push.Body)) return Result<Guid>.Failure(Error.BadRequest(_localizer["PushBodyRequired"]));
 
         if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
-            return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
+            return Result<Guid>.Failure(Error.BadRequest(_localizer["InvalidCommunicationPriority"]));
 
         var payload = new PushOutboxPayload(push.DeviceToken, push.Title, push.Body, push.ExtraData);
         return await EnqueueOutboxAsync(ECommunicationChannel.Push, payload, priority, ct);
@@ -127,8 +131,8 @@ public sealed class CommunicationsModuleApi(
         CommunicationLogQuery query,
         CancellationToken ct = default)
     {
-        if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("A consulta não pode ser nula."));
-        if (query.PageNumber < 1 || query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Parâmetros de paginação inválidos."));
+        if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest(_localizer["QueryCannotBeNull"]));
+        if (query.PageNumber < 1 || query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest(_localizer["InvalidPaginationParameters"]));
         
         var (items, totalCount) = await logQueries.SearchAsync(query, ct);
 

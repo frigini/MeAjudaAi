@@ -2,7 +2,9 @@ using Azure;
 using Azure.AI.DocumentIntelligence;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using static MeAjudaAi.Modules.Documents.Application.Constants.DocumentTypes;
 
@@ -21,6 +23,7 @@ public class AzureDocumentIntelligenceServiceTests
     private readonly Mock<DocumentIntelligenceClient> _mockClient;
     private readonly Mock<ILogger<AzureDocumentIntelligenceService>> _mockLogger;
     private readonly Mock<ISerializer> _mockSerializer;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly AzureDocumentIntelligenceService _service;
 
     public AzureDocumentIntelligenceServiceTests()
@@ -28,7 +31,8 @@ public class AzureDocumentIntelligenceServiceTests
         _mockClient = new Mock<DocumentIntelligenceClient>();
         _mockLogger = new Mock<ILogger<AzureDocumentIntelligenceService>>();
         _mockSerializer = new Mock<ISerializer>();
-        _service = new AzureDocumentIntelligenceService(_mockClient.Object, _mockLogger.Object, _mockSerializer.Object);
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
+        _service = new AzureDocumentIntelligenceService(_mockClient.Object, _mockLogger.Object, _mockSerializer.Object, _mockLocalizer.Object);
     }
 
     [Theory]
@@ -204,7 +208,7 @@ public class AzureDocumentIntelligenceServiceTests
     public void Constructor_WhenClientIsNull_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () => new AzureDocumentIntelligenceService(null!, _mockLogger.Object, _mockSerializer.Object);
+        var act = () => new AzureDocumentIntelligenceService(null!, _mockLogger.Object, _mockSerializer.Object, _mockLocalizer.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -215,7 +219,7 @@ public class AzureDocumentIntelligenceServiceTests
     public void Constructor_WhenLoggerIsNull_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, null!, _mockSerializer.Object);
+        var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, null!, _mockSerializer.Object, _mockLocalizer.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -226,7 +230,7 @@ public class AzureDocumentIntelligenceServiceTests
     public void Constructor_WhenSerializerIsNull_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, _mockLogger.Object, null!);
+        var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, _mockLogger.Object, null!, _mockLocalizer.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()

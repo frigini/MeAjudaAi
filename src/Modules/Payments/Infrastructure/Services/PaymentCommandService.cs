@@ -8,6 +8,8 @@ using MeAjudaAi.Shared.Database.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Stripe;
 using System.Text.Json;
@@ -18,7 +20,8 @@ internal class PaymentCommandService(
     [FromKeyedServices(ModuleKeys.Payments)] IUnitOfWork uow,
     PaymentsDbContext dbContext,
     Microsoft.Extensions.Configuration.IConfiguration configuration,
-    ILogger<PaymentCommandService> logger) : IPaymentCommandService
+    ILogger<PaymentCommandService> logger,
+    IStringLocalizer<Strings> localizer) : IPaymentCommandService
 {
     public async Task<Result> SaveInboxMessageAsync(string type, string content, string externalEventId, CancellationToken ct = default)
     {
@@ -58,7 +61,7 @@ internal class PaymentCommandService(
     {
         if (string.IsNullOrEmpty(payload))
         {
-            return Error.BadRequest("Corpo da requisição vazio.");
+            return Error.BadRequest(localizer["EmptyRequestBody"]);
         }
 
         var webhookSecret = configuration["Stripe:WebhookSecret"];
@@ -72,7 +75,7 @@ internal class PaymentCommandService(
         if (string.IsNullOrWhiteSpace(webhookSecret))
         {
             logger.LogError("Stripe:WebhookSecret not configured.");
-            return Error.Internal("Configuração do webhook Stripe ausente.");
+            return Error.Internal(localizer["StripeWebhookConfigMissing"]);
         }
 
         try
@@ -88,12 +91,12 @@ internal class PaymentCommandService(
         catch (StripeException e)
         {
             logger.LogWarning(e, "Stripe signature validation failed.");
-            return Error.BadRequest("Requisição de webhook inválida.");
+            return Error.BadRequest(localizer["InvalidWebhookRequest"]);
         }
         catch (JsonException e)
         {
             logger.LogWarning(e, "Stripe webhook JSON parsing failed.");
-            return Error.BadRequest("Requisição de webhook inválida.");
+            return Error.BadRequest(localizer["InvalidWebhookRequest"]);
         }
     }
 
@@ -104,7 +107,7 @@ internal class PaymentCommandService(
             var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
             if (mockEvent is null)
             {
-                return Error.BadRequest("Falha ao processar evento mock.");
+                return Error.BadRequest(localizer["MockEventProcessingFailed"]);
             }
 
             return await SaveInboxMessageAsync(mockEvent.Type, json, mockEvent.Id, cancellationToken);
@@ -112,7 +115,7 @@ internal class PaymentCommandService(
         catch (JsonException e)
         {
             logger.LogWarning(e, "Mock event JSON parsing failed.");
-            return Error.BadRequest("Requisição de webhook inválida.");
+            return Error.BadRequest(localizer["InvalidWebhookRequest"]);
         }
     }
 }

@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Application.Handlers.Queries;
@@ -13,13 +15,16 @@ public class GetProviderByDocumentQueryHandlerTests
 {
     private readonly Mock<IProviderQueries> _providerQueriesMock;
     private readonly Mock<ILogger<GetProviderByDocumentQueryHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly GetProviderByDocumentQueryHandler _handler;
 
     public GetProviderByDocumentQueryHandlerTests()
     {
         _providerQueriesMock = new Mock<IProviderQueries>();
         _loggerMock = new Mock<ILogger<GetProviderByDocumentQueryHandler>>();
-        _handler = new GetProviderByDocumentQueryHandler(_providerQueriesMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "DocumentRequired")]).Returns(new LocalizedString("DocumentRequired", "O documento não pode ser vazio."));
+        _handler = new GetProviderByDocumentQueryHandler(_providerQueriesMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]

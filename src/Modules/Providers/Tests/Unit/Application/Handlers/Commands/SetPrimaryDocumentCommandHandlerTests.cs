@@ -31,6 +31,9 @@ public class SetPrimaryDocumentCommandHandlerTests
         _localizerMock
             .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
             .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderDocumentNotFound"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Documento do tipo {args[0]} não encontrado para o provedor {args[1]}."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         _handler = new SetPrimaryDocumentCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
@@ -74,6 +77,7 @@ public class SetPrimaryDocumentCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Be("Prestador não encontrado.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -96,6 +100,7 @@ public class SetPrimaryDocumentCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Contain("não encontrado para o provedor");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 

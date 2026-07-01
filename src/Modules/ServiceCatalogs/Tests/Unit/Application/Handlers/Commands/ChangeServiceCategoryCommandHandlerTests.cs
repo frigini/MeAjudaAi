@@ -74,7 +74,7 @@ public class ChangeServiceCategoryCommandHandlerTests
     public async Task Handle_WithEmptyServiceId_ShouldThrow()
     {
         // Arrange
-        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdRequired")]).Returns(new LocalizedString("ServiceIdRequired", "O ID do serviço não pode ser vazio."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdRequired")]).Returns(new LocalizedString("ServiceIdRequired", "O ID do serviço é obrigatório."));
 
         var command = new ChangeServiceCategoryCommand(Guid.Empty, Guid.NewGuid());
 
@@ -83,7 +83,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
-            .WithMessage("*serviço*não pode ser vazio*");
+            .WithMessage("*serviço*obrigatório*");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -91,7 +91,7 @@ public class ChangeServiceCategoryCommandHandlerTests
     public async Task Handle_WithEmptyCategoryId_ShouldThrow()
     {
         // Arrange
-        _localizerMock.Setup(x => x[It.Is<string>(s => s == "NewCategoryIdRequired")]).Returns(new LocalizedString("NewCategoryIdRequired", "O ID da nova categoria não pode ser vazio."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "NewCategoryIdRequired")]).Returns(new LocalizedString("NewCategoryIdRequired", "O ID da nova categoria é obrigatório."));
 
         var command = new ChangeServiceCategoryCommand(Guid.NewGuid(), Guid.Empty);
 
@@ -100,7 +100,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<MeAjudaAi.Shared.Exceptions.UnprocessableEntityException>()
-            .WithMessage("*categoria*não pode ser vazio*");
+            .WithMessage("*categoria*obrigatório*");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -117,6 +117,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("não encontrado.");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -193,6 +194,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("Já existe um serviço com o nome");
         _uowMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

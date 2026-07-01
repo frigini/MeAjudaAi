@@ -45,10 +45,10 @@ public class RejectDocumentCommandHandler(
                 throw new NotFoundException("Document", command.DocumentId.ToString());
             }
 
-            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException("HTTP context not available");
+            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException(_localizer["HttpContextNotAvailable"]);
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("User is not authenticated");
+                throw new UnauthorizedAccessException(_localizer["UserNotAuthenticated"]);
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)

@@ -325,4 +325,183 @@
   <data name="DistanceProviderCountMismatch" xml:space="preserve">
     <value>The returned distances do not match the number of providers.</value>
   </data>
+  <!-- Module APIs / Services -->
+  <data name="EmailMessageCannotBeNull" xml:space="preserve">
+    <value>Email message cannot be null.</value>
+  </data>
+  <data name="RecipientEmailRequired" xml:space="preserve">
+    <value>Recipient email is required.</value>
+  </data>
+  <data name="EmailSubjectRequired" xml:space="preserve">
+    <value>Email subject is required.</value>
+  </data>
+  <data name="InvalidCommunicationPriority" xml:space="preserve">
+    <value>Invalid communication priority.</value>
+  </data>
+  <data name="EmailBodyRequired" xml:space="preserve">
+    <value>Email body is required when TemplateKey is not provided.</value>
+  </data>
+  <data name="SmsMessageCannotBeNull" xml:space="preserve">
+    <value>SMS message cannot be null.</value>
+  </data>
+  <data name="PhoneNumberRequired" xml:space="preserve">
+    <value>Phone number is required.</value>
+  </data>
+  <data name="SmsBodyRequired" xml:space="preserve">
+    <value>SMS message body is required.</value>
+  </data>
+  <data name="PushNotificationCannotBeNull" xml:space="preserve">
+    <value>Push notification cannot be null.</value>
+  </data>
+  <data name="DeviceTokenRequired" xml:space="preserve">
+    <value>Device token is required.</value>
+  </data>
+  <data name="PushTitleRequired" xml:space="preserve">
+    <value>Push title is required.</value>
+  </data>
+  <data name="PushBodyRequired" xml:space="preserve">
+    <value>Push body is required.</value>
+  </data>
+  <data name="QueryCannotBeNull" xml:space="preserve">
+    <value>Query cannot be null.</value>
+  </data>
+  <data name="InvalidPaginationParameters" xml:space="preserve">
+    <value>Invalid pagination parameters.</value>
+  </data>
+  <data name="CategoryIdMustBeProvided" xml:space="preserve">
+    <value>Category ID must be provided.</value>
+  </data>
+  <data name="ErrorFetchingServiceCategory" xml:space="preserve">
+    <value>Error fetching service category.</value>
+  </data>
+  <data name="ErrorFetchingServiceCategories" xml:space="preserve">
+    <value>Error fetching service categories.</value>
+  </data>
+  <data name="ServiceIdMustBeProvided" xml:space="preserve">
+    <value>Service ID must be provided.</value>
+  </data>
+  <data name="ErrorFetchingService" xml:space="preserve">
+    <value>Error fetching service.</value>
+  </data>
+  <data name="ErrorFetchingServices" xml:space="preserve">
+    <value>Error fetching services.</value>
+  </data>
+  <data name="ErrorFetchingCategoryServices" xml:space="preserve">
+    <value>Error fetching category services.</value>
+  </data>
+  <data name="ErrorCheckingServiceStatus" xml:space="preserve">
+    <value>Error checking service status.</value>
+  </data>
+  <data name="ServiceIdsCollectionRequired" xml:space="preserve">
+    <value>Service IDs collection cannot be null.</value>
+  </data>
+  <data name="ErrorValidatingServices" xml:space="preserve">
+    <value>Error validating services.</value>
+  </data>
+  <data name="DocumentNotFoundInModule" xml:space="preserve">
+    <value>Document not found.</value>
+  </data>
+  <data name="InvalidCep" xml:space="preserve">
+    <value>Invalid ZIP code: {0}</value>
+  </data>
+  <data name="CepNotFound" xml:space="preserve">
+    <value>ZIP code {0} not found.</value>
+  </data>
+  <data name="AddressCannotBeEmpty" xml:space="preserve">
+    <value>Address cannot be empty.</value>
+  </data>
+  <data name="CoordinatesNotFoundForAddress" xml:space="preserve">
+    <value>Coordinates not found for address: {0}</value>
+  </data>
+  <data name="ErrorFetchingCityId" xml:space="preserve">
+    <value>Error fetching city ID.</value>
+  </data>
+  <data name="BookingAlreadyExistsForTimeSlot" xml:space="preserve">
+    <value>A booking already exists for this time slot.</value>
+  </data>
+  <data name="BookingConcurrencyConflict" xml:space="preserve">
+    <value>Concurrency conflict while validating booking. Please try again in a moment.</value>
+  </data>
+  <data name="EmptyRequestBody" xml:space="preserve">
+    <value>Empty request body.</value>
+  </data>
+  <data name="StripeWebhookConfigMissing" xml:space="preserve">
+    <value>Stripe webhook configuration is missing.</value>
+  </data>
+  <data name="InvalidWebhookRequest" xml:space="preserve">
+    <value>Invalid webhook request.</value>
+  </data>
+  <data name="MockEventProcessingFailed" xml:space="preserve">
+    <value>Failed to process mock event.</value>
+  </data>
+  <data name="DocumentProcessingUnavailable" xml:space="preserve">
+    <value>Document processing is unavailable at the moment, please try again later.</value>
+  </data>
+  <data name="DocumentApiError" xml:space="preserve">
+    <value>API error: {0}</value>
+  </data>
+  <data name="UserIdNotFoundOrInvalid" xml:space="preserve">
+    <value>User identification not found or invalid.</value>
+  </data>
+  <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>Unauthorized access.</value>
+  </data>
+  <data name="ProviderValidationError" xml:space="preserve">
+    <value>Error validating provider.</value>
+  </data>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Access denied.</value>
+  </data>
+  <data name="ProviderBindingInternalError" xml:space="preserve">
+    <value>Internal error resolving provider binding.</value>
+  </data>
+  <data name="ProviderIdRequired" xml:space="preserve">
+    <value>The ProviderId field is required.</value>
+  </data>
+  <data name="PlanIdRequired" xml:space="preserve">
+    <value>The PlanId field is required.</value>
+  </data>
+  <data name="ProviderValidationErrorMessage" xml:space="preserve">
+    <value>Error validating provider. Please try again later.</value>
+  </data>
+  <data name="StripeCurrencyFractionalError" xml:space="preserve">
+    <value>Zero-decimal currency ({0}) does not accept fractional values: {1}</value>
+  </data>
+  <data name="StripePlanMismatch" xml:space="preserve">
+    <value>The plan amount or currency does not match the payment provider information.</value>
+  </data>
+  <data name="StripeInvalidCheckoutUrl" xml:space="preserve">
+    <value>Payment provider returned an invalid checkout URL.</value>
+  </data>
+  <data name="StripeCommunicationFailed" xml:space="preserve">
+    <value>Failed to communicate with the payment provider.</value>
+  </data>
+  <!-- ServiceCatalogs - Create -->
+  <data name="CategoryNameRequired" xml:space="preserve">
+    <value>The category name is required.</value>
+  </data>
+  <data name="CategoryNameAlreadyExists" xml:space="preserve">
+    <value>A category with the name '{0}' already exists.</value>
+  </data>
+  <data name="CategoryCreateError" xml:space="preserve">
+    <value>An unexpected error occurred while processing the request.</value>
+  </data>
+  <data name="ServiceNameRequired" xml:space="preserve">
+    <value>The service name is required.</value>
+  </data>
+  <data name="ServiceNameAlreadyExistsInCategory" xml:space="preserve">
+    <value>A service with the name '{0}' already exists in this category.</value>
+  </data>
+  <data name="ServiceDisplayOrderNegative" xml:space="preserve">
+    <value>The display order cannot be negative.</value>
+  </data>
+  <data name="ServiceCreateError" xml:space="preserve">
+    <value>An unexpected error occurred while creating the service.</value>
+  </data>
+  <data name="CannotCreateServiceInInactiveCategory" xml:space="preserve">
+    <value>Cannot create a service in an inactive category.</value>
+  </data>
+  <data name="DocumentRequired" xml:space="preserve">
+    <value>The document cannot be empty.</value>
+  </data>
 </root>

@@ -249,7 +249,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         duplicateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Conflict, HttpStatusCode.BadRequest);
 
         var content = await duplicateResponse.Content.ReadAsStringAsync();
-        content.Should().Contain("já existe", "conflict message should indicate duplication in Portuguese");
+        content.Should().Contain("já está em uso", "conflict message should indicate duplication in Portuguese");
     }
 
     [Fact]
@@ -355,7 +355,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var content = await duplicateResponse.Content.ReadAsStringAsync();
         
         // GlobalExceptionHandler deve incluir constraintName e columnName
-        content.Should().Contain("já existe", "conflict message should be in Portuguese");
+        content.Should().Contain("já está em uso", "conflict message should be in Portuguese");
     }
 
     #endregion

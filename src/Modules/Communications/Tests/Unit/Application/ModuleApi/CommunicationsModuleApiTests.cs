@@ -8,8 +8,10 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Communications;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.ModuleApi;
 
@@ -19,6 +21,7 @@ public class CommunicationsModuleApiTests
     private readonly Mock<IEmailTemplateQueries> _templateQueriesMock;
     private readonly Mock<ICommunicationLogQueries> _logQueriesMock;
     private readonly Mock<ISerializer> _serializerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly CommunicationsModuleApi _api;
 
     public CommunicationsModuleApiTests()
@@ -27,6 +30,8 @@ public class CommunicationsModuleApiTests
         _templateQueriesMock = new Mock<IEmailTemplateQueries>();
         _logQueriesMock = new Mock<ICommunicationLogQueries>();
         _serializerMock = new Mock<ISerializer>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.IsAny<string>()]).Returns<string>(key => new LocalizedString(key, key));
 
         _serializerMock.Setup(x => x.Serialize(It.IsAny<EmailOutboxPayload>())).Returns("{\"to\":\"test@test.com\"}");
         _serializerMock.Setup(x => x.Serialize(It.IsAny<SmsOutboxPayload>())).Returns("{\"phone\":\"123456\"}");
@@ -37,7 +42,8 @@ public class CommunicationsModuleApiTests
             _outboxRepositoryMock.Object,
             _templateQueriesMock.Object,
             _logQueriesMock.Object,
-            _serializerMock.Object);
+            _serializerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -83,7 +89,7 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("corpo do e-mail");
+        result.Error!.Message.Should().Contain("EmailBodyRequired");
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -17,6 +19,7 @@ public class CreateServiceCategoryCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
     private readonly Mock<IServiceCategoryQueries> _queriesMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly CreateServiceCategoryCommandHandler _handler;
 
     public CreateServiceCategoryCommandHandlerTests()
@@ -24,9 +27,13 @@ public class CreateServiceCategoryCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         _queriesMock = new Mock<IServiceCategoryQueries>();
-        
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryNameRequired")]).Returns(new LocalizedString("CategoryNameRequired", "O nome da categoria é obrigatório."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryNameAlreadyExists"), It.IsAny<object[]>()]).Returns((string key, object[] args) => new LocalizedString(key, $"Já existe uma categoria com o nome '{args[0]}'."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryCreateError")]).Returns(new LocalizedString("CategoryCreateError", "Ocorreu um erro inesperado ao processar a solicitação."));
+
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_repositoryMock.Object);
-        _handler = new CreateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object, NullLogger<CreateServiceCategoryCommandHandler>.Instance);
+        _handler = new CreateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object, NullLogger<CreateServiceCategoryCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]

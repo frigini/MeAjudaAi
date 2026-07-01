@@ -39,7 +39,8 @@ public sealed class CompleteBookingCommandHandler(
             command.UserProviderId,
             null,
             null,
-            booking.ProviderId);
+            booking.ProviderId,
+            localizer);
 
         if (authResult.IsFailure)
         {

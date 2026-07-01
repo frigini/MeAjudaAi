@@ -1,4 +1,6 @@
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
@@ -9,7 +11,9 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 /// geração de spec OpenAPI via Swagger CLI).
 /// Todos os métodos retornam um <see cref="OcrResult"/> de falha com mensagem explicativa.
 /// </summary>
-internal sealed class NullDocumentIntelligenceService(ILogger<NullDocumentIntelligenceService> logger) : IDocumentIntelligenceService
+internal sealed class NullDocumentIntelligenceService(
+    ILogger<NullDocumentIntelligenceService> logger,
+    IStringLocalizer<Strings> localizer) : IDocumentIntelligenceService
 {
     public Task<OcrResult> AnalyzeDocumentAsync(
         string blobUrl,
@@ -40,6 +44,6 @@ internal sealed class NullDocumentIntelligenceService(ILogger<NullDocumentIntell
             ExtractedData: null,
             Fields: null,
             Confidence: null,
-            ErrorMessage: "Não foi possível processar o documento no momento, tente novamente mais tarde."));
+            ErrorMessage: localizer["DocumentProcessingUnavailable"]));
     }
 }

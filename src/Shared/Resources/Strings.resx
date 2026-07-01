@@ -118,7 +118,7 @@
   </data>
   <!-- ServiceCatalogs -->
   <data name="CategoryIdRequired" xml:space="preserve">
-    <value>O ID da categoria não pode ser vazio.</value>
+    <value>O ID da categoria é obrigatório.</value>
   </data>
   <data name="CategoryNotFoundById" xml:space="preserve">
     <value>Categoria com ID '{0}' não encontrada.</value>
@@ -136,7 +136,7 @@
     <value>Ocorreu um erro inesperado ao atualizar a categoria de serviço.</value>
   </data>
   <data name="ServiceIdRequired" xml:space="preserve">
-    <value>O ID do serviço não pode ser vazio.</value>
+    <value>O ID do serviço é obrigatório.</value>
   </data>
   <data name="ServiceNotFoundById" xml:space="preserve">
     <value>Serviço com ID '{0}' não encontrado.</value>
@@ -154,7 +154,7 @@
     <value>Ocorreu um erro inesperado ao atualizar o serviço.</value>
   </data>
   <data name="NewCategoryIdRequired" xml:space="preserve">
-    <value>O ID da nova categoria não pode ser vazio.</value>
+    <value>O ID da nova categoria é obrigatório.</value>
   </data>
   <data name="CannotMoveToInactiveCategory" xml:space="preserve">
     <value>Não é possível mover serviço para categoria inativa.</value>
@@ -324,5 +324,184 @@
   <!-- SearchProviders -->
   <data name="DistanceProviderCountMismatch" xml:space="preserve">
     <value>As distâncias retornadas não correspondem ao número de prestadores.</value>
+  </data>
+  <!-- Module APIs / Services -->
+  <data name="EmailMessageCannotBeNull" xml:space="preserve">
+    <value>A mensagem de e-mail não pode ser nula.</value>
+  </data>
+  <data name="RecipientEmailRequired" xml:space="preserve">
+    <value>O e-mail do destinatário é obrigatório.</value>
+  </data>
+  <data name="EmailSubjectRequired" xml:space="preserve">
+    <value>O assunto do e-mail é obrigatório.</value>
+  </data>
+  <data name="InvalidCommunicationPriority" xml:space="preserve">
+    <value>Prioridade de comunicação inválida.</value>
+  </data>
+  <data name="EmailBodyRequired" xml:space="preserve">
+    <value>O corpo do e-mail é obrigatório quando TemplateKey não é informado.</value>
+  </data>
+  <data name="SmsMessageCannotBeNull" xml:space="preserve">
+    <value>A mensagem SMS não pode ser nula.</value>
+  </data>
+  <data name="PhoneNumberRequired" xml:space="preserve">
+    <value>O número de telefone é obrigatório.</value>
+  </data>
+  <data name="SmsBodyRequired" xml:space="preserve">
+    <value>O corpo da mensagem SMS é obrigatório.</value>
+  </data>
+  <data name="PushNotificationCannotBeNull" xml:space="preserve">
+    <value>A notificação push não pode ser nula.</value>
+  </data>
+  <data name="DeviceTokenRequired" xml:space="preserve">
+    <value>O token do dispositivo é obrigatório.</value>
+  </data>
+  <data name="PushTitleRequired" xml:space="preserve">
+    <value>O título do push é obrigatório.</value>
+  </data>
+  <data name="PushBodyRequired" xml:space="preserve">
+    <value>O corpo do push é obrigatório.</value>
+  </data>
+  <data name="QueryCannotBeNull" xml:space="preserve">
+    <value>A consulta não pode ser nula.</value>
+  </data>
+  <data name="InvalidPaginationParameters" xml:space="preserve">
+    <value>Parâmetros de paginação inválidos.</value>
+  </data>
+  <data name="CategoryIdMustBeProvided" xml:space="preserve">
+    <value>O ID da categoria deve ser fornecido.</value>
+  </data>
+  <data name="ErrorFetchingServiceCategory" xml:space="preserve">
+    <value>Erro ao buscar categoria de serviço.</value>
+  </data>
+  <data name="ErrorFetchingServiceCategories" xml:space="preserve">
+    <value>Erro ao buscar categorias de serviço.</value>
+  </data>
+  <data name="ServiceIdMustBeProvided" xml:space="preserve">
+    <value>O ID do serviço deve ser fornecido.</value>
+  </data>
+  <data name="ErrorFetchingService" xml:space="preserve">
+    <value>Erro ao buscar serviço.</value>
+  </data>
+  <data name="ErrorFetchingServices" xml:space="preserve">
+    <value>Erro ao buscar serviços.</value>
+  </data>
+  <data name="ErrorFetchingCategoryServices" xml:space="preserve">
+    <value>Erro ao buscar serviços da categoria.</value>
+  </data>
+  <data name="ErrorCheckingServiceStatus" xml:space="preserve">
+    <value>Erro ao verificar status do serviço.</value>
+  </data>
+  <data name="ServiceIdsCollectionRequired" xml:space="preserve">
+    <value>A coleção de IDs de serviços é obrigatória.</value>
+  </data>
+  <data name="ErrorValidatingServices" xml:space="preserve">
+    <value>Erro ao validar serviços.</value>
+  </data>
+  <data name="DocumentNotFoundInModule" xml:space="preserve">
+    <value>Documento não encontrado.</value>
+  </data>
+  <data name="InvalidCep" xml:space="preserve">
+    <value>CEP inválido: {0}</value>
+  </data>
+  <data name="CepNotFound" xml:space="preserve">
+    <value>CEP {0} não encontrado.</value>
+  </data>
+  <data name="AddressCannotBeEmpty" xml:space="preserve">
+    <value>Endereço não pode ser vazio.</value>
+  </data>
+  <data name="CoordinatesNotFoundForAddress" xml:space="preserve">
+    <value>Coordenadas não encontradas para o endereço: {0}</value>
+  </data>
+  <data name="ErrorFetchingCityId" xml:space="preserve">
+    <value>Erro ao buscar ID da cidade.</value>
+  </data>
+  <data name="BookingAlreadyExistsForTimeSlot" xml:space="preserve">
+    <value>Já existe um agendamento para este horário.</value>
+  </data>
+  <data name="BookingConcurrencyConflict" xml:space="preserve">
+    <value>Conflito de concorrência ao validar agendamento. Tente novamente em instantes.</value>
+  </data>
+  <data name="EmptyRequestBody" xml:space="preserve">
+    <value>Corpo da requisição vazio.</value>
+  </data>
+  <data name="StripeWebhookConfigMissing" xml:space="preserve">
+    <value>Configuração do webhook Stripe ausente.</value>
+  </data>
+  <data name="InvalidWebhookRequest" xml:space="preserve">
+    <value>Requisição de webhook inválida.</value>
+  </data>
+  <data name="MockEventProcessingFailed" xml:space="preserve">
+    <value>Falha ao processar evento mock.</value>
+  </data>
+  <data name="DocumentProcessingUnavailable" xml:space="preserve">
+    <value>Não foi possível processar o documento no momento, tente novamente mais tarde.</value>
+  </data>
+  <data name="DocumentApiError" xml:space="preserve">
+    <value>Erro na API: {0}</value>
+  </data>
+  <data name="UserIdNotFoundOrInvalid" xml:space="preserve">
+    <value>Identificação do usuário não encontrada ou inválida.</value>
+  </data>
+  <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>Acesso não autorizado.</value>
+  </data>
+  <data name="ProviderValidationError" xml:space="preserve">
+    <value>Erro ao validar prestador.</value>
+  </data>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Acesso negado.</value>
+  </data>
+  <data name="ProviderBindingInternalError" xml:space="preserve">
+    <value>Erro interno ao resolver vínculo do prestador.</value>
+  </data>
+  <data name="ProviderIdRequired" xml:space="preserve">
+    <value>O campo ProviderId é obrigatório.</value>
+  </data>
+  <data name="PlanIdRequired" xml:space="preserve">
+    <value>O campo PlanId é obrigatório.</value>
+  </data>
+  <data name="ProviderValidationErrorMessage" xml:space="preserve">
+    <value>Erro ao validar prestador. Tente novamente mais tarde.</value>
+  </data>
+  <data name="StripeCurrencyFractionalError" xml:space="preserve">
+    <value>Moeda zero-decimal ({0}) não aceita valores fracionários: {1}</value>
+  </data>
+  <data name="StripePlanMismatch" xml:space="preserve">
+    <value>O valor ou moeda do plano não corresponde às informações do provedor de pagamento.</value>
+  </data>
+  <data name="StripeInvalidCheckoutUrl" xml:space="preserve">
+    <value>Provedor de pagamento retornou URL de checkout inválida.</value>
+  </data>
+  <data name="StripeCommunicationFailed" xml:space="preserve">
+    <value>Falha na comunicação com o provedor de pagamento.</value>
+  </data>
+  <!-- ServiceCatalogs - Create -->
+  <data name="CategoryNameRequired" xml:space="preserve">
+    <value>O nome da categoria é obrigatório.</value>
+  </data>
+  <data name="CategoryNameAlreadyExists" xml:space="preserve">
+    <value>Já existe uma categoria com o nome '{0}'.</value>
+  </data>
+  <data name="CategoryCreateError" xml:space="preserve">
+    <value>Ocorreu um erro inesperado ao processar a solicitação.</value>
+  </data>
+  <data name="ServiceNameRequired" xml:space="preserve">
+    <value>O nome do serviço é obrigatório.</value>
+  </data>
+  <data name="ServiceNameAlreadyExistsInCategory" xml:space="preserve">
+    <value>Já existe um serviço com o nome '{0}' nesta categoria.</value>
+  </data>
+  <data name="ServiceDisplayOrderNegative" xml:space="preserve">
+    <value>A ordem de exibição não pode ser negativa.</value>
+  </data>
+  <data name="ServiceCreateError" xml:space="preserve">
+    <value>Ocorreu um erro inesperado ao criar o serviço.</value>
+  </data>
+  <data name="CannotCreateServiceInInactiveCategory" xml:space="preserve">
+    <value>Não é possível criar serviço em categoria inativa.</value>
+  </data>
+  <data name="DocumentRequired" xml:space="preserve">
+    <value>O documento não pode ser vazio.</value>
   </data>
 </root>

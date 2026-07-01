@@ -4,8 +4,10 @@ using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -18,7 +20,8 @@ namespace MeAjudaAi.Modules.Bookings.Application.Authorization;
 public sealed class ProviderAuthorizationResolver(
     ICacheService cache,
     IProvidersModuleApi providersApi,
-    ILogger<ProviderAuthorizationResolver> logger)
+    ILogger<ProviderAuthorizationResolver> logger,
+    IStringLocalizer<Strings> localizer)
 {
     private const string CacheKeyPrefix = "bookings:provider_by_user:";
     private static readonly TimeSpan LocalCacheExpiration = TimeSpan.FromMinutes(1);
@@ -44,7 +47,7 @@ public sealed class ProviderAuthorizationResolver(
         var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var uId))
         {
-            return ProviderAuthorizationResult.Unauthorized("Identificação do usuário não encontrada ou inválida.");
+            return ProviderAuthorizationResult.Unauthorized(localizer["UserIdNotFoundOrInvalid"]);
         }
 
         var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
@@ -120,9 +123,9 @@ public sealed class ProviderAuthorizationResolver(
         {
             return authResult.FailureKind switch
             {
-                EAuthorizationFailureKind.Unauthorized => Result.Failure(Error.Unauthorized(authResult.ErrorMessage ?? "Acesso não autorizado.")),
-                EAuthorizationFailureKind.UpstreamFailure => Result.Failure(new Error(authResult.ErrorMessage ?? "Erro ao validar prestador.", authResult.ErrorStatusCode ?? 502)),
-                _ => Result.Failure(Error.Forbidden(authResult.ErrorMessage ?? "Acesso negado."))
+                EAuthorizationFailureKind.Unauthorized => Result.Failure(Error.Unauthorized(authResult.ErrorMessage ?? localizer["UnauthorizedAccess"])),
+                EAuthorizationFailureKind.UpstreamFailure => Result.Failure(new Error(authResult.ErrorMessage ?? localizer["ProviderValidationError"], authResult.ErrorStatusCode ?? 502)),
+                _ => Result.Failure(Error.Forbidden(authResult.ErrorMessage ?? localizer["AccessDenied"]))
             };
         }
 
@@ -131,7 +134,8 @@ public sealed class ProviderAuthorizationResolver(
             authResult.ProviderId, 
             authResult.UserId, 
             bookingClientId, 
-            bookingProviderId);
+            bookingProviderId,
+            localizer);
     }
 
     /// <summary>
@@ -143,7 +147,8 @@ public sealed class ProviderAuthorizationResolver(
         Guid? userProviderId,
         Guid? userClientId,
         Guid? bookingClientId,
-        Guid? bookingProviderId)
+        Guid? bookingProviderId,
+        IStringLocalizer<Strings> localizer)
     {
         if (isSystemAdmin) return Result.Success();
 
@@ -159,12 +164,12 @@ public sealed class ProviderAuthorizationResolver(
             return Result.Success();
         }
 
-        return Result.Failure(Error.Forbidden("Você não tem permissão para realizar esta operação."));
+        return Result.Failure(Error.Forbidden(localizer["Unauthorized"]));
     }
 
     private ProviderAuthorizationResult LogAndReturnUnauthorized(Guid userId, ProviderResolutionResult? result)
     {
         logger.LogError("Unexpected ProviderResolutionResult for user {UserId}: {@Result}", userId, result);
-        return ProviderAuthorizationResult.Unauthorized("Erro interno ao resolver vínculo do prestador.");
+        return ProviderAuthorizationResult.Unauthorized(localizer["ProviderBindingInternalError"]);
     }
 }

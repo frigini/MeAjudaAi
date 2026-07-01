@@ -86,21 +86,14 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
         Console.WriteLine("Starting shared containers...");
 
-        try
-        {
-            await SharedTestContainers.StartAllAsync();
+        await SharedTestContainers.StartAllAsync();
 
-            lock (_startupLock)
-            {
-                _containersStarted = true;
-            }
-
-            Console.WriteLine("Shared containers started successfully!");
-        }
-        catch (Exception ex)
+        lock (_startupLock)
         {
-            Console.WriteLine($"Warning: Failed to start shared containers: {ex.Message}. Tests requiring containers may fail.");
+            _containersStarted = true;
         }
+
+        Console.WriteLine("Shared containers started successfully!");
     }
 
     public async ValueTask DisposeAsync()
