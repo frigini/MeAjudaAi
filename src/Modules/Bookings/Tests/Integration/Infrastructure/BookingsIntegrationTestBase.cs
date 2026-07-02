@@ -9,7 +9,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
+namespace MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 
 public abstract class BookingsIntegrationTestBase : BaseIntegrationTest
 {

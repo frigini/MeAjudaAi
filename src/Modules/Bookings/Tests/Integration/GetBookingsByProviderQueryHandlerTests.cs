@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ public class GetBookingsByProviderQueryHandlerTests : BookingsIntegrationTestBas
     [Fact]
     public async Task GetBookings_WithBookings_ShouldReturnList()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
@@ -26,8 +28,10 @@ public class GetBookingsByProviderQueryHandlerTests : BookingsIntegrationTestBas
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>>();
         var query = new GetBookingsByProviderQuery(providerId, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().NotBeEmpty();
@@ -36,6 +40,7 @@ public class GetBookingsByProviderQueryHandlerTests : BookingsIntegrationTestBas
     [Fact]
     public async Task GetBookings_EmptyResult_ShouldReturnEmptyList()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         GetMockProvidersApi().SeedProvider(providerId, Guid.NewGuid());
 
@@ -43,8 +48,10 @@ public class GetBookingsByProviderQueryHandlerTests : BookingsIntegrationTestBas
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>>();
         var query = new GetBookingsByProviderQuery(providerId, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Items.Should().BeEmpty();
     }
@@ -52,6 +59,7 @@ public class GetBookingsByProviderQueryHandlerTests : BookingsIntegrationTestBas
     [Fact]
     public async Task GetBookings_IsolatedByProvider_ShouldNotReturnOtherProvidersBookings()
     {
+        // Arrange
         var providerA = Guid.NewGuid();
         var providerB = Guid.NewGuid();
         var clientId = Guid.NewGuid();
@@ -70,8 +78,10 @@ public class GetBookingsByProviderQueryHandlerTests : BookingsIntegrationTestBas
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>>();
         var query = new GetBookingsByProviderQuery(providerA, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Items.Should().HaveCount(1);
         result.Value!.Items.Should().OnlyContain(b => b.ProviderId == providerA);

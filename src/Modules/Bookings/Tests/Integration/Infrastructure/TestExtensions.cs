@@ -1,31 +1,28 @@
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Providers;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Modules.Bookings.Application;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Application.Services;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
-using MeAjudaAi.Modules.Bookings.Application.Services;
-using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Providers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace MeAjudaAi.Modules.Bookings.Tests.Integration;
+namespace MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 
 public static class BookingsTestInfrastructureExtensions
 {
@@ -57,7 +54,7 @@ public static class BookingsTestInfrastructureExtensions
 
         services.AddScoped<IBookingQueries, DbContextBookingQueries>();
         services.AddScoped<IProviderScheduleQueries, DbContextProviderScheduleQueries>();
-        services.AddScoped<IBookingCommandService, DbContextBookingCommandService>();
+        services.AddScoped<IBookingCommandService, BookingCommandService>();
 
         services.AddTestMessageBus();
 

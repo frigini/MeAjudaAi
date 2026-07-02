@@ -1,55 +1,33 @@
 using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
+using MeAjudaAi.Modules.Locations.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Locations;
-using Microsoft.EntityFrameworkCore;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Integration.Infrastructure.Queries;
 
-public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
+public class DbContextAllowedCityQueriesTests : LocationsIntegrationTestBase
 {
-    private LocationsDbContext _context = null!;
-    private IAllowedCityQueries _queries = null!;
-
-    public DbContextAllowedCityQueriesTests()
-        : base(schema: "locations", databaseName: "locations_test")
-    {
-    }
-
-    public override async ValueTask InitializeAsync()
-    {
-        await base.InitializeAsync();
-
-        var dbContextOptions = CreateDbContextOptions<LocationsDbContext>();
-        _context = new LocationsDbContext(dbContextOptions);
-        await _context.Database.MigrateAsync();
-        await InitializeRespawnerAsync();
-
-        _queries = new DbContextAllowedCityQueries(_context);
-    }
-
-    public override async ValueTask DisposeAsync()
-    {
-        if (_context != null)
-            await _context.DisposeAsync();
-        await base.DisposeAsync();
-    }
-
     [Fact]
     public async Task GetAllActiveAsync_ShouldReturnOnlyActiveCities()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var activeCity1 = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
         var activeCity2 = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").Build();
         var inactiveCity = AllowedCityBuilder.AsTestCity("São Paulo", "SP").AsInactive().Build();
 
-        _context.AllowedCities.Add(activeCity1);
-        _context.AllowedCities.Add(activeCity2);
-        _context.AllowedCities.Add(inactiveCity);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(activeCity1);
+        context.AllowedCities.Add(activeCity2);
+        context.AllowedCities.Add(inactiveCity);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.GetAllActiveAsync();
+        var result = await queries.GetAllActiveAsync();
 
         // Assert
         result.Should().HaveCount(2);
@@ -63,15 +41,19 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task GetAllAsync_ShouldReturnAllCities()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var activeCity = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
         var inactiveCity = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").AsInactive().Build();
 
-        _context.AllowedCities.Add(activeCity);
-        _context.AllowedCities.Add(inactiveCity);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(activeCity);
+        context.AllowedCities.Add(inactiveCity);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.GetAllAsync();
+        var result = await queries.GetAllAsync();
 
         // Assert
         result.Should().HaveCount(2);
@@ -83,12 +65,16 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task GetByCityAndStateAsync_WithExistingCityAndState_ShouldReturnCity()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
-        _context.AllowedCities.Add(city);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(city);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.GetByCityAndStateAsync("Muriaé", "MG");
+        var result = await queries.GetByCityAndStateAsync("Muriaé", "MG");
 
         // Assert
         result.Should().NotBeNull();
@@ -100,9 +86,11 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task GetByCityAndStateAsync_WithNonExistingCityAndState_ShouldReturnNull()
     {
         // Arrange
+        using var scope = CreateScope();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         // Act
-        var result = await _queries.GetByCityAndStateAsync("Não Existe", "XX");
+        var result = await queries.GetByCityAndStateAsync("Não Existe", "XX");
 
         // Assert
         result.Should().BeNull();
@@ -112,12 +100,16 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task IsCityAllowedAsync_WithActiveCity_ShouldReturnTrue()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
-        _context.AllowedCities.Add(city);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(city);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.IsCityAllowedAsync("Muriaé", "MG");
+        var result = await queries.IsCityAllowedAsync("Muriaé", "MG");
 
         // Assert
         result.Should().BeTrue();
@@ -127,12 +119,16 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task IsCityAllowedAsync_WithInactiveCity_ShouldReturnFalse()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").AsInactive().Build();
-        _context.AllowedCities.Add(city);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(city);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.IsCityAllowedAsync("Muriaé", "MG");
+        var result = await queries.IsCityAllowedAsync("Muriaé", "MG");
 
         // Assert
         result.Should().BeFalse();
@@ -142,9 +138,11 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task IsCityAllowedAsync_WithNonExistingCity_ShouldReturnFalse()
     {
         // Arrange
+        using var scope = CreateScope();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         // Act
-        var result = await _queries.IsCityAllowedAsync("Não Existe", "XX");
+        var result = await queries.IsCityAllowedAsync("Não Existe", "XX");
 
         // Assert
         result.Should().BeFalse();
@@ -154,12 +152,16 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task ExistsAsync_WithExistingCity_ShouldReturnTrue()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").Build();
-        _context.AllowedCities.Add(city);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(city);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.ExistsAsync("Muriaé", "MG");
+        var result = await queries.ExistsAsync("Muriaé", "MG");
 
         // Assert
         result.Should().BeTrue();
@@ -169,9 +171,11 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task ExistsAsync_WithNonExistingCity_ShouldReturnFalse()
     {
         // Arrange
+        using var scope = CreateScope();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         // Act
-        var result = await _queries.ExistsAsync("Não Existe", "XX");
+        var result = await queries.ExistsAsync("Não Existe", "XX");
 
         // Assert
         result.Should().BeFalse();
@@ -181,17 +185,21 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task GetAllActiveAsync_ShouldReturnOrderedByStateAndCityName()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var city1 = AllowedCityBuilder.AsTestCity("Muriaé", "MG").WithIbgeCode(3143906).Build();
         var city2 = AllowedCityBuilder.AsTestCity("Itaperuna", "RJ").WithIbgeCode(3302270).Build();
         var city3 = AllowedCityBuilder.AsTestCity("Bom Jesus do Itabapoana", "RJ").WithIbgeCode(3300704).Build();
 
-        _context.AllowedCities.Add(city1);
-        _context.AllowedCities.Add(city2);
-        _context.AllowedCities.Add(city3);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(city1);
+        context.AllowedCities.Add(city2);
+        context.AllowedCities.Add(city3);
+        await context.SaveChangesAsync();
 
         // Act
-        var result = await _queries.GetAllActiveAsync();
+        var result = await queries.GetAllActiveAsync();
 
         // Assert
         result.Should().HaveCount(3);
@@ -207,13 +215,17 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task GetByCityAndStateAsync_ShouldBeCaseInsensitive()
     {
         // Arrange
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+
         var city = AllowedCityBuilder.AsTestCity("Muriaé", "MG").WithIbgeCode(3143906).Build();
-        _context.AllowedCities.Add(city);
-        await _context.SaveChangesAsync();
+        context.AllowedCities.Add(city);
+        await context.SaveChangesAsync();
 
         // Act
-        var result1 = await _queries.GetByCityAndStateAsync("MURIAÉ", "mg");
-        var result2 = await _queries.GetByCityAndStateAsync("muriaé", "MG");
+        var result1 = await queries.GetByCityAndStateAsync("MURIAÉ", "mg");
+        var result2 = await queries.GetByCityAndStateAsync("muriaé", "MG");
 
         // Assert
         result1.Should().NotBeNull();
@@ -226,9 +238,11 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task GetByCityAndStateAsync_WithNullCityName_ShouldReturnNull()
     {
         // Arrange
+        using var scope = CreateScope();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         // Act
-        var result = await _queries.GetByCityAndStateAsync(null!, "MG");
+        var result = await queries.GetByCityAndStateAsync(null!, "MG");
 
         // Assert
         result.Should().BeNull("normalização de null deve resultar em string vazia e não encontrar registro");
@@ -238,9 +252,11 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task IsCityAllowedAsync_WithNullCityName_ShouldReturnFalse()
     {
         // Arrange
+        using var scope = CreateScope();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         // Act
-        var result = await _queries.IsCityAllowedAsync(null!, "MG");
+        var result = await queries.IsCityAllowedAsync(null!, "MG");
 
         // Assert
         result.Should().BeFalse("normalização de null deve resultar em string vazia");
@@ -250,9 +266,11 @@ public class DbContextAllowedCityQueriesTests : BaseDatabaseTest
     public async Task ExistsAsync_WithNullCityName_ShouldReturnFalse()
     {
         // Arrange
+        using var scope = CreateScope();
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
 
         // Act
-        var result = await _queries.ExistsAsync(null!, "MG");
+        var result = await queries.ExistsAsync(null!, "MG");
 
         // Assert
         result.Should().BeFalse("normalização de null deve resultar em string vazia");

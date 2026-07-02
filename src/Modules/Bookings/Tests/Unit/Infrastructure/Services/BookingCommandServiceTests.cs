@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -14,15 +15,15 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Services;
 [Trait("Category", "Unit")]
 [Trait("Module", "Bookings")]
 [Trait("Layer", "Infrastructure")]
-public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<BookingsDbContext>
+public class BookingCommandServiceTests : BaseSqliteInMemoryDatabaseTest<BookingsDbContext>
 {
-    private readonly Mock<ILogger<DbContextBookingCommandService>> _loggerMock = new();
+    private readonly Mock<ILogger<BookingCommandService>> _loggerMock = new();
     private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
-    private readonly DbContextBookingCommandService _service;
+    private readonly BookingCommandService _service;
 
-    public DbContextBookingCommandServiceTests() : base(options => new BookingsDbContext(options))
+    public BookingCommandServiceTests() : base(options => new BookingsDbContext(options))
     {
-        _service = new DbContextBookingCommandService(DbContext, _loggerMock.Object, _localizerMock.Object);
+        _service = new BookingCommandService(DbContext, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
@@ -135,7 +136,7 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
         
         mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("Database error"));
         
-        var serviceWithError = new DbContextBookingCommandService(mockContext.Object, _loggerMock.Object, _localizerMock.Object);
+        var serviceWithError = new BookingCommandService(mockContext.Object, _loggerMock.Object, _localizerMock.Object);
 
         // Act
         Func<Task> act = () => serviceWithError.AddIfNoOverlapAsync(booking);
@@ -186,7 +187,7 @@ public class DbContextBookingCommandServiceTests : BaseInMemoryDatabaseTest<Book
         mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new PostgresException("Connection error", "Error", "22P02", null!));
 
-        var serviceWithError = new DbContextBookingCommandService(mockContext.Object, _loggerMock.Object, _localizerMock.Object);
+        var serviceWithError = new BookingCommandService(mockContext.Object, _loggerMock.Object, _localizerMock.Object);
 
         // Act & Assert
         Func<Task> act = () => serviceWithError.AddIfNoOverlapAsync(booking);

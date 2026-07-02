@@ -1,12 +1,12 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 

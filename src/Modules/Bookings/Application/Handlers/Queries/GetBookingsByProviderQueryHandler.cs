@@ -1,13 +1,13 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 
@@ -17,6 +17,7 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 /// <param name="bookingQueries">Queries de acesso a dados de bookings.</param>
 /// <param name="scheduleQueries">Queries de acesso a dados de agenda do prestador.</param>
 /// <param name="logger">Logger estruturado.</param>
+/// <param name="localizer">Localizador de strings para mensagens de erro.</param>
 /// <returns>
 /// Um <see cref="Result{PagedResult}"/> contendo a lista paginada de <see cref="ModuleBookingDto"/>
 /// em caso de sucesso, ou um <see cref="Error"/> descritivo em caso de falha.

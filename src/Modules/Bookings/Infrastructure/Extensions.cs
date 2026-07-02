@@ -81,7 +81,7 @@ public static class Extensions
         // Queries
         services.AddScoped<IBookingQueries, DbContextBookingQueries>();
         services.AddScoped<IProviderScheduleQueries, DbContextProviderScheduleQueries>();
-        services.AddScoped<IBookingCommandService, DbContextBookingCommandService>();
+        services.AddScoped<IBookingCommandService, BookingCommandService>();
     }
 
     private static void AddEventHandlers(this IServiceCollection services)

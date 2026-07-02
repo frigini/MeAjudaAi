@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ public class CreateBookingCommandHandlerTests : BookingsIntegrationTestBase
     [Fact]
     public async Task Create_WithValidData_ShouldSucceed()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
@@ -30,8 +32,10 @@ public class CreateBookingCommandHandlerTests : BookingsIntegrationTestBase
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<CreateBookingCommand, Result<ModuleBookingDto>>>();
         var command = new CreateBookingCommand(providerId, clientId, serviceId, start, end, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.ProviderId.Should().Be(providerId);
@@ -41,6 +45,7 @@ public class CreateBookingCommandHandlerTests : BookingsIntegrationTestBase
     [Fact]
     public async Task Create_NonExistingProvider_ShouldReturnNotFound()
     {
+        // Arrange
         using var scope = CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<CreateBookingCommand, Result<ModuleBookingDto>>>();
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
@@ -50,14 +55,17 @@ public class CreateBookingCommandHandlerTests : BookingsIntegrationTestBase
             new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(11, 0)), TimeSpan.Zero),
             Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
     public async Task Create_InactiveService_ShouldReturnBadRequest()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
 
@@ -73,14 +81,17 @@ public class CreateBookingCommandHandlerTests : BookingsIntegrationTestBase
             new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(11, 0)), TimeSpan.Zero),
             Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
     public async Task Create_OverlappingBooking_ShouldReturnConflict()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
@@ -102,8 +113,10 @@ public class CreateBookingCommandHandlerTests : BookingsIntegrationTestBase
             new DateTimeOffset(tomorrow.ToDateTime(new TimeOnly(11, 30)), TimeSpan.Zero),
             Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
     }
 }

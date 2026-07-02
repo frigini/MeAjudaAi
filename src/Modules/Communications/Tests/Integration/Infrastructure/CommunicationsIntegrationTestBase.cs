@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Integration;
+namespace MeAjudaAi.Modules.Communications.Tests.Integration.Infrastructure;
 
 public abstract class CommunicationsIntegrationTestBase : BaseIntegrationTest
 {

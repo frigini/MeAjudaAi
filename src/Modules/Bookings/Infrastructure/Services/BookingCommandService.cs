@@ -1,11 +1,11 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
-using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Shared.Resources;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -13,9 +13,9 @@ using System.Data;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Services;
 
-internal sealed class DbContextBookingCommandService(
+internal sealed class BookingCommandService(
     BookingsDbContext context,
-    ILogger<DbContextBookingCommandService> logger,
+    ILogger<BookingCommandService> logger,
     IStringLocalizer<Strings> localizer) : IBookingCommandService
 {
     public async Task<Result> AddIfNoOverlapAsync(Booking booking, CancellationToken cancellationToken = default)

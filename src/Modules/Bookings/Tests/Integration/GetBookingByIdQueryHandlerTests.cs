@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
+using MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ public class GetBookingByIdQueryHandlerTests : BookingsIntegrationTestBase
     [Fact]
     public async Task GetById_ExistingBooking_ShouldReturnDto()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
@@ -26,8 +28,10 @@ public class GetBookingByIdQueryHandlerTests : BookingsIntegrationTestBase
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetBookingByIdQuery, Result<ModuleBookingDto>>>();
         var query = new GetBookingByIdQuery(booking.Id, clientId, null, false, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(booking.Id);
@@ -36,19 +40,23 @@ public class GetBookingByIdQueryHandlerTests : BookingsIntegrationTestBase
     [Fact]
     public async Task GetById_NonExistingBooking_ShouldReturnNotFound()
     {
+        // Arrange
         using var scope = CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetBookingByIdQuery, Result<ModuleBookingDto>>>();
         var query = new GetBookingByIdQuery(Guid.NewGuid(), Guid.NewGuid(), null, false, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     [Fact]
     public async Task GetById_UnauthorizedUser_ShouldReturnNotFound()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
@@ -63,9 +71,11 @@ public class GetBookingByIdQueryHandlerTests : BookingsIntegrationTestBase
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetBookingByIdQuery, Result<ModuleBookingDto>>>();
         var query = new GetBookingByIdQuery(booking.Id, Guid.NewGuid(), null, false, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(404);
     }
 }

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Queries;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
+using MeAjudaAi.Modules.Communications.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,7 @@ public class GetEmailTemplateByKeyQueryHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task GetByKey_ExistingTemplate_ShouldReturnDto()
     {
+        // Arrange
         var key = $"key_test_{Guid.NewGuid():N}";
         await CreateEmailTemplateAsync(templateKey: key);
 
@@ -18,8 +20,10 @@ public class GetEmailTemplateByKeyQueryHandlerTests : CommunicationsIntegrationT
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetEmailTemplateByKeyQuery, Result<EmailTemplate?>>>();
         var query = new GetEmailTemplateByKeyQuery(key, "pt-BR", Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.TemplateKey.Should().Be(key);
@@ -28,12 +32,15 @@ public class GetEmailTemplateByKeyQueryHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task GetByKey_NonExistingTemplate_ShouldReturnNull()
     {
+        // Arrange
         using var scope = CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetEmailTemplateByKeyQuery, Result<EmailTemplate?>>>();
         var query = new GetEmailTemplateByKeyQuery("nonexistent", "pt-BR", Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
     }
@@ -41,6 +48,7 @@ public class GetEmailTemplateByKeyQueryHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task GetByKey_InactiveTemplate_ShouldReturnNull()
     {
+        // Arrange
         var key = $"inactive_test_{Guid.NewGuid():N}";
         await CreateEmailTemplateAsync(templateKey: key, isActive: false);
 
@@ -48,8 +56,10 @@ public class GetEmailTemplateByKeyQueryHandlerTests : CommunicationsIntegrationT
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<GetEmailTemplateByKeyQuery, Result<EmailTemplate?>>>();
         var query = new GetEmailTemplateByKeyQuery(key, "pt-BR", Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(query, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
     }

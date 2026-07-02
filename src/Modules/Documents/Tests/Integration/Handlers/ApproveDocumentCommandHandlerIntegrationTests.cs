@@ -4,14 +4,14 @@ using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
+using MeAjudaAi.Modules.Documents.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Handlers;
@@ -19,43 +19,11 @@ namespace MeAjudaAi.Modules.Documents.Tests.Integration.Handlers;
 [Trait("Category", "Integration")]
 [Trait("Module", "Documents")]
 [Trait("Layer", "Application")]
-public sealed class ApproveDocumentCommandHandlerIntegrationTests : BaseDatabaseTest
+public sealed class ApproveDocumentCommandHandlerIntegrationTests : DocumentsIntegrationTestBase
 {
-    private DocumentsDbContext _dbContext = null!;
-    private IUnitOfWork _uow = null!;
-    private IDocumentQueries _queries = null!;
-    private ApproveDocumentCommandHandler _handler = null!;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor = new();
     private readonly Mock<ILogger<ApproveDocumentCommandHandler>> _mockLogger = new();
     private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer = new();
-
-    public ApproveDocumentCommandHandlerIntegrationTests() : base(schema: Schemas.Documents) { }
-
-    public override async ValueTask InitializeAsync()
-    {
-        await base.InitializeAsync();
-
-        var options = CreateDbContextOptions<DocumentsDbContext>();
-        _dbContext = new DocumentsDbContext(options);
-        await _dbContext.Database.MigrateAsync();
-        await InitializeRespawnerAsync();
-
-        _uow = _dbContext;
-        _queries = new DbContextDocumentQueries(_dbContext);
-        _handler = new ApproveDocumentCommandHandler(
-            _uow,
-            _queries,
-            _mockHttpContextAccessor.Object,
-            _mockLogger.Object,
-            _mockLocalizer.Object);
-    }
-
-    public override async ValueTask DisposeAsync()
-    {
-        if (_dbContext is not null)
-            await _dbContext.DisposeAsync();
-        await base.DisposeAsync();
-    }
 
     private void SetupAuthenticatedAdmin()
     {
@@ -74,20 +42,36 @@ public sealed class ApproveDocumentCommandHandlerIntegrationTests : BaseDatabase
     [Fact]
     public async Task HandleAsync_WithValidDocument_ShouldPersistApprovalToDatabase()
     {
+        // Arrange
         SetupAuthenticatedAdmin();
+
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var queries = scope.ServiceProvider.GetRequiredService<IDocumentQueries>();
+        var handler = new ApproveDocumentCommandHandler(
+            uow,
+            queries,
+            _mockHttpContextAccessor.Object,
+            _mockLogger.Object,
+            _mockLocalizer.Object);
+
         var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "id.pdf", "docs/id.pdf");
         document.MarkAsPendingVerification();
 
-        _uow.GetRepository<Document, Guid>().Add(document);
-        await _uow.SaveChangesAsync();
+        uow.GetRepository<Document, Guid>().Add(document);
+        await uow.SaveChangesAsync();
 
         var command = new ApproveDocumentCommand(document.Id.Value, "Notes");
-        var result = await _handler.HandleAsync(command);
 
+        // Act
+        var result = await handler.HandleAsync(command);
+
+        // Assert
         result.IsSuccess.Should().BeTrue();
 
-        _dbContext.ChangeTracker.Clear();
-        var persisted = await _queries.GetByIdAsync(document.Id.Value);
+        dbContext.ChangeTracker.Clear();
+        var persisted = await queries.GetByIdAsync(document.Id.Value);
         persisted!.Status.Should().Be(EDocumentStatus.Verified);
     }
 }

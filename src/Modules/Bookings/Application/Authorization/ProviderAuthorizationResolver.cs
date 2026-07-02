@@ -12,9 +12,6 @@ using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
-[assembly: InternalsVisibleTo("MeAjudaAi.Modules.Bookings.Tests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-
 namespace MeAjudaAi.Modules.Bookings.Application.Authorization;
 
 public sealed class ProviderAuthorizationResolver(

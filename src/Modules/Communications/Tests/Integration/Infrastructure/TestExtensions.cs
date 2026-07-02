@@ -10,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Integration;
+namespace MeAjudaAi.Modules.Communications.Tests.Integration.Infrastructure;
 
-public static class TestInfrastructureExtensions
+public static class TestExtensions
 {
     public static IServiceCollection AddCommunicationsTestInfrastructure(this IServiceCollection services, TestInfrastructureOptions options)
     {

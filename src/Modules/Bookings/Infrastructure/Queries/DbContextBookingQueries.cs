@@ -98,20 +98,6 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        if (_dbContext.Database.ProviderName?.Contains("InMemory") == true)
-        {
-            // EF Core InMemory cannot translate ThenByDescending on TimeOnly.
-            var allItems = await query.ToListAsync(cancellationToken);
-            var items = allItems
-                .OrderByDescending(b => b.Date)
-                .ThenByDescending(b => b.TimeSlot.Start)
-                .ThenBy(b => b.Id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            return (items, totalCount);
-        }
-
         var pagedItems = await query
             .OrderByDescending(b => b.Date)
             .ThenByDescending(b => b.TimeSlot.Start)
@@ -123,4 +109,3 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
         return (pagedItems, totalCount);
     }
 }
-

@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,14 +14,17 @@ public class UpdateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task Update_ExistingTemplate_ShouldCreateNewVersion()
     {
+        // Arrange
         var template = await CreateEmailTemplateAsync();
 
         using var scope = CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<UpdateEmailTemplateCommand, Result>>();
         var command = new UpdateEmailTemplateCommand(template.Id, "Updated Subject", "<p>Updated HTML</p>", "Updated Text", Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
 
         using var verifyScope = CreateScope();
@@ -36,12 +40,15 @@ public class UpdateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task Update_NonExistingTemplate_ShouldReturnNotFound()
     {
+        // Arrange
         using var scope = CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<UpdateEmailTemplateCommand, Result>>();
         var command = new UpdateEmailTemplateCommand(Guid.NewGuid(), "Subject", "<p>HTML</p>", "Text", Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
     }
@@ -49,6 +56,7 @@ public class UpdateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task Update_SystemTemplate_ShouldReturnBadRequest()
     {
+        // Arrange
         using var scope = CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
         var systemTemplate = EmailTemplate.Create("system_test", "System", "<p>System</p>", "System", "pt-BR", null, true);
@@ -59,8 +67,10 @@ public class UpdateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
         var handler = updateScope.ServiceProvider.GetRequiredService<ICommandHandler<UpdateEmailTemplateCommand, Result>>();
         var command = new UpdateEmailTemplateCommand(systemTemplate.Id, "Updated", "<p>Updated</p>", "Updated", Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(400);
     }

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Communications.Application.Commands;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ public class CreateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task Create_WithValidData_ShouldSucceed()
     {
+        // Arrange
         using var scope = CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<CreateEmailTemplateCommand, Result<Guid>>>();
         var command = new CreateEmailTemplateCommand(
@@ -23,8 +25,10 @@ public class CreateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
             "pt-BR",
             Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeEmpty();
 
@@ -38,6 +42,7 @@ public class CreateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
     [Fact]
     public async Task Create_WithDuplicateKey_ShouldSucceed()
     {
+        // Arrange
         var key = $"duplicate_{Guid.NewGuid()}";
 
         using var scope1 = CreateScope();
@@ -48,8 +53,10 @@ public class CreateEmailTemplateCommandHandlerTests : CommunicationsIntegrationT
         var handler2 = scope2.ServiceProvider.GetRequiredService<ICommandHandler<CreateEmailTemplateCommand, Result<Guid>>>();
         var command2 = new CreateEmailTemplateCommand(key, "Subject 2", "<p>HTML 2</p>", "Text 2", false, "en-US", Guid.NewGuid());
 
+        // Act
         var result = await handler2.HandleAsync(command2, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
 
         using var verifyScope = CreateScope();

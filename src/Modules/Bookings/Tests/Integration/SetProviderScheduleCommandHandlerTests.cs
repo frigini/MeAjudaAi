@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Commands;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ public class SetProviderScheduleCommandHandlerTests : BookingsIntegrationTestBas
     [Fact]
     public async Task SetSchedule_NewProvider_ShouldCreateSchedule()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         GetMockProvidersApi().SeedProvider(providerId, Guid.NewGuid());
 
@@ -40,8 +42,10 @@ public class SetProviderScheduleCommandHandlerTests : BookingsIntegrationTestBas
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<SetProviderScheduleCommand, Result>>();
         var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
 
         using var verifyScope = CreateScope();
@@ -54,6 +58,7 @@ public class SetProviderScheduleCommandHandlerTests : BookingsIntegrationTestBas
     [Fact]
     public async Task SetSchedule_NonExistingProvider_ShouldReturnNotFound()
     {
+        // Arrange
         var start = GetNextWeekday(DayOfWeek.Monday, 8);
         var end = GetNextWeekday(DayOfWeek.Monday, 18);
 
@@ -69,8 +74,10 @@ public class SetProviderScheduleCommandHandlerTests : BookingsIntegrationTestBas
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<SetProviderScheduleCommand, Result>>();
         var command = new SetProviderScheduleCommand(Guid.NewGuid(), availabilities, Guid.NewGuid());
 
+        // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
     }
 }

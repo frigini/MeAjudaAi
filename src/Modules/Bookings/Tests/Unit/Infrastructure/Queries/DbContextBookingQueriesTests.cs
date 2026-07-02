@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Queries;
@@ -8,7 +9,7 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Queries;
 [Trait("Category", "Unit")]
 [Trait("Module", "Bookings")]
 [Trait("Layer", "Infrastructure")]
-public class DbContextBookingQueriesTests : BaseInMemoryDatabaseTest<BookingsDbContext>
+public class DbContextBookingQueriesTests : BaseSqliteInMemoryDatabaseTest<BookingsDbContext>
 {
     private readonly DbContextBookingQueries _queries;
 
