@@ -13,6 +13,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 {
     private ServiceProvider? _serviceProvider;
     private static bool _containersStarted;
+    private static Task? _startupTask;
     private static readonly Lock _startupLock = new();
 
     protected IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not initialized");
@@ -76,24 +77,38 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
     private static async Task EnsureContainersStartedAsync()
     {
-        // Double-check locking pattern para garantir thread safety
-        if (_containersStarted) return;
+        Task? taskToAwait = null;
 
         lock (_startupLock)
         {
             if (_containersStarted) return;
+
+            if (_startupTask is not null)
+            {
+                taskToAwait = _startupTask;
+            }
+            else
+            {
+                _startupTask = StartContainersAsync();
+                taskToAwait = _startupTask;
+            }
         }
 
-        Console.WriteLine("Starting shared containers...");
-
-        await SharedTestContainers.StartAllAsync();
+        await taskToAwait!;
 
         lock (_startupLock)
         {
             _containersStarted = true;
         }
 
-        Console.WriteLine("Shared containers started successfully!");
+        return;
+
+        static async Task StartContainersAsync()
+        {
+            Console.WriteLine("Starting shared containers...");
+            await SharedTestContainers.StartAllAsync();
+            Console.WriteLine("Shared containers started successfully!");
+        }
     }
 
     public async ValueTask DisposeAsync()

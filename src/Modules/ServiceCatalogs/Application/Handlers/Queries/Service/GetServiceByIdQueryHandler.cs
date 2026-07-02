@@ -13,7 +13,8 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service
 /// <summary>
 /// Handler para processar a consulta GetServiceByIdQuery, retornando os detalhes de um serviço específico pelo seu ID.
 /// </summary>
-/// <param name="queries"></param>
+/// <param name="queries">Consultas de serviço.</param>
+/// <param name="localizer">Localizador de mensagens.</param>
 public sealed class GetServiceByIdQueryHandler(
     IServiceQueries queries,
     IStringLocalizer<Strings> localizer)

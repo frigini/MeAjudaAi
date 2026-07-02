@@ -35,6 +35,8 @@ public class DocumentsModuleApiTests
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<DocumentsModuleApi>>();
         _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "DocumentNotFoundInModule")])
+            .Returns(new LocalizedString("DocumentNotFoundInModule", "Documento não encontrado."));
 
         _sut = new DocumentsModuleApi(
             _getDocumentByIdHandlerMock.Object,
@@ -781,6 +783,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("Documento não encontrado.");
     }
 
     [Fact]

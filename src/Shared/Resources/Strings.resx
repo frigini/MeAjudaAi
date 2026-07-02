@@ -116,12 +116,36 @@
   <data name="ProviderDocumentNotFound" xml:space="preserve">
     <value>Documento do tipo {0} não encontrado para o provedor {1}.</value>
   </data>
+  <data name="ProviderValidationError" xml:space="preserve">
+    <value>Erro ao validar prestador.</value>
+  </data>
+  <data name="ProviderValidationErrorMessage" xml:space="preserve">
+    <value>Erro ao validar prestador. Tente novamente mais tarde.</value>
+  </data>
+  <data name="ProviderBindingInternalError" xml:space="preserve">
+    <value>Erro interno ao resolver vínculo do prestador.</value>
+  </data>
+  <data name="ProviderIdRequired" xml:space="preserve">
+    <value>O campo ProviderId é obrigatório.</value>
+  </data>
+  <data name="PlanIdRequired" xml:space="preserve">
+    <value>O campo PlanId é obrigatório.</value>
+  </data>
   <!-- ServiceCatalogs -->
   <data name="CategoryIdRequired" xml:space="preserve">
     <value>O ID da categoria é obrigatório.</value>
   </data>
+  <data name="CategoryIdMustBeProvided" xml:space="preserve">
+    <value>O ID da categoria deve ser fornecido.</value>
+  </data>
   <data name="CategoryNotFoundById" xml:space="preserve">
     <value>Categoria com ID '{0}' não encontrada.</value>
+  </data>
+  <data name="ErrorFetchingServiceCategory" xml:space="preserve">
+    <value>Erro ao buscar categoria de serviço.</value>
+  </data>
+  <data name="ErrorFetchingServiceCategories" xml:space="preserve">
+    <value>Erro ao buscar categorias de serviço.</value>
   </data>
   <data name="CategoryActivateError" xml:space="preserve">
     <value>Ocorreu um erro inesperado ao ativar a categoria de serviço.</value>
@@ -164,6 +188,27 @@
   </data>
   <data name="ServiceCategoryChangeError" xml:space="preserve">
     <value>Ocorreu um erro inesperado ao alterar a categoria do serviço.</value>
+  </data>
+  <data name="ServiceIdMustBeProvided" xml:space="preserve">
+    <value>O ID do serviço deve ser fornecido.</value>
+  </data>
+  <data name="ErrorFetchingService" xml:space="preserve">
+    <value>Erro ao buscar serviço.</value>
+  </data>
+  <data name="ErrorFetchingServices" xml:space="preserve">
+    <value>Erro ao buscar serviços.</value>
+  </data>
+  <data name="ErrorFetchingCategoryServices" xml:space="preserve">
+    <value>Erro ao buscar serviços da categoria.</value>
+  </data>
+  <data name="ErrorCheckingServiceStatus" xml:space="preserve">
+    <value>Erro ao verificar status do serviço.</value>
+  </data>
+  <data name="ServiceIdsCollectionRequired" xml:space="preserve">
+    <value>A coleção de IDs de serviços é obrigatória.</value>
+  </data>
+  <data name="ErrorValidatingServices" xml:space="preserve">
+    <value>Erro ao validar serviços.</value>
   </data>
   <!-- Bookings -->
   <data name="BookingStartTimeMustBeFuture" xml:space="preserve">
@@ -211,6 +256,12 @@
   <data name="ProviderScheduleLoadError" xml:space="preserve">
     <value>Não foi possível processar o fuso horário do prestador.</value>
   </data>
+  <data name="BookingAlreadyExistsForTimeSlot" xml:space="preserve">
+    <value>Já existe um agendamento para este horário.</value>
+  </data>
+  <data name="BookingConcurrencyConflict" xml:space="preserve">
+    <value>Conflito de concorrência ao validar agendamento. Tente novamente em instantes.</value>
+  </data>
   <!-- Users -->
   <data name="UserDeleteError" xml:space="preserve">
     <value>Falha ao excluir usuário.</value>
@@ -250,6 +301,15 @@
   </data>
   <data name="UserProfileUpdateError" xml:space="preserve">
     <value>Falha ao atualizar o perfil do usuário devido a um erro inesperado.</value>
+  </data>
+  <data name="UserIdNotFoundOrInvalid" xml:space="preserve">
+    <value>Identificação do usuário não encontrada ou inválida.</value>
+  </data>
+  <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>Acesso não autorizado.</value>
+  </data>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Acesso negado.</value>
   </data>
   <!-- Documents -->
   <data name="DocumentNotFound" xml:space="preserve">
@@ -303,6 +363,15 @@
   <data name="DocumentApproveError" xml:space="preserve">
     <value>Falha ao aprovar o documento. Por favor, tente novamente mais tarde.</value>
   </data>
+  <data name="DocumentNotFoundInModule" xml:space="preserve">
+    <value>Documento não encontrado.</value>
+  </data>
+  <data name="DocumentProcessingUnavailable" xml:space="preserve">
+    <value>Não foi possível processar o documento no momento, tente novamente mais tarde.</value>
+  </data>
+  <data name="DocumentApiError" xml:space="preserve">
+    <value>Erro na API: {0}</value>
+  </data>
   <!-- Ratings -->
   <data name="ReviewNotFound" xml:space="preserve">
     <value>Avaliação não encontrada.</value>
@@ -317,15 +386,6 @@
   <data name="TemplateNotFound" xml:space="preserve">
     <value>Template não encontrado.</value>
   </data>
-  <!-- Locations -->
-  <data name="CityAlreadyRegistered" xml:space="preserve">
-    <value>Cidade '{0}' já cadastrada.</value>
-  </data>
-  <!-- SearchProviders -->
-  <data name="DistanceProviderCountMismatch" xml:space="preserve">
-    <value>As distâncias retornadas não correspondem ao número de prestadores.</value>
-  </data>
-  <!-- Module APIs / Services -->
   <data name="EmailMessageCannotBeNull" xml:space="preserve">
     <value>A mensagem de e-mail não pode ser nula.</value>
   </data>
@@ -362,44 +422,9 @@
   <data name="PushBodyRequired" xml:space="preserve">
     <value>O corpo do push é obrigatório.</value>
   </data>
-  <data name="QueryCannotBeNull" xml:space="preserve">
-    <value>A consulta não pode ser nula.</value>
-  </data>
-  <data name="InvalidPaginationParameters" xml:space="preserve">
-    <value>Parâmetros de paginação inválidos.</value>
-  </data>
-  <data name="CategoryIdMustBeProvided" xml:space="preserve">
-    <value>O ID da categoria deve ser fornecido.</value>
-  </data>
-  <data name="ErrorFetchingServiceCategory" xml:space="preserve">
-    <value>Erro ao buscar categoria de serviço.</value>
-  </data>
-  <data name="ErrorFetchingServiceCategories" xml:space="preserve">
-    <value>Erro ao buscar categorias de serviço.</value>
-  </data>
-  <data name="ServiceIdMustBeProvided" xml:space="preserve">
-    <value>O ID do serviço deve ser fornecido.</value>
-  </data>
-  <data name="ErrorFetchingService" xml:space="preserve">
-    <value>Erro ao buscar serviço.</value>
-  </data>
-  <data name="ErrorFetchingServices" xml:space="preserve">
-    <value>Erro ao buscar serviços.</value>
-  </data>
-  <data name="ErrorFetchingCategoryServices" xml:space="preserve">
-    <value>Erro ao buscar serviços da categoria.</value>
-  </data>
-  <data name="ErrorCheckingServiceStatus" xml:space="preserve">
-    <value>Erro ao verificar status do serviço.</value>
-  </data>
-  <data name="ServiceIdsCollectionRequired" xml:space="preserve">
-    <value>A coleção de IDs de serviços é obrigatória.</value>
-  </data>
-  <data name="ErrorValidatingServices" xml:space="preserve">
-    <value>Erro ao validar serviços.</value>
-  </data>
-  <data name="DocumentNotFoundInModule" xml:space="preserve">
-    <value>Documento não encontrado.</value>
+  <!-- Locations -->
+  <data name="CityAlreadyRegistered" xml:space="preserve">
+    <value>Cidade '{0}' já cadastrada.</value>
   </data>
   <data name="InvalidCep" xml:space="preserve">
     <value>CEP inválido: {0}</value>
@@ -416,65 +441,16 @@
   <data name="ErrorFetchingCityId" xml:space="preserve">
     <value>Erro ao buscar ID da cidade.</value>
   </data>
-  <data name="BookingAlreadyExistsForTimeSlot" xml:space="preserve">
-    <value>Já existe um agendamento para este horário.</value>
+  <!-- SearchProviders -->
+  <data name="DistanceProviderCountMismatch" xml:space="preserve">
+    <value>As distâncias retornadas não correspondem ao número de prestadores.</value>
   </data>
-  <data name="BookingConcurrencyConflict" xml:space="preserve">
-    <value>Conflito de concorrência ao validar agendamento. Tente novamente em instantes.</value>
+  <!-- General -->
+  <data name="QueryCannotBeNull" xml:space="preserve">
+    <value>A consulta não pode ser nula.</value>
   </data>
-  <data name="EmptyRequestBody" xml:space="preserve">
-    <value>Corpo da requisição vazio.</value>
-  </data>
-  <data name="StripeWebhookConfigMissing" xml:space="preserve">
-    <value>Configuração do webhook Stripe ausente.</value>
-  </data>
-  <data name="InvalidWebhookRequest" xml:space="preserve">
-    <value>Requisição de webhook inválida.</value>
-  </data>
-  <data name="MockEventProcessingFailed" xml:space="preserve">
-    <value>Falha ao processar evento mock.</value>
-  </data>
-  <data name="DocumentProcessingUnavailable" xml:space="preserve">
-    <value>Não foi possível processar o documento no momento, tente novamente mais tarde.</value>
-  </data>
-  <data name="DocumentApiError" xml:space="preserve">
-    <value>Erro na API: {0}</value>
-  </data>
-  <data name="UserIdNotFoundOrInvalid" xml:space="preserve">
-    <value>Identificação do usuário não encontrada ou inválida.</value>
-  </data>
-  <data name="UnauthorizedAccess" xml:space="preserve">
-    <value>Acesso não autorizado.</value>
-  </data>
-  <data name="ProviderValidationError" xml:space="preserve">
-    <value>Erro ao validar prestador.</value>
-  </data>
-  <data name="AccessDenied" xml:space="preserve">
-    <value>Acesso negado.</value>
-  </data>
-  <data name="ProviderBindingInternalError" xml:space="preserve">
-    <value>Erro interno ao resolver vínculo do prestador.</value>
-  </data>
-  <data name="ProviderIdRequired" xml:space="preserve">
-    <value>O campo ProviderId é obrigatório.</value>
-  </data>
-  <data name="PlanIdRequired" xml:space="preserve">
-    <value>O campo PlanId é obrigatório.</value>
-  </data>
-  <data name="ProviderValidationErrorMessage" xml:space="preserve">
-    <value>Erro ao validar prestador. Tente novamente mais tarde.</value>
-  </data>
-  <data name="StripeCurrencyFractionalError" xml:space="preserve">
-    <value>Moeda zero-decimal ({0}) não aceita valores fracionários: {1}</value>
-  </data>
-  <data name="StripePlanMismatch" xml:space="preserve">
-    <value>O valor ou moeda do plano não corresponde às informações do provedor de pagamento.</value>
-  </data>
-  <data name="StripeInvalidCheckoutUrl" xml:space="preserve">
-    <value>Provedor de pagamento retornou URL de checkout inválida.</value>
-  </data>
-  <data name="StripeCommunicationFailed" xml:space="preserve">
-    <value>Falha na comunicação com o provedor de pagamento.</value>
+  <data name="InvalidPaginationParameters" xml:space="preserve">
+    <value>Parâmetros de paginação inválidos.</value>
   </data>
   <!-- ServiceCatalogs - Create -->
   <data name="CategoryNameRequired" xml:space="preserve">

@@ -28,15 +28,11 @@ public class ServiceCatalogsModuleApiTests
         _loggerMock = new Mock<ILogger<ServiceCatalogsModuleApi>>();
         _localizerMock = new Mock<IStringLocalizer<Strings>>();
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryIdMustBeProvided")]).Returns(new LocalizedString("CategoryIdMustBeProvided", "O ID da categoria deve ser fornecido."));
-        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryIdRequired")]).Returns(new LocalizedString("CategoryIdRequired", "O ID da categoria é obrigatório."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingServiceCategory")]).Returns(new LocalizedString("ErrorFetchingServiceCategory", "Erro ao buscar categoria de serviço."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingServiceCategories")]).Returns(new LocalizedString("ErrorFetchingServiceCategories", "Erro ao buscar categorias de serviço."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdMustBeProvided")]).Returns(new LocalizedString("ServiceIdMustBeProvided", "O ID do serviço deve ser fornecido."));
-        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdRequired")]).Returns(new LocalizedString("ServiceIdRequired", "O ID do serviço é obrigatório."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingService")]).Returns(new LocalizedString("ErrorFetchingService", "Erro ao buscar serviço."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingServices")]).Returns(new LocalizedString("ErrorFetchingServices", "Erro ao buscar serviços."));
-        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceNotFoundById"), It.IsAny<object[]>()]).Returns((string key, object[] args) => new LocalizedString(key, $"Serviço com ID '{args[0]}' não encontrado."));
-        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryNotFoundById"), It.IsAny<object[]>()]).Returns((string key, object[] args) => new LocalizedString(key, $"Categoria com ID '{args[0]}' não encontrada."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingCategoryServices")]).Returns(new LocalizedString("ErrorFetchingCategoryServices", "Erro ao buscar serviços da categoria."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorCheckingServiceStatus")]).Returns(new LocalizedString("ErrorCheckingServiceStatus", "Erro ao verificar status do serviço."));
         _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceIdsCollectionRequired")]).Returns(new LocalizedString("ServiceIdsCollectionRequired", "A coleção de IDs de serviços é obrigatória."));

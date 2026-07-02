@@ -354,7 +354,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
 
         var content = await duplicateResponse.Content.ReadAsStringAsync();
         
-        // GlobalExceptionHandler deve incluir constraintName e columnName
+        // Verifica mensagem de duplicata em português
         content.Should().Contain("já está em uso", "conflict message should be in Portuguese");
     }
 

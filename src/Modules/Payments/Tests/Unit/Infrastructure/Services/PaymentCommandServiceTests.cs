@@ -34,6 +34,14 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
         _loggerMock = new Mock<ILogger<PaymentCommandService>>();
         _inboxRepositoryMock = new Mock<IRepository<InboxMessage, Guid>>();
         _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "EmptyRequestBody")])
+            .Returns(new LocalizedString("EmptyRequestBody", "Corpo da requisição vazio."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "StripeWebhookConfigMissing")])
+            .Returns(new LocalizedString("StripeWebhookConfigMissing", "Configuração do webhook Stripe ausente."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "InvalidWebhookRequest")])
+            .Returns(new LocalizedString("InvalidWebhookRequest", "Requisição de webhook inválida."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "MockEventProcessingFailed")])
+            .Returns(new LocalizedString("MockEventProcessingFailed", "Falha ao processar evento mock."));
         _envRestorer = new EnvironmentVariableRestorer();
 
         _configurationMock.Setup(x => x["Stripe:WebhookSecret"]).Returns("whsec_test_secret");

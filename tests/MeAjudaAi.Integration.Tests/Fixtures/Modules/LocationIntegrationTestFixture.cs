@@ -1,10 +1,12 @@
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -34,7 +36,9 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cache:Enabled"] = "false",
-                ["Caching:Enabled"] = "false"
+                ["Caching:Enabled"] = "false",
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=locations_test",
+                ["ConnectionStrings:Locations"] = "Host=localhost;Database=locations_test"
             })
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
@@ -56,6 +60,20 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
 
         // Adiciona serialização (ISerializer keyed services) - necessário para ViaCepClient, NominatimClient, etc.
         services.AddCustomSerialization();
+
+        // Adiciona localização (necessário para IStringLocalizer<Strings> nos ModuleApis)
+        var localizerMock = new Mock<IStringLocalizer<Strings>>();
+        localizerMock.Setup(x => x[It.Is<string>(s => s == "InvalidCep"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"CEP inválido: {args[0]}"));
+        localizerMock.Setup(x => x[It.Is<string>(s => s == "CepNotFound"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"CEP {args[0]} não encontrado."));
+        localizerMock.Setup(x => x[It.Is<string>(s => s == "AddressCannotBeEmpty")])
+            .Returns(new LocalizedString("AddressCannotBeEmpty", "Endereço não pode ser vazio."));
+        localizerMock.Setup(x => x[It.Is<string>(s => s == "CoordinatesNotFoundForAddress"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Coordenadas não encontradas para o endereço: {args[0]}"));
+        localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingCityId")])
+            .Returns(new LocalizedString("ErrorFetchingCityId", "Erro ao buscar ID da cidade."));
+        services.AddSingleton<IStringLocalizer<Strings>>(localizerMock.Object);
 
         // Adiciona serviços do módulo Locations PRIMEIRO
         MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration, environment);

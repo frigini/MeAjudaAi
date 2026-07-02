@@ -20,6 +20,7 @@ internal class AzureDocumentIntelligenceService(
     private readonly DocumentIntelligenceClient _client = client ?? throw new ArgumentNullException(nameof(client));
     private readonly ILogger<AzureDocumentIntelligenceService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly ISerializer _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+    private readonly IStringLocalizer<Strings> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     public async Task<OcrResult> AnalyzeDocumentAsync(
         string blobUrl,
@@ -109,7 +110,7 @@ internal class AzureDocumentIntelligenceService(
                 ExtractedData: null,
                 Fields: null,
                 Confidence: null,
-                ErrorMessage: localizer["DocumentApiError", ex.Message]);
+                ErrorMessage: _localizer["DocumentApiError", ex.Message]);
         }
         catch (Exception ex)
         {
@@ -119,7 +120,7 @@ internal class AzureDocumentIntelligenceService(
                 ExtractedData: null,
                 Fields: null,
                 Confidence: null,
-                ErrorMessage: ex.Message);
+                ErrorMessage: _localizer["DocumentApiError", ex.Message]);
         }
     }
 }

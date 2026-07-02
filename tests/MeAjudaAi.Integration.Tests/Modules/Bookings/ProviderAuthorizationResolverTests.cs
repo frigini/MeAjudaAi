@@ -7,7 +7,9 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.Localization;
 using Moq;
 using Microsoft.Extensions.Configuration;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
@@ -59,6 +61,12 @@ public class ProviderAuthorizationResolverTests : BaseApiTest
         services.AddSingleton<IMeterFactory>(new Mock<IMeterFactory>().Object);
         services.AddSingleton<ICacheMetrics, MockCacheMetrics>();
         services.AddSingleton<ICacheService>(sp => ActivatorUtilities.CreateInstance<HybridCacheService>(sp));
+        var localizerMock = new Mock<IStringLocalizer<Strings>>();
+        localizerMock.Setup(x => x[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        localizerMock.Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, key));
+        services.AddSingleton<IStringLocalizer<Strings>>(localizerMock.Object);
         services.AddSingleton(_providersApiMock.Object);
         services.AddSingleton<ProviderAuthorizationResolver>();
 

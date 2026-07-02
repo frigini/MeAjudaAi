@@ -236,4 +236,15 @@ public class AzureDocumentIntelligenceServiceTests
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("serializer");
     }
+
+    [Fact]
+    public void Constructor_WhenLocalizerIsNull_ShouldThrowArgumentNullException()
+    {
+        // Act
+        var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, _mockLogger.Object, _mockSerializer.Object, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("localizer");
+    }
 }
