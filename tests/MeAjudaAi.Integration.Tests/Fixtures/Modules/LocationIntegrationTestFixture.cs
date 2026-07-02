@@ -1,12 +1,11 @@
 using MeAjudaAi.Shared.Caching;
-using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -62,18 +61,14 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         services.AddCustomSerialization();
 
         // Adiciona localização (necessário para IStringLocalizer<Strings> nos ModuleApis)
-        var localizerMock = new Mock<IStringLocalizer<Strings>>();
-        localizerMock.Setup(x => x[It.Is<string>(s => s == "InvalidCep"), It.IsAny<object[]>()])
-            .Returns((string key, object[] args) => new LocalizedString(key, $"CEP inválido: {args[0]}"));
-        localizerMock.Setup(x => x[It.Is<string>(s => s == "CepNotFound"), It.IsAny<object[]>()])
-            .Returns((string key, object[] args) => new LocalizedString(key, $"CEP {args[0]} não encontrado."));
-        localizerMock.Setup(x => x[It.Is<string>(s => s == "AddressCannotBeEmpty")])
-            .Returns(new LocalizedString("AddressCannotBeEmpty", "Endereço não pode ser vazio."));
-        localizerMock.Setup(x => x[It.Is<string>(s => s == "CoordinatesNotFoundForAddress"), It.IsAny<object[]>()])
-            .Returns((string key, object[] args) => new LocalizedString(key, $"Coordenadas não encontradas para o endereço: {args[0]}"));
-        localizerMock.Setup(x => x[It.Is<string>(s => s == "ErrorFetchingCityId")])
-            .Returns(new LocalizedString("ErrorFetchingCityId", "Erro ao buscar ID da cidade."));
-        services.AddSingleton<IStringLocalizer<Strings>>(localizerMock.Object);
+        var localizerMock = MockLocalizerBuilder.Create()
+            .WithFormattedKey("InvalidCep", (key, args) => $"CEP inválido: {args[0]}")
+            .WithFormattedKey("CepNotFound", (key, args) => $"CEP {args[0]} não encontrado.")
+            .WithSimpleKey("AddressCannotBeEmpty", "Endereço não pode ser vazio.")
+            .WithFormattedKey("CoordinatesNotFoundForAddress", (key, args) => $"Coordenadas não encontradas para o endereço: {args[0]}")
+            .WithSimpleKey("ErrorFetchingCityId", "Erro ao buscar ID da cidade.")
+            .Build();
+        services.AddSingleton(localizerMock.Object);
 
         // Adiciona serviços do módulo Locations PRIMEIRO
         MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration, environment);
