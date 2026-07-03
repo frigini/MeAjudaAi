@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Communications.Domain.Entities;
+using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
@@ -60,5 +61,37 @@ public abstract class CommunicationsIntegrationTestBase : BaseIntegrationTest
         context.EmailTemplates.Add(template);
         await context.SaveChangesAsync(cancellationToken);
         return template;
+    }
+
+    protected async Task<CommunicationLog> CreateCommunicationLogAsync(
+        string? correlationId = null,
+        ECommunicationChannel channel = ECommunicationChannel.Email,
+        string? recipient = null,
+        bool isSuccess = true,
+        string? templateKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        var log = isSuccess
+            ? CommunicationLog.CreateSuccess(
+                correlationId ?? $"corr_{Guid.NewGuid():N}",
+                channel,
+                recipient ?? "test@example.com",
+                1,
+                null,
+                templateKey)
+            : CommunicationLog.CreateFailure(
+                correlationId ?? $"corr_{Guid.NewGuid():N}",
+                channel,
+                recipient ?? "test@example.com",
+                "Test error",
+                1,
+                null,
+                templateKey);
+
+        using var scope = CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+        context.CommunicationLogs.Add(log);
+        await context.SaveChangesAsync(cancellationToken);
+        return log;
     }
 }

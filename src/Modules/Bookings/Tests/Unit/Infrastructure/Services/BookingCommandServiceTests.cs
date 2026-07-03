@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
 using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Localization;
@@ -18,11 +19,15 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Services;
 public class BookingCommandServiceTests : BaseSqliteInMemoryDatabaseTest<BookingsDbContext>
 {
     private readonly Mock<ILogger<BookingCommandService>> _loggerMock = new();
-    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly BookingCommandService _service;
 
     public BookingCommandServiceTests() : base(options => new BookingsDbContext(options))
     {
+        _localizerMock = MockLocalizerBuilder.Create()
+            .WithSimpleKey("BookingAlreadyExistsForTimeSlot", "Já existe agendamento para este horário.")
+            .WithSimpleKey("BookingConcurrencyConflict", "Conflito de concorrência ao salvar agendamento.")
+            .Build();
         _service = new BookingCommandService(DbContext, _loggerMock.Object, _localizerMock.Object);
     }
 
@@ -78,6 +83,7 @@ public class BookingCommandServiceTests : BaseSqliteInMemoryDatabaseTest<Booking
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Code.Should().Be(ErrorCodes.Bookings.Overlap);
+        result.Error.Message.Should().Be("Já existe agendamento para este horário.");
         (await DbContext.Bookings.AnyAsync(b => b.Id == newBooking.Id)).Should().BeFalse();
     }
 
@@ -192,5 +198,38 @@ public class BookingCommandServiceTests : BaseSqliteInMemoryDatabaseTest<Booking
         // Act & Assert
         Func<Task> act = () => serviceWithError.AddIfNoOverlapAsync(booking);
         await act.Should().ThrowAsync<PostgresException>();
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_Should_Fail_WithLocalizedMessage_OnConcurrencyConflict()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = new BookingBuilder()
+            .WithProviderId(providerId)
+            .WithClientId(Guid.NewGuid())
+            .WithServiceId(Guid.NewGuid())
+            .WithDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
+            .WithTimeSlot(new TimeSlotBuilder().WithStart(new TimeOnly(8, 0)).WithEnd(new TimeOnly(10, 0)).Build())
+            .Build();
+
+        var options = new DbContextOptionsBuilder<BookingsDbContext>()
+            .UseInMemoryDatabase("ErrorTest_" + Guid.NewGuid())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+        var mockContext = new Mock<BookingsDbContext>(options) { CallBase = true };
+
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new PostgresException("Unique violation", "Error", "23505", null!));
+
+        var serviceWithError = new BookingCommandService(mockContext.Object, _loggerMock.Object, _localizerMock.Object);
+
+        // Act
+        var result = await serviceWithError.AddIfNoOverlapAsync(booking);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be(ErrorCodes.Bookings.ConcurrencyConflict);
+        result.Error.Message.Should().Be("Conflito de concorrência ao salvar agendamento.");
     }
 }
