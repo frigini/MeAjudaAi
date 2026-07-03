@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
@@ -23,43 +24,33 @@ public static class MigrationDiscoveryExtensions
 
         foreach (var contextType in dbContextTypes)
         {
-            try
+            if (serviceProvider.GetService(contextType) is not DbContext context)
+                continue;
+
+            context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+            const int maxRetries = 5;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                if (serviceProvider.GetService(contextType) is DbContext context)
+                try
                 {
-                    // Configura warnings para permitir aplicação de migrações em testes
-                    context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
-
-                    // ALWAYS use migrations, never EnsureCreated
-                    try
-                    {
-                        await context.Database.MigrateAsync(cancellationToken);
-                        Console.WriteLine($"✅ Applied migrations for {contextType.Name}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"⚠️ Failed to apply migrations for {contextType.Name}: {ex.Message}");
-
-                        // Try to delete and recreate with migrations
-                        try
-                        {
-                            await context.Database.EnsureDeletedAsync(cancellationToken);
-                            await context.Database.MigrateAsync(cancellationToken);
-                            Console.WriteLine($"✅ Recreated and migrated {contextType.Name}");
-                        }
-                        catch (Exception ex2)
-                        {
-                            Console.WriteLine($"❌ Complete failure for {contextType.Name}: {ex2.Message}");
-                            // Don't use EnsureCreated anymore - fail early to identify migration issues
-                            throw;
-                        }
-                    }
+                    await context.Database.MigrateAsync(cancellationToken);
+                    Console.WriteLine($"[Migrations] Applied migrations for {contextType.Name} (attempt {attempt})");
+                    break;
                 }
-            }
-            catch (Exception)
-            {
-                // Continua com outros contextos em caso de falha
-                // Log suprimido para evitar ruído em testes
+                catch (Exception ex) when (
+                    ex is PostgresException pgEx &&
+                    (pgEx.SqlState == "23505" || pgEx.SqlState == "42P01") &&
+                    attempt < maxRetries)
+                {
+                    Console.WriteLine($"[Migrations] Race condition for {contextType.Name} (attempt {attempt}/{maxRetries}): {pgEx.Message}. Retrying...");
+                    await Task.Delay(100 * attempt, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Migrations] Failed to apply migrations for {contextType.Name}: {ex.GetType().Name}: {ex.Message}");
+                    throw;
+                }
             }
         }
     }
@@ -139,9 +130,9 @@ public static class MigrationDiscoveryExtensions
                     await context.Database.MigrateAsync(cancellationToken);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Falha silenciosa para evitar ruído em testes
+                Console.WriteLine($"[Migrations] EnsureAllDatabasesCreatedAsync FAILED for {contextType.Name}: {ex.GetType().Name}: {ex.Message}");
             }
         }
     }

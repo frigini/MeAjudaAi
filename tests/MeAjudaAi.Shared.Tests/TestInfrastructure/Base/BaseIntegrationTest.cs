@@ -33,9 +33,11 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
     /// </summary>
     protected virtual Task OnModuleInitializeAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
 
+    private static void LogToFile(string message) { }
+
     public async ValueTask InitializeAsync()
     {
-        // CRÍTICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços
+        // CRITICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços
         await EnsureContainersStartedAsync();
 
         // Configura serviços para este teste específico
@@ -105,9 +107,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
         static async Task StartContainersAsync()
         {
-            Console.WriteLine("Starting shared containers...");
             await SharedTestContainers.StartAllAsync();
-            Console.WriteLine("Shared containers started successfully!");
         }
     }
 

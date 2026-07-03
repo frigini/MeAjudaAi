@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Integration.Handlers.Queries;
 
+[Collection("BookingsIntegrationTests")]
 public class GetProviderAvailabilityQueryHandlerTests : BookingsIntegrationTestBase
 {
     [Fact]

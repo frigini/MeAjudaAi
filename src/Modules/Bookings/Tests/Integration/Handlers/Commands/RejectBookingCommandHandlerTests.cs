@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Integration.Handlers.Commands;
 
+[Collection("BookingsIntegrationTests")]
 public class RejectBookingCommandHandlerTests : BookingsIntegrationTestBase
 {
     [Fact]

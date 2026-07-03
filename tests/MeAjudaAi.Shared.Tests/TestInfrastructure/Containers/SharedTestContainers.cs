@@ -116,9 +116,15 @@ public static class SharedTestContainers
     /// <summary>
     /// Valida se o container PostgreSQL está saudável e pronto para conexões
     /// </summary>
+    private static void LogToFile(string message) { }
+
     private static async Task ValidateContainerHealthAsync()
     {
-        if (_postgreSqlContainer == null) return;
+        if (_postgreSqlContainer == null)
+        {
+            LogToFile("ValidateContainerHealthAsync: _postgreSqlContainer is null, returning");
+            return;
+        }
 
         const int maxRetries = 30;
         const int delayMs = 1000;
@@ -127,16 +133,30 @@ public static class SharedTestContainers
         {
             try
             {
-                // Tenta obter connection string para verificar se as portas estão mapeadas
                 var connectionString = _postgreSqlContainer.GetConnectionString();
+                LogToFile($"Attempt {i + 1}/{maxRetries}: connecting to {connectionString}");
 
-                // Se conseguiu obter, o container está pronto
-                Console.WriteLine($"Container PostgreSQL ready! Connection: {connectionString}");
+                await using (var connection = new Npgsql.NpgsqlConnection(connectionString))
+                {
+                    await connection.OpenAsync();
+                }
+
+                LogToFile($"Container PostgreSQL ready! Connection: {connectionString}");
                 return;
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "3D000")
+            {
+                LogToFile($"Database not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("not mapped"))
             {
-                Console.WriteLine($"Container not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                LogToFile($"Container not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+            catch (Exception ex)
+            {
+                LogToFile($"Health check error (attempt {i + 1}/{maxRetries}): {ex.GetType().Name}: {ex.Message}");
                 await Task.Delay(delayMs);
             }
         }
@@ -170,6 +190,8 @@ public static class SharedTestContainers
     {
         if (!_isInitialized || _postgreSqlContainer == null) return;
 
+        LogToFile($"CleanupDataAsync: called with schema={schema ?? "null"}, _databaseOptions.DatabaseName={_databaseOptions?.DatabaseName}");
+
         // Verifica se o container foi iniciado antes de tentar executar comandos
         try
         {
@@ -184,10 +206,22 @@ public static class SharedTestContainers
         _databaseOptions ??= GetDefaultDatabaseOptions();
 
         var schemaToClean = schema ?? _databaseOptions.Schema ?? "public";
+
+        // TRUNCATE preserva o schema e __EFMigrationsHistory, evitando race conditions com migrações paralelas
         await _postgreSqlContainer.ExecAsync(
         [
             "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-c",
-            $"DROP SCHEMA IF EXISTS {schemaToClean} CASCADE; CREATE SCHEMA {schemaToClean};"
+            $"""
+            DO $$
+            DECLARE
+                r RECORD;
+            BEGIN
+                FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = '{schemaToClean}' AND tablename <> '__EFMigrationsHistory'
+                LOOP
+                    EXECUTE 'TRUNCATE TABLE {schemaToClean}.' || quote_ident(r.tablename) || ' CASCADE';
+                END LOOP;
+            END $$;
+            """
         ]);
     }
 

@@ -13,12 +13,14 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Providers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -42,8 +44,16 @@ public static class BookingsTestInfrastructureExtensions
 
         services.AddDbContext<BookingsDbContext>(dbOptions =>
         {
-            dbOptions.UseInMemoryDatabase(options.Database.DatabaseName)
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            var connection = SharedTestContainers.PostgreSql.GetConnectionString();
+            dbOptions.UseNpgsql(connection, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(BookingsDbContext).Assembly.FullName);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
+            }).ConfigureWarnings(x =>
+            {
+                x.Ignore(InMemoryEventId.TransactionIgnoredWarning);
+                x.Ignore(RelationalEventId.PendingModelChangesWarning);
+            });
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<BookingsDbContext>());

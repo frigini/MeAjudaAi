@@ -1,19 +1,23 @@
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
+using MeAjudaAi.Modules.Bookings.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Queries;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "Bookings")]
 [Trait("Layer", "Infrastructure")]
-public class DbContextProviderScheduleQueriesTests : BaseInMemoryDatabaseTest<BookingsDbContext>
+[Collection("BookingsIntegrationTests")]
+public class DbContextProviderScheduleQueriesTests : BookingsIntegrationTestBase
 {
-    private readonly DbContextProviderScheduleQueries _queries;
+    private DbContextProviderScheduleQueries _queries = null!;
 
-    public DbContextProviderScheduleQueriesTests() : base(options => new BookingsDbContext(options))
+    protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
-        _queries = new DbContextProviderScheduleQueries(DbContext);
+        await base.OnModuleInitializeAsync(serviceProvider);
+        _queries = new DbContextProviderScheduleQueries(serviceProvider.GetRequiredService<BookingsDbContext>());
     }
 
     [Fact]
@@ -24,8 +28,12 @@ public class DbContextProviderScheduleQueriesTests : BaseInMemoryDatabaseTest<Bo
         var schedule = new ProviderScheduleBuilder()
             .WithProviderId(providerId)
             .Build();
-        DbContext.ProviderSchedules.Add(schedule);
-        await DbContext.SaveChangesAsync();
+        using (var scope = CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+            context.ProviderSchedules.Add(schedule);
+            await context.SaveChangesAsync();
+        }
 
         // Act
         var result = await _queries.GetByProviderIdAsync(providerId);
