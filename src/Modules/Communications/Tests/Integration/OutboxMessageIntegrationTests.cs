@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.Communications.Tests.Integration;
 
 [Collection("CommunicationsIntegrationTests")]
 public class OutboxMessageIntegrationTests : CommunicationsIntegrationTestBase

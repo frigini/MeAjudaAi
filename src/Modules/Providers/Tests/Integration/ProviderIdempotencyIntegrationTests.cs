@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Providers.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Database.Idempotency;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.Providers.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 [Collection("ProvidersIntegrationTests")]
 public class ProviderIdempotencyIntegrationTests : ProvidersIntegrationTestBase

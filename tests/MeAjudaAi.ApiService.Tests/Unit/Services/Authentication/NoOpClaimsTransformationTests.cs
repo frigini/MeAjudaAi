@@ -1,8 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Services.Authentication;
 using System.Security.Claims;
 
-namespace MeAjudaAi.ApiService.Tests.Unit.Security;
+namespace MeAjudaAi.ApiService.Tests.Unit.Services.Authentication;
 
 [Trait("Category", "Unit")]
 [Trait("Layer", "ApiService")]
@@ -63,4 +62,3 @@ public class NoOpClaimsTransformationTests
         result.Claims.Should().BeEmpty();
     }
 }
-

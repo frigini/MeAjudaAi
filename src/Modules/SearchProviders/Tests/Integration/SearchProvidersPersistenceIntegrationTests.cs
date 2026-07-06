@@ -10,7 +10,7 @@ using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 [Trait("Category", "Integration")]
 [Trait("Module", "SearchProviders")]

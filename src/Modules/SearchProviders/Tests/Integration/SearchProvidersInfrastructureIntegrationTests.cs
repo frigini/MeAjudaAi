@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 /// <summary>
 /// Testes de integração para a infraestrutura de SearchProviders - casos extremos e condições de contorno.

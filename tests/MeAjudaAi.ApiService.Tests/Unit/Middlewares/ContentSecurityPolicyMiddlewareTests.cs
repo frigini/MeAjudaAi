@@ -1,10 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 

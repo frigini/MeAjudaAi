@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.Locations.Tests.Integration;
 
 [Collection("LocationsIntegrationTests")]
 public class AllowedCityILikeIntegrationTests : LocationsIntegrationTestBase

@@ -1,11 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Endpoints.Models;
 using MeAjudaAi.ApiService.Services.Orchestration;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using Moq;
 
-namespace MeAjudaAi.ApiService.Tests.Unit.Services;
+namespace MeAjudaAi.ApiService.Tests.Unit.Services.Orchestration;
 
 public class CspReportServiceTests
 {
@@ -23,8 +21,13 @@ public class CspReportServiceTests
     [Fact]
     public void ProcessReport_WithEmptyJson_ShouldReturnFailure()
     {
-        var result = _service.ProcessReport("");
+        // Arrange
+        var json = "";
 
+        // Act
+        var result = _service.ProcessReport(json);
+
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
     }
@@ -32,20 +35,28 @@ public class CspReportServiceTests
     [Fact]
     public void ProcessReport_WithWhitespaceJson_ShouldReturnFailure()
     {
-        var result = _service.ProcessReport("   ");
+        // Arrange
+        var json = "   ";
 
+        // Act
+        var result = _service.ProcessReport(json);
+
+        // Assert
         result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
     public void ProcessReport_WhenDeserializerThrowsException_ShouldReturnFailure()
     {
+        // Arrange
         _serializerMock
             .Setup(s => s.Deserialize<CspViolationReport>(It.IsAny<string>()))
             .Throws(new System.Text.Json.JsonException("Deserializer failed"));
 
+        // Act
         var result = _service.ProcessReport("{ invalid json }");
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Be("Invalid CSP report");
     }
@@ -53,6 +64,7 @@ public class CspReportServiceTests
     [Fact]
     public void ProcessReport_WithValidJson_ShouldReturnSuccess()
     {
+        // Arrange
         var cspReport = new CspViolationReport
         {
             CspReport = new CspReportDetails
@@ -77,20 +89,25 @@ public class CspReportServiceTests
             }
             """;
 
+        // Act
         var result = _service.ProcessReport(json);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
     public void ProcessReport_WithNullCspReport_ShouldReturnSuccess()
     {
+        // Arrange
         _serializerMock
             .Setup(s => s.Deserialize<CspViolationReport>(It.IsAny<string>()))
             .Returns(new CspViolationReport { CspReport = null });
 
+        // Act
         var result = _service.ProcessReport("{}");
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
     }
 }

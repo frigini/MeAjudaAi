@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
-namespace MeAjudaAi.Modules.Payments.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.Payments.Tests.Integration;
 
 [Collection("PaymentsIntegrationTests")]
 public class PaymentConstraintIntegrationTests : PaymentsIntegrationTestBase

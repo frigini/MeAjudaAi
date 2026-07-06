@@ -1,18 +1,15 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Services.Orchestration;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.Extensions.Logging;
-using Moq;
 
-namespace MeAjudaAi.ApiService.Tests.Unit.Services;
+namespace MeAjudaAi.ApiService.Tests.Unit.Services.Orchestration;
 
 public class ProviderRegistrationOrchestratorTests
 {
@@ -30,10 +27,13 @@ public class ProviderRegistrationOrchestratorTests
     [Fact]
     public async Task RegisterProviderAsync_WithTermsNotAccepted_ShouldReturnFailure()
     {
+        // Arrange
         var request = CreateRequest(acceptedTerms: false, acceptedPrivacyPolicy: true);
 
+        // Act
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("Termos");
     }
@@ -41,10 +41,13 @@ public class ProviderRegistrationOrchestratorTests
     [Fact]
     public async Task RegisterProviderAsync_WithPrivacyPolicyNotAccepted_ShouldReturnFailure()
     {
+        // Arrange
         var request = CreateRequest(acceptedTerms: true, acceptedPrivacyPolicy: false);
 
+        // Act
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("Privacidade");
     }
@@ -52,11 +55,14 @@ public class ProviderRegistrationOrchestratorTests
     [Fact]
     public async Task RegisterProviderAsync_WhenUserCreationFails_ShouldReturnFailure()
     {
+        // Arrange
         var request = CreateRequest();
         SetupUserCreationFailure();
 
+        // Act
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("erro ao registrar o usuário");
     }
@@ -64,14 +70,17 @@ public class ProviderRegistrationOrchestratorTests
     [Fact]
     public async Task RegisterProviderAsync_WhenProviderCreationFails_ShouldCompensateAndReturnFailure()
     {
+        // Arrange
         var request = CreateRequest();
         var userDto = CreateUserDto(Guid.NewGuid());
         SetupUserCreationSuccess(userDto);
         SetupProviderCreationFailure();
         SetupDeleteUserCommandFailure();
 
+        // Act
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Contain("erro ao registrar o provedor");
     }
@@ -79,14 +88,17 @@ public class ProviderRegistrationOrchestratorTests
     [Fact]
     public async Task RegisterProviderAsync_WhenBothSucceed_ShouldReturnProviderDto()
     {
+        // Arrange
         var request = CreateRequest();
         var userDto = CreateUserDto(Guid.NewGuid());
         var providerDto = CreateProviderDto(Guid.NewGuid(), userDto.Id);
         SetupUserCreationSuccess(userDto);
         SetupProviderCreationSuccess(providerDto);
 
+        // Act
         var result = await _orchestrator.RegisterProviderAsync(request, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Id.Should().Be(providerDto.Id);
     }

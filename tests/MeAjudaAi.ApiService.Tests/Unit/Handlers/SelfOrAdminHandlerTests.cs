@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Handlers;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;

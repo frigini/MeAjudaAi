@@ -1,11 +1,13 @@
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Services.HostedServices;
 
 /// <summary>
 /// Hosted service para logar a configuração do Keycloak durante a inicialização da aplicação
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class KeycloakConfigurationLogger(
     IOptions<KeycloakOptions> keycloakOptions,
     ILogger<KeycloakConfigurationLogger> logger) : IHostedService

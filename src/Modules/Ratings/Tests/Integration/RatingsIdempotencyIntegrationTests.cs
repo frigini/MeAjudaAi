@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Ratings.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Database.Idempotency;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.Ratings.Tests.Integration.ContextQueries;
+namespace MeAjudaAi.Modules.Ratings.Tests.Integration;
 
 [Collection("RatingsIntegrationTests")]
 public class RatingsIdempotencyIntegrationTests : RatingsIntegrationTestBase
