@@ -9,7 +9,7 @@ using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using System.Reflection;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Contracts;
 
 public class ModuleApiArchitectureTests
 {

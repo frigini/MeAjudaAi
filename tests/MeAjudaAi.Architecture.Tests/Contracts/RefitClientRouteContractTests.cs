@@ -2,7 +2,7 @@ using MeAjudaAi.Client.Contracts.Api;
 using Refit;
 using System.Reflection;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Contracts;
 
 public class RefitClientRouteContractTests
 {
@@ -18,8 +18,10 @@ public class RefitClientRouteContractTests
     [MemberData(nameof(AllRefitClientInterfaces))]
     public void AllRefitClients_Routes_ShouldBeVersioned(Type apiType)
     {
+        // Arrange
         var methods = apiType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
+        // Act & Assert
         methods.Should().NotBeEmpty(because: $"{apiType.Name} should have at least one API method");
 
         foreach (var method in methods)
@@ -33,13 +35,16 @@ public class RefitClientRouteContractTests
     [Fact]
     public void IPaymentsApi_CreateSubscriptionAsync_ShouldHaveIdempotencyKeyHeader()
     {
+        // Arrange
         var method = typeof(IPaymentsApi).GetMethod(nameof(IPaymentsApi.CreateSubscriptionAsync));
-        method.Should().NotBeNull();
 
+        // Act
         var idempotencyParam = method!.GetParameters().FirstOrDefault(p => p.Name == "idempotencyKey");
-        idempotencyParam.Should().NotBeNull(because: "idempotencyKey parameter should exist");
-
         var headerAttr = idempotencyParam!.GetCustomAttribute<Refit.HeaderAttribute>();
+
+        // Assert
+        method.Should().NotBeNull();
+        idempotencyParam.Should().NotBeNull(because: "idempotencyKey parameter should exist");
         headerAttr.Should().NotBeNull(because: "idempotencyKey parameter should have [Header] attribute");
     }
 
@@ -47,8 +52,10 @@ public class RefitClientRouteContractTests
     [MemberData(nameof(AllRefitClientInterfaces))]
     public void AllRefitClients_BodyDTOs_ShouldComeFromContractsNamespace(Type apiType)
     {
+        // Arrange
         var methods = apiType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
+        // Act & Assert
         foreach (var method in methods)
         {
             var bodyParams = method.GetParameters().Where(p => p.GetCustomAttribute<BodyAttribute>() != null);

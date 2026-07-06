@@ -2,7 +2,7 @@ using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Architecture.Tests.Helpers.Models;
 using System.Reflection;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Conventions;
 
 /// <summary>
 /// Testes de convenção de nomes para garantir consistência em toda a solução
@@ -20,8 +20,10 @@ public class NamingConventionTests
     [Fact]
     public void Domain_Events_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var domainAssembly in AllDomainAssemblies)
         {
             var result = Types.InAssembly(domainAssembly)
@@ -42,6 +44,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Os eventos de domínio devem terminar com 'DomainEvent'. " +
             "Violations: {0}",
@@ -51,6 +54,7 @@ public class NamingConventionTests
     [Fact]
     public void Integration_Events_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var result = Types.InAssembly(SharedAssembly)
             .That()
             .ResideInNamespaceContaining(".Messages")
@@ -60,6 +64,7 @@ public class NamingConventionTests
             .HaveNameEndingWith("IntegrationEvent")
             .GetResult();
 
+        // Assert
         result.IsSuccessful.Should().BeTrue(
             "Os eventos de integração devem terminar com 'IntegrationEvent'. " +
             "Violations: {0}",
@@ -69,8 +74,10 @@ public class NamingConventionTests
     [Fact]
     public void Application_Commands_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var applicationAssembly in AllApplicationAssemblies)
         {
             var result = Types.InAssembly(applicationAssembly)
@@ -91,6 +98,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Os comandos devem terminar com 'Command'. " +
             "Violations: {0}",
@@ -100,8 +108,10 @@ public class NamingConventionTests
     [Fact]
     public void Application_Queries_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var applicationAssembly in AllApplicationAssemblies)
         {
             var result = Types.InAssembly(applicationAssembly)
@@ -122,6 +132,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "As consultas devem terminar com 'Query'. " +
             "Violations: {0}",
@@ -131,8 +142,10 @@ public class NamingConventionTests
     [Fact]
     public void Infrastructure_Repositories_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var infrastructureAssembly in AllInfrastructureAssemblies)
         {
             var result = Types.InAssembly(infrastructureAssembly)
@@ -153,6 +166,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "As implementações do repositório devem terminar com 'Repository'. " +
             "Violations: {0}",
@@ -162,8 +176,10 @@ public class NamingConventionTests
     [Fact]
     public void Domain_Interfaces_ShouldStartWithI()
     {
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var domainAssembly in AllDomainAssemblies)
         {
             var result = Types.InAssembly(domainAssembly)
@@ -182,6 +198,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "As interfaces devem começar com 'I'. " +
             "Violations: {0}",
@@ -191,9 +208,11 @@ public class NamingConventionTests
     [Fact]
     public void Value_Objects_ShouldNotHaveIdSuffix()
     {
+        // Arrange
         var failures = new List<string>();
         var allowedIdTypes = new[] { "UserId", "Email", "DocumentId", "ProviderId", "ReviewId", "SearchableProviderId", "ServiceCategoryId", "ServiceId" };
 
+        // Act
         foreach (var domainAssembly in AllDomainAssemblies)
         {
             var result = Types.InAssembly(domainAssembly)
@@ -208,7 +227,6 @@ public class NamingConventionTests
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.DomainAssembly == domainAssembly)?.Name ?? "Unknown";
 
-                // Permite tipos de ID específicos como UserId, Email, etc.
                 var actualViolations = result.FailingTypes?
                     .Where(t => !allowedIdTypes.Contains(t.Name))
                     .Select(t => $"{moduleName}: {t.FullName}")
@@ -218,6 +236,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Os objetos de valor não devem terminar com 'Id' (exceto tipos de ID específicos). " +
             "Violations: {0}",
@@ -227,8 +246,10 @@ public class NamingConventionTests
     [Fact]
     public void API_Controllers_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var apiAssembly in AllApiAssemblies)
         {
             var result = Types.InAssembly(apiAssembly)
@@ -247,6 +268,7 @@ public class NamingConventionTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Os controladores devem terminar com 'Controller'. " +
             "Violations: {0}",
@@ -256,12 +278,14 @@ public class NamingConventionTests
     [Fact]
     public void Exception_Classes_ShouldHaveCorrectSuffix()
     {
+        // Arrange
         var allAssemblies = AllDomainAssemblies
             .Concat(AllApplicationAssemblies)
             .Concat(AllInfrastructureAssemblies)
             .Append(SharedAssembly)
             .ToArray();
 
+        // Act
         var result = Types.InAssemblies(allAssemblies)
             .That()
             .Inherit(typeof(Exception))
@@ -269,6 +293,7 @@ public class NamingConventionTests
             .HaveNameEndingWith("Exception")
             .GetResult();
 
+        // Assert
         result.IsSuccessful.Should().BeTrue(
             "As classes de exceção devem terminar com 'Exception'. " +
             "Violations: {0}",
@@ -284,14 +309,16 @@ public class NamingConventionTests
     [Fact]
     public void DiscoveryBased_CommandHandlers_ShouldFollowNamingConventions()
     {
-        // Usar discovery automático para descobrir command handlers é mais direto
+        // Arrange
         var commandHandlers = ArchitecturalDiscoveryHelper.DiscoverCommandHandlers();
 
+        // Act
         var (isValid, violations) = ArchitecturalDiscoveryHelper.ValidateNamingConvention(
             commandHandlers,
             "Handler",
             "Command handlers should end with 'Handler'");
 
+        // Assert
         isValid.Should().BeTrue(
             "Command handlers discovered automatically should follow naming conventions. Violations: {0}",
             string.Join(", ", violations));
@@ -304,14 +331,16 @@ public class NamingConventionTests
     [Fact]
     public void DiscoveryBased_Commands_ShouldFollowNamingConventions()
     {
-        // Discovery approach - mais limpo e automático
+        // Arrange
         var commands = ArchitecturalDiscoveryHelper.DiscoverCommands();
 
+        // Act
         var (isValid, violations) = ArchitecturalDiscoveryHelper.ValidateNamingConvention(
             commands,
             "Command",
             "Commands should end with 'Command'");
 
+        // Assert
         isValid.Should().BeTrue(
             "Commands discovered automatically should follow naming conventions. Violations: {0}",
             string.Join(", ", violations));
@@ -324,17 +353,15 @@ public class NamingConventionTests
     [Fact]
     public void DiscoveryBased_CustomPatternDiscovery_ShouldWork()
     {
-        // Exemplo de discovery personalizado para validators
+        // Arrange
         var allApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies();
-
         var validators = ArchitecturalDiscoveryHelper.DiscoverTypesByConvention(
             allApplicationAssemblies,
             type => type.Name.EndsWith("Validator") &&
                    type.IsClass &&
                    !type.IsAbstract);
 
-        // Validar que validators seguem convenção de namespace
-        // Excluir IValidateOptions validators que são especial e devem ficar colocalizados com Options
+        // Act
         var validatorsInWrongNamespace = validators
             .Where(validator =>
                 !validator.Namespace?.Contains("Validators") == true &&
@@ -342,6 +369,7 @@ public class NamingConventionTests
             .Select(validator => validator.FullName)
             .ToList();
 
+        // Assert
         validatorsInWrongNamespace.Should().BeEmpty(
             "Validators should be in 'Validators' namespace. Violations: {0}",
             string.Join(", ", validatorsInWrongNamespace));

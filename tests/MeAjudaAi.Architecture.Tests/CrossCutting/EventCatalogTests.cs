@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Payments;
 using MeAjudaAi.Architecture.Tests.Helpers;
 using System.Reflection;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.CrossCutting;
 
 public class EventCatalogTests
 {
@@ -22,6 +22,7 @@ public class EventCatalogTests
     [Fact]
     public void CriticalEvents_ShouldHaveCriticalEventAttribute()
     {
+        // Arrange
         var criticalEvents = new[]
         {
             typeof(BookingCancelledIntegrationEvent),
@@ -35,6 +36,7 @@ public class EventCatalogTests
             typeof(SubscriptionRenewedIntegrationEvent)
         };
 
+        // Act & Assert
         foreach (var eventType in criticalEvents)
         {
             eventType.Should().BeDecoratedWith<CriticalEventAttribute>(
@@ -45,12 +47,13 @@ public class EventCatalogTests
     [Fact]
     public void AllActiveIntegrationEvents_ShouldHaveAtLeastOneHandler()
     {
+        // Arrange
         var integrationEvents = GetIntegrationEvents();
         var handlerTypes = GetIntegrationEventHandlers();
 
+        // Act & Assert
         foreach (var eventType in integrationEvents)
         {
-            // Pular eventos no backlog ou sem handlers funcionais definidos na matriz como 'Pendente'
             if (eventType.Name.Contains("SearchableProviderIndexed") ||
                 eventType.Name.Contains("AllowedCity"))
             {

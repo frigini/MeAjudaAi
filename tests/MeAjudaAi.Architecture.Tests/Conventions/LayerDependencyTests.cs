@@ -2,7 +2,7 @@ using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Architecture.Tests.Helpers.Models;
 using System.Reflection;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Conventions;
 
 /// <summary>
 /// Testes de dependência de camadas garantindo os princípios da Clean Architecture
@@ -19,9 +19,10 @@ public class LayerDependencyTests
     [Fact]
     public void Domain_Entities_ShouldBeSealed()
     {
-        // Entidades devem ser sealed para evitar problemas de herança
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var domainAssembly in AllDomainAssemblies)
         {
             var result = Types.InAssembly(domainAssembly)
@@ -42,6 +43,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Domain entities should be sealed. " +
             "Violations: {0}",
@@ -51,9 +53,10 @@ public class LayerDependencyTests
     [Fact]
     public void Domain_Events_ShouldEndWithEvent()
     {
-        // Eventos de domínio devem ter sufixo "Event" para clareza
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var domainAssembly in AllDomainAssemblies)
         {
             var result = Types.InAssembly(domainAssembly)
@@ -74,6 +77,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Domain events should end with 'Event'. " +
             "Violations: {0}",
@@ -83,9 +87,10 @@ public class LayerDependencyTests
     [Fact]
     public void Domain_ValueObjects_ShouldBeSealed()
     {
-        // Value Objects devem ser sealed para imutabilidade
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var domainAssembly in AllDomainAssemblies)
         {
             var result = Types.InAssembly(domainAssembly)
@@ -106,6 +111,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Value objects should be sealed. " +
             "Violations: {0}",
@@ -115,9 +121,10 @@ public class LayerDependencyTests
     [Fact]
     public void Application_CommandHandlers_ShouldHaveCorrectNaming()
     {
-        // Command handlers devem seguir convenção de nomenclatura
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var applicationAssembly in AllApplicationAssemblies)
         {
             var result = Types.InAssembly(applicationAssembly)
@@ -138,6 +145,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Command handlers should end with 'Handler'. " +
             "Violations: {0}",
@@ -147,9 +155,10 @@ public class LayerDependencyTests
     [Fact]
     public void Application_QueryHandlers_ShouldHaveCorrectNaming()
     {
-        // Query handlers devem seguir convenção de nomenclatura
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var applicationAssembly in AllApplicationAssemblies)
         {
             var result = Types.InAssembly(applicationAssembly)
@@ -170,6 +179,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Query handlers should end with 'Handler'. " +
             "Violations: {0}",
@@ -179,9 +189,10 @@ public class LayerDependencyTests
     [Fact]
     public void Infrastructure_Repositories_ShouldHaveCorrectNaming()
     {
-        // Repositórios devem seguir convenção de nomenclatura
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var infrastructureAssembly in AllInfrastructureAssemblies)
         {
             var result = Types.InAssembly(infrastructureAssembly)
@@ -202,6 +213,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Infrastructure repositories should end with 'Repository'. " +
             "Violations: {0}",
@@ -211,9 +223,10 @@ public class LayerDependencyTests
     [Fact]
     public void Infrastructure_Configurations_ShouldHaveCorrectNaming()
     {
-        // Configurações de EF devem seguir convenção de nomenclatura
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var infrastructureAssembly in AllInfrastructureAssemblies)
         {
             var result = Types.InAssembly(infrastructureAssembly)
@@ -234,6 +247,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Infrastructure configurations should end with 'Configuration'. " +
             "Violations: {0}",
@@ -243,9 +257,10 @@ public class LayerDependencyTests
     [Fact]
     public void API_Controllers_ShouldHaveCorrectNaming()
     {
-        // Controllers devem seguir convenção de nomenclatura
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var apiAssembly in AllApiAssemblies)
         {
             var result = Types.InAssembly(apiAssembly)
@@ -266,6 +281,7 @@ public class LayerDependencyTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "API controllers should end with 'Controller'. " +
             "Violations: {0}",

@@ -1,10 +1,10 @@
-using System.Reflection;
 using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Architecture.Tests.Helpers.Models;
+using System.Reflection;
 
 #pragma warning disable xUnit1004 // Teste documentacional ignorado intencionalmente
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Dependencies;
 
 /// <summary>
 /// Testes de fronteiras de módulos garantindo isolamento adequado entre módulos
@@ -17,10 +17,10 @@ public class ModuleBoundaryTests
     [Fact]
     public void Modules_ShouldNotReference_OtherModules()
     {
-        // Os módulos não devem referenciar diretamente outros módulos
-        // A comunicação deve acontecer apenas através de eventos de integração
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var currentModule in AllModules)
         {
             var otherModuleNames = AllModules
@@ -28,7 +28,7 @@ public class ModuleBoundaryTests
                 .Select(m => $"MeAjudaAi.Modules.{m.Name}")
                 .ToArray();
 
-            if (otherModuleNames.Length == 0) continue; // Não há outros módulos para testar
+            if (otherModuleNames.Length == 0) continue;
 
             var assembliesInModule = new[]
             {
@@ -55,6 +55,7 @@ public class ModuleBoundaryTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Módulos não devem referenciar outros módulos diretamente. " +
             "Violações: {0}",
@@ -64,9 +65,10 @@ public class ModuleBoundaryTests
     [Fact]
     public void Module_Internal_Types_ShouldNotBePublic()
     {
-        // Implementações internas do módulo não devem ser expostas publicamente
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.InfrastructureAssembly == null) continue;
@@ -88,6 +90,7 @@ public class ModuleBoundaryTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Implementações internas do módulo não devem ser públicas. " +
             "Violações: {0}",
@@ -97,9 +100,10 @@ public class ModuleBoundaryTests
     [Fact]
     public void Module_Domain_ShouldOnlyDependOn_Shared()
     {
-        // O domínio do módulo deve depender apenas de abstrações compartilhadas
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.DomainAssembly == null) continue;
@@ -122,6 +126,7 @@ public class ModuleBoundaryTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Domínio deve referenciar apenas o projeto Shared e assemblies do framework. " +
             "Referências inválidas: {0}",
@@ -162,9 +167,10 @@ public class ModuleBoundaryTests
     [Fact]
     public void Module_DbContext_ShouldNotBeReferencedOutsideInfrastructure()
     {
-        // DbContext não deve ser referenciado fora da camada de Infrastructure
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.InfrastructureAssembly == null) continue;
@@ -178,7 +184,6 @@ public class ModuleBoundaryTests
 
             if (!dbContextTypeNames.Any()) continue;
 
-            // Testar camada Domain
             if (module.DomainAssembly != null)
             {
                 var domainResult = Types.InAssembly(module.DomainAssembly)
@@ -192,7 +197,6 @@ public class ModuleBoundaryTests
                 }
             }
 
-            // Testar camada Application
             if (module.ApplicationAssembly != null)
             {
                 var applicationResult = Types.InAssembly(module.ApplicationAssembly)
@@ -206,7 +210,6 @@ public class ModuleBoundaryTests
                 }
             }
 
-            // Testar camada API
             if (module.ApiAssembly != null)
             {
                 var apiResult = Types.InAssembly(module.ApiAssembly)
@@ -221,6 +224,7 @@ public class ModuleBoundaryTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "DbContext não deve ser referenciado fora da camada Infrastructure. " +
             "Violações encontradas: {0}",
@@ -230,9 +234,10 @@ public class ModuleBoundaryTests
     [Fact]
     public void Module_Extensions_ShouldBePublic()
     {
-        // Classes de extensão para registro de DI devem ser públicas
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.InfrastructureAssembly == null) continue;
@@ -250,6 +255,7 @@ public class ModuleBoundaryTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Classes de extensão devem ser públicas para registro de DI. " +
             "Violações: {0}",
@@ -259,9 +265,10 @@ public class ModuleBoundaryTests
     [Fact]
     public void Integration_Events_ShouldBeInSharedProject()
     {
-        // Eventos de integração devem estar no projeto Shared para comunicação entre módulos
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             var assembliesInModule = new[]
@@ -288,6 +295,7 @@ public class ModuleBoundaryTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Eventos de integração não devem existir em assemblies de módulo, devem estar no Shared. " +
             "Encontrados: {0}",

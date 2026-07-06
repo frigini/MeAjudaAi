@@ -1,7 +1,9 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Match = System.Text.RegularExpressions.Match;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.CrossCutting;
 
 /// <summary>
 /// Verifica que todas as chaves de template usadas pelos handlers existem no seed de dados.
@@ -13,26 +15,21 @@ public class TemplateKeyCoverageTests
     [Fact]
     public void AllHandlerTemplateKeys_ShouldExistInSeed()
     {
-        // 1. Extrair todas as chaves de template do CommunicationTemplateKeys
-        var templateKeysType = typeof(Contracts.Utilities.Constants.CommunicationTemplateKeys);
+        // Arrange
+        var templateKeysType = typeof(CommunicationTemplateKeys);
         var seedKeysFromConstants = templateKeysType
             .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
             .Where(f => f.FieldType == typeof(string))
             .Select(f => (string)f.GetValue(null)!)
             .ToHashSet();
-
-        // 2. Extrair chaves inline dos handlers (arquivos .cs em Application/Handlers/Events/)
         var seedKeysFromHandlers = ExtractInlineTemplateKeysFromHandlers();
-
-        // 3. Combinar todas as chaves usadas
         var allHandlerKeys = seedKeysFromConstants.Union(seedKeysFromHandlers).ToHashSet();
-
-        // 4. Extrair chaves do seed (DevelopmentDataSeeder)
         var seedKeys = ExtractSeedTemplateKeys();
 
-        // 5. Verificar que todas as chaves dos handlers existem no seed
+        // Act
         var missingKeys = allHandlerKeys.Except(seedKeys).OrderBy(k => k).ToList();
 
+        // Assert
         missingKeys.Should().BeEmpty(
             $"As seguintes chaves de template são usadas por handlers mas não existem no DevelopmentDataSeeder: " +
             $"{string.Join(", ", missingKeys)}");
@@ -41,29 +38,27 @@ public class TemplateKeyCoverageTests
     [Fact]
     public void SeedTemplateKeys_ShouldAllBeUsedByHandlers()
     {
-        // 1. Extrair chaves do seed
+        // Arrange
         var seedKeys = ExtractSeedTemplateKeys();
-
-        // 2. Extrair chaves dos handlers
-        var templateKeysType = typeof(Contracts.Utilities.Constants.CommunicationTemplateKeys);
+        var templateKeysType = typeof(CommunicationTemplateKeys);
         var handlerKeys = templateKeysType
             .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
             .Where(f => f.FieldType == typeof(string))
             .Select(f => (string)f.GetValue(null)!)
             .ToHashSet();
 
-        // 3. Verificar se há chaves no seed que não estão nos handlers
-        // (Isto é apenas um aviso, não um erro — seeds podem ter templates extras para uso futuro)
+        // Act
         var unusedKeys = seedKeys.Except(handlerKeys).OrderBy(k => k).ToList();
 
-        // Não falhamos aqui, mas registramos para informação
-        // Seeds podem conter templates que serão usados por handlers futuros
+        // Assert
+        // Seeds podem conter templates que serão usados por handlers futuros — intentionally not asserting
+        unusedKeys.Should().NotBeNull();
     }
 
     private static HashSet<string> ExtractInlineTemplateKeysFromHandlers()
     {
         var keys = new HashSet<string>();
-        var assembly = typeof(Contracts.Utilities.Constants.CommunicationTemplateKeys).Assembly;
+        var assembly = typeof(CommunicationTemplateKeys).Assembly;
         var projectDir = FindCommunicationsHandlersDirectory();
 
         if (projectDir == null || !Directory.Exists(projectDir))

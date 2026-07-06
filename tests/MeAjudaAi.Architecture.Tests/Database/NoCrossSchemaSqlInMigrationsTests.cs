@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
+using Match = System.Text.RegularExpressions.Match;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Database;
 
 public sealed class NoCrossSchemaSqlInMigrationsTests
 {
@@ -27,7 +28,7 @@ public sealed class NoCrossSchemaSqlInMigrationsTests
     [Fact]
     public void Migrations_Should_Not_Reference_Other_Module_Schemas()
     {
-        // Navega para a raiz do projeto a partir de tests/MeAjudaAi.Architecture.Tests/bin/Debug/...
+        // Arrange
         var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
         while (currentDir != null && !File.Exists(Path.Combine(currentDir.FullName, "MeAjudaAi.slnx")))
         {
@@ -45,6 +46,7 @@ public sealed class NoCrossSchemaSqlInMigrationsTests
                                    StringComparison.OrdinalIgnoreCase))
             .ToArray();
 
+        // Act
         var offenders = new List<string>();
 
         foreach (var file in files)
@@ -53,7 +55,6 @@ public sealed class NoCrossSchemaSqlInMigrationsTests
             foreach (Match m in Forbidden.Matches(text))
             {
                 var schema = m.Groups["schema"].Value.ToLowerInvariant();
-                // Permite o próprio schema do módulo (ex.: providers.* dentro do Providers)
                 if (!Schemas.Contains(schema)) continue;
                 if (IsOwnSchema(file, schema)) continue;
 
@@ -61,6 +62,7 @@ public sealed class NoCrossSchemaSqlInMigrationsTests
             }
         }
 
+        // Assert
         offenders.Should().BeEmpty("migrations não devem referenciar tabelas de outros módulos (acoplamento físico). Encontrados:\n" + string.Join("\n", offenders));
     }
 

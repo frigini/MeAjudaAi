@@ -1,7 +1,7 @@
 using MeAjudaAi.Architecture.Tests.Helpers;
 using MeAjudaAi.Architecture.Tests.Helpers.Models;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Dependencies;
 
 /// <summary>
 /// Testes globais de arquitetura seguindo as recomendações de Milan Jovanovic
@@ -14,9 +14,10 @@ public class GlobalArchitectureTests
     [Fact]
     public void Domain_ShouldNotDependOn_Application()
     {
-        // Camada Domain deve ser completamente independente
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.DomainAssembly == null || module.ApplicationAssembly == null) continue;
@@ -32,6 +33,7 @@ public class GlobalArchitectureTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Domain layer should not depend on Application layer. " +
             "Violations: {0}",
@@ -41,9 +43,10 @@ public class GlobalArchitectureTests
     [Fact]
     public void Domain_ShouldNotDependOn_Infrastructure()
     {
-        // Domain nunca deve depender de Infrastructure
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.DomainAssembly == null || module.InfrastructureAssembly == null) continue;
@@ -59,6 +62,7 @@ public class GlobalArchitectureTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Domain layer should not depend on Infrastructure layer. " +
             "Violations: {0}",
@@ -68,9 +72,10 @@ public class GlobalArchitectureTests
     [Fact]
     public void Domain_ShouldNotDependOn_API()
     {
-        // Domain nunca deve depender de API/Controllers
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.DomainAssembly == null || module.ApiAssembly == null) continue;
@@ -86,6 +91,7 @@ public class GlobalArchitectureTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Domain layer should not depend on API layer. " +
             "Violations: {0}",
@@ -95,9 +101,10 @@ public class GlobalArchitectureTests
     [Fact]
     public void Application_ShouldNotDependOn_Infrastructure()
     {
-        // Application deve depender apenas de abstrações, não de implementações concretas
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.ApplicationAssembly == null || module.InfrastructureAssembly == null) continue;
@@ -113,6 +120,7 @@ public class GlobalArchitectureTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Application layer should not depend on Infrastructure layer. " +
             "Violations: {0}",
@@ -122,9 +130,10 @@ public class GlobalArchitectureTests
     [Fact]
     public void Application_ShouldNotDependOn_API()
     {
-        // Application não deve conhecer controllers/endpoints
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.ApplicationAssembly == null || module.ApiAssembly == null) continue;
@@ -140,6 +149,7 @@ public class GlobalArchitectureTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Application layer should not depend on API layer. " +
             "Violations: {0}",
@@ -149,9 +159,10 @@ public class GlobalArchitectureTests
     [Fact]
     public void Controllers_ShouldNotDependOn_Infrastructure()
     {
-        // Controllers devem depender apenas da Application layer, não diretamente de Infrastructure
+        // Arrange
         var failures = new List<string>();
 
+        // Act
         foreach (var module in AllModules)
         {
             if (module.ApiAssembly == null || module.InfrastructureAssembly == null) continue;
@@ -169,6 +180,7 @@ public class GlobalArchitectureTests
             }
         }
 
+        // Assert
         failures.Should().BeEmpty(
             "Controllers should not depend on Infrastructure layer directly. " +
             "Violations: {0}",
@@ -178,36 +190,34 @@ public class GlobalArchitectureTests
     [Fact]
     public void Repositories_ShouldBeInInfrastructureLayer_AndFollowConventions()
     {
-        // ✅ Discovery automático é ideal para encontrar implementações
+        // Arrange
         var repositories = ArchitecturalDiscoveryHelper.DiscoverRepositories();
 
-        // Validar convenção de nomenclatura
+        // Act
         var (isValidNaming, namingViolations) = ArchitecturalDiscoveryHelper.ValidateNamingConvention(
             repositories,
             "Repository",
             "Repositories should end with 'Repository'");
 
-        isValidNaming.Should().BeTrue(
-            "All repositories should follow naming conventions. Violations: {0}",
-            string.Join(", ", namingViolations));
-
-        // Validar que estão na camada correta
         var repositoriesInWrongLayer = repositories
             .Where(repo => !repo.Namespace?.Contains(".Infrastructure") == true)
             .Select(repo => repo.FullName)
             .ToList();
 
+        // Assert
+        isValidNaming.Should().BeTrue(
+            "All repositories should follow naming conventions. Violations: {0}",
+            string.Join(", ", namingViolations));
+
         repositoriesInWrongLayer.Should().BeEmpty(
             "All repositories should be in Infrastructure layer. Violations: {0}",
             string.Join(", ", repositoriesInWrongLayer));
-
-        Console.WriteLine($"✅ Validated {repositories.Count()} repositories");
     }
 
     [Fact]
     public void AllServices_ShouldImplementInterfaces()
     {
-        // ✅ Discovery automático é ideal para validações customizadas
+        // Arrange
         var allApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies()
             .Concat(ModuleDiscoveryHelper.GetAllInfrastructureAssemblies());
 
@@ -218,17 +228,16 @@ public class GlobalArchitectureTests
                    !type.IsAbstract &&
                    !type.IsInterface);
 
-        // Validar que todos os services implementam pelo menos uma interface
+        // Act
         var servicesWithoutInterface = services
             .Where(service => service.GetInterfaces()
                 .Count(i => !i.Namespace?.StartsWith("System") == true) == 0)
             .Select(service => service.FullName)
             .ToList();
 
+        // Assert
         servicesWithoutInterface.Should().BeEmpty(
             "All services should implement at least one business interface. Violations: {0}",
             string.Join(", ", servicesWithoutInterface));
-
-        Console.WriteLine($"✅ Validated {services.Count()} services");
     }
 }

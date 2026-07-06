@@ -25,7 +25,7 @@ public class RatingsIdempotencyIntegrationTests : RatingsIntegrationTestBase
     }
 
     [Fact]
-    public async Task InsertIfNotExistsAsync_ShouldReturnFalse_WhenDuplicateCorrelationId()
+    public async Task MarkAsProcessedAsync_ShouldBeIdempotent_WhenCalledTwiceWithSameCorrelationId()
     {
         // Arrange
         var correlationId = Guid.NewGuid().ToString();
@@ -36,12 +36,12 @@ public class RatingsIdempotencyIntegrationTests : RatingsIntegrationTestBase
         // Act - First insert
         await repository.MarkAsProcessedAsync(correlationId);
 
-        // Act - Second insert (duplicate, should be idempotent)
-        await repository.MarkAsProcessedAsync(correlationId);
+        // Act - Second insert (duplicate, should be idempotent via ON CONFLICT DO NOTHING)
+        var act = async () => await repository.MarkAsProcessedAsync(correlationId);
 
+        // Assert - No exception and state remains processed
+        await act.Should().NotThrowAsync();
         var isProcessed = await repository.IsProcessedAsync(correlationId);
-
-        // Assert
         isProcessed.Should().BeTrue();
     }
 }

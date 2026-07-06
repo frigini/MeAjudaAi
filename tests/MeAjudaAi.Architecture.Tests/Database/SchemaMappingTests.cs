@@ -3,9 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.Database;
 
 /// <summary>
 /// Verifica que o modelo de domínio está corretamente mapeado no EF Core para todos os módulos.
@@ -59,14 +58,17 @@ public class SchemaMappingTests
     [Fact]
     public void User_DeviceToken_ShouldBeMapped()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>();
-
         var entityType = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Users.Domain.Entities.User));
-        entityType.Should().NotBeNull("User entity should be registered in DbContext");
 
-        var property = entityType!.FindProperty("DeviceToken");
+        // Act
+        var property = entityType?.FindProperty("DeviceToken");
+
+        // Assert
+        entityType.Should().NotBeNull("User entity should be registered in DbContext");
         property.Should().NotBeNull("DeviceToken property should be mapped");
         property!.GetColumnName().Should().Be("device_token");
         property.IsNullable.Should().BeTrue("DeviceToken should be nullable");
@@ -75,14 +77,17 @@ public class SchemaMappingTests
     [Fact]
     public void Provider_DeviceToken_ShouldBeMapped()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
-
         var entityType = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Providers.Domain.Entities.Provider));
-        entityType.Should().NotBeNull("Provider entity should be registered in DbContext");
 
-        var property = entityType!.FindProperty("DeviceToken");
+        // Act
+        var property = entityType?.FindProperty("DeviceToken");
+
+        // Assert
+        entityType.Should().NotBeNull("Provider entity should be registered in DbContext");
         property.Should().NotBeNull("DeviceToken property should be mapped");
         property!.GetColumnName().Should().Be("device_token");
         property.IsNullable.Should().BeTrue("DeviceToken should be nullable");
@@ -91,14 +96,17 @@ public class SchemaMappingTests
     [Fact]
     public void EmailTemplate_Version_ShouldBeMapped()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>();
-
         var entityType = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.EmailTemplate));
-        entityType.Should().NotBeNull("EmailTemplate entity should be registered in DbContext");
 
-        var property = entityType!.FindProperty("Version");
+        // Act
+        var property = entityType?.FindProperty("Version");
+
+        // Assert
+        entityType.Should().NotBeNull("EmailTemplate entity should be registered in DbContext");
         property.Should().NotBeNull("Version property should be mapped");
         property!.GetColumnName().Should().Be("version");
     }
@@ -106,14 +114,13 @@ public class SchemaMappingTests
     [Fact]
     public void EmailTemplate_ShouldHaveUniqueIndexPerActiveVersion()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>();
-
         var entityType = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.EmailTemplate));
-        entityType.Should().NotBeNull();
 
-        // Find the unique index on (TemplateKey, Language, OverrideKey) with filter
+        // Act
         var indexes = entityType!.GetIndexes();
         var uniqueIndex = indexes.FirstOrDefault(i =>
             i.IsUnique &&
@@ -121,6 +128,8 @@ public class SchemaMappingTests
             i.Properties.Any(p => p.Name == "Language") &&
             i.Properties.Any(p => p.Name == "OverrideKey"));
 
+        // Assert
+        entityType.Should().NotBeNull();
         uniqueIndex.Should().NotBeNull("Should have a unique index on (TemplateKey, Language, OverrideKey)");
         uniqueIndex!.GetFilter().Should().Contain("is_active", "Unique index should filter by active status");
     }
@@ -128,24 +137,26 @@ public class SchemaMappingTests
     [Fact]
     public void Communications_Tables_ShouldExist()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>();
-
         var model = dbContext.Model;
 
-        // Verify all expected entities are mapped
+        // Act
         var emailTemplateEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.EmailTemplate));
+        var communicationLogEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.CommunicationLog));
+        var outboxMessageEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage));
+
+        // Assert
         emailTemplateEntity.Should().NotBeNull("EmailTemplate should be mapped");
         emailTemplateEntity!.GetTableName().Should().Be("email_templates");
         emailTemplateEntity.GetSchema().Should().Be("communications");
 
-        var communicationLogEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.CommunicationLog));
         communicationLogEntity.Should().NotBeNull("CommunicationLog should be mapped");
         communicationLogEntity!.GetTableName().Should().Be("communication_logs");
         communicationLogEntity.GetSchema().Should().Be("communications");
 
-        var outboxMessageEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage));
         outboxMessageEntity.Should().NotBeNull("OutboxMessage should be mapped");
         outboxMessageEntity!.GetTableName().Should().Be("outbox_messages");
         outboxMessageEntity.GetSchema().Should().Be("communications");
@@ -154,12 +165,15 @@ public class SchemaMappingTests
     [Fact]
     public void Bookings_Tables_ShouldExist()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>();
 
-        var model = dbContext.Model;
-        var bookingEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Bookings.Domain.Entities.Booking));
+        // Act
+        var bookingEntity = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Bookings.Domain.Entities.Booking));
+
+        // Assert
         bookingEntity.Should().NotBeNull("Booking should be mapped");
         bookingEntity!.GetTableName().Should().Be("bookings");
         bookingEntity.GetSchema().Should().Be("bookings");
@@ -168,12 +182,15 @@ public class SchemaMappingTests
     [Fact]
     public void Ratings_Tables_ShouldExist()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>();
 
-        var model = dbContext.Model;
-        var reviewEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Ratings.Domain.Entities.Review));
+        // Act
+        var reviewEntity = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Ratings.Domain.Entities.Review));
+
+        // Assert
         reviewEntity.Should().NotBeNull("Review should be mapped");
         reviewEntity!.GetTableName().Should().Be("reviews");
         reviewEntity.GetSchema().Should().Be("ratings");
@@ -182,12 +199,15 @@ public class SchemaMappingTests
     [Fact]
     public void Payments_Tables_ShouldExist()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>();
 
-        var model = dbContext.Model;
-        var subscriptionEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.Payments.Domain.Entities.Subscription));
+        // Act
+        var subscriptionEntity = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Payments.Domain.Entities.Subscription));
+
+        // Assert
         subscriptionEntity.Should().NotBeNull("Subscription should be mapped");
         subscriptionEntity!.GetTableName().Should().Be("subscriptions");
         subscriptionEntity.GetSchema().Should().Be("payments");
@@ -196,12 +216,15 @@ public class SchemaMappingTests
     [Fact]
     public void SearchProviders_Tables_ShouldExist()
     {
+        // Arrange
         using var provider = CreateServiceProvider();
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
 
-        var model = dbContext.Model;
-        var searchableProviderEntity = model.FindEntityType(typeof(MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider));
+        // Act
+        var searchableProviderEntity = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider));
+
+        // Assert
         searchableProviderEntity.Should().NotBeNull("SearchableProvider should be mapped");
         searchableProviderEntity!.GetTableName().Should().Be("searchable_providers");
         searchableProviderEntity.GetSchema().Should().Be("search_providers");

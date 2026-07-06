@@ -5,9 +5,8 @@ using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 
-namespace MeAjudaAi.Architecture.Tests;
+namespace MeAjudaAi.Architecture.Tests.CrossCutting;
 
 [Trait("Category", "Architecture")]
 public class HandlerRegistrationTests
@@ -75,7 +74,7 @@ public class HandlerRegistrationTests
 
         var unregisteredHandlers = new List<string>();
 
-        // Act & Assert
+        // Act
         foreach (var handlerType in handlerTypes)
         {
             var interfaceTypes = handlerType.GetInterfaces()
@@ -95,6 +94,7 @@ public class HandlerRegistrationTests
             }
         }
 
+        // Assert
         unregisteredHandlers.Should().BeEmpty(
             "All event handlers found in infrastructure and application layers should be registered in the Dependency Injection container. " +
             "If a handler is missing, check the module's Extensions.cs file. " +
@@ -120,7 +120,7 @@ public class HandlerRegistrationTests
 
         var unregisteredHandlers = new List<string>();
 
-        // Act & Assert
+        // Act
         foreach (var handlerType in handlerTypes)
         {
             var interfaceTypes = handlerType.GetInterfaces()
@@ -140,6 +140,7 @@ public class HandlerRegistrationTests
             }
         }
 
+        // Assert
         unregisteredHandlers.Should().BeEmpty(
             "All domain event handlers found in infrastructure should be registered in the Dependency Injection container. " +
             "If a handler is missing, check the module's Extensions.cs file. " +
@@ -168,7 +169,7 @@ public class HandlerRegistrationTests
 
         var unregisteredHandlers = new List<string>();
 
-        // Act & Assert
+        // Act
         foreach (var handlerType in handlerTypes)
         {
             var interfaceTypes = handlerType.GetInterfaces()
@@ -188,6 +189,7 @@ public class HandlerRegistrationTests
             }
         }
 
+        // Assert
         unregisteredHandlers.Should().BeEmpty(
             "All command handlers found in infrastructure and application layers should be registered in the Dependency Injection container. " +
             "If a handler is missing, check the module's Extensions.cs file. " +
