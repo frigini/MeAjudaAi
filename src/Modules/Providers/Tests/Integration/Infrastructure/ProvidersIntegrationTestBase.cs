@@ -218,7 +218,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // relation already exists
         {
-            // Tabelas já criadas por rodada anterior — ignorar
+            Console.WriteLine($"[Providers] Skipping migration — schema already exists: {ex.Message}");
         }
 
         // Verificar isolamento (não deve ter providers ainda)

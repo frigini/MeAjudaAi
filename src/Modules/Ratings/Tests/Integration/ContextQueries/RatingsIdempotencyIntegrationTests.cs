@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Ratings.Tests.Integration.ContextQueries;
 
 [Collection("RatingsIntegrationTests")]
-public class RatingsIdempotencyIntegrationTests : RatingsIdempotencyTestBase
+public class RatingsIdempotencyIntegrationTests : RatingsIntegrationTestBase
 {
     [Fact]
     public async Task InsertIfNotExistsAsync_ShouldInsert_WhenNewCorrelationId()

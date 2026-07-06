@@ -120,8 +120,7 @@ public static class SharedTestContainers
     {
         if (_postgreSqlContainer == null)
         {
-            Console.WriteLine("ValidateContainerHealthAsync: _postgreSqlContainer is null, returning");
-            return;
+            throw new InvalidOperationException("ValidateContainerHealthAsync: _postgreSqlContainer is null. Ensure EnsureInitialized() has been called before health checks.");
         }
 
         const int maxRetries = 30;
@@ -203,10 +202,9 @@ public static class SharedTestContainers
 
         var schemaToClean = schema ?? _databaseOptions.Schema ?? "public";
 
-        // TRUNCATE preserva o schema e __EFMigrationsHistory, evitando race conditions com migrações paralelas
-        await _postgreSqlContainer.ExecAsync(
+        var result = await _postgreSqlContainer.ExecAsync(
         [
-            "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-c",
+            "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-tAc",
             $"""
             DO $$
             DECLARE
@@ -214,11 +212,17 @@ public static class SharedTestContainers
             BEGIN
                 FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = '{schemaToClean}' AND tablename <> '__EFMigrationsHistory'
                 LOOP
-                    EXECUTE 'TRUNCATE TABLE {schemaToClean}.' || quote_ident(r.tablename) || ' CASCADE';
+                    EXECUTE format('TRUNCATE TABLE %I.%I CASCADE', '{schemaToClean}', r.tablename);
                 END LOOP;
             END $$;
             """
         ]);
+
+        if (result.ExitCode != 0)
+        {
+            throw new InvalidOperationException(
+                $"CleanupDataAsync failed for schema '{schemaToClean}' with exit code {result.ExitCode}: {result.Stdout}{result.Stderr}");
+        }
     }
 
     /// <summary>

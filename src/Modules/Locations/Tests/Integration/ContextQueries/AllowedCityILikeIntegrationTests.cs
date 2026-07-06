@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Locations.Tests.Integration.ContextQueries;
 public class AllowedCityILikeIntegrationTests : LocationsIntegrationTestBase
 {
     [Fact]
-    public async Task SearchByNameAsync_ShouldBeCaseInsensitive()
+    public async Task GetByCityAndStateAsync_ShouldBeCaseInsensitive()
     {
         // Arrange
         var city = new AllowedCity(
@@ -52,7 +52,7 @@ public class AllowedCityILikeIntegrationTests : LocationsIntegrationTestBase
     }
 
     [Fact]
-    public async Task SearchByNameAsync_ShouldMatchPartialNames()
+    public async Task ILike_ShouldMatchPartialNames()
     {
         // Arrange
         var cities = new[]
@@ -85,7 +85,7 @@ public class AllowedCityILikeIntegrationTests : LocationsIntegrationTestBase
     }
 
     [Fact]
-    public async Task SearchByNameAsync_ShouldReturnEmpty_WhenNoMatch()
+    public async Task GetByCityAndStateAsync_ShouldReturnNull_WhenNoMatch()
     {
         // Arrange
         var city = new AllowedCity(

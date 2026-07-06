@@ -42,10 +42,6 @@ public static class UsersTestInfrastructureExtensions
             options.Database,
             "MeAjudaAi.Modules.Users.Infrastructure");
 
-        services.PostConfigure<DbContextOptions<UsersDbContext>>(dbOptions =>
-        {
-        });
-
         services.AddDbContext<UsersDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();

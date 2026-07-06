@@ -122,9 +122,32 @@ public static class MigrationDiscoveryExtensions
 
         foreach (var contextType in dbContextTypes)
         {
-            if (serviceProvider.GetService(contextType) is DbContext context)
+            if (serviceProvider.GetService(contextType) is not DbContext context)
+                continue;
+
+            context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+            const int maxRetries = 5;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                await context.Database.MigrateAsync(cancellationToken);
+                try
+                {
+                    await context.Database.MigrateAsync(cancellationToken);
+                    break;
+                }
+                catch (Exception ex) when (
+                    ex is PostgresException pgEx &&
+                    (pgEx.SqlState == "23505" || pgEx.SqlState == "42P01") &&
+                    attempt < maxRetries)
+                {
+                    Console.WriteLine($"[Migrations] Race condition for {contextType.Name} (attempt {attempt}/{maxRetries}): {pgEx.Message}. Retrying...");
+                    await Task.Delay(100 * attempt, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Migrations] Failed to apply migrations for {contextType.Name}: {ex.GetType().Name}: {ex.Message}");
+                    throw;
+                }
             }
         }
     }
