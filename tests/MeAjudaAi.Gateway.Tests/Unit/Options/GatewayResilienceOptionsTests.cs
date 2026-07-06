@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Gateway.Options;
 
 namespace MeAjudaAi.Gateway.Tests.Unit.Options;

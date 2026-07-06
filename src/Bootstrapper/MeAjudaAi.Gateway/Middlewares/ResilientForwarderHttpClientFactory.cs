@@ -41,7 +41,7 @@ public class ResilientForwarderHttpClientFactory(
 
         if (_options.RetryCount > 0)
         {
-            return new RetryDelegatingHandler(_options, logger) { InnerHandler = socketsHandler };
+            return new RetryDelegatingHandler(_options) { InnerHandler = socketsHandler };
         }
 
         return socketsHandler;
