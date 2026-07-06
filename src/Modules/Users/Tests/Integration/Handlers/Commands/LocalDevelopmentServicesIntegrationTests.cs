@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
-using MeAjudaAi.Modules.Users.Tests.Infrastructure;
+using MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Handlers.Commands;
 

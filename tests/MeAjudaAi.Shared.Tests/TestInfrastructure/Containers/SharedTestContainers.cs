@@ -116,13 +116,11 @@ public static class SharedTestContainers
     /// <summary>
     /// Valida se o container PostgreSQL está saudável e pronto para conexões
     /// </summary>
-    private static void LogToFile(string message) { }
-
     private static async Task ValidateContainerHealthAsync()
     {
         if (_postgreSqlContainer == null)
         {
-            LogToFile("ValidateContainerHealthAsync: _postgreSqlContainer is null, returning");
+            Console.WriteLine("ValidateContainerHealthAsync: _postgreSqlContainer is null, returning");
             return;
         }
 
@@ -134,29 +132,29 @@ public static class SharedTestContainers
             try
             {
                 var connectionString = _postgreSqlContainer.GetConnectionString();
-                LogToFile($"Attempt {i + 1}/{maxRetries}: connecting to {connectionString}");
+                Console.WriteLine($"[PostgreSQL] Attempt {i + 1}/{maxRetries}: connecting...");
 
                 await using (var connection = new Npgsql.NpgsqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
                 }
 
-                LogToFile($"Container PostgreSQL ready! Connection: {connectionString}");
+                Console.WriteLine($"[PostgreSQL] Container ready!");
                 return;
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "3D000")
             {
-                LogToFile($"Database not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                Console.WriteLine($"[PostgreSQL] Database not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
                 await Task.Delay(delayMs);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("not mapped"))
             {
-                LogToFile($"Container not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                Console.WriteLine($"[PostgreSQL] Container not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
                 await Task.Delay(delayMs);
             }
             catch (Exception ex)
             {
-                LogToFile($"Health check error (attempt {i + 1}/{maxRetries}): {ex.GetType().Name}: {ex.Message}");
+                Console.WriteLine($"[PostgreSQL] Health check error (attempt {i + 1}/{maxRetries}): {ex.GetType().Name}: {ex.Message}");
                 await Task.Delay(delayMs);
             }
         }
@@ -189,8 +187,6 @@ public static class SharedTestContainers
     public static async Task CleanupDataAsync(string? schema = null)
     {
         if (!_isInitialized || _postgreSqlContainer == null) return;
-
-        LogToFile($"CleanupDataAsync: called with schema={schema ?? "null"}, _databaseOptions.DatabaseName={_databaseOptions?.DatabaseName}");
 
         // Verifica se o container foi iniciado antes de tentar executar comandos
         try

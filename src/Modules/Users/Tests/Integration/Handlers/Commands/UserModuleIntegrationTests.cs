@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Users.Tests.Infrastructure;
+using MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 

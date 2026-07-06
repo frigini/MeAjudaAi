@@ -11,12 +11,15 @@ using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Idempotency;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -42,14 +45,22 @@ public static class RatingsTestInfrastructureExtensions
 
         services.AddDbContext<RatingsDbContext>((sp, dbOptions) =>
         {
-            dbOptions.UseInMemoryDatabase(options.Database.DatabaseName)
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            dbOptions.UseNpgsql(SharedTestContainers.PostgreSql.GetConnectionString(), npgsqlOptions =>
+            {
+                if (!string.IsNullOrWhiteSpace(options.Database.Schema))
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
+                }
+            })
+            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Ratings, (sp, key) => sp.GetRequiredService<RatingsDbContext>());
 
         services.AddScoped<IRepository<Review, ReviewId>>(sp => sp.GetRequiredService<RatingsDbContext>());
+
+        services.AddScoped<IIdempotencyRepository>(sp => new RatingsIdempotencyRepository(sp.GetRequiredService<RatingsDbContext>()));
 
         services.AddScoped<IReviewQueries, DbContextReviewQueries>();
 

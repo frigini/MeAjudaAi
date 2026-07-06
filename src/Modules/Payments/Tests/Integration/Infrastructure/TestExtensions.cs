@@ -8,9 +8,12 @@ using MeAjudaAi.Modules.Payments.Infrastructure.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Integration.Infrastructure;
@@ -21,7 +24,14 @@ public static class TestExtensions
     {
         services.AddDbContext<PaymentsDbContext>(dbOptions =>
         {
-            dbOptions.UseInMemoryDatabase(options.Database.DatabaseName);
+            dbOptions.UseNpgsql(SharedTestContainers.PostgreSql.GetConnectionString(), npgsqlOptions =>
+            {
+                if (!string.IsNullOrWhiteSpace(options.Database.Schema))
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
+                }
+            })
+            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());

@@ -144,7 +144,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 
         _serviceProvider = services.BuildServiceProvider();
 
-        // 4. Inicializar schema do banco (EnsureCreated)
+        // 4. Inicializar schema do banco (MigrateAsync - aplica migrations reais)
         await InitializeDatabaseAsync();
     }
 
@@ -184,20 +184,15 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         await using var connection = new NpgsqlConnection(adminConnectionString);
         await connection.OpenAsync();
 
-        // Cria o banco de dados
+        // Cria o banco de dados (dropa primeiro se existir de rodadas anteriores)
         await using var command = connection.CreateCommand();
-        // Higienizar nome do banco de dados para evitar injeção/erros com caracteres estranhos
         var safeName = databaseName.Replace("\"", "\"\"");
-        command.CommandText = $"CREATE DATABASE \"{safeName}\"";
         
-        try 
-        {
-            await command.ExecuteNonQueryAsync();
-        }
-        catch (PostgresException ex) when (ex.SqlState == "42P04") // Duplicate database
-        {
-            // Ignorar se já existe (deve ser tratado pelo Lazy, mas bom para segurança)
-        }
+        command.CommandText = $"DROP DATABASE IF EXISTS \"{safeName}\" WITH (FORCE)";
+        await command.ExecuteNonQueryAsync();
+        
+        command.CommandText = $"CREATE DATABASE \"{safeName}\"";
+        await command.ExecuteNonQueryAsync();
     }
 
     /// <summary>
@@ -216,8 +211,15 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         await using var scope = _serviceProvider!.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
 
-        // Criar esquema
-        await dbContext.Database.EnsureCreatedAsync();
+        // Criar esquema via migrations (ignora erro se schema já existe de rodadas anteriores)
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // relation already exists
+        {
+            // Tabelas já criadas por rodada anterior — ignorar
+        }
 
         // Verificar isolamento (não deve ter providers ainda)
         // Como estamos reusando o banco por classe de teste, precisamos limpar os dados entre os testes

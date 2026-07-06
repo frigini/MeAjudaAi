@@ -33,8 +33,6 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
     /// </summary>
     protected virtual Task OnModuleInitializeAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
 
-    private static void LogToFile(string message) { }
-
     public async ValueTask InitializeAsync()
     {
         // CRITICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços

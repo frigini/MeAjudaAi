@@ -51,7 +51,6 @@ public static class BookingsTestInfrastructureExtensions
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
             }).ConfigureWarnings(x =>
             {
-                x.Ignore(InMemoryEventId.TransactionIgnoredWarning);
                 x.Ignore(RelationalEventId.PendingModelChangesWarning);
             });
         });

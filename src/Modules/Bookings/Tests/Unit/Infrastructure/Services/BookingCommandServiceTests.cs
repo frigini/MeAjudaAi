@@ -14,7 +14,7 @@ using Npgsql;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Services;
 
-[Trait("Category", "Unit")]
+[Trait("Category", "Integration")]
 [Trait("Module", "Bookings")]
 [Trait("Layer", "Infrastructure")]
 [Collection("BookingsIntegrationTests")]
@@ -35,9 +35,9 @@ public class BookingCommandServiceTests : BookingsIntegrationTestBase
         _service = new BookingCommandService(context, _loggerMock.Object, _localizerMock.Object);
     }
 
-    private BookingsDbContext CreateContext()
+    private BookingsDbContext CreateContext(out IServiceScope scope)
     {
-        var scope = CreateScope();
+        scope = CreateScope();
         return scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
     }
 
@@ -59,9 +59,12 @@ public class BookingCommandServiceTests : BookingsIntegrationTestBase
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        using var context = CreateContext();
-        var savedBooking = await context.Bookings.FindAsync(booking.Id);
-        savedBooking.Should().NotBeNull();
+        var verifyContext = CreateContext(out var verifyScope);
+        using (verifyScope)
+        {
+            var savedBooking = await verifyContext.Bookings.FindAsync(booking.Id);
+            savedBooking.Should().NotBeNull();
+        }
     }
 
     [Fact]
@@ -70,7 +73,8 @@ public class BookingCommandServiceTests : BookingsIntegrationTestBase
         // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-        using (var context = CreateContext())
+        var context = CreateContext(out var scope);
+        using (scope)
         {
             var existingBooking = new BookingBuilder()
                 .WithProviderId(providerId)
@@ -98,8 +102,11 @@ public class BookingCommandServiceTests : BookingsIntegrationTestBase
         result.IsFailure.Should().BeTrue();
         result.Error!.Code.Should().Be(ErrorCodes.Bookings.Overlap);
         result.Error.Message.Should().Be("Já existe agendamento para este horário.");
-        using var verifyContext = CreateContext();
-        (await verifyContext.Bookings.AnyAsync(b => b.Id == newBooking.Id)).Should().BeFalse();
+        var assertContext = CreateContext(out var assertScope);
+        using (assertScope)
+        {
+            (await assertContext.Bookings.AnyAsync(b => b.Id == newBooking.Id)).Should().BeFalse();
+        }
     }
 
     [Fact]
@@ -108,7 +115,8 @@ public class BookingCommandServiceTests : BookingsIntegrationTestBase
         // Arrange
         var providerId = Guid.NewGuid();
         var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-        using (var context = CreateContext())
+        var context = CreateContext(out var scope);
+        using (scope)
         {
             var existingBooking = new BookingBuilder()
                 .WithProviderId(providerId)
@@ -134,9 +142,12 @@ public class BookingCommandServiceTests : BookingsIntegrationTestBase
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        using var verifyContext = CreateContext();
-        var savedBooking = await verifyContext.Bookings.FindAsync(newBooking.Id);
-        savedBooking.Should().NotBeNull();
+        var assertContext = CreateContext(out var assertScope);
+        using (assertScope)
+        {
+            var savedBooking = await assertContext.Bookings.FindAsync(newBooking.Id);
+            savedBooking.Should().NotBeNull();
+        }
     }
 
     [Fact]

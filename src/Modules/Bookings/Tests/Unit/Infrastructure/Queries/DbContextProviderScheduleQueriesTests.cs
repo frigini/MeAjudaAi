@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Infrastructure.Queries;
 
-[Trait("Category", "Unit")]
+[Trait("Category", "Integration")]
 [Trait("Module", "Bookings")]
 [Trait("Layer", "Infrastructure")]
 [Collection("BookingsIntegrationTests")]

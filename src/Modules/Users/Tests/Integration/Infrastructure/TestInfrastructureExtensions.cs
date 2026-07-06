@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
+namespace MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 
 /// <summary>
 /// Extensões para configurar infraestrutura de testes específica do módulo Users
@@ -31,29 +31,21 @@ public static class UsersTestInfrastructureExtensions
 
         services.AddSingleton(options);
 
-        // Adicionar serviços compartilhados essenciais (incluindo TimeProvider)
         services.AddSingleton(TimeProvider.System);
 
-        // Usar extensões compartilhadas
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
 
-        // Adicionar serviços de cache do Shared (incluindo ICacheService)
-        // Para testes, usar implementação simples sem dependências complexas
         services.AddSingleton<ICacheService, TestCacheService>();
 
-        // Configurar banco de dados específico do módulo Users
         services.AddTestDatabase<UsersDbContext>(
             options.Database,
             "MeAjudaAi.Modules.Users.Infrastructure");
 
-        // Configurar naming convention específica do Users
         services.PostConfigure<DbContextOptions<UsersDbContext>>(dbOptions =>
         {
-            // Esta configuração específica será aplicada após a configuração genérica
         });
 
-        // Configurar DbContext específico com snake_case naming
         services.AddDbContext<UsersDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
@@ -65,37 +57,29 @@ public static class UsersTestInfrastructureExtensions
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
                 npgsqlOptions.CommandTimeout(60);
             })
-            .UseSnakeCaseNamingConvention() // Específico do Users
+            .UseSnakeCaseNamingConvention()
             .ConfigureWarnings(warnings =>
             {
-                // Suprimir warnings de pending model changes em testes
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
             });
         });
 
-        // Configurar mocks específicos do módulo Users
         services.AddUsersTestMocks(options.ExternalServices);
 
-        // Adicionar IUnitOfWork e IUserQueries específicos do Users
         services.AddScoped<MeAjudaAi.Shared.Database.Abstractions.IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
         services.AddScoped<IUserQueries, MeAjudaAi.Modules.Users.Infrastructure.Queries.DbContextUserQueries>();
 
-        // Adicionar serviços de aplicação (incluindo IUsersModuleApi)
         services.AddApplication();
 
         return services;
     }
 
-    /// <summary>
-    /// Adiciona mocks específicos do módulo Users
-    /// </summary>
     private static IServiceCollection AddUsersTestMocks(
         this IServiceCollection services,
         TestExternalServicesOptions options)
     {
         if (options.UseKeycloakMock)
         {
-            // Substituir serviços reais por mocks específicos do Users
             services.Replace(ServiceDescriptor.Scoped<IKeycloakService, MockKeycloakService>());
             services.Replace(ServiceDescriptor.Scoped<IUserDomainService, MockUserDomainService>());
             services.Replace(ServiceDescriptor.Scoped<IAuthenticationDomainService, MockAuthenticationDomainService>());
@@ -103,7 +87,6 @@ public static class UsersTestInfrastructureExtensions
 
         if (options.UseMessageBusMock)
         {
-            // Usar mock compartilhado do message bus
             services.AddTestMessageBus();
         }
 

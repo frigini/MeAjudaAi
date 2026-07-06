@@ -122,17 +122,9 @@ public static class MigrationDiscoveryExtensions
 
         foreach (var contextType in dbContextTypes)
         {
-            try
+            if (serviceProvider.GetService(contextType) is DbContext context)
             {
-                if (serviceProvider.GetService(contextType) is DbContext context)
-                {
-                    await context.Database.EnsureCreatedAsync(cancellationToken);
-                    await context.Database.MigrateAsync(cancellationToken);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Migrations] EnsureAllDatabasesCreatedAsync FAILED for {contextType.Name}: {ex.GetType().Name}: {ex.Message}");
+                await context.Database.MigrateAsync(cancellationToken);
             }
         }
     }

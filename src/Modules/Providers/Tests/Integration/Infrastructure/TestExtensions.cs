@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
@@ -69,6 +70,7 @@ public static class TestExtensions
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ProvidersDbContext>());
         services.AddScoped<IProviderQueries, DbContextProviderQueries>();
+        services.AddScoped<IIdempotencyRepository>(sp => new ProviderIdempotencyRepository(sp.GetRequiredService<ProvidersDbContext>()));
 
         services.AddScoped<IQueryDispatcher, QueryDispatcher>();
         services.AddScoped<ICommandDispatcher, CommandDispatcher>();

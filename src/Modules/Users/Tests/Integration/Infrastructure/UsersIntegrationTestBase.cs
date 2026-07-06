@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
+namespace MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 
 /// <summary>
 /// Classe base para testes de integração específicos do módulo Users.
@@ -51,8 +51,6 @@ public abstract class UsersIntegrationTestBase : BaseIntegrationTest
     /// </summary>
     protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
-        // Qualquer setup específico adicional do módulo Users pode ser feito aqui
-        // As migrações são aplicadas automaticamente pelo sistema de auto-descoberta
         await Task.CompletedTask;
     }
 
@@ -72,7 +70,6 @@ public abstract class UsersIntegrationTestBase : BaseIntegrationTest
 
         var user = User.Create(usernameVO, emailVO, firstName, lastName, keycloakId).Value;
 
-        // Obter contexto
         var dbContext = GetService<UsersDbContext>();
 
         await dbContext.Users.AddAsync(user, cancellationToken);

@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
+namespace MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 
 /// <summary>
 /// DbContext específico para testes unitários de configuração do Entity Framework.

@@ -4,9 +4,11 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -27,6 +29,8 @@ public static class LocationsTestInfrastructureExtensions
                     npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
                 }
             })
+            .UseSnakeCaseNamingConvention()
+            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning))
             .EnableSensitiveDataLogging()
             .EnableDetailedErrors();
         });
