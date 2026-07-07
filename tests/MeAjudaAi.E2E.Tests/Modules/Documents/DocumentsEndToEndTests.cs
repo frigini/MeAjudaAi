@@ -44,9 +44,9 @@ public class DocumentsEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
                     return;
                 }
             }
-            catch (Exception) when (attempt < maxAttempts - 1)
+            catch (HttpRequestException) when (attempt < maxAttempts - 1)
             {
-                // Trata erros de rede transitórios como retentáveis
+                // Provider not reachable yet, retry with backoff
             }
 
             if (attempt < maxAttempts - 1)

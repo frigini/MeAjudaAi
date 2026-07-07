@@ -1,6 +1,5 @@
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -20,7 +19,7 @@ public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixtur
         EventsEnabledTestContainerFixture.AuthenticateAsAdmin();
         
         // 1. Criar um prestador, serviço e cliente
-        var providerId = await CreateTestProviderAsync();
+        var providerId = await Fixture.CreateTestProviderAsync(await Fixture.CreateTestUserAsync());
         var serviceId = await CreateTestServiceAsync();
         await LinkServiceToProviderAsync(providerId, serviceId);
         await SetProviderScheduleAsync(providerId, baseUtcNow);
@@ -139,41 +138,4 @@ public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixtur
         return TestContainerFixture.ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
     }
 
-    private async Task<Guid> CreateTestProviderAsync()
-    {
-        var userId = await Fixture.CreateTestUserAsync();
-        var name = $"ProviderX_{Guid.NewGuid():N}";
-        var request = new
-        {
-            UserId = userId.ToString(),
-            Name = name,
-            Type = EProviderType.Individual,
-            BusinessProfile = new
-            {
-                LegalName = name,
-                FantasyName = name,
-                Description = $"Test provider {name}",
-                ContactInfo = new
-                {
-                    Email = $"{name}@example.com",
-                    PhoneNumber = "+5511999999999"
-                },
-                PrimaryAddress = new
-                {
-                    Street = "Avenida Paulista",
-                    Number = "1578",
-                    Neighborhood = "Bela Vista",
-                    City = "São Paulo",
-                    State = "SP",
-                    ZipCode = "01310-200",
-                    Country = "Brasil"
-                }
-            }
-        };
-
-        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request);
-        response.EnsureSuccessStatusCode();
-
-        return TestContainerFixture.ExtractIdFromLocation(response.Headers.Location!.ToString());
-    }
 }

@@ -56,8 +56,11 @@ public class TestContainerFixture : IAsyncLifetime
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
     private static bool _containersInitialized = false;
     private static bool _migrationsApplied = false;
+    private static bool _factoryInitialized = false;
 
     private WebApplicationFactory<Program> _factory = null!;
+    private static HttpClient? _sharedApiClient;
+    private static IServiceProvider? _sharedServices;
 
     public HttpClient ApiClient { get; private set; } = null!;
     public IServiceProvider Services { get; private set; } = null!;
@@ -97,8 +100,29 @@ public class TestContainerFixture : IAsyncLifetime
         if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
         if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
 
-        // Initialize WebApplicationFactory for THIS test class instance
-        await InitializeFactoryAsync();
+        // Initialize WebApplicationFactory once per process (guard against repeated host bootstrap)
+        if (!_factoryInitialized)
+        {
+            await _initializationLock.WaitAsync();
+            try
+            {
+                if (!_factoryInitialized)
+                {
+                    await InitializeFactoryAsync();
+                    _factoryInitialized = true;
+                }
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
+        else
+        {
+            // Reuse properties already set by the one-time initialization
+            ApiClient = _sharedApiClient!;
+            Services = _sharedServices!;
+        }
 
         // One-time migration application for the entire test run
         if (!_migrationsApplied)
@@ -233,6 +257,11 @@ public class TestContainerFixture : IAsyncLifetime
         };
 
         Services = _factory.Services;
+
+        // Cache for reuse by subsequent fixture instances
+        _sharedApiClient = ApiClient;
+        _sharedServices = Services;
+
         return Task.CompletedTask;
     }
 
@@ -594,5 +623,59 @@ public class TestContainerFixture : IAsyncLifetime
         }
 
         return ExtractIdFromLocation(locationHeader);
+    }
+
+    /// <summary>
+    /// Cria um prestador de testes via endpoint admin. Centralizado para evitar duplicação entre suítes E2E.
+    /// </summary>
+    public async Task<Guid> CreateTestProviderAsync(Guid userId, string? name = null)
+    {
+        var providerName = name ?? $"ProviderX_{Guid.NewGuid():N}";
+        var request = new
+        {
+            UserId = userId.ToString(),
+            Name = providerName,
+            Type = 0, // EProviderType.Individual
+            BusinessProfile = new
+            {
+                LegalName = providerName,
+                FantasyName = providerName,
+                Description = $"Test provider {providerName}",
+                ContactInfo = new
+                {
+                    Email = $"{Guid.NewGuid():N}@example.com",
+                    PhoneNumber = "+5511999999999"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Avenida Paulista",
+                    Number = "1578",
+                    Neighborhood = "Bela Vista",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01310-200",
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create test provider. Status: {response.StatusCode}, Body: {body}");
+        }
+
+        return ExtractIdFromLocation(response.Headers.Location!.ToString());
+    }
+
+    /// <summary>
+    /// Configura o contexto de autenticação como um prestador específico.
+    /// </summary>
+    public static void AuthenticateAsProvider(Guid providerId, string? userId = null)
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+            providerId, userId ?? Guid.NewGuid().ToString());
     }
 }

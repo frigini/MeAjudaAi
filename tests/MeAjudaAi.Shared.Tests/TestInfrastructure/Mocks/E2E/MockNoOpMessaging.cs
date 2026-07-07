@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Events;
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.E2E;
 
 /// <summary>
-/// No-op implementation of IMessageBus for E2E tests that don't need message processing.
+/// Implementação no-op de IMessageBus para testes E2E que não precisam de processamento de mensagens.
 /// </summary>
 public class MockNoOpMessageBus : IMessageBus
 {
@@ -19,7 +19,7 @@ public class MockNoOpMessageBus : IMessageBus
 }
 
 /// <summary>
-/// No-op implementation of IDomainEventProcessor for E2E tests that don't need event processing.
+/// Implementação no-op de IDomainEventProcessor para testes E2E que não precisam de processamento de eventos de domínio.
 /// </summary>
 public class MockNoOpDomainEventProcessor : IDomainEventProcessor
 {

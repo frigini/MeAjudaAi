@@ -37,6 +37,27 @@ public static class MigrationDiscoveryExtensions
                     $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
             }
 
+            // Ensure the database exists before applying migrations
+            var connectionString = context.Database.GetConnectionString();
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+                var databaseName = csBuilder.Database;
+                csBuilder.Database = "postgres";
+                await using var conn = new NpgsqlConnection(csBuilder.ConnectionString);
+                await conn.OpenAsync(cancellationToken);
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'";
+                var exists = await cmd.ExecuteScalarAsync(cancellationToken);
+                if (exists is null)
+                {
+                    // Cannot use parameterized query for database name
+                    await using var createCmd = conn.CreateCommand();
+                    createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
+                    await createCmd.ExecuteNonQueryAsync(cancellationToken);
+                }
+            }
+
             const int maxRetries = 5;
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
@@ -140,6 +161,26 @@ public static class MigrationDiscoveryExtensions
             {
                 await context.Database.ExecuteSqlRawAsync(
                     $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
+            }
+
+            // Ensure the database exists before applying migrations
+            var connectionString = context.Database.GetConnectionString();
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+                var databaseName = csBuilder.Database;
+                csBuilder.Database = "postgres";
+                await using var conn = new NpgsqlConnection(csBuilder.ConnectionString);
+                await conn.OpenAsync(cancellationToken);
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'";
+                var exists = await cmd.ExecuteScalarAsync(cancellationToken);
+                if (exists is null)
+                {
+                    await using var createCmd = conn.CreateCommand();
+                    createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
+                    await createCmd.ExecuteNonQueryAsync(cancellationToken);
+                }
             }
 
             const int maxRetries = 5;

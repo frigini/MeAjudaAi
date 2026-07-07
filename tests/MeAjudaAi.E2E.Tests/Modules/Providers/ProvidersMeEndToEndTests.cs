@@ -296,7 +296,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : BaseE2ETes
         {
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonSerializer.Deserialize<JsonElement>(body, TestContainerFixture.JsonOptions);
-            var data = json.GetProperty("data");
+            var data = TestContainerFixture.GetResponseData(json);
             return Guid.Parse(data.GetProperty("id").GetString()!);
         }
         if (!string.IsNullOrEmpty(location))

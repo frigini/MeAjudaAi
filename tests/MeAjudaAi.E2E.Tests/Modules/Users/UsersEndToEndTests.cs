@@ -292,23 +292,10 @@ public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<Test
         location.Should().NotBeNullOrEmpty();
         var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
-        // Log for debugging
-        Console.WriteLine($"DEBUG: Created user with ID: {userId}");
-        Console.WriteLine($"DEBUG: Location header: {location}");
-
-        // Add delay to ensure async operations complete (cache, DB persistence)
-        await Task.Delay(500);
-
-        // Verify user exists before update
-        Console.WriteLine($"DEBUG: Attempting GET request for /api/v1/users/{userId}");
-        var getBeforeUpdate = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        // Poll until user is visible (replaces fragile Task.Delay)
+        Console.WriteLine($"DEBUG: Waiting until user {userId} is visible via GET...");
+        var getBeforeUpdate = await WaitUntilUserVisibleAsync(userId);
         Console.WriteLine($"DEBUG: GET response status: {getBeforeUpdate.StatusCode}");
-        
-        if (getBeforeUpdate.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            var debugContent = await getBeforeUpdate.Content.ReadAsStringAsync();
-            Console.WriteLine($"DEBUG: GET 404 response body: {debugContent}");
-        }
         getBeforeUpdate.StatusCode.Should().Be(HttpStatusCode.OK, "User should exist before update");
 
         // Act - Atualizar perfil (não alterar Email para evitar conflitos)
@@ -329,24 +316,15 @@ public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<Test
             HttpStatusCode.OK,
             HttpStatusCode.NoContent);
 
-        // Small delay to ensure cache invalidation completes
-        await Task.Delay(100);
-
-        // Assert - Verificar persistência das mudanças via GET
-        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
-        
-        if (getResponse.StatusCode == HttpStatusCode.NotFound)
-        {
-            var errorContent = await getResponse.Content.ReadAsStringAsync();
-            throw new Exception($"User not found after update. UserId: {userId}, Error: {errorContent}");
-        }
+        // Poll until update is reflected (replaces fragile Task.Delay)
+        var getResponse = await WaitUntilUserVisibleAsync(userId);
         
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await getResponse.Content.ReadAsStringAsync();
         var userData = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
         
-        var data = GetResponseData(userData);
+        var data = TestContainerFixture.GetResponseData(userData);
         data.TryGetProperty("firstName", out var firstNameProp).Should().BeTrue();
         data.TryGetProperty("lastName", out var lastNameProp).Should().BeTrue();
         data.TryGetProperty("email", out var emailProp).Should().BeTrue();
@@ -421,7 +399,7 @@ public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<Test
         
         var content = await getResponse.Content.ReadAsStringAsync();
         var userData = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
-        var data = GetResponseData(userData);
+        var data = TestContainerFixture.GetResponseData(userData);
 
         data.GetProperty("firstName").GetString().Should().Be("Third");
         data.GetProperty("lastName").GetString().Should().Be("Final");
@@ -488,7 +466,7 @@ public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<Test
         
         var updateContent = await verifyUpdateResponse.Content.ReadAsStringAsync();
         var updatedData = JsonSerializer.Deserialize<JsonElement>(updateContent, TestContainerFixture.JsonOptions);
-        var data = GetResponseData(updatedData);
+        var data = TestContainerFixture.GetResponseData(updatedData);
         data.GetProperty("firstName").GetString().Should().Be("Updated");
 
         // Act & Assert - DELETE
@@ -596,20 +574,25 @@ public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<Test
     #endregion
 
     /// <summary>
-    /// Método auxiliar para extrair dados de uma resposta da API que pode estar encapsulada ou não
+    /// Aguarda (com retry) até que o usuário seja encontrado via GET, ou lança timeout.
+    /// Substitui Task.Delay fixo para sincronização de cache/persistência.
     /// </summary>
-    private static JsonElement GetResponseData(JsonElement response)
+    private async Task<HttpResponseMessage> WaitUntilUserVisibleAsync(
+        Guid userId,
+        int maxAttempts = 10,
+        int delayMs = 300)
     {
-        // Se a resposta tem uma propriedade 'value' ou 'data', desencapsula ela
-        if (response.TryGetProperty("value", out var value))
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
-            return value;
+            var response = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+            if (response.StatusCode == HttpStatusCode.OK)
+                return response;
+
+            if (attempt < maxAttempts - 1)
+                await Task.Delay(delayMs);
         }
-        if (response.TryGetProperty("data", out var data))
-        {
-            return data;
-        }
-        // Caso contrário, retorna a resposta diretamente
-        return response;
+
+        // Final attempt – return as-is so the caller's assertion produces a clear failure message
+        return await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
     }
 }

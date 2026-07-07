@@ -497,7 +497,9 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
         var getInitialResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getInitialResponse.EnsureSuccessStatusCode();
         var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
-        getInitialContent.Should().Contain("\"isActive\":true");
+        var getInitialJson = JsonSerializer.Deserialize<JsonElement>(getInitialContent, TestContainerFixture.JsonOptions);
+        var getInitialData = TestContainerFixture.GetResponseData(getInitialJson);
+        getInitialData.GetProperty("isActive").GetBoolean().Should().BeTrue("initial state should be active");
 
         // 2. Desativar o perfil
         var deactivateResponse = await Fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
@@ -511,7 +513,9 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
         var getAfterDeactivateResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getAfterDeactivateResponse.EnsureSuccessStatusCode();
         var getAfterDeactivateContent = await getAfterDeactivateResponse.Content.ReadAsStringAsync();
-        getAfterDeactivateContent.Should().Contain("\"isActive\":false");
+        var getAfterDeactivateJson = JsonSerializer.Deserialize<JsonElement>(getAfterDeactivateContent, TestContainerFixture.JsonOptions);
+        var getAfterDeactivateData = TestContainerFixture.GetResponseData(getAfterDeactivateJson);
+        getAfterDeactivateData.GetProperty("isActive").GetBoolean().Should().BeFalse("provider should be deactivated");
 
         // 3. Ativar o perfil novamente
         var activateResponse = await Fixture.ApiClient.PostAsync("/api/v1/providers/me/activate", null);
@@ -524,7 +528,9 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
         getProfileResponse.EnsureSuccessStatusCode();
         
         var getProfileContent = await getProfileResponse.Content.ReadAsStringAsync();
-        getProfileContent.Should().Contain("\"isActive\":true");
+        var getProfileJson = JsonSerializer.Deserialize<JsonElement>(getProfileContent, TestContainerFixture.JsonOptions);
+        var getProfileData = TestContainerFixture.GetResponseData(getProfileJson);
+        getProfileData.GetProperty("isActive").GetBoolean().Should().BeTrue("provider should be re-activated");
     }
 
     [Fact]
@@ -585,8 +591,10 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
         // 1. Verificar estado inicial (isActive deve ser true)
         var getInitialResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getInitialResponse.EnsureSuccessStatusCode();
-        var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
-        getInitialContent.Should().Contain("\"isActive\":true");
+        var getInitialContent2 = await getInitialResponse.Content.ReadAsStringAsync();
+        var getInitialJson2 = JsonSerializer.Deserialize<JsonElement>(getInitialContent2, TestContainerFixture.JsonOptions);
+        var getInitialData2 = TestContainerFixture.GetResponseData(getInitialJson2);
+        getInitialData2.GetProperty("isActive").GetBoolean().Should().BeTrue("initial state should be active");
 
         // 2. Desativar o perfil
         var deactivateResponse = await Fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
@@ -600,8 +608,10 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
         var getProfileResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getProfileResponse.EnsureSuccessStatusCode();
         
-        var getProfileContent = await getProfileResponse.Content.ReadAsStringAsync();
-        getProfileContent.Should().Contain("\"isActive\":false");
+        var getProfileContent2 = await getProfileResponse.Content.ReadAsStringAsync();
+        var getProfileJson2 = JsonSerializer.Deserialize<JsonElement>(getProfileContent2, TestContainerFixture.JsonOptions);
+        var getProfileData2 = TestContainerFixture.GetResponseData(getProfileJson2);
+        getProfileData2.GetProperty("isActive").GetBoolean().Should().BeFalse("provider should be deactivated");
     }
 
     #endregion

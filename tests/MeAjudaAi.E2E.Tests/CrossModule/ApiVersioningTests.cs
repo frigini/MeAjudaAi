@@ -7,7 +7,7 @@ namespace MeAjudaAi.E2E.Tests.CrossModule;
 /// Padrão: /api/v{version}/module (ex: /api/v1/users)
 /// Essa abordagem é explícita, clara e evita a complexidade de múltiplos métodos de versionamento
 /// </summary>
-public class ApiVersioningTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
+public class ApiVersioningTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaUrlSegment()
@@ -17,7 +17,7 @@ public class ApiVersioningTests(TestContainerFixture fixture) : IClassFixture<Te
         TestContainerFixture.AuthenticateAsAdmin();
         
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         // Não deve ser NotFound - indica que o versionamento por URL foi reconhecido e está funcionando
@@ -36,9 +36,9 @@ public class ApiVersioningTests(TestContainerFixture fixture) : IClassFixture<Te
         // Act - Testa caminhos que NÃO devem funcionar sem versionamento na URL
         var responses = new[]
         {
-            await fixture.ApiClient.GetAsync("/api/users"), // Sem versão - deve ser 404
-            await fixture.ApiClient.GetAsync("/users"), // Sem prefixo api - deve ser 404
-            await fixture.ApiClient.GetAsync("/api/v2/users") // Versão não suportada - deve ser 404 ou 400
+            await Fixture.ApiClient.GetAsync("/api/users"), // Sem versão - deve ser 404
+            await Fixture.ApiClient.GetAsync("/users"), // Sem prefixo api - deve ser 404
+            await Fixture.ApiClient.GetAsync("/api/v2/users") // Versão não suportada - deve ser 404 ou 400
         };
 
         // Assert
@@ -59,11 +59,11 @@ public class ApiVersioningTests(TestContainerFixture fixture) : IClassFixture<Te
         // Act - Testa que o versionamento funciona para diferentes padrões de módulos
         var responses = new[]
         {
-            await fixture.ApiClient.GetAsync("/api/v1/users"),
-            await fixture.ApiClient.GetAsync("/api/v1/providers"),
-            await fixture.ApiClient.GetAsync("/api/v1/service-catalogs/services"),
-            await fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories"),
-            await fixture.ApiClient.GetAsync("/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10"),
+            await Fixture.ApiClient.GetAsync("/api/v1/users"),
+            await Fixture.ApiClient.GetAsync("/api/v1/providers"),
+            await Fixture.ApiClient.GetAsync("/api/v1/service-catalogs/services"),
+            await Fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories"),
+            await Fixture.ApiClient.GetAsync("/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10"),
         };
 
         // Assert

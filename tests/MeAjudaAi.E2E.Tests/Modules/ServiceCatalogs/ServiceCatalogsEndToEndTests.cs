@@ -559,10 +559,10 @@ public class ServiceCatalogsEndToEndTests(TestContainerFixture fixture) : BaseE2
     }
 
     /// <summary>
-    /// Valida que tentar alterar um serviço para uma categoria inexistente retorna NotFound.
+    /// Valida que tentar alterar um serviço para uma categoria inexistente retorna 422 (validação semântica).
     /// </summary>
     [Fact]
-    public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_NotFound()
+    public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_UnprocessableEntity()
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
