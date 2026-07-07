@@ -1,17 +1,15 @@
-using System.Security.Claims;
-using System.Diagnostics.Metrics;
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Bookings.Application.Authorization;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Bookings.Application.Authorization;
+using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Moq;
 using Microsoft.Extensions.Configuration;
-using MeAjudaAi.Modules.Bookings.Application.Enums;
+using System.Diagnostics.Metrics;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Bookings;
 
@@ -46,7 +44,6 @@ public class ProviderAuthorizationResolverTests : BaseApiTest
 
         // Setup HybridCache (using memory for L2 in tests)
         services.AddDistributedMemoryCache();
-        #pragma warning disable EXTEXP0018
         services.AddHybridCache(options => 
         {
             options.DefaultEntryOptions = new Microsoft.Extensions.Caching.Hybrid.HybridCacheEntryOptions
@@ -55,7 +52,6 @@ public class ProviderAuthorizationResolverTests : BaseApiTest
                 Expiration = TimeSpan.FromSeconds(10)
             };
         });
-        #pragma warning restore EXTEXP0018
 
         services.AddSingleton<IMeterFactory>(new Mock<IMeterFactory>().Object);
         services.AddSingleton<ICacheMetrics, MockCacheMetrics>();

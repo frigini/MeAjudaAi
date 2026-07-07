@@ -1,10 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.Ratings;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
-using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Ratings;
 

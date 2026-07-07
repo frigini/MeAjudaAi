@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -30,58 +31,150 @@ public static class MigrationDiscoveryExtensions
 
             context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
 
-            var schema = DbContextSchemaHelper.GetSchemaName(contextType);
-            if (schema != "public")
+            await EnsureDatabaseAndMigrateAsync(context, contextType, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Garante que o banco de dados existe e aplica migrations de forma segura.
+    /// Extrai a lógica compartilhada entre ApplyAllDiscoveredMigrationsAsync e EnsureAllDatabasesCreatedAsync.
+    /// </summary>
+    private static async Task EnsureDatabaseAndMigrateAsync(
+        DbContext context,
+        Type contextType,
+        CancellationToken cancellationToken)
+    {
+        // Ensure the database exists FIRST before trying to create schemas or apply migrations
+        var connectionString = context.Database.GetConnectionString();
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+
+            // Ensure we have a password - if the connection string doesn't include one, 
+            // use the test default password
+            if (string.IsNullOrEmpty(csBuilder.Password))
             {
-                await context.Database.ExecuteSqlRawAsync(
-                    $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
+                csBuilder.Password = "test_password";
             }
 
-            // Ensure the database exists before applying migrations
-            var connectionString = context.Database.GetConnectionString();
-            if (!string.IsNullOrEmpty(connectionString))
+            var databaseName = csBuilder.Database;
+
+            // Validate database name against allowed format (alphanumeric + underscore + hyphen)
+            if (!IsValidDatabaseName(databaseName))
             {
-                var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
-                var databaseName = csBuilder.Database;
-                csBuilder.Database = "postgres";
-                await using var conn = new NpgsqlConnection(csBuilder.ConnectionString);
-                await conn.OpenAsync(cancellationToken);
-                await using var cmd = conn.CreateCommand();
-                cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'";
-                var exists = await cmd.ExecuteScalarAsync(cancellationToken);
-                if (exists is null)
-                {
-                    // Cannot use parameterized query for database name
-                    await using var createCmd = conn.CreateCommand();
-                    createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
-                    await createCmd.ExecuteNonQueryAsync(cancellationToken);
-                }
+                throw new InvalidOperationException(
+                    $"Database name '{databaseName}' contains invalid characters. Only alphanumeric, underscore, and hyphen are allowed.");
             }
 
-            const int maxRetries = 5;
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            const int maxDbCreateRetries = 5;
+
+            for (int attempt = 1; attempt <= maxDbCreateRetries; attempt++)
             {
                 try
                 {
-                    await context.Database.MigrateAsync(cancellationToken);
-                    Console.WriteLine($"[Migrations] Applied migrations for {contextType.Name} (attempt {attempt})");
+                    // Try to connect directly to the target database
+                    await using var connTest = new NpgsqlConnection(csBuilder.ConnectionString);
+                    await connTest.OpenAsync(cancellationToken);
+                    connTest.Close();
                     break;
                 }
-                catch (Exception ex) when (
-                    ex is PostgresException pgEx &&
-                    (pgEx.SqlState == "23505" || pgEx.SqlState == "42P01") &&
-                    attempt < maxRetries)
+                catch (NpgsqlException pgEx) when (pgEx.SqlState == "3D000") // Database does not exist
                 {
-                    Console.WriteLine($"[Migrations] Race condition for {contextType.Name} (attempt {attempt}/{maxRetries}): {pgEx.Message}. Retrying...");
-                    await Task.Delay(100 * attempt, cancellationToken);
+                    // Try to create it via postgres database
+                    try
+                    {
+                        // Preserve all credentials when creating the postgres connection string
+                        var postgresBuilder = new NpgsqlConnectionStringBuilder
+                        {
+                            Host = csBuilder.Host,
+                            Port = csBuilder.Port,
+                            Username = csBuilder.Username,
+                            Password = csBuilder.Password,
+                            Database = "postgres",
+                            SslMode = csBuilder.SslMode
+                        };
+
+                        await using var connPostgres = new NpgsqlConnection(postgresBuilder.ConnectionString);
+                        await connPostgres.OpenAsync(cancellationToken);
+
+                        // Use parameterized query for database existence check
+                        await using var checkCmd = connPostgres.CreateCommand();
+                        checkCmd.CommandText = "SELECT 1 FROM pg_database WHERE datname = @dbname";
+                        checkCmd.Parameters.AddWithValue("@dbname", databaseName);
+                        var exists = await checkCmd.ExecuteScalarAsync(cancellationToken);
+
+                        if (exists is null)
+                        {
+                            // For CREATE DATABASE, identifiers must use raw strings (not parameterized)
+                            await using var createCmd = connPostgres.CreateCommand();
+                            createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
+                            await createCmd.ExecuteNonQueryAsync(cancellationToken);
+                        }
+
+                        connPostgres.Close();
+                        break;
+                    }
+                    catch (Exception createEx) when (attempt < maxDbCreateRetries)
+                    {
+                        await Task.Delay(500 * attempt, cancellationToken);
+                    }
+                    catch (Exception createEx)
+                    {
+                        throw;
+                    }
+                }
+                catch (Exception ex) when (attempt < maxDbCreateRetries && (ex is NpgsqlException || ex is TimeoutException))
+                {
+                    await Task.Delay(500 * attempt, cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Migrations] Failed to apply migrations for {contextType.Name}: {ex.GetType().Name}: {ex.Message}");
                     throw;
                 }
             }
         }
+
+        // Create schema AFTER ensuring the database exists
+        var schema = DbContextSchemaHelper.GetSchemaName(contextType);
+        if (schema != "public")
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
+        }
+
+        // Apply migrations with retry logic
+        const int maxRetries = 5;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                await context.Database.MigrateAsync(cancellationToken);
+                break;
+            }
+            catch (Exception ex) when (
+                ex is PostgresException pgEx &&
+                (pgEx.SqlState == "23505" || pgEx.SqlState == "42P01") &&
+                attempt < maxRetries)
+            {
+                await Task.Delay(100 * attempt, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Valida que o nome do banco de dados contém apenas caracteres seguros.
+    /// </summary>
+    private static bool IsValidDatabaseName(string? databaseName)
+    {
+        if (string.IsNullOrEmpty(databaseName))
+            return false;
+
+        // Allow alphanumeric, underscore, and hyphen; max 63 chars (PostgreSQL limit)
+        return Regex.IsMatch(databaseName, @"^[a-zA-Z0-9_-]{1,63}$");
     }
 
     /// <summary>
@@ -156,55 +249,7 @@ public static class MigrationDiscoveryExtensions
 
             context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
 
-            var schema = DbContextSchemaHelper.GetSchemaName(contextType);
-            if (schema != "public")
-            {
-                await context.Database.ExecuteSqlRawAsync(
-                    $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
-            }
-
-            // Ensure the database exists before applying migrations
-            var connectionString = context.Database.GetConnectionString();
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-                var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
-                var databaseName = csBuilder.Database;
-                csBuilder.Database = "postgres";
-                await using var conn = new NpgsqlConnection(csBuilder.ConnectionString);
-                await conn.OpenAsync(cancellationToken);
-                await using var cmd = conn.CreateCommand();
-                cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'";
-                var exists = await cmd.ExecuteScalarAsync(cancellationToken);
-                if (exists is null)
-                {
-                    await using var createCmd = conn.CreateCommand();
-                    createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
-                    await createCmd.ExecuteNonQueryAsync(cancellationToken);
-                }
-            }
-
-            const int maxRetries = 5;
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
-            {
-                try
-                {
-                    await context.Database.MigrateAsync(cancellationToken);
-                    break;
-                }
-                catch (Exception ex) when (
-                    ex is PostgresException pgEx &&
-                    (pgEx.SqlState == "23505" || pgEx.SqlState == "42P01") &&
-                    attempt < maxRetries)
-                {
-                    Console.WriteLine($"[Migrations] Race condition for {contextType.Name} (attempt {attempt}/{maxRetries}): {pgEx.Message}. Retrying...");
-                    await Task.Delay(100 * attempt, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[Migrations] Failed to apply migrations for {contextType.Name}: {ex.GetType().Name}: {ex.Message}");
-                    throw;
-                }
-            }
+            await EnsureDatabaseAndMigrateAsync(context, contextType, cancellationToken);
         }
     }
 

@@ -1,7 +1,6 @@
-using System.Globalization;
-using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Integration.Tests.Base;
+using System.Globalization;
 
 namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 

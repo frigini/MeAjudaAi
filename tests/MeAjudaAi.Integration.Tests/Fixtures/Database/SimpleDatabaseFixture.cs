@@ -112,18 +112,14 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             Console.WriteLine("[SimpleDatabaseFixture] Npgsql.EnableLegacyTimestampBehavior = true");
 
-            // Define e inicia containers apenas se não existirem
-            if (_postgresContainer == null)
-            {
-                // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
-                // PostGIS é necessário para SearchProviders (NetTopologySuite)
-                _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
-                    .WithDatabase("meajudaai_test")
-                    .WithUsername("postgres")
-                    .WithPassword("test123")
-                    .WithCleanUp(true) // Ryuk resource reaper limpará os containers quando o processo terminar
-                    .Build();
-            }
+            // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
+            // PostGIS é necessário para SearchProviders (NetTopologySuite)
+            _postgresContainer ??= new PostgreSqlBuilder("postgis/postgis:16-3.4")
+                .WithDatabase("meajudaai_test")
+                .WithUsername("postgres")
+                .WithPassword("test123")
+                .WithCleanUp(true) // Ryuk resource reaper limpará os containers quando o processo terminar
+                .Build();
 
             // Inicia containers sequencialmente para evitar colisões de recursos em ambientes CI
             await _postgresContainer.StartAsync();
@@ -170,29 +166,6 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             Console.WriteLine($"[DB-CONTAINER] Warning: Could not ensure PostGIS extension: {ex.Message}");
             // Não lança exceção - a imagem postgis/postgis já vem com PostGIS
             // Apenas logamos caso haja algum problema
-        }
-    }
-}
-
-/// <summary>
-/// Estratégia de espera customizada para garantir que o PostgreSQL está realmente pronto para aceitar conexões
-/// </summary>
-internal sealed class WaitUntilDatabaseIsReady : IWaitUntil
-{
-    public async Task<bool> UntilAsync(IContainer container)
-    {
-        try
-        {
-            var connectionString = $"Host=localhost;Port={container.GetMappedPublicPort(5432)};Database=meajudaai_test;Username=postgres;Password=test123;Timeout=5";
-            await using var conn = new NpgsqlConnection(connectionString);
-            await conn.OpenAsync();
-            await using var cmd = new NpgsqlCommand("SELECT 1", conn);
-            await cmd.ExecuteScalarAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
         }
     }
 }

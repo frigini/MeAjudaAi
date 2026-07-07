@@ -58,7 +58,7 @@ public class TestContainerFixture : IAsyncLifetime
     private static bool _migrationsApplied = false;
     private static bool _factoryInitialized = false;
 
-    private WebApplicationFactory<Program> _factory = null!;
+    private static WebApplicationFactory<Program>? _factory;
     private static HttpClient? _sharedApiClient;
     private static IServiceProvider? _sharedServices;
 
@@ -175,7 +175,7 @@ public class TestContainerFixture : IAsyncLifetime
 
     private Task InitializeFactoryAsync()
     {
-        _factory = new WebApplicationFactory<Program>()
+        _factory ??= new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -250,7 +250,7 @@ public class TestContainerFixture : IAsyncLifetime
         {
             InnerHandler = _factory.Server.CreateHandler()
         };
-        
+
         ApiClient = new HttpClient(contextPropagationHandler)
         {
             BaseAddress = new Uri("http://localhost")
@@ -407,6 +407,11 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task ApplyMigrationsAsync()
     {
+        if (_factory == null)
+        {
+            throw new InvalidOperationException("WebApplicationFactory was not initialized. This should not happen as factory initialization must complete before migrations are applied.");
+        }
+
         using var scope = _factory.Services.CreateScope();
         var services = scope.ServiceProvider;
 

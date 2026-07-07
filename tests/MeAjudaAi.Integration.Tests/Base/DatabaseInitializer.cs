@@ -1,23 +1,15 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
 /// Helper para inicialização de banco com cache
 /// </summary>
-public class DatabaseInitializer
+public class DatabaseInitializer(
+    DatabaseSchemaCacheService cacheService,
+    ILogger<DatabaseInitializer> logger)
 {
-    private readonly DatabaseSchemaCacheService _cacheService;
-    private readonly ILogger<DatabaseInitializer> _logger;
-
-    public DatabaseInitializer(
-        DatabaseSchemaCacheService cacheService,
-        ILogger<DatabaseInitializer> logger)
-    {
-        _cacheService = cacheService;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Inicializa o banco de dados apenas se necessário (com base no cache)
@@ -36,28 +28,28 @@ public class DatabaseInitializer
         try
         {
             // Verificar se pode reutilizar schema existente
-            if (await _cacheService.CanReuseSchemaAsync(connectionString, moduleName))
+            if (await cacheService.CanReuseSchemaAsync(connectionString, moduleName))
             {
-                _logger.LogInformation("[OptimizedInit] Schema reused for {Module} in {ElapsedMs}ms",
+                logger.LogInformation("[OptimizedInit] Schema reused for {Module} in {ElapsedMs}ms",
                     moduleName, stopwatch.ElapsedMilliseconds);
                 return false; // Não precisou inicializar
             }
 
             // Executar inicialização
-            _logger.LogInformation("[OptimizedInit] Initializing schema for {Module}...", moduleName);
+            logger.LogInformation("[OptimizedInit] Initializing schema for {Module}...", moduleName);
             await initializationAction();
 
             // Marcar como inicializado no cache
-            await _cacheService.MarkSchemaAsInitializedAsync(connectionString, moduleName);
+            await cacheService.MarkSchemaAsInitializedAsync(connectionString, moduleName);
 
-            _logger.LogInformation("[OptimizedInit] Schema initialized for {Module} in {ElapsedMs}ms",
+            logger.LogInformation("[OptimizedInit] Schema initialized for {Module} in {ElapsedMs}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
 
             return true; // Inicializou com sucesso
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[OptimizedInit] Schema initialization failed for {Module}", moduleName);
+            logger.LogError(ex, "[OptimizedInit] Schema initialization failed for {Module}", moduleName);
 
             // Invalidar cache em caso de erro
             await DatabaseSchemaCacheService.InvalidateCacheAsync(connectionString, moduleName);

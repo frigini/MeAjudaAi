@@ -1,10 +1,8 @@
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 

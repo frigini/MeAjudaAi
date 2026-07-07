@@ -1,12 +1,11 @@
-using FluentAssertions;
+using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Queries;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Modules.Documents;
 
@@ -46,5 +45,3 @@ public class DocumentRepositoryIntegrationTests : IDisposable
         retrieved!.Status.Should().Be(EDocumentStatus.Uploaded);
     }
 }
-
-

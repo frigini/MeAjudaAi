@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 

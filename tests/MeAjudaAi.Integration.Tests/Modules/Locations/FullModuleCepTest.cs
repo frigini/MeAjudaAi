@@ -1,6 +1,5 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

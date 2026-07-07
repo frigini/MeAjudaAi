@@ -1,5 +1,4 @@
 using Bogus;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
@@ -25,37 +24,36 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
 
         city.Should().BeNull("cidade não existe e queries deve retornar null");
     }
-[Fact]
-public async Task CreateDuplicateCity_ShouldDetectDuplicate()
-{
-    using var scope = Services.CreateScope();
-    var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations);
-    var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
-    var repository = uow.GetRepository<AllowedCity, Guid>();
 
-    var cityName = _faker.Address.City();
-    var state = "SP";
-    var createdBy = _faker.Internet.Email();
+    [Fact]
+    public async Task CreateDuplicateCity_ShouldDetectDuplicate()
+    {
+        using var scope = Services.CreateScope();
+        var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations);
+        var queries = scope.ServiceProvider.GetRequiredService<IAllowedCityQueries>();
+        var repository = uow.GetRepository<AllowedCity, Guid>();
 
-    var city = new AllowedCity(cityName, state, createdBy);
-    repository.Add(city);
-    await uow.SaveChangesAsync();
+        var cityName = _faker.Address.City();
+        var state = "SP";
+        var createdBy = _faker.Internet.Email();
 
-    var exists = await queries.ExistsAsync(cityName, state);
+        var city = new AllowedCity(cityName, state, createdBy);
+        repository.Add(city);
+        await uow.SaveChangesAsync();
 
-    exists.Should().BeTrue("cidade duplicada deve ser detectada");
+        var exists = await queries.ExistsAsync(cityName, state);
+
+        exists.Should().BeTrue("cidade duplicada deve ser detectada");
+    }
+
+    [Fact]
+    public async Task ValidRepository_ShouldHaveAllMethods()
+    {
+        using var scope = Services.CreateScope();
+        var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations);
+        var repository = uow.GetRepository<AllowedCity, Guid>();
+
+        repository.Should().NotBeNull();
+        repository.Should().BeAssignableTo<IRepository<AllowedCity, Guid>>();
+    }
 }
-
-[Fact]
-public async Task ValidRepository_ShouldHaveAllMethods()
-{
-    using var scope = Services.CreateScope();
-    var uow = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.Locations);
-    var repository = uow.GetRepository<AllowedCity, Guid>();
-
-    repository.Should().NotBeNull();
-    repository.Should().BeAssignableTo<IRepository<AllowedCity, Guid>>();
-}
-}
-
-

@@ -27,7 +27,7 @@ public class ProviderDashboardApiTests(TestContainerFixture fixture) : BaseE2ETe
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(response);
-        var value = provider.TryGetProperty("data", out var v) ? v : provider;
+        var value = TestContainerFixture.GetResponseData(provider);
 
         value.GetProperty("id").GetString().Should().Be(providerId.ToString());
         value.GetProperty("userId").GetString().Should().Be(userId.ToString());
@@ -51,7 +51,7 @@ public class ProviderDashboardApiTests(TestContainerFixture fixture) : BaseE2ETe
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(getResponse);
-        var value = provider.TryGetProperty("data", out var v) ? v : provider;
+        var value = TestContainerFixture.GetResponseData(provider);
 
         var newDescription = "Updated Description via Dashboard";
 
@@ -89,7 +89,7 @@ public class ProviderDashboardApiTests(TestContainerFixture fixture) : BaseE2ETe
 
         var verifyResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         var verifyProvider = await TestContainerFixture.ReadJsonAsync<JsonElement>(verifyResponse);
-        var verifyValue = verifyProvider.TryGetProperty("data", out var vp) ? vp : verifyProvider;
+        var verifyValue = TestContainerFixture.GetResponseData(verifyProvider);
 
         verifyValue.GetProperty("businessProfile").GetProperty("description").GetString().Should().Be(newDescription);
     }

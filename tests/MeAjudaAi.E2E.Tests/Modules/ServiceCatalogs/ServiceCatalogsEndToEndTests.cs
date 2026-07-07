@@ -576,6 +576,7 @@ public class ServiceCatalogsEndToEndTests(TestContainerFixture fixture) : BaseE2
             IsActive = true
         };
         var categoryResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, TestContainerFixture.JsonOptions);
+        categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created, "category creation should return 201 Created");
         var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
 
         var serviceRequest = new
@@ -587,6 +588,7 @@ public class ServiceCatalogsEndToEndTests(TestContainerFixture fixture) : BaseE2
             IsActive = true
         };
         var serviceResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
+        serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created, "service creation should return 201 Created");
         var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
         // Now try to change to a non-existent category

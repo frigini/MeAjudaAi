@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Authentication;

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Seeding;

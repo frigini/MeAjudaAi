@@ -1,7 +1,6 @@
+using MeAjudaAi.Integration.Tests.Base;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
@@ -16,7 +15,7 @@ public class ServiceCatalogsDebugTests : BaseApiTest
         
         var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest);
         
-        if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        if (response.StatusCode != HttpStatusCode.Created)
         {
             var content = await response.Content.ReadAsStringAsync();
             string detail = "No detail provided";

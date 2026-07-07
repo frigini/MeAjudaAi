@@ -1,22 +1,16 @@
-using System.Net.Http.Json;
-using FluentAssertions;
+using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Shared.Domain.ValueObjects;
-using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Shared.Database.Abstractions;
-using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
-using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Modules.Payments.Application.Queries.Interfaces;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 

@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using DotNet.Testcontainers.Builders;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Testcontainers.PostgreSql;
-using DotNet.Testcontainers.Builders;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
@@ -197,9 +197,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
         {
             var sql = await File.ReadAllTextAsync(seedFile);
             
-#pragma warning disable CA2100 // SQL vem de arquivos do projeto, não de input do usuário
             await using var command = new NpgsqlCommand(sql, connection);
-#pragma warning restore CA2100
             await command.ExecuteNonQueryAsync();
             
             Console.WriteLine($"[MIGRATION-FIXTURE] Seed executed: {Path.GetFileName(seedFile)}");

@@ -45,11 +45,25 @@ public abstract class SearchProvidersIntegrationTestBase : BaseIntegrationTest
         };
 
         var baseConnectionString = SharedTestContainers.PostgreSql.GetConnectionString();
-        var builder = new NpgsqlConnectionStringBuilder(baseConnectionString)
+        var baseBuilder = new NpgsqlConnectionStringBuilder(baseConnectionString);
+
+        Console.WriteLine($"[SearchProviders Test] Base connection string components: Host={baseBuilder.Host}, Port={baseBuilder.Port}, Username={baseBuilder.Username}, Password={(!string.IsNullOrEmpty(baseBuilder.Password) ? "***" : "EMPTY")}, Database={baseBuilder.Database}");
+
+        // Preserve all credentials when setting the test-specific database
+        var builder = new NpgsqlConnectionStringBuilder
         {
-            Database = options.Database.DatabaseName
+            Host = baseBuilder.Host,
+            Port = baseBuilder.Port,
+            Username = baseBuilder.Username,
+            Password = baseBuilder.Password,
+            Database = options.Database.DatabaseName,
+            SslMode = baseBuilder.SslMode
         };
-        options.Database.ConnectionString = builder.ToString();
+
+        var finalConnectionString = builder.ToString();
+        Console.WriteLine($"[SearchProviders Test] Final connection string components: Host={builder.Host}, Port={builder.Port}, Username={builder.Username}, Password={(!string.IsNullOrEmpty(builder.Password) ? "***" : "EMPTY")}, Database={builder.Database}");
+
+        options.Database.ConnectionString = finalConnectionString;
 
         return options;
     }

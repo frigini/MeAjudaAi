@@ -1,11 +1,10 @@
 using Bogus;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Utilities;
-using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
@@ -159,5 +158,3 @@ public class UserPersistenceIntegrationTests : BaseApiTest
         return User.Create(username, email, firstName, lastName, keycloakId).Value!;
     }
 }
-
-

@@ -1,9 +1,8 @@
-using MeAjudaAi.Integration.Tests.Base;
-using FluentAssertions;
-using System.Globalization;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Serialization;
+using System.Globalization;
 
 namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 
@@ -18,7 +17,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         string lat = (-23.5505).ToString(CultureInfo.InvariantCulture); 
         string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
         string radius = (10.0).ToString(CultureInfo.InvariantCulture);
-        var serviceId = BaseApiTest.TestServiceId;
+        var serviceId = TestServiceId;
 
         // 2. Act: Busca com filtro de serviço
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}&serviceIds={serviceId}");
@@ -72,7 +71,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         // Arrange
         string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
         string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
-        string radius = (50.0).ToString(CultureInfo.InvariantCulture);
+        string radius = 50.0.ToString(CultureInfo.InvariantCulture);
 
         // Act
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
@@ -101,8 +100,8 @@ public class SearchProvidersE2ETests : BaseApiTest
     {
         // Arrange: Coordenadas da Antártida (nenhum prestador esperado)
         string lat = (-90.0).ToString(CultureInfo.InvariantCulture);
-        string lon = (0.0).ToString(CultureInfo.InvariantCulture);
-        string radius = (1.0).ToString(CultureInfo.InvariantCulture);
+        string lon = 0.0.ToString(CultureInfo.InvariantCulture);
+        string radius = 1.0.ToString(CultureInfo.InvariantCulture);
 
         // Act
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
@@ -123,7 +122,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         // Arrange
         string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
         string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
-        string radius = (100.0).ToString(CultureInfo.InvariantCulture);
+        string radius = 100.0.ToString(CultureInfo.InvariantCulture);
         int pageSize = 2;
 
         // Act
@@ -146,7 +145,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         // Arrange
         string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
         string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
-        string radius = (20.0).ToString(CultureInfo.InvariantCulture);
+        string radius = 20.0.ToString(CultureInfo.InvariantCulture);
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // Act
@@ -163,5 +162,5 @@ public class SearchProvidersE2ETests : BaseApiTest
 
         // Threshold aumentado para 10s para evitar falhas intermitentes em ambientes de CI lentos
         stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(10000, $"A busca deve ser rápida (< 10s). Tempo: {stopwatch.ElapsedMilliseconds}ms");
-        }
-        }
+    }
+}

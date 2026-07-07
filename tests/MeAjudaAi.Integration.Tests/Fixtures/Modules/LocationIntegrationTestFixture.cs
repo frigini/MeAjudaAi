@@ -2,12 +2,10 @@ using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
-
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

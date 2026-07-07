@@ -1,7 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

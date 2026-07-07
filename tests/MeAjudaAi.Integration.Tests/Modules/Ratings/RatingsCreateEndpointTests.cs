@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
@@ -11,6 +8,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Ratings;
 

@@ -1,6 +1,5 @@
-using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
@@ -27,7 +26,7 @@ public class InstancePermissionAuthorizationIntegrationTests : BaseApiTest
         foreach (var endpoint in endpoints)
         {
             var response = await Client.GetAsync(endpoint, TestContext.Current.CancellationToken);
-            var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            _ = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // Admin should have successful access to all endpoints
             response.IsSuccessStatusCode.Should().BeTrue($"Admin should have successful response for {endpoint}");

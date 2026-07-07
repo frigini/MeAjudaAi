@@ -1,11 +1,10 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
@@ -220,46 +219,6 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
         {
             testOutput.WriteLine($"User workflow test failed: {ex.Message}");
             throw;
-        }
-    }
-
-
-
-    private async Task<string?> CreateTestUser(string username, string email)
-    {
-        var userData = new
-        {
-            username = username.Length > 20 ? username[..20] : username,
-            email = email,
-            firstName = "Test",
-            lastName = "User",
-            keycloakId = Guid.NewGuid().ToString()
-        };
-
-        var response = await Client.PostAsJsonAsync("/api/v1/users", userData);
-        if (response.StatusCode == HttpStatusCode.Created)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
-            var dataElement = GetResponseData(responseJson);
-            if (dataElement.TryGetProperty("id", out var idProperty))
-            {
-                return idProperty.GetString();
-            }
-        }
-
-        testOutput.WriteLine($"Failed to create test user {username}. Status: {response.StatusCode}");
-        return null;
-    }
-
-    private async Task CleanupUser(string? userId)
-    {
-        if (string.IsNullOrEmpty(userId)) return;
-
-        var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
-        if (!deleteResponse.IsSuccessStatusCode)
-        {
-            testOutput.WriteLine($"Cleanup failed: Could not delete user {userId}. Status: {deleteResponse.StatusCode}");
         }
     }
 

@@ -1,7 +1,6 @@
-using System.Net.Http.Json;
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Integration.Tests.Base;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 

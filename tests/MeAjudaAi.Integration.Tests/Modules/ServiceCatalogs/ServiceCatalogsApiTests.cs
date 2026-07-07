@@ -1,7 +1,6 @@
+using MeAjudaAi.Integration.Tests.Base;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
@@ -424,4 +423,3 @@ public class ServiceCatalogsApiTests : BaseApiTest
 
     #endregion
 }
-

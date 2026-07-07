@@ -1,6 +1,5 @@
-using FluentAssertions;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
@@ -189,4 +188,3 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         // O importante é que as chamadas subsequentes retornam o mesmo resultado.
     }
 }
-

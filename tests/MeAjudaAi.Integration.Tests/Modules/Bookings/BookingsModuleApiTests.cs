@@ -1,13 +1,11 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Bookings;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
+using MeAjudaAi.Contracts.Modules.Bookings.Enums;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Contracts.Modules.Bookings.Enums;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Bookings;
 

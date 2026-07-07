@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Integration.Tests.Base;
 
@@ -183,4 +182,3 @@ public sealed class CepProvidersUnavailabilityTests(ITestOutputHelper output) : 
         }
     }
 }
-

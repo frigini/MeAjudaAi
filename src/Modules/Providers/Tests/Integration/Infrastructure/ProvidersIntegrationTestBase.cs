@@ -118,10 +118,16 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         // Aguardar a tarefa (wrapper para a lógica de criação real)
         await creationTask.Value;
         
-        // Atualiza connection string para apontar para o novo banco
-        var builder = new NpgsqlConnectionStringBuilder(_sharedContainer!.GetConnectionString())
+        // Atualiza connection string para apontar para o novo banco preservando credenciais
+        var baseBuilder = new NpgsqlConnectionStringBuilder(_sharedContainer!.GetConnectionString());
+        var builder = new NpgsqlConnectionStringBuilder
         {
-            Database = databaseName
+            Host = baseBuilder.Host,
+            Port = baseBuilder.Port,
+            Username = baseBuilder.Username,
+            Password = baseBuilder.Password,
+            Database = databaseName,
+            SslMode = baseBuilder.SslMode
         };
         _connectionString = builder.ToString();
         

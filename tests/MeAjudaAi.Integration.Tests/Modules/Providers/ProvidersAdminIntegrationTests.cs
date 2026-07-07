@@ -1,10 +1,9 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Modules.Providers.Application.DTOs;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 

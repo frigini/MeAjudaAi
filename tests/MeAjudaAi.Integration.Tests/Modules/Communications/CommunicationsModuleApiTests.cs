@@ -1,8 +1,7 @@
-using MeAjudaAi.Integration.Tests.Base;
-using FluentAssertions;
-using System.Net.Http.Json;
-using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
+using MeAjudaAi.Integration.Tests.Base;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Communications;
 

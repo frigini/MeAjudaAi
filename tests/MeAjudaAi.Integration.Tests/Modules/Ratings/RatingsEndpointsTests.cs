@@ -1,12 +1,10 @@
-using System.Net;
-using System.Net.Http.Json;
-using FluentAssertions;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Ratings.DTOs;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Ratings;
 

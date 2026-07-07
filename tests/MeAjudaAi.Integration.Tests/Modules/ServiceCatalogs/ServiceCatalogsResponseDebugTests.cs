@@ -1,10 +1,7 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Serialization;
-
-#pragma warning disable xUnit1004 // Teste de diagnóstico ignorado intencionalemente
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 

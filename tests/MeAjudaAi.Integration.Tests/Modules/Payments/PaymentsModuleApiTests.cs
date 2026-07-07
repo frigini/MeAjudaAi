@@ -1,10 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Contracts.Modules.Payments;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Enums;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
