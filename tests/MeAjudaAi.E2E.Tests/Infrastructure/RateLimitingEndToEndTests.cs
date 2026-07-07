@@ -7,27 +7,20 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Infrastructure")]
-public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixture>
+public sealed class RateLimitingEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
 {
-    private readonly TestContainerFixture _fixture;
-
-    public RateLimitingEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task RateLimiting_ManyRequests_ShouldProcessCorrectly()
     {
         // Arrange
-        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
         const int requests = 50;
 
         // Act
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < requests; i++)
         {
-            responses.Add(await _fixture.ApiClient.GetAsync("/health"));
+            responses.Add(await fixture.ApiClient.GetAsync("/health"));
         }
 
         // Assert
@@ -65,8 +58,8 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
 
         for (int i = 0; i < 30; i++)
         {
-            healthResponses.Add(await _fixture.ApiClient.GetAsync("/health"));
-            apiResponses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories"));
+            healthResponses.Add(await fixture.ApiClient.GetAsync("/health"));
+            apiResponses.Add(await fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories"));
         }
 
         // Assert
@@ -84,12 +77,12 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
-        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
         const int concurrentRequests = 30;
 
         // Act
         var tasks = Enumerable.Range(0, concurrentRequests)
-            .Select(_ => _fixture.ApiClient.GetAsync("/health"))
+            .Select(_ => fixture.ApiClient.GetAsync("/health"))
             .ToArray();
 
         var responses = await Task.WhenAll(tasks);
@@ -119,7 +112,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < 50; i++)
         {
-            var response = await _fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories");
+            var response = await fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories");
             if (i < 3 || !response.IsSuccessStatusCode) // Log first 3 and all errors
             {
                 Console.WriteLine($"DEBUG: Request {i+1} returned {response.StatusCode}");

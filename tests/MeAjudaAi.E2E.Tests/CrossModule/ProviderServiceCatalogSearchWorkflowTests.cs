@@ -1,8 +1,8 @@
-using System.Net.Http.Json;
 using Bogus;
-using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.E2E.Tests.Base;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.CrossModule;
 
@@ -14,15 +14,8 @@ namespace MeAjudaAi.E2E.Tests.CrossModule;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "CrossModule")]
-public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestContainerFixture>
+public class ProviderServiceCatalogSearchWorkflowTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
 {
-    private readonly TestContainerFixture _fixture;
-
-    public ProviderServiceCatalogSearchWorkflowTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     private readonly Faker _faker = new();
 
     /// <summary>
@@ -80,7 +73,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             IsActive = true
         };
 
-        var categoryResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, TestContainerFixture.JsonOptions);
+        var categoryResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, TestContainerFixture.JsonOptions);
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Categoria deve ser criada com sucesso");
 
         var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
@@ -96,7 +89,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             IsActive = true
         };
 
-        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
+        var serviceResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
         serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Serviço deve ser criado com sucesso");
 
         var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
@@ -139,7 +132,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             }
         };
 
-        var providerResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", providerRequest, TestContainerFixture.JsonOptions);
+        var providerResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", providerRequest, TestContainerFixture.JsonOptions);
         providerResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Provider deve ser criado com sucesso");
 
         var providerId = TestContainerFixture.ExtractIdFromLocation(providerResponse.Headers.Location!.ToString());
@@ -159,7 +152,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         Console.WriteLine($"DEBUG: ProviderId = {providerId}");
         Console.WriteLine($"DEBUG: ServiceId = {serviceId}");
         
-        var associationResponse = await _fixture.ApiClient.PostAsync(serviceAssociationUrl, null);
+        var associationResponse = await fixture.ApiClient.PostAsync(serviceAssociationUrl, null);
         
         // DEBUG: Log da resposta
         Console.WriteLine($"DEBUG: Response Status = {associationResponse.StatusCode}");
@@ -177,7 +170,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
 
         // Inserir/atualizar diretamente na tabela searchable_providers com o serviço
         // Isso garante que o provider esteja indexado corretamente para a busca
-        await _fixture.WithServiceScopeAsync(async sp =>
+        await fixture.WithServiceScopeAsync(async sp =>
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
@@ -233,7 +226,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         Console.WriteLine($"DEBUG: Search URL = {searchUrl}");
         
         TestContainerFixture.AuthenticateAsAdmin();
-        var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
+        var searchResponse = await fixture.ApiClient.GetAsync(searchUrl);
         
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Busca deve retornar sucesso");
 
@@ -302,15 +295,15 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         try
         {
             // Provider deletion should succeed or resource already deleted
-            var deleteProviderResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+            var deleteProviderResponse = await fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
             deleteProviderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             // Service deletion should succeed or resource already deleted
-            var deleteServiceResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
+            var deleteServiceResponse = await fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
             deleteServiceResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             // Category deletion should succeed or resource already deleted
-            var deleteCategoryResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
+            var deleteCategoryResponse = await fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
             deleteCategoryResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
         }
         catch (Exception ex)
@@ -331,7 +324,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Categoria 1: Healthcare
-        var category1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
+        var category1Response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
         {
             Name = $"Healthcare_{uniqueId}",
             Description = "Healthcare services",
@@ -341,7 +334,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         var categoryId1 = TestContainerFixture.ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
 
         // Categoria 2: Education
-        var category2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
+        var category2Response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
         {
             Name = $"Education_{uniqueId}",
             Description = "Education services",
@@ -351,7 +344,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         var categoryId2 = TestContainerFixture.ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
 
         // Serviço 1: Consultation
-        var service1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
+        var service1Response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
         {
             Name = $"Consultation_{uniqueId}",
             Description = "Medical consultation",
@@ -363,7 +356,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         var serviceId1 = TestContainerFixture.ExtractIdFromLocation(service1Response.Headers.Location!.ToString());
 
         // Serviço 2: Tutoring
-        var service2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
+        var service2Response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
         {
             Name = $"Tutoring_{uniqueId}",
             Description = "Private tutoring",
@@ -377,7 +370,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // ============================================
         // Criar Provider 1: oferece AMBOS serviços
         // ============================================
-        var provider1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", new
+        var provider1Response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", new
         {
             UserId = Guid.NewGuid(),
             Name = $"MultiService_{uniqueId}",
@@ -415,19 +408,19 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
 
         // Associar AMBOS serviços ao Provider1
         TestContainerFixture.AuthenticateAsAdmin();
-        var assoc1Service1 = await _fixture.ApiClient.PostAsync(
+        var assoc1Service1 = await fixture.ApiClient.PostAsync(
             $"/api/v1/providers/{providerId1}/services/{serviceId1}",
             null);
         assoc1Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
         
         TestContainerFixture.AuthenticateAsAdmin();
-        var assoc1Service2 = await _fixture.ApiClient.PostAsync(
+        var assoc1Service2 = await fixture.ApiClient.PostAsync(
             $"/api/v1/providers/{providerId1}/services/{serviceId2}",
             null);
         assoc1Service2.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // Inserir diretamente na tabela searchable_providers com ambos serviços
-        await _fixture.WithServiceScopeAsync(async sp =>
+        await fixture.WithServiceScopeAsync(async sp =>
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
@@ -463,7 +456,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // ============================================
         // Criar Provider 2: oferece apenas serviço 1
         // ============================================
-        var provider2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", new
+        var provider2Response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", new
         {
             UserId = Guid.NewGuid(),
             Name = $"SingleService_{uniqueId}",
@@ -500,13 +493,13 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         await Task.Delay(100);
 
         // Associar apenas serviceId1 ao Provider2
-        var assoc2Service1 = await _fixture.ApiClient.PostAsync(
+        var assoc2Service1 = await fixture.ApiClient.PostAsync(
             $"/api/v1/providers/{providerId2}/services/{serviceId1}",
             null);
         assoc2Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // Inserir diretamente na tabela searchable_providers com um serviço
-        await _fixture.WithServiceScopeAsync(async sp =>
+        await fixture.WithServiceScopeAsync(async sp =>
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
@@ -549,7 +542,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
                        $"serviceIds={serviceId1}&serviceIds={serviceId2}";
 
         TestContainerFixture.AuthenticateAsAdmin();
-        var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
+        var searchResponse = await fixture.ApiClient.GetAsync(searchUrl);
         
         if (!searchResponse.IsSuccessStatusCode)
         {
@@ -580,22 +573,22 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // ============================================
         try
         {
-            var deleteProvider1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
+            var deleteProvider1Response = await fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
             deleteProvider1Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteProvider2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
+            var deleteProvider2Response = await fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
             deleteProvider2Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteService1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
+            var deleteService1Response = await fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
             deleteService1Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteService2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
+            var deleteService2Response = await fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
             deleteService2Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteCategory1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
+            var deleteCategory1Response = await fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
             deleteCategory1Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteCategory2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
+            var deleteCategory2Response = await fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
             deleteCategory2Response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.NotFound);
         }
         catch (Exception ex)
@@ -605,4 +598,3 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         }
     }
 }
-

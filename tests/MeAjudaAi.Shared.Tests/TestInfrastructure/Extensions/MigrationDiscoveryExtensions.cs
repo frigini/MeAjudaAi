@@ -1,4 +1,5 @@
 using System.Reflection;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -28,6 +29,13 @@ public static class MigrationDiscoveryExtensions
                 continue;
 
             context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+            var schema = DbContextSchemaHelper.GetSchemaName(contextType);
+            if (schema != "public")
+            {
+                await context.Database.ExecuteSqlRawAsync(
+                    $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
+            }
 
             const int maxRetries = 5;
             for (int attempt = 1; attempt <= maxRetries; attempt++)
@@ -126,6 +134,13 @@ public static class MigrationDiscoveryExtensions
                 continue;
 
             context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+            var schema = DbContextSchemaHelper.GetSchemaName(contextType);
+            if (schema != "public")
+            {
+                await context.Database.ExecuteSqlRawAsync(
+                    $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
+            }
 
             const int maxRetries = 5;
             for (int attempt = 1; attempt <= maxRetries; attempt++)

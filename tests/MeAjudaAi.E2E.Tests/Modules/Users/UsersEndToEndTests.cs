@@ -1,10 +1,10 @@
-using System.Net.Http.Json;
-using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Users;
 
@@ -14,24 +14,8 @@ namespace MeAjudaAi.E2E.Tests.Modules.Users;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Users")]
-public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    private readonly TestContainerFixture _fixture;
-
-    public UsersEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await _fixture.CleanupDatabaseAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
 
     [Fact]
     public async Task DeleteUser_Should_RemoveFromDatabase()
@@ -51,7 +35,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         };
 
         // Create user - must succeed for delete test to be meaningful
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
@@ -60,13 +44,13 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         var userId = TestContainerFixture.ExtractIdFromLocation(locationHeader);
 
         // Act - Delete user
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verifica que o usuário não existe mais através da API
-        var getAfterDelete = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getAfterDelete = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound,
             "User should not exist after deletion");
     }
@@ -79,7 +63,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -108,7 +92,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         var userId = Guid.NewGuid();
 
         // Act - Try to delete without permission
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
         // Assert - Should get Forbidden/Unauthorized (authorization is checked before resource existence)
         deleteResponse.StatusCode.Should().BeOneOf(
@@ -133,7 +117,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
@@ -149,7 +133,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             LastName = "Profile"
         };
 
-        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
 
         // Assert - Update should return OK or NoContent
         updateResponse.StatusCode.Should().BeOneOf(
@@ -166,7 +150,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         else
         {
             // Se retornou NoContent, tenta buscar o usuário para confirmar as mudanças
-            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+            var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "user should be found after update");
             
             var content = await getResponse.Content.ReadAsStringAsync();
@@ -193,11 +177,11 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act
-        var getByEmailResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(uniqueEmail)}");
+        var getByEmailResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(uniqueEmail)}");
 
         // Assert
         getByEmailResponse.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -226,7 +210,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             PhoneNumber = "+5511999999999"
         };
 
-        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, TestContainerFixture.JsonOptions);
+        var firstResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act - Tenta criar segundo usuário com mesmo email
@@ -240,7 +224,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             PhoneNumber = "+5511999999999"
         };
 
-        var secondResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondUserRequest, TestContainerFixture.JsonOptions);
+        var secondResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         secondResponse.StatusCode.Should().BeOneOf(
@@ -267,7 +251,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         };
 
         // Act - Create user
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         
         // Assert - Create succeeded
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -277,7 +261,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
         // Act - Get user
-        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
 
         // Assert - Get should work
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
@@ -301,7 +285,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = createResponse.Headers.Location?.ToString();
@@ -317,7 +301,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
 
         // Verify user exists before update
         Console.WriteLine($"DEBUG: Attempting GET request for /api/v1/users/{userId}");
-        var getBeforeUpdate = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getBeforeUpdate = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         Console.WriteLine($"DEBUG: GET response status: {getBeforeUpdate.StatusCode}");
         
         if (getBeforeUpdate.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -335,7 +319,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             Email = $"update_test_{uniqueId}@example.com" // Manter o mesmo email
         };
 
-        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync(
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/users/{userId}/profile",
             updateRequest,
             TestContainerFixture.JsonOptions);
@@ -349,7 +333,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         await Task.Delay(100);
 
         // Assert - Verificar persistência das mudanças via GET
-        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         
         if (getResponse.StatusCode == HttpStatusCode.NotFound)
         {
@@ -392,7 +376,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         };
 
         TestContainerFixture.AuthenticateAsAdmin();
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
         var location = createResponse.Headers.Location?.ToString();
@@ -407,7 +391,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             FirstName = "Second",
             LastName = "Version"
         };
-        var firstUpdateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, TestContainerFixture.JsonOptions);
+        var firstUpdateResponse = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, TestContainerFixture.JsonOptions);
         
         // Assert first update succeeded
         firstUpdateResponse.IsSuccessStatusCode.Should().BeTrue("first profile update should succeed");
@@ -420,7 +404,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             FirstName = "Third",
             LastName = "Final"
         };
-        var finalUpdateResponse = await _fixture.ApiClient.PutAsJsonAsync(
+        var finalUpdateResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/users/{userId}/profile",
             secondUpdate,
             TestContainerFixture.JsonOptions);
@@ -432,7 +416,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Verificar que apenas a última atualização está persistida
-        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to retrieve updated user");
         
         var content = await getResponse.Content.ReadAsStringAsync();
@@ -462,13 +446,13 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         };
 
         TestContainerFixture.AuthenticateAsAdmin();
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         createResponse.Headers.Location.Should().NotBeNull();
         var userId = TestContainerFixture.ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
 
         // Verify user was actually created in database
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>();
             var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId);
@@ -479,7 +463,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         TestContainerFixture.AuthenticateAsAdmin();
         
         // Act & Assert - READ
-        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Re-authenticate before UPDATE
@@ -492,14 +476,14 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
             FirstName = "Updated",
             LastName = "Workflow"
         };
-        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
         updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
         // Re-authenticate before verification GET
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Verify UPDATE persisted
-        var verifyUpdateResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var verifyUpdateResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         verifyUpdateResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after update");
         
         var updateContent = await verifyUpdateResponse.Content.ReadAsStringAsync();
@@ -509,12 +493,12 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
 
         // Act & Assert - DELETE
         TestContainerFixture.AuthenticateAsAdmin();
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify DELETE worked
         TestContainerFixture.AuthenticateAsAdmin();
-        var verifyDeleteResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var verifyDeleteResponse = await Fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         verifyDeleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -549,11 +533,11 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         };
 
         // Act - criar primeiro usuário
-        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, TestContainerFixture.JsonOptions);
+        var firstResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act - tentar criar segundo usuário com mesmo email
-        var secondResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, TestContainerFixture.JsonOptions);
+        var secondResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, TestContainerFixture.JsonOptions);
 
         // Assert - deve retornar Conflict ou BadRequest
         secondResponse.StatusCode.Should().BeOneOf(
@@ -597,10 +581,10 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         };
 
         // Act
-        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, TestContainerFixture.JsonOptions);
+        var firstResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var secondResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, TestContainerFixture.JsonOptions);
+        var secondResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         secondResponse.StatusCode.Should().BeOneOf(
@@ -629,5 +613,3 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLif
         return response;
     }
 }
-
-

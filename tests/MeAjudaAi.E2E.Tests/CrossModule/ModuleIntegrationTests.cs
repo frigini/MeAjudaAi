@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.CrossModule;
 
@@ -7,15 +7,8 @@ namespace MeAjudaAi.E2E.Tests.CrossModule;
 /// Testes de integração para funcionalidades que atravessam múltiplos módulos
 /// Inclui pipeline CQRS, manipulação de eventos e comunicação entre módulos
 /// </summary>
-public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
+public class ModuleIntegrationTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
 {
-    private readonly TestContainerFixture _fixture;
-
-    public ModuleIntegrationTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task CreateUser_ShouldTriggerDomainEvents()
     {
@@ -34,7 +27,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         // HttpStatusCode.Conflict pode ocorrer se o usuário já existir em execuções de teste
@@ -73,7 +66,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
 
         // Act 1: Create user
         TestContainerFixture.AuthenticateAsAdmin();
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert 1: Usuário criado com sucesso ou já existente
         createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.Conflict);
@@ -96,7 +89,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
 
             // Re-authenticate before PUT to ensure context is preserved
             TestContainerFixture.AuthenticateAsAdmin();
-            var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
+            var updateResponse = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
 
             // Assert 2: Atualização deve ter sucesso ou retornar erro apropriado
             updateResponse.StatusCode.Should().BeOneOf(
@@ -109,7 +102,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             TestContainerFixture.AuthenticateAsAdmin();
             
             // Act 3: Verifica se o usuário pode ser recuperado
-            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+            var getResponse = await fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
             
             // Assert 3: Usuário deve ser recuperável após atualização
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after update");
@@ -123,10 +116,10 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.AuthenticateAsAdmin(); // GET requer autorização
 
         // Act 1: Obtém a primeira página
-        var page1Response = await _fixture.ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=5");
+        var page1Response = await fixture.ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=5");
 
         // Act 2: Obtém a segunda página  
-        var page2Response = await _fixture.ApiClient.GetAsync("/api/v1/users?pageNumber=2&pageSize=5");
+        var page2Response = await fixture.ApiClient.GetAsync("/api/v1/users?pageNumber=2&pageSize=5");
 
         // Assert: Ambas as requisições devem ter sucesso ou retornar not found
         page1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
@@ -159,7 +152,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -190,7 +183,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
         // Act: Envia múltiplas requisições concorrentes
         var tasks = Enumerable.Range(0, 3).Select(async i =>
         {
-            return await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, TestContainerFixture.JsonOptions);
+            return await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, TestContainerFixture.JsonOptions);
         });
 
         var responses = await Task.WhenAll(tasks);

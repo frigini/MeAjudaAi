@@ -1,11 +1,11 @@
-using System.Net.Http.Json;
-using System.Globalization;
-using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
+using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
+using System.Globalization;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 
@@ -15,24 +15,8 @@ namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "SearchProviders")]
-public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class SearchProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    private readonly TestContainerFixture _fixture;
-    public SearchProvidersEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        // Clean up database before each test to ensure isolation and performance
-        await _fixture.CleanupDatabaseAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
 
     [Fact]
     public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadius()
@@ -62,7 +46,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         await Task.Delay(500);
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync(
+        var response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
@@ -94,7 +78,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         );
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync(
+        var response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={smallRadius.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
@@ -147,7 +131,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         await InsertSearchableProviderAsync(gardenProviderId, gardenName, -23.5705, -46.6533, serviceIds: new[] { gardenServiceId });
 
         // Act - Buscar apenas por serviço de limpeza
-        var response = await _fixture.ApiClient.GetAsync(
+        var response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&serviceIds={cleaningServiceId}");
 
         // Assert
@@ -189,7 +173,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         await InsertSearchableProviderAsync(plumberId, plumberName, -23.5705, -46.6533, serviceIds: new[] { plumbingServiceId });
 
         // Act - Buscar por ambos os serviços
-        var response = await _fixture.ApiClient.GetAsync(
+        var response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&serviceIds={electricalServiceId}&serviceIds={plumbingServiceId}");
 
         // Assert
@@ -237,7 +221,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         );
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync(
+        var response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize=50");
 
         // Assert
@@ -274,7 +258,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         // Em ambiente de teste, providers novos terão rating 0 ou null
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync(
+        var response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&minRating={minRating.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
@@ -315,11 +299,11 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         }
 
         // Act - Página 1
-        var page1Response = await _fixture.ApiClient.GetAsync(
+        var page1Response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize={pageSize.ToString(CultureInfo.InvariantCulture)}");
 
         // Act - Página 2
-        var page2Response = await _fixture.ApiClient.GetAsync(
+        var page2Response = await Fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=2&pageSize={pageSize}");
 
         // Assert
@@ -358,7 +342,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         TestContainerFixture.AuthenticateAsAdmin();
         
         // Criar um usuário primeiro
-        var userId = await _fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
 
         // NOTA: latitude e longitude são parâmetros mas não podemos usá-los diretamente
         // pois o sistema geocodifica o endereço automaticamente via Locations API.
@@ -394,7 +378,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             }
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = response.Headers.Location?.ToString();
@@ -411,7 +395,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
                 Reason = "Test verification for search indexing"
             };
 
-            var verifyResponse = await _fixture.ApiClient.PutAsJsonAsync(
+            var verifyResponse = await Fixture.ApiClient.PutAsJsonAsync(
                 $"/api/v1/providers/{providerId}/verification-status",
                 verifyRequest,
                 TestContainerFixture.JsonOptions);
@@ -435,7 +419,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
     /// </summary>
     private async Task EnsureSearchProvidersSchemaExistsAsync()
     {
-        await _fixture.WithServiceScopeAsync(async sp =>
+        await Fixture.WithServiceScopeAsync(async sp =>
         {
             var searchContext = sp.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
             
@@ -450,7 +434,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
     /// </summary>
     private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude, string subscriptionTier = "Free", Guid[]? serviceIds = null)
     {
-        await _fixture.WithServiceScopeAsync(async sp =>
+        await Fixture.WithServiceScopeAsync(async sp =>
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
             
@@ -502,7 +486,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             DisplayOrder = 1
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request, TestContainerFixture.JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = response.Headers.Location?.ToString();
@@ -520,7 +504,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             DisplayOrder = 1
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = response.Headers.Location?.ToString();
@@ -539,4 +523,3 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         throw new ArgumentException($"Invalid subscription tier: {tier}", nameof(tier));
     }
 }
-

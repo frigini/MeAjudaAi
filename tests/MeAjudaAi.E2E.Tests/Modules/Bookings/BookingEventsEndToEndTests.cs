@@ -1,33 +1,15 @@
-using System.Net.Http.Json;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
-using Xunit;
-using FluentAssertions;
-using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Bookings;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Bookings")]
-public class BookingEventsEndToEndTests : BaseTestContainerTest
+public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixture) : BaseEventsE2ETest(fixture)
 {
-    protected override bool EnableEventsAndMessageBus => true;
-
-    private readonly ITestOutputHelper _output;
-
-    public BookingEventsEndToEndTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
-    public override async ValueTask InitializeAsync()
-    {
-        await base.InitializeAsync();
-        await CleanupDatabaseAsync();
-    }
 
     [Fact]
     public async Task GetBookingEvents_ShouldStreamEvents()
@@ -35,7 +17,7 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
         // Arrange
         var baseUtcNow = DateTime.UtcNow;
         // Autenticar como Admin para criar os recursos iniciais
-        AuthenticateAsAdmin();
+        EventsEnabledTestContainerFixture.AuthenticateAsAdmin();
         
         // 1. Criar um prestador, serviço e cliente
         var providerId = await CreateTestProviderAsync();
@@ -43,20 +25,20 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
         await LinkServiceToProviderAsync(providerId, serviceId);
         await SetProviderScheduleAsync(providerId, baseUtcNow);
         
-        var customerId = await CreateTestUserAsync();
+        var customerId = await Fixture.CreateTestUserAsync();
         
         // 2. Criar um agendamento
-        AuthenticateAsUser(customerId.ToString());
+        TestContainerFixture.AuthenticateAsUser(customerId.ToString());
         var bookingId = await CreateTestBookingAsync(providerId, customerId, serviceId, baseUtcNow);
 
         // 3. Autenticar para acessar o stream de eventos
-        AuthenticateAsUser(customerId.ToString());
+        TestContainerFixture.AuthenticateAsUser(customerId.ToString());
         
         // Act
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/bookings/{bookingId}/events");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
         
-        using var response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await Fixture.ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         
         // Assert
         // NOTE: Technical Debt - In this test environment, SSE streams may be closed by the server/client causing a 499 (Client Closed Request).
@@ -85,7 +67,7 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
 
     private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
     {
-        var response = await ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
+        var response = await Fixture.ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
         response.EnsureSuccessStatusCode();
     }
 
@@ -115,7 +97,7 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
             }
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
         response.EnsureSuccessStatusCode();
     }
 
@@ -136,30 +118,30 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
             end = utcEnd.ToString("yyyy-MM-ddTHH:mm:ssZ")
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/bookings", bookingRequest);
         createResponse.EnsureSuccessStatusCode();
-        var bookingResponseData = await ReadJsonAsync<ModuleBookingDto>(createResponse);
+        var bookingResponseData = await TestContainerFixture.ReadJsonAsync<ModuleBookingDto>(createResponse);
         return bookingResponseData!.Id;
     }
 
     private async Task<Guid> CreateTestServiceAsync()
     {
         var categoryName = $"Category_{Guid.NewGuid():N}";
-        var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
+        var catResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
         catResponse.EnsureSuccessStatusCode();
         
-        var catId = ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
+        var catId = TestContainerFixture.ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
 
         var serviceName = $"Service_{Guid.NewGuid():N}";
-        var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
+        var svcResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
         svcResponse.EnsureSuccessStatusCode();
         
-        return ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
+        return TestContainerFixture.ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
     }
 
     private async Task<Guid> CreateTestProviderAsync()
     {
-        var userId = await CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
         var name = $"ProviderX_{Guid.NewGuid():N}";
         var request = new
         {
@@ -189,9 +171,9 @@ public class BookingEventsEndToEndTests : BaseTestContainerTest
             }
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request);
         response.EnsureSuccessStatusCode();
 
-        return ExtractIdFromLocation(response.Headers.Location!.ToString());
+        return TestContainerFixture.ExtractIdFromLocation(response.Headers.Location!.ToString());
     }
 }

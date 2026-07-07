@@ -3,7 +3,7 @@ using MeAjudaAi.Gateway.Handlers;
 using MeAjudaAi.Gateway.Options;
 using System.Net;
 
-namespace MeAdjudaAi.Gateway.Tests.Unit.Handlers;
+namespace MeAjudaAi.Gateway.Tests.Unit.Handlers;
 
 [Trait("Category", "Unit")]
 [Trait("Layer", "Gateway")]

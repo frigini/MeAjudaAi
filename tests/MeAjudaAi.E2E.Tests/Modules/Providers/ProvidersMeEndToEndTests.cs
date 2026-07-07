@@ -12,17 +12,8 @@ namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Providers")]
-public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    public async ValueTask InitializeAsync()
-    {
-        await fixture.CleanupDatabaseAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
 
     #region POST /become - Full Flow
 
@@ -31,7 +22,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Arrange - Create a user first
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
 
         // Switch auth to the new user
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "newprovider");
@@ -45,7 +36,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         };
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/providers/become", becomeRequest, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers/become", becomeRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.Created)
@@ -59,26 +50,23 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         locationHeader.Should().NotBeNull();
 
         // The /become endpoint returns Location: /me (route name), so extract ID from response body
-        Guid providerId;
         if (!string.IsNullOrEmpty(locationHeader) && locationHeader.Contains("/me"))
         {
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonSerializer.Deserialize<JsonElement>(body, TestContainerFixture.JsonOptions);
             var data = json.TryGetProperty("data", out var d) ? d : json;
-            providerId = Guid.Parse(data.GetProperty("id").GetString()!);
-        }
-        else if (!string.IsNullOrEmpty(locationHeader))
-        {
-            providerId = TestContainerFixture.ExtractIdFromLocation(locationHeader);
+            _ = Guid.Parse(data.GetProperty("id").GetString()!);
         }
         else
         {
-            throw new InvalidOperationException("Could not extract provider ID from response");
+            _ =! string.IsNullOrEmpty(locationHeader)
+                ? TestContainerFixture.ExtractIdFromLocation(locationHeader)
+                : throw new InvalidOperationException("Could not extract provider ID from response");
         }
 
         // Verify provider exists via GET /me
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "newprovider");
-        var getMeResponse = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getMeResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getMeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var meContent = await getMeResponse.Content.ReadAsStringAsync();
@@ -94,13 +82,13 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Arrange - Create provider
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
 
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "statustest");
         var providerId = await CreateProviderViaBecomeAsync(userId);
 
         // Act - Get status
-        var response = await fixture.ApiClient.GetAsync("/api/v1/providers/me/status");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/providers/me/status");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -125,7 +113,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Arrange - Create provider
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
 
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "updatetest");
         await CreateProviderViaBecomeAsync(userId);
@@ -158,13 +146,13 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         };
 
         // Act
-        var updateResponse = await fixture.ApiClient.PutAsJsonAsync("/api/v1/providers/me", updateRequest, TestContainerFixture.JsonOptions);
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync("/api/v1/providers/me", updateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
         // Verify via GET
-        var getResponse = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await getResponse.Content.ReadAsStringAsync();
@@ -180,23 +168,23 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Arrange - Create provider
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
 
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "deletetest");
         await CreateProviderViaBecomeAsync(userId);
 
         // Verify provider exists
-        var getBefore = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getBefore = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getBefore.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Act - Delete
-        var deleteResponse = await fixture.ApiClient.DeleteAsync("/api/v1/providers/me");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync("/api/v1/providers/me");
 
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify provider is gone
-        var getAfter = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getAfter = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getAfter.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -209,7 +197,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Arrange - Create provider
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
 
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), "doctest");
         await CreateProviderViaBecomeAsync(userId);
@@ -223,7 +211,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         };
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync(
+        var response = await Fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/providers/me/documents",
             documentRequest,
             TestContainerFixture.JsonOptions);
@@ -244,7 +232,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Arrange - Create provider
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await fixture.CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
         var providerId = await CreateProviderViaBecomeAsync(userId);
 
         // Get a valid service ID from the service catalog
@@ -255,7 +243,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Add service
-        var addResponse = await fixture.ApiClient.PostAsJsonAsync(
+        var addResponse = await Fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/services/{serviceId}",
             (object?)null,
             TestContainerFixture.JsonOptions);
@@ -267,7 +255,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
             HttpStatusCode.Created);
 
         // Act - Remove service
-        var removeResponse = await fixture.ApiClient.DeleteAsync(
+        var removeResponse = await Fixture.ApiClient.DeleteAsync(
             $"/api/v1/providers/{providerId}/services/{serviceId}");
 
         // Assert - Remove service
@@ -292,7 +280,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
             PhoneNumber = "+5511999999999"
         };
 
-        var response = await fixture.ApiClient.PostAsJsonAsync(
+        var response = await Fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/providers/become",
             becomeRequest,
             TestContainerFixture.JsonOptions);
@@ -323,7 +311,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
     {
         // Try to get an existing service from the catalog
         TestContainerFixture.AuthenticateAsAdmin();
-        var response = await fixture.ApiClient.GetAsync("/api/v1/service-catalogs/services");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/service-catalogs/services");
 
         if (response.IsSuccessStatusCode)
         {
@@ -359,7 +347,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
             Description = "Test category for E2E provider service tests"
         };
 
-        var categoryResponse = await fixture.ApiClient.PostAsJsonAsync(
+        var categoryResponse = await Fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/service-catalogs/categories",
             categoryRequest,
             TestContainerFixture.JsonOptions);
@@ -386,7 +374,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : IClassFixt
             Description = "Test service for E2E provider service tests"
         };
 
-        var serviceResponse = await fixture.ApiClient.PostAsJsonAsync(
+        var serviceResponse = await Fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/service-catalogs/services",
             serviceRequest,
             TestContainerFixture.JsonOptions);

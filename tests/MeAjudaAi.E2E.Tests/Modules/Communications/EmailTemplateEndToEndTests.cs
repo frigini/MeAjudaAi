@@ -4,9 +4,8 @@ using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Communications;
 
-public class EmailTemplateEndToEndTests : BaseTestContainerTest
+public class EmailTemplateEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    public EmailTemplateEndToEndTests() { }
 
     [Fact]
     public async Task Post_CreateTemplate_ShouldReturnCreated()
@@ -24,7 +23,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/communications/templates", command);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -39,7 +38,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
         var body = new { Subject = "Updated", HtmlBody = "<p>Updated</p>", TextBody = "Updated" };
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", body);
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", body);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -64,13 +63,13 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             CorrelationId = Guid.NewGuid()
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/communications/templates", createCommand);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", createCommand);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         locationHeader.Should().NotBeNullOrEmpty();
 
-        var templateId = ExtractIdFromLocation(locationHeader);
+        var templateId = TestContainerFixture.ExtractIdFromLocation(locationHeader!);
 
         // Act 2 - Update template (creates version 2, deactivates version 1)
         var updateBody = new
@@ -80,15 +79,15 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             TextBody = "Updated text"
         };
 
-        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", updateBody);
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", updateBody);
         updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act 3 - List templates and verify update (should show version 2)
-        var listResponse = await ApiClient.GetAsync("/api/v1/communications/templates");
+        var listResponse = await Fixture.ApiClient.GetAsync("/api/v1/communications/templates");
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var templatesJson = await listResponse.Content.ReadAsStringAsync();
-        var templates = JsonSerializer.Deserialize<JsonElement[]>(templatesJson, JsonOptions);
+        var templates = JsonSerializer.Deserialize<JsonElement[]>(templatesJson, TestContainerFixture.JsonOptions);
         templates.Should().NotBeNull();
 
         var updatedTemplate = templates!.FirstOrDefault(t =>
@@ -107,12 +106,12 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
         var newTemplateId = Guid.Parse(updatedTemplate.GetProperty("id").GetString()!);
 
         // Act 4 - Deactivate the NEW template (version 2)
-        var deactivateResponse = await ApiClient.PatchAsync(
+        var deactivateResponse = await Fixture.ApiClient.PatchAsync(
             $"/api/v1/communications/templates/{newTemplateId}/deactivate", null);
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act 5 - List templates and verify deactivated template is not returned
-        var listAfterDeactivate = await ApiClient.GetAsync("/api/v1/communications/templates");
+        var listAfterDeactivate = await Fixture.ApiClient.GetAsync("/api/v1/communications/templates");
         listAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var templatesAfterDeactivate = await listAfterDeactivate.Content.ReadAsStringAsync();
@@ -121,12 +120,12 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             "Deactivated template should not appear in list");
 
         // Act 6 - Activate template
-        var activateResponse = await ApiClient.PatchAsync(
+        var activateResponse = await Fixture.ApiClient.PatchAsync(
             $"/api/v1/communications/templates/{newTemplateId}/activate", null);
         activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act 7 - List templates and verify activated template is returned
-        var listAfterActivate = await ApiClient.GetAsync("/api/v1/communications/templates");
+        var listAfterActivate = await Fixture.ApiClient.GetAsync("/api/v1/communications/templates");
         listAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var templatesAfterActivate = await listAfterActivate.Content.ReadAsStringAsync();
@@ -136,7 +135,7 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
 
         // Verify content is still correct after activate/deactivate cycle
         var templatesAfterActivateArray = JsonSerializer.Deserialize<JsonElement[]>(
-            templatesAfterActivate, JsonOptions);
+            templatesAfterActivate, TestContainerFixture.JsonOptions);
         templatesAfterActivateArray.Should().NotBeNull();
 
         var finalTemplate = templatesAfterActivateArray!.FirstOrDefault(t =>
@@ -164,23 +163,16 @@ public class EmailTemplateEndToEndTests : BaseTestContainerTest
             CorrelationId = Guid.NewGuid()
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/communications/templates", createCommand);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", createCommand);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var templateId = ExtractIdFromLocation(createResponse.Headers.Location?.ToString());
+        var templateId = TestContainerFixture.ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
 
         // Act - Try to update the system template
         var updateBody = new { Subject = "Updated", HtmlBody = "...", TextBody = "..." };
-        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", updateBody);
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{templateId}", updateBody);
 
         // Assert
         updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
             "System templates are immutable and should return BadRequest on update");
-    }
-
-    private new Guid ExtractIdFromLocation(string? location)
-    {
-        if (location == null) return Guid.Empty;
-        var parts = location.Split('/');
-        return Guid.Parse(parts[^1]);
     }
 }

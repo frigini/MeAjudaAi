@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
@@ -9,15 +9,8 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Feature", "Telemetry")]
-public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixture>
+public class OpenTelemetryMetricsEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
 {
-    private readonly TestContainerFixture _fixture;
-
-    public OpenTelemetryMetricsEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task Smoke_Application_ShouldExposeAspNetCoreMetrics()
     {
@@ -25,7 +18,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.BeforeEachTest();
         
         // Act - Fazer request para gerar métricas
-        var response = await _fixture.ApiClient.GetAsync("/health");
+        var response = await fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Should().NotBeNull();
@@ -39,7 +32,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     {
         // Arrange - Fazer múltiplas requisições
         TestContainerFixture.BeforeEachTest();
-        var requests = Enumerable.Range(0, 5).Select(_ => _fixture.ApiClient.GetAsync("/alive"));
+        var requests = Enumerable.Range(0, 5).Select(_ => fixture.ApiClient.GetAsync("/alive"));
 
         // Act
         var responses = await Task.WhenAll(requests);
@@ -56,7 +49,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", CreateValidUserRequest());
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", CreateValidUserRequest());
 
         // Assert
         // HttpClient instrumentation deve capturar chamadas internas
@@ -68,10 +61,10 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         var password = "ValidPass123!";
         return new
         {
-            Username = _fixture.Faker.Internet.UserName(),
-            Email = _fixture.Faker.Internet.Email(),
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            Username = fixture.Faker.Internet.UserName(),
+            Email = fixture.Faker.Internet.Email(),
+            FirstName = fixture.Faker.Name.FirstName(),
+            LastName = fixture.Faker.Name.LastName(),
             Password = password,
             PhoneNumber = "+5511987654321"
         };
@@ -82,8 +75,8 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     {
         // Arrange & Act
         TestContainerFixture.BeforeEachTest();
-        var healthResponse = await _fixture.ApiClient.GetAsync("/health");
-        var aliveResponse = await _fixture.ApiClient.GetAsync("/alive");
+        var healthResponse = await fixture.ApiClient.GetAsync("/health");
+        var aliveResponse = await fixture.ApiClient.GetAsync("/alive");
 
         // Assert
         healthResponse.IsSuccessStatusCode.Should().BeTrue();
@@ -97,7 +90,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     {
         // Arrange & Act - Fazer request qualquer
         TestContainerFixture.BeforeEachTest();
-        var response = await _fixture.ApiClient.GetAsync("/alive");
+        var response = await fixture.ApiClient.GetAsync("/alive");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -113,7 +106,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", CreateValidUserRequest());
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", CreateValidUserRequest());
 
         // Assert
         // EF Core instrumentation deve capturar operações de database
@@ -129,7 +122,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         var invalidRequest = new { };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeFalse();
@@ -141,7 +134,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     {
         // Arrange & Act
         TestContainerFixture.BeforeEachTest();
-        var response = await _fixture.ApiClient.GetAsync("/health");
+        var response = await fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -157,7 +150,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.AuthenticateAsAdmin();
         
         // Act - Request autenticado (usando token do admin via fixture)
-        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue(
@@ -169,7 +162,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     {
         // Arrange & Act
         TestContainerFixture.BeforeEachTest();
-        var response = await _fixture.ApiClient.GetAsync("/health");
+        var response = await fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -177,6 +170,3 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         // (verificado em appsettings.json: "ServiceName": "MeAjudaAi-api")
     }
 }
-
-
-

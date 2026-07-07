@@ -1,6 +1,6 @@
+using MeAjudaAi.E2E.Tests.Base;
 using System.Net.Http.Json;
 using System.Text.Json;
-using MeAjudaAi.E2E.Tests.Base;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
@@ -10,25 +10,8 @@ namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Providers")]
-public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    private readonly TestContainerFixture _fixture;
-
-    public ProvidersEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await _fixture.CleanupDatabaseAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
-
     #region Basic CRUD Operations
 
     [Fact]
@@ -37,8 +20,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin(); // Autentica como admin para criar provider
 
-        var userId = await _fixture.CreateTestUserAsync();
-        var providerName = _fixture.Faker.Company.CompanyName();
+        var userId = await Fixture.CreateTestUserAsync();
+        var providerName = Fixture.Faker.Company.CompanyName();
 
         var createProviderRequest = new
         {
@@ -52,26 +35,26 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
                 Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
-                    Email = _fixture.Faker.Internet.Email(),
-                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
-                    Website = _fixture.Faker.Internet.Url()
+                    Email = Fixture.Faker.Internet.Email(),
+                    PhoneNumber = Fixture.Faker.Phone.PhoneNumber(),
+                    Website = Fixture.Faker.Internet.Url()
                 },
                 PrimaryAddress = new
                 {
-                    Street = _fixture.Faker.Address.StreetAddress(),
-                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
+                    Street = Fixture.Faker.Address.StreetAddress(),
+                    Number = Fixture.Faker.Random.Number(1, 9999).ToString(),
                     Complement = (string?)null,
-                    Neighborhood = _fixture.Faker.Address.City(),
-                    City = _fixture.Faker.Address.City(),
-                    State = _fixture.Faker.Address.StateAbbr(),
-                    ZipCode = _fixture.Faker.Address.ZipCode(),
+                    Neighborhood = Fixture.Faker.Address.City(),
+                    City = Fixture.Faker.Address.City(),
+                    State = Fixture.Faker.Address.StateAbbr(),
+                    ZipCode = Fixture.Faker.Address.ZipCode(),
                     Country = "Brasil"
                 }
             }
         };
 
         // Act
-        var response = await _fixture.PostJsonAsync("/api/v1/providers", createProviderRequest);
+        var response = await Fixture.PostJsonAsync("/api/v1/providers", createProviderRequest);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.Created)
@@ -89,9 +72,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         locationHeader.Should().Contain("/api/v1/providers");
     }
 
-    // NOTA: Teste básico GetProviders removido - duplica ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList
-    // Recuperação de lista simples já está adequadamente coberta nos testes de Integração
-
     [Fact]
     public async Task CompleteProviderWorkflow_Should_Work()
     {
@@ -107,7 +87,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             providerId = await CreateTestProviderAsync();
             
             // Recuperar userId do provider criado
-            var getProviderResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            var getProviderResponse = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
             if (getProviderResponse.IsSuccessStatusCode)
             {
                 var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
@@ -130,7 +110,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             }
 
             // Act 2: Buscar Provider criado
-            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
 
             if (getResponse.IsSuccessStatusCode)
             {
@@ -157,7 +137,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             // Act 3: Buscar por UserId (se conseguimos recuperar)
             if (userId.HasValue)
             {
-                var getUserResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
+                var getUserResponse = await Fixture.ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
 
                 if (getUserResponse.IsSuccessStatusCode)
                 {
@@ -166,7 +146,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             }
 
             // Act 4: Buscar por tipo
-            var getTypeResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/type/0");
+            var getTypeResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/type/0");
 
             if (getTypeResponse.IsSuccessStatusCode)
             {
@@ -180,7 +160,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             {
                 try
                 {
-                    var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+                    var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
                 }
                 catch (Exception)
                 {
@@ -189,9 +169,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             }
         }
     }
-
-    // NOTA: Teste de smoke ProvidersEndpoints_ShouldNotCrash removido - baixo valor
-    // Estabilidade dos endpoints é validada por testes funcionais específicos
 
     #endregion
 
@@ -237,7 +214,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             }
         };
 
-        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, TestContainerFixture.JsonOptions);
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         updateResponse.StatusCode.Should().BeOneOf(
@@ -290,7 +267,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", invalidRequest, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", invalidRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -312,7 +289,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var providerId = await CreateTestProviderAsync($"ToDelete_{uniqueId}");
 
         // Act - Delete provider
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
 
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -320,7 +297,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Verify provider is deleted
         if (deleteResponse.IsSuccessStatusCode)
         {
-            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
     }
@@ -346,7 +323,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             Reason = "Verification completed successfully"
         };
 
-        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync(
+        var updateResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/verification-status",
             updateStatusRequest,
             TestContainerFixture.JsonOptions);
@@ -372,7 +349,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.ApiClient.PutAsJsonAsync(
+        var response = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/verification-status",
             invalidRequest,
             TestContainerFixture.JsonOptions);
@@ -407,7 +384,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             DocumentType = 3 // RG (EDocumentType enum value)
         };
 
-        var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
+        var addDocumentResponse = await Fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/documents",
             documentRequest,
             TestContainerFixture.JsonOptions);
@@ -443,13 +420,13 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             DocumentType = 3 // RG (EDocumentType enum value)
         };
 
-        var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
+        var addDocumentResponse = await Fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/documents",
             documentRequest,
             TestContainerFixture.JsonOptions);
 
         // Act - Delete document (usando o DocumentType como identificador)
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync(
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync(
             $"/api/v1/providers/{providerId}/documents/{documentRequest.DocumentType}");
 
         // Assert
@@ -474,7 +451,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var username = $"prov_activ_{uniqueId}";
         var email = $"prov_activ_{uniqueId}@example.com";
         
-        var userId = await _fixture.CreateTestUserAsync(username, email);
+        var userId = await Fixture.CreateTestUserAsync(username, email);
         
         var request = new
         {
@@ -506,7 +483,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             }
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync();
@@ -517,13 +494,13 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), username);
 
         // 1. Verificar estado inicial (isActive deve ser true)
-        var getInitialResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getInitialResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getInitialResponse.EnsureSuccessStatusCode();
         var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
         getInitialContent.Should().Contain("\"isActive\":true");
 
         // 2. Desativar o perfil
-        var deactivateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
+        var deactivateResponse = await Fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
         if (!deactivateResponse.IsSuccessStatusCode)
         {
             var body = await deactivateResponse.Content.ReadAsStringAsync();
@@ -531,19 +508,19 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         }
 
         // Verificar que foi desativado
-        var getAfterDeactivateResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getAfterDeactivateResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getAfterDeactivateResponse.EnsureSuccessStatusCode();
         var getAfterDeactivateContent = await getAfterDeactivateResponse.Content.ReadAsStringAsync();
         getAfterDeactivateContent.Should().Contain("\"isActive\":false");
 
         // 3. Ativar o perfil novamente
-        var activateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/activate", null);
+        var activateResponse = await Fixture.ApiClient.PostAsync("/api/v1/providers/me/activate", null);
 
         // Assert
         activateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
         
         // Verificar que foi reativado
-        var getProfileResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getProfileResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getProfileResponse.EnsureSuccessStatusCode();
         
         var getProfileContent = await getProfileResponse.Content.ReadAsStringAsync();
@@ -562,7 +539,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var username = $"prov_deactiv_{uniqueId}";
         var email = $"prov_deactiv_{uniqueId}@example.com";
         
-        var userId = await _fixture.CreateTestUserAsync(username, email);
+        var userId = await Fixture.CreateTestUserAsync(username, email);
         
         var request = new
         {
@@ -594,7 +571,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             }
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync();
@@ -606,13 +583,13 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), username);
 
         // 1. Verificar estado inicial (isActive deve ser true)
-        var getInitialResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getInitialResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getInitialResponse.EnsureSuccessStatusCode();
         var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
         getInitialContent.Should().Contain("\"isActive\":true");
 
         // 2. Desativar o perfil
-        var deactivateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
+        var deactivateResponse = await Fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
         if (!deactivateResponse.IsSuccessStatusCode)
         {
             var body = await deactivateResponse.Content.ReadAsStringAsync();
@@ -620,7 +597,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         }
         
         // Verificar que foi desativado
-        var getProfileResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getProfileResponse = await Fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getProfileResponse.EnsureSuccessStatusCode();
         
         var getProfileContent = await getProfileResponse.Content.ReadAsStringAsync();
@@ -636,8 +613,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         // Ensure authenticated as admin to create providers
         TestContainerFixture.AuthenticateAsAdmin();
         
-        var userId = await _fixture.CreateTestUserAsync();
-        var providerName = name ?? _fixture.Faker.Company.CompanyName();
+        var userId = await Fixture.CreateTestUserAsync();
+        var providerName = name ?? Fixture.Faker.Company.CompanyName();
 
         var request = new
         {
@@ -651,25 +628,25 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
                 Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
-                    Email = _fixture.Faker.Internet.Email(),
+                    Email = Fixture.Faker.Internet.Email(),
                     PhoneNumber = "+5511999999999",
                     Website = "https://www.example.com"
                 },
                 PrimaryAddress = new
                 {
-                    Street = _fixture.Faker.Address.StreetAddress(),
-                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
+                    Street = Fixture.Faker.Address.StreetAddress(),
+                    Number = Fixture.Faker.Random.Number(1, 9999).ToString(),
                     Complement = (string?)null,
-                    Neighborhood = _fixture.Faker.Address.City(),
-                    City = _fixture.Faker.Address.City(),
-                    State = _fixture.Faker.Address.StateAbbr(),
-                    ZipCode = _fixture.Faker.Address.ZipCode(),
+                    Neighborhood = Fixture.Faker.Address.City(),
+                    City = Fixture.Faker.Address.City(),
+                    State = Fixture.Faker.Address.StateAbbr(),
+                    ZipCode = Fixture.Faker.Address.ZipCode(),
                     Country = "Brasil"
                 }
             }
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -688,4 +665,3 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
     #endregion
 }
-

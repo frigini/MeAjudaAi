@@ -1,20 +1,13 @@
+using MeAjudaAi.E2E.Tests.Base;
 using System.Net.Http.Json;
 using System.Text.Json;
-using MeAjudaAi.E2E.Tests.Base;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Providers")]
-public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
+public class ProviderDashboardApiTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
 {
-    private readonly TestContainerFixture _fixture;
-
-    public ProviderDashboardApiTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task GetMyProfile_Should_Return_Correct_Provider()
     {
@@ -22,20 +15,15 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
-        var userId = await _fixture.CreateTestUserAsync();
+        var userId = await fixture.CreateTestUserAsync();
         var providerId = await CreateTestProviderForUserAsync(userId);
-
-
-
-        
+       
         // Act - Switch to Provider User
         TestContainerFixture.AuthenticateAsUser(userId.ToString());
         
-        var response = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var response = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
 
         // Assert
-
-
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(response);
@@ -52,14 +40,14 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
-        var userId = await _fixture.CreateTestUserAsync();
-        var providerId = await CreateTestProviderForUserAsync(userId);
+        var userId = await fixture.CreateTestUserAsync();
+        _ = await CreateTestProviderForUserAsync(userId);
         
         // Act - Switch to Provider User
         TestContainerFixture.AuthenticateAsUser(userId.ToString());
         
         // Get current profile
-        var getResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var getResponse = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(getResponse);
@@ -94,12 +82,12 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
              }
         };
 
-        var updateResponse = await _fixture.PutJsonAsync("/api/v1/providers/me", updateRequest);
+        var updateResponse = await fixture.PutJsonAsync("/api/v1/providers/me", updateRequest);
 
         // Assert
         updateResponse.IsSuccessStatusCode.Should().BeTrue();
         
-        var verifyResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        var verifyResponse = await fixture.ApiClient.GetAsync("/api/v1/providers/me");
         var verifyProvider = await TestContainerFixture.ReadJsonAsync<JsonElement>(verifyResponse);
         var verifyValue = verifyProvider.TryGetProperty("data", out var vp) ? vp : verifyProvider;
         
@@ -119,7 +107,7 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
     
     private async Task<Guid> CreateTestProviderForUserAsync(Guid userId)
     {
-        var providerName = _fixture.Faker.Company.CompanyName();
+        var providerName = fixture.Faker.Company.CompanyName();
 
         var request = new
         {
@@ -133,25 +121,25 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
                 Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
-                    Email = _fixture.Faker.Internet.Email(),
+                    Email = fixture.Faker.Internet.Email(),
                     PhoneNumber = "+5511999999999",
                     Website = "https://www.example.com"
                 },
                 PrimaryAddress = new
                 {
-                    Street = _fixture.Faker.Address.StreetAddress(),
-                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
+                    Street = fixture.Faker.Address.StreetAddress(),
+                    Number = fixture.Faker.Random.Number(1, 9999).ToString(),
                     Complement = (string?)null,
-                    Neighborhood = _fixture.Faker.Address.City(),
-                    City = _fixture.Faker.Address.City(),
-                    State = _fixture.Faker.Address.StateAbbr(),
-                    ZipCode = _fixture.Faker.Address.ZipCode(),
+                    Neighborhood = fixture.Faker.Address.City(),
+                    City = fixture.Faker.Address.City(),
+                    State = fixture.Faker.Address.StateAbbr(),
+                    ZipCode = fixture.Faker.Address.ZipCode(),
                     Country = "Brasil"
                 }
             }
         };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         
         if (!response.IsSuccessStatusCode)
         {

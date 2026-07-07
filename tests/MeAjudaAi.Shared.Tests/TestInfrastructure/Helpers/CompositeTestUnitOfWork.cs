@@ -1,14 +1,10 @@
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.E2E.Tests.Base;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 
-/// <summary>
-/// Test-specific IUnitOfWork that resolves the correct DbContext per aggregate type.
-/// In production, each module registers its own non-keyed IUnitOfWork (last one wins = Payments).
-/// This composite fixes that by finding which DbContext implements IRepository{TAggregate, TKey}.
-/// </summary>
-internal sealed class CompositeTestUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
+public sealed class CompositeTestUnitOfWork(IServiceProvider serviceProvider) : IUnitOfWork
 {
     private static readonly Type[] DbContextTypes =
     [
@@ -27,16 +23,13 @@ internal sealed class CompositeTestUnitOfWork(IServiceProvider serviceProvider) 
     public IRepository<TAggregate, TKey> GetRepository<TAggregate, TKey>()
     {
         var repositoryInterfaceType = typeof(IRepository<TAggregate, TKey>);
-
         foreach (var dbContextType in DbContextTypes)
         {
             if (!repositoryInterfaceType.IsAssignableFrom(dbContextType))
                 continue;
-
             var dbContext = serviceProvider.GetRequiredService(dbContextType);
             return (IRepository<TAggregate, TKey>)dbContext;
         }
-
         throw new InvalidOperationException(
             $"No DbContext found that implements {repositoryInterfaceType.FullName}");
     }
@@ -48,9 +41,7 @@ internal sealed class CompositeTestUnitOfWork(IServiceProvider serviceProvider) 
         {
             var service = serviceProvider.GetService(dbContextType);
             if (service is DbContext dbContext)
-            {
                 total += await dbContext.SaveChangesAsync(cancellationToken);
-            }
         }
         return total;
     }

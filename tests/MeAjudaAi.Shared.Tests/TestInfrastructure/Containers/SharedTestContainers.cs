@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
@@ -279,13 +280,12 @@ public static class SharedTestContainers
     {
         if (!_isInitialized) return;
 
-        // Schemas conhecidos dos módulos (pode ser expandido conforme novos módulos)
-        var moduleSchemas = new[] { "users", "providers", "services", "orders", "public" };
-
-        foreach (var schema in moduleSchemas)
+        foreach (var schema in DbContextSchemaHelper.GetAllModuleSchemas())
         {
             await CleanupDataAsync(schema);
         }
+
+        await CleanupDataAsync("public");
     }
 
     /// <summary>

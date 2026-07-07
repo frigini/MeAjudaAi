@@ -13,14 +13,8 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Feature", "Validation")]
-public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixture>
+public class ValidationStatusCodeEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
 {
-    private readonly TestContainerFixture _fixture;
-
-    public ValidationStatusCodeEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
 
     #region 400 Bad Request - FluentValidation Errors
 
@@ -32,16 +26,16 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            Username = _fixture.Faker.Internet.UserName(),
+            Username = fixture.Faker.Internet.UserName(),
             Email = "not-an-email", // Invalid email format
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = fixture.Faker.Name.FirstName(),
+            LastName = fixture.Faker.Name.LastName(),
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -59,16 +53,16 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            Username = _fixture.Faker.Internet.UserName(),
+            Username = fixture.Faker.Internet.UserName(),
             // Email ausente (required)
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = fixture.Faker.Name.FirstName(),
+            LastName = fixture.Faker.Name.LastName(),
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -84,12 +78,12 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var request = new
         {
             name = "", // Empty name - FluentValidation error
-            description = _fixture.Faker.Lorem.Sentence(),
+            description = fixture.Faker.Lorem.Sentence(),
             categoryId = Guid.NewGuid()
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request);
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
@@ -101,17 +95,17 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange - Create user first
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        var userId = await _fixture.CreateTestUserAsync();
+        var userId = await fixture.CreateTestUserAsync();
 
         // Act - Update with invalid phone format
         var updateRequest = new
         {
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = fixture.Faker.Name.FirstName(),
+            LastName = fixture.Faker.Name.LastName(),
             PhoneNumber = "invalid-phone" // Invalid format
         };
 
-        var response = await _fixture.PutJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
+        var response = await fixture.PutJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
 
         // Assert
         // Invalid phone format should trigger validation error
@@ -127,12 +121,9 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     /// <summary>
     /// NOTA: 422 Unprocessable Entity não está implementado no MVP.
     /// Atualmente, todas as validações retornam 400 Bad Request (FluentValidation).
+    /// Ver roadmap.md para plano de implementação.
     /// </summary>
-    /// <summary>
-    /// Valida HTTP 422 Unprocessable Entity para validações semânticas.
-    /// Exemplo: formato inválido (400) vs. categoria não existe (422).
-    /// </summary>
-    [Fact]
+    [Fact(Skip = "422 não implementado — ver roadmap.md")]
     public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
     {
         // Arrange
@@ -140,14 +131,14 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            Name = _fixture.Faker.Commerce.ProductName(),
-            Description = _fixture.Faker.Lorem.Sentence(),
+            Name = fixture.Faker.Commerce.ProductName(),
+            Description = fixture.Faker.Lorem.Sentence(),
             CategoryId = Guid.NewGuid(), // Categoria não existe (validação semântica)
             DisplayOrder = 0
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
 
         // Assert
         // 422 para validação semântica (categoria não existe)
@@ -155,7 +146,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             "semantic validation (non-existent category) should return 422");
     }
 
-    [Fact]
+    [Fact(Skip = "422 não implementado — ver roadmap.md")]
     public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
     {
         // Arrange - Criar categoria e serviço
@@ -171,7 +162,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             Description = "Test category",
             DisplayOrder = 0
         };
-        var categoryResponse = await _fixture.ApiClient.PostAsJsonAsync(
+        var categoryResponse = await fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/service-catalogs/categories", 
             categoryRequest, 
             TestContainerFixture.JsonOptions);
@@ -186,7 +177,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             CategoryId = categoryId,
             DisplayOrder = 0
         };
-        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync(
+        var serviceResponse = await fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/service-catalogs/services",
             serviceRequest,
             TestContainerFixture.JsonOptions);
@@ -198,7 +189,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         {
             NewCategoryId = Guid.NewGuid() // Categoria não existe
         };
-        var response = await _fixture.ApiClient.PostAsJsonAsync(
+        var response = await fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/service-catalogs/services/{serviceId}/change-category",
             changeCategoryRequest,
             TestContainerFixture.JsonOptions);
@@ -218,10 +209,10 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange - Create first user
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        var uniqueEmail = $"{_fixture.Faker.Internet.UserName()}@example.com";
+        var uniqueEmail = $"{fixture.Faker.Internet.UserName()}@example.com";
         var request = new
         {
-            Username = _fixture.Faker.Internet.UserName(),
+            Username = fixture.Faker.Internet.UserName(),
             Email = uniqueEmail,
             FirstName = "Carlos",
             LastName = "Silva",
@@ -229,20 +220,20 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             PhoneNumber = "+5511999999999"
         };
         
-        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var firstResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created, "first user creation should succeed");
 
         // Act - Try to create again with same email
         var duplicateRequest = new
         {
-            Username = _fixture.Faker.Internet.UserName(), // Different username
+            Username = fixture.Faker.Internet.UserName(), // Different username
             Email = uniqueEmail, // Same email
             FirstName = "Ana",
             LastName = "Souza",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
-        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
+        var duplicateResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         // TODO: Deveria retornar 409, mas atualmente retorna 400
@@ -258,18 +249,18 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        var categoryName = _fixture.Faker.Commerce.Department();
+        var categoryName = fixture.Faker.Commerce.Department();
 
         var request = new
         {
             name = categoryName,
-            description = _fixture.Faker.Lorem.Sentence()
+            description = fixture.Faker.Lorem.Sentence()
         };
 
-        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request);
+        await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request);
 
         // Act - Tentar criar categoria com mesmo nome
-        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request);
+        var duplicateResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request);
 
         // Assert - Should return 409 conflict for duplicate category name
         // TODO: Endpoint pode não existir (404) ou retornar 400/409 para duplicatas
@@ -302,7 +293,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -333,20 +324,20 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             PhoneNumber = "+5511999999999"
         };
         
-        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var firstResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created, "setup: first user creation should succeed");
 
         // Act - Try to create duplicate
         var duplicateRequest = new
         {
-            Username = _fixture.Faker.Internet.UserName(),
+            Username = fixture.Faker.Internet.UserName(),
             Email = uniqueEmail, // Same email
             FirstName = "Ana",
             LastName = "Souza",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
-        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
+        var duplicateResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         // TODO: Deveria retornar 409, mas atualmente retorna 400
@@ -371,7 +362,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync($"/api/v1/services/{nonExistentId}");
+        var response = await fixture.ApiClient.GetAsync($"/api/v1/services/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -387,12 +378,12 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         var nonExistentId = Guid.NewGuid();
         var request = new
         {
-            name = _fixture.Faker.Commerce.ProductName(),
-            description = _fixture.Faker.Lorem.Sentence()
+            name = fixture.Faker.Commerce.ProductName(),
+            description = fixture.Faker.Lorem.Sentence()
         };
 
         // Act
-        var response = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/services/{nonExistentId}", request);
+        var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/services/{nonExistentId}", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,

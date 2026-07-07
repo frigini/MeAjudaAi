@@ -1,54 +1,87 @@
-# Infraestrutura de Testes E2E - TestContainers
+# Infraestrutura de Testes E2E
 
 ## Visão Geral
 
-A nova infraestrutura de testes E2E usa **TestContainers** para criar ambientes isolados e confiáveis, eliminando dependências externas e problemas de configuração.
+Testes E2E usam **TestContainers** para ambientes isolados com PostgreSQL (PostGIS) e Redis, via `WebApplicationFactory` e `IClassFixture`.
 
 ## Arquitetura
 
-### `TestContainerTestBase`
+### Fixture Principal: `TestContainerFixture`
 
-Base class para todos os testes E2E que:
+Classe que gerencia containers, factory, migrações e helpers para testes E2E.
 
-- 🐳 **TestContainers**: Cria containers Docker isolados para PostgreSQL e Redis
-- 🔧 **WebApplicationFactory**: Configura a aplicação com infraestrutura de teste
-- 🗃️ **Database**: Aplica schema automaticamente usando `EnsureCreated()`
-- ⚡ **Performance**: Otimizado para execução rápida e limpeza automática
+- 🐳 Containers Docker compartilhados (PostgreSQL + Redis)
+- 🗃️ Migrações EF Core automáticas com retry
+- 🔐 Autenticação via `ConfigurableTestAuthenticationHandler`
+- 🧹 Cleanup por schema com `TRUNCATE CASCADE`
 
-### Estrutura de Arquivos
+### Fixture com Eventos: `EventsEnabledTestContainerFixture`
+
+Subclass que habilita `SynchronousInMemoryMessageBus` e `DomainEventProcessor` para testes que dependem de eventos de integração entre módulos.
+
+### Estrutura
 
 ```
 tests/MeAjudaAi.E2E.Tests/
 ├── Base/
-│   ├── TestContainerTestBase.cs      # Base class principal
-│   └── ...
-├── Simple/
-│   └── InfrastructureHealthTests.cs  # Testes de infraestrutura
-├── UsersEndToEndTests.cs             # Testes E2E de usuários
-├── AuthenticationTests.cs            # Testes de autenticação
-└── README-TestContainers.md          # Esta documentação
+│   ├── BaseE2ETest.cs                            # Base class (elimina boilerplate)
+│   ├── TestContainerFixture.cs                   # Fixture principal
+│   ├── EventsEnabledTestContainerFixture.cs      # Com message bus habilitado
+│   └── ResponseTypes.cs                          # Tipos de resposta E2E
+├── Modules/
+│   ├── Bookings/
+│   ├── Communications/
+│   ├── Documents/
+│   ├── Locations/
+│   ├── Payments/
+│   ├── Providers/
+│   ├── Ratings/
+│   ├── SearchProviders/
+│   ├── ServiceCatalogs/
+│   └── Users/
+├── Authorization/
+├── CrossModule/
+└── Infrastructure/
 ```
-
-### Benefícios
-
-✅ **Isolamento**: Cada teste roda em containers limpos
-✅ **Confiabilidade**: Sem dependência de serviços externos
-✅ **Paralelização**: Testes podem rodar em paralelo sem conflitos
-✅ **CI/CD Ready**: Funciona em qualquer ambiente com Docker
-✅ **Desenvolvimento**: Não requer setup manual de infraestrutura
 
 ## Como Usar
 
-### 1. Teste Básico de API
+### Base Classes
+
+Use `BaseE2ETest<TFixture>` or `BaseEventsE2ETest` para eliminar boilerplate (`IAsyncLifetime`, `InitializeAsync`, `DisposeAsync`):
 
 ```csharp
-public class MyApiTests : TestContainerTestBase
+// Teste simples
+public class MyTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture) { }
+
+// Teste com eventos de integração
+public class MyEventsTests(EventsEnabledTestContainerFixture fixture) : BaseEventsE2ETest(fixture) { }
+
+// Teste com dependências extras (ITestOutputHelper, etc.)
+public class MyTests(EventsEnabledTestContainerFixture fixture, ITestOutputHelper output) 
+    : BaseEventsE2ETest(fixture)
+{
+    private readonly ITestOutputHelper _output = output;
+}
+```
+
+Controle o cleanup via `CleanupBeforeEachTest` (padrão: `true`).
+
+### Teste Simples
+
+```csharp
+[Trait("Category", "E2E")]
+[Trait("Module", "Users")]
+public class UsersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
     [Fact]
-    public async Task GetEndpoint_Should_Return_Success()
+    public async Task GetUser_ShouldReturnOk()
     {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+
         // Act
-        var response = await ApiClient.GetAsync("/api/my-endpoint");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -56,168 +89,132 @@ public class MyApiTests : TestContainerTestBase
 }
 ```
 
-### 2. Teste com Dados
+### Teste com Eventos de Integração
 
 ```csharp
-[Fact]
-public async Task CreateEntity_Should_Persist_To_Database()
+[Trait("Category", "E2E")]
+[Trait("Module", "Ratings")]
+public class RatingsEndToEndTests(EventsEnabledTestContainerFixture fixture) : BaseEventsE2ETest(fixture)
 {
-    // Arrange
-    var request = new { Name = "Test", Value = 123 };
-
-    // Act
-    var response = await PostJsonAsync("/api/entities", request);
-
-    // Assert
-    response.StatusCode.Should().Be(HttpStatusCode.Created);
-    
-    // Verificar no banco
-    await WithServiceScopeAsync(async services =>
+    [Fact]
+    public async Task CreateReview_ShouldUpdateSearch()
     {
-        var context = services.GetRequiredService<MyDbContext>();
-        var entity = await context.Entities.FirstAsync();
-        entity.Name.Should().Be("Test");
-    });
+        EventsEnabledTestContainerFixture.AuthenticateAsAdmin();
+        // ... teste com eventos de integração
+    }
 }
 ```
 
-### 3. Acesso Direto ao Banco
+### Acesso Direto ao Banco
 
 ```csharp
-[Fact]
-public async Task DirectDatabaseAccess_Should_Work()
+await Fixture.WithServiceScopeAsync(async services =>
 {
-    // Arrange - Criar dados diretamente no banco
-    await WithServiceScopeAsync(async services =>
-    {
-        var context = services.GetRequiredService<MyDbContext>();
-        context.Entities.Add(new Entity { Name = "Direct" });
-        await context.SaveChangesAsync();
-    });
+    var context = services.GetRequiredService<UsersDbContext>();
+    var user = await context.Users.FirstAsync();
+    user.Should().NotBeNull();
+});
+```
 
-    // Act & Assert
-    var response = await ApiClient.GetAsync("/api/entities");
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
-}
+### Criar Usuário de Teste
+
+```csharp
+var userId = await Fixture.CreateTestUserAsync();
 ```
 
 ## Métodos Disponíveis
 
-### HTTP Helpers
-- `PostJsonAsync<T>(string uri, T content)` - POST com JSON
-- `PutJsonAsync<T>(string uri, T content)` - PUT com JSON  
-- `ReadJsonAsync<T>(HttpResponseMessage response)` - Ler JSON da resposta
+### Autenticação (estáticos)
+| Método | Descrição |
+|--------|-----------|
+| `AuthenticateAsAdmin()` | Admin com todas as permissões |
+| `AuthenticateAsUser(userId, username)` | Usuário regular |
+| `AuthenticateAsAnonymous()` | Sem autenticação |
+| `AuthenticateAsAdminWithProvider(providerId)` | Admin vinculado a um provider |
+| `BeforeEachTest()` | Limpa contexto de autenticação |
 
-### Database Helpers
-- `WithServiceScopeAsync(Func<IServiceProvider, Task> action)` - Executar com scope de serviços
-- `WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)` - Executar e retornar valor
+### HTTP (na instância)
+| Método | Descrição |
+|--------|-----------|
+| `Fixture.ApiClient` | HttpClient autenticado |
+| `Fixture.PostJsonAsync<T>(uri, content)` | POST com JSON |
+| `Fixture.PutJsonAsync<T>(uri, content)` | PUT com JSON |
+| `Fixture.PatchJsonAsync<T>(uri, content)` | PATCH com JSON |
+| `TestContainerFixture.ReadJsonAsync<T>(response)` | Desserializa resposta |
+| `TestContainerFixture.ExtractIdFromLocation(header)` | Extrai GUID do Location |
+
+### Database
+| Método | Descrição |
+|--------|-----------|
+| `Fixture.WithServiceScopeAsync(action)` | Executa com scope de serviços |
+| `Fixture.CleanupDatabaseAsync()` | TRUNCATE todas as tabelas + Redis FLUSHALL |
+| `Fixture.CreateTestUserAsync()` | Cria usuário via API e retorna ID |
 
 ### Propriedades
-- `ApiClient` - HttpClient configurado para a API
-- `Faker` - Gerador de dados fake (Bogus)
-- `JsonOptions` - Opções de serialização JSON consistentes
+| Propriedade | Descrição |
+|-------------|-----------|
+| `Fixture.ApiClient` | HttpClient configurado |
+| `Fixture.Faker` | Gerador de dados fake (Bogus) |
+| `TestContainerFixture.JsonOptions` | Opções de serialização JSON |
+| `Fixture.Services` | IServiceProvider da factory |
 
 ## Configuração dos Containers
 
 ### PostgreSQL
-- **Image**: `postgres:13-alpine`
+- **Image**: `postgis/postgis:16-3.4`
 - **Database**: `meajudaai_test`
 - **Credentials**: `postgres/test123`
-- **Schema**: Criado automaticamente via `EnsureCreated()`
+- **Schema**: Criado automaticamente via `CREATE SCHEMA IF NOT EXISTS`
+- **Migrações**: Aplicadas via `ApplyAllDiscoveredMigrationsAsync()` com retry
 
 ### Redis
 - **Image**: `redis:7-alpine`
 - **Port**: Alocado dinamicamente
-- **Cache**: Disponível para testes de cache
 
-### Serviços Desabilitados em Teste
-- **Keycloak**: Desabilitado para maior performance e confiabilidade
-- **RabbitMQ**: Desabilitado por padrão
-- **Logging**: Reduzido ao mínimo
+### Serviços Mockados
+| Serviço | Mock | Motivo |
+|---------|------|--------|
+| `IKeycloakService` | `MockKeycloakService` | Sem dependência externa |
+| `IUserDomainService` | `MockUserDomainService` | Sem dependência externa |
+| `IBlobStorageService` | `MockBlobStorageService` | Sem Azure Storage |
+| `IDocumentIntelligenceService` | `MockDocumentIntelligenceService` | Sem Azure OCR |
+| `IPaymentGateway` | `MockPaymentGateway` | Sem Stripe real |
+| `IMessageBus` | `MockNoOpMessageBus` ou `SynchronousInMemoryMessageBus` | Isolamento / eventos |
+| `IDomainEventProcessor` | `MockNoOpDomainEventProcessor` ou `DomainEventProcessor` | Isolamento / eventos |
 
-## Performance
+### Serviços Desabilitados
+- Keycloak, Hangfire, Rate Limiting, Geographic Restriction, Cache, RabbitMQ
 
-- ⚡ **Containers**: Reutilizados quando possível
-- 🧹 **Cleanup**: Automático após cada teste
-- 📊 **Logs**: Minimizados para reduzir overhead
-- ⏱️ **Timeouts**: Otimizados para CI/CD
+## Infraestrutura Compartilhada (Shared.Tests)
 
-## Comparação com Aspire
+Componentes reutilizáveis em `Shared.Tests/TestInfrastructure/`:
 
-| Aspecto | TestContainers | Aspire AppHost |
-|---------|----------------|----------------|
-| **Isolamento** | ✅ Total | ❌ Compartilhado |
-| **Performance** | ✅ Rápido | ❌ Lento |
-| **Confiabilidade** | ✅ Alta | ❌ Instável |
-| **Setup** | ✅ Zero | ❌ Complexo |
-| **CI/CD** | ✅ Nativo | ❌ Problemático |
+| Componente | Local | Uso |
+|------------|-------|-----|
+| `BaseE2ETest<TFixture>` | `E2E.Tests/Base/` | Elimina boilerplate IAsyncLifetime, constructor, InitializeAsync, DisposeAsync |
+| `BaseEventsE2ETest` | `E2E.Tests/Base/` | Base para testes com `SynchronousInMemoryMessageBus` habilitado |
+| `ConfigurableTestAuthenticationHandler` | `Handlers/` | Autenticação por teste com `AsyncLocal` |
+| `TestContextAwareHandler` | `Handlers/` | Injeta header `X-Test-Context-Id` nas requisições |
+| `CompositeTestUnitOfWork` | `Helpers/` | Redireciona `IUnitOfWork` para o DbContext correto por aggregate |
+| `DbContextSchemaHelper` | `Helpers/` | Mapeia nome do DbContext → schema PostgreSQL |
+| `MigrationDiscoveryExtensions` | `Extensions/` | Descobre e aplica migrações com retry |
+| `SharedTestContainers` | `Containers/` | Gerencia containers compartilhados entre testes |
+| `SynchronousInMemoryMessageBus` | `Mocks/Messaging/` | Message bus síncrono para testes com eventos |
 
-## Migração Concluída
+## Paralelização
 
-Os seguintes testes foram migrados do Aspire para TestContainers:
-
-### ✅ Migrados
-- `TestContainerHealthTests.cs` → `InfrastructureHealthTests.cs`
-- `UsersEndToEndTests.cs` → **Migrado** para `TestContainerTestBase`
-- `KeycloakIntegrationTests.cs` → **Substituído** por `AuthenticationTests.cs`
-
-### 📁 Arquivos de Backup
-- `UsersEndToEndTests.cs.backup` - Versão original
-- `KeycloakIntegrationTests.cs.backup` - Versão original
-
-## Migração de Testes Existentes
-
-Para criar novos testes E2E, use `TestContainerTestBase`:
-
-1. **Definir herança**:
-   ```csharp
-   public class MyTests : TestContainerTestBase
-   ```
-
-2. **Atualizar usings**:
-   ```csharp
-   using MeAjudaAi.E2E.Tests.Base;
-   ```
-
-3. **Ajustar endpoints**:
-   ```csharp
-   // Atualizar de /api/v1/users para /api/users
-   // Remover campos que não existem na API atual (ex: Password)
-   ```
-
-4. **Usar novos helpers** para acesso ao banco e HTTP
-
-## Exemplos Completos
-
-### Testes de Usuários
-Ver `UsersEndToEndTests.cs` para exemplo completo de:
-- Testes de API CRUD
-- Manipulação de dados
-- Verificação de persistência
-- Uso de helpers
-
-### Testes de Autenticação  
-Ver `AuthenticationTests.cs` para exemplo de:
-- Testes sem dependências externas
-- Validação de comportamento sem Keycloak
-- Testes de endpoints públicos/protegidos
-
-### Testes de Infraestrutura
-Ver `InfrastructureHealthTests.cs` para exemplo de:
-- Validação de conectividade PostgreSQL
-- Validação de conectividade Redis
-- Health checks da API
+A paralelização está **desabilitada** via `[assembly: CollectionBehavior(DisableTestParallelization = true)]` para evitar race conditions com containers compartilhados.
 
 ## Troubleshooting
 
 ### Docker não encontrado
 Verifique se Docker Desktop está rodando.
 
-### Testes lentos
-TestContainers reutiliza containers quando possível. Primeira execução é mais lenta.
+### Testes lentos na primeira execução
+Containers e migrações são criados na primeira execução. Execuções seguintes reutilizam containers.
 
-### Conflitos de porta
-TestContainers aloca portas dinamicamente, evitando conflitos.
+### Erro de conexão com banco
+Os containers usam portas dinâmicas. Verifique se o Docker está acessível.
 
-### Problemas de conectividade
-Containers são criados na mesma rede Docker, conectividade é automática.
+### `AUTHENTICATION CONTEXT NOT FOUND`
+Chame `AuthenticateAsAdmin()` (ou outro método de auth) antes de fazer requisições autenticadas.

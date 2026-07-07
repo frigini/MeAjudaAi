@@ -8,7 +8,7 @@ namespace MeAjudaAi.Gateway.Handlers;
 /// DelegatingHandler responsável por implementar a política de retry em requisições HTTP,
 /// tratando falhas transitórias e timeouts.
 /// </summary>
-internal sealed class RetryDelegatingHandler(GatewayResilienceOptions options) : DelegatingHandler
+internal sealed class RetryDelegatingHandler(GatewayResilienceOptions options, ILogger? logger = null) : DelegatingHandler
 {
     private static readonly IList<string> CachedDefaultRetryableMethods = new List<string> { "GET", "HEAD", "OPTIONS" }.AsReadOnly();
     
@@ -36,6 +36,9 @@ internal sealed class RetryDelegatingHandler(GatewayResilienceOptions options) :
             }
             catch (Exception ex) when (attempt < _options.RetryCount && (IsTransientException(ex) || ex is OperationCanceledException))
             {
+                logger?.LogWarning(ex, "Transient exception on attempt {Attempt}/{MaxAttempts} for {Method} {Uri}",
+                    attempt + 1, _options.RetryCount, request.Method, request.RequestUri);
+
                 response?.Dispose();
                 if (ex is OperationCanceledException && cancellationToken.IsCancellationRequested)
                 {
@@ -50,6 +53,10 @@ internal sealed class RetryDelegatingHandler(GatewayResilienceOptions options) :
 
             attempt++;
             var delay = TimeSpan.FromMilliseconds(_options.RetryBaseDelayMs * Math.Pow(2, attempt));
+
+            logger?.LogDebug("Retry attempt {Attempt}/{MaxAttempts} for {Method} {Uri} after {Delay}ms backoff",
+                attempt, _options.RetryCount, request.Method, request.RequestUri, delay.TotalMilliseconds);
+
             response?.Dispose();
             await Task.Delay(delay, cancellationToken);
             }

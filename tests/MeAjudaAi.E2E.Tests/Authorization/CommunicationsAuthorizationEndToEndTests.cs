@@ -10,64 +10,76 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
     [Fact]
     public async Task GetCommunicationLogs_WithoutCommunicationsRead_ShouldReturnForbidden()
     {
+        // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-123",
             userName: "user",
             email: "user@test.com",
-            permissions: [] // SEM permissão CommunicationsRead
+            permissions: []
         );
 
+        // Act
         var response = await fixture.ApiClient.GetAsync("/api/v1/communications/logs");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task GetEmailTemplates_WithoutCommunicationsRead_ShouldReturnForbidden()
     {
+        // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-123",
             userName: "user",
             email: "user@test.com",
-            permissions: [] // SEM permissão CommunicationsRead
+            permissions: []
         );
 
+        // Act
         var response = await fixture.ApiClient.GetAsync("/api/v1/communications/templates");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task CreateEmailTemplate_WithoutCommunicationsManage_ShouldReturnForbidden()
     {
+        // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-123",
             userName: "user",
             email: "user@test.com",
-            permissions: [EPermission.CommunicationsRead.ToString()] // Tem Read mas NÃO Manage
+            permissions: [EPermission.CommunicationsRead.ToString()]
         );
 
+        // Act
         var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", new { });
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task UpdateEmailTemplate_WithoutCommunicationsManage_ShouldReturnForbidden()
     {
+        // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-123",
             userName: "user",
             email: "user@test.com",
-            permissions: [EPermission.CommunicationsRead.ToString()] // Tem Read mas NÃO Manage
+            permissions: [EPermission.CommunicationsRead.ToString()]
         );
 
+        // Act
         var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{Guid.NewGuid()}", new { });
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 }

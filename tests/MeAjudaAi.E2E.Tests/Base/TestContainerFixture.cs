@@ -1,8 +1,7 @@
 using Bogus;
 using MeAjudaAi.ApiService;
-using MeAjudaAi.E2E.Tests.Base.Helpers;
 using MeAjudaAi.E2E.Tests.Infrastructure;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -25,8 +24,12 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.E2E;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -35,6 +38,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -282,8 +286,8 @@ public class TestContainerFixture : IAsyncLifetime
         }
         else
         {
-            services.AddSingleton<IMessageBus, MockMessageBus>();
-            services.AddScoped<IDomainEventProcessor, MockDomainEventProcessor>();
+            services.AddSingleton<IMessageBus, MockNoOpMessageBus>();
+            services.AddScoped<IDomainEventProcessor, MockNoOpDomainEventProcessor>();
         }
     }
 
@@ -379,16 +383,7 @@ public class TestContainerFixture : IAsyncLifetime
 
         try
         {
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<UsersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ServiceCatalogsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<SearchProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<RatingsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<PaymentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<BookingsDbContext>());
+            await services.ApplyAllDiscoveredMigrationsAsync();
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -519,6 +514,18 @@ public class TestContainerFixture : IAsyncLifetime
     public static void BeforeEachTest()
     {
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
+    /// <summary>
+    /// Extrai o objeto de dados de uma resposta JSON, suportando formatos { "value": {...} }, { "data": {...} } ou objeto direto.
+    /// </summary>
+    public static JsonElement GetResponseData(JsonElement response)
+    {
+        if (response.TryGetProperty("value", out var value))
+            return value;
+        if (response.TryGetProperty("data", out var data))
+            return data;
+        return response;
     }
 
     public async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
