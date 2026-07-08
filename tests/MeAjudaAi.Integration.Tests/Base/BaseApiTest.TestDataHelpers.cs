@@ -86,8 +86,9 @@ public abstract partial class BaseApiTest
     {
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        var provider = await context.Providers.FindAsync(new ProviderId(providerId));
-        provider!.AddService(serviceId, serviceName);
+        var provider = await context.Providers.FindAsync(new ProviderId(providerId))
+            ?? throw new InvalidOperationException($"Provider with ID {providerId} not found");
+        provider.AddService(serviceId, serviceName);
         await context.SaveChangesAsync();
     }
 

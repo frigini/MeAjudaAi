@@ -83,4 +83,10 @@ public class ReviewBuilder : BaseBuilder<Review>
         _status = EReviewStatus.Rejected;
         return this;
     }
+
+    public ReviewBuilder AsFlagged()
+    {
+        _status = EReviewStatus.Flagged;
+        return this;
+    }
 }

@@ -480,8 +480,10 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        ApiClient?.Dispose();
-        if (_factory != null) await _factory.DisposeAsync();
+        // NOTE: Do NOT dispose _factory or _sharedApiClient here.
+        // _factory is static and shared across all fixture instances; disposing it
+        // while another test class is still using it causes ObjectDisposedException.
+        // The process will clean up static resources on exit.
     }
 
     public async Task<T> WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)

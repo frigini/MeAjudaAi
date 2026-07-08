@@ -234,15 +234,18 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
         {
             var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-            var user = User.Create(
+            var createResult = User.Create(
                 username,
                 email,
                 "Database",
                 "Test",
                 Guid.NewGuid().ToString()
-            ).Value;
+            );
 
-            context.Users.Add(user!);
+            createResult.IsSuccess.Should().BeTrue($"User.Create should succeed: {createResult.Error}");
+            var user = createResult.Value;
+
+            context.Users.Add(user);
             await context.SaveChangesAsync();
         }
 

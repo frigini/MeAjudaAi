@@ -246,6 +246,7 @@ public class SearchProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2
     public async Task SearchProviders_WithMinRatingFilter_ShouldExcludeLowRatedProviders()
     {
         // Arrange
+        await EnsureSearchProvidersSchemaExistsAsync();
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
@@ -254,8 +255,13 @@ public class SearchProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2
         var radiusInKm = 50.0;
         var minRating = 4.0m;
 
-        // Note: Rating depende de reviews reais, então este teste valida apenas que o filtro é aceito
-        // Em ambiente de teste, providers novos terão rating 0 ou null
+        // Criar provider com rating alto (acima do minRating)
+        var highRatedId = Guid.NewGuid();
+        await Fixture.InsertSearchableProviderAsync(highRatedId, "High Rated Provider", searchLatitude, searchLongitude, averageRating: 4.5m, totalReviews: 10);
+
+        // Criar provider com rating baixo (abaixo do minRating)
+        var lowRatedId = Guid.NewGuid();
+        await Fixture.InsertSearchableProviderAsync(lowRatedId, "Low Rated Provider", searchLatitude, searchLongitude, averageRating: 2.0m, totalReviews: 5);
 
         // Act
         var response = await Fixture.ApiClient.GetAsync(
@@ -268,12 +274,16 @@ public class SearchProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2
         var result = await response.Content.ReadFromJsonAsync<PagedResult<ModuleSearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         
-        // All returned providers should have rating >= minRating
+        // Todos os providers retornados devem ter rating >= minRating
         result!.Items.Should().AllSatisfy(p =>
         {
             p.AverageRating.Should().BeGreaterThanOrEqualTo(minRating,
                 "All providers should meet minimum rating requirement");
         });
+
+        // Provider com rating baixo não deve aparecer
+        result.Items.Should().NotContain(p => p.ProviderId == lowRatedId,
+            "Low rated provider should be excluded by minRating filter");
     }
 
     [Fact]

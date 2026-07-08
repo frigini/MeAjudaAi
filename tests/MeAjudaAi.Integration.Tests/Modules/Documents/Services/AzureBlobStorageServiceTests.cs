@@ -36,7 +36,7 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task EnsureContainerExists_WhenContainerDoesNotExist_ShouldCreateContainer()
+    public async Task ExistsAsync_WhenContainerDoesNotExist_ShouldCreateContainer()
     {
         // Arrange
         var response = Response.FromValue(
@@ -57,6 +57,7 @@ public class AzureBlobStorageServiceTests
         var result = await service.ExistsAsync("test.pdf");
 
         // Assert
+        result.Should().BeTrue();
         _containerClientMock.Verify(
             x => x.CreateIfNotExistsAsync(
                 PublicAccessType.None,
@@ -67,7 +68,7 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task EnsureContainerExists_WhenContainerAlreadyExists_ShouldNotCreateAgain()
+    public async Task ExistsAsync_WhenContainerAlreadyExists_ShouldNotCreateAgain()
     {
         // Arrange
         _containerClientMock
@@ -95,14 +96,12 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task EnsureContainerExists_WhenCalledConcurrently_ShouldOnlyCreateOnce()
+    public async Task ExistsAsync_WhenCalledConcurrently_ShouldOnlyCreateOnce()
     {
         // Arrange
         var response = Response.FromValue(
             BlobsModelFactory.BlobContainerInfo(default, default),
             Mock.Of<Response>());
-
-        var creationDelayTcs = new TaskCompletionSource<Response<BlobContainerInfo>>();
 
         _containerClientMock
             .Setup(x => x.CreateIfNotExistsAsync(

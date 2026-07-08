@@ -122,13 +122,8 @@ public class RatingsEndToEndTests(EventsEnabledTestContainerFixture fixture) : B
         // requerem múltiplos endpoints que não são o foco deste teste.
         // Faremos a inserção direta do provider no SearchProviders (como em SearchProvidersEndToEndTests)
         // com rating = 0 para testar exclusivamente a integração de Reviews -> Search.
-        await InsertSearchableProviderAsync(providerId, name, -23.5505, -46.6333);
+        await Fixture.InsertSearchableProviderAsync(providerId, name, -23.5505, -46.6333);
 
         return providerId;
-    }
-
-    private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude)
-    {
-        await Fixture.InsertSearchableProviderAsync(providerId, name, latitude, longitude);
     }
 }

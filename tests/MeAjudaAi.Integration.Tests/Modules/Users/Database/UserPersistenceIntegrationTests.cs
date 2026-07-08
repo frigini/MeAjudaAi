@@ -19,7 +19,7 @@ public class UserPersistenceIntegrationTests : BaseApiTest
     private readonly Faker _faker = new("pt_BR");
 
     /// <summary>
-    /// Adds a valid User via repository and verifies the user is persisted and retrievable by Id.
+    /// Adiciona um Usuário válido via repositório e verifica que o usuário é persistido e recuperável por Id.
     /// </summary>
     [Fact]
     public async Task Add_WithValidUser_ShouldPersistToDatabase()
@@ -45,7 +45,7 @@ public class UserPersistenceIntegrationTests : BaseApiTest
     }
 
     /// <summary>
-    /// Retrieves a user by email and verifies the correct user is returned.
+    /// Recupera um usuário por email e verifica que o usuário correto é retornado.
     /// </summary>
     [Fact]
     public async Task GetByEmailAsync_WithExistingEmail_ShouldReturnUser()
@@ -68,7 +68,7 @@ public class UserPersistenceIntegrationTests : BaseApiTest
     }
 
     /// <summary>
-    /// Retrieves a user by username and verifies the correct user is returned.
+    /// Recupera um usuário por nome de usuário e verifica que o usuário correto é retornado.
     /// </summary>
     [Fact]
     public async Task GetByUsernameAsync_WithExistingUsername_ShouldReturnUser()
@@ -91,7 +91,7 @@ public class UserPersistenceIntegrationTests : BaseApiTest
     }
 
     /// <summary>
-    /// Retrieves multiple users by their IDs and verifies all matching users are returned.
+    /// Recupera múltiplos usuários por seus IDs e verifica que todos os usuários correspondentes são retornados.
     /// </summary>
     [Fact]
     public async Task GetUsersByIdsAsync_WithMultipleIds_ShouldReturnMatchingUsers()

@@ -24,14 +24,11 @@ public class ProvidersApiTests : BaseApiTest
         var response = await Client.GetAsync("/api/v1/providers");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        if (response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            var jsonDocument = JsonDocument.Parse(content);
-            jsonDocument.RootElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
-        }
+        var content = await response.Content.ReadAsStringAsync();
+        var jsonDocument = JsonDocument.Parse(content);
+        jsonDocument.RootElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
     [Fact]

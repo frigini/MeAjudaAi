@@ -112,13 +112,12 @@ public class DevelopmentDataSeederTests : IAsyncLifetime
             await _databaseFixture.DropDatabaseAsync(_databaseName);
     }
 
-    private async Task<DevelopmentDataSeeder> SeedAsync()
+    private async Task SeedAsync()
     {
         using var scope = _serviceProvider.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<DevelopmentDataSeeder>>();
         var seeder = new DevelopmentDataSeeder(_serviceProvider, logger);
         await seeder.ForceSeedAsync(CancellationToken.None);
-        return seeder;
     }
 
     [Fact]

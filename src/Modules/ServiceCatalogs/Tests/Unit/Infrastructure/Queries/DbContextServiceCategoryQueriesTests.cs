@@ -72,7 +72,6 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
         // Arrange
         var active = new ServiceCategoryBuilder().WithName("Active").WithDescription("Desc").WithDisplayOrder(1).AsActive().Build();
         var inactive = new ServiceCategoryBuilder().WithName("Inactive").WithDescription("Desc").WithDisplayOrder(2).AsInactive().Build();
-        inactive.Deactivate();
         DbContext.ServiceCategories.AddRange(active, inactive);
         await DbContext.SaveChangesAsync();
 

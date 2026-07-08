@@ -539,14 +539,14 @@ public class DevelopmentDataSeeder(
                     legal_name, fantasy_name, description,
                     email, phone_number, additional_phone_numbers, website,
                     street, number, complement, neighborhood, city, state, zip_code, country,
-                    is_deleted, created_at, updated_at
+                    is_active, is_deleted, created_at, updated_at
                   ) 
                   VALUES (
                     {0}, {1}, {2}, {3}, {4}, {5},
                     {6}, {7}, {8},
                     {9}, {10}, {22}::jsonb, {11},
                     {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
-                    false, {20}, {21}
+                    true, false, {20}, {21}
                   )
                   ON CONFLICT (id) DO UPDATE SET
                     user_id = EXCLUDED.user_id,
@@ -569,6 +569,7 @@ public class DevelopmentDataSeeder(
                     state = EXCLUDED.state,
                     zip_code = EXCLUDED.zip_code,
                     country = EXCLUDED.country,
+                    is_active = EXCLUDED.is_active,
                     updated_at = EXCLUDED.updated_at",
                 new object[] {
                     provider.Id, provider.UserId, provider.Name, provider.Type, provider.Status, provider.VerificationStatus,

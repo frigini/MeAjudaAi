@@ -12,7 +12,7 @@ O projeto possui 4 projetos de teste com responsabilidades distintas:
 tests/
 ├── MeAjudaAi.Shared.Tests/           # Testes unitários de componentes shared
 ├── MeAjudaAi.Integration.Tests/      # Testes de integração cross-module (HTTP API)
-├── MeAtludaAi.E2E.Tests/             # Testes E2E com Testcontainers
+├── MeAjudaAi.E2E.Tests/              # Testes E2E com Testcontainers
 └── src/Modules/*/Tests/              # Testes internos de cada módulo (unit + integration)
 ```
 

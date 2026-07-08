@@ -44,14 +44,14 @@ public static class MigrationDiscoveryExtensions
         Type contextType,
         CancellationToken cancellationToken)
     {
-        // Ensure the database exists FIRST before trying to create schemas or apply migrations
+        // Garante que o banco de dados existe ANTES de tentar criar schemas ou aplicar migrações
         var connectionString = context.Database.GetConnectionString();
         if (!string.IsNullOrEmpty(connectionString))
         {
             var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
 
-            // Ensure we have a password - if the connection string doesn't include one, 
-            // use the test default password
+            // Garante que temos uma senha - se a connection string não incluir uma,
+            // usa a senha padrão de teste
             if (string.IsNullOrEmpty(csBuilder.Password))
             {
                 csBuilder.Password = "test_password";
@@ -59,7 +59,7 @@ public static class MigrationDiscoveryExtensions
 
             var databaseName = csBuilder.Database;
 
-            // Validate database name against allowed format (alphanumeric + underscore + hyphen)
+            // Valida o nome do banco contra o formato permitido (alfanumérico + underscore + hífen)
             if (!IsValidDatabaseName(databaseName))
             {
                 throw new InvalidOperationException(
@@ -72,18 +72,18 @@ public static class MigrationDiscoveryExtensions
             {
                 try
                 {
-                    // Try to connect directly to the target database
+                    // Tenta conectar diretamente ao banco de dados alvo
                     await using var connTest = new NpgsqlConnection(csBuilder.ConnectionString);
                     await connTest.OpenAsync(cancellationToken);
                     connTest.Close();
                     break;
                 }
-                catch (NpgsqlException pgEx) when (pgEx.SqlState == "3D000") // Database does not exist
+                catch (NpgsqlException pgEx) when (pgEx.SqlState == "3D000") // Banco de dados não existe
                 {
-                    // Try to create it via postgres database
+                    // Tenta criá-lo via banco postgres
                     try
                     {
-                        // Preserve all credentials when creating the postgres connection string
+                        // Preserva todas as credenciais ao criar a connection string do postgres
                         var postgresBuilder = new NpgsqlConnectionStringBuilder
                         {
                             Host = csBuilder.Host,
@@ -97,7 +97,7 @@ public static class MigrationDiscoveryExtensions
                         await using var connPostgres = new NpgsqlConnection(postgresBuilder.ConnectionString);
                         await connPostgres.OpenAsync(cancellationToken);
 
-                        // Use parameterized query for database existence check
+                        // Usa query parametrizada para verificar existência do banco
                         await using var checkCmd = connPostgres.CreateCommand();
                         checkCmd.CommandText = "SELECT 1 FROM pg_database WHERE datname = @dbname";
                         checkCmd.Parameters.AddWithValue("@dbname", databaseName);
@@ -105,7 +105,7 @@ public static class MigrationDiscoveryExtensions
 
                         if (exists is null)
                         {
-                            // For CREATE DATABASE, identifiers must use raw strings (not parameterized)
+                            // Para CREATE DATABASE, identificadores devem usar strings brutas (não parametrizadas)
                             await using var createCmd = connPostgres.CreateCommand();
                             createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
                             await createCmd.ExecuteNonQueryAsync(cancellationToken);
@@ -134,7 +134,7 @@ public static class MigrationDiscoveryExtensions
             }
         }
 
-        // Create schema AFTER ensuring the database exists
+        // Cria schema DEPOIS de garantir que o banco existe
         var schema = DbContextSchemaHelper.GetSchemaName(contextType);
         if (schema != "public")
         {
@@ -142,7 +142,7 @@ public static class MigrationDiscoveryExtensions
                 $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
         }
 
-        // Apply migrations with retry logic
+        // Aplica migrações com lógica de retry
         const int maxRetries = 5;
         for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
@@ -173,7 +173,7 @@ public static class MigrationDiscoveryExtensions
         if (string.IsNullOrEmpty(databaseName))
             return false;
 
-        // Allow alphanumeric, underscore, and hyphen; max 63 chars (PostgreSQL limit)
+        // Permite alfanumérico, underscore e hífen; máximo 63 caracteres (limite do PostgreSQL)
         return Regex.IsMatch(databaseName, @"^[a-zA-Z0-9_-]{1,63}$");
     }
 

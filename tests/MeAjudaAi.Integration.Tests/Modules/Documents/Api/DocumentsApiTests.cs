@@ -179,12 +179,11 @@ public class DocumentsApiTests : BaseApiTest
             "application/pdf",
             1024);
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
+        uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Upload should succeed");
         var uploadData = await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content);
-        var documentId = uploadData!.DocumentId;
-
-        // 2. Verify upload succeeded via response
         uploadData.Should().NotBeNull();
-        uploadData!.DocumentId.Should().NotBeEmpty();
+        var documentId = uploadData!.DocumentId;
+        documentId.Should().NotBeEmpty();
 
         // 3. Request Verification
         var requestVerificationResponse = await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
