@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
@@ -86,7 +87,7 @@ public class DeleteDocumentCommandHandlerTests
 
     private static Document CreateTestDocument(string fileUrl = "https://storage/doc.pdf")
     {
-        return Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", fileUrl);
+        return new DocumentBuilder().AsIdentityDocument().WithFileName("test.pdf").WithFileUrl(fileUrl).Build();
     }
 
     [Fact]
@@ -123,7 +124,7 @@ public class DeleteDocumentCommandHandlerTests
     public async Task Handle_WithEmptyFileUrl_ShouldSkipBlobDeletion()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "some-url");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("some-url").Build();
         typeof(Document).GetProperty(nameof(Document.FileUrl))!.SetValue(document, string.Empty);
         var command = new DeleteDocumentCommand(document.Id);
 

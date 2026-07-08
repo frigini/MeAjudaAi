@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
@@ -93,7 +94,7 @@ public class RequestVerificationCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().WithProviderId(providerId).AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         
         SetupAuthenticatedUser(providerId);
 
@@ -138,7 +139,7 @@ public class RequestVerificationCommandHandlerTests
     public async Task HandleAsync_WhenHttpContextIsNull_ShouldReturnFailure()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         _mockQueries.Setup(x => x.GetByIdAsync(document.Id, It.IsAny<CancellationToken>())).ReturnsAsync(document);
         
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext)null!);
@@ -160,7 +161,7 @@ public class RequestVerificationCommandHandlerTests
     public async Task HandleAsync_WhenUserNotAuthenticated_ShouldReturnFailure()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         _mockQueries.Setup(x => x.GetByIdAsync(document.Id, It.IsAny<CancellationToken>())).ReturnsAsync(document);
         
         SetupAuthenticatedUser(Guid.NewGuid(), role: "provider", isAuthenticated: false);
@@ -182,7 +183,7 @@ public class RequestVerificationCommandHandlerTests
     public async Task HandleAsync_WhenUserIdNotFoundInToken_ShouldReturnFailure()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         _mockQueries.Setup(x => x.GetByIdAsync(document.Id, It.IsAny<CancellationToken>())).ReturnsAsync(document);
         
         SetupAuthenticatedUser(null, role: "provider");
@@ -207,7 +208,7 @@ public class RequestVerificationCommandHandlerTests
         var documentProviderId = Guid.NewGuid();
         var loggedUserId = Guid.NewGuid();
 
-        var document = Document.Create(documentProviderId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().WithProviderId(documentProviderId).AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         
         SetupAuthenticatedUser(loggedUserId, role: "provider");
 
@@ -234,7 +235,7 @@ public class RequestVerificationCommandHandlerTests
         var documentProviderId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
 
-        var document = Document.Create(documentProviderId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().WithProviderId(documentProviderId).AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         
         SetupAuthenticatedUser(adminId, role: RoleConstants.Admin);
 
@@ -256,7 +257,7 @@ public class RequestVerificationCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().WithProviderId(providerId).AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification(); // Status is now PendingVerification
 
         SetupAuthenticatedUser(providerId);

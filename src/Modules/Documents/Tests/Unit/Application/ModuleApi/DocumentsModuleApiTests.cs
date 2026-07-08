@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -743,8 +744,7 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documentDto);
 
-        var documentEntity = Modules.Documents.Domain.Entities.Document.Create(
-            documentId, Modules.Documents.Domain.Enums.EDocumentType.IdentityDocument, "test.pdf", "blob-url");
+        var documentEntity = new DocumentBuilder().WithProviderId(documentId).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("blob-url").Build();
 
         var repositoryMock = new Mock<Shared.Database.Abstractions.IRepository<Modules.Documents.Domain.Entities.Document, Guid>>();
         repositoryMock.Setup(x => x.TryFindAsync(documentId, It.IsAny<CancellationToken>()))

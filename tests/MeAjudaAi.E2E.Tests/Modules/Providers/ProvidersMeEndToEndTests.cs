@@ -338,60 +338,7 @@ public class ProvidersMeEndToEndTests(TestContainerFixture fixture) : BaseE2ETes
 
     private async Task<Guid> CreateTestServiceViaApiAsync()
     {
-        TestContainerFixture.AuthenticateAsAdmin();
-
-        // Create category
-        var categoryRequest = new
-        {
-            Name = $"E2E Test Category {Guid.NewGuid().ToString("N")[..8]}",
-            Description = "Test category for E2E provider service tests"
-        };
-
-        var categoryResponse = await Fixture.ApiClient.PostAsJsonAsync(
-            "/api/v1/service-catalogs/categories",
-            categoryRequest,
-            TestContainerFixture.JsonOptions);
-
-        if (!categoryResponse.IsSuccessStatusCode)
-        {
-            throw new InvalidOperationException($"Failed to create test category. Status: {categoryResponse.StatusCode}");
-        }
-
-        var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
-        var categoryJson = JsonSerializer.Deserialize<JsonElement>(categoryContent, TestContainerFixture.JsonOptions);
-        var categoryData = categoryJson.TryGetProperty("value", out var catVal) ? catVal :
-                           categoryJson.TryGetProperty("data", out var catData) ? catData : categoryJson;
-
-        var categoryId = categoryData.TryGetProperty("id", out var catIdProp)
-            ? Guid.Parse(catIdProp.GetString()!)
-            : Guid.Parse(categoryResponse.Headers.Location?.ToString()?.Split('/')[^1] ?? Guid.Empty.ToString());
-
-        // Create service
-        var serviceRequest = new
-        {
-            CategoryId = categoryId.ToString(),
-            Name = $"E2E Test Service {Guid.NewGuid().ToString("N")[..8]}",
-            Description = "Test service for E2E provider service tests"
-        };
-
-        var serviceResponse = await Fixture.ApiClient.PostAsJsonAsync(
-            "/api/v1/service-catalogs/services",
-            serviceRequest,
-            TestContainerFixture.JsonOptions);
-
-        if (!serviceResponse.IsSuccessStatusCode)
-        {
-            throw new InvalidOperationException($"Failed to create test service. Status: {serviceResponse.StatusCode}");
-        }
-
-        var serviceContent = await serviceResponse.Content.ReadAsStringAsync();
-        var serviceJson = JsonSerializer.Deserialize<JsonElement>(serviceContent, TestContainerFixture.JsonOptions);
-        var serviceData = serviceJson.TryGetProperty("value", out var svcVal) ? svcVal :
-                          serviceJson.TryGetProperty("data", out var svcData) ? svcData : serviceJson;
-
-        return serviceData.TryGetProperty("id", out var svcIdProp)
-            ? Guid.Parse(svcIdProp.GetString()!)
-            : Guid.Parse(serviceResponse.Headers.Location?.ToString()?.Split('/')[^1] ?? Guid.Empty.ToString());
+        return await Fixture.CreateTestServiceViaApiAsync();
     }
 
     #endregion

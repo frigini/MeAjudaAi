@@ -91,7 +91,7 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
             if (getProviderResponse.IsSuccessStatusCode)
             {
                 var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
-                var provider = JsonSerializer.Deserialize<JsonElement>(providerContent);
+                var provider = JsonSerializer.Deserialize<JsonElement>(providerContent, TestContainerFixture.JsonOptions);
                 
                 // Unwrapping para garantir que pegamos o userId correto mesmo dentro de um envelope
                 if (provider.TryGetProperty("value", out var dataProperty))
@@ -118,7 +118,7 @@ public class ProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<
 
                 var getContent = await getResponse.Content.ReadAsStringAsync();
                 
-                var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
+                var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent, TestContainerFixture.JsonOptions);
 
                 // Verificar se o JSON tem a estrutura esperada (pode estar dentro de "value" ou outro wrapper)
                 if (retrievedProvider.TryGetProperty("value", out var dataProperty))

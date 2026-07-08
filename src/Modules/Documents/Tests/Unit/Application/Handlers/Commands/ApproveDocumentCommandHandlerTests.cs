@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
@@ -77,7 +78,7 @@ public class ApproveDocumentCommandHandlerTests
     public async Task Handle_WithValidCommand_ShouldApproveDocument()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
+        var document = new DocumentBuilder().WithProviderId(Guid.NewGuid()).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("https://storage/doc.pdf").Build();
         document.MarkAsPendingVerification();
         var command = new ApproveDocumentCommand(document.Id, "Verified OK");
 
@@ -126,7 +127,7 @@ public class ApproveDocumentCommandHandlerTests
     public async Task Handle_WithAlreadyApprovedDocument_ShouldReturnBadRequest()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
+        var document = new DocumentBuilder().WithProviderId(Guid.NewGuid()).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("https://storage/doc.pdf").Build();
         var statusProperty = typeof(Document).GetProperty("Status");
         statusProperty?.SetValue(document, EDocumentStatus.Verified);
         var command = new ApproveDocumentCommand(document.Id, null);
@@ -150,7 +151,7 @@ public class ApproveDocumentCommandHandlerTests
     public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
+        var document = new DocumentBuilder().WithProviderId(Guid.NewGuid()).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("https://storage/doc.pdf").Build();
         document.MarkAsPendingVerification();
         var command = new ApproveDocumentCommand(document.Id, null);
 

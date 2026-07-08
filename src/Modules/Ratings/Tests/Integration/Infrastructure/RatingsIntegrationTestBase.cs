@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -43,14 +44,16 @@ public abstract class RatingsIntegrationTestBase : BaseIntegrationTest
         EReviewStatus? status = null,
         CancellationToken cancellationToken = default)
     {
-        var review = Review.Create(providerId, customerId, rating, comment);
+        var builder = new ReviewBuilder()
+            .WithProviderId(providerId)
+            .WithCustomerId(customerId)
+            .WithRating(rating)
+            .WithComment(comment);
 
-        if (status == EReviewStatus.Approved)
-            review.Approve();
-        else if (status == EReviewStatus.Rejected)
-            review.Reject("Test rejection");
-        else if (status == EReviewStatus.Flagged)
-            review.MarkAsFlagged();
+        if (status.HasValue)
+            builder.WithStatus(status.Value);
+
+        var review = builder.Build();
 
         using var scope = CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<RatingsDbContext>();

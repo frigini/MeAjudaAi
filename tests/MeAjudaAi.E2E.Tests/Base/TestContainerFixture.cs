@@ -683,4 +683,86 @@ public class TestContainerFixture : IAsyncLifetime
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
             providerId, userId ?? Guid.NewGuid().ToString());
     }
+
+    /// <summary>
+    /// Insere um provider diretamente na tabela searchable_providers via Dapper.
+    /// Necessário porque o MockMessageBus não processa eventos de integração.
+    /// </summary>
+    public async Task InsertSearchableProviderAsync(
+        Guid providerId, string name, double latitude, double longitude,
+        string city = "São Paulo", string state = "SP",
+        decimal averageRating = 0m, int totalReviews = 0,
+        int subscriptionTier = 1, Guid[]? serviceIds = null)
+    {
+        await WithServiceScopeAsync(async sp =>
+        {
+            var dapper = sp.GetRequiredService<IDapperConnection>();
+
+            var sql = @"
+                INSERT INTO search_providers.searchable_providers 
+                (id, provider_id, slug, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
+                VALUES 
+                (@Id, @ProviderId, @Slug, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
+                ON CONFLICT (provider_id) 
+                DO UPDATE SET 
+                    slug = EXCLUDED.slug,
+                    name = EXCLUDED.name,
+                    location = EXCLUDED.location,
+                    average_rating = EXCLUDED.average_rating,
+                    total_reviews = EXCLUDED.total_reviews,
+                    service_ids = EXCLUDED.service_ids,
+                    is_active = EXCLUDED.is_active,
+                    updated_at = CURRENT_TIMESTAMP";
+
+            await dapper.ExecuteAsync(sql, new
+            {
+                Id = Guid.NewGuid(),
+                ProviderId = providerId,
+                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
+                Name = name,
+                Description = $"Test Provider {name}",
+                City = city,
+                State = state,
+                Latitude = latitude,
+                Longitude = longitude,
+                AvgRating = averageRating,
+                TotalReviews = totalReviews,
+                SubscriptionTier = subscriptionTier,
+                ServiceIds = serviceIds ?? Array.Empty<Guid>(),
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+        });
+    }
+
+    /// <summary>
+    /// Cria uma categoria + serviço via API REST. Retorna o ID do serviço criado.
+    /// </summary>
+    public async Task<Guid> CreateTestServiceViaApiAsync(
+        string? categoryName = null, string? serviceName = null)
+    {
+        AuthenticateAsAdmin();
+
+        categoryName ??= $"Category_{Guid.NewGuid():N}";
+        var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories",
+            new { name = categoryName, displayOrder = 1 }, JsonOptions);
+        catResponse.EnsureSuccessStatusCode();
+        var catId = ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
+
+        serviceName ??= $"Service_{Guid.NewGuid():N}";
+        var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services",
+            new { name = serviceName, categoryId = catId }, JsonOptions);
+        svcResponse.EnsureSuccessStatusCode();
+        return ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
+    }
+
+    /// <summary>
+    /// Vincula um serviço a um provedor via API REST (POST /api/v1/providers/{id}/services/{serviceId}).
+    /// </summary>
+    public async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
+    {
+        var response = await ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
+        response.EnsureSuccessStatusCode();
+    }
 }

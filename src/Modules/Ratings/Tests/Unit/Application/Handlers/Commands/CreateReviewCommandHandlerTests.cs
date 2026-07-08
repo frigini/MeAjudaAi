@@ -11,6 +11,7 @@ using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -212,7 +213,7 @@ public class CreateReviewCommandHandlerTests
         var command = new CreateReviewCommand(providerId, customerId, 5, null);
 
         _queriesMock.Setup(q => q.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Review.Create(providerId, customerId, 1, "Existing"));
+            .ReturnsAsync(new ReviewBuilder().WithProviderId(providerId).WithCustomerId(customerId).WithRating(1).WithComment("Existing").Build());
 
         // Act
         Func<Task> act = () => _handler.HandleAsync(command);

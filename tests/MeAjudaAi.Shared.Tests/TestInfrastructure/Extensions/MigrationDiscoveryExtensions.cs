@@ -114,11 +114,11 @@ public static class MigrationDiscoveryExtensions
                         connPostgres.Close();
                         break;
                     }
-                    catch (Exception createEx) when (attempt < maxDbCreateRetries)
+                    catch (Exception createEx) when (attempt < maxDbCreateRetries && (createEx is NpgsqlException || createEx is TimeoutException))
                     {
                         await Task.Delay(500 * attempt, cancellationToken);
                     }
-                    catch (Exception createEx)
+                    catch (Exception)
                     {
                         throw;
                     }

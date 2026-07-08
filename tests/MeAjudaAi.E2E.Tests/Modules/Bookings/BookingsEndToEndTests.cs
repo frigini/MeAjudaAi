@@ -21,10 +21,10 @@ public class BookingsEndToEndTests(EventsEnabledTestContainerFixture fixture, IT
         var providerIdClaim = await Fixture.CreateTestProviderAsync(await Fixture.CreateTestUserAsync());
 
         // 1.5 Criar um serviço real
-        var serviceId = await CreateTestServiceAsync();
+        var serviceId = await Fixture.CreateTestServiceViaApiAsync();
 
         // 1.7 Vincular serviço ao prestador (Necessário devido à nova validação de segurança)
-        await LinkServiceToProviderAsync(providerIdClaim, serviceId);
+        await Fixture.LinkServiceToProviderAsync(providerIdClaim, serviceId);
         
         // 2. Definir agenda para o prestador
         // Usar lógica de timezone para derivar datas
@@ -126,41 +126,4 @@ public class BookingsEndToEndTests(EventsEnabledTestContainerFixture fixture, IT
         updatedBooking.Should().NotBeNull();
         updatedBooking!.Status.Should().Be(MeAjudaAi.Contracts.Modules.Bookings.Enums.EBookingStatus.Confirmed);
     }
-
-    private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
-    {
-        var response = await Fixture.ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
-        if (!response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            output.WriteLine($"Linking service failed: {response.StatusCode} - {content}");
-        }
-        response.EnsureSuccessStatusCode();
-    }
-
-    private async Task<Guid> CreateTestServiceAsync()
-    {
-        var categoryName = $"Category_{Guid.NewGuid():N}";
-        var catResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
-        if (!catResponse.IsSuccessStatusCode)
-        {
-            var content = await catResponse.Content.ReadAsStringAsync();
-            throw new Exception($"DEBUG: Category creation failed: {catResponse.StatusCode}. Content: {content}");
-        }
-        Assert.NotNull(catResponse.Headers.Location);
-        var catId = TestContainerFixture.ExtractIdFromLocation(catResponse.Headers.Location.ToString());
-
-        var serviceName = $"Service_{Guid.NewGuid():N}";
-        var svcResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
-        if (!svcResponse.IsSuccessStatusCode)
-        {
-            var content = await svcResponse.Content.ReadAsStringAsync();
-            throw new Exception($"DEBUG: Service creation failed: {svcResponse.StatusCode}. Content: {content}");
-        }
-        Assert.NotNull(svcResponse.Headers.Location);
-        var svcId = TestContainerFixture.ExtractIdFromLocation(svcResponse.Headers.Location.ToString());
-
-        return svcId;
-    }
-
 }

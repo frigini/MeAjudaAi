@@ -41,7 +41,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// </summary>
-public abstract class BaseApiTest : IAsyncLifetime
+public abstract partial class BaseApiTest : IAsyncLifetime
 {
     [ModuleInitializer]
     public static void InitializeNpgsql()

@@ -129,40 +129,6 @@ public class RatingsEndToEndTests(EventsEnabledTestContainerFixture fixture) : B
 
     private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude)
     {
-        await Fixture.WithServiceScopeAsync(async sp =>
-        {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
-            
-            var sql = @"
-                INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, slug, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
-                VALUES 
-                (@Id, @ProviderId, @Slug, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
-                ON CONFLICT (provider_id) 
-                DO UPDATE SET 
-                    average_rating = EXCLUDED.average_rating,
-                    total_reviews = EXCLUDED.total_reviews,
-                    updated_at = CURRENT_TIMESTAMP";
-            
-            await dapper.ExecuteAsync(sql, new
-            {
-                Id = Guid.NewGuid(),
-                ProviderId = providerId,
-                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
-                Name = name,
-                Description = $"Test Provider {name}",
-                City = "São Paulo",
-                State = "SP",
-                Latitude = latitude,
-                Longitude = longitude,
-                AvgRating = 0.0m, // Inicializa com 0
-                TotalReviews = 0,
-                SubscriptionTier = 1, // Standard
-                ServiceIds = Array.Empty<Guid>(),
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            });
-        });
+        await Fixture.InsertSearchableProviderAsync(providerId, name, latitude, longitude);
     }
 }

@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
@@ -76,7 +77,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         SetupAuthenticatedUser(adminRole);
@@ -101,7 +102,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         SetupAuthenticatedUser(nonAdminRole);
@@ -141,7 +142,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         // Status defaults to Uploaded
 
         SetupAuthenticatedUser(RoleConstants.Admin);
@@ -163,7 +164,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         SetupAuthenticatedUser(RoleConstants.Admin);

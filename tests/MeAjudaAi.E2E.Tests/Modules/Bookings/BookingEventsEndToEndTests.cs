@@ -20,8 +20,8 @@ public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixtur
         
         // 1. Criar um prestador, serviço e cliente
         var providerId = await Fixture.CreateTestProviderAsync(await Fixture.CreateTestUserAsync());
-        var serviceId = await CreateTestServiceAsync();
-        await LinkServiceToProviderAsync(providerId, serviceId);
+        var serviceId = await Fixture.CreateTestServiceViaApiAsync();
+        await Fixture.LinkServiceToProviderAsync(providerId, serviceId);
         await SetProviderScheduleAsync(providerId, baseUtcNow);
         
         var customerId = await Fixture.CreateTestUserAsync();
@@ -62,12 +62,6 @@ public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixtur
             var line = await readTask;
             line.Should().NotBeNull().And.StartWith("data:");
         }
-    }
-
-    private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
-    {
-        var response = await Fixture.ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
-        response.EnsureSuccessStatusCode();
     }
 
     private async Task SetProviderScheduleAsync(Guid providerId, DateTime baseUtcNow)
@@ -122,20 +116,4 @@ public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixtur
         var bookingResponseData = await TestContainerFixture.ReadJsonAsync<ModuleBookingDto>(createResponse);
         return bookingResponseData!.Id;
     }
-
-    private async Task<Guid> CreateTestServiceAsync()
-    {
-        var categoryName = $"Category_{Guid.NewGuid():N}";
-        var catResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
-        catResponse.EnsureSuccessStatusCode();
-        
-        var catId = TestContainerFixture.ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
-
-        var serviceName = $"Service_{Guid.NewGuid():N}";
-        var svcResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
-        svcResponse.EnsureSuccessStatusCode();
-        
-        return TestContainerFixture.ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
-    }
-
 }

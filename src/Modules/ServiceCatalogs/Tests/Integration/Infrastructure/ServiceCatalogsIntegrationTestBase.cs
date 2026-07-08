@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -63,7 +64,11 @@ public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
         CancellationToken cancellationToken = default)
     {
         var uniqueName = GenerateUniqueName(name);
-        var category = ServiceCategory.Create(uniqueName, description, displayOrder);
+        var category = new ServiceCategoryBuilder()
+            .WithName(uniqueName)
+            .WithDescription(description)
+            .WithDisplayOrder(displayOrder)
+            .Build();
 
         var dbContext = GetService<ServiceCatalogsDbContext>();
         await dbContext.ServiceCategories.AddAsync(category, cancellationToken);

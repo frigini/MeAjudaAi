@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -39,8 +40,7 @@ public class GetReviewByIdQueryHandlerTests
     public async Task HandleAsync_ExistingApprovedReview_ShouldReturnSuccess()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Great service!");
-        review.Approve();
+        var review = new ReviewBuilder().WithRating(5).WithComment("Great service!").AsApproved().Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -79,7 +79,7 @@ public class GetReviewByIdQueryHandlerTests
     public async Task HandleAsync_PendingReview_ShouldReturnNotFound()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Great service!");
+        var review = new ReviewBuilder().WithRating(5).WithComment("Great service!").Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -98,8 +98,7 @@ public class GetReviewByIdQueryHandlerTests
     public async Task HandleAsync_RejectedReview_ShouldReturnNotFound()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Great service!");
-        review.Reject("Inappropriate content");
+        var review = new ReviewBuilder().WithRating(5).WithComment("Great service!").AsRejected().Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -118,8 +117,7 @@ public class GetReviewByIdQueryHandlerTests
     public async Task HandleAsync_FlaggedReview_ShouldReturnNotFound()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Great service!");
-        review.MarkAsFlagged();
+        var review = new ReviewBuilder().WithRating(5).WithComment("Great service!").WithStatus(EReviewStatus.Flagged).Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);

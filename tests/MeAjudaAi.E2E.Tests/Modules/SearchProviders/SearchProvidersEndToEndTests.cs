@@ -434,47 +434,11 @@ public class SearchProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2
     /// </summary>
     private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude, string subscriptionTier = "Free", Guid[]? serviceIds = null)
     {
-        await Fixture.WithServiceScopeAsync(async sp =>
-        {
-            var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.Abstractions.IDapperConnection>();
-            
-            // Note: The table name is "search_providers.searchable_providers"
-            // We need to ensure we set the SRID to 4326 for the geography column
-            var sql = @"
-                INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, slug, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
-                VALUES 
-                (@Id, @ProviderId, @Slug, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
-                ON CONFLICT (provider_id) 
-                DO UPDATE SET 
-                    slug = EXCLUDED.slug,
-                    name = EXCLUDED.name,
-                    location = EXCLUDED.location,
-                    service_ids = EXCLUDED.service_ids,
-                    is_active = EXCLUDED.is_active,
-                    updated_at = CURRENT_TIMESTAMP";
-            
-            await dapper.ExecuteAsync(sql, new
-            {
-                Id = Guid.NewGuid(),
-                ProviderId = providerId,
-                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
-                Name = name,
-                Description = $"Test Provider {name}",
-                City = "São Paulo",
-                State = "SP",
-                Latitude = latitude,
-                Longitude = longitude,
-                AvgRating = 5.0m, // Ensure high rating to appear in top results
-                TotalReviews = 10,
-                SubscriptionTier = MapSubscriptionTierToInt(subscriptionTier),
-                ServiceIds = serviceIds ?? Array.Empty<Guid>(),
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            });
-
-        });
+        await Fixture.InsertSearchableProviderAsync(
+            providerId, name, latitude, longitude,
+            averageRating: 5.0m, totalReviews: 10,
+            subscriptionTier: MapSubscriptionTierToInt(subscriptionTier),
+            serviceIds: serviceIds);
     }
 
     private async Task<Guid> CreateServiceCategoryAsync(string name)
