@@ -23,7 +23,7 @@ public class TestDatabaseOptions
     /// <summary>
     /// Senha do banco de teste
     /// </summary>
-    public string Password { get; set; } = "test_password";
+    public string Password { get; set; } = "test123";
 
     /// <summary>
     /// Schema específico do módulo (ex: users, providers, services)

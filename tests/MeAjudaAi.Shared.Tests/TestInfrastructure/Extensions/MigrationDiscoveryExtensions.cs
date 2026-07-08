@@ -51,10 +51,10 @@ public static class MigrationDiscoveryExtensions
             var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
 
             // Garante que temos uma senha - se a connection string não incluir uma,
-            // usa a senha padrão de teste
+            // usa a senha padrão do Testcontainers
             if (string.IsNullOrEmpty(csBuilder.Password))
             {
-                csBuilder.Password = "test_password";
+                csBuilder.Password = "test123";
             }
 
             var databaseName = csBuilder.Database;
@@ -118,18 +118,10 @@ public static class MigrationDiscoveryExtensions
                     {
                         await Task.Delay(500 * attempt, cancellationToken);
                     }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
                 }
                 catch (Exception ex) when (attempt < maxDbCreateRetries && (ex is NpgsqlException || ex is TimeoutException))
                 {
                     await Task.Delay(500 * attempt, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    throw;
                 }
             }
         }
@@ -157,10 +149,6 @@ public static class MigrationDiscoveryExtensions
                 attempt < maxRetries)
             {
                 await Task.Delay(100 * attempt, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                throw;
             }
         }
     }

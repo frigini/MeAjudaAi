@@ -59,7 +59,7 @@ public static class SharedTestContainers
     {
         DatabaseName = "test_db",
         Username = "test_user",
-        Password = "test_password",
+        Password = "test123",
         Schema = "users" // Usado como padrão para garantir compatibilidade com UsersModule migrations
     };
 

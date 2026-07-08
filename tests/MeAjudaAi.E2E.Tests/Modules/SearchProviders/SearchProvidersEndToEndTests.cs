@@ -281,6 +281,10 @@ public class SearchProvidersEndToEndTests(TestContainerFixture fixture) : BaseE2
                 "All providers should meet minimum rating requirement");
         });
 
+        // Provider com alta nota deve estar presente nos resultados
+        result.Items.Should().Contain(p => p.ProviderId == highRatedId,
+            "High rated provider should be included in results");
+
         // Provider com rating baixo não deve aparecer
         result.Items.Should().NotContain(p => p.ProviderId == lowRatedId,
             "Low rated provider should be excluded by minRating filter");
