@@ -44,6 +44,7 @@
     <!-- Utils de Teste -->
     <PackageReference Include="Respawn" />
     <PackageReference Include="Scrutor" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <!-- Removed Microsoft.EntityFrameworkCore.InMemory - using real database with TestContainers instead -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <!-- Testes de Integração -->

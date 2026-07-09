@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Infrastructure.Database;
 
 /// <summary>
 /// Informações sobre um schema em cache

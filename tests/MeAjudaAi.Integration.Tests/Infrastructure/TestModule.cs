@@ -1,7 +1,7 @@
 // Enable parallel execution by isolating databases per test class
 // [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// Módulos disponíveis para testes de integração

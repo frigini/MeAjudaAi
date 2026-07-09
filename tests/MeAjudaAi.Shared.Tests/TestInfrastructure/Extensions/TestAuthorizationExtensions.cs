@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace MeAjudaAi.Integration.Tests.Extensions;
+namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
 /// Extensões para configurar authorization handlers automaticamente em testes usando Scrutor
@@ -27,7 +28,7 @@ public static class TestAuthorizationExtensions
     /// <summary>
     /// Adiciona automaticamente todos os mocks de serviços do assembly atual
     /// </summary>
-    public static IServiceCollection AddTestMocks(this IServiceCollection services)
+    public static IServiceCollection AddTestMocksFromAssembly(this IServiceCollection services)
     {
         return services.Scan(scan => scan
             .FromAssemblies(Assembly.GetExecutingAssembly())

@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace MeAjudaAi.Integration.Tests;
+namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// Configuração global de mocks para testes do módulo Documents

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Infrastructure.Database;
 
 /// <summary>
 /// Cache inteligente de schema de banco de dados para otimizar testes de integração

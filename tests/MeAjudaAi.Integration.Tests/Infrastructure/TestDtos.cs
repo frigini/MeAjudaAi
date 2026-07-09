@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// DTOs compartilhados para testes de integração

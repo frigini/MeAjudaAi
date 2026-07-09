@@ -4,14 +4,61 @@
 
 This directory contains integration tests for the MeAjudaAi API. These tests verify that different components work together correctly in a controlled test environment.
 
-## ⚡ Otimização de Desempenho: RequiredModules
+## Project Structure
 
-**CRÍTICO**: Para evitar timeouts e melhorar o desempenho, **sempre declare os módulos necessários** para seus testes:
+```
+tests/MeAjudaAi.Integration.Tests/
+├── Base/
+│   ├── BaseApiTest.cs                  # Main base class for integration tests
+│   ├── BaseApiTest.TestDataHelpers.cs  # Helper methods for creating test data via API/DB
+│   ├── BasePerformanceTest.cs          # Base for performance tests
+│   └── BaseSharedTest.cs               # Base for shared/cross-module tests
+├── Infrastructure/
+│   ├── BaseAspireIntegrationTest.cs    # Base for Aspire integration tests
+│   ├── Database/                       # DB helpers (initializer, schema cache)
+│   ├── Fixtures/                       # Shared fixtures (SimpleDatabaseFixture, etc.)
+│   ├── TestModule.cs                   # TestModule flags enum
+│   ├── TestDtos.cs                     # Shared DTOs (LoginResponseDto, LoginDataDto)
+│   └── TestServicesConfiguration.cs    # DI service overrides for tests
+├── GlobalUsings.cs                     # Global using directives
+├── Modules/                            # Module-specific tests
+│   ├── Bookings/                       # Api/, ModuleApi/, Flows/
+│   ├── Communications/                 # ModuleApi/, Flows/
+│   ├── Documents/                      # Api/, Database/
+│   ├── Locations/                      # Api/, Services/, Middleware/
+│   ├── Payments/                       # Api/, ModuleApi/
+│   ├── Providers/                      # Api/, Database/
+│   ├── Ratings/                        # Api/, ModuleApi/
+│   ├── SearchProviders/                # Api/, Flows/
+│   ├── ServiceCatalogs/                # Api/, Database/
+│   └── Users/                          # Api/, Database/
+├── Authentication/                     # Auth integration tests
+├── Authorization/                      # Authorization integration tests
+├── Database/                           # Cross-cutting DB tests (concurrency)
+├── Diagnostics/                        # DI diagnostic tests
+├── Middleware/                         # Middleware tests (security headers, compression)
+└── Debug/                              # Debug/verification tests
+```
+
+## Writing Integration Tests
+
+### Base Classes
+
+| Base Class | Purpose | Use When |
+|------------|---------|----------|
+| `BaseApiTest` | Standard integration tests with DI, HTTP client, WireMock | Most integration tests |
+| `BaseAspireIntegrationTest` | Aspire-based tests with `WebApplicationFactory` | Aspire-specific tests |
+| `BasePerformanceTest` | Performance/stress tests | Benchmarking |
+| `BaseSharedTest` | Cross-module tests | Multi-module scenarios |
+
+### TestModule Optimization
+
+**CRITICAL**: Always declare the minimum required modules to avoid slow startup:
 
 ```csharp
 public class DocumentsIntegrationTests : BaseApiTest
 {
-    // Declara apenas os módulos necessários (otimização de 83% no tempo de inicialização)
+    // Only run migrations for Documents module (~10-15s vs ~60-70s for All)
     protected override TestModule RequiredModules => TestModule.Documents;
 }
 ```
@@ -22,364 +69,161 @@ public class DocumentsIntegrationTests : BaseApiTest
 [Flags]
 public enum TestModule
 {
-    None = 0,                 // Sem migrations (testes de DI/configuração apenas)
-    Users = 1,
-    Providers = 2,
-    Documents = 4,
-    ServiceCatalogs = 8,
-    Locations = 16,
-    SearchProviders = 32,
-    All = 63                  // Todos os módulos (default - EVITAR quando possível)
+    None = 0,               // No migrations (DI/config tests only)
+    Users = 1 << 0,
+    Providers = 1 << 1,
+    Documents = 1 << 2,
+    ServiceCatalogs = 1 << 3,
+    Locations = 1 << 4,
+    SearchProviders = 1 << 5,
+    Communications = 1 << 6,
+    Payments = 1 << 7,
+    Bookings = 1 << 8,
+    Ratings = 1 << 9,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations |
+          SearchProviders | Communications | Payments | Bookings | Ratings
 }
 ```
 
-### Comparação de Desempenho
+### Performance Comparison
 
-| Cenário | Antes (All Modules) | Depois (Required Only) | Melhoria |
-|---------|---------------------|------------------------|-------------|
-| Inicialização | ~60-70s | ~10-15s | **83% faster** |
-| Migrations aplicadas | 6 módulos sempre | Apenas necessárias | Mínimo necessário |
-| Timeouts | Frequentes | Raros | ✅ Estável |
-| Pool de conexões | Esgotamento frequente | Isolado por módulo | ✅ Confiável |
+| Scenario | All Modules | Required Only | Improvement |
+|----------|-------------|---------------|-------------|
+| Initialization | ~60-70s | ~10-15s | **83% faster** |
+| Migrations applied | 10 modules always | Only needed | Minimal |
+| Timeouts | Frequent | Rare | Stable |
+| Connection pool | Exhaustion | Isolated per module | Reliable |
 
-### Quando Usar Cada Opção
-
-#### `TestModule.None` - Testes sem banco de dados
-```csharp
-protected override TestModule RequiredModules => TestModule.None;
-```
-- Testes de DI/configuração
-- Testes de validação de middleware
-- Testes que não precisam de migrations
-
-#### Single Module - Recomendado (máximo desempenho)
-```csharp
-protected override TestModule RequiredModules => TestModule.Documents;
-```
-- Maioria dos casos de uso
-- Testes focados em um módulo específico
-- **Use sempre que possível**
-
-#### Multiple Modules - Integração cross-module
-```csharp
-protected override TestModule RequiredModules => 
-    TestModule.SearchProviders | TestModule.Providers | TestModule.ServiceCatalogs;
-```
-- Testes que validam integração entre módulos
-- Ex: SearchProviders precisa de Providers e ServiceCatalogs para denormalização
-
-#### `TestModule.All` - Legado (evitar)
-```csharp
-protected override TestModule RequiredModules => TestModule.All; // Default
-```
-- Testes legados sem otimização
-- Testes E2E completos
-- **EVITAR** - causa timeouts e lentidão
-
-### Example: Optimized Test Class
+### Example: Standard Test
 
 ```csharp
 /// <summary>
-/// Testes de integração do módulo Documents.
-/// Otimizado para aplicar apenas migrations do módulo Documents.
+/// Integration tests for the Documents module.
+/// Only applies Documents migrations for fast startup.
 /// </summary>
-public class DocumentsIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
+public class DocumentsApiTests(ITestOutputHelper testOutput) : BaseApiTest(testOutput)
 {
     protected override TestModule RequiredModules => TestModule.Documents;
 
     [Fact]
-    public void DocumentRepository_ShouldBeRegisteredInDI()
+    public async Task UploadDocument_WithValidData_ShouldReturnCreated()
     {
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetService<IDocumentRepository>();
-        repository.Should().NotBeNull();
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/documents", validPayload);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }
 ```
 
-## Test Configuration Files
+### Example: Cross-Module Test
 
-### `appsettings.Testing.json`
-
-Default test configuration with **GeographicRestriction enabled**.
-
-- **Purpose**: Test geographic restriction middleware with real API endpoints (mocked via WireMock)
-- **Geographic Restriction**: ENABLED by default
-- **External APIs**: Points to WireMock server at localhost:5050 (automatic mocking)
-- **Use Case**: Validate geographic restriction logic with mocked API responses
-- **Database**: Uses localhost PostgreSQL with test-only credentials
-
-**Note**: This is the only test configuration file. Geographic restriction can be toggled via test properties:
 ```csharp
-protected override bool UseMockGeographicValidation => true; // Default
-protected override bool UseMockGeographicValidation => false; // Use real IBGE validation (via WireMock)
-```
-
-## Database Credentials
-
-⚠️ **IMPORTANT: Test-Only Credentials**
-
-The connection strings in these files use **test-only, localhost credentials**:
-
-```json
+public class CrossModuleFlowTests(ITestOutputHelper testOutput) : BaseApiTest(testOutput)
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Database=meajudaai_test;Username=testuser;Password=test123;Port=5432;Include Error Detail=true"
-  }
+    // Requires multiple modules for integration testing
+    protected override TestModule RequiredModules =>
+        TestModule.Users | TestModule.Documents | TestModule.Providers |
+        TestModule.SearchProviders;
 }
 ```
 
-**PostgreSQL + PostGIS Configuration:**
+### Test Data Helpers
 
-- **Docker Image**: `postgis/postgis:15-3.4`
-- **PostGIS Extension**: Automatically enabled for geographic data support
-- **NetTopologySuite**: Required for SearchProviders module (GeoPoint fields)
-- **Error Details**: Connection string includes `Include Error Detail=true` for CI diagnostics
+`BaseApiTest` provides helper methods for creating test entities:
 
-**Security Notes:**
+```csharp
+// Via API (recommended for API tests)
+var providerId = await CreateTestProviderViaApiAsync();
+var userId = await CreateTestUserViaApiAsync();
+var serviceId = await CreateTestServiceViaDbAsync(providerId);
+var scheduleId = await CreateTestScheduleViaDbAsync(providerId);
 
-1. **Never use these credentials in production** - They are intentionally simple and meant ONLY for local testing
-2. **Localhost only** - The connection string points to `localhost`, ensuring no external database access
-3. **CI/CD handling** - CI jobs should read these files from the repository but never log or export their contents
-4. **Test database** - The database name includes `_test` suffix to clearly distinguish from production databases
-5. **Tracked in git** - These files are intentionally tracked in version control as they contain non-sensitive test data
+// Via DB directly (for complex scenarios)
+var provider = await CreateTestProviderViaDbAsync();
+```
 
-### Why These Files Are Tracked
+## Test Infrastructure
 
-- They define the test environment configuration that all developers need
-- They use clearly non-production values (localhost, test123, etc.)
-- They enable consistent test behavior across different development machines
-- They do not contain any production secrets or credentials
+### Shared.Tests
+
+The `MeAjudaAi.Shared.Tests` project provides:
+
+- **Builders**: `UserBuilder`, `ProviderBuilder`, `ServiceCategoryBuilder`, `ServiceBuilder`, `BookingBuilder`, `DocumentBuilder`, `ReviewBuilder`
+- **Mocks**: `MockKeycloakService`, `MockBlobStorageService`, `MockNoOpMessageBus`
+- **Extensions**: `TestAuthorizationExtensions` (Scrutor-based auth handler registration)
+- **Helpers**: `AuthConfig`, test data constants
+
+### GlobalUsings.cs
+
+The project includes a `GlobalUsings.cs` that provides:
+
+```csharp
+global using MeAjudaAi.Integration.Tests.Infrastructure;
+```
+
+This makes `TestModule`, `LoginResponseDto`, `LoginDataDto` and other infrastructure types available without explicit using directives.
 
 ## External API Mocking
 
-### WireMock.Net Infrastructure
+### WireMock.Net
 
-The test suite uses **WireMock.Net** to mock external HTTP APIs, eliminating network dependencies and enabling consistent test behavior.
+Tests use **WireMock.Net** to mock external HTTP APIs:
 
-#### Global WireMock Server (Available)
+- **IBGE Localidades API**: City lookups (Muriaé, Itaperuna, Linhares)
+- **ViaCep API**: CEP lookups
+- **BrasilApi**: CEP with state/city/street
+- **OpenCep**: Full address with IBGE code
+- **Nominatim**: Geocoding (reverse geocode)
 
-**All tests inherit a pre-configured WireMock server from `ApiTestBase`:**
-
-- Automatically started before each test via `InitializeAsync()`
-- Running on **localhost:5050**
-- Pre-configured with all external API stubs (IBGE, ViaCep, BrasilApi, OpenCep, Nominatim)
-- Application configured to use mock URLs in `appsettings.Testing.json`
-- Accessible via `WireMock` property in test classes
-- Automatic cleanup on test disposal
-
-**Benefits:**
-- No network calls to real external APIs during tests
-- Consistent, predictable responses
-- Fast test execution
-- No rate limiting or external dependencies
-
-**Note:** Existing unavailability tests (IbgeUnavailabilityTests, CepProvidersUnavailabilityTests) create their own WireMockFixture instances to override default stubs with custom error scenarios. This is an advanced pattern - most tests can simply rely on the global instance.
-
-**Usage Example (using global WireMock):**
-```csharp
-public class MyIntegrationTests : ApiTestBase
-{
-    [Fact]
-    public async Task MyTest_WithExternalApi_ShouldWork()
-    {
-        // WireMock is already running with all stubs configured
-        // External API calls are automatically mocked
-
-        AuthConfig.ConfigureAdmin();
-        Client.DefaultRequestHeaders.Add("X-User-Location", "Muriaé|MG");
-        var response = await Client.GetAsync("/api/v1/users");
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        // IBGE validation happened automatically via mock
-    }
-}
-```
-
-#### Custom WireMock Configuration (Optional)
-
-For tests requiring **custom stub configuration** (error scenarios, timeouts, etc.):
-
-```csharp
-public class MyUnavailabilityTests : ApiTestBase
-{
-    [Fact]
-    public async Task MyTest_WhenApiReturns500_ShouldHandleGracefully()
-    {
-        // Override default stub with custom behavior
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome", "muriaé")
-                .UsingGet())
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500)
-                .WithBody("Internal Server Error"));
-
-        // Test continues...
-    }
-}
-```
-
-**Note:** Use `global::WireMock` namespace prefix to avoid ambiguity with the `WireMock` property.
-
-**WireMockFixture** (`Infrastructure/WireMockFixture.cs`):
-- HTTP server running on **localhost:5050**
-- Comprehensive API stubs for all external services
-- Automatic lifecycle management (`IAsyncDisposable`)
-- Console logging for debugging
-- Reset() method to clear all stubs between tests
-
-**Configured Mock Endpoints:**
-
-1. **IBGE Localidades API** (`/api/v1/localidades/municipios`)
-   - Successful lookups: Muriaé (3143906), Itaperuna (3302205), Linhares (3203205)
-   - Unknown cities: Empty array response
-   - Error scenarios: 500 errors, timeouts (30s delay), malformed JSON
-   - Query parameters: `?nome={cityName}&orderBy=nome`
-
-2. **ViaCep API** (`/ws/{cep}/json`)
-   - CEP 01310-100: Avenida Paulista, São Paulo/SP
-   - Invalid CEPs: `{"erro": true}` response
-
-3. **BrasilApi CEP** (`/api/cep/v1/{cep}`)
-   - CEP 01310-100: Structured JSON response with state/city/street
-
-4. **OpenCep API** (`/{cep}.json`)
-   - CEP 01310-100: Full address with IBGE code
-
-5. **Nominatim Geocoding** (`/reverse?lat={lat}&lon={lon}&format=json`)
-   - São Paulo coordinates (-23.5505, -46.6333)
-
-### Using WireMock in Tests
-
-```csharp
-[Collection("Integration")]
-public class MyTests : ApiTestBase, IAsyncLifetime
-{
-    private WireMockFixture? _wireMock;
-
-    public new async ValueTask InitializeAsync()
-    {
-        await base.InitializeAsync();
-        _wireMock = new WireMockFixture();
-        await _wireMock.StartAsync();
-    }
-
-    [Fact]
-    public async Task Test_WithMockedIbge()
-    {
-        // WireMock server is ready at localhost:5050
-        // All configured stubs are available
-        Client.DefaultRequestHeaders.Add("X-User-Location", "Muriaé|MG");
-        var response = await Client.GetAsync("/api/v1/users");
-        response.Should().BeSuccessful();
-    }
-
-    public new async ValueTask DisposeAsync()
-    {
-        if (_wireMock is not null)
-            await _wireMock.DisposeAsync();
-        await base.DisposeAsync();
-    }
-}
-```
-
-### IBGE Unavailability Tests
-
-`IbgeUnavailabilityTests.cs` validates resilient fallback behavior:
-
-✅ **500 Error Fallback** - Falls back to simple city/state name validation  
-✅ **Timeout Fallback** - Handles 30-second timeout gracefully  
-✅ **Malformed JSON Fallback** - Handles invalid JSON responses  
-✅ **Empty Array Fallback** - Handles "city not found" responses  
-✅ **Fail-Closed Security** - Denies unauthorized cities even when IBGE down  
-
-### Configuration
-
-Update `appsettings.Testing.json` to use WireMock:
-
-```json
-"ViaCep": { "BaseUrl": "http://localhost:5050" },
-"IBGE": { "BaseUrl": "http://localhost:5050/api/v1/localidades/" },
-"BrasilApi": { "BaseUrl": "http://localhost:5050" },
-"OpenCep": { "BaseUrl": "http://localhost:5050" },
-"Nominatim": { "BaseUrl": "http://localhost:5050" }
-```
-
-### Troubleshooting
-
-**Port 5050 already in use:**
-```powershell
-# Find process using port 5050
-netstat -ano | findstr :5050
-# Kill the process
-taskkill /PID <process_id> /F
-```
-
-**WireMock not responding:**
-- Check WireMock console logs for startup errors
-- Verify `_wireMock.StartAsync()` is called in `InitializeAsync()`
-- Ensure `DisposeAsync()` is properly called to cleanup
-
-**Stub not matching:**
-- WireMock matches exact paths and query parameters
-- Check case sensitivity in paths
-- Verify query parameter order doesn't matter (WireMock ignores order)
+WireMock runs on `localhost:5050` and is automatically configured via `appsettings.Testing.json`.
 
 ## Running Tests
 
-### Run all integration tests
+### All integration tests
 
 ```bash
 dotnet test tests/MeAjudaAi.Integration.Tests
 ```
 
-### Run with real IBGE validation (via WireMock)
+### Specific module
 
 ```bash
-# Tests use ApiTestBase with UseMockGeographicValidation override
-dotnet test tests/MeAjudaAi.Integration.Tests --filter "FullyQualifiedName~GeographicRestrictionConfig"
+dotnet test tests/MeAjudaAi.Integration.Tests --filter "Module=Documents"
 ```
 
-### Run with verbose logging
+### Verbose logging
 
 ```bash
-ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests --logger "console;verbosity=detailed"
+dotnet test tests/MeAjudaAi.Integration.Tests --logger "console;verbosity=detailed"
 ```
 
-## Test Scenarios
+## Configuration
 
-### Geographic Restriction Tests
+### appsettings.Testing.json
 
-- ✅ Allowed cities pass validation
-- ✅ Blocked cities return HTTP 451
-- ✅ Malformed location headers are rejected
-- ✅ Empty city/state values are treated as non-matching
-- ✅ Feature flag toggles restriction on/off
-- 🔲 IBGE service unavailable gracefully degrades (TODO)
-- 🔲 External API mocking prevents real network calls (TODO)
+- Geographic restriction: Enabled by default
+- External APIs: Points to WireMock at localhost:5050
+- Database: PostgreSQL localhost with test credentials
+- Hangfire: Disabled
+- Keycloak: Disabled (mocked)
 
-### Edge Cases
+### Database Credentials
 
-- Malformed `X-User-Location` headers (e.g., `"City|"`, `"|State"`, `" | "`)
-- Empty values after trimming
-- Missing location headers (fail-open behavior)
-- IBGE API timeouts or errors
+**Test-only credentials** (localhost only):
 
-## Credentials Security Checklist
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=meajudaai_test;Username=testuser;Password=test123;Port=5432"
+  }
+}
+```
 
-- [x] Connection strings use `localhost` only
-- [x] Database names include `_test` suffix
-- [x] Passwords are generic test values (not production-like)
-- [x] Files are documented as test-only
-- [x] CI jobs do not log credential values
-- [ ] Consider `.gitignore` for user-specific overrides (e.g., `appsettings.Testing.Local.json`)
-
-## Future Improvements
-
-1. **Mock External APIs**: Replace real API calls with WireMock.Net or similar
-2. **Parameterized Configuration**: Use test fixtures to toggle configurations programmatically
-3. **Test Containers**: Use Testcontainers for PostgreSQL instead of relying on localhost
-4. **Credential Rotation**: Even for test credentials, consider periodic rotation
-5. **Secret Management**: For sensitive test data, use environment variables or test secret stores
+- PostgreSQL + PostGIS (`postgis/postgis:16-3.4`)
+- NetTopologySuite for geographic data
+- Never use in production

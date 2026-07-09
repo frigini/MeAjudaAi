@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Infrastructure.Database;
 
 /// <summary>
 /// Helper para inicialização de banco com cache

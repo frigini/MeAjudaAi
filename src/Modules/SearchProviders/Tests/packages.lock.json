@@ -1607,6 +1607,7 @@
           "Microsoft.Data.Sqlite": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.InMemory": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )",
+          "Microsoft.Extensions.DependencyInjection": "[10.0.9, )",
           "Microsoft.Extensions.Hosting": "[10.0.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.9, )",
           "Microsoft.Extensions.TimeProvider.Testing": "[10.7.0, )",

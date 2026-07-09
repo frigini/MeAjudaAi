@@ -1,7 +1,7 @@
 using MeAjudaAi.Integration.Tests.Aspire;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// 🔗 BASE PARA TESTES DE INTEGRAÇÃO ENTRE MÓDULOS - ASPIRE
@@ -18,7 +18,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// 
 /// Para testes simples de API, use BaseApiTest (mais rápido).
 /// </summary>
-public abstract class BaseIntegrationTest(AspireIntegrationFixture fixture, ITestOutputHelper output)
+public abstract class BaseAspireIntegrationTest(AspireIntegrationFixture fixture, ITestOutputHelper output)
     : BaseSharedIntegrationTest(output), IClassFixture<AspireIntegrationFixture>
 {
     private readonly AspireIntegrationFixture _fixture = fixture;

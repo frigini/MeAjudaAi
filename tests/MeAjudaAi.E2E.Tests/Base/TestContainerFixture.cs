@@ -56,11 +56,18 @@ public class TestContainerFixture : IAsyncLifetime
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
     private static bool _containersInitialized = false;
     private static bool _migrationsApplied = false;
-    private static bool _factoryInitialized = false;
 
-    private static WebApplicationFactory<Program>? _factory;
-    private static HttpClient? _sharedApiClient;
-    private static IServiceProvider? _sharedServices;
+    // Two separate factories: one for events-enabled tests, one for non-events tests.
+    // This prevents the static factory sharing issue where the first fixture's
+    // EnableEventsAndMessageBus setting was captured permanently.
+    private static bool _factoryEventsInitialized = false;
+    private static bool _factoryNoEventsInitialized = false;
+    private static WebApplicationFactory<Program>? _factoryEvents;
+    private static WebApplicationFactory<Program>? _factoryNoEvents;
+    private static HttpClient? _sharedApiClientEvents;
+    private static HttpClient? _sharedApiClientNoEvents;
+    private static IServiceProvider? _sharedServicesEvents;
+    private static IServiceProvider? _sharedServicesNoEvents;
 
     public HttpClient ApiClient { get; private set; } = null!;
     public IServiceProvider Services { get; private set; } = null!;
@@ -100,16 +107,24 @@ public class TestContainerFixture : IAsyncLifetime
         if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
         if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
 
-        // Initialize WebApplicationFactory once per process (guard against repeated host bootstrap)
-        if (!_factoryInitialized)
+        // Initialize the correct factory variant based on EnableEventsAndMessageBus.
+        // Two separate factories prevent the static factory sharing issue where
+        // the first fixture's config was captured permanently.
+        var eventsEnabled = EnableEventsAndMessageBus;
+        var factoryInitialized = eventsEnabled ? _factoryEventsInitialized : _factoryNoEventsInitialized;
+        if (!factoryInitialized)
         {
             await _initializationLock.WaitAsync();
             try
             {
-                if (!_factoryInitialized)
+                factoryInitialized = eventsEnabled ? _factoryEventsInitialized : _factoryNoEventsInitialized;
+                if (!factoryInitialized)
                 {
-                    await InitializeFactoryAsync();
-                    _factoryInitialized = true;
+                    await InitializeFactoryAsync(eventsEnabled);
+                    if (eventsEnabled)
+                        _factoryEventsInitialized = true;
+                    else
+                        _factoryNoEventsInitialized = true;
                 }
             }
             finally
@@ -120,11 +135,19 @@ public class TestContainerFixture : IAsyncLifetime
         else
         {
             // Reuse properties already set by the one-time initialization
-            ApiClient = _sharedApiClient!;
-            Services = _sharedServices!;
+            if (eventsEnabled)
+            {
+                ApiClient = _sharedApiClientEvents!;
+                Services = _sharedServicesEvents!;
+            }
+            else
+            {
+                ApiClient = _sharedApiClientNoEvents!;
+                Services = _sharedServicesNoEvents!;
+            }
         }
 
-        // One-time migration application for the entire test run
+        // One-time migration application for the entire run (shared by both factories)
         if (!_migrationsApplied)
         {
             await _initializationLock.WaitAsync();
@@ -173,9 +196,9 @@ public class TestContainerFixture : IAsyncLifetime
         Console.WriteLine("✅ TestContainers initialized successfully");
     }
 
-    private Task InitializeFactoryAsync()
+    private Task InitializeFactoryAsync(bool eventsEnabled)
     {
-        _factory ??= new WebApplicationFactory<Program>()
+        var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -241,31 +264,42 @@ public class TestContainerFixture : IAsyncLifetime
                         logging.SetMinimumLevel(LogLevel.Information);
                     });
 
-                    ConfigureMockServices(services);
+                    ConfigureMockServices(services, eventsEnabled);
                     ReconfigureDbContexts(services);
                 });
             });
 
         var contextPropagationHandler = new TestContextAwareHandler
         {
-            InnerHandler = _factory.Server.CreateHandler()
+            InnerHandler = factory.Server.CreateHandler()
         };
 
-        ApiClient = new HttpClient(contextPropagationHandler)
+        var apiClient = new HttpClient(contextPropagationHandler)
         {
             BaseAddress = new Uri("http://localhost")
         };
 
-        Services = _factory.Services;
+        // Cache for the correct variant
+        if (eventsEnabled)
+        {
+            _factoryEvents = factory;
+            _sharedApiClientEvents = apiClient;
+            _sharedServicesEvents = factory.Services;
+        }
+        else
+        {
+            _factoryNoEvents = factory;
+            _sharedApiClientNoEvents = apiClient;
+            _sharedServicesNoEvents = factory.Services;
+        }
 
-        // Cache for reuse by subsequent fixture instances
-        _sharedApiClient = ApiClient;
-        _sharedServices = Services;
+        ApiClient = apiClient;
+        Services = factory.Services;
 
         return Task.CompletedTask;
     }
 
-    private void ConfigureMockServices(IServiceCollection services)
+    private void ConfigureMockServices(IServiceCollection services, bool eventsEnabled)
     {
         services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
             .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
@@ -301,14 +335,16 @@ public class TestContainerFixture : IAsyncLifetime
         // Register dummy Stripe client to satisfy DI validation
         services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
 
-        // Message Bus Condicional para E2E
+        // Message Bus: register based on eventsEnabled parameter.
+        // Two separate factories are maintained (events vs non-events) to avoid
+        // the static factory sharing issue where the first fixture's config was used for all.
         var busDescriptors = services.Where(d => d.ServiceType == typeof(IMessageBus)).ToList();
         foreach (var d in busDescriptors) services.Remove(d);
 
         var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(IDomainEventProcessor)).ToList();
         foreach (var d in domainProcessorDescriptors) services.Remove(d);
 
-        if (EnableEventsAndMessageBus)
+        if (eventsEnabled)
         {
             services.AddSingleton<IMessageBus, SynchronousInMemoryMessageBus>();
             services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
@@ -388,9 +424,8 @@ public class TestContainerFixture : IAsyncLifetime
         if (contextDescriptor != null)
             services.Remove(contextDescriptor);
 
-        services.AddDbContext<TContext>(options =>
+        services.AddDbContext<TContext>((sp, options) =>
         {
-            Console.WriteLine($"[DEBUG] Configuring DbContext {contextName} with ConnectionString: {PostgresConnectionString}");
             options.UseNpgsql(PostgresConnectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
@@ -407,12 +442,14 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task ApplyMigrationsAsync()
     {
-        if (_factory == null)
+        // Use either factory — both share the same database
+        var factory = _factoryEvents ?? _factoryNoEvents;
+        if (factory == null)
         {
             throw new InvalidOperationException("WebApplicationFactory was not initialized. This should not happen as factory initialization must complete before migrations are applied.");
         }
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = factory.Services.CreateScope();
         var services = scope.ServiceProvider;
 
         try
