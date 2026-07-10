@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Utilities.Constants;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Extensions;
 
 /// <summary>
 /// Testes unitários para as extensões de ClaimsPrincipal relacionadas a permissões.
@@ -427,5 +427,3 @@ public class ClaimsPrincipalExtensionsTests
         Assert.False(result);
     }
 }
-
-

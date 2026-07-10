@@ -4,7 +4,7 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;

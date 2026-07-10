@@ -1,12 +1,13 @@
-using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Hybrid;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
+using MeAjudaAi.Shared.Authorization.Core.Interfaces;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Services;
 
 [Trait("Category", "Unit")]
 public class PermissionServiceTests
@@ -169,7 +170,7 @@ public class PermissionServiceTests
         // Assert
         await act.Should().ThrowAsync<PermissionServiceException>()
             .WithMessage($"Failed to retrieve permissions for user {userId}");
-        }
+    }
 
 
     [Fact]

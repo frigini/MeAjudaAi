@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Core;
 
 /// <summary>
 /// Testes unitários para o enum EPermissions e suas extensões.

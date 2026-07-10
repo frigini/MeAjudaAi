@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Exceptions;
 using Xunit;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Exceptions;
 
 public class PermissionServiceExceptionTests
 {

@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Keycloak.Models;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Utilities;

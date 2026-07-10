@@ -1,8 +1,8 @@
 using MeAjudaAi.Shared.Authorization.Attributes;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Handlers;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Attributes;
 
 /// <summary>
 /// Testes unitários para RequirePermissionAttribute e PermissionRequirement

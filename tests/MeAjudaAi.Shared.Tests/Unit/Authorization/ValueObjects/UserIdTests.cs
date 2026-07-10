@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Authorization.ValueObjects;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.ValueObjects;
 
 public class UserIdTests
 {

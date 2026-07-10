@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using Microsoft.Extensions.Logging;
 using Moq;

@@ -213,8 +213,8 @@
       },
       "Microsoft.FeatureManagement": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "9VBxTZUwna9x31+OmOyX0DTBGEuvVrV81fAZ/XRkLESuDu5EZn/o6W8454NWOPHBIUyTGTMpYOFzI8ArkCNmCg==",
+        "resolved": "4.6.0",
+        "contentHash": "kLjGgEhlzuKs6t7g8so1dqsmE5NaSURNPOWkKD056nF43G/6w/VK5Gd02WKgpuBRQ9mjl7odAe462bn3XKBXmg==",
         "dependencies": {
           "Microsoft.Bcl.TimeProvider": "8.0.1",
           "Microsoft.Extensions.Caching.Memory": "8.0.1",
@@ -410,7 +410,7 @@
           "Microsoft.EntityFrameworkCore.Design": "[10.0.9, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.7.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.9, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.6.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
@@ -705,11 +705,11 @@
       },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[4.5.0, )",
-        "resolved": "4.5.0",
-        "contentHash": "CafI8Ne0xuXRNzHMoRGAX4WRvLxpTE7RceBncgME/fRcPD2KwYrxfZpLyJ/kVfYt8uvHkC2xy0VlStj687mVoA==",
+        "requested": "[4.6.0, )",
+        "resolved": "4.6.0",
+        "contentHash": "+0G11gpuGqggJ7nrB7jL/oT4bsRVqnM5q6+qgC5sO2oW4JWymXoUAkDNsuLsMB9La9Ota248x8dwhoL2erImwQ==",
         "dependencies": {
-          "Microsoft.FeatureManagement": "4.5.0"
+          "Microsoft.FeatureManagement": "4.6.0"
         }
       },
       "Microsoft.NET.StringTools": {
@@ -720,9 +720,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.9.0, )",
-        "resolved": "2.9.0",
-        "contentHash": "uS2awDkgUvVhd735HEcNcOQdwbIDCAK3V1QzgWoszd/FPDLLVv9eF+fImmdJiGLIKKWJv2DMJQ7OSR9gYLd+uw=="
+        "requested": "[2.10.0, )",
+        "resolved": "2.10.0",
+        "contentHash": "tD7ve8JrWfJ+aRfW7J9yDj8t6pbMOzdr8nSc5BlIZaIRxqZZ67RJ8J69//Tx6HHSNFsqomBbipkPP20opnqvMg=="
       },
       "Newtonsoft.Json": {
         "type": "CentralTransitive",

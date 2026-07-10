@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
 using Microsoft.AspNetCore.Http;

@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
+namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Handlers;
 
 /// <summary>
 /// Testes unitários para PermissionClaimsTransformation

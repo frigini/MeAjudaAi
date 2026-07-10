@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Modules.Communications.API.Endpoints.Admin;
 using MeAjudaAi.Modules.Communications.API.Endpoints.Public;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using System.Diagnostics.CodeAnalysis;

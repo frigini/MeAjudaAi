@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MeAjudaAi.Shared.Authorization.Core;
+namespace MeAjudaAi.Shared.Authorization.Core.Enums;
 
 /// <summary>
 /// Enum base que define todas as permissões do sistema de forma type-safe.

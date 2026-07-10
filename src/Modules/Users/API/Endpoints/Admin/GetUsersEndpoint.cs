@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;

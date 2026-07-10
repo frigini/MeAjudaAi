@@ -1,12 +1,12 @@
 using System.Net;
 using System.Text.Json;
-using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Keycloak;
 
