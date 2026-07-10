@@ -37,7 +37,7 @@ public sealed class CreateServiceCategoryCommandHandler(
                 return Result<ServiceCategoryDto>.Failure(localizer["CategoryNameRequired"]);
 
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
-                return Result<ServiceCategoryDto>.Failure(localizer["CategoryNameAlreadyExists", normalizedName]);
+                return Result<ServiceCategoryDto>.Failure(Error.Conflict(localizer["CategoryNameAlreadyExists", normalizedName]));
 
             var category = Domain.Entities.ServiceCategory.Create(normalizedName, request.Description, request.DisplayOrder);
 

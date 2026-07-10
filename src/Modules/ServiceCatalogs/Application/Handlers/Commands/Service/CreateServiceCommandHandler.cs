@@ -55,7 +55,7 @@ public sealed class CreateServiceCommandHandler(
 
             // Verificar se já existe serviço com o mesmo nome na categoria
             if (await serviceQueries.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
-                return Result<ServiceDto>.Failure(localizer["ServiceNameAlreadyExistsInCategory", normalizedName]);
+                return Result<ServiceDto>.Failure(Error.Conflict(localizer["ServiceNameAlreadyExistsInCategory", normalizedName]));
 
             // Validar DisplayOrder
             if (request.DisplayOrder < 0)

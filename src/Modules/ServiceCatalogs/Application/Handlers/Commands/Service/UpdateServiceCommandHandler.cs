@@ -48,7 +48,7 @@ public sealed class UpdateServiceCommandHandler(
 
             // Verificar se já existe serviço com o mesmo nome na categoria (excluindo o serviço atual)
             if (await serviceQueries.ExistsWithNameAsync(normalizedName, serviceId, service.CategoryId, cancellationToken))
-                return Result.Failure(string.Format(ValidationMessages.Catalogs.ServiceNameExists, normalizedName));
+                return Result.Failure(Error.Conflict(string.Format(ValidationMessages.Catalogs.ServiceNameExists, normalizedName)));
 
             service.Update(normalizedName, request.Description, request.DisplayOrder);
 

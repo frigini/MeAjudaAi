@@ -63,7 +63,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
                     cancellationToken))
             {
                 return Result.Failure(
-                    localizer["ServiceNameExistsInCategory", service.Name]);
+                    Error.Conflict(localizer["ServiceNameExistsInCategory", service.Name]));
             }
 
             service.ChangeCategory(newCategoryId);

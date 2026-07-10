@@ -129,7 +129,7 @@ internal sealed class CreateUserCommandHandler(
         if (existingByEmail != null)
         {
             logger.LogWarning("User creation failed: Email {Email} already exists", command.Email);
-            return Result<Unit>.Failure(localizer["EmailAlreadyExists"]);
+            return Result<Unit>.Failure(Error.Conflict(localizer["EmailAlreadyExists"]));
         }
 
         // Verifica se já existe usuário com o username informado
@@ -139,7 +139,7 @@ internal sealed class CreateUserCommandHandler(
         if (existingByUsername != null)
         {
             logger.LogWarning("User creation failed: Username {Username} already exists", command.Username);
-            return Result<Unit>.Failure(localizer["UsernameAlreadyExists"]);
+            return Result<Unit>.Failure(Error.Conflict(localizer["UsernameAlreadyExists"]));
         }
 
         return Result<Unit>.Success(Unit.Value);

@@ -46,7 +46,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
                 return Result.Failure(ValidationMessages.Required.CategoryName);
 
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
-                return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+                return Result.Failure(Error.Conflict(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName)));
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 
