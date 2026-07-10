@@ -4,11 +4,11 @@
     "net10.0": {
       "Refit": {
         "type": "Direct",
-        "requested": "[12.0.0, )",
-        "resolved": "12.0.0",
-        "contentHash": "eJWs1m24UYaDhZXSaWXMXywCvY2V79hpXFQ35p+MmX1heX6WYkGdU1tAsGdiMhKSvpsar/BHaAhKqQKG8MKYFg==",
+        "requested": "[12.1.0, )",
+        "resolved": "12.1.0",
+        "contentHash": "YRNeWBc+CV2+drwi/u/trdNOOuF+ZQsvNfXKmJ1KxdWvphMgi+n4KFAufHe016yE8sLQn70/191o4A7PJjZcpQ==",
         "dependencies": {
-          "ReactiveUI.Primitives": "5.6.0"
+          "ReactiveUI.Primitives": "5.8.0"
         }
       },
       "SonarAnalyzer.CSharp": {
@@ -19,24 +19,24 @@
       },
       "ReactiveUI.Disposables": {
         "type": "Transitive",
-        "resolved": "5.6.0",
-        "contentHash": "yzIoFgb43KXXynWgUgS5FoJ6KG4XIAFFWksk05K53qb160wCIZOq+aHsJrMuePSDEm/MoFk1lBkN0TRWQ9MtBQ=="
+        "resolved": "5.8.0",
+        "contentHash": "JR39TMydeqtQnsr9bqWXVpdeoYQmb+g8fxu9Glu+GN3FZo5/voN+FYmAuokQBiIPup4s5CbxyPoP+qlg2zZLEQ=="
       },
       "ReactiveUI.Primitives": {
         "type": "Transitive",
-        "resolved": "5.6.0",
-        "contentHash": "qnxP2/RH+PYhzMQBMKnFzci/GO3N+eeQe5bZczoVgSGdTFsMYCuUXCfElgHGFvnlbYfiKfdWD0UdrrwMqr8y8Q==",
+        "resolved": "5.8.0",
+        "contentHash": "VcwT0+zxMnpRcpNVDRprZN9qSG4/hunbUflPqpKUo7eGvu6XcUIVafco8KrhZGVOAIhmwhIBeY9pQdheK2WwHA==",
         "dependencies": {
-          "ReactiveUI.Disposables": "5.6.0",
-          "ReactiveUI.Primitives.Core": "5.6.0"
+          "ReactiveUI.Disposables": "5.8.0",
+          "ReactiveUI.Primitives.Core": "5.8.0"
         }
       },
       "ReactiveUI.Primitives.Core": {
         "type": "Transitive",
-        "resolved": "5.6.0",
-        "contentHash": "HrFby67lgpToIp4ZQEjsihyU073Fg6/jzgOHGgGV1BMYbQgHf7G/F3tQKss/4e5aJFsnom1mMhywpEax3TKKiw==",
+        "resolved": "5.8.0",
+        "contentHash": "b0Li7p/ROQeYizNT/kTmmkDuiAtqCo+pyFaghHM+9NYl1axi4NTNaKhVg6ie3yBEvDPfN7sKLCFL7zII/EmK/g==",
         "dependencies": {
-          "ReactiveUI.Disposables": "5.6.0"
+          "ReactiveUI.Disposables": "5.8.0"
         }
       },
       "meajudaai.contracts": {
