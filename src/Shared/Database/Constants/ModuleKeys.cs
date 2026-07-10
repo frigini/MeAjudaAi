@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Database.Constants;
 
+[ExcludeFromCodeCoverage]
 public static class ModuleKeys
 {
     public const string Locations = "Locations";

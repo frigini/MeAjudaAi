@@ -1,15 +1,13 @@
+using MeAjudaAi.Contracts.Enums;
 using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.EntityFrameworkCore;
-using MeAjudaAi.Contracts.Enums;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database.Outbox;
 
 public class OutboxRepositoryTests
 {
-    private class TestOutboxDbContext : DbContext
+    private class TestOutboxDbContext(DbContextOptions<OutboxRepositoryTests.TestOutboxDbContext> options) : DbContext(options)
     {
-        public TestOutboxDbContext(DbContextOptions<TestOutboxDbContext> options) : base(options) { }
-
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

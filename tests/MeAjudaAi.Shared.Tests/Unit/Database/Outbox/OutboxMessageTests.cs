@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Contracts.Enums;
+using MeAjudaAi.Shared.Database.Outbox;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database.Outbox;
 

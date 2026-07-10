@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Shared.Caching.Interfaces;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration.Infrastructure;
 
@@ -41,7 +42,7 @@ public static class TestExtensions
 
         services.AddLocalization();
 
-        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
+        services.AddSingleton<ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
 
         services.AddDbContext<ServiceCatalogsDbContext>((serviceProvider, dbOptions) =>
         {

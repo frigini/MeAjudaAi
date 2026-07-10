@@ -1,11 +1,11 @@
+using MeAjudaAi.Shared.Authorization.Core.Enums;
+using MeAjudaAi.Shared.Authorization.Core.Interfaces;
 using MeAjudaAi.Shared.Authorization.Exceptions;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
-using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using Microsoft.Extensions.Caching.Hybrid;
-using MeAjudaAi.Shared.Authorization.Core.Enums;
-using MeAjudaAi.Shared.Authorization.Core.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Services;
 

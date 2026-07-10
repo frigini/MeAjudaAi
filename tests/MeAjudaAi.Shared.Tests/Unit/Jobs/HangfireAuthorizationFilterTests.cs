@@ -172,26 +172,6 @@ public class HangfireAuthorizationFilterTests
         result.Should().BeFalse("Default HttpContext should deny access in production");
     }
 
-    private readonly struct EnvironmentScope : IDisposable
-    {
-        private readonly string? _originalAspNetCore;
-        private readonly string? _originalDotNet;
-
-        public EnvironmentScope(string? aspNetCore, string? dotNet)
-        {
-            _originalAspNetCore = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            _originalDotNet = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", aspNetCore);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", dotNet);
-        }
-
-        public void Dispose()
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", _originalAspNetCore);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", _originalDotNet);
-        }
-    }
-
     [Fact]
 
     public void Authorize_WithNullUser_ShouldDenyAccess()
@@ -255,6 +235,25 @@ public class HangfireAuthorizationFilterTests
         result.Should().BeFalse($"{environment} environment should require authentication like Production");
     }
 
+    private readonly struct EnvironmentScope : IDisposable
+    {
+        private readonly string? _originalAspNetCore;
+        private readonly string? _originalDotNet;
+
+        public EnvironmentScope(string? aspNetCore, string? dotNet)
+        {
+            _originalAspNetCore = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            _originalDotNet = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", aspNetCore);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", dotNet);
+        }
+
+        public void Dispose()
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", _originalAspNetCore);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", _originalDotNet);
+        }
+    }
 }
 
 [CollectionDefinition("EnvironmentVariableTests", DisableParallelization = true)]

@@ -1,6 +1,7 @@
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Metrics;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Database;
@@ -12,7 +13,7 @@ public class DapperConnectionTests : IDisposable
     private readonly PostgresOptions _postgresOptions;
     private readonly EnvironmentVariableRestorer _envRestorer;
 
-    private sealed class EnvironmentVariableRestorer
+    private sealed class EnvironmentVariableRestorer : IDisposable
     {
         private readonly HashSet<string> _modifiedVariables = new();
 
@@ -25,7 +26,12 @@ public class DapperConnectionTests : IDisposable
             Environment.SetEnvironmentVariable(name, value);
         }
 
-        public void Restore()
+        public void Dispose()
+        {
+            Restore();
+        }
+
+        private void Restore()
         {
             foreach (var name in _modifiedVariables)
             {
@@ -48,7 +54,7 @@ public class DapperConnectionTests : IDisposable
 
     public void Dispose()
     {
-        _envRestorer.Restore();
+        _envRestorer.Dispose();
         GC.SuppressFinalize(this);
     }
 

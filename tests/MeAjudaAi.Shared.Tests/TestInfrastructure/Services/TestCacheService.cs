@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 

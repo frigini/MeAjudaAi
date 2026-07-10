@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Providers.Application;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Idempotency;

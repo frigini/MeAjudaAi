@@ -198,7 +198,7 @@ public class PermissionSystemHealthCheckTests
     }
 
     [Fact]
-    public async Task CheckHealthAsync_WhenPermissionServiceThrows_ShouldReturnUnhealthy()
+    public async Task CheckHealthAsync_WhenPermissionServiceThrows_ShouldReturnDegraded()
     {
         // Arrange
         _mockPermissionService
@@ -360,7 +360,7 @@ public class PermissionSystemHealthCheckTests
         // Arrange
         _mockPermissionService
             .Setup(x => x.GetUserPermissionsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Throws(new OutOfMemoryException("Critical failure"));
+            .ThrowsAsync(new OutOfMemoryException("Critical failure"));
 
         _mockMetricsService
             .Setup(x => x.GetSystemStats())

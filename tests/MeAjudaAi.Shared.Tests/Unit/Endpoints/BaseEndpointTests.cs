@@ -1,9 +1,9 @@
-using System.Security.Claims;
-using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Endpoints;
 

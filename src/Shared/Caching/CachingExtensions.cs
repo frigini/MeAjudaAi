@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Caching.Interfaces;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

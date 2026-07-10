@@ -1,10 +1,10 @@
-using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Authorization.Extensions;
-using MeAjudaAi.Shared.Authorization.Core.Enums;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Handlers;
 

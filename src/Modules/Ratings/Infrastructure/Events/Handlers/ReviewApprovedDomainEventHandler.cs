@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Ratings;

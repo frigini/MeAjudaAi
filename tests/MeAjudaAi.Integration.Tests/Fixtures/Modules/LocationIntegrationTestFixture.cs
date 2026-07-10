@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;

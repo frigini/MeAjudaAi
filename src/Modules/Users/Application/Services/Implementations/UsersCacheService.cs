@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 
 namespace MeAjudaAi.Modules.Users.Application.Services.Implementations;
 

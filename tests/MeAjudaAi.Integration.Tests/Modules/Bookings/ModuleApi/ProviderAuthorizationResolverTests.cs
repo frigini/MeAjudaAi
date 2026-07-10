@@ -5,6 +5,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;

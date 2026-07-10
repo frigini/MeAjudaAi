@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
+using System.ComponentModel.DataAnnotations;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Core;
 

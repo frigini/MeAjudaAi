@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Enums;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 

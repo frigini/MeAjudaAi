@@ -7,7 +7,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Queries;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Services;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;

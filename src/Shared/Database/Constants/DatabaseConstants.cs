@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Database.Constants;
 
+[ExcludeFromCodeCoverage]
 public static class DatabaseConstants
 {
     public const string DefaultTestConnectionString = "Host=localhost;Database=test;Username=test;";

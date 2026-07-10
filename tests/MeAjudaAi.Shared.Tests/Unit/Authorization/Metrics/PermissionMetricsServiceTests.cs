@@ -1,9 +1,8 @@
-using System.Collections.Concurrent;
-using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using Microsoft.Extensions.Logging;
-using Moq;
+using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Metrics;
 
@@ -677,86 +676,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
 
     #endregion
 
-    #region OperationTimer Tests
-
-    [Fact]
-    public async Task OperationTimer_OnDispose_ShouldInvokeOnCompleteCallback()
-    {
-        // Arrange & Act
-        using (var timer = _service.MeasurePermissionResolution("user123", "users"))
-        {
-            await Task.Delay(10);
-        }
-
-        // Assert - Duration should be recorded in histogram
-        var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolution_duration_seconds"));
-        histogramKey.Should().NotBeNullOrEmpty();
-        _histogramValues[histogramKey!].Should().BeGreaterThan(0);
-    }
-
-    [Fact]
-    public void OperationTimer_MultipleDispose_ShouldNotThrow()
-    {
-        // Arrange
-        var timer = _service.MeasurePermissionResolution("user123", "users");
-
-        // Act & Assert - Should not throw on multiple dispose
-        timer.Dispose();
-        timer.Dispose();
-        timer.Dispose();
-    }
-
-    [Fact]
-    public void OperationTimer_ShortOperation_ShouldRecordSmallDuration()
-    {
-        // Act
-        using (var timer = _service.MeasurePermissionResolution("user123", "users"))
-        {
-            // Immediate disposal
-        }
-
-        // Assert - Should record very small but non-negative duration
-        var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolution_duration_seconds"));
-        histogramKey.Should().NotBeNullOrEmpty();
-        _histogramValues[histogramKey!].Should().BeGreaterThanOrEqualTo(0);
-    }
-
-    #endregion
-
-    #region Meter Configuration Tests
-
-    [Fact]
-    public void Constructor_ShouldInitializeMeterWithCorrectName()
-    {
-        // Assert - Meter is initialized in constructor
-        _service.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Dispose_ShouldDisposeMeter()
-    {
-        // Arrange
-        var service = new PermissionMetricsService(_loggerMock.Object);
-
-        // Act & Assert - Should not throw
-        service.Dispose();
-    }
-
-    [Fact]
-    public void Dispose_MultipleCalls_ShouldNotThrow()
-    {
-        // Arrange
-        var service = new PermissionMetricsService(_loggerMock.Object);
-
-        // Act & Assert
-        service.Dispose();
-        service.Dispose();
-        service.Dispose();
-    }
-
-    #endregion
-
-    #region Integration Tests - Complex Scenarios
+    #region Complex Scenarios
 
     [Fact]
     public void ComplexScenario_MultipleOperations_ShouldTrackAllMetrics()

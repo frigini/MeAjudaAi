@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Users.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
