@@ -6,13 +6,16 @@ Este documento define a estratégia de testes para o projeto MeAjudaAi, estabele
 
 ## Estrutura de Testes
 
-O projeto possui 4 projetos de teste com responsabilidades distintas:
+O projeto possui 7 projetos de teste com responsabilidades distintas:
 
 ```
 tests/
-├── MeAjudaAi.Shared.Tests/           # Testes unitários de componentes shared
+├── MeAjudaAi.Shared.Tests/           # Infraestrutura compartilhada de testes
 ├── MeAjudaAi.Integration.Tests/      # Testes de integração cross-module (HTTP API)
 ├── MeAjudaAi.E2E.Tests/              # Testes E2E com Testcontainers
+├── MeAjudaAi.ApiService.Tests/       # Testes do bootstrapper/web host
+├── MeAjudaAi.Architecture.Tests/     # Guardrails de arquitetura (fitness functions)
+├── MeAjudaAi.Gateway.Tests/          # Testes do edge/gateway
 └── src/Modules/*/Tests/              # Testes internos de cada módulo (unit + integration)
 ```
 
@@ -40,6 +43,17 @@ tests/
 │  • Lógica isolada com mocks                                  │
 │  • Entities, ValueObjects, Handlers, Validators, Mappers     │
 │  • muito rápidos (<100ms)                                    │
+├─────────────────────────────────────────────────────────────┤
+│  ApiService Tests (ApiService.Tests)                         │
+│  • Configuração do web host e DI container                   │
+│  • Middlewares globais                                        │
+├─────────────────────────────────────────────────────────────┤
+│  Gateway Tests (Gateway.Tests)                               │
+│  • Roteamento e transformação de requisições                 │
+├─────────────────────────────────────────────────────────────┤
+│  Architecture Tests (Architecture.Tests)                     │
+│  • Guardrails e fitness functions                            │
+│  • Regras de nomenclatura e dependências                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -163,6 +177,54 @@ public class ProvidersApiTests : BaseApiTest
 **Convenções:**
 - Usar `TestContainerFixture` com PostgreSQL real
 - Nome: `{Feature}EndToEndTests.cs` ou `{Feature}ApiTests.cs`
+
+### 5. ApiService Tests (`tests/MeAjudaAi.ApiService.Tests/`)
+
+**O que testar:**
+- Configuração do web host e DI container
+- Middlewares de aplicação (global exception handler, security headers)
+- Configuração de Swagger/OpenAPI
+- Health checks
+
+**O que NÃO testar:**
+- Endpoints específicos de módulos (já coberto por Integration.Tests)
+- Lógica de negócio (já coberto por unit tests dos módulos)
+
+**Convenções:**
+- Usar `WebApplicationFactory` para testes de host
+- Nome: `{Componente}Tests.cs`
+
+### 6. Architecture Tests (`tests/MeAjudaAi.Architecture.Tests/`)
+
+**O que testar:**
+- Guardrails de arquitetura (dependências entre camadas)
+- Regras de nomenclatura
+- Convenções de projeto
+- Limites de dependências
+
+**O que NÃO testar:**
+- Lógica de negócio
+- Integração com infraestrutura
+
+**Convenções:**
+- Usar NetArchTest.Rules para verificação de regras
+- Nome: `{Regra}Tests.cs`
+
+### 7. Gateway Tests (`tests/MeAjudaAi.Gateway.Tests/`)
+
+**O que testar:**
+- Roteamento de requisições
+- Transformação de headers
+- Rate limiting
+- Circuit breakers
+
+**O que NÃO testar:**
+- Lógica de negócio dos módulos
+- Persistência
+
+**Convenções:**
+- Usar `WebApplicationFactory` com mocks de backend
+- Nome: `{Feature}Tests.cs`
 
 ## Regras para Evitar Redundância
 

@@ -133,7 +133,7 @@ public class ModuleBoundaryTests
             string.Join("; ", failures));
     }
 
-    [Fact(Skip = "LIMITAÇÃO TÉCNICA: DbContext deve ser público para ferramentas de design-time do EF Core, mas conceitualmente deveria ser internal")]
+    [Fact(Skip = "LIMITAÇÃO TÉCNICA: EF Core exige DbContext público para design-time. Não é possível tornar internal sem quebrar ferramentas de migração.")]
     public void Module_DbContext_ShouldBeInternal()
     {
         // Conceitualmente, DbContext deveria ser internal para melhor encapsulamento do módulo

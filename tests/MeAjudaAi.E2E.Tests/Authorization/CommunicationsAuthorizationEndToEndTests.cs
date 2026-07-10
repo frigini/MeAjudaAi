@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Authorization;
 
-public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
+public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
     [Fact]
     public async Task GetCommunicationLogs_WithoutCommunicationsRead_ShouldReturnForbidden()
@@ -20,7 +20,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/communications/logs");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/communications/logs");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -39,7 +39,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/communications/templates");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/communications/templates");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -58,7 +58,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
         );
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", new { });
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/communications/templates", new { });
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -77,7 +77,7 @@ public class CommunicationsAuthorizationEndToEndTests(TestContainerFixture fixtu
         );
 
         // Act
-        var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{Guid.NewGuid()}", new { });
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/communications/templates/{Guid.NewGuid()}", new { });
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);

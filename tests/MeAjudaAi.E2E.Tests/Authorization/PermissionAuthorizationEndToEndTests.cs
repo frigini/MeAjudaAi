@@ -11,7 +11,7 @@ namespace MeAjudaAi.E2E.Tests.Authorization;
 /// Testes end-to-end para autorização baseada em permissions.
 /// Valida que o ConfigurableTestAuthenticationHandler funciona corretamente com permissions customizadas.
 /// </summary>
-public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
+public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
     [Fact]
     public async Task UserWithReadPermission_CanListUsers()
@@ -28,7 +28,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -49,7 +49,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert - Deve ser Forbidden
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -80,7 +80,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         };
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
 
         // Assert - Deve retornar sucesso ou erro de validação, nunca Forbidden ou 5xx
         response.StatusCode.Should().BeOneOf(
@@ -113,7 +113,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         };
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -140,11 +140,11 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act & Assert - Pode listar
-        var listResponse = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var listResponse = await Fixture.ApiClient.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
         // Testa criar usuário - DEVE retornar Forbidden pois não tem role admin
-        var createResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", new
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", new
         {
             Name = "Test",
             Email = $"test-{Guid.NewGuid()}@test.com",
@@ -177,11 +177,11 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act & Assert - Pode listar
-        var listResponse = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var listResponse = await Fixture.ApiClient.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
         // Pode criar (mesmo que dê BadRequest por validação, não deve ser Forbidden)
-        var createResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", new
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", new
         {
             Name = "Admin Created",
             Email = $"admin-{Guid.NewGuid()}@test.com",
@@ -210,7 +210,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert - Não tem permissão UsersList, deve retornar Forbidden
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -232,7 +232,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < 3; i++)
         {
-            responses.Add(await fixture.ApiClient.GetAsync("/api/v1/users"));
+            responses.Add(await Fixture.ApiClient.GetAsync("/api/v1/users"));
         }
 
         // Assert - Todas devem ter sucesso
@@ -262,7 +262,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act - endpoint que requer ProviderOnly policy
-        var response = await fixture.ApiClient.GetAsync("/api/v1/providers");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert
         Assert.True(
@@ -286,7 +286,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/providers");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert - Deve negar acesso pois falta a permissão ProvidersList
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
@@ -309,7 +309,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act - endpoint que requer AdminOrProvider
-        var response = await fixture.ApiClient.GetAsync("/api/v1/providers");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -330,7 +330,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/api/v1/providers");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert
         Assert.True(
@@ -360,7 +360,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act - acessar próprio recurso
-        var response = await fixture.ApiClient.GetAsync($"/api/v1/users/{actualUserId}");
+        var response = await Fixture.ApiClient.GetAsync($"/api/v1/users/{actualUserId}");
 
         // Assert - Owner deve poder acessar próprio recurso
         response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -388,7 +388,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act - tentar acessar recurso de outro usuário
-        var response = await fixture.ApiClient.GetAsync($"/api/v1/users/{otherUserId}");
+        var response = await Fixture.ApiClient.GetAsync($"/api/v1/users/{otherUserId}");
 
         // Assert - Não-owner sem admin deve ser negado
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
@@ -409,7 +409,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - admin acessando qualquer recurso
-        var response = await fixture.ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
+        var response = await Fixture.ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
 
         // Assert - Admin deve poder acessar qualquer recurso
         response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -437,7 +437,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act - tentar atualizar token do usuário 1
-        var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{user1Id}/device-token", new { DeviceToken = "new-token" });
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{user1Id}/device-token", new { DeviceToken = "new-token" });
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "Usuário não pode atualizar token de outro usuário");
@@ -460,7 +460,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
         );
 
         // Act - tentar atualizar token de outro provider (ID arbitrário)
-        var response = await fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{Guid.NewGuid()}/device-token", new { DeviceToken = "new-token" });
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{Guid.NewGuid()}/device-token", new { DeviceToken = "new-token" });
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "Provider não pode atualizar token de outro provider");
@@ -495,7 +495,7 @@ public class PermissionAuthorizationEndToEndTests(TestContainerFixture fixture) 
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
         createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
         var createContent = await createResponse.Content.ReadAsStringAsync();

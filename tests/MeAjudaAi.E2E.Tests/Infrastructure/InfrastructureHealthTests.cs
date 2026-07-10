@@ -13,13 +13,13 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// MIGRADO PARA IClassFixture: Compartilha containers entre todos os testes desta classe.
 /// Reduz overhead de ~18s (3 testes × 6s) para ~6s (1× setup).
 /// </remarks>
-public class InfrastructureHealthTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
+public class InfrastructureHealthTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
     [Fact]
     public async Task Database_Should_Be_Available_And_Migrated()
     {
         // Arrange
-        using var scope = fixture.Services.CreateScope();
+        using var scope = Fixture.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         // Act

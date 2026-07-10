@@ -42,7 +42,7 @@ public class BookingEventsEndToEndTests(EventsEnabledTestContainerFixture fixtur
         // Assert
         // NOTE: Technical Debt - In this test environment, SSE streams may be closed by the server/client causing a 499 (Client Closed Request).
         // This is accepted as a functional success indicating the endpoint is reachable and route is correct.
-        // TODO: Refactor test to use a true message bus simulation for robust SSE stream validation.
+        // Future improvement: Use a true message bus simulation for robust SSE stream validation.
         (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == (System.Net.HttpStatusCode)499)
             .Should().BeTrue($"Expected OK (200) or 499 (test environment SSE behavior), but found {response.StatusCode}");
 

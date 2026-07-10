@@ -11,7 +11,7 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Infrastructure")]
-public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : IClassFixture<TestContainerFixture>
+public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
 
     #region BusinessMetricsMiddleware - Rotas Versionadas
@@ -35,7 +35,7 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
         };
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -50,7 +50,7 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
         // Arrange & Act
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsUser();
-        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Forbidden);
@@ -67,12 +67,12 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
     {
         // Arrange
         var customCorrelationId = Guid.NewGuid().ToString();
-        fixture.ApiClient.DefaultRequestHeaders.Add(AuthConstants.Headers.CorrelationId, customCorrelationId);
+        Fixture.ApiClient.DefaultRequestHeaders.Add(AuthConstants.Headers.CorrelationId, customCorrelationId);
 
         try
         {
             // Act
-            var response = await fixture.ApiClient.GetAsync("/health");
+            var response = await Fixture.ApiClient.GetAsync("/health");
 
             // Assert
             response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
@@ -81,7 +81,7 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
         }
         finally
         {
-            fixture.ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
+            Fixture.ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
         }
     }
 
@@ -89,10 +89,10 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
     public async Task LoggingContext_NoCorrelationId_ShouldGenerateNew()
     {
         // Arrange
-        fixture.ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
+        Fixture.ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
 
         // Act
-        var response = await fixture.ApiClient.GetAsync("/health");
+        var response = await Fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
@@ -113,7 +113,7 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await fixture.ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
+        var response = await Fixture.ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -154,7 +154,7 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
         };
 
         // Act
-        var response = await fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -178,10 +178,10 @@ public sealed class MiddlewareEndToEndTests(TestContainerFixture fixture) : ICla
         // Arrange - sem autenticação mas com context ID
         var contextId = ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(true);
-        fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        Fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
 
         // Act - tentar acessar endpoint protegido
-        var response = await fixture.ApiClient.GetAsync("/api/v1/users");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert - o usuário anônimo não tem permissão para acessar
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);

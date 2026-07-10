@@ -203,7 +203,13 @@ Componentes reutilizáveis em `Shared.Tests/TestInfrastructure/`:
 
 ## Paralelização
 
-A paralelização está **desabilitada** via `[assembly: CollectionBehavior(DisableTestParallelization = true)]` para evitar race conditions com containers compartilhados.
+A paralelização é configurada via `xunit.runner.json`:
+
+- **Assembly**: Paralelizado (`parallelizeAssembly: true`)
+- **Collections**: Sequenciais (`parallelizeTestCollections: false`)
+- **Threads**: Máximo 4 (`maxParallelThreads: 4`)
+
+Isso permite que diferentes assemblies rodem em paralelo, mas mantém as collections dentro de cada assembly sequencialmente para evitar race conditions com containers compartilhados.
 
 ## Troubleshooting
 

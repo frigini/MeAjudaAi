@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Communications.Application.DTOs;
-using MeAjudaAi.Shared.Serialization; 
+using MeAjudaAi.Shared.Serialization;
 
-namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Communications;
 
 public class SerializerMockBuilder
 {
