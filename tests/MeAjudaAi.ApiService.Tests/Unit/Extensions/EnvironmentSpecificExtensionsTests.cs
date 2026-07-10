@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Options;
 using Microsoft.AspNetCore.Builder;
@@ -7,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 

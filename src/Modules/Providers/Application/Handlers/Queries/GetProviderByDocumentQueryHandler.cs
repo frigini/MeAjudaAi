@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries.Interfaces;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
@@ -17,7 +19,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// </remarks>
 public sealed class GetProviderByDocumentQueryHandler(
     IProviderQueries providerQueries,
-    ILogger<GetProviderByDocumentQueryHandler> logger)
+    ILogger<GetProviderByDocumentQueryHandler> logger,
+    IStringLocalizer<Strings> localizer)
     : IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>>
 {
     /// <summary>
@@ -37,7 +40,7 @@ public sealed class GetProviderByDocumentQueryHandler(
         if (string.IsNullOrWhiteSpace(normalizedDocument))
         {
             logger.LogWarning("Invalid document provided for provider search");
-            return Result<ProviderDto?>.Failure(Error.BadRequest("Documento não pode ser vazio"));
+            return Result<ProviderDto?>.Failure(Error.BadRequest(localizer["DocumentRequired"]));
         }
 
         var provider = await providerQueries.GetByDocumentAsync(normalizedDocument, cancellationToken);

@@ -19,9 +19,5 @@
     <ProjectReference Include="..\..\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="MeAjudaAi.Gateway.Tests" />
-  </ItemGroup>
-
 </Project>
 <!-- This project contains the API Gateway configuration, including reverse proxy routing, authentication, and request filtering. -->

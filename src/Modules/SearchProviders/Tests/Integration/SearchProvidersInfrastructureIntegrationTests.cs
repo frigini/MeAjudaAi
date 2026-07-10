@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Modules.SearchProviders.Tests.Integration.Infrastructure;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.DependencyInjection;
@@ -270,8 +271,6 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         result.Providers.Should().BeEmpty();
     }
 
-
-
     [Fact]
     public async Task SearchAsync_WithSubscriptionTierFilter_ShouldFilterCorrectly()
     {
@@ -420,6 +419,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             result.TotalCount.Should().Be(10);
         });
     }
+
     [Fact]
     public async Task SearchAsync_WithTerm_ShouldFilterCaseInsensitive()
     {
@@ -452,7 +452,3 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         result.Providers.First().Name.Should().Be("João Silva");
     }
 }
-
-
-
-

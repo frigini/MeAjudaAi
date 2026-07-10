@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
@@ -58,7 +59,7 @@ public static class SharedTestContainers
     {
         DatabaseName = "test_db",
         Username = "test_user",
-        Password = "test_password",
+        Password = "test123",
         Schema = "users" // Usado como padrão para garantir compatibilidade com UsersModule migrations
     };
 
@@ -118,7 +119,10 @@ public static class SharedTestContainers
     /// </summary>
     private static async Task ValidateContainerHealthAsync()
     {
-        if (_postgreSqlContainer == null) return;
+        if (_postgreSqlContainer == null)
+        {
+            throw new InvalidOperationException("ValidateContainerHealthAsync: _postgreSqlContainer is null. Ensure EnsureInitialized() has been called before health checks.");
+        }
 
         const int maxRetries = 30;
         const int delayMs = 1000;
@@ -127,16 +131,30 @@ public static class SharedTestContainers
         {
             try
             {
-                // Tenta obter connection string para verificar se as portas estão mapeadas
                 var connectionString = _postgreSqlContainer.GetConnectionString();
+                Console.WriteLine($"[PostgreSQL] Attempt {i + 1}/{maxRetries}: connecting...");
 
-                // Se conseguiu obter, o container está pronto
-                Console.WriteLine($"Container PostgreSQL ready! Connection: {connectionString}");
+                await using (var connection = new Npgsql.NpgsqlConnection(connectionString))
+                {
+                    await connection.OpenAsync();
+                }
+
+                Console.WriteLine($"[PostgreSQL] Container ready!");
                 return;
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "3D000")
+            {
+                Console.WriteLine($"[PostgreSQL] Database not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("not mapped"))
             {
-                Console.WriteLine($"Container not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                Console.WriteLine($"[PostgreSQL] Container not ready (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PostgreSQL] Health check error (attempt {i + 1}/{maxRetries}): {ex.GetType().Name}: {ex.Message}");
                 await Task.Delay(delayMs);
             }
         }
@@ -168,19 +186,43 @@ public static class SharedTestContainers
     /// <param name="schema">Schema específico para limpar. Se null, usa o schema padrão das configurações</param>
     public static async Task CleanupDataAsync(string? schema = null)
     {
-        if (!_isInitialized) return;
+        if (!_isInitialized || _postgreSqlContainer == null) return;
+
+        // Verifica se o container foi iniciado antes de tentar executar comandos
+        try
+        {
+            _ = _postgreSqlContainer.Id;
+        }
+        catch (InvalidOperationException)
+        {
+            // Container não foi iniciado, nada a limpar
+            return;
+        }
 
         _databaseOptions ??= GetDefaultDatabaseOptions();
 
-        // Limpa PostgreSQL
-        if (_postgreSqlContainer != null)
+        var schemaToClean = schema ?? _databaseOptions.Schema ?? "public";
+
+        var result = await _postgreSqlContainer.ExecAsync(
+        [
+            "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-tAc",
+            $"""
+            DO $$
+            DECLARE
+                r RECORD;
+            BEGIN
+                FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = '{schemaToClean}' AND tablename <> '__EFMigrationsHistory'
+                LOOP
+                    EXECUTE format('TRUNCATE TABLE %I.%I CASCADE', '{schemaToClean}', r.tablename);
+                END LOOP;
+            END $$;
+            """
+        ]);
+
+        if (result.ExitCode != 0)
         {
-            var schemaToClean = schema ?? _databaseOptions.Schema ?? "public";
-            await _postgreSqlContainer.ExecAsync(
-            [
-                "psql", "-U", _databaseOptions.Username, "-d", _databaseOptions.DatabaseName, "-c",
-                $"DROP SCHEMA IF EXISTS {schemaToClean} CASCADE; CREATE SCHEMA {schemaToClean};"
-            ]);
+            throw new InvalidOperationException(
+                $"CleanupDataAsync failed for schema '{schemaToClean}' with exit code {result.ExitCode}: {result.Stdout}{result.Stderr}");
         }
     }
 
@@ -238,13 +280,12 @@ public static class SharedTestContainers
     {
         if (!_isInitialized) return;
 
-        // Schemas conhecidos dos módulos (pode ser expandido conforme novos módulos)
-        var moduleSchemas = new[] { "users", "providers", "services", "orders", "public" };
-
-        foreach (var schema in moduleSchemas)
+        foreach (var schema in DbContextSchemaHelper.GetAllModuleSchemas())
         {
             await CleanupDataAsync(schema);
         }
+
+        await CleanupDataAsync("public");
     }
 
     /// <summary>

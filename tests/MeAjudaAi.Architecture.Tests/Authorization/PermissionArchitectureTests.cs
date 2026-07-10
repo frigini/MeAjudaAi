@@ -1,14 +1,13 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Moq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using MeAjudaAi.Shared.Authorization.Extensions;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 
@@ -28,9 +27,9 @@ public class PermissionArchitectureTests
             .That()
             .HaveNameEndingWith("PermissionResolver")
             .And()
-            .AreNotInterfaces() // Interfaces não podem ser sealed
+            .AreNotInterfaces()
             .And()
-            .AreClasses() // Apenas classes concretas
+            .AreClasses()
             .Should()
             .BeSealed()
             .GetResult();
@@ -93,7 +92,6 @@ public class PermissionArchitectureTests
             Assert.NotNull(displayAttribute);
             Assert.NotNull(displayAttribute.Name);
             Assert.NotEmpty(displayAttribute.Name);
-            // Description é opcional para permissões
         }
     }
 
@@ -108,20 +106,17 @@ public class PermissionArchitectureTests
         {
             var value = permission.GetValue();
 
-            // Deve seguir o padrão "module:action"
             Assert.Contains(":", value);
 
             var parts = value.Split(':');
             Assert.Equal(2, parts.Length);
 
-            // Módulo deve estar em lowercase (permitindo hífens), não vazio, e conter pelo menos uma letra
             Assert.True(
                 parts[0].Length > 0 &&
                 parts[0].Any(char.IsLetter) &&
                 parts[0].All(c => char.IsLower(c) || c == '-'),
                 $"Módulo '{parts[0]}' deve estar em lowercase, não vazio, e conter pelo menos uma letra. Permission: {permission}");
 
-            // Ação deve estar em lowercase (permitindo hífens), não vazia, e conter pelo menos uma letra
             Assert.True(
                 parts[1].Length > 0 &&
                 parts[1].Any(char.IsLetter) &&
@@ -137,11 +132,12 @@ public class PermissionArchitectureTests
         var permissionValues = Enum.GetValues<EPermission>();
         var permissionStrings = permissionValues.Select(p => p.GetValue()).ToList();
 
-        // Act & Assert
+        // Act
         var duplicates = permissionStrings.GroupBy(x => x)
             .Where(g => g.Count() > 1)
             .Select(g => g.Key);
 
+        // Assert
         Assert.Empty(duplicates);
     }
 
@@ -170,11 +166,8 @@ public class PermissionArchitectureTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
         var env = new Mock<IWebHostEnvironment>().Object;
-
-        // Registrar serviços de autorização usando a extensão real
         services.AddPermissionBasedAuthorization(configuration, env);
 
-        // Lista de tipos e seus tempos de vida esperados
         var authorizationServices = new[]
         {
             typeof(IPermissionService),
@@ -191,9 +184,6 @@ public class PermissionArchitectureTests
             
             foreach (var descriptor in descriptors)
             {
-                // Apenas verifica Scoped para implementações internas.
-                // Alguns handlers podem ser registrados por frameworks externos, então
-                // filtramos apenas pelos que são nossos.
                 if (descriptor.ImplementationType?.Namespace?.StartsWith("MeAjudaAi") == true)
                 {
                     Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
@@ -227,7 +217,7 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthConstants_Claims_ShouldBeConstantStrings()
     {
-        // Arrange - Lista explícita de todas as constantes de Claims
+        // Arrange
         var claims = new[]
         {
             AuthConstants.Claims.Subject,

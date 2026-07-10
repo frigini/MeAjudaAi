@@ -1,0 +1,313 @@
+using MeAjudaAi.Architecture.Tests.Helpers;
+using MeAjudaAi.Architecture.Tests.Helpers.Models;
+using System.Reflection;
+
+#pragma warning disable xUnit1004 // Teste documentacional ignorado intencionalmente
+
+namespace MeAjudaAi.Architecture.Tests.Dependencies;
+
+/// <summary>
+/// Testes de fronteiras de módulos garantindo isolamento adequado entre módulos
+/// Crítico para integridade da arquitetura de monólito modular
+/// </summary>
+public class ModuleBoundaryTests
+{
+    private static readonly IEnumerable<ModuleInfo> AllModules = ModuleDiscoveryHelper.DiscoverModules();
+
+    [Fact]
+    public void Modules_ShouldNotReference_OtherModules()
+    {
+        // Arrange
+        var failures = new List<string>();
+
+        // Act
+        foreach (var currentModule in AllModules)
+        {
+            var otherModuleNames = AllModules
+                .Where(m => m.Name != currentModule.Name)
+                .Select(m => $"MeAjudaAi.Modules.{m.Name}")
+                .ToArray();
+
+            if (otherModuleNames.Length == 0) continue;
+
+            var assembliesInModule = new[]
+            {
+                currentModule.ApiAssembly,
+                currentModule.ApplicationAssembly,
+                currentModule.InfrastructureAssembly,
+                currentModule.DomainAssembly
+            }.Where(a => a != null).ToArray();
+
+            foreach (var assembly in assembliesInModule)
+            {
+                var result = Types.InAssembly(assembly!)
+                    .Should()
+                    .NotHaveDependencyOnAny(otherModuleNames)
+                    .GetResult();
+
+                if (!result.IsSuccessful)
+                {
+                    var assemblyLayer = GetLayerName(assembly!, currentModule);
+                    var violationDetails = result.FailingTypes?.Select(t =>
+                        $"{currentModule.Name}.{assemblyLayer}: {t.FullName}") ?? [];
+                    failures.AddRange(violationDetails);
+                }
+            }
+        }
+
+        // Assert
+        failures.Should().BeEmpty(
+            "Módulos não devem referenciar outros módulos diretamente. " +
+            "Violações: {0}",
+            string.Join(", ", failures));
+    }
+
+    [Fact]
+    public void Module_Internal_Types_ShouldNotBePublic()
+    {
+        // Arrange
+        var failures = new List<string>();
+
+        // Act
+        foreach (var module in AllModules)
+        {
+            if (module.InfrastructureAssembly == null) continue;
+
+            var result = Types.InAssembly(module.InfrastructureAssembly)
+                .That()
+                .ResideInNamespaceContaining(".Persistence.Repositories")
+                .Or()
+                .ResideInNamespaceContaining(".Services")
+                .Or()
+                .ResideInNamespaceContaining(".Events.Handlers")
+                .Should()
+                .NotBePublic()
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        // Assert
+        failures.Should().BeEmpty(
+            "Implementações internas do módulo não devem ser públicas. " +
+            "Violações: {0}",
+            string.Join(", ", failures));
+    }
+
+    [Fact]
+    public void Module_Domain_ShouldOnlyDependOn_Shared()
+    {
+        // Arrange
+        var failures = new List<string>();
+
+        // Act
+        foreach (var module in AllModules)
+        {
+            if (module.DomainAssembly == null) continue;
+
+            var referencedAssemblies = module.DomainAssembly.GetReferencedAssemblies()
+                .Where(a => a.Name?.StartsWith("MeAjudaAi") == true)
+                .Select(a => a.Name)
+                .ToList();
+
+            var invalidReferences = referencedAssemblies
+                .Where(name => name != "MeAjudaAi.Shared" &&
+                              name != "MeAjudaAi.Contracts" &&
+                              !name?.StartsWith("System") == true &&
+                              !name?.StartsWith("Microsoft") == true)
+                .ToList();
+
+            if (invalidReferences.Any())
+            {
+                failures.Add($"{module.Name}: {string.Join(", ", invalidReferences)}");
+            }
+        }
+
+        // Assert
+        failures.Should().BeEmpty(
+            "Domínio deve referenciar apenas o projeto Shared e assemblies do framework. " +
+            "Referências inválidas: {0}",
+            string.Join("; ", failures));
+    }
+
+    [Fact(Skip = "LIMITAÇÃO TÉCNICA: EF Core exige DbContext público para design-time. Não é possível tornar internal sem quebrar ferramentas de migração.")]
+    public void Module_DbContext_ShouldBeInternal()
+    {
+        // Conceitualmente, DbContext deveria ser internal para melhor encapsulamento do módulo
+        // Porém, o EF Core exige que seja público para suas ferramentas de design-time funcionarem
+        // Este teste documenta a arquitetura ideal, mesmo que não possa ser aplicada devido à limitação técnica
+        var failures = new List<string>();
+
+        foreach (var module in AllModules)
+        {
+            if (module.InfrastructureAssembly == null) continue;
+
+            var result = Types.InAssembly(module.InfrastructureAssembly)
+                .That()
+                .HaveNameEndingWith("DbContext")
+                .Should()
+                .NotBePublic()
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.Name}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
+            "DbContext deveria ser internal ao módulo para melhor encapsulamento. " +
+            "Tipos DbContext públicos encontrados: {0}",
+            string.Join(", ", failures));
+    }
+
+    [Fact]
+    public void Module_DbContext_ShouldNotBeReferencedOutsideInfrastructure()
+    {
+        // Arrange
+        var failures = new List<string>();
+
+        // Act
+        foreach (var module in AllModules)
+        {
+            if (module.InfrastructureAssembly == null) continue;
+
+            var dbContextTypeNames = Types.InAssembly(module.InfrastructureAssembly)
+                .That()
+                .HaveNameEndingWith("DbContext")
+                .GetTypes()
+                .Select(t => t.FullName!)
+                .ToArray();
+
+            if (!dbContextTypeNames.Any()) continue;
+
+            if (module.DomainAssembly != null)
+            {
+                var domainResult = Types.InAssembly(module.DomainAssembly)
+                    .Should()
+                    .NotHaveDependencyOnAll(dbContextTypeNames)
+                    .GetResult();
+
+                if (!domainResult.IsSuccessful)
+                {
+                    failures.AddRange(domainResult.FailingTypes?.Select(t => $"{module.Name}.Domain: {t.Name}") ?? []);
+                }
+            }
+
+            if (module.ApplicationAssembly != null)
+            {
+                var applicationResult = Types.InAssembly(module.ApplicationAssembly)
+                    .Should()
+                    .NotHaveDependencyOnAll(dbContextTypeNames)
+                    .GetResult();
+
+                if (!applicationResult.IsSuccessful)
+                {
+                    failures.AddRange(applicationResult.FailingTypes?.Select(t => $"{module.Name}.Application: {t.Name}") ?? []);
+                }
+            }
+
+            if (module.ApiAssembly != null)
+            {
+                var apiResult = Types.InAssembly(module.ApiAssembly)
+                    .Should()
+                    .NotHaveDependencyOnAll(dbContextTypeNames)
+                    .GetResult();
+
+                if (!apiResult.IsSuccessful)
+                {
+                    failures.AddRange(apiResult.FailingTypes?.Select(t => $"{module.Name}.API: {t.Name}") ?? []);
+                }
+            }
+        }
+
+        // Assert
+        failures.Should().BeEmpty(
+            "DbContext não deve ser referenciado fora da camada Infrastructure. " +
+            "Violações encontradas: {0}",
+            string.Join(", ", failures));
+    }
+
+    [Fact]
+    public void Module_Extensions_ShouldBePublic()
+    {
+        // Arrange
+        var failures = new List<string>();
+
+        // Act
+        foreach (var module in AllModules)
+        {
+            if (module.InfrastructureAssembly == null) continue;
+
+            var result = Types.InAssembly(module.InfrastructureAssembly)
+                .That()
+                .HaveNameEndingWith("Extensions")
+                .Should()
+                .BePublic()
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        // Assert
+        failures.Should().BeEmpty(
+            "Classes de extensão devem ser públicas para registro de DI. " +
+            "Violações: {0}",
+            string.Join(", ", failures));
+    }
+
+    [Fact]
+    public void Integration_Events_ShouldBeInSharedProject()
+    {
+        // Arrange
+        var failures = new List<string>();
+
+        // Act
+        foreach (var module in AllModules)
+        {
+            var assembliesInModule = new[]
+            {
+                module.ApiAssembly,
+                module.ApplicationAssembly,
+                module.InfrastructureAssembly,
+                module.DomainAssembly
+            }.Where(a => a != null).ToArray();
+
+            foreach (var assembly in assembliesInModule)
+            {
+                var integrationEventTypes = Types.InAssembly(assembly!)
+                    .That()
+                    .HaveNameEndingWith("IntegrationEvent")
+                    .GetTypes();
+
+                if (integrationEventTypes.Any())
+                {
+                    var assemblyLayer = GetLayerName(assembly!, module);
+                    failures.AddRange(integrationEventTypes.Select(t =>
+                        $"{module.Name}.{assemblyLayer}: {t.FullName}"));
+                }
+            }
+        }
+
+        // Assert
+        failures.Should().BeEmpty(
+            "Eventos de integração não devem existir em assemblies de módulo, devem estar no Shared. " +
+            "Encontrados: {0}",
+            string.Join(", ", failures));
+    }
+
+    private static string GetLayerName(Assembly assembly, ModuleInfo module)
+    {
+        if (assembly == module.ApiAssembly) return "API";
+        if (assembly == module.ApplicationAssembly) return "Application";
+        if (assembly == module.InfrastructureAssembly) return "Infrastructure";
+        if (assembly == module.DomainAssembly) return "Domain";
+        return "Unknown";
+    }
+}

@@ -5,8 +5,11 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -19,6 +22,7 @@ public class RejectDocumentCommandHandlerTests
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<RejectDocumentCommandHandler>> _mockLogger;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly RejectDocumentCommandHandler _handler;
 
     public RejectDocumentCommandHandlerTests()
@@ -28,14 +32,29 @@ public class RejectDocumentCommandHandlerTests
         _mockQueries = new Mock<IDocumentQueries>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<RejectDocumentCommandHandler>>();
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
 
         _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
+
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "HttpContextNotAvailable")])
+            .Returns(new LocalizedString("HttpContextNotAvailable", "Contexto HTTP não disponível."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentStatusInvalidForRejection"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"O documento está com status {args[0]} e só pode ser recusado quando estiver em Verificação Pendente."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentRejectionReasonRequired")])
+            .Returns(new LocalizedString("DocumentRejectionReasonRequired", "Motivo de recusa é obrigatório."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentRejectError")])
+            .Returns(new LocalizedString("DocumentRejectError", "Falha ao rejeitar o documento. Por favor, tente novamente mais tarde."));
 
         _handler = new RejectDocumentCommandHandler(
             _mockUow.Object,
             _mockQueries.Object,
             _mockHttpContextAccessor.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockLocalizer.Object);
     }
 
     private void SetupAuthenticatedUser(string role)
@@ -58,7 +77,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         SetupAuthenticatedUser(adminRole);
@@ -83,7 +102,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         SetupAuthenticatedUser(nonAdminRole);
@@ -123,7 +142,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         // Status defaults to Uploaded
 
         SetupAuthenticatedUser(RoleConstants.Admin);
@@ -145,7 +164,7 @@ public class RejectDocumentCommandHandlerTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         SetupAuthenticatedUser(RoleConstants.Admin);

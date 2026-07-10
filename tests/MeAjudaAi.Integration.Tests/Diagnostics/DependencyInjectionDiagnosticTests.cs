@@ -1,9 +1,8 @@
-using FluentAssertions;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Queries;
 
@@ -73,10 +72,9 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
         var queryHandlerType = typeof(IQueryHandler<,>);
 
         // Get all services that implement any IQueryHandler interface
-        var allServices = Services.GetType()
-            .GetProperty("Services")?.GetValue(Services) as IEnumerable<ServiceDescriptor>;
 
-        if (allServices != null)
+        if (Services.GetType()
+            .GetProperty("Services")?.GetValue(Services) is IEnumerable<ServiceDescriptor> allServices)
         {
             var queryHandlers = allServices
                 .Where(s => s.ServiceType.IsGenericType &&
@@ -94,5 +92,3 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
         }
     }
 }
-
-

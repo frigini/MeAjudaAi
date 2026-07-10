@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.ModuleApi;
 
@@ -14,6 +16,7 @@ public sealed class LocationsModuleApiTests
     private readonly Mock<IGeocodingService> _mockGeocodingService;
     private readonly Mock<IAllowedCityQueries> _mockAllowedCityQueries;
     private readonly Mock<ILogger<LocationsModuleApi>> _mockLogger;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly LocationsModuleApi _sut;
 
     public LocationsModuleApiTests()
@@ -22,7 +25,10 @@ public sealed class LocationsModuleApiTests
         _mockGeocodingService = new Mock<IGeocodingService>();
         _mockAllowedCityQueries = new Mock<IAllowedCityQueries>();
         _mockLogger = new Mock<ILogger<LocationsModuleApi>>();
-        _sut = new LocationsModuleApi(_mockCepLookupService.Object, _mockGeocodingService.Object, _mockAllowedCityQueries.Object, _mockLogger.Object);
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
+        _mockLocalizer.Setup(x => x[It.IsAny<string>()]).Returns<string>(key => new LocalizedString(key, key));
+        _mockLocalizer.Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()]).Returns<string, object[]>((key, args) => new LocalizedString(key, key));
+        _sut = new LocationsModuleApi(_mockCepLookupService.Object, _mockGeocodingService.Object, _mockAllowedCityQueries.Object, _mockLogger.Object, _mockLocalizer.Object);
     }
 
     [Fact]
@@ -179,7 +185,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("inválido");
+        result.Error!.Message.Should().Contain("InvalidCep");
     }
 
     [Fact]
@@ -195,7 +201,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("não encontrado");
+        result.Error!.Message.Should().Contain("CepNotFound");
     }
 
     [Fact]
@@ -249,7 +255,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("não pode ser vazio");
+        result.Error!.Message.Should().Contain("AddressCannotBeEmpty");
     }
 
     [Fact]
@@ -265,7 +271,7 @@ public sealed class LocationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("não encontradas");
+        result.Error!.Message.Should().Contain("CoordinatesNotFoundForAddress");
     }
 
     [Fact]
@@ -337,6 +343,6 @@ public sealed class LocationsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().NotContain("Internal DB error");
-        result.Error!.Message.Should().Contain("Erro ao buscar ID da cidade");
+        result.Error!.Message.Should().Contain("ErrorFetchingCityId");
     }
 }

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Database.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -62,7 +63,7 @@ public class DocumentVerificationJobTests
     public async Task Should_process_and_persist_verified_document()
     {
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
@@ -82,7 +83,7 @@ public class DocumentVerificationJobTests
     public async Task Should_handle_intelligence_service_failure()
     {
         var documentId = Guid.NewGuid();
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("identity.pdf").WithFileUrl("blob-key-123").Build();
         document.MarkAsPendingVerification();
 
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);

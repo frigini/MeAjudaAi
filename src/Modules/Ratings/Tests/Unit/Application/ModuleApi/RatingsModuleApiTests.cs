@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Ratings.Application.ModuleApi;
 using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.ModuleApi;
@@ -84,7 +85,7 @@ public class RatingsModuleApiTests
     {
         var customerId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
-        var review = MeAjudaAi.Modules.Ratings.Domain.Entities.Review.Create(providerId, customerId, 5, "Great");
+        var review = new ReviewBuilder().WithProviderId(providerId).WithCustomerId(customerId).WithRating(5).WithComment("Great").Build();
 
         _reviewQueriesMock
             .Setup(x => x.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))

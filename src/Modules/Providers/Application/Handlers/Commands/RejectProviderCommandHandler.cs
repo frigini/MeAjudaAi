@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -13,7 +15,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </summary>
 public sealed class RejectProviderCommandHandler(
     IUnitOfWork uow,
-    ILogger<RejectProviderCommandHandler> logger
+    ILogger<RejectProviderCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<RejectProviderCommand, Result>
 {
     public async Task<Result> HandleAsync(RejectProviderCommand command, CancellationToken cancellationToken)
@@ -24,20 +27,20 @@ public sealed class RejectProviderCommandHandler(
         if (string.IsNullOrWhiteSpace(command.Reason))
         {
             logger.LogWarning("Rejection reason is required but was not provided");
-            return Result.Failure("Motivo da rejeição é obrigatório");
+            return Result.Failure(localizer["ProviderRejectionReasonRequired"]);
         }
 
         if (string.IsNullOrWhiteSpace(command.RejectedBy))
         {
             logger.LogWarning("RejectedBy is required but was not provided");
-            return Result.Failure("Responsável pela rejeição é obrigatório");
+            return Result.Failure(localizer["RejectedByRequired"]);
         }
 
         var provider = await uow.GetRepository<Provider, ProviderId>().TryFindAsync(new ProviderId(command.ProviderId), cancellationToken);
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result.Failure("Fornecedor não encontrado");
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         provider.Reject(command.Reason, command.RejectedBy);

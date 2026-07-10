@@ -4,7 +4,10 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.ModuleApi;
@@ -22,6 +25,7 @@ public class DocumentsModuleApiTests
     private readonly Mock<IDocumentQueries> _documentQueriesMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<DocumentsModuleApi>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DocumentsModuleApi _sut;
 
     public DocumentsModuleApiTests()
@@ -31,13 +35,17 @@ public class DocumentsModuleApiTests
         _documentQueriesMock = new Mock<IDocumentQueries>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _loggerMock = new Mock<ILogger<DocumentsModuleApi>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "DocumentNotFoundInModule")])
+            .Returns(new LocalizedString("DocumentNotFoundInModule", "Documento não encontrado."));
 
         _sut = new DocumentsModuleApi(
             _getDocumentByIdHandlerMock.Object,
             _getProviderDocumentsHandlerMock.Object,
             _documentQueriesMock.Object,
             _serviceProviderMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -736,8 +744,7 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documentDto);
 
-        var documentEntity = Modules.Documents.Domain.Entities.Document.Create(
-            documentId, Modules.Documents.Domain.Enums.EDocumentType.IdentityDocument, "test.pdf", "blob-url");
+        var documentEntity = new DocumentBuilder().WithProviderId(documentId).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("blob-url").Build();
 
         var repositoryMock = new Mock<Shared.Database.Abstractions.IRepository<Modules.Documents.Domain.Entities.Document, Guid>>();
         repositoryMock.Setup(x => x.TryFindAsync(documentId, It.IsAny<CancellationToken>()))
@@ -776,6 +783,7 @@ public class DocumentsModuleApiTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("Documento não encontrado.");
     }
 
     [Fact]

@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -15,9 +17,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// </summary>
 /// <param name="uow"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class DeactivateServiceCategoryCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
-    ILogger<DeactivateServiceCategoryCommandHandler> logger) : ICommandHandler<DeactivateServiceCategoryCommand, Result>
+    ILogger<DeactivateServiceCategoryCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<DeactivateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(DeactivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
@@ -45,7 +49,7 @@ public sealed class DeactivateServiceCategoryCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while deactivating service category.");
-            return Result.Failure("Ocorreu um erro inesperado ao desativar a categoria de serviço.");
+            return Result.Failure(localizer["CategoryDeactivateError"]);
         }
     }
 }

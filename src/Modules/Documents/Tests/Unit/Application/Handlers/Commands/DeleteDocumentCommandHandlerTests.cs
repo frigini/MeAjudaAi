@@ -6,8 +6,11 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -21,6 +24,7 @@ public class DeleteDocumentCommandHandlerTests
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<DeleteDocumentCommandHandler>> _mockLogger;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly DeleteDocumentCommandHandler _handler;
 
     public DeleteDocumentCommandHandlerTests()
@@ -31,15 +35,30 @@ public class DeleteDocumentCommandHandlerTests
         _mockBlobStorage = new Mock<IBlobStorageService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<DeleteDocumentCommandHandler>>();
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
 
         _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
+
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "HttpContextNotAvailable")])
+            .Returns(new LocalizedString("HttpContextNotAvailable", "Contexto HTTP não disponível."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentDeleteNotAllowed")])
+            .Returns(new LocalizedString("DocumentDeleteNotAllowed", "É necessário estar autenticado para excluir documentos."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "AdminOnlyCanDeleteDocuments")])
+            .Returns(new LocalizedString("AdminOnlyCanDeleteDocuments", "Apenas administradores podem excluir documentos."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentDeleteError")])
+            .Returns(new LocalizedString("DocumentDeleteError", "Falha ao excluir o documento. Por favor, tente novamente mais tarde."));
 
         _handler = new DeleteDocumentCommandHandler(
             _mockUow.Object,
             _mockQueries.Object,
             _mockBlobStorage.Object,
             _mockHttpContextAccessor.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockLocalizer.Object);
     }
 
     private HttpContext CreateAuthenticatedAdminContext()
@@ -68,7 +87,7 @@ public class DeleteDocumentCommandHandlerTests
 
     private static Document CreateTestDocument(string fileUrl = "https://storage/doc.pdf")
     {
-        return Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", fileUrl);
+        return new DocumentBuilder().AsIdentityDocument().WithFileName("test.pdf").WithFileUrl(fileUrl).Build();
     }
 
     [Fact]
@@ -105,7 +124,7 @@ public class DeleteDocumentCommandHandlerTests
     public async Task Handle_WithEmptyFileUrl_ShouldSkipBlobDeletion()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "some-url");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("some-url").Build();
         typeof(Document).GetProperty(nameof(Document.FileUrl))!.SetValue(document, string.Empty);
         var command = new DeleteDocumentCommand(document.Id);
 
@@ -277,7 +296,7 @@ public class DeleteDocumentCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("excluir");
+        result.Error!.Message.Should().Contain("excluir o documento");
     }
 
     [Fact]

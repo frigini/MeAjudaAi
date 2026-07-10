@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
@@ -18,6 +20,7 @@ public class UpdateUserProfileCommandHandlerTests
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly Mock<ILogger<UpdateUserProfileCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly UpdateUserProfileCommandHandler _handler;
 
     public UpdateUserProfileCommandHandlerTests()
@@ -26,15 +29,21 @@ public class UpdateUserProfileCommandHandlerTests
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _loggerMock = new Mock<ILogger<UpdateUserProfileCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _unitOfWorkMock
             .Setup(x => x.GetRepository<User, UserId>())
             .Returns(_userRepositoryMock.Object);
 
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "UserProfileUpdateError")])
+            .Returns(new LocalizedString("UserProfileUpdateError", "Falha ao atualizar o perfil do usuário devido a um erro inesperado."));
+
         _handler = new UpdateUserProfileCommandHandler(
             _unitOfWorkMock.Object,
             _usersCacheServiceMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]

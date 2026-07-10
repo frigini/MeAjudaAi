@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using ContractsEnumEReviewStatus = MeAjudaAi.Contracts.Modules.Ratings.Enums.EReviewStatus;
 using DomainEnumEReviewStatus = MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus;
@@ -16,7 +18,8 @@ namespace MeAjudaAi.Modules.Ratings.Application.Handlers.Queries;
 /// </summary>
 public sealed class GetReviewByIdQueryHandler(
     IReviewQueries reviewQueries,
-    ILogger<GetReviewByIdQueryHandler> logger) : IQueryHandler<GetReviewByIdQuery, Result<ProviderReviewResponse>>
+    ILogger<GetReviewByIdQueryHandler> logger,
+    IStringLocalizer<Strings> localizer) : IQueryHandler<GetReviewByIdQuery, Result<ProviderReviewResponse>>
 {
     public async Task<Result<ProviderReviewResponse>> HandleAsync(GetReviewByIdQuery query, CancellationToken cancellationToken = default)
     {
@@ -26,7 +29,7 @@ public sealed class GetReviewByIdQueryHandler(
 
         if (review == null || review.Status != DomainEnumEReviewStatus.Approved)
         {
-            return Result<ProviderReviewResponse>.Failure(Error.NotFound("Avaliação não encontrada."));
+            return Result<ProviderReviewResponse>.Failure(Error.NotFound(localizer["ReviewNotFound"]));
         }
 
         return Result<ProviderReviewResponse>.Success(new ProviderReviewResponse(

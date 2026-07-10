@@ -8,7 +8,9 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -19,10 +21,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="uow"></param>
 /// <param name="categoryQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class UpdateServiceCategoryCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceCategoryQueries categoryQueries,
-    ILogger<UpdateServiceCategoryCommandHandler> logger) : ICommandHandler<UpdateServiceCategoryCommand, Result>
+    ILogger<UpdateServiceCategoryCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
@@ -42,7 +46,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
                 return Result.Failure(ValidationMessages.Required.CategoryName);
 
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
-                return Result.Failure(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName));
+                return Result.Failure(Error.Conflict(string.Format(ValidationMessages.Catalogs.CategoryNameExists, normalizedName)));
 
             category.Update(normalizedName, request.Description, request.DisplayOrder);
 
@@ -65,7 +69,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while updating service category.");
-            return Result.Failure("Ocorreu um erro inesperado ao atualizar a categoria de serviço.");
+            return Result.Failure(localizer["CategoryUpdateError"]);
         }
     }
 }

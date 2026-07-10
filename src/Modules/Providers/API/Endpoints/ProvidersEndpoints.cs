@@ -41,6 +41,7 @@ public static class ProvidersEndpoints
             .MapEndpoint<GetMyProviderStatusEndpoint>()
             .MapEndpoint<ActivateMyProviderProfileEndpoint>()
             .MapEndpoint<DeactivateMyProviderProfileEndpoint>()
+            .MapEndpoint<DeleteMyProviderProfileEndpoint>()
             .MapEndpoint<ProviderVerificationEventsEndpoint>()
             .MapEndpoint<UpdateProviderDeviceTokenEndpoint>();
         

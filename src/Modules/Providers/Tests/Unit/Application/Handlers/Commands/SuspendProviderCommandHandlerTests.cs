@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
@@ -15,6 +17,7 @@ public sealed class SuspendProviderCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<SuspendProviderCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly SuspendProviderCommandHandler _handler;
 
     public SuspendProviderCommandHandlerTests()
@@ -22,11 +25,23 @@ public sealed class SuspendProviderCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<SuspendProviderCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "SuspensionReasonRequired")])
+            .Returns(new LocalizedString("SuspensionReasonRequired", "Motivo da suspensão é obrigatório."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "SuspendedByRequired")])
+            .Returns(new LocalizedString("SuspendedByRequired", "Responsável pela suspensão é obrigatório."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         _handler = new SuspendProviderCommandHandler(
             _uowMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -86,7 +101,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Prestador não encontrado");
+        result.Error!.Message.Should().Be("Prestador não encontrado.");
 
         _uowMock.Verify(
             r => r.SaveChangesAsync(It.IsAny<CancellationToken>()),
@@ -114,7 +129,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Motivo da suspensão é obrigatório");
+        result.Error!.Message.Should().Be("Motivo da suspensão é obrigatório.");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -138,7 +153,7 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Responsável pela suspensão é obrigatório");
+        result.Error!.Message.Should().Be("Responsável pela suspensão é obrigatório.");
 
         _providerRepositoryMock.Verify(
             r => r.TryFindAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

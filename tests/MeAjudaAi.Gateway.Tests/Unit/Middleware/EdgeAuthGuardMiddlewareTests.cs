@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.Gateway.Middlewares;
 using MeAjudaAi.Gateway.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Gateway.Tests.Unit.Middleware;
 

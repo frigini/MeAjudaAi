@@ -1,11 +1,9 @@
-using System.Text.Json;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
-using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
-
-
+using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Locations;
 
@@ -15,24 +13,8 @@ namespace MeAjudaAi.E2E.Tests.Modules.Locations;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Locations")]
-public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class LocationsEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    private readonly TestContainerFixture _fixture;
-
-    public LocationsEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await _fixture.CleanupDatabaseAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
 
     [Fact]
     public async Task CreateAllowedCity_WithValidData_ShouldCreateAndReturnCityId()
@@ -54,7 +36,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", request);
+        var response = await Fixture.PostJsonAsync("/api/v1/admin/allowed-cities", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -68,7 +50,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         cityId.Should().NotBeEmpty();
 
         // Verify database persistence
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
@@ -89,7 +71,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Create first city
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = new AllowedCity("São Paulo", "SP", "system", 3550308, 0, 0, 0);
@@ -109,7 +91,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", duplicateRequest);
+        var response = await Fixture.PostJsonAsync("/api/v1/admin/allowed-cities", duplicateRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -136,7 +118,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", request);
+        var response = await Fixture.PostJsonAsync("/api/v1/admin/allowed-cities", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -159,7 +141,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", invalidRequest);
+        var response = await Fixture.PostJsonAsync("/api/v1/admin/allowed-cities", invalidRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -172,7 +154,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Create active and inactive cities
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
@@ -184,7 +166,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync("/api/v1/admin/allowed-cities?onlyActive=true");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/admin/allowed-cities?onlyActive=true");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -216,7 +198,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var activeCityId = Guid.Empty;
         var inactiveCityId = Guid.Empty;
 
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
@@ -231,7 +213,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync("/api/v1/admin/allowed-cities?onlyActive=false");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/admin/allowed-cities?onlyActive=false");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -260,7 +242,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Create cities in different states
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
@@ -281,7 +263,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync("/api/v1/admin/allowed-cities");
+        var response = await Fixture.ApiClient.GetAsync("/api/v1/admin/allowed-cities");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -315,7 +297,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         Guid cityId = Guid.Empty;
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = new AllowedCity("Recife", "PE", "system", 2611606, 0, 0, 0);
@@ -325,7 +307,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
+        var response = await Fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -354,7 +336,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{nonExistentId}");
+        var response = await Fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -367,7 +349,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         Guid cityId = Guid.Empty;
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = new AllowedCity("Porto Alegre", "RS", "system", 4314902, 0, 0, 0);
@@ -385,14 +367,14 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
+        var response = await Fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
 
         // Assert
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify database changes
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var updatedCity = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
@@ -419,7 +401,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{nonExistentId}", updateRequest);
+        var response = await Fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{nonExistentId}", updateRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -434,7 +416,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         Guid city1Id = Guid.Empty;
         Guid city2Id = Guid.Empty;
 
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city1 = new AllowedCity("Manaus", "AM", "system", null, 0, 0, 0);
@@ -454,7 +436,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{city1Id}", updateRequest);
+        var response = await Fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{city1Id}", updateRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -470,7 +452,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         TestContainerFixture.AuthenticateAsAdmin();
 
         Guid cityId = Guid.Empty;
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = new AllowedCity("Florianópolis", "SC", "system", null, 0, 0, 0);
@@ -480,13 +462,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
 
         // Act
-        var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
+        var response = await Fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify city was removed
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
@@ -502,7 +484,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{nonExistentId}");
+        var response = await Fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -528,7 +510,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             IsActive = true
         };
 
-        var createResponse = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
+        var createResponse = await Fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createContent = await createResponse.Content.ReadAsStringAsync();
@@ -538,7 +520,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         var cityId = Guid.Parse(cityIdElement.GetString()!);
 
         // Step 2: Verify city exists
-        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Step 3: Update city
@@ -550,11 +532,11 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             IsActive = false
         };
 
-        var updateResponse = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
+        var updateResponse = await Fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Step 4: Verify update
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
@@ -565,11 +547,11 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
 
         // Step 5: Delete city
-        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
+        var deleteResponse = await Fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Step 6: Verify deletion
-        var getFinalResponse = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
+        var getFinalResponse = await Fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
         getFinalResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
     [Fact]
@@ -591,7 +573,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             IsActive = false
         };
 
-        var createResponse = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
+        var createResponse = await Fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
         var createContent = await createResponse.Content.ReadAsStringAsync();
@@ -607,13 +589,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         };
 
         // Act
-        var patchResponse = await _fixture.PatchJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", patchRequest);
+        var patchResponse = await Fixture.PatchJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", patchRequest);
 
         // Assert
         patchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify database changes
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
@@ -626,4 +608,3 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         });
     }
 }
-

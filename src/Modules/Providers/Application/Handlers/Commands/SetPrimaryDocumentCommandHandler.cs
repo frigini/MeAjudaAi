@@ -7,6 +7,8 @@ using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -16,7 +18,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </summary>
 public sealed class SetPrimaryDocumentCommandHandler(
     IUnitOfWork uow,
-    ILogger<SetPrimaryDocumentCommandHandler> logger) : ICommandHandler<SetPrimaryDocumentCommand, Result<ProviderDto>>
+    ILogger<SetPrimaryDocumentCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<SetPrimaryDocumentCommand, Result<ProviderDto>>
 {
     public async Task<Result<ProviderDto>> HandleAsync(SetPrimaryDocumentCommand command, CancellationToken cancellationToken = default)
     {
@@ -27,13 +30,13 @@ public sealed class SetPrimaryDocumentCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-            return Result<ProviderDto>.Failure(Error.NotFound($"Provedor com ID {command.ProviderId} não encontrado"));
+            return Result<ProviderDto>.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         if (!provider.Documents.Any(d => d.DocumentType == command.DocumentType))
         {
             logger.LogWarning("Document {DocumentType} not found for provider {ProviderId}", command.DocumentType, command.ProviderId);
-            return Result<ProviderDto>.Failure(Error.NotFound($"Documento do tipo {command.DocumentType} não encontrado para o provedor {command.ProviderId}"));
+            return Result<ProviderDto>.Failure(Error.NotFound(localizer["ProviderDocumentNotFound", command.DocumentType, command.ProviderId]));
         }
 
         provider.SetPrimaryDocument(command.DocumentType);

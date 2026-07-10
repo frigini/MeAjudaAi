@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
@@ -24,7 +25,7 @@ public class GetDocumentByIdQueryHandlerTests
     public async Task HandleAsync_WithExistingDocument_ShouldReturnDocumentDto()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "blob-url");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("blob-url").Build();
         var documentId = document.Id;
 
         _mockQueries.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
@@ -62,7 +63,7 @@ public class GetDocumentByIdQueryHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.CriminalRecord, "crime.pdf", "storage/crime.pdf");
+        var document = new DocumentBuilder().WithProviderId(providerId).AsCriminalRecord().WithFileName("crime.pdf").WithFileUrl("storage/crime.pdf").Build();
         document.MarkAsPendingVerification();
 
         _mockQueries
@@ -92,7 +93,7 @@ public class GetDocumentByIdQueryHandlerTests
     public async Task HandleAsync_WhenDocumentIsVerified_ShouldMapVerifiedAtAndOcrData()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "id.pdf", "storage/id.pdf");
+        var document = new DocumentBuilder().AsIdentityDocument().WithFileName("id.pdf").WithFileUrl("storage/id.pdf").Build();
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"name\":\"João\"}");
 
@@ -116,7 +117,7 @@ public class GetDocumentByIdQueryHandlerTests
     public async Task HandleAsync_WhenDocumentIsRejected_ShouldMapRejectionReason()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.ProofOfResidence, "proof.pdf", "storage/proof.pdf");
+        var document = new DocumentBuilder().AsProofOfResidence().WithFileName("proof.pdf").WithFileUrl("storage/proof.pdf").Build();
         document.MarkAsPendingVerification();
         document.MarkAsRejected("Document is blurry");
 

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Npgsql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
@@ -13,15 +12,9 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 [Trait("Category", "Integration")]
 [Trait("Area", "Infrastructure")]
 [Trait("Database", "PostgreSQL")]
-public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigrationFixture>
+public sealed class DataSeedingIntegrationTests(DatabaseMigrationFixture fixture) : IClassFixture<DatabaseMigrationFixture>
 {
-    private const string ServiceCatalogsSchema = "service_catalogs";
-    private readonly DatabaseMigrationFixture _fixture;
-
-    public DataSeedingIntegrationTests(DatabaseMigrationFixture fixture)
-    {
-        _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
-    }
+    private readonly DatabaseMigrationFixture _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
 
     #region ServiceCatalogs Seeding Tests
 
@@ -278,6 +271,3 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
 
     #endregion
 }
-
-
-

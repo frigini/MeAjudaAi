@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -23,8 +24,8 @@ public class UserDeletedIntegrationEventHandlerTests : BaseInMemoryDatabaseTest<
     public async Task HandleAsync_WhenReviewsExist_ShouldRemoveAllReviews()
     {
         var userId = Guid.NewGuid();
-        DbContext.Reviews.Add(Review.Create(Guid.NewGuid(), userId, 5, "Good"));
-        DbContext.Reviews.Add(Review.Create(Guid.NewGuid(), userId, 4, "Nice"));
+        DbContext.Reviews.Add(new ReviewBuilder().WithProviderId(Guid.NewGuid()).WithCustomerId(userId).WithRating(5).WithComment("Good").Build());
+        DbContext.Reviews.Add(new ReviewBuilder().WithProviderId(Guid.NewGuid()).WithCustomerId(userId).WithRating(4).WithComment("Nice").Build());
         await DbContext.SaveChangesAsync();
 
         var evt = new UserDeletedIntegrationEvent("Users", userId, "user@test.com", "Test", DateTime.UtcNow);

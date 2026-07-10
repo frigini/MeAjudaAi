@@ -1,12 +1,11 @@
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
-
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
@@ -34,7 +33,9 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cache:Enabled"] = "false",
-                ["Caching:Enabled"] = "false"
+                ["Caching:Enabled"] = "false",
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=locations_test",
+                ["ConnectionStrings:Locations"] = "Host=localhost;Database=locations_test"
             })
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
@@ -56,6 +57,16 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
 
         // Adiciona serialização (ISerializer keyed services) - necessário para ViaCepClient, NominatimClient, etc.
         services.AddCustomSerialization();
+
+        // Adiciona localização (necessário para IStringLocalizer<Strings> nos ModuleApis)
+        var localizerMock = MockLocalizerBuilder.Create()
+            .WithFormattedKey("InvalidCep", (key, args) => $"CEP inválido: {args[0]}")
+            .WithFormattedKey("CepNotFound", (key, args) => $"CEP {args[0]} não encontrado.")
+            .WithSimpleKey("AddressCannotBeEmpty", "Endereço não pode ser vazio.")
+            .WithFormattedKey("CoordinatesNotFoundForAddress", (key, args) => $"Coordenadas não encontradas para o endereço: {args[0]}")
+            .WithSimpleKey("ErrorFetchingCityId", "Erro ao buscar ID da cidade.")
+            .Build();
+        services.AddSingleton(localizerMock.Object);
 
         // Adiciona serviços do módulo Locations PRIMEIRO
         MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration, environment);

@@ -9,6 +9,8 @@ using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Validators;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
@@ -20,6 +22,7 @@ public class CreateBookingCommandHandlerTests
     private readonly Mock<IProvidersModuleApi> _providersApiMock = new();
     private readonly Mock<IServiceCatalogsModuleApi> _serviceCatalogsApiMock = new();
     private readonly Mock<ILogger<CreateBookingCommandHandler>> _loggerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
     private readonly CreateBookingCommandHandler _sut;
 
     public CreateBookingCommandHandlerTests()
@@ -29,7 +32,8 @@ public class CreateBookingCommandHandlerTests
             _scheduleQueriesMock.Object,
             _providersApiMock.Object,
             _serviceCatalogsApiMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
     private CreateBookingCommand BuildFutureCommand(Guid? providerId = null, Guid? serviceId = null, int daysOffset = 2, int hour = 10)
     {

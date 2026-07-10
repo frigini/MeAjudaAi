@@ -1,6 +1,6 @@
+using Bogus;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Bogus;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -70,15 +70,5 @@ public abstract class BaseSharedTest(SharedTestFixture sharedFixture) : IAsyncLi
         // Apenas limpar headers específicos do teste se necessário
         ClearAuthorizationHeader();
         return ValueTask.CompletedTask;
-    }
-
-    protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
     }
 }

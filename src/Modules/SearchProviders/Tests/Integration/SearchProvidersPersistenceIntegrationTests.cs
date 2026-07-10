@@ -1,13 +1,14 @@
-using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Tests.Integration.Infrastructure;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using MeAjudaAi.Modules.SearchProviders.Application.Queries.Interfaces;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
@@ -22,10 +23,11 @@ public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegra
     private IUnitOfWork Uow => ScopedProvider.GetRequiredKeyedService<IUnitOfWork>(ModuleKeys.SearchProviders);
     private ISearchableProviderQueries Queries => ScopedProvider.GetRequiredService<ISearchableProviderQueries>();
 
-    public override async ValueTask DisposeAsync()
+    protected override Task OnDisposeAsync()
     {
         _scope?.Dispose();
-        await base.DisposeAsync();
+        _scope = null;
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -108,6 +110,3 @@ public class SearchProvidersPersistenceIntegrationTests : SearchProvidersIntegra
         search2.DistancesInKm[1].Should().BeGreaterThan(10.0); // Far distance
     }
 }
-
-
-

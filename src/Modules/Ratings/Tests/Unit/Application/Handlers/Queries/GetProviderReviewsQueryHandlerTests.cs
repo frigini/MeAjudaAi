@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Application.Handlers.Queries;
@@ -170,8 +171,11 @@ public class GetProviderReviewsQueryHandlerTests
 
     private static Review CreateApprovedReview(Guid providerId, int rating, string? comment)
     {
-        var review = Review.Create(providerId, Guid.NewGuid(), rating, comment);
-        review.Approve();
-        return review;
+        return new ReviewBuilder()
+            .WithProviderId(providerId)
+            .WithRating(rating)
+            .WithComment(comment)
+            .AsApproved()
+            .Build();
     }
 }

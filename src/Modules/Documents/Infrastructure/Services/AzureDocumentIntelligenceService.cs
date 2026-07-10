@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
@@ -12,11 +14,13 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 internal class AzureDocumentIntelligenceService(
     DocumentIntelligenceClient client,
     ILogger<AzureDocumentIntelligenceService> logger,
-    [FromKeyedServices(SerializationKeys.Logging)] ISerializer serializer) : IDocumentIntelligenceService
+    [FromKeyedServices(SerializationKeys.Logging)] ISerializer serializer,
+    IStringLocalizer<Strings> localizer) : IDocumentIntelligenceService
 {
     private readonly DocumentIntelligenceClient _client = client ?? throw new ArgumentNullException(nameof(client));
     private readonly ILogger<AzureDocumentIntelligenceService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly ISerializer _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+    private readonly IStringLocalizer<Strings> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     public async Task<OcrResult> AnalyzeDocumentAsync(
         string blobUrl,
@@ -106,7 +110,7 @@ internal class AzureDocumentIntelligenceService(
                 ExtractedData: null,
                 Fields: null,
                 Confidence: null,
-                ErrorMessage: $"Erro na API: {ex.Message}");
+                ErrorMessage: _localizer["DocumentApiError", ex.Message]);
         }
         catch (Exception ex)
         {
@@ -116,7 +120,7 @@ internal class AzureDocumentIntelligenceService(
                 ExtractedData: null,
                 Fields: null,
                 Confidence: null,
-                ErrorMessage: ex.Message);
+                ErrorMessage: _localizer["DocumentApiError", ex.Message]);
         }
     }
 }

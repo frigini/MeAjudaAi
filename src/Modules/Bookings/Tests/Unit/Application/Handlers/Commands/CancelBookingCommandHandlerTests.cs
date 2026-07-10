@@ -5,9 +5,11 @@ using MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Bookings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers.Commands;
@@ -18,16 +20,28 @@ public class CancelBookingCommandHandlerTests
     private readonly Mock<IBookingQueries> _bookingQueriesMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly Mock<ILogger<CancelBookingCommandHandler>> _loggerMock = new();
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock = new();
     private readonly CancelBookingCommandHandler _sut;
 
     public CancelBookingCommandHandlerTests()
     {
         _uowMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "BookingNotFound")])
+            .Returns(new LocalizedString("BookingNotFound", "Agendamento não encontrado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "BookingCancelOnlyPendingOrConfirmed")])
+            .Returns(new LocalizedString("BookingCancelOnlyPendingOrConfirmed", "Apenas agendamentos pendentes ou confirmados podem ser cancelados."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "BookingModifiedByOtherUser")])
+            .Returns(new LocalizedString("BookingModifiedByOtherUser", "O agendamento foi modificado por outro usuário."));
+
         _sut = new CancelBookingCommandHandler(
             _bookingQueriesMock.Object,
             _uowMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -220,6 +234,7 @@ public class CancelBookingCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        result.Error.Message.Should().Be("Agendamento não encontrado.");
     }
 
     [Fact]

@@ -8,7 +8,9 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -19,10 +21,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="uow"></param>
 /// <param name="categoryQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class CreateServiceCategoryCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceCategoryQueries categoryQueries,
-    ILogger<CreateServiceCategoryCommandHandler> logger) : ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>
+    ILogger<CreateServiceCategoryCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>
 {
     public async Task<Result<ServiceCategoryDto>> HandleAsync(CreateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
@@ -31,10 +35,10 @@ public sealed class CreateServiceCategoryCommandHandler(
             var normalizedName = request.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceCategoryDto>.Failure("O nome da categoria é obrigatório.");
+                return Result<ServiceCategoryDto>.Failure(localizer["CategoryNameRequired"]);
 
             if (await categoryQueries.ExistsWithNameAsync(normalizedName, null, cancellationToken))
-                return Result<ServiceCategoryDto>.Failure($"Já existe uma categoria com o nome '{normalizedName}'.");
+                return Result<ServiceCategoryDto>.Failure(Error.Conflict(localizer["CategoryNameAlreadyExists", normalizedName]));
 
             var category = Domain.Entities.ServiceCategory.Create(normalizedName, request.Description, request.DisplayOrder);
 
@@ -68,7 +72,7 @@ public sealed class CreateServiceCategoryCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while creating service category.");
-            return Result<ServiceCategoryDto>.Failure("Ocorreu um erro inesperado ao processar a solicitação.");
+            return Result<ServiceCategoryDto>.Failure(localizer["CategoryCreateError"]);
         }
     }
 }

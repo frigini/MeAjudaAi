@@ -1,8 +1,7 @@
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
+using MeAjudaAi.Integration.Tests.Base;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
 namespace MeAjudaAi.Integration.Tests.Modules;
 
@@ -102,15 +101,13 @@ public class CrossModuleFlowTests : BaseApiTest
         {
             providerId = Guid.Parse(responseData.GetString()!);
         }
-        else if (responseData.ValueKind == JsonValueKind.Object)
-        {
-            providerId = responseData.GetProperty("id").GetGuid();
-        }
         else
         {
-            throw new Exception("Unexpected response data format");
+            providerId =responseData.ValueKind == JsonValueKind.Object
+                ? responseData.GetProperty("id").GetGuid()
+                : throw new Exception("Unexpected response data format");
         }
-        
+
         providerId.Should().NotBeEmpty();
 
         // 2. Tentar buscar o provedor (Módulo SearchProviders)

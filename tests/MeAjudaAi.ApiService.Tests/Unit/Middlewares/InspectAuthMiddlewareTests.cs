@@ -1,10 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
-using Moq;
 using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;

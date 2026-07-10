@@ -1,5 +1,4 @@
 using MeAjudaAi.ApiService.Providers.Compression;
-using FluentAssertions;
 using System.IO.Compression;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Providers;
@@ -7,6 +6,7 @@ namespace MeAjudaAi.ApiService.Tests.Unit.Providers;
 [Trait("Category", "Unit")]
 public class CompressionProvidersTests
 {
+    #region SafeBrolliCompressionProvider Tests
     [Fact]
     public void SafeBrotliCompressionProvider_Should_HaveCorrectProperties()
     {
@@ -32,6 +32,10 @@ public class CompressionProvidersTests
         stream.Should().BeOfType<BrotliStream>();
     }
 
+    #endregion
+
+    #region SafeGzipCompressionProvider Tests
+
     [Fact]
     public void SafeGzipCompressionProvider_Should_HaveCorrectProperties()
     {
@@ -56,4 +60,6 @@ public class CompressionProvidersTests
         // Assert
         stream.Should().BeOfType<GZipStream>();
     }
+
+    #endregion
 }

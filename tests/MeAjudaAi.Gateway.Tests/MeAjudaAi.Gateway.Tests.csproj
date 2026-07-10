@@ -1,3 +1,4 @@
+
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -30,7 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+	  <Using Include="FluentAssertions" />
+	  <Using Include="Moq" />
+	  <Using Include="Xunit" />
   </ItemGroup>
 
 <!-- This project contains unit and integration tests for the API Gateway module. -->

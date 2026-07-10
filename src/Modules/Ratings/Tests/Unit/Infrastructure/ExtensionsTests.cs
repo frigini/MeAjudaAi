@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Ratings.Infrastructure;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
@@ -17,9 +18,14 @@ public class ExtensionsTests
     public void AddEventHandlers_ShouldRegisterAllEventHandlers()
     {
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
-        services.AddSingleton<IConfiguration>(configuration); // Registra IConfiguration
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = DatabaseConstants.DefaultTestConnectionString
+            })
+            .Build();
         var hostEnv = new Mock<IHostEnvironment>();
+        hostEnv.Setup(e => e.EnvironmentName).Returns("Testing");
         services.AddLogging();
         
         services.AddScoped(sp => new Mock<IUnitOfWork>().Object);

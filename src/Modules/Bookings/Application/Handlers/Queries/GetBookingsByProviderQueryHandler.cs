@@ -1,11 +1,13 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Bookings.DTOs;
-using MeAjudaAi.Modules.Bookings.Application.Services;
 using MeAjudaAi.Modules.Bookings.Application.Queries;
-using MeAjudaAi.Shared.Queries;
-using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Bookings.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.Bookings.Application.Services;
+using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 
@@ -15,6 +17,7 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 /// <param name="bookingQueries">Queries de acesso a dados de bookings.</param>
 /// <param name="scheduleQueries">Queries de acesso a dados de agenda do prestador.</param>
 /// <param name="logger">Logger estruturado.</param>
+/// <param name="localizer">Localizador de strings para mensagens de erro.</param>
 /// <returns>
 /// Um <see cref="Result{PagedResult}"/> contendo a lista paginada de <see cref="ModuleBookingDto"/>
 /// em caso de sucesso, ou um <see cref="Error"/> descritivo em caso de falha.
@@ -22,7 +25,8 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Queries;
 public sealed class GetBookingsByProviderQueryHandler(
     IBookingQueries bookingQueries,
     IProviderScheduleQueries scheduleQueries,
-    ILogger<GetBookingsByProviderQueryHandler> logger) : IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>
+    ILogger<GetBookingsByProviderQueryHandler> logger,
+    IStringLocalizer<Strings> localizer) : IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<ModuleBookingDto>>>
 {
     public async Task<Result<PagedResult<ModuleBookingDto>>> HandleAsync(GetBookingsByProviderQuery query, CancellationToken cancellationToken = default)
     {
@@ -47,7 +51,7 @@ public sealed class GetBookingsByProviderQueryHandler(
         if (tz == null)
         {
             logger.LogError("Could not resolve time zone for provider {ProviderId}", query.ProviderId);
-            return Result<PagedResult<ModuleBookingDto>>.Failure(Error.Internal("Não foi possível processar o fuso horário do prestador."));
+            return Result<PagedResult<ModuleBookingDto>>.Failure(Error.Internal(localizer["ProviderScheduleLoadError"]));
         }
 
         var dtos = new List<ModuleBookingDto>();

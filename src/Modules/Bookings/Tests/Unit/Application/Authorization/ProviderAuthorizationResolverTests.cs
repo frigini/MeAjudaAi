@@ -5,8 +5,10 @@ using MeAjudaAi.Modules.Bookings.Application.Authorization;
 using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -20,6 +22,7 @@ public class ProviderAuthorizationResolverTests
     private readonly Mock<ILogger<ProviderAuthorizationResolver>> _loggerMock;
     private readonly Mock<IProvidersModuleApi> _providersApiMock;
     private readonly Mock<ICacheService> _cacheMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly ProviderAuthorizationResolver _sut;
 
     public ProviderAuthorizationResolverTests()
@@ -27,7 +30,9 @@ public class ProviderAuthorizationResolverTests
         _loggerMock = new Mock<ILogger<ProviderAuthorizationResolver>>();
         _providersApiMock = new Mock<IProvidersModuleApi>();
         _cacheMock = new Mock<ICacheService>();
-        _sut = new ProviderAuthorizationResolver(_cacheMock.Object, _providersApiMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.IsAny<string>()]).Returns<string>(key => new LocalizedString(key, key));
+        _sut = new ProviderAuthorizationResolver(_cacheMock.Object, _providersApiMock.Object, _loggerMock.Object, _localizerMock.Object);
 
         // Setup padrão: executa o factory
         _cacheMock.Setup(x => x.GetOrCreateAsync(
@@ -114,7 +119,7 @@ public class ProviderAuthorizationResolverTests
 
         // Assert
         result.FailureKind.Should().Be(EAuthorizationFailureKind.Unauthorized);
-        result.ErrorMessage.Should().Contain("não encontrada");
+        result.ErrorMessage.Should().Contain("UserIdNotFoundOrInvalid");
     }
 
     [Fact]
@@ -281,7 +286,7 @@ public class ProviderAuthorizationResolverTests
 
         // Assert
         result.FailureKind.Should().Be(EAuthorizationFailureKind.Unauthorized);
-        result.ErrorMessage.Should().Contain("não encontrada");
+        result.ErrorMessage.Should().Contain("UserIdNotFoundOrInvalid");
     }
 
     private static ModuleProviderDto CreateModuleProviderDto(Guid providerId)

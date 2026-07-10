@@ -4,9 +4,11 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Database.Abstractions;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +23,7 @@ public class DeleteUserCommandHandlerTests
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly FakeTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<DeleteUserCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeleteUserCommandHandler _handler;
 
     public DeleteUserCommandHandlerTests()
@@ -31,17 +34,23 @@ public class DeleteUserCommandHandlerTests
         _usersCacheServiceMock = new Mock<IUsersCacheService>();
         _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<DeleteUserCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock
             .Setup(x => x.GetRepository<User, UserId>())
             .Returns(_userRepositoryMock.Object);
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "UserDeleteError")])
+            .Returns(new LocalizedString("UserDeleteError", "Falha ao excluir usuário."));
 
         _handler = new DeleteUserCommandHandler(
             _uowMock.Object,
             _userDomainServiceMock.Object,
             _usersCacheServiceMock.Object,
             _dateTimeProvider,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]

@@ -8,7 +8,9 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -25,10 +27,12 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="uow">Unit of Work para persistência de usuários</param>
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
+/// <param name="localizer">Localizador para mensagens de erro</param>
 public sealed class UpdateUserProfileCommandHandler(
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUsersCacheService usersCacheService,
-    ILogger<UpdateUserProfileCommandHandler> logger
+    ILogger<UpdateUserProfileCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<UpdateUserProfileCommand, Result<UserDto>>
 {
     /// <summary>
@@ -99,7 +103,7 @@ public sealed class UpdateUserProfileCommandHandler(
         {
             // Captura erros de infraestrutura (banco de dados, cache, etc.) e retorna um resultado de falha
             logger.LogError(ex, "Unexpected error updating user profile for {UserId}", command.UserId);
-            return Result<UserDto>.Failure("Falha ao atualizar o perfil do usuário devido a um erro inesperado");
+            return Result<UserDto>.Failure(localizer["UserProfileUpdateError"]);
         }
     }
 

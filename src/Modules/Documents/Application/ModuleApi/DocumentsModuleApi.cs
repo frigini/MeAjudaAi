@@ -12,6 +12,8 @@ using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
@@ -37,7 +39,8 @@ public sealed class DocumentsModuleApi(
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
     IDocumentQueries documentQueries,
     IServiceProvider serviceProvider,
-    ILogger<DocumentsModuleApi> logger) : IDocumentsModuleApi
+    ILogger<DocumentsModuleApi> logger,
+    IStringLocalizer<Strings> localizer) : IDocumentsModuleApi
 {
     private static class ModuleMetadata
     {
@@ -279,14 +282,14 @@ public sealed class DocumentsModuleApi(
             var document = await getDocumentByIdHandler.HandleAsync(query, cancellationToken);
 
             if (document == null)
-                return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
+                return Result<bool>.Failure(Error.NotFound(localizer["DocumentNotFoundInModule"]));
 
             var uow = serviceProvider.GetRequiredService<Shared.Database.Abstractions.IUnitOfWork>();
             var repository = uow.GetRepository<Modules.Documents.Domain.Entities.Document, Guid>();
             var entity = await repository.TryFindAsync(documentId, cancellationToken);
 
             if (entity is null)
-                return Result<bool>.Failure(Error.NotFound("Documento não encontrado"));
+                return Result<bool>.Failure(Error.NotFound(localizer["DocumentNotFoundInModule"]));
 
             repository.Delete(entity);
             await uow.SaveChangesAsync(cancellationToken);
