@@ -19,6 +19,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="uow"></param>
 /// <param name="usersCacheService"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class UpdateUserDeviceTokenCommandHandler(
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUsersCacheService usersCacheService,

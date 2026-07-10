@@ -22,6 +22,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="serviceQueries"></param>
 /// <param name="categoryQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class CreateServiceCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceQueries serviceQueries,

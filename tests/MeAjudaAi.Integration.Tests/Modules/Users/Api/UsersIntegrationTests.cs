@@ -245,7 +245,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             createResult.IsSuccess.Should().BeTrue($"User.Create should succeed: {createResult.Error}");
             var user = createResult.Value;
 
-            context.Users.Add(user);
+            context.Users.Add(user!);
             await context.SaveChangesAsync();
         }
 

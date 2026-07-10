@@ -6,7 +6,7 @@ Testes de arquitetura (fitness functions) que verificam guardrails e convençõe
 
 ## Project Structure
 
-```
+```text
 tests/MeAjudaAi.Architecture.Tests/
 ├── Authorization/                  # Regras de autorização
 ├── Contracts/                      # Regras de contratos

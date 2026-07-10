@@ -27,6 +27,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
+/// <param name="localizer">Localizador para mensagens de erro</param>
 internal sealed class DeleteUserCommandHandler(
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUserDomainService userDomainService,

@@ -100,7 +100,7 @@ public static class MigrationDiscoveryExtensions
                         // Usa query parametrizada para verificar existência do banco
                         await using var checkCmd = connPostgres.CreateCommand();
                         checkCmd.CommandText = "SELECT 1 FROM pg_database WHERE datname = @dbname";
-                        checkCmd.Parameters.AddWithValue("@dbname", databaseName);
+                        checkCmd.Parameters.AddWithValue("@dbname", databaseName!);
                         var exists = await checkCmd.ExecuteScalarAsync(cancellationToken);
 
                         if (exists is null)

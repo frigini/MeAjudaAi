@@ -6,22 +6,23 @@ Este documento define a estratégia de testes para o projeto MeAjudaAi, estabele
 
 ## Estrutura de Testes
 
-O projeto possui 7 projetos de teste com responsabilidades distintas:
+O projeto possui 6 projetos de teste sob `tests/` com responsabilidades distintas, além de projetos de teste internos em cada módulo:
 
-```
+```text
 tests/
 ├── MeAjudaAi.Shared.Tests/           # Infraestrutura compartilhada de testes
 ├── MeAjudaAi.Integration.Tests/      # Testes de integração cross-module (HTTP API)
 ├── MeAjudaAi.E2E.Tests/              # Testes E2E com Testcontainers
 ├── MeAjudaAi.ApiService.Tests/       # Testes do bootstrapper/web host
 ├── MeAjudaAi.Architecture.Tests/     # Guardrails de arquitetura (fitness functions)
-├── MeAjudaAi.Gateway.Tests/          # Testes do edge/gateway
-└── src/Modules/*/Tests/              # Testes internos de cada módulo (unit + integration)
+└── MeAjudaAi.Gateway.Tests/          # Testes do edge/gateway
+
+src/Modules/*/Tests/                   # Testes internos de cada módulo (unit + integration)
 ```
 
 ### Hierarquia de Testes
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  E2E Tests (E2E.Tests)                                      │
 │  • Fluxos completos multi-módulo com Testcontainers          │

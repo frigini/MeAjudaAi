@@ -28,6 +28,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="uow">Unit of Work para operações de escrita</param>
 /// <param name="userQueries">Queries de leitura de usuário</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
+/// <param name="localizer">Localizador para mensagens de erro</param>
 internal sealed class CreateUserCommandHandler(
     IUserDomainService userDomainService,
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,

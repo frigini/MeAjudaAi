@@ -27,6 +27,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="uow">Unit of Work para persistência de usuários</param>
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
+/// <param name="localizer">Localizador para mensagens de erro</param>
 public sealed class UpdateUserProfileCommandHandler(
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,
     IUsersCacheService usersCacheService,

@@ -2,13 +2,16 @@
 
 ## Overview
 
-Testes unitários e de integração para o gateway/API gateway da aplicação (`MeAjudaAi.Gateway`).
+Testes unitários para o gateway/API gateway da aplicação (`MeAjudaAi.Gateway`).
 
 ## Project Structure
 
-```
+```text
 tests/MeAjudaAi.Gateway.Tests/
 ├── Unit/                           # Testes unitários
+│   ├── Handlers/
+│   ├── Middleware/
+│   └── Options/
 ├── MeAjudaAi.Gateway.Tests.csproj
 └── README.md
 ```
@@ -38,6 +41,13 @@ tests/MeAjudaAi.Gateway.Tests/
 ```csharp
 public class RoutingTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly HttpClient _client;
+
+    public RoutingTests(WebApplicationFactory<Program> factory)
+    {
+        _client = factory.CreateClient();
+    }
+
     [Fact]
     public async Task Request_ToUsers_ShouldRouteToUsersService()
     {
@@ -45,9 +55,7 @@ public class RoutingTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync("/api/v1/users");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
 ```

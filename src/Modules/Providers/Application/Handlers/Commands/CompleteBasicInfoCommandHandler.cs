@@ -19,6 +19,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </remarks>
 /// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
+/// <param name="localizer">Localizador para mensagens de erro</param>
 public sealed class CompleteBasicInfoCommandHandler(
     IUnitOfWork uow,
     ILogger<CompleteBasicInfoCommandHandler> logger,

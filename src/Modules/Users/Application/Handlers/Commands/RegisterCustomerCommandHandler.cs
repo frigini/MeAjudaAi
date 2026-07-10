@@ -25,6 +25,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="uow"></param>
 /// <param name="userQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed partial class RegisterCustomerCommandHandler(
     IUserDomainService userDomainService,
     [FromKeyedServices(ModuleKeys.Users)] IUnitOfWork uow,

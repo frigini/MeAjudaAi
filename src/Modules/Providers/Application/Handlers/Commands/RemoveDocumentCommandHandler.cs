@@ -17,6 +17,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </summary>
 /// <param name="uow">Unit of Work para persistência</param>
 /// <param name="logger">Logger estruturado</param>
+/// <param name="localizer">Localizador para mensagens de erro</param>
 public sealed class RemoveDocumentCommandHandler(
     IUnitOfWork uow,
     ILogger<RemoveDocumentCommandHandler> logger,

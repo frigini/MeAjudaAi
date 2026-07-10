@@ -84,7 +84,9 @@ public class GetAllowedCitiesByStateHandlerTests
         dto.ServiceRadiusKm.Should().Be(city.ServiceRadiusKm);
         dto.IsActive.Should().Be(city.IsActive);
         dto.CreatedAt.Should().Be(city.CreatedAt);
+        dto.UpdatedAt.Should().Be(city.UpdatedAt);
         dto.CreatedBy.Should().Be(city.CreatedBy);
+        dto.UpdatedBy.Should().Be(city.UpdatedBy);
     }
 
     [Fact]

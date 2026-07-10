@@ -2,15 +2,21 @@
 
 ## Overview
 
-Testes unitários e de integração para o bootstrapper/web host da aplicação (`MeAjudaAi.ApiService`).
+Testes unitários para o bootstrapper/web host da aplicação (`MeAjudaAi.ApiService`).
 
 ## Project Structure
 
-```
+```text
 tests/MeAjudaAi.ApiService.Tests/
 ├── Unit/                           # Testes unitários
-│   ├── Middleware/                  # Testes de middlewares
-│   └── Swagger/                    # Testes de configuração Swagger/OpenAPI
+│   ├── Extensions/
+│   ├── Filters/
+│   ├── Handlers/
+│   ├── Infrastructure/
+│   ├── Middlewares/
+│   ├── Options/
+│   ├── Providers/
+│   └── Services/
 ├── MeAjudaAi.ApiService.Tests.csproj
 └── README.md
 ```
@@ -40,6 +46,13 @@ tests/MeAjudaAi.ApiService.Tests/
 ```csharp
 public class SwaggerConfigurationTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly HttpClient _client;
+
+    public SwaggerConfigurationTests(WebApplicationFactory<Program> factory)
+    {
+        _client = factory.CreateClient();
+    }
+
     [Fact]
     public async Task Swagger_ShouldBeAccessible()
     {
