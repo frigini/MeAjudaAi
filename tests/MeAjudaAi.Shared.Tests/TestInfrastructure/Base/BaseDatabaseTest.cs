@@ -23,7 +23,7 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
         {
             DatabaseName = databaseName ?? "meajudaai_test",
             Username = "test_user",
-            Password = "test_password",
+            Password = "test123",
             Schema = schema ?? "public"
         };
 

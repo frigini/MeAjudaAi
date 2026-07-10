@@ -7,8 +7,10 @@ using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
@@ -19,7 +21,8 @@ namespace MeAjudaAi.Modules.Bookings.Application.Handlers.Commands;
 public sealed class CompleteBookingCommandHandler(
     IBookingQueries bookingQueries,
     [FromKeyedServices(ModuleKeys.Bookings)] IUnitOfWork uow,
-    ILogger<CompleteBookingCommandHandler> logger) : ICommandHandler<CompleteBookingCommand, Result>
+    ILogger<CompleteBookingCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<CompleteBookingCommand, Result>
 {
     public async Task<Result> HandleAsync(CompleteBookingCommand command, CancellationToken cancellationToken = default)
     {
@@ -28,7 +31,7 @@ public sealed class CompleteBookingCommandHandler(
         var booking = await bookingQueries.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
-            return Result.Failure(Error.NotFound("Reserva não encontrada."));
+            return Result.Failure(Error.NotFound(localizer["BookingNotFound"]));
         }
 
         var authResult = ProviderAuthorizationResolver.AuthorizeBookingOperation(
@@ -36,7 +39,8 @@ public sealed class CompleteBookingCommandHandler(
             command.UserProviderId,
             null,
             null,
-            booking.ProviderId);
+            booking.ProviderId,
+            localizer);
 
         if (authResult.IsFailure)
         {
@@ -51,12 +55,12 @@ public sealed class CompleteBookingCommandHandler(
         catch (InvalidBookingStateException ex)
         {
             logger.LogWarning(ex, "Business rule error completing booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.BadRequest("Apenas agendamentos confirmados podem ser concluídos.", ErrorCodes.Bookings.InvalidState));
+            return Result.Failure(Error.BadRequest(localizer["BookingCompleteOnlyConfirmed"], ErrorCodes.Bookings.InvalidState));
         }
         catch (DbUpdateConcurrencyException ex)
         {
             logger.LogWarning(ex, "Concurrency conflict completing booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.Conflict("O agendamento foi modificado por outro usuário."));
+            return Result.Failure(Error.Conflict(localizer["BookingModifiedByOtherUser"]));
         }
 
         logger.LogInformation("Booking {BookingId} completed successfully.", command.BookingId);

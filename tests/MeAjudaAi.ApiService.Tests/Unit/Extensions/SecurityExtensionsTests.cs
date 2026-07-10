@@ -1,9 +1,7 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 

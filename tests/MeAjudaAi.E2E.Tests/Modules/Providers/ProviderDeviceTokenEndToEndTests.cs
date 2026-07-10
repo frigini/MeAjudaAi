@@ -1,14 +1,13 @@
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
-public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
+public class ProviderDeviceTokenEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
+
     [Fact]
     public async Task Put_DeviceToken_ShouldReturnNotFound_WhenProviderDoesNotExist()
     {
@@ -18,7 +17,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var request = new ProviderDeviceTokenRequest("test-device-token");
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -33,7 +32,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var request = new ProviderDeviceTokenRequest("");
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
 
         // Assert - Provider doesn't exist, so returns NotFound
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -48,7 +47,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var request = new ProviderDeviceTokenRequest("valid-device-token-12345");
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
+        var response = await Fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/device-token", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -63,18 +62,18 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var token = $"device-token-{Guid.NewGuid():N}";
 
         // Act - Set token
-        var setResponse = await ApiClient.PutAsJsonAsync(
+        var setResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/device-token",
             new ProviderDeviceTokenRequest(token));
         setResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act - Get provider to verify persistence
-        var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var providerJson = await getResponse.Content.ReadAsStringAsync();
-        var providerResponse = JsonSerializer.Deserialize<JsonElement>(providerJson, JsonOptions);
-        var providerData = GetResponseData(providerResponse);
+        var providerResponse = JsonSerializer.Deserialize<JsonElement>(providerJson, TestContainerFixture.JsonOptions);
+        var providerData = TestContainerFixture.GetResponseData(providerResponse);
 
         // Assert - Token was persisted
         var deviceToken = providerData.GetProperty("deviceToken").GetString();
@@ -91,24 +90,24 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var secondToken = $"second-token-{Guid.NewGuid():N}";
 
         // Act - Set first token
-        var firstResponse = await ApiClient.PutAsJsonAsync(
+        var firstResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/device-token",
             new ProviderDeviceTokenRequest(firstToken));
         firstResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act - Replace with second token
-        var secondResponse = await ApiClient.PutAsJsonAsync(
+        var secondResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/device-token",
             new ProviderDeviceTokenRequest(secondToken));
         secondResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act - Get provider to verify replacement
-        var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        var getResponse = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var providerJson = await getResponse.Content.ReadAsStringAsync();
-        var providerResponse = JsonSerializer.Deserialize<JsonElement>(providerJson, JsonOptions);
-        var providerData = GetResponseData(providerResponse);
+        var providerResponse = JsonSerializer.Deserialize<JsonElement>(providerJson, TestContainerFixture.JsonOptions);
+        var providerData = TestContainerFixture.GetResponseData(providerResponse);
 
         // Assert - Second token replaced the first
         var deviceToken = providerData.GetProperty("deviceToken").GetString();
@@ -124,31 +123,31 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
         var token = $"device-token-{Guid.NewGuid():N}";
 
         // Act - Set token
-        var setResponse = await ApiClient.PutAsJsonAsync(
+        var setResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/device-token",
             new ProviderDeviceTokenRequest(token));
         setResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify token was set
-        var getResponse1 = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        var getResponse1 = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
         var providerResponse1 = JsonSerializer.Deserialize<JsonElement>(
-            await getResponse1.Content.ReadAsStringAsync(), JsonOptions);
-        var provider1 = GetResponseData(providerResponse1);
+            await getResponse1.Content.ReadAsStringAsync(), TestContainerFixture.JsonOptions);
+        var provider1 = TestContainerFixture.GetResponseData(providerResponse1);
         provider1.GetProperty("deviceToken").GetString().Should().Be(token);
 
         // Act - Clear token with empty string
-        var clearResponse = await ApiClient.PutAsJsonAsync(
+        var clearResponse = await Fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/device-token",
             new ProviderDeviceTokenRequest(""));
         clearResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Act - Get provider to verify token was cleared
-        var getResponse2 = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+        var getResponse2 = await Fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
         getResponse2.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var providerResponse2 = JsonSerializer.Deserialize<JsonElement>(
-            await getResponse2.Content.ReadAsStringAsync(), JsonOptions);
-        var provider2 = GetResponseData(providerResponse2);
+            await getResponse2.Content.ReadAsStringAsync(), TestContainerFixture.JsonOptions);
+        var provider2 = TestContainerFixture.GetResponseData(providerResponse2);
 
         // Assert - Token should be null/empty after clearing
         var deviceToken = provider2.GetProperty("deviceToken");
@@ -159,7 +158,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
 
     private async Task<Guid> CreateTestProviderAsync()
     {
-        var userId = await CreateTestUserAsync();
+        var userId = await Fixture.CreateTestUserAsync();
         var providerName = $"Test Provider {Guid.NewGuid():N}";
 
         var request = new
@@ -192,7 +191,7 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
             }
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -206,6 +205,6 @@ public class ProviderDeviceTokenEndToEndTests : BaseTestContainerTest
             throw new InvalidOperationException("Location header not found in create provider response");
         }
 
-        return ExtractIdFromLocation(location);
+        return TestContainerFixture.ExtractIdFromLocation(location);
     }
 }

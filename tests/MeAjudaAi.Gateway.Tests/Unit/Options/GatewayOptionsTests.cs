@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Gateway.Options;
 using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 using MeAjudaAi.Shared.Middleware.RateLimiting;

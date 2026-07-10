@@ -6,6 +6,9 @@ using MeAjudaAi.Modules.Ratings.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Ratings;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using ContractsEnumEReviewStatus = MeAjudaAi.Contracts.Modules.Ratings.Enums.EReviewStatus;
 
@@ -18,20 +21,27 @@ public class GetReviewStatusQueryHandlerTests
 {
     private readonly Mock<IReviewQueries> _queriesMock;
     private readonly Mock<ILogger<GetReviewStatusQueryHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly GetReviewStatusQueryHandler _handler;
 
     public GetReviewStatusQueryHandlerTests()
     {
         _queriesMock = new Mock<IReviewQueries>();
         _loggerMock = new Mock<ILogger<GetReviewStatusQueryHandler>>();
-        _handler = new GetReviewStatusQueryHandler(_queriesMock.Object, _loggerMock.Object);
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ReviewNotFound")])
+            .Returns(new LocalizedString("ReviewNotFound", "Avaliação não encontrada."));
+
+        _handler = new GetReviewStatusQueryHandler(_queriesMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
     public async Task HandleAsync_PendingReview_ShouldReturnPendingStatus()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
+        var review = new ReviewBuilder().WithRating(5).WithComment("Test").Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -50,8 +60,7 @@ public class GetReviewStatusQueryHandlerTests
     public async Task HandleAsync_ApprovedReview_ShouldReturnApprovedStatus()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
-        review.Approve();
+        var review = new ReviewBuilder().WithRating(5).WithComment("Test").AsApproved().Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -70,8 +79,7 @@ public class GetReviewStatusQueryHandlerTests
     public async Task HandleAsync_RejectedReview_ShouldReturnRejectedStatus()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
-        review.Reject("Inappropriate");
+        var review = new ReviewBuilder().WithRating(5).WithComment("Test").AsRejected().Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -90,8 +98,7 @@ public class GetReviewStatusQueryHandlerTests
     public async Task HandleAsync_FlaggedReview_ShouldReturnFlaggedStatus()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
-        review.MarkAsFlagged();
+        var review = new ReviewBuilder().WithRating(5).WithComment("Test").WithStatus(EReviewStatus.Flagged).Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);
@@ -128,8 +135,7 @@ public class GetReviewStatusQueryHandlerTests
     public async Task HandleAsync_ShouldReturnCorrectId()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
-        review.Approve();
+        var review = new ReviewBuilder().WithRating(5).WithComment("Test").AsApproved().Build();
 
         _queriesMock.Setup(q => q.GetByIdAsync(review.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(review);

@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -18,6 +20,7 @@ public class UpdateServiceCategoryCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _repositoryMock;
     private readonly Mock<IServiceCategoryQueries> _queriesMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly UpdateServiceCategoryCommandHandler _handler;
 
     public UpdateServiceCategoryCommandHandlerTests()
@@ -25,9 +28,10 @@ public class UpdateServiceCategoryCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _repositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         _queriesMock = new Mock<IServiceCategoryQueries>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_repositoryMock.Object);
-        _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object, NullLogger<UpdateServiceCategoryCommandHandler>.Instance);
+        _handler = new UpdateServiceCategoryCommandHandler(_uowMock.Object, _queriesMock.Object, NullLogger<UpdateServiceCategoryCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -142,6 +146,8 @@ public class UpdateServiceCategoryCommandHandlerTests
     {
         // Arrange
         var category = new ServiceCategoryBuilder().WithName("Original").Build();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryUpdateError")]).Returns(new LocalizedString("CategoryUpdateError", "Ocorreu um erro inesperado ao atualizar a categoria de serviço."));
+
         _repositoryMock
             .Setup(x => x.TryFindAsync(category.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(category);

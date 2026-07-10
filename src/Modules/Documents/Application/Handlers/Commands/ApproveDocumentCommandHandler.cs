@@ -8,10 +8,12 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers.Commands;
@@ -20,13 +22,15 @@ public class ApproveDocumentCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<ApproveDocumentCommandHandler> logger)
+    ILogger<ApproveDocumentCommandHandler> logger,
+    IStringLocalizer<Strings> localizer)
     : ICommandHandler<ApproveDocumentCommand, Result>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<ApproveDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IStringLocalizer<Strings> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     public async Task<Result> HandleAsync(ApproveDocumentCommand command, CancellationToken cancellationToken = default)
     {
@@ -43,10 +47,10 @@ public class ApproveDocumentCommandHandler(
                 throw new NotFoundException("Document", command.DocumentId.ToString());
             }
 
-            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException("Contexto HTTP não disponível");
+            var httpContext = _httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException(_localizer["HttpContextNotAvailable"]);
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("É necessário estar autenticado para aprovar documentos");
+                throw new UnauthorizedAccessException(_localizer["DocumentApproveNotAllowed"]);
 
             var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)
@@ -55,7 +59,7 @@ public class ApproveDocumentCommandHandler(
                 _logger.LogWarning(
                     "User {UserId} attempted to approve document {DocumentId} without admin privileges",
                     userId, command.DocumentId);
-                throw new ForbiddenAccessException("Apenas administradores podem aprovar documentos");
+                throw new ForbiddenAccessException(_localizer["AdminOnlyCanApproveDocuments"]);
             }
 
             if (document.Status != EDocumentStatus.PendingVerification)
@@ -64,7 +68,7 @@ public class ApproveDocumentCommandHandler(
                     "Document {DocumentId} cannot be approved in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente", "BadRequest"));
+                    _localizer["DocumentStatusInvalidForApproval", document.Status.ToPortuguese()], "BadRequest"));
             }
 
             var ocrData = command.VerificationNotes != null
@@ -92,7 +96,7 @@ public class ApproveDocumentCommandHandler(
             _logger.LogError(ex,
                 "Unexpected error approving document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Falha ao aprovar o documento. Por favor, tente novamente mais tarde.", "InternalError"));
+            return Result.Failure(Error.Internal(_localizer["DocumentApproveError"], "InternalError"));
         }
 
     }

@@ -8,7 +8,9 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -20,43 +22,45 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="serviceQueries"></param>
 /// <param name="categoryQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class CreateServiceCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceQueries serviceQueries,
     IServiceCategoryQueries categoryQueries,
-    ILogger<CreateServiceCommandHandler> logger) : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
+    ILogger<CreateServiceCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<CreateServiceCommand, Result<ServiceDto>>
 {
     public async Task<Result<ServiceDto>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
     {
         try
         {
             if (request.CategoryId == Guid.Empty)
-                return Result<ServiceDto>.Failure("O ID da categoria não pode ser vazio.");
+                return Result<ServiceDto>.Failure(localizer["CategoryIdRequired"]);
 
             var categoryId = ServiceCategoryId.From(request.CategoryId);
 
             // Verificar se a categoria existe e está ativa
             var category = await categoryQueries.GetByIdAsync(categoryId, cancellationToken) ?? throw new UnprocessableEntityException(
-                    $"Categoria com ID '{request.CategoryId}' não encontrada.",
+                    localizer["CategoryNotFoundById", request.CategoryId],
                     "ServiceCategory");
 
             if (!category.IsActive)
                 throw new UnprocessableEntityException(
-                    "Não é possível criar serviço em categoria inativa.",
+                    localizer["CannotCreateServiceInInactiveCategory"],
                     "ServiceCategory");
 
             var normalizedName = request.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Result<ServiceDto>.Failure("O nome do serviço é obrigatório.");
+                return Result<ServiceDto>.Failure(localizer["ServiceNameRequired"]);
 
             // Verificar se já existe serviço com o mesmo nome na categoria
             if (await serviceQueries.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
-                return Result<ServiceDto>.Failure($"Já existe um serviço com o nome '{normalizedName}' nesta categoria.");
+                return Result<ServiceDto>.Failure(Error.Conflict(localizer["ServiceNameAlreadyExistsInCategory", normalizedName]));
 
             // Validar DisplayOrder
             if (request.DisplayOrder < 0)
-                return Result<ServiceDto>.Failure("A ordem de exibição não pode ser negativa.");
+                return Result<ServiceDto>.Failure(localizer["ServiceDisplayOrderNegative"]);
 
             var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
@@ -95,7 +99,7 @@ public sealed class CreateServiceCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while creating service.");
-            return Result<ServiceDto>.Failure("Ocorreu um erro inesperado ao criar o serviço.");
+            return Result<ServiceDto>.Failure(localizer["ServiceCreateError"]);
         }
 
     }

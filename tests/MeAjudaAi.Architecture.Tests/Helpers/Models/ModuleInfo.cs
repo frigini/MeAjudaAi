@@ -2,7 +2,6 @@ using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests.Helpers.Models
 {
-
     /// <summary>
     /// Informações sobre um módulo descoberto
     /// </summary>

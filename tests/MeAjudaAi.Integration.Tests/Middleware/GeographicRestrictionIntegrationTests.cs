@@ -1,6 +1,5 @@
-using System.Text.Json;
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
@@ -318,4 +317,3 @@ public class GeographicRestrictionIntegrationTests : BaseApiTest
             "Missing location headers should allow access (fail-open)");
     }
 }
-

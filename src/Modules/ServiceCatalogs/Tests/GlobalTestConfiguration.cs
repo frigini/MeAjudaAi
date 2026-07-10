@@ -3,9 +3,10 @@ using MeAjudaAi.Shared.Tests;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests;
 
 /// <summary>
-/// Collection definition específica para testes de integração do módulo ServiceCatalogs
+/// Collection definition específica para testes de integração do módulo ServiceCatalogs.
+/// DisableParallelization impede que classes compartilhando o mesmo DB executem em paralelo.
 /// </summary>
-[CollectionDefinition("ServiceCatalogsIntegrationTests")]
+[CollectionDefinition("ServiceCatalogsIntegrationTests", DisableParallelization = true)]
 public class ServiceCatalogsIntegrationTestCollection : ICollectionFixture<SharedIntegrationTestFixture>
 {
 }

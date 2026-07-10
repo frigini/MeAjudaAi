@@ -7,7 +7,7 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
-using MeAjudaAi.Modules.Communications.Tests.Unit.Application.Services.Builders;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Communications;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;

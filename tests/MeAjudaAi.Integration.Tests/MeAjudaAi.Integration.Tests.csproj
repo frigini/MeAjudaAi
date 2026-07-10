@@ -11,7 +11,7 @@
     <RestoreLockedMode>false</RestoreLockedMode>
     
     <!-- Suprimir warnings específicos de testes -->
-    <NoWarn>$(NoWarn);NU1608</NoWarn>
+    <NoWarn>$(NoWarn);NU1608;NU1902</NoWarn>
     
     <!-- Configurações de Performance para Testes de Integração -->
     <VSTestUseMSBuildOutput>false</VSTestUseMSBuildOutput>
@@ -56,7 +56,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
-    <ProjectReference Include="..\MeAjudaAi.E2E.Tests\MeAjudaAi.E2E.Tests.csproj" />
     <ProjectReference Include="..\..\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
     <ProjectReference Include="..\..\src\Modules\Bookings\API\MeAjudaAi.Modules.Bookings.API.csproj" />
@@ -105,10 +104,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="System.Net" />
-    <Using Include="Microsoft.Extensions.DependencyInjection" />
     <Using Include="Aspire.Hosting.ApplicationModel" />
     <Using Include="Aspire.Hosting.Testing" />
+	<Using Include="FluentAssertions" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+	<Using Include="Moq" />
+    <Using Include="System.Net" />
     <Using Include="Xunit" />
   </ItemGroup>
 

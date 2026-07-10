@@ -13,6 +13,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 {
     private ServiceProvider? _serviceProvider;
     private static bool _containersStarted;
+    private static Task? _startupTask;
     private static readonly Lock _startupLock = new();
 
     protected IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not initialized");
@@ -34,7 +35,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        // CRÍTICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços
+        // CRITICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços
         await EnsureContainersStartedAsync();
 
         // Configura serviços para este teste específico
@@ -76,21 +77,36 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
     private static async Task EnsureContainersStartedAsync()
     {
-        // Double-check locking pattern para garantir thread safety
-        if (_containersStarted) return;
+        Task? taskToAwait = null;
 
         lock (_startupLock)
         {
             if (_containersStarted) return;
+
+            if (_startupTask is not null)
+            {
+                taskToAwait = _startupTask;
+            }
+            else
+            {
+                _startupTask = StartContainersAsync();
+                taskToAwait = _startupTask;
+            }
+        }
+
+        await taskToAwait!;
+
+        lock (_startupLock)
+        {
             _containersStarted = true;
         }
 
-        Console.WriteLine("Starting shared containers...");
+        return;
 
-        // Inicia containers fora do lock
-        await SharedTestContainers.StartAllAsync();
-
-        Console.WriteLine("Shared containers started successfully!");
+        static async Task StartContainersAsync()
+        {
+            await SharedTestContainers.StartAllAsync();
+        }
     }
 
     public async ValueTask DisposeAsync()

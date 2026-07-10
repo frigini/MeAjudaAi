@@ -1,4 +1,6 @@
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;
@@ -7,12 +9,15 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;
 public class NullDocumentIntelligenceServiceTests
 {
     private readonly Mock<ILogger<NullDocumentIntelligenceService>> _mockLogger;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly NullDocumentIntelligenceService _service;
 
     public NullDocumentIntelligenceServiceTests()
     {
         _mockLogger = new Mock<ILogger<NullDocumentIntelligenceService>>();
-        _service = new NullDocumentIntelligenceService(_mockLogger.Object);
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
+        _mockLocalizer.Setup(x => x[It.IsAny<string>()]).Returns<string>(key => new LocalizedString(key, key));
+        _service = new NullDocumentIntelligenceService(_mockLogger.Object, _mockLocalizer.Object);
     }
 
     [Theory]
@@ -70,7 +75,7 @@ public class NullDocumentIntelligenceServiceTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Be("Não foi possível processar o documento no momento, tente novamente mais tarde.");
+        result.ErrorMessage.Should().Be("DocumentProcessingUnavailable");
         
         _mockLogger.Verify(
             x => x.Log(

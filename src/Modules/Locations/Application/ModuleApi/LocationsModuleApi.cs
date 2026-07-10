@@ -6,6 +6,8 @@ using MeAjudaAi.Modules.Locations.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.ModuleApi;
@@ -18,7 +20,8 @@ public sealed class LocationsModuleApi(
     ICepLookupService cepLookupService,
     IGeocodingService geocodingService,
     IAllowedCityQueries allowedCityQueries,
-    ILogger<LocationsModuleApi> logger) : ILocationsModuleApi
+    ILogger<LocationsModuleApi> logger,
+    IStringLocalizer<Strings> localizer) : ILocationsModuleApi
 {
     private static class ModuleMetadata
     {
@@ -68,13 +71,13 @@ public sealed class LocationsModuleApi(
         var cepValueObject = Cep.Create(cep);
         if (cepValueObject is null)
         {
-            return Result<ModuleAddressDto>.Failure($"CEP inválido: {cep}");
+            return Result<ModuleAddressDto>.Failure(localizer["InvalidCep", cep]);
         }
 
         var address = await cepLookupService.LookupAsync(cepValueObject, cancellationToken);
         if (address is null)
         {
-            return Result<ModuleAddressDto>.Failure($"CEP {cep} não encontrado");
+            return Result<ModuleAddressDto>.Failure(localizer["CepNotFound", cep]);
         }
 
         var dto = new ModuleAddressDto(
@@ -95,13 +98,13 @@ public sealed class LocationsModuleApi(
     {
         if (string.IsNullOrWhiteSpace(address))
         {
-            return Result<ModuleCoordinatesDto>.Failure("Endereço não pode ser vazio");
+            return Result<ModuleCoordinatesDto>.Failure(localizer["AddressCannotBeEmpty"]);
         }
 
         var coordinates = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
         if (coordinates is null)
         {
-            return Result<ModuleCoordinatesDto>.Failure($"Coordenadas não encontradas para o endereço: {address}");
+            return Result<ModuleCoordinatesDto>.Failure(localizer["CoordinatesNotFoundForAddress", address]);
         }
 
         var dto = new ModuleCoordinatesDto(coordinates.Latitude, coordinates.Longitude);
@@ -122,7 +125,7 @@ public sealed class LocationsModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting allowed city ID for {CityName}/{StateSigla}", cityName, stateSigla);
-            return Result<Guid?>.Failure("Erro ao buscar ID da cidade");
+            return Result<Guid?>.Failure(localizer["ErrorFetchingCityId"]);
         }
     }
 }

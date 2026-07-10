@@ -4,8 +4,10 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Services;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Stripe;
 
@@ -20,6 +22,7 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<PaymentCommandService>> _loggerMock;
     private readonly Mock<IRepository<InboxMessage, Guid>> _inboxRepositoryMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly PaymentCommandService _service;
     private readonly EnvironmentVariableRestorer _envRestorer;
 
@@ -30,6 +33,15 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<PaymentCommandService>>();
         _inboxRepositoryMock = new Mock<IRepository<InboxMessage, Guid>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "EmptyRequestBody")])
+            .Returns(new LocalizedString("EmptyRequestBody", "Corpo da requisição vazio."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "StripeWebhookConfigMissing")])
+            .Returns(new LocalizedString("StripeWebhookConfigMissing", "Configuração do webhook Stripe ausente."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "InvalidWebhookRequest")])
+            .Returns(new LocalizedString("InvalidWebhookRequest", "Requisição de webhook inválida."));
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "MockEventProcessingFailed")])
+            .Returns(new LocalizedString("MockEventProcessingFailed", "Falha ao processar evento mock."));
         _envRestorer = new EnvironmentVariableRestorer();
 
         _configurationMock.Setup(x => x["Stripe:WebhookSecret"]).Returns("whsec_test_secret");
@@ -41,7 +53,8 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
             _uowMock.Object,
             DbContext,
             _configurationMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     public new void Dispose()
@@ -78,7 +91,8 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
             _uowMock.Object,
             DbContext,
             _configurationMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
 
         var payload = """{"type": "checkout.session.completed", "id": "evt_test"}""";
         var result = await service.HandleStripeWebhookAsync(payload, "sig_test", CancellationToken.None);
@@ -120,7 +134,8 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
             _uowMock.Object,
             DbContext,
             _configurationMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
 
         var eventId = "evt_valid_" + Guid.NewGuid().ToString("N");
         var payload = $$"""
@@ -193,7 +208,8 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
                 _uowMock.Object,
                 DbContext,
                 _configurationMock.Object,
-                _loggerMock.Object);
+                _loggerMock.Object,
+                _localizerMock.Object);
 
             var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
             var payload = $$"""
@@ -227,7 +243,8 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
                 _uowMock.Object,
                 DbContext,
                 _configurationMock.Object,
-                _loggerMock.Object);
+                _loggerMock.Object,
+                _localizerMock.Object);
 
             var invalidPayload = "{ invalid json for mock }";
 

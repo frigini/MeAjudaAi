@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
@@ -34,7 +33,7 @@ public sealed class DbContextConcurrencyTests : BaseApiTest
 
             setupContext.Users.Add(user!);
             await setupContext.SaveChangesAsync();
-            userId = user.Id.Value;
+            userId = user!.Id.Value;
         }
 
         try
@@ -102,7 +101,7 @@ public sealed class DbContextConcurrencyTests : BaseApiTest
 
             context1.Users.Add(user!);
             await context1.SaveChangesAsync();
-            userId = user.Id.Value;
+            userId = user!.Id.Value;
         }
 
         try

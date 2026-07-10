@@ -37,7 +37,7 @@ public class ServiceCategoryBuilder : BaseBuilder<ServiceCategory>
         return this;
     }
 
-    public ServiceCategoryBuilder WithDescription(string description)
+    public ServiceCategoryBuilder WithDescription(string? description)
     {
         _description = description;
         return this;

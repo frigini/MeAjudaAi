@@ -1,7 +1,9 @@
 using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Stripe;
 
@@ -12,6 +14,7 @@ public class StripePaymentGatewayTests
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILogger<StripePaymentGateway>> _loggerMock;
     private readonly Mock<IStripeService> _stripeServiceMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly PaymentsOptions _paymentsOptions;
     private StripePaymentGateway? _gateway;
 
@@ -20,6 +23,9 @@ public class StripePaymentGatewayTests
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<StripePaymentGateway>>();
         _stripeServiceMock = new Mock<IStripeService>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock.Setup(x => x[It.IsAny<string>()]).Returns<string>(key => new LocalizedString(key, key));
+        _localizerMock.Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()]).Returns<string, object[]>((key, args) => new LocalizedString(key, key));
         _paymentsOptions = new PaymentsOptions
         {
             SuccessUrl = "/success",
@@ -39,14 +45,15 @@ public class StripePaymentGatewayTests
         _configurationMock.Object, 
         _paymentsOptions, 
         _loggerMock.Object, 
-        _stripeServiceMock.Object);
+        _stripeServiceMock.Object,
+        _localizerMock.Object);
 
     [Fact]
     public void Constructor_ShouldThrow_WhenClientBaseUrlIsMissing()
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("sk_test_123");
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object);
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object, _localizerMock.Object);
         act.Should().Throw<ArgumentException>().WithMessage("*ClientBaseUrl*");
     }
 
@@ -55,7 +62,7 @@ public class StripePaymentGatewayTests
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns((string?)null);
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object);
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _paymentsOptions, _loggerMock.Object, _stripeServiceMock.Object, _localizerMock.Object);
         act.Should().Throw<ArgumentException>().WithMessage("*ApiKey*");
     }
 
@@ -109,7 +116,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("URL de checkout inválida");
+        result.ErrorMessage.Should().Contain("StripeInvalidCheckoutUrl");
     }
 
     [Fact]
@@ -125,7 +132,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("comunicação");
+        result.ErrorMessage.Should().Contain("StripeCommunicationFailed");
     }
 
     [Fact]
@@ -142,7 +149,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("não corresponde");
+        result.ErrorMessage.Should().Contain("StripePlanMismatch");
     }
 
     [Fact]
@@ -187,7 +194,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("fracionários");
+        result.ErrorMessage.Should().Contain("StripeCurrencyFractionalError");
     }
 
     [Fact]
@@ -207,7 +214,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("comunicação");
+        result.ErrorMessage.Should().Contain("StripeCommunicationFailed");
     }
 
     [Fact]

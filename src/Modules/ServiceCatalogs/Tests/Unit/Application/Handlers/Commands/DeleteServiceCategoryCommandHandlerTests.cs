@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
@@ -19,6 +21,7 @@ public class DeleteServiceCategoryCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<ServiceCategory, ServiceCategoryId>> _categoryRepositoryMock;
     private readonly Mock<IServiceQueries> _serviceQueriesMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeleteServiceCategoryCommandHandler _handler;
 
     public DeleteServiceCategoryCommandHandlerTests()
@@ -26,9 +29,10 @@ public class DeleteServiceCategoryCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _categoryRepositoryMock = new Mock<IRepository<ServiceCategory, ServiceCategoryId>>();
         _serviceQueriesMock = new Mock<IServiceQueries>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
         
         _uowMock.Setup(x => x.GetRepository<ServiceCategory, ServiceCategoryId>()).Returns(_categoryRepositoryMock.Object);
-        _handler = new DeleteServiceCategoryCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, NullLogger<DeleteServiceCategoryCommandHandler>.Instance);
+        _handler = new DeleteServiceCategoryCommandHandler(_uowMock.Object, _serviceQueriesMock.Object, NullLogger<DeleteServiceCategoryCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -126,6 +130,8 @@ public class DeleteServiceCategoryCommandHandlerTests
     {
         var category = new ServiceCategoryBuilder().WithName("Limpeza").Build();
         var command = new DeleteServiceCategoryCommand(category.Id.Value);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "CategoryDeleteError")]).Returns(new LocalizedString("CategoryDeleteError", "Ocorreu um erro inesperado ao excluir a categoria de serviço."));
 
         _categoryRepositoryMock
             .Setup(x => x.TryFindAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))

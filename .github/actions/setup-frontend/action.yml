@@ -20,10 +20,32 @@ runs:
         cache: "npm"
         cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
 
+    - name: Configure npm for CI reliability
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        npm config set fetch-timeout 120000
+        npm config set fetch-retry-mintimeout 20000
+        npm config set fetch-retry-maxtimeout 120000
+        npm config set fetch-retries 5
+
     - name: Install Frontend Dependencies
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: npm ci
+      run: |
+        for attempt in 1 2 3; do
+          echo "Attempt $attempt of 3..."
+          if npm ci; then
+            echo "npm ci succeeded on attempt $attempt"
+            exit 0
+          fi
+          echo "npm ci failed on attempt $attempt"
+          if [ "$attempt" -lt 3 ]; then
+            sleep $((attempt * 10))
+          fi
+        done
+        echo "npm ci failed after 3 attempts"
+        exit 1
 
     - name: Nx Set SHAs
       uses: nrwl/nx-set-shas@v5

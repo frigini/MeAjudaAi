@@ -6,6 +6,8 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
@@ -18,6 +20,7 @@ public class RegisterCustomerCommandHandlerTests
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<RegisterCustomerCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly RegisterCustomerCommandHandler _handler;
 
     public RegisterCustomerCommandHandlerTests()
@@ -27,16 +30,43 @@ public class RegisterCustomerCommandHandlerTests
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<RegisterCustomerCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _unitOfWorkMock
             .Setup(x => x.GetRepository<User, UserId>())
             .Returns(_userRepositoryMock.Object);
 
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "TermsAcceptanceRequired")])
+            .Returns(new LocalizedString("TermsAcceptanceRequired", "Você deve aceitar os termos de uso para se cadastrar."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "PrivacyPolicyAcceptanceRequired")])
+            .Returns(new LocalizedString("PrivacyPolicyAcceptanceRequired", "Você deve aceitar a política de privacidade para se cadastrar."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "EmailAlreadyExists")])
+            .Returns(new LocalizedString("EmailAlreadyExists", "Este email já está em uso."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "FirstNameMinLength"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"O primeiro nome deve ter pelo menos {args[0]} caracteres."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "LastNameRequired"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"O sobrenome é obrigatório e deve ter pelo menos {args[0]} caracteres."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "LastNameMinLength"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"O sobrenome deve ter pelo menos {args[0]} caracteres."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "UserCreateCriticalError")])
+            .Returns(new LocalizedString("UserCreateCriticalError", "Falha crítica ao criar o usuário. Dados nulos retornados."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "RegistrationSaveError")])
+            .Returns(new LocalizedString("RegistrationSaveError", "Falha ao salvar o cadastro. Tente novamente mais tarde."));
+
         _handler = new RegisterCustomerCommandHandler(
             _userDomainServiceMock.Object,
             _unitOfWorkMock.Object,
             _userQueriesMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -102,7 +132,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.TermsNotAcceptedError);
+        result.Error!.Message.Should().Be("Você deve aceitar os termos de uso para se cadastrar.");
     }
 
     [Fact]
@@ -116,7 +146,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.PrivacyPolicyNotAcceptedError);
+        result.Error.Message.Should().Be("Você deve aceitar a política de privacidade para se cadastrar.");
         _userDomainServiceMock.Verify(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
         _userRepositoryMock.Verify(x => x.Add(It.IsAny<User>()), Times.Never);
     }
@@ -238,7 +268,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        result.Error!.Message.Should().Be("Falha ao salvar o cadastro. Tente novamente mais tarde.");
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -263,7 +293,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        result.Error!.Message.Should().Be("Falha ao salvar o cadastro. Tente novamente mais tarde.");
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -293,7 +323,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
+        result.Error!.Message.Should().Be("Falha ao salvar o cadastro. Tente novamente mais tarde.");
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
 
         _loggerMock.Verify(

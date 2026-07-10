@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Queries;
 
@@ -17,7 +18,11 @@ public class DbContextServiceQueriesTests : BaseInMemoryDatabaseTest<ServiceCata
 
     private async Task<ServiceCategory> CreateCategoryAsync(string name = "Test Category")
     {
-        var category = ServiceCategory.Create(name, "Description", 1);
+        var category = new ServiceCategoryBuilder()
+            .WithName(name)
+            .WithDescription("Description")
+            .WithDisplayOrder(1)
+            .Build();
         DbContext.ServiceCategories.Add(category);
         await DbContext.SaveChangesAsync();
         return category;

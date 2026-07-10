@@ -8,10 +8,12 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
@@ -24,13 +26,15 @@ public class RequestVerificationCommandHandler(
     [FromKeyedServices(ModuleKeys.Documents)] IUnitOfWork uow,
     IDocumentQueries documentQueries,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<RequestVerificationCommandHandler> logger)
+    ILogger<RequestVerificationCommandHandler> logger,
+    IStringLocalizer<Strings> localizer)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
     private readonly IUnitOfWork _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     private readonly IDocumentQueries _documentQueries = documentQueries ?? throw new ArgumentNullException(nameof(documentQueries));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<RequestVerificationCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IStringLocalizer<Strings> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     public async Task<Result> HandleAsync(RequestVerificationCommand command, CancellationToken cancellationToken = default)
     {
@@ -40,20 +44,20 @@ public class RequestVerificationCommandHandler(
             if (document == null)
             {
                 _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
-                return Result.Failure(Error.NotFound($"Documento com ID {command.DocumentId} não encontrado", "NotFound"));
+                return Result.Failure(Error.NotFound(_localizer["DocumentNotFound", command.DocumentId], "NotFound"));
             }
 
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                return Result.Failure(Error.Unauthorized("Contexto HTTP não disponível", "Unauthorized"));
+                return Result.Failure(Error.Unauthorized(_localizer["HttpContextNotAvailable"], "Unauthorized"));
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                return Result.Failure(Error.Unauthorized("Usuário não autenticado", "Unauthorized"));
+                return Result.Failure(Error.Unauthorized(_localizer["UserNotAuthenticated"], "Unauthorized"));
 
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return Result.Failure(Error.Unauthorized("ID do usuário não encontrado no token", "Unauthorized"));
+                return Result.Failure(Error.Unauthorized(_localizer["UserIdNotFoundInToken"], "Unauthorized"));
 
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
             {
@@ -64,7 +68,7 @@ public class RequestVerificationCommandHandler(
                         "User {UserId} attempted to request verification for document {DocumentId} owned by provider {ProviderId}",
                         userId, command.DocumentId, document.ProviderId);
                     return Result.Failure(Error.Unauthorized(
-                        "Você não tem autorização para solicitar a verificação deste documento", "Unauthorized"));
+                        _localizer["DocumentVerificationNotAllowed"], "Unauthorized"));
                 }
             }
 
@@ -75,7 +79,7 @@ public class RequestVerificationCommandHandler(
                     "Document {DocumentId} cannot be marked for verification in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"Documento está com status {document.Status} e não pode ser marcado para verificação", "BadRequest"));
+                    _localizer["DocumentStatusInvalidForVerification", document.Status], "BadRequest"));
             }
 
             document.MarkAsPendingVerification();
@@ -100,12 +104,12 @@ public class RequestVerificationCommandHandler(
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, "Error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Erro ao solicitar verificação do documento, tente novamente mais tarde", "InternalError"));
+            return Result.Failure(Error.Internal(_localizer["DocumentVerificationError"], "InternalError"));
         }
         catch (NpgsqlException ex)
         {
             _logger.LogError(ex, "Database error requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal("Erro ao solicitar verificação do documento, tente novamente mais tarde", "InternalError"));
+            return Result.Failure(Error.Internal(_localizer["DocumentVerificationError"], "InternalError"));
         }
     }
 }

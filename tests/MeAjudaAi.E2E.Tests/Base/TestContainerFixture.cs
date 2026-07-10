@@ -1,17 +1,36 @@
 using Bogus;
 using MeAjudaAi.ApiService;
-using MeAjudaAi.E2E.Tests.Base.Helpers;
-using MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
+using MeAjudaAi.E2E.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
-using MeAjudaAi.Modules.Documents.Tests.Mocks;
+using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Payments.Domain.Abstractions;
+using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Interfaces;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
+using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.E2E;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Documents;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -19,6 +38,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -37,7 +57,17 @@ public class TestContainerFixture : IAsyncLifetime
     private static bool _containersInitialized = false;
     private static bool _migrationsApplied = false;
 
-    private WebApplicationFactory<Program> _factory = null!;
+    // Two separate factories: one for events-enabled tests, one for non-events tests.
+    // This prevents the static factory sharing issue where the first fixture's
+    // EnableEventsAndMessageBus setting was captured permanently.
+    private static bool _factoryEventsInitialized = false;
+    private static bool _factoryNoEventsInitialized = false;
+    private static WebApplicationFactory<Program>? _factoryEvents;
+    private static WebApplicationFactory<Program>? _factoryNoEvents;
+    private static HttpClient? _sharedApiClientEvents;
+    private static HttpClient? _sharedApiClientNoEvents;
+    private static IServiceProvider? _sharedServicesEvents;
+    private static IServiceProvider? _sharedServicesNoEvents;
 
     public HttpClient ApiClient { get; private set; } = null!;
     public IServiceProvider Services { get; private set; } = null!;
@@ -77,10 +107,47 @@ public class TestContainerFixture : IAsyncLifetime
         if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
         if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
 
-        // Initialize WebApplicationFactory for THIS test class instance
-        await InitializeFactoryAsync();
+        // Initialize the correct factory variant based on EnableEventsAndMessageBus.
+        // Two separate factories prevent the static factory sharing issue where
+        // the first fixture's config was captured permanently.
+        var eventsEnabled = EnableEventsAndMessageBus;
+        var factoryInitialized = eventsEnabled ? _factoryEventsInitialized : _factoryNoEventsInitialized;
+        if (!factoryInitialized)
+        {
+            await _initializationLock.WaitAsync();
+            try
+            {
+                factoryInitialized = eventsEnabled ? _factoryEventsInitialized : _factoryNoEventsInitialized;
+                if (!factoryInitialized)
+                {
+                    await InitializeFactoryAsync(eventsEnabled);
+                    if (eventsEnabled)
+                        _factoryEventsInitialized = true;
+                    else
+                        _factoryNoEventsInitialized = true;
+                }
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
+        else
+        {
+            // Reuse properties already set by the one-time initialization
+            if (eventsEnabled)
+            {
+                ApiClient = _sharedApiClientEvents!;
+                Services = _sharedServicesEvents!;
+            }
+            else
+            {
+                ApiClient = _sharedApiClientNoEvents!;
+                Services = _sharedServicesNoEvents!;
+            }
+        }
 
-        // One-time migration application for the entire test run
+        // One-time migration application for the entire run (shared by both factories)
         if (!_migrationsApplied)
         {
             await _initializationLock.WaitAsync();
@@ -104,22 +171,16 @@ public class TestContainerFixture : IAsyncLifetime
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         // Configurar containers com timeouts aumentados para WSL2/Docker Desktop (Windows)
-        if (_postgresContainer == null)
-        {
-            _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+        _postgresContainer ??= new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("meajudaai_test")
                 .WithUsername("postgres")
                 .WithPassword("test123")
                 .WithCleanUp(true)
                 .Build();
-        }
 
-        if (_redisContainer == null)
-        {
-            _redisContainer = new RedisBuilder("redis:7-alpine")
+        _redisContainer ??= new RedisBuilder("redis:7-alpine")
                 .WithCleanUp(true)
                 .Build();
-        }
 
         // Iniciar containers em paralelo
         var startTasks = new List<Task>();
@@ -135,9 +196,9 @@ public class TestContainerFixture : IAsyncLifetime
         Console.WriteLine("✅ TestContainers initialized successfully");
     }
 
-    private async Task InitializeFactoryAsync()
+    private Task InitializeFactoryAsync(bool eventsEnabled)
     {
-        _factory = new WebApplicationFactory<Program>()
+        var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -203,30 +264,47 @@ public class TestContainerFixture : IAsyncLifetime
                         logging.SetMinimumLevel(LogLevel.Information);
                     });
 
-                    ConfigureMockServices(services);
+                    ConfigureMockServices(services, eventsEnabled);
                     ReconfigureDbContexts(services);
                 });
             });
 
         var contextPropagationHandler = new TestContextAwareHandler
         {
-            InnerHandler = _factory.Server.CreateHandler()
+            InnerHandler = factory.Server.CreateHandler()
         };
-        
-        ApiClient = new HttpClient(contextPropagationHandler)
+
+        var apiClient = new HttpClient(contextPropagationHandler)
         {
             BaseAddress = new Uri("http://localhost")
         };
 
-        Services = _factory.Services;
+        // Cache for the correct variant
+        if (eventsEnabled)
+        {
+            _factoryEvents = factory;
+            _sharedApiClientEvents = apiClient;
+            _sharedServicesEvents = factory.Services;
+        }
+        else
+        {
+            _factoryNoEvents = factory;
+            _sharedApiClientNoEvents = apiClient;
+            _sharedServicesNoEvents = factory.Services;
+        }
+
+        ApiClient = apiClient;
+        Services = factory.Services;
+
+        return Task.CompletedTask;
     }
 
-    private void ConfigureMockServices(IServiceCollection services)
+    private void ConfigureMockServices(IServiceCollection services, bool eventsEnabled)
     {
-        services.AddAuthentication(MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName)
+        services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
             .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
-                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler>(
-                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName,
+                ConfigurableTestAuthenticationHandler>(
+               ConfigurableTestAuthenticationHandler.SchemeName,
                 _ => { });
         
         if (!services.Any(d => d.ServiceType == typeof(Microsoft.AspNetCore.Authorization.IAuthorizationService)))
@@ -238,9 +316,9 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in keycloakDescriptors) services.Remove(d);
         services.AddSingleton<IKeycloakService, MockKeycloakService>();
 
-        var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
+        var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(IUserDomainService)).ToList();
         foreach (var d in userDomainDescriptors) services.Remove(d);
-        services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
+        services.AddScoped<IUserDomainService, MockUserDomainService>();
 
         var blobDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
         foreach (var d in blobDescriptors) services.Remove(d);
@@ -250,46 +328,48 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in ocrDescriptors) services.Remove(d);
         services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
 
-        var gatewayDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway)).ToList();
+        var gatewayDescriptors = services.Where(d => d.ServiceType == typeof(IPaymentGateway)).ToList();
         foreach (var d in gatewayDescriptors) services.Remove(d);
-        services.AddScoped<MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway, MockPaymentGateway>();
+        services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 
         // Register dummy Stripe client to satisfy DI validation
         services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
 
-        // Message Bus Condicional para E2E
-        var busDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
+        // Message Bus: register based on eventsEnabled parameter.
+        // Two separate factories are maintained (events vs non-events) to avoid
+        // the static factory sharing issue where the first fixture's config was used for all.
+        var busDescriptors = services.Where(d => d.ServiceType == typeof(IMessageBus)).ToList();
         foreach (var d in busDescriptors) services.Remove(d);
 
-        var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
+        var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(IDomainEventProcessor)).ToList();
         foreach (var d in domainProcessorDescriptors) services.Remove(d);
 
-        if (EnableEventsAndMessageBus)
+        if (eventsEnabled)
         {
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
-            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>();
+            services.AddSingleton<IMessageBus, SynchronousInMemoryMessageBus>();
+            services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
         }
         else
         {
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
-            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+            services.AddSingleton<IMessageBus, MockNoOpMessageBus>();
+            services.AddScoped<IDomainEventProcessor, MockNoOpDomainEventProcessor>();
         }
     }
 
     private void ReconfigureDbContexts(IServiceCollection services)
     {
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services, ModuleKeys.Users);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services, ModuleKeys.Providers);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, ModuleKeys.Bookings);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services, ModuleKeys.Documents);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
+        ReconfigureDbContextWithUnitOfWork<UsersDbContext>(services, ModuleKeys.Users);
+        ReconfigureDbContextWithUnitOfWork<ProvidersDbContext>(services, ModuleKeys.Providers);
+        ReconfigureDbContextWithUnitOfWork<BookingsDbContext>(services, ModuleKeys.Bookings);
+        ReconfigureDbContextWithUnitOfWork<DocumentsDbContext>(services, ModuleKeys.Documents);
+        ReconfigureDbContextWithUnitOfWork<ServiceCatalogsDbContext>(services, ModuleKeys.ServiceCatalogs);
         services.AddScoped<IServiceCategoryQueries, DbContextServiceCategoryQueries>();
         services.AddScoped<IServiceQueries, DbContextServiceQueries>();
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services, ModuleKeys.Locations);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services, ModuleKeys.Communications);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services, ModuleKeys.SearchProviders);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services, ModuleKeys.Ratings);
-        ReconfigureDbContextWithUnitOfWork<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services, ModuleKeys.Payments);
+        ReconfigureDbContextWithUnitOfWork<LocationsDbContext>(services, ModuleKeys.Locations);
+        ReconfigureDbContextWithUnitOfWork<CommunicationsDbContext>(services, ModuleKeys.Communications);
+        ReconfigureDbContextWithUnitOfWork<SearchProvidersDbContext>(services, ModuleKeys.SearchProviders);
+        ReconfigureDbContextWithUnitOfWork<RatingsDbContext>(services, ModuleKeys.Ratings);
+        ReconfigureDbContextWithUnitOfWork<PaymentsDbContext>(services, ModuleKeys.Payments);
 
         // Remove ALL non-keyed IUnitOfWork registrations (production modules each register their own,
         // but only the last one wins in MS DI — Payments. This causes handlers to use the wrong DbContext.)
@@ -344,9 +424,8 @@ public class TestContainerFixture : IAsyncLifetime
         if (contextDescriptor != null)
             services.Remove(contextDescriptor);
 
-        services.AddDbContext<TContext>(options =>
+        services.AddDbContext<TContext>((sp, options) =>
         {
-            Console.WriteLine($"[DEBUG] Configuring DbContext {contextName} with ConnectionString: {PostgresConnectionString}");
             options.UseNpgsql(PostgresConnectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
@@ -363,21 +442,19 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task ApplyMigrationsAsync()
     {
-        using var scope = _factory.Services.CreateScope();
+        // Use either factory — both share the same database
+        var factory = _factoryEvents ?? _factoryNoEvents;
+        if (factory == null)
+        {
+            throw new InvalidOperationException("WebApplicationFactory was not initialized. This should not happen as factory initialization must complete before migrations are applied.");
+        }
+
+        using var scope = factory.Services.CreateScope();
         var services = scope.ServiceProvider;
 
         try
         {
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>());
-            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>());
+            await services.ApplyAllDiscoveredMigrationsAsync();
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -393,16 +470,16 @@ public class TestContainerFixture : IAsyncLifetime
         using var scope = Services.CreateScope();
         var services = scope.ServiceProvider;
 
-        await CleanupContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Payments.Infrastructure.Persistence.PaymentsDbContext>(services);
-        await CleanupContext<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services);
+        await CleanupContext<UsersDbContext>(services);
+        await CleanupContext<ProvidersDbContext>(services);
+        await CleanupContext<DocumentsDbContext>(services);
+        await CleanupContext<ServiceCatalogsDbContext>(services);
+        await CleanupContext<LocationsDbContext>(services);
+        await CleanupContext<CommunicationsDbContext>(services);
+        await CleanupContext<SearchProvidersDbContext>(services);
+        await CleanupContext<RatingsDbContext>(services);
+        await CleanupContext<PaymentsDbContext>(services);
+        await CleanupContext<BookingsDbContext>(services);
 
         if (_redisContainer != null)
         {
@@ -440,8 +517,10 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        ApiClient?.Dispose();
-        if (_factory != null) await _factory.DisposeAsync();
+        // NOTE: Do NOT dispose _factory or _sharedApiClient here.
+        // _factory is static and shared across all fixture instances; disposing it
+        // while another test class is still using it causes ObjectDisposedException.
+        // The process will clean up static resources on exit.
     }
 
     public async Task<T> WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
@@ -464,24 +543,29 @@ public class TestContainerFixture : IAsyncLifetime
             var idParam = uri.Query.TrimStart('?').Split('&').FirstOrDefault(p => p.StartsWith("id="));
             if (idParam != null) return Guid.Parse(idParam.Split('=')[1]);
         }
-        return Guid.Parse(locationHeader.Split('/')[^1]);
+
+        var lastSegment = locationHeader.Split('/')[^1].Split('?')[0];
+        if (Guid.TryParse(lastSegment, out var id))
+            return id;
+
+        throw new FormatException($"Cannot extract GUID from Location header: {locationHeader}");
     }
 
     public static void AuthenticateAsAdmin()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
     }
 
     public static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
     }
 
     public static void AuthenticateAsAnonymous()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
     /// <summary>
@@ -491,8 +575,8 @@ public class TestContainerFixture : IAsyncLifetime
     /// <param name="providerId">O identificador do prestador ao qual o usuário será vinculado.</param>
     public static void AuthenticateAsAdminWithProvider(Guid providerId)
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(
             providerId: providerId,
             userId: "admin-provider-id",
             username: "admin-provider",
@@ -502,7 +586,19 @@ public class TestContainerFixture : IAsyncLifetime
 
     public static void BeforeEachTest()
     {
-        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
+    /// <summary>
+    /// Extrai o objeto de dados de uma resposta JSON, suportando formatos { "value": {...} }, { "data": {...} } ou objeto direto.
+    /// </summary>
+    public static JsonElement GetResponseData(JsonElement response)
+    {
+        if (response.TryGetProperty("value", out var value))
+            return value;
+        if (response.TryGetProperty("data", out var data))
+            return data;
+        return response;
     }
 
     public async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
@@ -572,5 +668,140 @@ public class TestContainerFixture : IAsyncLifetime
 
         return ExtractIdFromLocation(locationHeader);
     }
-}
 
+    /// <summary>
+    /// Cria um prestador de testes via endpoint admin. Centralizado para evitar duplicação entre suítes E2E.
+    /// </summary>
+    public async Task<Guid> CreateTestProviderAsync(Guid userId, string? name = null)
+    {
+        var providerName = name ?? $"ProviderX_{Guid.NewGuid():N}";
+        var request = new
+        {
+            UserId = userId.ToString(),
+            Name = providerName,
+            Type = 0, // EProviderType.Individual
+            BusinessProfile = new
+            {
+                LegalName = providerName,
+                FantasyName = providerName,
+                Description = $"Test provider {providerName}",
+                ContactInfo = new
+                {
+                    Email = $"{Guid.NewGuid():N}@example.com",
+                    PhoneNumber = "+5511999999999"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Avenida Paulista",
+                    Number = "1578",
+                    Neighborhood = "Bela Vista",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01310-200",
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create test provider. Status: {response.StatusCode}, Body: {body}");
+        }
+
+        return ExtractIdFromLocation(response.Headers.Location!.ToString());
+    }
+
+    /// <summary>
+    /// Configura o contexto de autenticação como um prestador específico.
+    /// </summary>
+    public static void AuthenticateAsProvider(Guid providerId, string? userId = null)
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+            providerId, userId ?? Guid.NewGuid().ToString());
+    }
+
+    /// <summary>
+    /// Insere um provider diretamente na tabela searchable_providers via Dapper.
+    /// Necessário porque o MockMessageBus não processa eventos de integração.
+    /// </summary>
+    public async Task InsertSearchableProviderAsync(
+        Guid providerId, string name, double latitude, double longitude,
+        string city = "São Paulo", string state = "SP",
+        decimal averageRating = 0m, int totalReviews = 0,
+        int subscriptionTier = 1, Guid[]? serviceIds = null)
+    {
+        await WithServiceScopeAsync(async sp =>
+        {
+            var dapper = sp.GetRequiredService<IDapperConnection>();
+
+            var sql = @"
+                INSERT INTO search_providers.searchable_providers 
+                (id, provider_id, slug, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
+                VALUES 
+                (@Id, @ProviderId, @Slug, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
+                ON CONFLICT (provider_id) 
+                DO UPDATE SET 
+                    slug = EXCLUDED.slug,
+                    name = EXCLUDED.name,
+                    location = EXCLUDED.location,
+                    average_rating = EXCLUDED.average_rating,
+                    total_reviews = EXCLUDED.total_reviews,
+                    service_ids = EXCLUDED.service_ids,
+                    is_active = EXCLUDED.is_active,
+                    updated_at = CURRENT_TIMESTAMP";
+
+            await dapper.ExecuteAsync(sql, new
+            {
+                Id = Guid.NewGuid(),
+                ProviderId = providerId,
+                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
+                Name = name,
+                Description = $"Test Provider {name}",
+                City = city,
+                State = state,
+                Latitude = latitude,
+                Longitude = longitude,
+                AvgRating = averageRating,
+                TotalReviews = totalReviews,
+                SubscriptionTier = subscriptionTier,
+                ServiceIds = serviceIds ?? Array.Empty<Guid>(),
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+        });
+    }
+
+    /// <summary>
+    /// Cria uma categoria + serviço via API REST. Retorna o ID do serviço criado.
+    /// </summary>
+    public async Task<Guid> CreateTestServiceViaApiAsync(
+        string? categoryName = null, string? serviceName = null)
+    {
+        AuthenticateAsAdmin();
+
+        categoryName ??= $"Category_{Guid.NewGuid():N}";
+        var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories",
+            new { name = categoryName, displayOrder = 1 }, JsonOptions);
+        catResponse.EnsureSuccessStatusCode();
+        var catId = ExtractIdFromLocation(catResponse.Headers.Location!.ToString());
+
+        serviceName ??= $"Service_{Guid.NewGuid():N}";
+        var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services",
+            new { name = serviceName, categoryId = catId }, JsonOptions);
+        svcResponse.EnsureSuccessStatusCode();
+        return ExtractIdFromLocation(svcResponse.Headers.Location!.ToString());
+    }
+
+    /// <summary>
+    /// Vincula um serviço a um provedor via API REST (POST /api/v1/providers/{id}/services/{serviceId}).
+    /// </summary>
+    public async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
+    {
+        var response = await ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
+        response.EnsureSuccessStatusCode();
+    }
+}

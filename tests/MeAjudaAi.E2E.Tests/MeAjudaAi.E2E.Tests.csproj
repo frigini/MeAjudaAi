@@ -38,11 +38,9 @@
     <ProjectReference Include="..\..\src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
     <ProjectReference Include="..\..\src\Modules\Documents\Domain\MeAjudaAi.Modules.Documents.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Documents\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Documents\Tests\MeAjudaAi.Modules.Documents.Tests.csproj" />
     <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Domain\MeAjudaAi.Modules.ServiceCatalogs.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Application\MeAjudaAi.Modules.ServiceCatalogs.Application.csproj" />
@@ -60,16 +58,15 @@
     <ProjectReference Include="..\..\src\Modules\Bookings\Application\MeAjudaAi.Modules.Bookings.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Bookings\Infrastructure\MeAjudaAi.Modules.Bookings.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Bookings\API\MeAjudaAi.Modules.Bookings.API.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Bookings\Tests\MeAjudaAi.Modules.Bookings.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="System.Net" />
-    <Using Include="Microsoft.Extensions.DependencyInjection" />
     <Using Include="Aspire.Hosting.ApplicationModel" />
     <Using Include="Aspire.Hosting.Testing" />
-    <Using Include="Xunit" />
     <Using Include="FluentAssertions" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Xunit" />
+    <Using Include="System.Net" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Application.Queries.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Handlers.Queries;
 
@@ -24,8 +25,8 @@ public class GetProviderDocumentsQueryHandlerTests
         var providerId = Guid.NewGuid();
         var documents = new List<Document>
         {
-            Document.Create(providerId, EDocumentType.IdentityDocument, "doc1.pdf", "url1"),
-            Document.Create(providerId, EDocumentType.ProofOfResidence, "doc2.pdf", "url2")
+            new DocumentBuilder().WithProviderId(providerId).AsIdentityDocument().WithFileName("doc1.pdf").WithFileUrl("url1").Build(),
+            new DocumentBuilder().WithProviderId(providerId).AsProofOfResidence().WithFileName("doc2.pdf").WithFileUrl("url2").Build()
         };
 
         _mockQueries.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
@@ -69,7 +70,7 @@ public class GetProviderDocumentsQueryHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.CriminalRecord, "crime.pdf", "storage/crime.pdf");
+        var document = new DocumentBuilder().WithProviderId(providerId).AsCriminalRecord().WithFileName("crime.pdf").WithFileUrl("storage/crime.pdf").Build();
         document.MarkAsPendingVerification();
 
         _mockQueries
@@ -101,7 +102,7 @@ public class GetProviderDocumentsQueryHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "storage/id.pdf");
+        var document = new DocumentBuilder().WithProviderId(providerId).AsIdentityDocument().WithFileName("id.pdf").WithFileUrl("storage/id.pdf").Build();
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"name\":\"João\"}");
 
@@ -126,7 +127,7 @@ public class GetProviderDocumentsQueryHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var document = Document.Create(providerId, EDocumentType.ProofOfResidence, "proof.pdf", "storage/proof.pdf");
+        var document = new DocumentBuilder().WithProviderId(providerId).AsProofOfResidence().WithFileName("proof.pdf").WithFileUrl("storage/proof.pdf").Build();
         document.MarkAsPendingVerification();
         document.MarkAsRejected("Document is blurry");
 

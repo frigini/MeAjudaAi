@@ -1,4 +1,3 @@
-using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
@@ -7,15 +6,8 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// Testes de integração para o sistema de autorização baseado em permissões.
 /// Valida que usuários com diferentes níveis de permissão têm acesso apropriado aos endpoints.
 /// </summary>
-public class PermissionAuthorizationIntegrationTests : BaseApiTest
+public class PermissionAuthorizationIntegrationTests(ITestOutputHelper output) : BaseApiTest
 {
-    private readonly ITestOutputHelper _output;
-
-    public PermissionAuthorizationIntegrationTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     [Fact]
     public async Task AdminUser_ShouldHaveAccessToUsersEndpoint()
     {
@@ -73,13 +65,13 @@ public class PermissionAuthorizationIntegrationTests : BaseApiTest
 
     private void LogResponseDiagnostics(HttpResponseMessage response, string content)
     {
-        _output.WriteLine($"Response status: {response.StatusCode}");
-        _output.WriteLine($"Response content length: {content.Length}");
+        output.WriteLine($"Response status: {response.StatusCode}");
+        output.WriteLine($"Response content length: {content.Length}");
         if (content.Length < 1000)
-            _output.WriteLine($"Response content: {content}");
+            output.WriteLine($"Response content: {content}");
 
-        _output.WriteLine("Response headers:");
+        output.WriteLine("Response headers:");
         foreach (var header in response.Headers)
-            _output.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+            output.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
     }
 }

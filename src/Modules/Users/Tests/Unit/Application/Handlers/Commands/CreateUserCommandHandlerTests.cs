@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Users;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Commands;
@@ -21,6 +23,7 @@ public class CreateUserCommandHandlerTests
     private readonly Mock<IRepository<User, UserId>> _userRepositoryMock;
     private readonly Mock<IUserQueries> _userQueriesMock;
     private readonly Mock<ILogger<CreateUserCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
@@ -30,16 +33,28 @@ public class CreateUserCommandHandlerTests
         _userRepositoryMock = new Mock<IRepository<User, UserId>>();
         _userQueriesMock = new Mock<IUserQueries>();
         _loggerMock = new Mock<ILogger<CreateUserCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _unitOfWorkMock
             .Setup(x => x.GetRepository<User, UserId>())
             .Returns(_userRepositoryMock.Object);
 
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "EmailAlreadyExists")])
+            .Returns(new LocalizedString("EmailAlreadyExists", "Este email já está em uso."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "UsernameAlreadyExists")])
+            .Returns(new LocalizedString("UsernameAlreadyExists", "Nome de usuário já está sendo utilizado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "UserCreateError")])
+            .Returns(new LocalizedString("UserCreateError", "Falha ao criar usuário. Tente novamente mais tarde."));
+
         _handler = new CreateUserCommandHandler(
             _userDomainServiceMock.Object,
             _unitOfWorkMock.Object,
             _userQueriesMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -186,7 +201,7 @@ public class CreateUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("email já existe");
+        result.Error.Message.Should().Contain("Este email já está em uso.");
 
         // Verifica que o check de username e o serviço de domínio não foram chamados
         _userQueriesMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -237,7 +252,7 @@ public class CreateUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("já está sendo utilizado");
+        result.Error.Message.Should().Contain("Nome de usuário já está sendo utilizado.");
 
         // Verifica que o serviço de domínio não foi chamado
         _userDomainServiceMock.Verify(
@@ -276,7 +291,7 @@ public class CreateUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Falha ao criar usuário");
+        result.Error.Message.Should().Contain("Falha ao criar usuário. Tente novamente mais tarde.");
 
         // Verifica que métodos subsequentes não foram chamados
         _userQueriesMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);

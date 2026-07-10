@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Infrastructure.Queries;
 
@@ -22,7 +23,11 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
     public async Task GetByIdAsync_WithExistingCategory_ShouldReturnCategory()
     {
         // Arrange
-        var category = ServiceCategory.Create("Test Category", "Description", 1);
+        var category = new ServiceCategoryBuilder()
+            .WithName("Test Category")
+            .WithDescription("Description")
+            .WithDisplayOrder(1)
+            .Build();
         DbContext.ServiceCategories.Add(category);
         await DbContext.SaveChangesAsync();
 
@@ -49,8 +54,8 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
     {
         // Arrange
         DbContext.ServiceCategories.AddRange(
-            ServiceCategory.Create("Category A", "Desc", 1),
-            ServiceCategory.Create("Category B", "Desc", 2)
+            new ServiceCategoryBuilder().WithName("Category A").WithDescription("Desc").WithDisplayOrder(1).Build(),
+            new ServiceCategoryBuilder().WithName("Category B").WithDescription("Desc").WithDisplayOrder(2).Build()
         );
         await DbContext.SaveChangesAsync();
 
@@ -65,10 +70,8 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
     public async Task GetAllAsync_WithActiveOnly_ShouldReturnOnlyActiveCategories()
     {
         // Arrange
-        var active = ServiceCategory.Create("Active", "Desc", 1);
-        active.Activate();
-        var inactive = ServiceCategory.Create("Inactive", "Desc", 2);
-        inactive.Deactivate();
+        var active = new ServiceCategoryBuilder().WithName("Active").WithDescription("Desc").WithDisplayOrder(1).AsActive().Build();
+        var inactive = new ServiceCategoryBuilder().WithName("Inactive").WithDescription("Desc").WithDisplayOrder(2).AsInactive().Build();
         DbContext.ServiceCategories.AddRange(active, inactive);
         await DbContext.SaveChangesAsync();
 
@@ -84,7 +87,7 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
     public async Task ExistsWithNameAsync_WhenExists_ShouldReturnTrue()
     {
         // Arrange
-        var category = ServiceCategory.Create("UniqueName", "Desc", 1);
+        var category = new ServiceCategoryBuilder().WithName("UniqueName").WithDescription("Desc").WithDisplayOrder(1).Build();
         DbContext.ServiceCategories.Add(category);
         await DbContext.SaveChangesAsync();
 
@@ -109,7 +112,7 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
     public async Task ExistsWithNameAsync_WithExcludeId_ShouldExcludeCategory()
     {
         // Arrange
-        var category = ServiceCategory.Create("ToExclude", "Desc", 1);
+        var category = new ServiceCategoryBuilder().WithName("ToExclude").WithDescription("Desc").WithDisplayOrder(1).Build();
         DbContext.ServiceCategories.Add(category);
         await DbContext.SaveChangesAsync();
 
@@ -124,7 +127,7 @@ public class DbContextServiceCategoryQueriesTests : BaseInMemoryDatabaseTest<Ser
     public async Task GetAllWithServiceCountAsync_ShouldReturnCategoriesWithCount()
     {
         // Arrange
-        var category = ServiceCategory.Create("With Services", "Desc", 1);
+        var category = new ServiceCategoryBuilder().WithName("With Services").WithDescription("Desc").WithDisplayOrder(1).Build();
         DbContext.ServiceCategories.Add(category);
         DbContext.Services.Add(Service.Create(category.Id, "Service 1", "Desc", 1));
         DbContext.Services.Add(Service.Create(category.Id, "Service 2", "Desc", 2));

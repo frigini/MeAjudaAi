@@ -3,8 +3,10 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
@@ -15,6 +17,7 @@ public class DeactivateProviderProfileCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<DeactivateProviderProfileCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeactivateProviderProfileCommandHandler _sut;
 
     public DeactivateProviderProfileCommandHandlerTests()
@@ -22,9 +25,14 @@ public class DeactivateProviderProfileCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<DeactivateProviderProfileCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _sut = new DeactivateProviderProfileCommandHandler(_uowMock.Object, _loggerMock.Object);
+        _sut = new DeactivateProviderProfileCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]

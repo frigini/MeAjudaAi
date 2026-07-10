@@ -1,6 +1,7 @@
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Integration.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Jobs;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
@@ -38,29 +39,9 @@ using System.Text.Json;
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// Módulos disponíveis para testes de integração
-/// </summary>
-[Flags]
-public enum TestModule
-{
-    None = 0,
-    Users = 1 << 0,
-    Providers = 1 << 1,
-    Documents = 1 << 2,
-    ServiceCatalogs = 1 << 3,
-    Locations = 1 << 4,
-    SearchProviders = 1 << 5,
-    Communications = 1 << 6,
-    Payments = 1 << 7,
-    Bookings = 1 << 8,
-    Ratings = 1 << 9,
-    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments | Bookings | Ratings
-    }
-
-/// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// </summary>
-public abstract class BaseApiTest : IAsyncLifetime
+public abstract partial class BaseApiTest : IAsyncLifetime
 {
     [ModuleInitializer]
     public static void InitializeNpgsql()
@@ -107,9 +88,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         await _databaseFixture.CreateDatabaseAsync(DatabaseName);
         var connectionString = _databaseFixture.GetConnectionString(DatabaseName);
 
-    #pragma warning disable CA2000 
         _factory = new WebApplicationFactory<Program>()
-    #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 var apiServicePath = ResolveApiServicePath();
@@ -202,12 +181,12 @@ public abstract class BaseApiTest : IAsyncLifetime
                     // Sempre simular IUserDomainService para evitar chamadas ao Keycloak nos testes
                     var userDomainDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService)).ToList();
                     foreach (var descriptor in userDomainDescriptors) services.Remove(descriptor);
-                    services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks.MockUserDomainService>();
+                    services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Users.MockUserDomainService>();
 
                     // Register dummy Stripe client to satisfy DI validation
                     services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
                     
-services.AddHttpContextAccessor();
+                    services.AddHttpContextAccessor();
 
                     if (UseMockGeographicValidation)
                     {
@@ -257,12 +236,6 @@ services.AddHttpContextAccessor();
                 options.EnableSensitiveDataLogging();
             }
         });
-    }
-
-    private static void RemoveAllUnitOfWorkRegistrations(IServiceCollection services)
-    {
-        var descriptorsToRemove = services.Where(d => d.ServiceType == typeof(IUnitOfWork) && !d.IsKeyedService).ToList();
-        foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
     }
 
     private void AddTestDbContextWithUnitOfWork<TContext>(IServiceCollection services, string schema, string assembly, string moduleKey)
@@ -372,53 +345,17 @@ services.AddHttpContextAccessor();
             var searchContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
             if (!await searchContext.SearchableProviders.AnyAsync())
             {
-                var closeProvider = MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5501, -46.6330), ESubscriptionTier.Gold);
+                var closeProvider = SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5501, -46.6330), ESubscriptionTier.Gold);
                 closeProvider.UpdateServices(new[] { TestServiceId });
 
                 var providers = new List<SearchableProvider>
                 {
                     closeProvider, // ~50m from center (-23.5505, -46.6333) with TestServiceId
-                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Nearby Provider", "sp-nearby", new GeoPoint(-23.5550, -46.6400), ESubscriptionTier.Standard), // ~850m from center
-                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Far Provider", "sp-far", new GeoPoint(-23.6000, -46.7000), ESubscriptionTier.Free) // ~8km from center
+                    SearchableProvider.Create(Guid.NewGuid(), "SP Nearby Provider", "sp-nearby", new GeoPoint(-23.5550, -46.6400), ESubscriptionTier.Standard), // ~850m from center
+                    SearchableProvider.Create(Guid.NewGuid(), "SP Far Provider", "sp-far", new GeoPoint(-23.6000, -46.7000), ESubscriptionTier.Free) // ~8km from center
                 };
                 searchContext.SearchableProviders.AddRange(providers);
                 await searchContext.SaveChangesAsync();
-            }
-        }
-    }
-
-    private static async Task EnsureCleanDatabaseAsync(DbContext context, ILogger? logger)
-    {
-        const int maxRetries = 10;
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
-        {
-            try 
-            { 
-                // Clear all connection pools to prevent "database in use" errors
-                if (attempt == 1)
-                {
-                    Npgsql.NpgsqlConnection.ClearAllPools();
-                }
-
-                await context.Database.EnsureDeletedAsync(); 
-                break; 
-            }
-            catch (Exception ex) when (IsTransientException(ex))
-            { 
-                if (attempt == maxRetries) throw; 
-                
-                var sqlState = (ex as Npgsql.PostgresException)?.SqlState ?? 
-                              (ex.InnerException as Npgsql.PostgresException)?.SqlState ?? "Unknown";
-
-                logger?.LogWarning("⚠️ Database cleanup attempt {Attempt}/{Max} due to transient error {SqlState}. Message: {Message}", 
-                    attempt, maxRetries, sqlState, ex.Message);
-                
-                await Task.Delay(1000 * attempt);
-            }
-            catch (Exception ex)
-            {
-                logger?.LogError(ex, "❌ Deterministic error during database cleanup on attempt {Attempt}", attempt);
-                throw;
             }
         }
     }
@@ -434,7 +371,7 @@ services.AddHttpContextAccessor();
             return IsTransientException(ex.InnerException);
 
         // DbUpdateException often wraps Npgsql exceptions
-        if (ex is Microsoft.EntityFrameworkCore.DbUpdateException && ex.InnerException != null)
+        if (ex is DbUpdateException && ex.InnerException != null)
             return IsTransientException(ex.InnerException);
 
         return false;
@@ -550,5 +487,3 @@ services.AddHttpContextAccessor();
         return null;
     }
 }
-
-

@@ -58,6 +58,21 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 - ~50 arquivos de teste a atualizar
 - Plano detalhado: `prompts/implementacao-padrao-builders.md`
 
+### HTTP 422 Unprocessable Entity — Validação Semântica
+
+**Problema Atual**: Todas as validações retornam 400 Bad Request (FluentValidation). Não há distinção entre erro de formato (400) e erro semântico/de negócio (422).
+
+**Escopo**: Implementar retorno 422 para validações semânticas como:
+- Categoria não existe ao criar serviço
+- Transição de categoria inválida
+- Estado inválido para operação de negócio
+
+**Plano**:
+1. Criar `BusinessValidationException` no Shared
+2. Adicionar handler no `GlobalExceptionHandler` para mapear 422
+3. Usar nos Command Handlers pertos (ServiceCatalogs, Bookings)
+4. Ativar testes E2E em `ValidationStatusCodeEndToEndTests.cs` (atualmente marcados como `[Skip]`)
+
 ---
 
 ## 🔮 Roadmaps Futuros (Além do MVP)

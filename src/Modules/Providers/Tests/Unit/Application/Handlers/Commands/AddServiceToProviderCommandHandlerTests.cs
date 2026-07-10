@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
@@ -18,6 +20,7 @@ public class AddServiceToProviderCommandHandlerTests
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<IServiceCatalogsModuleApi> _serviceCatalogsMock;
     private readonly Mock<ILogger<AddServiceToProviderCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly AddServiceToProviderCommandHandler _handler;
 
     public AddServiceToProviderCommandHandlerTests()
@@ -26,12 +29,29 @@ public class AddServiceToProviderCommandHandlerTests
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _serviceCatalogsMock = new Mock<IServiceCatalogsModuleApi>();
         _loggerMock = new Mock<ILogger<AddServiceToProviderCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado"));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceValidationFailed"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Falha ao validar serviço: {args[0]}"));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceNotFound"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Serviço {args[0]} não existe."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceInactive"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Serviço {args[0]} não está ativo."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ServiceDetailsRetrievalFailed")])
+            .Returns(new LocalizedString("ServiceDetailsRetrievalFailed", "Falha ao recuperar detalhes do serviço."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
         _handler = new AddServiceToProviderCommandHandler(
             _uowMock.Object,
             _serviceCatalogsMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _localizerMock.Object);
     }
 
 [Fact]
@@ -116,7 +136,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Falha ao validar serviço");
+        result.Error!.Message.Should().Contain("Falha ao validar serviço: Validation service unavailable");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -146,7 +166,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("não existe");
+        result.Error.Message.Should().Contain("não existe.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -176,7 +196,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("não está ativo");
+        result.Error!.Message.Should().Contain("não está ativo.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -210,7 +230,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Falha ao recuperar detalhes do serviço");
+        result.Error!.Message.Should().Contain("Falha ao recuperar detalhes do serviço.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

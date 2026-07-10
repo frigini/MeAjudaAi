@@ -1841,28 +1841,6 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )"
         }
       },
-      "meajudaai.modules.bookings.tests": {
-        "type": "Project",
-        "dependencies": {
-          "AutoFixture": "[4.18.1, )",
-          "AutoFixture.AutoMoq": "[4.18.1, )",
-          "Bogus": "[35.6.5, )",
-          "FluentAssertions": "[8.10.0, )",
-          "MeAjudaAi.Modules.Bookings.API": "[1.0.0, )",
-          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
-          "MeAjudaAi.Modules.Bookings.Domain": "[1.0.0, )",
-          "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )",
-          "MeAjudaAi.Shared": "[1.0.0, )",
-          "MeAjudaAi.Shared.Tests": "[1.0.0, )",
-          "Microsoft.AspNetCore.Mvc.Testing": "[10.0.9, )",
-          "Microsoft.NET.Test.Sdk": "[18.7.0, )",
-          "Moq": "[4.20.72, )",
-          "Npgsql": "[10.0.3, )",
-          "Respawn": "[7.0.0, )",
-          "Testcontainers.PostgreSql": "[4.12.0, )",
-          "xunit.v3": "[3.2.2, )"
-        }
-      },
       "meajudaai.modules.communications.api": {
         "type": "Project",
         "dependencies": {
@@ -1932,28 +1910,6 @@
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )"
-        }
-      },
-      "meajudaai.modules.documents.tests": {
-        "type": "Project",
-        "dependencies": {
-          "AutoFixture": "[4.18.1, )",
-          "AutoFixture.AutoMoq": "[4.18.1, )",
-          "Bogus": "[35.6.5, )",
-          "FluentAssertions": "[8.10.0, )",
-          "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
-          "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
-          "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
-          "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
-          "MeAjudaAi.Shared.Tests": "[1.0.0, )",
-          "Microsoft.AspNetCore.Mvc.Testing": "[10.0.9, )",
-          "Microsoft.EntityFrameworkCore.InMemory": "[10.0.9, )",
-          "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )",
-          "Microsoft.NET.Test.Sdk": "[18.7.0, )",
-          "Moq": "[4.20.72, )",
-          "Respawn": "[7.0.0, )",
-          "Testcontainers.PostgreSql": "[4.12.0, )",
-          "xunit.v3": "[3.2.2, )"
         }
       },
       "meajudaai.modules.locations.api": {
@@ -2187,29 +2143,6 @@
           "System.IdentityModel.Tokens.Jwt": "[8.19.1, )"
         }
       },
-      "meajudaai.modules.users.tests": {
-        "type": "Project",
-        "dependencies": {
-          "AutoFixture": "[4.18.1, )",
-          "AutoFixture.AutoMoq": "[4.18.1, )",
-          "Bogus": "[35.6.5, )",
-          "FluentAssertions": "[8.10.0, )",
-          "MeAjudaAi.Modules.Users.API": "[1.0.0, )",
-          "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
-          "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
-          "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
-          "MeAjudaAi.Shared.Tests": "[1.0.0, )",
-          "Microsoft.AspNetCore.Mvc.Testing": "[10.0.9, )",
-          "Microsoft.Data.Sqlite": "[10.0.9, )",
-          "Microsoft.EntityFrameworkCore.InMemory": "[10.0.9, )",
-          "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )",
-          "Microsoft.NET.Test.Sdk": "[18.7.0, )",
-          "Moq": "[4.20.72, )",
-          "Respawn": "[7.0.0, )",
-          "Testcontainers.PostgreSql": "[4.12.0, )",
-          "xunit.v3": "[3.2.2, )"
-        }
-      },
       "meajudaai.servicedefaults": {
         "type": "Project",
         "dependencies": {
@@ -2275,12 +2208,24 @@
           "FluentAssertions": "[8.10.0, )",
           "Hangfire.InMemory": "[1.0.0, )",
           "MeAjudaAi.ApiService": "[1.0.0, )",
+          "MeAjudaAi.Modules.Bookings.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Domain": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.9, )",
           "Microsoft.Data.Sqlite": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.InMemory": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )",
+          "Microsoft.Extensions.DependencyInjection": "[10.0.9, )",
           "Microsoft.Extensions.Hosting": "[10.0.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.9, )",
           "Microsoft.Extensions.TimeProvider.Testing": "[10.7.0, )",

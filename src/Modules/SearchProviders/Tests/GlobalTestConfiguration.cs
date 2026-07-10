@@ -3,9 +3,10 @@ using MeAjudaAi.Shared.Tests;
 namespace MeAjudaAi.Modules.SearchProviders.Tests;
 
 /// <summary>
-/// Collection definition específica para testes de integração do módulo SearchProviders
+/// Collection definition específica para testes de integração do módulo SearchProviders.
+/// DisableParallelization impede que classes compartilhando o mesmo DB executem em paralelo.
 /// </summary>
-[CollectionDefinition("SearchProvidersIntegrationTests")]
+[CollectionDefinition("SearchProvidersIntegrationTests", DisableParallelization = true)]
 public class SearchProvidersIntegrationTestCollection : ICollectionFixture<SharedIntegrationTestFixture>
 {
 }

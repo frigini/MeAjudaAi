@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -13,7 +15,8 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </summary>
 public sealed class UpdateProviderDeviceTokenCommandHandler(
     IUnitOfWork uow,
-    ILogger<UpdateProviderDeviceTokenCommandHandler> logger
+    ILogger<UpdateProviderDeviceTokenCommandHandler> logger,
+    IStringLocalizer<Strings> localizer
 ) : ICommandHandler<UpdateProviderDeviceTokenCommand, Result>
 {
     /// <summary>
@@ -32,7 +35,7 @@ public sealed class UpdateProviderDeviceTokenCommandHandler(
         if (provider == null)
         {
             logger.LogWarning("Provider {ProviderId} not found for device token update.", command.ProviderId);
-            return Result.Failure(Error.NotFound("Prestador não encontrado"));
+            return Result.Failure(Error.NotFound(localizer["ProviderNotFound"]));
         }
 
         var normalizedToken = string.IsNullOrWhiteSpace(command.DeviceToken) ? null : command.DeviceToken;

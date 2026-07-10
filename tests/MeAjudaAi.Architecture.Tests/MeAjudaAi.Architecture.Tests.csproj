@@ -87,6 +87,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="FluentAssertions" />
+    <Using Include="Moq" />
     <Using Include="NetArchTest.Rules" />
   </ItemGroup>
 

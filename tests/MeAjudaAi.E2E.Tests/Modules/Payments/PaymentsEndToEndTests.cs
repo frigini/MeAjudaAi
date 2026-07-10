@@ -1,42 +1,25 @@
-using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Payments;
 
 [Trait("Category", "E2E")]
 [Trait("Module", "Payments")]
-public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
+public class PaymentsEndToEndTests(TestContainerFixture fixture) : BaseE2ETest<TestContainerFixture>(fixture)
 {
-    private readonly TestContainerFixture _fixture;
-
-    public PaymentsEndToEndTests(TestContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await _fixture.CleanupDatabaseAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
 
     private async Task<Guid> CreateTestProviderAsync()
     {
         var providerId = Guid.NewGuid();
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<ProvidersDbContext>();
             
@@ -77,7 +60,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", request, TestContainerFixture.JsonOptions);
+        var response = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", request, TestContainerFixture.JsonOptions);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.OK)
@@ -91,7 +74,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         content!.CheckoutUrl.Should().StartWith("https://checkout.stripe.com/mock_");
 
         // Verificar estado no banco de dados
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<PaymentsDbContext>();
             var subscription = await dbContext.Subscriptions.FirstOrDefaultAsync(s => s.ProviderId == providerId);
@@ -110,7 +93,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         
         // 1. Criar uma subscription pendente primeiro
         var createRequest = new { ProviderId = providerId, PlanId = "premium" };
-        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", createRequest, TestContainerFixture.JsonOptions);
+        var createResponse = await Fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", createRequest, TestContainerFixture.JsonOptions);
         createResponse.EnsureSuccessStatusCode();
 
         // 2. Preparar payload mock do Webhook Stripe com campos obrigatórios do Stripe.net
@@ -139,7 +122,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
 
         // Act - Enviar webhook
         var webhookContent = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var webhookResponse = await _fixture.ApiClient.PostAsync("/api/payments/webhooks/stripe", webhookContent);
+        var webhookResponse = await Fixture.ApiClient.PostAsync("/api/payments/webhooks/stripe", webhookContent);
         
         if (webhookResponse.StatusCode != HttpStatusCode.OK)
         {
@@ -148,7 +131,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         }
 
         // 3. Verificar que a mensagem foi salva na inbox (teste síncrono do endpoint)
-        await _fixture.WithServiceScopeAsync(async services =>
+        await Fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<PaymentsDbContext>();
             var inboxMessage = await dbContext.InboxMessages.AsNoTracking()

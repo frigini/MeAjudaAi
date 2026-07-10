@@ -82,7 +82,7 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
                 cancellationToken);
     }
 
-    private static async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
+    private async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
         IQueryable<Booking> query,
         DateOnly? fromDate,
         DateOnly? toDate,
@@ -97,7 +97,8 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
         if (toDate.HasValue) query = query.Where(b => b.Date <= toDate.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
+
+        var pagedItems = await query
             .OrderByDescending(b => b.Date)
             .ThenByDescending(b => b.TimeSlot.Start)
             .ThenBy(b => b.Id)
@@ -105,7 +106,6 @@ public class DbContextBookingQueries(BookingsDbContext _dbContext) : IBookingQue
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return (items, totalCount);
+        return (pagedItems, totalCount);
     }
 }
-

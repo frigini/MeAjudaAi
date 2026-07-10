@@ -5,7 +5,9 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Providers;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
@@ -16,6 +18,7 @@ public class SetPrimaryDocumentCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Provider, ProviderId>> _providerRepositoryMock;
     private readonly Mock<ILogger<SetPrimaryDocumentCommandHandler>> _loggerMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly SetPrimaryDocumentCommandHandler _handler;
 
     public SetPrimaryDocumentCommandHandlerTests()
@@ -23,9 +26,17 @@ public class SetPrimaryDocumentCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _providerRepositoryMock = new Mock<IRepository<Provider, ProviderId>>();
         _loggerMock = new Mock<ILogger<SetPrimaryDocumentCommandHandler>>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
+
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderNotFound")])
+            .Returns(new LocalizedString("ProviderNotFound", "Prestador não encontrado."));
+        _localizerMock
+            .Setup(x => x[It.Is<string>(s => s == "ProviderDocumentNotFound"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"Documento do tipo {args[0]} não encontrado para o provedor {args[1]}."));
 
         _uowMock.Setup(u => u.GetRepository<Provider, ProviderId>()).Returns(_providerRepositoryMock.Object);
-        _handler = new SetPrimaryDocumentCommandHandler(_uowMock.Object, _loggerMock.Object);
+        _handler = new SetPrimaryDocumentCommandHandler(_uowMock.Object, _loggerMock.Object, _localizerMock.Object);
     }
 
     [Fact]
@@ -66,6 +77,7 @@ public class SetPrimaryDocumentCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Be("Prestador não encontrado.");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -88,6 +100,7 @@ public class SetPrimaryDocumentCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Contain("não encontrado para o provedor");
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 

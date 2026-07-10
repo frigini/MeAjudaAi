@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
@@ -17,10 +19,12 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="uow"></param>
 /// <param name="serviceQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class DeleteServiceCategoryCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceQueries serviceQueries,
-    ILogger<DeleteServiceCategoryCommandHandler> logger) : ICommandHandler<DeleteServiceCategoryCommand, Result>
+    ILogger<DeleteServiceCategoryCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<DeleteServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
@@ -53,7 +57,7 @@ public sealed class DeleteServiceCategoryCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while deleting service category.");
-            return Result.Failure("Ocorreu um erro inesperado ao excluir a categoria de serviço.");
+            return Result.Failure(localizer["CategoryDeleteError"]);
         }
     }
 }

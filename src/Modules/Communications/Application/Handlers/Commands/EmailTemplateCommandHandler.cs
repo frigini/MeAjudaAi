@@ -4,11 +4,15 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers.Commands;
 
-public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Communications)] IUnitOfWork uow)
+public sealed class EmailTemplateCommandHandler(
+    [FromKeyedServices(ModuleKeys.Communications)] IUnitOfWork uow,
+    IStringLocalizer<Strings> localizer)
     : ICommandHandler<CreateEmailTemplateCommand, Result<Guid>>,
       ICommandHandler<UpdateEmailTemplateCommand, Result>,
       ICommandHandler<SetEmailTemplateStatusCommand, Result>
@@ -26,7 +30,7 @@ public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Co
     {
         var repository = uow.GetRepository<EmailTemplate, Guid>();
         var template = await repository.TryFindAsync(command.Id, cancellationToken);
-        if (template == null) return Result.Failure(Error.NotFound("Template não encontrado."));
+        if (template == null) return Result.Failure(Error.NotFound(localizer["TemplateNotFound"]));
 
         EmailTemplate newVersion;
         try
@@ -49,7 +53,7 @@ public sealed class EmailTemplateCommandHandler([FromKeyedServices(ModuleKeys.Co
     {
         var repository = uow.GetRepository<EmailTemplate, Guid>();
         var template = await repository.TryFindAsync(command.Id, cancellationToken);
-        if (template == null) return Result.Failure(Error.NotFound("Template não encontrado."));
+        if (template == null) return Result.Failure(Error.NotFound(localizer["TemplateNotFound"]));
 
         try
         {

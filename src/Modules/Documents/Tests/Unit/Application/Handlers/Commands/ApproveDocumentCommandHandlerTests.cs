@@ -5,8 +5,11 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.Documents;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -19,6 +22,7 @@ public class ApproveDocumentCommandHandlerTests
     private readonly Mock<IDocumentQueries> _mockQueries;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<ApproveDocumentCommandHandler>> _mockLogger;
+    private readonly Mock<IStringLocalizer<Strings>> _mockLocalizer;
     private readonly ApproveDocumentCommandHandler _handler;
 
     public ApproveDocumentCommandHandlerTests()
@@ -28,14 +32,32 @@ public class ApproveDocumentCommandHandlerTests
         _mockQueries = new Mock<IDocumentQueries>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<ApproveDocumentCommandHandler>>();
+        _mockLocalizer = new Mock<IStringLocalizer<Strings>>();
 
         _mockUow.Setup(x => x.GetRepository<Document, Guid>()).Returns(_mockRepo.Object);
+
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "HttpContextNotAvailable")])
+            .Returns(new LocalizedString("HttpContextNotAvailable", "Contexto HTTP não disponível."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentApproveNotAllowed")])
+            .Returns(new LocalizedString("DocumentApproveNotAllowed", "É necessário estar autenticado para aprovar documentos."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "AdminOnlyCanApproveDocuments")])
+            .Returns(new LocalizedString("AdminOnlyCanApproveDocuments", "Apenas administradores podem aprovar documentos."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentStatusInvalidForApproval"), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, $"O documento está com o status {args[0]} e só pode ser aprovado quando estiver em Verificação Pendente."));
+        _mockLocalizer
+            .Setup(x => x[It.Is<string>(s => s == "DocumentApproveError")])
+            .Returns(new LocalizedString("DocumentApproveError", "Falha ao aprovar o documento. Por favor, tente novamente mais tarde."));
 
         _handler = new ApproveDocumentCommandHandler(
             _mockUow.Object,
             _mockQueries.Object,
             _mockHttpContextAccessor.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockLocalizer.Object);
     }
 
     private HttpContext CreateAuthenticatedAdminContext()
@@ -56,7 +78,7 @@ public class ApproveDocumentCommandHandlerTests
     public async Task Handle_WithValidCommand_ShouldApproveDocument()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
+        var document = new DocumentBuilder().WithProviderId(Guid.NewGuid()).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("https://storage/doc.pdf").Build();
         document.MarkAsPendingVerification();
         var command = new ApproveDocumentCommand(document.Id, "Verified OK");
 
@@ -105,7 +127,7 @@ public class ApproveDocumentCommandHandlerTests
     public async Task Handle_WithAlreadyApprovedDocument_ShouldReturnBadRequest()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
+        var document = new DocumentBuilder().WithProviderId(Guid.NewGuid()).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("https://storage/doc.pdf").Build();
         var statusProperty = typeof(Document).GetProperty("Status");
         statusProperty?.SetValue(document, EDocumentStatus.Verified);
         var command = new ApproveDocumentCommand(document.Id, null);
@@ -129,7 +151,7 @@ public class ApproveDocumentCommandHandlerTests
     public async Task Handle_WhenSaveChangesThrows_ShouldReturnGenericFailure()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "https://storage/doc.pdf");
+        var document = new DocumentBuilder().WithProviderId(Guid.NewGuid()).AsIdentityDocument().WithFileName("test.pdf").WithFileUrl("https://storage/doc.pdf").Build();
         document.MarkAsPendingVerification();
         var command = new ApproveDocumentCommand(document.Id, null);
 

@@ -1,10 +1,9 @@
-using System.IO.Compression;
-using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Providers.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.IO.Compression;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 

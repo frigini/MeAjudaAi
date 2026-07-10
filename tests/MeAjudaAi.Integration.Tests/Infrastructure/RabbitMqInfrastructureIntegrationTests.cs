@@ -1,11 +1,9 @@
-using Testcontainers.RabbitMq;
-using RabbitMQ.Client;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
-using MeAjudaAi.Shared.Messaging.Options;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Options;
+using MeAjudaAi.Shared.Messaging.RabbitMq;
+using Microsoft.Extensions.Logging.Abstractions;
+using RabbitMQ.Client;
+using Testcontainers.RabbitMq;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 

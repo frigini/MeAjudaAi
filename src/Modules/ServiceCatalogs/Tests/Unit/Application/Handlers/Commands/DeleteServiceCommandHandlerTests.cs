@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database.Abstractions;
+using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders.Modules.ServiceCatalogs;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -19,6 +21,7 @@ public class DeleteServiceCommandHandlerTests
     private readonly Mock<IUnitOfWork> _uowMock;
     private readonly Mock<IRepository<Service, ServiceId>> _serviceRepositoryMock;
     private readonly Mock<IProvidersModuleApi> _providersModuleApiMock;
+    private readonly Mock<IStringLocalizer<Strings>> _localizerMock;
     private readonly DeleteServiceCommandHandler _handler;
 
     public DeleteServiceCommandHandlerTests()
@@ -26,10 +29,11 @@ public class DeleteServiceCommandHandlerTests
         _uowMock = new Mock<IUnitOfWork>();
         _serviceRepositoryMock = new Mock<IRepository<Service, ServiceId>>();
         _providersModuleApiMock = new Mock<IProvidersModuleApi>();
+        _localizerMock = new Mock<IStringLocalizer<Strings>>();
 
         _uowMock.Setup(x => x.GetRepository<Service, ServiceId>()).Returns(_serviceRepositoryMock.Object);
 
-        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object, NullLogger<DeleteServiceCommandHandler>.Instance);
+        _handler = new DeleteServiceCommandHandler(_uowMock.Object, _providersModuleApiMock.Object, NullLogger<DeleteServiceCommandHandler>.Instance, _localizerMock.Object);
     }
 
     [Fact]
@@ -166,6 +170,8 @@ public class DeleteServiceCommandHandlerTests
             .WithName("Limpeza de Piscina")
             .Build();
         var command = new DeleteServiceCommand(service.Id.Value);
+
+        _localizerMock.Setup(x => x[It.Is<string>(s => s == "ServiceDeleteError")]).Returns(new LocalizedString("ServiceDeleteError", "Ocorreu um erro inesperado ao excluir o serviço."));
 
         _serviceRepositoryMock
             .Setup(x => x.TryFindAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))

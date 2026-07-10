@@ -7,7 +7,9 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -19,36 +21,38 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Servic
 /// <param name="serviceQueries"></param>
 /// <param name="categoryQueries"></param>
 /// <param name="logger"></param>
+/// <param name="localizer"></param>
 public sealed class ChangeServiceCategoryCommandHandler(
     [FromKeyedServices(ModuleKeys.ServiceCatalogs)] IUnitOfWork uow,
     IServiceQueries serviceQueries,
     IServiceCategoryQueries categoryQueries,
-    ILogger<ChangeServiceCategoryCommandHandler> logger) : ICommandHandler<ChangeServiceCategoryCommand, Result>
+    ILogger<ChangeServiceCategoryCommandHandler> logger,
+    IStringLocalizer<Strings> localizer) : ICommandHandler<ChangeServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(ChangeServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         try
         {
             if (request.ServiceId == Guid.Empty)
-                throw new UnprocessableEntityException("O ID do serviço não pode ser vazio.", "ServiceId");
+                throw new UnprocessableEntityException(localizer["ServiceIdRequired"], "ServiceId");
 
             if (request.NewCategoryId == Guid.Empty)
-                throw new UnprocessableEntityException("O ID da nova categoria não pode ser vazio.", "NewCategoryId");
+                throw new UnprocessableEntityException(localizer["NewCategoryIdRequired"], "NewCategoryId");
 
             var serviceId = ServiceId.From(request.ServiceId);
             var service = await uow.GetRepository<Domain.Entities.Service, ServiceId>().TryFindAsync(serviceId, cancellationToken);
 
             if (service is null)
-                return Result.Failure(Error.NotFound($"Serviço com ID '{request.ServiceId}' não encontrado."));
+                return Result.Failure(Error.NotFound(localizer["ServiceNotFoundById", request.ServiceId]));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
             var newCategory = await categoryQueries.GetByIdAsync(newCategoryId, cancellationToken) ?? throw new UnprocessableEntityException(
-                    $"Categoria com ID '{request.NewCategoryId}' não encontrada.",
+                    localizer["CategoryNotFoundById", request.NewCategoryId],
                     "ServiceCategory");
 
             if (!newCategory.IsActive)
                 throw new UnprocessableEntityException(
-                    "Não é possível mover serviço para categoria inativa.",
+                    localizer["CannotMoveToInactiveCategory"],
                     "ServiceCategory");
 
             // Garantir que o nome ainda é único na categoria de destino
@@ -59,7 +63,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
                     cancellationToken))
             {
                 return Result.Failure(
-                    $"Já existe um serviço com o nome '{service.Name}' na categoria de destino.");
+                    Error.Conflict(localizer["ServiceNameExistsInCategory", service.Name]));
             }
 
             service.ChangeCategory(newCategoryId);
@@ -83,7 +87,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while changing service category.");
-            return Result.Failure("Ocorreu um erro inesperado ao alterar a categoria do serviço.");
+            return Result.Failure(localizer["ServiceCategoryChangeError"]);
         }
     }
 }

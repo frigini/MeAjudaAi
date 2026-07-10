@@ -1,5 +1,8 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
@@ -23,45 +26,143 @@ public static class MigrationDiscoveryExtensions
 
         foreach (var contextType in dbContextTypes)
         {
-            try
-            {
-                if (serviceProvider.GetService(contextType) is DbContext context)
-                {
-                    // Configura warnings para permitir aplicação de migrações em testes
-                    context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+            if (serviceProvider.GetService(contextType) is not DbContext context)
+                continue;
 
-                    // ALWAYS use migrations, never EnsureCreated
+            context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+            await EnsureDatabaseAndMigrateAsync(context, contextType, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Garante que o banco de dados existe e aplica migrations de forma segura.
+    /// Extrai a lógica compartilhada entre ApplyAllDiscoveredMigrationsAsync e EnsureAllDatabasesCreatedAsync.
+    /// </summary>
+    private static async Task EnsureDatabaseAndMigrateAsync(
+        DbContext context,
+        Type contextType,
+        CancellationToken cancellationToken)
+    {
+        // Garante que o banco de dados existe ANTES de tentar criar schemas ou aplicar migrações
+        var connectionString = context.Database.GetConnectionString();
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            var csBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+
+            // Garante que temos uma senha - se a connection string não incluir uma,
+            // usa a senha padrão do Testcontainers
+            if (string.IsNullOrEmpty(csBuilder.Password))
+            {
+                csBuilder.Password = "test123";
+            }
+
+            var databaseName = csBuilder.Database;
+
+            // Valida o nome do banco contra o formato permitido (alfanumérico + underscore + hífen)
+            if (!IsValidDatabaseName(databaseName))
+            {
+                throw new InvalidOperationException(
+                    $"Database name '{databaseName}' contains invalid characters. Only alphanumeric, underscore, and hyphen are allowed.");
+            }
+
+            const int maxDbCreateRetries = 5;
+
+            for (int attempt = 1; attempt <= maxDbCreateRetries; attempt++)
+            {
+                try
+                {
+                    // Tenta conectar diretamente ao banco de dados alvo
+                    await using var connTest = new NpgsqlConnection(csBuilder.ConnectionString);
+                    await connTest.OpenAsync(cancellationToken);
+                    connTest.Close();
+                    break;
+                }
+                catch (NpgsqlException pgEx) when (pgEx.SqlState == "3D000") // Banco de dados não existe
+                {
+                    // Tenta criá-lo via banco postgres
                     try
                     {
-                        await context.Database.MigrateAsync(cancellationToken);
-                        Console.WriteLine($"✅ Applied migrations for {contextType.Name}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"⚠️ Failed to apply migrations for {contextType.Name}: {ex.Message}");
+                        // Preserva todas as credenciais ao criar a connection string do postgres
+                        var postgresBuilder = new NpgsqlConnectionStringBuilder
+                        {
+                            Host = csBuilder.Host,
+                            Port = csBuilder.Port,
+                            Username = csBuilder.Username,
+                            Password = csBuilder.Password,
+                            Database = "postgres",
+                            SslMode = csBuilder.SslMode
+                        };
 
-                        // Try to delete and recreate with migrations
-                        try
+                        await using var connPostgres = new NpgsqlConnection(postgresBuilder.ConnectionString);
+                        await connPostgres.OpenAsync(cancellationToken);
+
+                        // Usa query parametrizada para verificar existência do banco
+                        await using var checkCmd = connPostgres.CreateCommand();
+                        checkCmd.CommandText = "SELECT 1 FROM pg_database WHERE datname = @dbname";
+                        checkCmd.Parameters.AddWithValue("@dbname", databaseName!);
+                        var exists = await checkCmd.ExecuteScalarAsync(cancellationToken);
+
+                        if (exists is null)
                         {
-                            await context.Database.EnsureDeletedAsync(cancellationToken);
-                            await context.Database.MigrateAsync(cancellationToken);
-                            Console.WriteLine($"✅ Recreated and migrated {contextType.Name}");
+                            // Para CREATE DATABASE, identificadores devem usar strings brutas (não parametrizadas)
+                            await using var createCmd = connPostgres.CreateCommand();
+                            createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
+                            await createCmd.ExecuteNonQueryAsync(cancellationToken);
                         }
-                        catch (Exception ex2)
-                        {
-                            Console.WriteLine($"❌ Complete failure for {contextType.Name}: {ex2.Message}");
-                            // Don't use EnsureCreated anymore - fail early to identify migration issues
-                            throw;
-                        }
+
+                        connPostgres.Close();
+                        break;
+                    }
+                    catch (Exception createEx) when (attempt < maxDbCreateRetries && (createEx is NpgsqlException || createEx is TimeoutException))
+                    {
+                        await Task.Delay(500 * attempt, cancellationToken);
                     }
                 }
-            }
-            catch (Exception)
-            {
-                // Continua com outros contextos em caso de falha
-                // Log suprimido para evitar ruído em testes
+                catch (Exception ex) when (attempt < maxDbCreateRetries && (ex is NpgsqlException || ex is TimeoutException))
+                {
+                    await Task.Delay(500 * attempt, cancellationToken);
+                }
             }
         }
+
+        // Cria schema DEPOIS de garantir que o banco existe
+        var schema = DbContextSchemaHelper.GetSchemaName(contextType);
+        if (schema != "public")
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                $"CREATE SCHEMA IF NOT EXISTS \"{schema}\";", cancellationToken);
+        }
+
+        // Aplica migrações com lógica de retry
+        const int maxRetries = 5;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                await context.Database.MigrateAsync(cancellationToken);
+                break;
+            }
+            catch (Exception ex) when (
+                ex is PostgresException pgEx &&
+                (pgEx.SqlState == "23505" || pgEx.SqlState == "42P01") &&
+                attempt < maxRetries)
+            {
+                await Task.Delay(100 * attempt, cancellationToken);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Valida que o nome do banco de dados contém apenas caracteres seguros.
+    /// </summary>
+    private static bool IsValidDatabaseName(string? databaseName)
+    {
+        if (string.IsNullOrEmpty(databaseName))
+            return false;
+
+        // Permite alfanumérico, underscore e hífen; máximo 63 caracteres (limite do PostgreSQL)
+        return Regex.IsMatch(databaseName, @"^[a-zA-Z0-9_-]{1,63}$");
     }
 
     /// <summary>
@@ -131,18 +232,12 @@ public static class MigrationDiscoveryExtensions
 
         foreach (var contextType in dbContextTypes)
         {
-            try
-            {
-                if (serviceProvider.GetService(contextType) is DbContext context)
-                {
-                    await context.Database.EnsureCreatedAsync(cancellationToken);
-                    await context.Database.MigrateAsync(cancellationToken);
-                }
-            }
-            catch (Exception)
-            {
-                // Falha silenciosa para evitar ruído em testes
-            }
+            if (serviceProvider.GetService(contextType) is not DbContext context)
+                continue;
+
+            context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+            await EnsureDatabaseAndMigrateAsync(context, contextType, cancellationToken);
         }
     }
 

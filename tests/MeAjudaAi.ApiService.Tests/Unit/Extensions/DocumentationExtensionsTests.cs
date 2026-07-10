@@ -1,10 +1,8 @@
-using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
