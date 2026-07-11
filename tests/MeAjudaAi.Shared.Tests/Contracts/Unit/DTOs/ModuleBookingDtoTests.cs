@@ -74,9 +74,13 @@ public class ModuleBookingDtoTests
             CancellationReason: "Client request"
         );
 
-        // Act & Assert
-        dto.CancellationReason.Should().Be("Client request");
-        dto.RejectionReason.Should().BeNull();
+        // Act
+        var json = JsonSerializer.Serialize(dto);
+        var deserialized = JsonSerializer.Deserialize<ModuleBookingDto>(json);
+
+        // Assert
+        deserialized!.CancellationReason.Should().Be("Client request");
+        deserialized.RejectionReason.Should().BeNull();
     }
 
     [Theory]

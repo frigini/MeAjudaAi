@@ -1,8 +1,10 @@
+using MeAjudaAi.Shared.Messaging.Brokers.RabbitMq;
+using MeAjudaAi.Shared.Messaging.Brokers.RabbitMq.Interfaces;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Factories.Interfaces;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
 using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
 using MeAjudaAi.Shared.Serialization;
@@ -18,6 +20,8 @@ using Rebus.Config;
 using Rebus.Routing.TypeBased;
 using Rebus.Topic;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Messaging;
 
 /// <summary>
@@ -30,6 +34,7 @@ internal sealed class MessagingConfiguration
 /// <summary>
 /// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MessagingExtensions
 {
     public static IServiceCollection AddMessaging(

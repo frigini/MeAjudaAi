@@ -103,26 +103,50 @@ public class DatabaseMetricsInterceptorTests : IDisposable
     [InlineData("  alter table users add column test", "OTHER")]
     [InlineData("CREATE INDEX", "OTHER")]
     [InlineData("DROP TABLE", "OTHER")]
-    public void GetQueryType_ShouldIdentifyQueryType_CaseInsensitive(string commandText, string expectedType)
+    public void RecordMetrics_ShouldClassifyQueryTypeCorrectly(string commandText, string expectedType)
     {
         // Arrange
         var commandMock = new Mock<DbCommand>();
         commandMock.Setup(c => c.CommandText).Returns(commandText);
 
-        // Act - trigger RecordMetrics which calls GetQueryType internally
+        // Act
         _interceptor.RecordMetrics(commandMock.Object, TimeSpan.FromMilliseconds(1), isSuccess: true);
 
-        // Assert - validates the commandText is not null/empty and expectedType is valid
-        commandText.Should().NotBeNullOrWhiteSpace();
-        expectedType.Should().BeOneOf("SELECT", "INSERT", "UPDATE", "DELETE", "OTHER");
+        // Assert - 1ms should not trigger slow query warning regardless of query type
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Slow query")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Never);
     }
 
-    [Fact]
-    public void SlowQueryThreshold_ShouldBe1000Milliseconds()
+    [Theory]
+    [InlineData(500, false)]
+    [InlineData(999, false)]
+    [InlineData(1001, true)]
+    [InlineData(2000, true)]
+    public void RecordMetrics_SlowQueryThreshold_ShouldLogWarningOnlyAbove1000Ms(double durationMs, bool shouldLogWarning)
     {
-        // Arrange & Act & Assert - documents expected behavior
-        var threshold = 1000;
-        threshold.Should().Be(1000);
+        // Arrange
+        var commandMock = new Mock<DbCommand>();
+        commandMock.Setup(c => c.CommandText).Returns("SELECT * FROM users");
+
+        // Act
+        _interceptor.RecordMetrics(commandMock.Object, TimeSpan.FromMilliseconds(durationMs), isSuccess: true);
+
+        // Assert
+        var times = shouldLogWarning ? Times.Once() : Times.Never();
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Slow query")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
     }
 
     public void Dispose()

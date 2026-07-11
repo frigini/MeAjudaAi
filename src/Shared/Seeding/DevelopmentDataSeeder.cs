@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Seeding.Interfaces;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

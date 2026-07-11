@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Streaming.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Events;

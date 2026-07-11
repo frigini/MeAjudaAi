@@ -1,3 +1,6 @@
+using MeAjudaAi.Shared.Messaging.DeadLetter.Enums;
+using MeAjudaAi.Shared.Messaging.DeadLetter.Interfaces;
+using MeAjudaAi.Shared.Messaging.DeadLetter.Models;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;

@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Messaging.Handlers;
+using MeAjudaAi.Shared.Messaging.DeadLetter.Interfaces;
 using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,9 +41,6 @@ public static class DeadLetterExtensions
         {
             // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
             services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
-
-            // Adicionar middleware de retry
-            services.AddMessageRetryMiddleware();
         }
 
         return services;

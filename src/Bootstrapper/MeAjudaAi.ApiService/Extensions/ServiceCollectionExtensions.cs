@@ -4,7 +4,6 @@ using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.ApiService.Services.Orchestration;
 using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
 using MeAjudaAi.Shared.Authorization.Middleware.Extensions;
-using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Middleware;
 using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 using MeAjudaAi.Shared.Monitoring;
@@ -109,9 +108,6 @@ public static class ServiceCollectionExtensions
 
         // Content Security Policy - adicionar no início para proteger todas as respostas
         app.UseContentSecurityPolicy();
-
-        // Logging Context Middleware - adiciona correlation ID aos logs e response headers
-        app.UseLoggingContext();
 
         // Verificação de segurança de compressão (previne CRIME/BREACH)
         // DEVE estar ANTES de UseResponseCompression() para poder desabilitar compressão

@@ -183,6 +183,9 @@ public class ModuleLocationDtosTests
         // Assert
         json.Should().Contain("\"cep\":\"01310-100\"");
         json.Should().Contain("\"street\":\"Avenida Paulista\"");
+        json.Should().Contain("\"neighborhood\":\"Bela Vista\"");
+        json.Should().Contain("\"city\":\"Sao Paulo\"");
+        json.Should().Contain("\"state\":\"SP\"");
     }
 
     #endregion

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Seeding.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;

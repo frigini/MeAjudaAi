@@ -56,7 +56,7 @@ public class CommunicationLogDtoTests
     }
 
     [Fact]
-    public void CommunicationLogDto_WithOutboxMessageId_ShouldSerialize()
+    public void CommunicationLogDto_WithOutboxMessageId_ShouldRetainValue()
     {
         // Arrange
         var outboxId = Guid.NewGuid();

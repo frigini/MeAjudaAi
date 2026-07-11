@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using System.Collections.Concurrent;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
 

@@ -111,6 +111,9 @@ public class ModuleUserDtosTests
         json.Should().Contain("\"id\":");
         json.Should().Contain("\"username\":\"testuser\"");
         json.Should().Contain("\"email\":\"test@example.com\"");
+        json.Should().Contain("\"firstName\":\"Test\"");
+        json.Should().Contain("\"lastName\":\"User\"");
+        json.Should().Contain("\"fullName\":\"Test User\"");
     }
 
     #endregion

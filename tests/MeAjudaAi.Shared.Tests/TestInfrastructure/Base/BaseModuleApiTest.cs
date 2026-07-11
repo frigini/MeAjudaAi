@@ -1,5 +1,3 @@
-using FluentAssertions;
-
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
 public abstract class BaseModuleApiTest

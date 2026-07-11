@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Bookings.Application.DTOs;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Streaming.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Events;

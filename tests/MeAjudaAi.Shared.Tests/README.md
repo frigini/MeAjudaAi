@@ -12,18 +12,12 @@ Este projeto fornece classes base, fixtures, mocks e utilitários para facilitar
 MeAjudaAi.Shared.Tests/
 ├── TestInfrastructure/           # Infraestrutura principal de testes
 │   ├── Base/                     # Classes base para testes
-│   │   ├── BaseIntegrationTest.cs        # Base para testes de integração
-│   │   ├── BaseSharedIntegrationTest.cs  # Base shared integration
 │   │   ├── DatabaseTestBase.cs           # Base para testes de database
 │   │   └── EventHandlerTestBase.cs       # Base para testes de handlers
 │   ├── Builders/                 # Test data builders
 │   │   └── BuilderBase.cs               # Base para builders de teste
-│   ├── Configuration/            # Configurações de teste
-│   │   └── TestLoggingConfiguration.cs  # Logging para testes
 │   ├── Containers/               # TestContainers
 │   │   └── SharedTestContainers.cs      # Containers compartilhados
-│   ├── Fixtures/                 # xUnit Fixtures
-│   │   └── SharedTestFixture.cs         # Fixture compartilhada
 │   ├── Handlers/                 # Mock handlers
 │   │   ├── Authentication/              # Handlers de autenticação
 │   │   │   ├── MockAdminAuthenticationHandler.cs

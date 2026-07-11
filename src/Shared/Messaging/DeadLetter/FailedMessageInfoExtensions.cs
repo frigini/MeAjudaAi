@@ -1,3 +1,6 @@
+using MeAjudaAi.Shared.Messaging.DeadLetter.Enums;
+using MeAjudaAi.Shared.Messaging.DeadLetter.Models;
+
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 
 /// <summary>

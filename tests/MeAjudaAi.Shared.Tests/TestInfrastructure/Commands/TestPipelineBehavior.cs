@@ -2,6 +2,11 @@ using MeAjudaAi.Shared.Mediator;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Commands;
 
+/// <summary>
+/// Test double for IPipelineBehavior that tracks call order.
+/// IMPORTANT: Call ResetCounter() in test setup to ensure deterministic CallOrder values.
+/// The static counter is shared across all generic instantiations of this class.
+/// </summary>
 public class TestPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {

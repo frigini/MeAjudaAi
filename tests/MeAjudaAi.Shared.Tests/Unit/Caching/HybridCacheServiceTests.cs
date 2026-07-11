@@ -201,7 +201,7 @@ public class HybridCacheServiceTests
     }
 
     [Fact]
-    public async Task GetOrCreateAsync_WhenHybridCacheThrowsException_ShouldReturnDefault()
+    public async Task GetOrCreateAsync_WhenHybridCacheThrowsException_ShouldFallbackToFactory()
     {
         // Arrange
         _hybridCache.ExceptionToThrow = new Exception("Cache provider error");
@@ -211,8 +211,8 @@ public class HybridCacheServiceTests
         // Act
         var result = await _service.GetOrCreateAsync("key", factory);
 
-        // Assert - when cache throws, it returns default without calling factory
-        result.Should().BeNull();
-        factoryCalled.Should().BeFalse();
+        // Assert - when cache throws, factory is called as fallback
+        result.Should().Be("fallback-value");
+        factoryCalled.Should().BeTrue();
     }
 }

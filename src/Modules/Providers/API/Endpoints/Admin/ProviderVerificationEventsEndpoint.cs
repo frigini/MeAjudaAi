@@ -4,6 +4,7 @@ using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Streaming.Interfaces;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;

@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes de fusos horários utilizados no sistema.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class TimeZoneConstants
 {
     /// <summary>

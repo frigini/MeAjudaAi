@@ -1,7 +1,7 @@
-using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 

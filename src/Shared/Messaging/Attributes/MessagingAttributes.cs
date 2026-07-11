@@ -34,6 +34,7 @@ public sealed class HighVolumeEventAttribute : Attribute
 /// <summary>
 /// Indica que um evento é crítico e deve usar filas com maior garantia de persistência (ex: Quorum Queues).
 /// </summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class CriticalEventAttribute : Attribute
 {
