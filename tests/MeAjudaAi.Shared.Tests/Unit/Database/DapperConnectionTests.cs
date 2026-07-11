@@ -1,6 +1,7 @@
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Metrics;
 using Microsoft.Extensions.Logging;
 
@@ -12,33 +13,6 @@ public class DapperConnectionTests : IDisposable
     private readonly Mock<ILogger<DapperConnection>> _loggerMock;
     private readonly PostgresOptions _postgresOptions;
     private readonly EnvironmentVariableRestorer _envRestorer;
-
-    private sealed class EnvironmentVariableRestorer : IDisposable
-    {
-        private readonly HashSet<string> _modifiedVariables = new();
-
-        public void SetVariable(string name, string value)
-        {
-            if (!_modifiedVariables.Contains(name))
-            {
-                _modifiedVariables.Add(name);
-            }
-            Environment.SetEnvironmentVariable(name, value);
-        }
-
-        public void Dispose()
-        {
-            Restore();
-        }
-
-        private void Restore()
-        {
-            foreach (var name in _modifiedVariables)
-            {
-                Environment.SetEnvironmentVariable(name, null);
-            }
-        }
-    }
 
     public DapperConnectionTests()
     {

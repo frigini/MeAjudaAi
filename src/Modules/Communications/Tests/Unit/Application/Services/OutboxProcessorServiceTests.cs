@@ -7,7 +7,6 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Communications;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
@@ -42,8 +41,22 @@ public class OutboxProcessorServiceTests
         _loggerMock = new Mock<ILogger<OutboxProcessorService>>();
         _emailTemplateQueriesMock = new Mock<IEmailTemplateQueries>();
 
-        var builder = new SerializerMockBuilder().SetupDefault();
-        _serializeMock = builder.Mock;
+        _serializeMock = new Mock<ISerializer>();
+        _serializeMock.Setup(x => x.Serialize(It.IsAny<It.IsAnyType>())).Returns("dummy_payload");
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>(It.IsAny<string>()))
+            .Returns(EmailOutboxPayload.Create(to: "test@test.com", subject: "Hi", htmlBody: "Hello"));
+        _serializeMock.Setup(x => x.Deserialize<SmsOutboxPayload>(It.IsAny<string>()))
+            .Returns(new SmsOutboxPayload("+5511999999999", "Hello"));
+        _serializeMock.Setup(x => x.Deserialize<PushOutboxPayload>(It.IsAny<string>()))
+            .Returns(new PushOutboxPayload("token123", "Hi", "Hello", null));
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_payload"))
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", templateKey: "welcome_template", templateData: new Dictionary<string, string> { { "FirstName", "John" } }));
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("body_payload"))
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<b>B</b>"));
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("raw_body_payload"))
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<b>Raw Body</b>"));
+        _serializeMock.Setup(x => x.Deserialize<EmailOutboxPayload>("html_body_payload"))
+            .Returns(EmailOutboxPayload.Create(to: "t@t.com", subject: "S", htmlBody: "<h1>H</h1>"));
 
         _service = new OutboxProcessorService(
             _outboxRepositoryMock.Object,
@@ -51,7 +64,7 @@ public class OutboxProcessorServiceTests
             _emailSenderMock.Object,
             _smsSenderMock.Object,
             _pushSenderMock.Object,
-            builder.Build(),
+            _serializeMock.Object,
             _emailTemplateQueriesMock.Object,
             _loggerMock.Object);
     }

@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Mediator;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -53,24 +54,6 @@ public class QueryDispatcherTests : IDisposable
             ReceivedQuery = query;
             return Task.FromResult(query.Value * 2);
         }
-    }
-
-    // Test pipeline behavior
-    private class TestPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
-    {
-        public bool WasCalled { get; private set; }
-        public int CallOrder { get; private set; }
-        private static int _globalCallCounter;
-
-        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-        {
-            WasCalled = true;
-            CallOrder = ++_globalCallCounter;
-            return await next();
-        }
-
-        public static void ResetCounter() => _globalCallCounter = 0;
     }
 
     [Fact]

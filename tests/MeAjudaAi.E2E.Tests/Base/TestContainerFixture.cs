@@ -346,7 +346,7 @@ public class TestContainerFixture : IAsyncLifetime
 
         if (eventsEnabled)
         {
-            services.AddSingleton<IMessageBus, SynchronousInMemoryMessageBus>();
+            services.AddSingleton<IMessageBus, FakeSynchronousMessageBus>();
             services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
         }
         else

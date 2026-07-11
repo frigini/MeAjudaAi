@@ -1,11 +1,11 @@
 using MeAjudaAi.Contracts.Models;
 
-namespace MeAjudaAi.Shared.Tests.Contracts.Unit;
+namespace MeAjudaAi.Shared.Tests.Contracts.Unit.Models;
 
 [Trait("Category", "Unit")]
 [Trait("Component", "Shared")]
 [Trait("Layer", "Models")]
-public class ValidationErrorResponseTests
+public class ErrorResponseTests
 {
     [Fact]
     public void ValidationErrorResponse_DefaultConstructor_ShouldInitializeWithDefaultValues()

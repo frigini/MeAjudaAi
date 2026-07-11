@@ -1,5 +1,6 @@
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using System.Diagnostics;
 
 namespace MeAjudaAi.ApiService.Middlewares;
@@ -41,8 +42,9 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
         var userAgent = context.Request.Headers.UserAgent.ToString();
         var userId = GetUserId(context);
 
-        // Adiciona o RequestId no contexto para outros middlewares/endpoints
+        // Adiciona o RequestId no contexto e no response header para rastreabilidade
         context.Items["RequestId"] = requestId;
+        context.Response.Headers[AuthConstants.Headers.CorrelationId] = requestId;
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {

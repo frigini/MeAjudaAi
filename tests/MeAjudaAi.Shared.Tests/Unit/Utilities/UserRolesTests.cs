@@ -44,8 +44,9 @@ public class UserRolesTests
     [InlineData("admin", true)]
     [InlineData("ADMIN", true)]
     [InlineData("MeAjudaAi-System-Admin", true)]
-    [InlineData("customer", false)]
-    [InlineData("meajudaai-provider", false)]
+    [InlineData("customer", true)]
+    [InlineData("meajudaai-provider", true)]
+    [InlineData("MeAjudaAi-Provider-Gold", true)]
     public void IsValidRole_IsCaseInsensitive(string role, bool expected)
     {
         // Act

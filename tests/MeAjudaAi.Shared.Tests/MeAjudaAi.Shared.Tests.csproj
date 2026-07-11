@@ -82,5 +82,9 @@
     <Using Include="Bogus" />
     <Using Include="AutoFixture" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Unit\Messaging\Conventions\" />
+  </ItemGroup>
 <!-- This project contains shared test infrastructure, base classes, and utilities used across all test projects. -->
 </Project>

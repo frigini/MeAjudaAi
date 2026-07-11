@@ -210,7 +210,6 @@ public class RabbitMqInfrastructureManagerTests : IDisposable
 
     public void Dispose()
     {
-        _sut.DisposeAsync().AsTask().GetAwaiter().GetResult();
         GC.SuppressFinalize(this);
     }
 }

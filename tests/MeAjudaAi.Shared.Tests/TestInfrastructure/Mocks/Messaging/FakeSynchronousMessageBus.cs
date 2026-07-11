@@ -11,9 +11,9 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 /// Implementação síncrona de IMessageBus em memória que executa handlers diretamente.
 /// Útil para testes E2E onde queremos validar consistência eventual de forma determinística.
 /// </summary>
-public class SynchronousInMemoryMessageBus(
+public class FakeSynchronousMessageBus(
     IServiceProvider serviceProvider,
-    ILogger<SynchronousInMemoryMessageBus> logger) : IMessageBus
+    ILogger<FakeSynchronousMessageBus> logger) : IMessageBus
 {
     /// <summary>Cache estático de MethodInfo por tipo de mensagem para evitar overhead de reflexão a cada publish.</summary>
     private static readonly ConcurrentDictionary<Type, MethodInfo> _methodCache = new();
@@ -27,7 +27,7 @@ public class SynchronousInMemoryMessageBus(
     {
         if (@event == null) return;
 
-        logger.LogInformation("SynchronousInMemoryMessageBus: Dispatching {EventType}", typeof(TMessage).Name);
+        logger.LogInformation("FakeSynchronousMessageBus: Dispatching {EventType}", typeof(TMessage).Name);
 
         using var scope = serviceProvider.CreateScope();
         var handlerType = typeof(IEventHandler<>).MakeGenericType(typeof(TMessage));

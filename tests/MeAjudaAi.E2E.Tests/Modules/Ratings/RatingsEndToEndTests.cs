@@ -64,7 +64,7 @@ public class RatingsEndToEndTests(EventsEnabledTestContainerFixture fixture) : B
         reviewId.Should().NotBeEmpty();
 
         // 3. Verificar se a média foi atualizada no módulo de busca
-        // O SynchronousInMemoryMessageBus garante que o processamento ocorreu antes do retorno da API
+        // O FakeSynchronousMessageBus garante que o processamento ocorreu antes do retorno da API
         // Usamos term=providerName para garantir que buscamos o prestador correto
         var searchResponse = await Fixture.ApiClient.GetAsync($"/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10");
         searchResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
