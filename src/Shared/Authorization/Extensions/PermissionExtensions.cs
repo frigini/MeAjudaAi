@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 

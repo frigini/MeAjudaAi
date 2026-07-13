@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 

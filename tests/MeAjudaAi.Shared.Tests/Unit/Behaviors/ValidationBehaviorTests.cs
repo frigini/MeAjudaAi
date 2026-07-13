@@ -194,11 +194,11 @@ public class ValidationBehaviorTests
 
         var command = new TestCommand(Guid.NewGuid(), "", 0); // Invalid
         var nextCalled = false;
-        RequestHandlerDelegate<string> next = () =>
+        Task<string> next()
         {
             nextCalled = true;
             return Task.FromResult("success");
-        };
+        }
 
         // Act & Assert
         await Assert.ThrowsAsync<Shared.Exceptions.ValidationException>(() =>
@@ -219,7 +219,10 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestCommand, string>(validators);
 
         var command = new TestCommand(Guid.NewGuid(), "John", 30);
-        RequestHandlerDelegate<string> next = () => Task.FromResult("success");
+        static Task<string> next()
+        {
+            return Task.FromResult("success");
+        }
 
         // Act
         await behavior.Handle(command, next, CancellationToken.None);

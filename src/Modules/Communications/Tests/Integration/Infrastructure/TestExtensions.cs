@@ -7,13 +7,9 @@ using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Communications.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Integration.Infrastructure;
 
@@ -21,18 +17,9 @@ public static class TestExtensions
 {
     public static IServiceCollection AddCommunicationsTestInfrastructure(this IServiceCollection services, TestInfrastructureOptions options)
     {
-        services.AddDbContext<CommunicationsDbContext>((sp, dbOptions) =>
-        {
-            dbOptions.UseNpgsql(SharedTestContainers.PostgreSql.GetConnectionString(), npgsqlOptions =>
-            {
-                if (!string.IsNullOrWhiteSpace(options.Database.Schema))
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
-                }
-            })
-            .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning));
-        });
+        services.AddCommonModuleTestInfrastructure<CommunicationsDbContext>(
+            options,
+            configureDbContext: dbOptions => dbOptions.UseSnakeCaseNamingConvention());
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<CommunicationsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Communications,
@@ -44,9 +31,6 @@ public static class TestExtensions
         services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 
         services.AddApplication();
-
-        services.AddLocalization();
-        services.AddLogging();
 
         return services;
     }

@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Ratings.Infrastructure;
 using MeAjudaAi.Modules.Ratings.Domain.Events;
-using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Events;
@@ -9,6 +8,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MeAjudaAi.Shared.Caching.Interfaces;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure;
 

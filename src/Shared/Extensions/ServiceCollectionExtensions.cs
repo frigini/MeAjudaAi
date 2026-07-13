@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Streaming.Interfaces;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

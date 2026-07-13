@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Caching.Interfaces;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -174,8 +175,15 @@ public class HybridCacheService(HybridCache hybridCache,
         {
             stopwatch.Stop();
             _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get-or-create", "error");
-            logger.LogError(ex, "Failed to get or create cache value for key {Key}", key);
-            return default!;
+
+            if (factoryCalled)
+            {
+                logger.LogWarning(ex, "Cache failed for key {Key} after factory already executed, propagating error", key);
+                throw;
+            }
+
+            logger.LogWarning(ex, "Cache failed for key {Key}, falling back to factory", key);
+            return await factory(cancellationToken);
         }
     }
 

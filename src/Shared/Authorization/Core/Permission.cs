@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Authorization.Core;

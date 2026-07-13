@@ -1,8 +1,9 @@
-using System.Security.Claims;
-using System.Text.Encodings.Web;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using static MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;

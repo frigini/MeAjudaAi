@@ -1,21 +1,20 @@
-using System.Net;
-using System.Text.Json;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Keycloak;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
-using MeAjudaAi.Shared.Caching;
+using System.Net;
+using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Keycloak;
 
 [Trait("Category", "Unit")]
-public class KeycloakPermissionResolverTests
+public class KeycloakPermissionResolverTests : IDisposable
 {
     private readonly Mock<HttpMessageHandler> _handlerMock;
     private readonly HttpClient _httpClient;
-    private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ICacheService> _cacheMock;
     private readonly Mock<ILogger<KeycloakPermissionResolver>> _loggerMock;
     private readonly KeycloakPermissionResolver _resolver;
@@ -24,7 +23,6 @@ public class KeycloakPermissionResolverTests
     {
         _handlerMock = new Mock<HttpMessageHandler>();
         _httpClient = new HttpClient(_handlerMock.Object);
-        _configurationMock = new Mock<IConfiguration>();
         _cacheMock = new Mock<ICacheService>();
         _loggerMock = new Mock<ILogger<KeycloakPermissionResolver>>();
 
@@ -388,6 +386,300 @@ public class KeycloakPermissionResolverTests
         result.Should().Be("*");
     }
 
+    #region Constructor Validation Tests
+
+    [Fact]
+    public void Constructor_WithNullConfiguration_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        var act = () => new KeycloakPermissionResolver(_httpClient, null!, _cacheMock.Object, _loggerMock.Object);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Constructor_WithMissingKeycloakSection_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var configuration = new ConfigurationBuilder().Build();
+
+        // Act & Assert
+        var act = () => new KeycloakPermissionResolver(_httpClient, configuration, _cacheMock.Object, _loggerMock.Object);
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Keycloak configuration not found*");
+    }
+
+    [Theory]
+    [InlineData("Keycloak:Realm", "test", "Keycloak:AdminClientId", "admin", "Keycloak:AdminClientSecret", "secret")]
+    [InlineData("Keycloak:BaseUrl", "http://auth", "Keycloak:AdminClientId", "admin", "Keycloak:AdminClientSecret", "secret")]
+    [InlineData("Keycloak:BaseUrl", "http://auth", "Keycloak:Realm", "test", "Keycloak:AdminClientSecret", "secret")]
+    [InlineData("Keycloak:BaseUrl", "http://auth", "Keycloak:Realm", "test", "Keycloak:AdminClientId", "admin")]
+    public void Constructor_WithMissingRequiredField_ShouldThrowInvalidOperationException(
+        string key1, string val1, string key2, string val2, string key3, string val3)
+    {
+        // Arrange - set only 3 of 4 required fields
+        var configDict = new Dictionary<string, string?> { { key1, val1 }, { key2, val2 }, { key3, val3 } };
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(configDict).Build();
+
+        // Act & Assert
+        var act = () => new KeycloakPermissionResolver(_httpClient, configuration, _cacheMock.Object, _loggerMock.Object);
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    #endregion
+
+    #region Missing Role Mapping Tests
+
+    [Theory]
+    [InlineData("meajudaai-user")]
+    [InlineData("MEAJUDAAI-USER")]
+    public void MapKeycloakRoleToPermissions_UserRole_ShouldReturnBasicUserPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert
+        result.Should().Contain(EPermission.UsersRead);
+        result.Should().Contain(EPermission.UsersProfile);
+        result.Should().Contain(EPermission.BookingsRead);
+        result.Should().Contain(EPermission.BookingsCreate);
+        result.Should().Contain(EPermission.RatingsCreate);
+        result.Should().NotContain(EPermission.UsersCreate);
+        result.Should().NotContain(EPermission.AdminSystem);
+    }
+
+    [Theory]
+    [InlineData("customer")]
+    [InlineData("CUSTOMER")]
+    public void MapKeycloakRoleToPermissions_CustomerRole_ShouldReturnEmptyPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert - "customer" is not in the switch expression, falls to default
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("meajudaai-provider-standard")]
+    [InlineData("meajudaai-provider-silver")]
+    [InlineData("meajudaai-provider-gold")]
+    [InlineData("meajudaai-provider-platinum")]
+    public void MapKeycloakRoleToPermissions_ProviderTierRoles_ShouldReturnEmptyPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert - provider tier roles are not in the switch expression, fall to default
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("meajudaai-system-admin")]
+    [InlineData("MEAJUDAAI-SYSTEM-ADMIN")]
+    public void MapKeycloakRoleToPermissions_SystemAdminRole_ShouldReturnAllPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert - same as admin
+        result.Should().Contain(EPermission.AdminSystem);
+        result.Should().Contain(EPermission.UsersRead);
+        result.Should().Contain(EPermission.BookingsManage);
+    }
+
+    [Theory]
+    [InlineData("system-admin")]
+    [InlineData("SYSTEM-ADMIN")]
+    public void MapKeycloakRoleToPermissions_LegacySystemAdminRole_ShouldReturnAllPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert - "system-admin" is not in the switch expression, falls to default
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("meajudaai-super-admin")]
+    [InlineData("MEAJUDAAI-SUPER-ADMIN")]
+    public void MapKeycloakRoleToPermissions_SuperAdminRole_ShouldReturnEmptyPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert - "meajudaai-super-admin" is not in the switch expression, falls to default
+        result.Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region GetUserPermissionsAsync Integration Tests
+
+    [Fact]
+    public async Task GetUserPermissionsAsync_WithMultipleRoles_ShouldMergeAllPermissions()
+    {
+        // Arrange
+        var userId = "user-123";
+
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupHttpMessage(HttpMethod.Get, $"users/{userId}", new { id = "keycloak-id", username = userId });
+        SetupHttpMessage(HttpMethod.Get, "role-mappings/realm", new[]
+        {
+            new { name = "meajudaai-user" },
+            new { name = "meajudaai-report-viewer" }
+        });
+
+        // Act
+        var result = await _resolver.GetUserPermissionsAsync(userId);
+
+        // Assert
+        result.Should().Contain(EPermission.UsersRead);       // from user role
+        result.Should().Contain(EPermission.BookingsCreate);  // from user role
+        result.Should().Contain(EPermission.ReportsView);     // from report-viewer role
+        result.Should().NotContain(EPermission.ReportsExport); // report-viewer doesn't have this
+    }
+
+    [Fact]
+    public async Task GetUserPermissionsAsync_WhenCacheReturnsRoles_ShouldMapToPermissions()
+    {
+        // Arrange
+        var userId = "user-456";
+        var cachedRoles = new List<string> { "meajudaai-user-admin" };
+
+        _cacheMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<string>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedRoles);
+
+        // Act
+        var result = await _resolver.GetUserPermissionsAsync(userId);
+
+        // Assert
+        result.Should().Contain(EPermission.AdminUsers);
+        result.Should().Contain(EPermission.UsersRead);
+        result.Should().Contain(EPermission.UsersCreate);
+    }
+
+    #endregion
+
+    #region GetUserInfoAsync Fallback Tests
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WhenIdLookupFailsAndUsernameSearchSucceeds_ShouldReturnRoles()
+    {
+        // Arrange
+        var userId = "fallback-user";
+        var encodedUserId = Uri.EscapeDataString(userId);
+
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        // ID lookup returns 404
+        SetupNotFoundHttpMessage(HttpMethod.Get, $"users/{encodedUserId}");
+        // Username search returns a user
+        SetupHttpMessage(HttpMethod.Get, $"users?username={encodedUserId}", new[]
+        {
+            new { id = "found-by-username", username = userId }
+        });
+        // Role mappings for the found user
+        SetupHttpMessage(HttpMethod.Get, "role-mappings/realm", new[]
+        {
+            new { name = "meajudaai-user" }
+        });
+
+        // Act
+        var result = await _resolver.GetUserRolesFromKeycloakAsync(userId);
+
+        // Assert
+        result.Should().Contain("meajudaai-user");
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WhenUsernameSearchFailsWithHttpRequest_ShouldReturnEmpty()
+    {
+        // Arrange
+        var userId = "error-user";
+        var encodedUserId = Uri.EscapeDataString(userId);
+
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupNotFoundHttpMessage(HttpMethod.Get, $"users/{encodedUserId}");
+        // Username search throws HTTP error
+        SetupThrowingHttpMessage(HttpMethod.Get, $"users?username={encodedUserId}",
+            new HttpRequestException("Service unavailable", null, HttpStatusCode.ServiceUnavailable));
+
+        // Act
+        var result = await _resolver.GetUserRolesFromKeycloakAsync(userId);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetUserRolesFromKeycloakAsync_WhenUsernameSearchReturnsInvalidJson_ShouldReturnEmpty()
+    {
+        // Arrange
+        var userId = "json-error-user";
+        var encodedUserId = Uri.EscapeDataString(userId);
+
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
+        SetupNotFoundHttpMessage(HttpMethod.Get, $"users/{encodedUserId}");
+        // Username search returns invalid JSON
+        SetupHttpMessage(HttpMethod.Get, $"users?username={encodedUserId}", "not valid json");
+
+        // Act
+        var result = await _resolver.GetUserRolesFromKeycloakAsync(userId);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region GetAdminTokenAsync Caching Tests
+
+    [Fact]
+    public async Task GetUserPermissionsAsync_ShouldRequestAdminToken()
+    {
+        // Arrange
+        var userId = "user-token-test";
+
+        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "admin-token-123", expires_in = 300 });
+        SetupHttpMessage(HttpMethod.Get, $"users/{userId}", new { id = "kc-id", username = userId });
+        SetupHttpMessage(HttpMethod.Get, "role-mappings/realm", Array.Empty<object>());
+
+        // Act
+        await _resolver.GetUserPermissionsAsync(userId);
+
+        // Assert - verify token endpoint was called
+        _handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.Method == HttpMethod.Post &&
+                req.RequestUri!.ToString().Contains("token")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetUserPermissionsAsync_WhenTokenRequestFails_ShouldReturnEmptyPermissions()
+    {
+        // Arrange
+        var userId = "user-token-fail";
+
+        SetupThrowingHttpMessage(HttpMethod.Post, "token",
+            new HttpRequestException("Token endpoint unavailable"));
+
+        // Act
+        var result = await _resolver.GetUserPermissionsAsync(userId);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    #endregion
+
     private void SetupNotFoundHttpMessage(HttpMethod method, string pathPart)
     {
         _handlerMock.Protected()
@@ -423,5 +715,11 @@ public class KeycloakPermissionResolverTests
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(responseBody))
             });
+    }
+
+    public void Dispose()
+    {
+        _httpClient.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

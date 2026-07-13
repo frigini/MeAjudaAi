@@ -1,12 +1,14 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Mediator;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using FunctionalUnit = MeAjudaAi.Contracts.Functional.Unit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Commands;
 
-public class CommandDispatcherTests : IDisposable
+[Trait("Category", "Unit")]
+public sealed class CommandDispatcherTests : IDisposable
 {
     private readonly Mock<ILogger<CommandDispatcher>> _loggerMock;
     private readonly ServiceCollection _services;
@@ -25,54 +27,7 @@ public class CommandDispatcherTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    // Test commands
-    public record TestCommand(Guid CorrelationId, string Data) : ICommand;
-    public record TestCommandWithResult(Guid CorrelationId, string Data) : ICommand<string>;
-
-    // Test handlers
-    private class TestCommandHandler : ICommandHandler<TestCommand>
-    {
-        public bool WasCalled { get; private set; }
-        public TestCommand? ReceivedCommand { get; private set; }
-
-        public Task HandleAsync(TestCommand command, CancellationToken cancellationToken = default)
-        {
-            WasCalled = true;
-            ReceivedCommand = command;
-            return Task.CompletedTask;
-        }
-    }
-
-    private class TestCommandWithResultHandler : ICommandHandler<TestCommandWithResult, string>
-    {
-        public bool WasCalled { get; private set; }
-        public TestCommandWithResult? ReceivedCommand { get; private set; }
-
-        public Task<string> HandleAsync(TestCommandWithResult command, CancellationToken cancellationToken = default)
-        {
-            WasCalled = true;
-            ReceivedCommand = command;
-            return Task.FromResult($"Processed: {command.Data}");
-        }
-    }
-
-    // Test pipeline behaviors
-    private class TestPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
-    {
-        public bool WasCalled { get; private set; }
-        public int CallOrder { get; private set; }
-        private static int _globalCallCounter;
-
-        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-        {
-            WasCalled = true;
-            CallOrder = ++_globalCallCounter;
-            return await next();
-        }
-
-        public static void ResetCounter() => _globalCallCounter = 0;
-    }
+    #region Command Invocation
 
     [Fact]
     public async Task SendAsync_WithCommandWithoutResult_ShouldInvokeHandler()
@@ -112,6 +67,10 @@ public class CommandDispatcherTests : IDisposable
         handler.ReceivedCommand.Should().Be(command);
         result.Should().Be("Processed: test data");
     }
+
+    #endregion
+
+    #region Logging
 
     [Fact]
     public async Task SendAsync_WithoutResult_ShouldLogCommandExecution()
@@ -171,6 +130,10 @@ public class CommandDispatcherTests : IDisposable
             Times.Once);
     }
 
+    #endregion
+
+    #region Pipeline Behaviors
+
     [Fact]
     public async Task SendAsync_WithPipelineBehavior_ShouldExecuteBehaviorBeforeHandler()
     {
@@ -223,7 +186,6 @@ public class CommandDispatcherTests : IDisposable
         behavior3.WasCalled.Should().BeTrue();
         handler.WasCalled.Should().BeTrue();
 
-        // Behaviors execute in FIFO order after Reverse() call in dispatcher (so 1, 2, 3)
         behavior1.CallOrder.Should().BeLessThan(behavior2.CallOrder);
         behavior2.CallOrder.Should().BeLessThan(behavior3.CallOrder);
     }
@@ -251,6 +213,10 @@ public class CommandDispatcherTests : IDisposable
         handler.WasCalled.Should().BeTrue();
         result.Should().Be("Processed: test");
     }
+
+    #endregion
+
+    #region Error Handling
 
     [Fact]
     public async Task SendAsync_WhenHandlerThrowsException_ShouldPropagateException()
@@ -302,6 +268,25 @@ public class CommandDispatcherTests : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => dispatcher.SendAsync(command));
     }
+
+    [Fact]
+    public async Task SendAsync_WhenHandlerNotRegistered_ViaMock_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock.Setup(s => s.GetService(typeof(ICommandHandler<TestCommand>)))
+            .Returns(default(ICommandHandler<TestCommand>));
+
+        var dispatcher = new CommandDispatcher(serviceProviderMock.Object, _loggerMock.Object);
+        var command = new TestCommand(Guid.NewGuid(), "test");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => dispatcher.SendAsync(command));
+    }
+
+    #endregion
+
+    #region Cancellation Token
 
     [Fact]
     public async Task SendAsync_WithCancellationToken_ShouldPassTokenToHandler()
@@ -376,4 +361,6 @@ public class CommandDispatcherTests : IDisposable
         // Act & Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => dispatcher.SendAsync(command, cts.Token));
     }
+
+    #endregion
 }

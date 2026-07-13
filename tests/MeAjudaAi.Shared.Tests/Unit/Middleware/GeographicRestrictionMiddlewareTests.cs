@@ -1,5 +1,3 @@
-using System.Text;
-using FluentAssertions;
 using MeAjudaAi.Shared.Middleware;
 using MeAjudaAi.Shared.Middleware.GeographicRestriction;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -7,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Middleware;
 

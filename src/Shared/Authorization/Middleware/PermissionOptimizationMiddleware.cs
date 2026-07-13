@@ -1,5 +1,5 @@
 using MeAjudaAi.Contracts.Constants;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

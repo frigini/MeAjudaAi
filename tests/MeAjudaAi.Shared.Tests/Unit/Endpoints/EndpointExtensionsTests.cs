@@ -1,8 +1,8 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Http.HttpResults;
-using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Endpoints;
 
@@ -21,7 +21,7 @@ public class EndpointExtensionsTests
         response.Should().BeOfType<Ok<Response<string>>>();
         var okResult = (Ok<Response<string>>)response;
         okResult.StatusCode.Should().Be(200);
-        okResult.Value.Data.Should().Be("test value");
+        okResult.Value!.Data.Should().Be("test value");
         okResult.Value.StatusCode.Should().Be(200);
     }
 
@@ -41,7 +41,7 @@ public class EndpointExtensionsTests
         createdResult.StatusCode.Should().Be(201);
         createdResult.RouteName.Should().Be("GetById");
         createdResult.RouteValues["id"].Should().Be(1);
-        createdResult.Value.Data.Should().Be("test value");
+        createdResult.Value!.Data.Should().Be("test value");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class EndpointExtensionsTests
         response.Should().BeOfType<NotFound<Response<string>>>();
         var notFoundResult = (NotFound<Response<string>>)response;
         notFoundResult.StatusCode.Should().Be(404);
-        notFoundResult.Value.StatusCode.Should().Be(404);
+        notFoundResult.Value!.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class EndpointExtensionsTests
         response.Should().BeOfType<BadRequest<Response<string>>>();
         var badRequestResult = (BadRequest<Response<string>>)response;
         badRequestResult.StatusCode.Should().Be(400);
-        badRequestResult.Value.StatusCode.Should().Be(400);
+        badRequestResult.Value!.StatusCode.Should().Be(400);
     }
 
     [Fact]

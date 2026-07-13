@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Mediator;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Caching.Hybrid;

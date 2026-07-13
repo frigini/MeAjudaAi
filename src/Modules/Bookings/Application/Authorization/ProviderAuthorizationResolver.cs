@@ -3,7 +3,7 @@ using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Authorization.Models;
 using MeAjudaAi.Modules.Bookings.Application.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Resources;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;

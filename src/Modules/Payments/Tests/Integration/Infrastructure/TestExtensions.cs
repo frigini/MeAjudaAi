@@ -9,11 +9,8 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Integration.Infrastructure;
@@ -22,24 +19,14 @@ public static class TestExtensions
 {
     public static IServiceCollection AddPaymentsTestInfrastructure(this IServiceCollection services, TestInfrastructureOptions options)
     {
-        services.AddDbContext<PaymentsDbContext>(dbOptions =>
-        {
-            dbOptions.UseNpgsql(SharedTestContainers.PostgreSql.GetConnectionString(), npgsqlOptions =>
-            {
-                if (!string.IsNullOrWhiteSpace(options.Database.Schema))
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
-                }
-            })
-            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning));
-        });
+        services.AddCommonModuleTestInfrastructure<PaymentsDbContext>(options);
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(MeAjudaAi.Shared.Database.Constants.ModuleKeys.Payments,
             (sp, key) => sp.GetRequiredService<PaymentsDbContext>());
 
         services.AddScoped<IRepository<Subscription, Guid>>(sp => sp.GetRequiredService<PaymentsDbContext>());
-        services.AddScoped<IPaymentGateway, MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Modules.Payments.MockPaymentGateway>();
+        services.AddScoped<IPaymentGateway, MockPaymentGateway>();
         services.AddScoped<ISubscriptionQueries, DbContextSubscriptionQueries>();
         services.AddScoped<IPaymentTransactionQueries, DbContextPaymentTransactionQueries>();
         services.AddScoped<IPaymentsHealthQueries, DbContextPaymentsHealthQueries>();
@@ -56,8 +43,6 @@ public static class TestExtensions
         services.AddCommands();
         services.AddQueries();
         services.AddApplication();
-
-        services.AddLogging();
 
         return services;
     }

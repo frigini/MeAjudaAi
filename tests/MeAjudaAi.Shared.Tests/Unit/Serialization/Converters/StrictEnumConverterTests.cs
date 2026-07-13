@@ -1,5 +1,5 @@
-using System.Text.Json;
 using MeAjudaAi.Shared.Serialization.Converters;
+using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Serialization.Converters;
 

@@ -14,7 +14,6 @@ tests/MeAjudaAi.Integration.Tests/
 │   ├── BasePerformanceTest.cs          # Base for performance tests
 │   └── BaseSharedTest.cs               # Base for shared/cross-module tests
 ├── Infrastructure/
-│   ├── BaseAspireIntegrationTest.cs    # Base for Aspire integration tests
 │   ├── Database/                       # DB helpers (initializer, schema cache)
 │   ├── Fixtures/                       # Shared fixtures (SimpleDatabaseFixture, etc.)
 │   ├── TestModule.cs                   # TestModule flags enum
@@ -47,7 +46,6 @@ tests/MeAjudaAi.Integration.Tests/
 | Base Class | Purpose | Use When |
 |------------|---------|----------|
 | `BaseApiTest` | Standard integration tests with DI, HTTP client, WireMock | Most integration tests |
-| `BaseAspireIntegrationTest` | Aspire-based tests with `WebApplicationFactory` | Aspire-specific tests |
 | `BasePerformanceTest` | Performance/stress tests | Benchmarking |
 | `BaseSharedTest` | Cross-module tests | Multi-module scenarios |
 

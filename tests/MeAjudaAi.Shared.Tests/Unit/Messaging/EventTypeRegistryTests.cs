@@ -1,8 +1,9 @@
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 

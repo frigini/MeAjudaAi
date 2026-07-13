@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Streaming;
+using MeAjudaAi.Shared.Streaming.Interfaces;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Mvc;

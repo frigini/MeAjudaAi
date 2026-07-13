@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.Interfaces;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 

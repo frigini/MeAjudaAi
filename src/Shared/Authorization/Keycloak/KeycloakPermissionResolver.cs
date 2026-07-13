@@ -1,6 +1,7 @@
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
+using MeAjudaAi.Shared.Authorization.Keycloak.Interfaces;
 using MeAjudaAi.Shared.Authorization.Keycloak.Models;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;

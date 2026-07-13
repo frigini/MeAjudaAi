@@ -2,7 +2,7 @@ using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.API.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Commands;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;

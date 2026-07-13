@@ -60,6 +60,7 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
     public new void Dispose()
     {
         _envRestorer.Restore();
+        base.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -199,85 +200,71 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
     [Fact]
     public async Task HandleStripeWebhookAsync_ShouldBypassSignature_WhenEmptySignatureAndBypassEnvironment()
     {
-        try
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
+        var service = new PaymentCommandService(
+            _uowMock.Object,
+            DbContext,
+            _configurationMock.Object,
+            _loggerMock.Object,
+            _localizerMock.Object);
+
+        var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
+        var payload = $$"""
         {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-
-            var service = new PaymentCommandService(
-                _uowMock.Object,
-                DbContext,
-                _configurationMock.Object,
-                _loggerMock.Object,
-                _localizerMock.Object);
-
-            var eventId = "evt_mock_" + Guid.NewGuid().ToString("N");
-            var payload = $$"""
-            {
-                "id": "{{eventId}}",
-                "type": "checkout.session.completed",
-                "created": 1234567890
-            }
-            """;
-
-            var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
-
-            result.IsSuccess.Should().BeTrue();
+            "id": "{{eventId}}",
+            "type": "checkout.session.completed",
+            "created": 1234567890
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-        }
+        """;
+
+        var result = await service.HandleStripeWebhookAsync(payload, "", CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
     public async Task HandleStripeWebhookAsync_ShouldFail_WhenBypassEnvironmentButInvalidMockPayload()
     {
-        try
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("DOTNET_ENVIRONMENT", "Testing");
+        _envRestorer.SetVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
-            var service = new PaymentCommandService(
-                _uowMock.Object,
-                DbContext,
-                _configurationMock.Object,
-                _loggerMock.Object,
-                _localizerMock.Object);
+        var service = new PaymentCommandService(
+            _uowMock.Object,
+            DbContext,
+            _configurationMock.Object,
+            _loggerMock.Object,
+            _localizerMock.Object);
 
-            var invalidPayload = "{ invalid json for mock }";
+        var invalidPayload = "{ invalid json for mock }";
 
-            var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
+        var result = await service.HandleStripeWebhookAsync(invalidPayload, "", CancellationToken.None);
 
-            result.IsFailure.Should().BeTrue();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-        }
+        result.IsFailure.Should().BeTrue();
     }
 
     private sealed class EnvironmentVariableRestorer
     {
-        private readonly HashSet<string> _modifiedVariables = new();
+        private readonly Dictionary<string, string?> _originalValues = new();
 
-        public void SetVariable(string name, string value)
+        public void SetVariable(string name, string? value)
         {
-            if (!_modifiedVariables.Contains(name))
+            if (!_originalValues.ContainsKey(name))
             {
-                _modifiedVariables.Add(name);
+                _originalValues[name] = Environment.GetEnvironmentVariable(name);
             }
+
             Environment.SetEnvironmentVariable(name, value);
         }
 
         public void Restore()
         {
-            foreach (var name in _modifiedVariables)
+            foreach (var (name, originalValue) in _originalValues)
             {
-                Environment.SetEnvironmentVariable(name, null);
+                Environment.SetEnvironmentVariable(name, originalValue);
             }
+            _originalValues.Clear();
         }
     }
 }

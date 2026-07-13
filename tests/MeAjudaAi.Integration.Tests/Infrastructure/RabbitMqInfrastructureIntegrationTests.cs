@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Brokers.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
 using Microsoft.Extensions.Logging.Abstractions;
 using RabbitMQ.Client;
 using Testcontainers.RabbitMq;

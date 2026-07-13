@@ -53,11 +53,11 @@
       },
       "Refit": {
         "type": "Direct",
-        "requested": "[12.1.0, )",
-        "resolved": "12.1.0",
-        "contentHash": "YRNeWBc+CV2+drwi/u/trdNOOuF+ZQsvNfXKmJ1KxdWvphMgi+n4KFAufHe016yE8sLQn70/191o4A7PJjZcpQ==",
+        "requested": "[13.1.0, )",
+        "resolved": "13.1.0",
+        "contentHash": "Hd0zEcLAm/7Hk8xRRaXftxbLzvQ04La6IZBFYG2g/dC9e6jQBYEVBEr8OA/iSbLYQFEhTJ3XyjpFSz1MFHpYEg==",
         "dependencies": {
-          "ReactiveUI.Primitives": "5.8.0"
+          "ReactiveUI.Primitives": "6.0.0"
         }
       },
       "Scrutor": {
@@ -428,8 +428,8 @@
       },
       "Microsoft.FeatureManagement": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "9VBxTZUwna9x31+OmOyX0DTBGEuvVrV81fAZ/XRkLESuDu5EZn/o6W8454NWOPHBIUyTGTMpYOFzI8ArkCNmCg==",
+        "resolved": "4.6.0",
+        "contentHash": "kLjGgEhlzuKs6t7g8so1dqsmE5NaSURNPOWkKD056nF43G/6w/VK5Gd02WKgpuBRQ9mjl7odAe462bn3XKBXmg==",
         "dependencies": {
           "Microsoft.Bcl.TimeProvider": "8.0.1",
           "Microsoft.Extensions.Caching.Memory": "8.0.1",
@@ -679,24 +679,24 @@
       },
       "ReactiveUI.Disposables": {
         "type": "Transitive",
-        "resolved": "5.8.0",
-        "contentHash": "JR39TMydeqtQnsr9bqWXVpdeoYQmb+g8fxu9Glu+GN3FZo5/voN+FYmAuokQBiIPup4s5CbxyPoP+qlg2zZLEQ=="
+        "resolved": "6.0.0",
+        "contentHash": "+4SXyR40eHcCoAeLZWWMM4SE6uxxJgJSStMrRkbFVIFd3n8Pqzd/wCkVDt2q6Z9VC4TTF2HRDa3M6BY73iyS2g=="
       },
       "ReactiveUI.Primitives": {
         "type": "Transitive",
-        "resolved": "5.8.0",
-        "contentHash": "VcwT0+zxMnpRcpNVDRprZN9qSG4/hunbUflPqpKUo7eGvu6XcUIVafco8KrhZGVOAIhmwhIBeY9pQdheK2WwHA==",
+        "resolved": "6.0.0",
+        "contentHash": "LHJCaF4dmmLCyl7pyBYTx3BuV17uwQj5oqR3yCIN+M0abd5536eH+KW4Fu9Bc+rFe4x6LD5YioKO27ytPUXy5A==",
         "dependencies": {
-          "ReactiveUI.Disposables": "5.8.0",
-          "ReactiveUI.Primitives.Core": "5.8.0"
+          "ReactiveUI.Disposables": "6.0.0",
+          "ReactiveUI.Primitives.Core": "6.0.0"
         }
       },
       "ReactiveUI.Primitives.Core": {
         "type": "Transitive",
-        "resolved": "5.8.0",
-        "contentHash": "b0Li7p/ROQeYizNT/kTmmkDuiAtqCo+pyFaghHM+9NYl1axi4NTNaKhVg6ie3yBEvDPfN7sKLCFL7zII/EmK/g==",
+        "resolved": "6.0.0",
+        "contentHash": "Ffky9BPfRbWJYeUWVLjno07/GcvFFnkXZ+NnrXmAkNnmGfKmSDGYvz2xvmaoUECucT7UBSUr7WO2+X/4fRpPDw==",
         "dependencies": {
-          "ReactiveUI.Disposables": "5.8.0"
+          "ReactiveUI.Disposables": "6.0.0"
         }
       },
       "Serilog.Extensions.Hosting": {
@@ -946,7 +946,7 @@
           "MeAjudaAi.ServiceDefaults": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.9, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.6.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.Seq": "[9.1.0, )",
           "Swashbuckle.AspNetCore": "[10.2.3, )",
@@ -957,7 +957,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Contracts": "[1.0.0, )",
-          "Refit": "[12.1.0, )"
+          "Refit": "[13.1.0, )"
         }
       },
       "meajudaai.contracts": {
@@ -992,7 +992,7 @@
           "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },
       "meajudaai.modules.communications.api": {
@@ -1063,7 +1063,7 @@
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },
       "meajudaai.modules.locations.api": {
@@ -1125,7 +1125,7 @@
         "dependencies": {
           "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "Stripe.net": "[52.1.0, )"
         }
       },
@@ -1189,7 +1189,7 @@
           "MeAjudaAi.Modules.Ratings.Application": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.9, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },
       "meajudaai.modules.searchproviders.api": {
@@ -1225,8 +1225,8 @@
           "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": "[10.0.2, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": "[10.0.3, )"
         }
       },
       "meajudaai.modules.servicecatalogs.api": {
@@ -1293,7 +1293,7 @@
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.9, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.9, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "System.IdentityModel.Tokens.Jwt": "[8.19.1, )"
         }
       },
@@ -1305,14 +1305,14 @@
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.7.0, )",
           "Microsoft.Extensions.ServiceDiscovery": "[10.7.0, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.6.0, )",
           "OpenTelemetry.Exporter.Console": "[1.16.0, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.16.0, )",
           "OpenTelemetry.Extensions.Hosting": "[1.16.0, )",
           "OpenTelemetry.Instrumentation.AspNetCore": "[1.16.0, )",
           "OpenTelemetry.Instrumentation.EntityFrameworkCore": "[1.14.0-beta.2, )",
           "OpenTelemetry.Instrumentation.Http": "[1.16.0, )",
-          "OpenTelemetry.Instrumentation.Runtime": "[1.15.1, )"
+          "OpenTelemetry.Instrumentation.Runtime": "[1.16.0, )"
         }
       },
       "meajudaai.shared": {
@@ -1335,14 +1335,14 @@
           "Microsoft.EntityFrameworkCore.Design": "[10.0.9, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.7.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.9, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.6.0, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
           "Rebus.RabbitMq": "[10.1.1, )",
           "Rebus.ServiceProvider": "[10.7.2, )",
           "Scrutor": "[7.0.0, )",
-          "Serilog": "[4.3.1, )",
+          "Serilog": "[4.4.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Enrichers.Environment": "[3.0.1, )",
           "Serilog.Enrichers.Process": "[3.0.0, )",
@@ -1786,11 +1786,11 @@
       },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[4.5.0, )",
-        "resolved": "4.5.0",
-        "contentHash": "CafI8Ne0xuXRNzHMoRGAX4WRvLxpTE7RceBncgME/fRcPD2KwYrxfZpLyJ/kVfYt8uvHkC2xy0VlStj687mVoA==",
+        "requested": "[4.6.0, )",
+        "resolved": "4.6.0",
+        "contentHash": "+0G11gpuGqggJ7nrB7jL/oT4bsRVqnM5q6+qgC5sO2oW4JWymXoUAkDNsuLsMB9La9Ota248x8dwhoL2erImwQ==",
         "dependencies": {
-          "Microsoft.FeatureManagement": "4.5.0"
+          "Microsoft.FeatureManagement": "4.6.0"
         }
       },
       "Microsoft.NET.StringTools": {
@@ -1801,9 +1801,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.9.0, )",
-        "resolved": "2.9.0",
-        "contentHash": "uS2awDkgUvVhd735HEcNcOQdwbIDCAK3V1QzgWoszd/FPDLLVv9eF+fImmdJiGLIKKWJv2DMJQ7OSR9gYLd+uw=="
+        "requested": "[2.10.0, )",
+        "resolved": "2.10.0",
+        "contentHash": "tD7ve8JrWfJ+aRfW7J9yDj8t6pbMOzdr8nSc5BlIZaIRxqZZ67RJ8J69//Tx6HHSNFsqomBbipkPP20opnqvMg=="
       },
       "Newtonsoft.Json": {
         "type": "CentralTransitive",
@@ -1822,9 +1822,9 @@
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL": {
         "type": "CentralTransitive",
-        "requested": "[10.0.2, )",
-        "resolved": "10.0.2",
-        "contentHash": "PsNYgPOSW41Xx19gin7y4EdZAPteWr9Cb01XkdObxOsPzi+mgBupBEN7J7+erXFsROPOILM7MlIoO9QzL8+LGQ==",
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "IPGrrZnRkuW7OlHDhUESZz4G5DLkW7Nej/O3Cx+0iTsgyU5XJxBgpsvTHLloo3WWuAKKbDHXBvWPVkX1deRh1Q==",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "[10.0.4, 11.0.0)",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
@@ -1833,11 +1833,11 @@
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": {
         "type": "CentralTransitive",
-        "requested": "[10.0.2, )",
-        "resolved": "10.0.2",
-        "contentHash": "Ur2U0g90MlGNviptHCknfnu/AiJVUbTT0S6GcSXYEpyH+fcjxyaR6GBw8Ul1cjQCQ9lLmB9Gwh5hsc8ghAwz7g==",
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "t0cNHEzU1rCHLbuBa1e2r+H7X/2XQ2pF32iKk4JpMKN5r21FSikQ2WGyZf/artiGAFd2rkjaddYGZat3Kp6Apg==",
         "dependencies": {
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.2",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
           "Npgsql.NetTopologySuite": "10.0.3"
         }
       },
@@ -1902,11 +1902,11 @@
       },
       "OpenTelemetry.Instrumentation.Runtime": {
         "type": "CentralTransitive",
-        "requested": "[1.15.1, )",
-        "resolved": "1.15.1",
-        "contentHash": "cpPwlUT5HXcLGPaIgsbSy0W9eFYAPGVbTP1p8/uyQ4Osvf5BJuPpEXE7crL09SmEd44r0DGNKDtsqxaAz0HxQw==",
+        "requested": "[1.16.0, )",
+        "resolved": "1.16.0",
+        "contentHash": "3mKCZZo32UYn/vcVFxxrWgO+BcDy9EZBdW1rfCzdtK+CGCFIMnf6AY96MrnVnyNK/f3ehq9t6qLec8OTNxgzRw==",
         "dependencies": {
-          "OpenTelemetry.Api": "[1.15.3, 2.0.0)"
+          "OpenTelemetry.Api": "[1.16.0, 2.0.0)"
         }
       },
       "RabbitMQ.Client": {
@@ -1951,9 +1951,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.3.1, )",
-        "resolved": "4.3.1",
-        "contentHash": "savYe7h5yRlkqBVOwP8cIRDOdqKiPmYCU4W87JH38sBmcKD5EBoXvQIw6bNEvZ/pTe1gsiye3VFCzBsoppGkXQ=="
+        "requested": "[4.4.0, )",
+        "resolved": "4.4.0",
+        "contentHash": "ZC6Le3rr4TVJJjS4KsQAesxeF1EhW9qcZmmG7eP5Y2G3+gTGkJEUXkq4+tZNPtyp05I0wWOxnIjwtxFweJsObw=="
       },
       "Serilog.AspNetCore": {
         "type": "CentralTransitive",

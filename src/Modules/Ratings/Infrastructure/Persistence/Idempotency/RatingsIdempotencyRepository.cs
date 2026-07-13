@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Database.Idempotency;
-using MeAjudaAi.Shared.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Idempotency;

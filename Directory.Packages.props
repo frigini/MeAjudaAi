@@ -32,10 +32,10 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <!-- Microsoft.OpenApi: Mantido em 2.x devido a incompatibilidade com geradores do .NET 10 (CS0200 em IOpenApiMediaType.Example) -->
-    <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.10.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.3" />
     <PackageVersion Include="Npgsql" Version="10.0.3" />
     <!-- Dapper.AOT é trazido pelo Hangfire.PostgreSql -->
     <PackageVersion Include="Dapper" Version="2.1.79" />
@@ -62,7 +62,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.6.0" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.5.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
@@ -70,8 +70,8 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.14.0-beta.2" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.16.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
-    <PackageVersion Include="Serilog" Version="4.3.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.16.0" />
+    <PackageVersion Include="Serilog" Version="4.4.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
@@ -103,7 +103,7 @@
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.2.3" />
     <PackageVersion Include="System.IO.Hashing" Version="10.0.9" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
-    <PackageVersion Include="WireMock.Net" Version="2.11.0" />
+    <PackageVersion Include="WireMock.Net" Version="2.12.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
@@ -112,10 +112,10 @@
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoMoq" Version="4.18.1" />
-    <PackageVersion Include="Testcontainers.Azurite" Version="4.12.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.12.0" />
-    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.12.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.12.0" />
+    <PackageVersion Include="Testcontainers.Azurite" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.13.0" />
     <PackageVersion Include="Respawn" Version="7.0.0" />
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.4.6" />
@@ -131,8 +131,8 @@
     <PackageVersion Include="Aspire.Npgsql" Version="13.4.6" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.28.0.143324" />
-    <PackageVersion Include="Refit" Version="12.1.0" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.29.0.143774" />
+    <PackageVersion Include="Refit" Version="13.1.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 </Project>

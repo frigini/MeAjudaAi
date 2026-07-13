@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Logging;
 

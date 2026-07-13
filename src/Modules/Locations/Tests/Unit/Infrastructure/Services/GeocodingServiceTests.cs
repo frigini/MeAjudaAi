@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Hybrid;

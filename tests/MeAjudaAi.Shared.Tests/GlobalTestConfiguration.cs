@@ -1,5 +1,3 @@
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
-
 [assembly: CollectionBehavior(DisableTestParallelization = false, MaxParallelThreads = 4)]
 
 namespace MeAjudaAi.Shared.Tests;
@@ -20,25 +18,5 @@ public static class GlobalTestConfiguration
         // Configurar cultura invariante para testes consistentes
         Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
-    }
-}
-
-/// <summary>
-/// Fixture base compartilhado para testes de integração que gerencia lifecycle dos containers.
-/// Pode ser usado por qualquer módulo que precise de containers compartilhados.
-/// </summary>
-public class SharedIntegrationTestFixture : IAsyncLifetime
-{
-    public async ValueTask InitializeAsync()
-    {
-        // Inicia containers compartilhados uma única vez para toda a collection
-        await SharedTestContainers.StartAllAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        // Para containers quando todos os testes da collection terminarem
-        await SharedTestContainers.StopAllAsync();
-        GC.SuppressFinalize(this);
     }
 }

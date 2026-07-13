@@ -19,10 +19,7 @@ using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Database.Idempotency;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -34,26 +31,7 @@ public static class RatingsTestInfrastructureExtensions
         this IServiceCollection services,
         TestInfrastructureOptions? options = null)
     {
-        options ??= new TestInfrastructureOptions();
-
-        services.AddSingleton(options);
-        services.AddSingleton(TimeProvider.System);
-
-        services.AddLocalization();
-        services.AddTestLogging();
-        services.AddTestCache(options.Cache);
-
-        services.AddDbContext<RatingsDbContext>((sp, dbOptions) =>
-        {
-            dbOptions.UseNpgsql(SharedTestContainers.PostgreSql.GetConnectionString(), npgsqlOptions =>
-            {
-                if (!string.IsNullOrWhiteSpace(options.Database.Schema))
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
-                }
-            })
-            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning));
-        });
+        services.AddCommonModuleTestInfrastructure<RatingsDbContext>(options);
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<RatingsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Ratings, (sp, key) => sp.GetRequiredService<RatingsDbContext>());

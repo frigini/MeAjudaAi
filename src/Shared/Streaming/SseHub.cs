@@ -1,15 +1,10 @@
+using MeAjudaAi.Shared.Streaming.Interfaces;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace MeAjudaAi.Shared.Streaming;
-
-public interface ISseHub<T>
-{
-    Task PublishAsync(string topic, T data, CancellationToken ct = default);
-    IAsyncEnumerable<T> SubscribeAsync(string topic, CancellationToken ct = default);
-}
 
 [ExcludeFromCodeCoverage]
 public class SseHub<T> : ISseHub<T>

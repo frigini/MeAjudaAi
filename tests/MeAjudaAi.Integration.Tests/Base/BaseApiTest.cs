@@ -23,7 +23,6 @@ using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -32,6 +31,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.Interfaces;
 
 // Enable parallel execution by isolating databases per test class
 // [assembly: CollectionBehavior(DisableTestParallelization = true)]

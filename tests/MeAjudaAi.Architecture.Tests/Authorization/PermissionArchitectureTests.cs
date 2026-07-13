@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Utilities.Constants;

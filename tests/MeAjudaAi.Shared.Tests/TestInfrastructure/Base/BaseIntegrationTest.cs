@@ -1,7 +1,7 @@
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
@@ -49,14 +49,13 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
         // Configurar logging otimizado para testes
         services.AddLogging(builder =>
         {
-            var silentMode = Environment.GetEnvironmentVariable("TEST_SILENT_LOGGING");
-            if (!string.IsNullOrEmpty(silentMode) && silentMode.Equals("true", StringComparison.OrdinalIgnoreCase))
+            builder.ClearProviders();
+            builder.SetMinimumLevel(LogLevel.Warning);
+
+            var verboseMode = Environment.GetEnvironmentVariable("TEST_VERBOSE_LOGGING");
+            if (!string.IsNullOrEmpty(verboseMode) && verboseMode.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
-                builder.ConfigureSilentLogging();
-            }
-            else
-            {
-                builder.ConfigureTestLogging();
+                builder.AddConsole();
             }
         });
 

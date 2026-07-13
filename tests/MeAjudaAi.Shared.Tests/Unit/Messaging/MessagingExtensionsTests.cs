@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Brokers.RabbitMq.Interfaces;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
@@ -15,8 +16,6 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 [Collection("EnvironmentVariableTests")]
 public class MessagingExtensionsTests
 {
-
-
     [Fact]
     public void RabbitMqOptions_BuildConnectionString_WithVirtualHost_ShouldConstructCorrectly()
     {
@@ -128,7 +127,7 @@ public class MessagingExtensionsTests
             ("DOTNET_ENVIRONMENT", "Development"),
             ("INTEGRATION_TESTS", null));
 
-        var mockManager = new Mock<MeAjudaAi.Shared.Messaging.RabbitMq.IRabbitMqInfrastructureManager>();
+        var mockManager = new Mock<IRabbitMqInfrastructureManager>();
         mockManager.Setup(m => m.EnsureInfrastructureAsync()).Returns(Task.CompletedTask);
 
         var services = new ServiceCollection();
@@ -158,7 +157,7 @@ public class MessagingExtensionsTests
             ("DOTNET_ENVIRONMENT", "Development"),
             ("INTEGRATION_TESTS", null));
 
-        var mockManager = new Mock<MeAjudaAi.Shared.Messaging.RabbitMq.IRabbitMqInfrastructureManager>();
+        var mockManager = new Mock<IRabbitMqInfrastructureManager>();
         mockManager.Setup(m => m.EnsureInfrastructureAsync())
             .ThrowsAsync(new InvalidOperationException("RabbitMQ unreachable"));
 

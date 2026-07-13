@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Caching.Interfaces;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations.Services;
 
@@ -61,7 +62,7 @@ public sealed class CepProvidersUnavailabilityTests(ITestOutputHelper output) : 
             var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
             
             // Limpar cache
-            var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
+            var cache = Services.GetRequiredService<ICacheService>();
             await cache.RemoveAsync($"cep:{uniqueCep}");
 
             // Act
@@ -115,7 +116,7 @@ public sealed class CepProvidersUnavailabilityTests(ITestOutputHelper output) : 
                         """));
 
             var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
-            var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
+            var cache = Services.GetRequiredService<ICacheService>();
             await cache.RemoveAsync($"cep:{uniqueCep}");
 
             // Act
@@ -165,7 +166,7 @@ public sealed class CepProvidersUnavailabilityTests(ITestOutputHelper output) : 
                         """));
 
             var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
-            var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
+            var cache = Services.GetRequiredService<ICacheService>();
             await cache.RemoveAsync($"cep:{uniqueCep}");
 
             // Act

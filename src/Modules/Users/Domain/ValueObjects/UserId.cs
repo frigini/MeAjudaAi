@@ -4,26 +4,92 @@ using MeAjudaAi.Shared.Utilities;
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
 /// <summary>
-/// Id do usuário.
+/// Value object para identificadores de usuário.
+/// Garante type safety e validação de identificadores em toda a aplicação.
 /// </summary>
 public sealed class UserId : ValueObject
 {
+    /// <summary>
+    /// Valor do identificador único do usuário
+    /// </summary>
     public Guid Value { get; }
 
+    /// <summary>
+    /// Inicializa uma nova instância de UserId
+    /// </summary>
+    /// <param name="value">Valor do GUID do usuário</param>
+    /// <exception cref="ArgumentException">Quando o valor é Guid.Empty</exception>
     public UserId(Guid value)
     {
         if (value == Guid.Empty)
-            throw new ArgumentException("UserId não pode ser vazio");
+            throw new ArgumentException("UserId não pode ser vazio", nameof(value));
+
         Value = value;
     }
 
+    /// <summary>
+    /// Cria um novo UserId com um GUID único
+    /// </summary>
+    /// <returns>Nova instância de UserId com GUID único</returns>
     public static UserId New() => new(UuidGenerator.NewId());
 
+    /// <summary>
+    /// Cria um UserId a partir de uma string GUID
+    /// </summary>
+    /// <param name="guidString">String representando um GUID</param>
+    /// <returns>Nova instância de UserId</returns>
+    /// <exception cref="ArgumentException">Quando a string não é um GUID válido</exception>
+    /// <exception cref="ArgumentNullException">Quando a string é null ou vazia</exception>
+    public static UserId FromString(string guidString)
+    {
+        if (string.IsNullOrWhiteSpace(guidString))
+            throw new ArgumentNullException(nameof(guidString), "GUID string não pode ser nula ou vazia");
+
+        if (!Guid.TryParse(guidString, out var guid))
+            throw new ArgumentException($"Formato de GUID inválido: {guidString}", nameof(guidString));
+
+        return new UserId(guid);
+    }
+
+    /// <summary>
+    /// Componentes para comparação de igualdade
+    /// </summary>
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return Value;
     }
 
-    public static implicit operator Guid(UserId userId) => userId.Value;
+    /// <summary>
+    /// Conversão implícita de UserId para Guid
+    /// </summary>
+    /// <param name="userId">Instância de UserId para conversão</param>
+    /// <returns>Valor Guid do UserId</returns>
+    /// <exception cref="ArgumentNullException">Quando userId é null</exception>
+    public static implicit operator Guid(UserId userId)
+    {
+        ArgumentNullException.ThrowIfNull(userId);
+        return userId.Value;
+    }
+
+    /// <summary>
+    /// Conversão implícita de Guid para UserId
+    /// </summary>
+    /// <param name="guid">Valor Guid para conversão</param>
+    /// <returns>Nova instância de UserId</returns>
+    /// <exception cref="ArgumentException">Quando o Guid é Guid.Empty</exception>
     public static implicit operator UserId(Guid guid) => new(guid);
+
+    /// <summary>
+    /// Conversão implícita de string para UserId
+    /// </summary>
+    /// <param name="guidString">String GUID para conversão</param>
+    /// <returns>Nova instância de UserId</returns>
+    /// <exception cref="ArgumentNullException">Quando guidString é null ou vazia</exception>
+    /// <exception cref="ArgumentException">Quando guidString não é um GUID válido</exception>
+    public static implicit operator UserId(string guidString) => FromString(guidString);
+
+    /// <summary>
+    /// Representação em string do UserId
+    /// </summary>
+    public override string ToString() => Value.ToString();
 }

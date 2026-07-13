@@ -154,14 +154,12 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
         while (attempt < maxAttempts)
         {
             using var checkCommand = connection.CreateCommand();
-#pragma warning disable CA2100 // Schema names come from configuration, not user input
             checkCommand.CommandText = $@"
                 SELECT COUNT(*) 
                 FROM information_schema.tables 
                 WHERE table_schema IN ({string.Join(", ", schemasToCheck.Select(s => $"'{s}'"))})
                 AND table_type = 'BASE TABLE'
                 AND table_name != '__EFMigrationsHistory'";
-#pragma warning restore CA2100
 
             var tableCount = (long)(await checkCommand.ExecuteScalarAsync() ?? 0L);
 

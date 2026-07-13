@@ -1,12 +1,12 @@
-using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Caching;
 
 [Trait("Category", "Unit")]
-public class CacheMetricsTests : IDisposable
+public sealed class CacheMetricsTests : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
     private readonly IMeterFactory _meterFactory;
@@ -165,7 +165,6 @@ public class CacheMetricsTests : IDisposable
     {
         // Arrange
         var tasks = new List<Task>();
-#pragma warning disable CA5394 // Random is acceptable for test data generation
         var random = new Random(42); // Seed for reproducible tests
 
         // Act - Cria múltiplas operações concorrentes
@@ -181,7 +180,6 @@ public class CacheMetricsTests : IDisposable
                 _metrics.RecordOperation(key, "concurrent-test", isHit, duration);
             }));
         }
-#pragma warning restore CA5394
 
         // Assert
         var action = () => Task.WaitAll(tasks.ToArray());

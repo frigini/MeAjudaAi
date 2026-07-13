@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Constants;
 using MeAjudaAi.Modules.Locations.API.Endpoints.Admin;
-using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Core.Enums;
 using MeAjudaAi.Shared.Authorization.Extensions;
 using MeAjudaAi.Shared.Endpoints;
 

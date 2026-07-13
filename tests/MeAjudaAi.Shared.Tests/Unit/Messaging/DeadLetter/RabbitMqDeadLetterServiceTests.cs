@@ -82,4 +82,3 @@ public class RabbitMqDeadLetterServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 }
-

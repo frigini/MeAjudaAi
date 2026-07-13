@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Database.Outbox;
 
 /// <summary>
 /// Constantes para restrições de banco de dados do Outbox
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class OutboxMessageConstraints
 {
     /// <summary>

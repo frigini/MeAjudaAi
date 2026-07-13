@@ -19,7 +19,7 @@ internal sealed class ProviderIdempotencyRepository(ProvidersDbContext context) 
     public async Task MarkAsProcessedAsync(string correlationId, CancellationToken cancellationToken = default)
     {
         await context.Database.ExecuteSqlInterpolatedAsync(
-            $"INSERT INTO providers.processed_integration_events (correlation_id, processed_at) VALUES ({correlationId}, {DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)}) ON CONFLICT (correlation_id) DO NOTHING",
+            $"INSERT INTO providers.processed_integration_events (correlation_id, processed_at) VALUES ({correlationId}, {DateTime.UtcNow}) ON CONFLICT (correlation_id) DO NOTHING",
             cancellationToken);
     }
 }

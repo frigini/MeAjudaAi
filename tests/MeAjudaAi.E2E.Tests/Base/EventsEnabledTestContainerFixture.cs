@@ -1,8 +1,8 @@
 namespace MeAjudaAi.E2E.Tests.Base;
 
 /// <summary>
-/// Fixture for E2E tests that require the synchronous in-memory message bus
-/// and domain event processing (events integration between modules).
+/// Fixture que habilita SynchronousInMemoryMessageBus e DomainEventProcessor
+/// para testes que dependem de eventos de integração entre módulos.
 /// </summary>
 public class EventsEnabledTestContainerFixture : TestContainerFixture
 {

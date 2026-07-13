@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
-using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching.Interfaces;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
