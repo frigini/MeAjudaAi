@@ -25,6 +25,7 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.E2E;
@@ -468,50 +469,22 @@ public class TestContainerFixture : IAsyncLifetime
     public async Task CleanupDatabaseAsync()
     {
         using var scope = Services.CreateScope();
-        var services = scope.ServiceProvider;
+        var sp = scope.ServiceProvider;
 
-        await CleanupContext<UsersDbContext>(services);
-        await CleanupContext<ProvidersDbContext>(services);
-        await CleanupContext<DocumentsDbContext>(services);
-        await CleanupContext<ServiceCatalogsDbContext>(services);
-        await CleanupContext<LocationsDbContext>(services);
-        await CleanupContext<CommunicationsDbContext>(services);
-        await CleanupContext<SearchProvidersDbContext>(services);
-        await CleanupContext<RatingsDbContext>(services);
-        await CleanupContext<PaymentsDbContext>(services);
-        await CleanupContext<BookingsDbContext>(services);
+        await sp.CleanupContextAsync<UsersDbContext>();
+        await sp.CleanupContextAsync<ProvidersDbContext>();
+        await sp.CleanupContextAsync<DocumentsDbContext>();
+        await sp.CleanupContextAsync<ServiceCatalogsDbContext>();
+        await sp.CleanupContextAsync<LocationsDbContext>();
+        await sp.CleanupContextAsync<CommunicationsDbContext>();
+        await sp.CleanupContextAsync<SearchProvidersDbContext>();
+        await sp.CleanupContextAsync<RatingsDbContext>();
+        await sp.CleanupContextAsync<PaymentsDbContext>();
+        await sp.CleanupContextAsync<BookingsDbContext>();
 
         if (_redisContainer != null)
         {
             await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
-        }
-    }
-
-    private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
-    {
-        var context = services.GetRequiredService<TContext>();
-        var tableNames = new List<string>();
-
-        foreach (var entityType in context.Model.GetEntityTypes())
-        {
-            var tableName = entityType.GetTableName();
-            var schema = entityType.GetSchema();
-
-            if (!string.IsNullOrEmpty(tableName))
-            {
-                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
-                    ? $"\"{tableName}\""
-                    : $"\"{schema}\".\"{tableName}\"";
-                
-                tableNames.Add(qualifiedTableName);
-            }
-        }
-
-        if (tableNames.Count > 0)
-        {
-            var uniqueTables = tableNames.Distinct().ToList();
-            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
-            await context.Database.ExecuteSqlRawAsync(batchSql);
         }
     }
 
@@ -593,53 +566,19 @@ public class TestContainerFixture : IAsyncLifetime
     /// Extrai o objeto de dados de uma resposta JSON, suportando formatos { "value": {...} }, { "data": {...} } ou objeto direto.
     /// </summary>
     public static JsonElement GetResponseData(JsonElement response)
-    {
-        if (response.TryGetProperty("value", out var value))
-            return value;
-        if (response.TryGetProperty("data", out var data))
-            return data;
-        return response;
-    }
+        => response.GetResponseData();
 
     public async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
-    {
-        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-        return await ApiClient.PostAsync(requestUri, stringContent);
-    }
+        => await ApiClient.PostJsonAsync(requestUri, content);
 
     public async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
-    {
-        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-        return await ApiClient.PutAsync(requestUri, stringContent);
-    }
+        => await ApiClient.PutJsonAsync(requestUri, content);
 
     public async Task<HttpResponseMessage> PatchJsonAsync<T>(string requestUri, T content)
-    {
-        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-        return await ApiClient.PatchAsync(requestUri, stringContent);
-    }
+        => await ApiClient.PatchJsonAsync(requestUri, content);
 
     public static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
-    {
-        var content = await response.Content.ReadAsStringAsync();
-        if (string.IsNullOrWhiteSpace(content))
-            return default;
-
-        var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
-        var type = typeof(T);
-        bool isWrapperType = type.IsGenericType && (type.GetGenericTypeDefinition().Name == "Result`1" || type.GetGenericTypeDefinition().Name == "Response`1");
-
-        if (!isWrapperType && json.ValueKind == System.Text.Json.JsonValueKind.Object && json.TryGetProperty("data", out var data) && data.ValueKind != System.Text.Json.JsonValueKind.Null)
-            return System.Text.Json.JsonSerializer.Deserialize<T>(data.GetRawText(), JsonOptions);
-
-        if (!isWrapperType && json.ValueKind == System.Text.Json.JsonValueKind.Object && json.TryGetProperty("value", out var value) && json.TryGetProperty("isSuccess", out var isSuccess) && isSuccess.ValueKind == System.Text.Json.JsonValueKind.True)
-            return System.Text.Json.JsonSerializer.Deserialize<T>(value.GetRawText(), JsonOptions);
-
-        return System.Text.Json.JsonSerializer.Deserialize<T>(content, JsonOptions);
-    }
+        => await response.ReadJsonAsync<T>();
 
     public async Task<Guid> CreateTestUserAsync(string? username = null, string? email = null)
     {
