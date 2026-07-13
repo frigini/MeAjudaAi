@@ -6,11 +6,15 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 /// </summary>
 public sealed class EnvironmentVariableRestorer : IDisposable
 {
-    private readonly HashSet<string> _modifiedVariables = new();
+    private readonly Dictionary<string, string?> _originalValues = new();
 
     public void SetVariable(string name, string? value)
     {
-        _modifiedVariables.Add(name);
+        if (!_originalValues.ContainsKey(name))
+        {
+            _originalValues[name] = Environment.GetEnvironmentVariable(name);
+        }
+
         Environment.SetEnvironmentVariable(name, value);
     }
 
@@ -19,10 +23,10 @@ public sealed class EnvironmentVariableRestorer : IDisposable
 
     public void Dispose()
     {
-        foreach (var name in _modifiedVariables)
+        foreach (var (name, originalValue) in _originalValues)
         {
-            Environment.SetEnvironmentVariable(name, null);
+            Environment.SetEnvironmentVariable(name, originalValue);
         }
-        _modifiedVariables.Clear();
+        _originalValues.Clear();
     }
 }

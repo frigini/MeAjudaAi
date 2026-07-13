@@ -261,23 +261,25 @@ public class PaymentCommandServiceTests : BaseInMemoryDatabaseTest<PaymentsDbCon
 
     private sealed class EnvironmentVariableRestorer
     {
-        private readonly HashSet<string> _modifiedVariables = new();
+        private readonly Dictionary<string, string?> _originalValues = new();
 
-        public void SetVariable(string name, string value)
+        public void SetVariable(string name, string? value)
         {
-            if (!_modifiedVariables.Contains(name))
+            if (!_originalValues.ContainsKey(name))
             {
-                _modifiedVariables.Add(name);
+                _originalValues[name] = Environment.GetEnvironmentVariable(name);
             }
+
             Environment.SetEnvironmentVariable(name, value);
         }
 
         public void Restore()
         {
-            foreach (var name in _modifiedVariables)
+            foreach (var (name, originalValue) in _originalValues)
             {
-                Environment.SetEnvironmentVariable(name, null);
+                Environment.SetEnvironmentVariable(name, originalValue);
             }
+            _originalValues.Clear();
         }
     }
 }

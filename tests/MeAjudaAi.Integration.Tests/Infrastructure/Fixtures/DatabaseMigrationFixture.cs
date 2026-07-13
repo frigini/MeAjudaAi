@@ -32,7 +32,11 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
         await _postgresContainer.StartAsync();
 
         var connectionString = _postgresContainer.GetConnectionString();
-        await SharedTestContainers.EnsurePostGisExtensionAsync(connectionString);
+        if (!await SharedTestContainers.EnsurePostGisExtensionAsync(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Failed to ensure PostGIS extension. Migrations may fail.");
+        }
 
         // Cria service provider para ter acesso aos DbContexts
         var services = new ServiceCollection();

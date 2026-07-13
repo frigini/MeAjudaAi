@@ -83,7 +83,8 @@ public static class SharedTestContainers
     /// <summary>
     /// Garante que a extensão PostGIS está habilitada no banco de dados.
     /// </summary>
-    public static async Task EnsurePostGisExtensionAsync(string connectionString)
+    /// <returns>true se a extensão foi criada ou já existia; false se falhou.</returns>
+    public static async Task<bool> EnsurePostGisExtensionAsync(string connectionString)
     {
         try
         {
@@ -91,10 +92,12 @@ public static class SharedTestContainers
             await conn.OpenAsync();
             await using var cmd = new Npgsql.NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS postgis;", conn);
             await cmd.ExecuteNonQueryAsync();
+            return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[SharedTestContainers] Warning: Could not ensure PostGIS extension: {ex.Message}");
+            Console.WriteLine($"[SharedTestContainers] Error: Could not ensure PostGIS extension: {ex.Message}");
+            return false;
         }
     }
 
