@@ -64,6 +64,41 @@ public static class SharedTestContainers
     };
 
     /// <summary>
+    /// Cria um container PostgreSQL com PostGIS para cenários que precisam de container próprio.
+    /// Útil para fixtures que precisam de isolamento (ex: data seeding tests).
+    /// </summary>
+    public static PostgreSqlContainer CreatePostGisContainer(
+        string databaseName = "test_db",
+        string username = "test_user",
+        string password = "test123")
+    {
+        return new PostgreSqlBuilder("postgis/postgis:16-3.4")
+            .WithDatabase(databaseName)
+            .WithUsername(username)
+            .WithPassword(password)
+            .WithCleanUp(true)
+            .Build();
+    }
+
+    /// <summary>
+    /// Garante que a extensão PostGIS está habilitada no banco de dados.
+    /// </summary>
+    public static async Task EnsurePostGisExtensionAsync(string connectionString)
+    {
+        try
+        {
+            await using var conn = new Npgsql.NpgsqlConnection(connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new Npgsql.NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS postgis;", conn);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SharedTestContainers] Warning: Could not ensure PostGIS extension: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Inicializa os containers compartilhados (thread-safe)
     /// </summary>
     private static void EnsureInitialized()

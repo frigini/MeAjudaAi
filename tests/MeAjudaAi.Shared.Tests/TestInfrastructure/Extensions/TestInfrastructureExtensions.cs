@@ -1,6 +1,9 @@
+using MeAjudaAi.Shared.Caching.Interfaces;
+using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -13,6 +16,56 @@ namespace MeAjudaAi.Shared.Tests.Extensions;
 /// </summary>
 public static class TestInfrastructureExtensions
 {
+    /// <summary>
+    /// Adiciona infraestrutura comum de testes para um módulo.
+    /// Elimina boilerplate repetido em cada módulo: options, TimeProvider, logging, cache, localization, DbContext, UnitOfWork.
+    /// O módulo só precisa adicionar o que é específico (mocks, queries, handlers).
+    /// </summary>
+    /// <typeparam name="TDbContext">Tipo do DbContext do módulo</typeparam>
+    /// <param name="services">Collection de serviços</param>
+    /// <param name="options">Opções de teste (opcional)</param>
+    /// <param name="migrationsAssembly">Nome do assembly de migrations</param>
+    /// <param name="configureDbContext">Ação extra para configurar o DbContext (opcional)</param>
+    public static IServiceCollection AddCommonModuleTestInfrastructure<TDbContext>(
+        this IServiceCollection services,
+        TestInfrastructureOptions? options = null,
+        string? migrationsAssembly = null,
+        Action<DbContextOptionsBuilder>? configureDbContext = null)
+        where TDbContext : DbContext
+    {
+        options ??= new TestInfrastructureOptions();
+
+        services.AddSingleton(options);
+        services.AddSingleton(TimeProvider.System);
+        services.AddTestLogging();
+        services.AddTestCache(options.Cache);
+        services.AddLocalization();
+        services.AddSingleton<ICacheService, TestCacheService>();
+
+        // DbContext com padrão compartilhado
+        services.AddDbContext<TDbContext>((serviceProvider, dbOptions) =>
+        {
+            var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
+            var connectionString = container.GetConnectionString();
+
+            dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                if (migrationsAssembly != null)
+                    npgsqlOptions.MigrationsAssembly(migrationsAssembly);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
+                npgsqlOptions.CommandTimeout(60);
+            });
+
+            dbOptions.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+
+            // Configuração adicional específica do módulo
+            configureDbContext?.Invoke(dbOptions);
+        });
+
+        return services;
+    }
+
     /// <summary>
     /// Adiciona configuração básica de logging para testes
     /// </summary>

@@ -29,6 +29,12 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Correlation ID é sempre propagado, mesmo para endpoints ignorados (health, swagger, etc.)
+        var requestId = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault()
+                        ?? UuidGenerator.NewIdString();
+        context.Items["RequestId"] = requestId;
+        context.Response.Headers[AuthConstants.Headers.CorrelationId] = requestId;
+
         // Skip logging para health checks e static files
         if (ShouldSkipLogging(context))
         {
@@ -37,14 +43,9 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
         }
 
         var stopwatch = Stopwatch.StartNew();
-        var requestId = UuidGenerator.NewIdString();
         var clientIp = GetClientIpAddress(context);
         var userAgent = context.Request.Headers.UserAgent.ToString();
         var userId = GetUserId(context);
-
-        // Adiciona o RequestId no contexto e no response header para rastreabilidade
-        context.Items["RequestId"] = requestId;
-        context.Response.Headers[AuthConstants.Headers.CorrelationId] = requestId;
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {

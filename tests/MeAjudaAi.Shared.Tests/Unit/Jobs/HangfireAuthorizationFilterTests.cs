@@ -239,6 +239,3 @@ public class HangfireAuthorizationFilterTests : IDisposable
         result.Should().BeFalse($"{environment} environment should require authentication like Production");
     }
 }
-
-[CollectionDefinition("EnvironmentVariableTests", DisableParallelization = true)]
-public class EnvironmentVariableTestsCollection { }

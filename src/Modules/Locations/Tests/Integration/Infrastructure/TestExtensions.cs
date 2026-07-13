@@ -5,12 +5,9 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Queries;
 using MeAjudaAi.Shared.Database.Abstractions;
 using MeAjudaAi.Shared.Database.Constants;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Integration.Infrastructure;
 
@@ -20,20 +17,14 @@ public static class LocationsTestInfrastructureExtensions
         this IServiceCollection services,
         TestInfrastructureOptions options)
     {
-        services.AddDbContext<LocationsDbContext>(dbOptions =>
-        {
-            dbOptions.UseNpgsql(SharedTestContainers.PostgreSql.GetConnectionString(), npgsqlOptions =>
+        services.AddCommonModuleTestInfrastructure<LocationsDbContext>(
+            options,
+            configureDbContext: dbOptions =>
             {
-                if (!string.IsNullOrWhiteSpace(options.Database.Schema))
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
-                }
-            })
-            .UseSnakeCaseNamingConvention()
-            .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning))
-            .EnableSensitiveDataLogging()
-            .EnableDetailedErrors();
-        });
+                dbOptions.UseSnakeCaseNamingConvention();
+                dbOptions.EnableSensitiveDataLogging();
+                dbOptions.EnableDetailedErrors();
+            });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LocationsDbContext>());
         services.AddKeyedScoped<IUnitOfWork>(ModuleKeys.Locations,
@@ -41,9 +32,6 @@ public static class LocationsTestInfrastructureExtensions
 
         services.AddScoped<IRepository<AllowedCity, Guid>>(sp => sp.GetRequiredService<LocationsDbContext>());
         services.AddScoped<IAllowedCityQueries, DbContextAllowedCityQueries>();
-
-        services.AddLocalization();
-        services.AddLogging();
 
         return services;
     }

@@ -1,190 +1,265 @@
 # MeAjudaAi.Shared.Tests
 
-Biblioteca de infraestrutura de testes compartilhada para todos os módulos do MeAjudaAi.
+Biblioteca de infraestrutura de testes compartilhada para todos os projetos do MeAjudaAi.
 
-## 📋 Visão Geral
+## Visão Geral
 
-Este projeto fornece classes base, fixtures, mocks e utilitários para facilitar a criação de testes unitários e de integração consistentes em todo o projeto.
+Este projeto centraliza:
+- **Infraestrutura de testes** — classes base, fixtures, mocks, helpers e builders reutilizáveis
+- **Testes unitários** — de todas as classes de `MeAjudaAi.Shared`
+- **Testes de ServiceDefaults e Contracts** — para garantir consistência (fora da cobertura)
+- **Base para outros projetos de teste** — Integration.Tests, E2E.Tests e todos os módulos
 
-## 🗂️ Estrutura Organizacional
+## Estrutura
 
 ```text
 MeAjudaAi.Shared.Tests/
-├── TestInfrastructure/           # Infraestrutura principal de testes
-│   ├── Base/                     # Classes base para testes
-│   │   ├── DatabaseTestBase.cs           # Base para testes de database
-│   │   └── EventHandlerTestBase.cs       # Base para testes de handlers
-│   ├── Builders/                 # Test data builders
-│   │   └── BuilderBase.cs               # Base para builders de teste
-│   ├── Containers/               # TestContainers
-│   │   └── SharedTestContainers.cs      # Containers compartilhados
-│   ├── Handlers/                 # Mock handlers
-│   │   ├── Authentication/              # Handlers de autenticação
-│   │   │   ├── MockAdminAuthenticationHandler.cs
-│   │   │   ├── MockAuthenticationHandler.cs
-│   │   │   ├── MockClientAuthenticationHandler.cs
-│   │   │   ├── MockProviderAuthenticationHandler.cs
-│   │   │   ├── TestAuthenticationHandler.cs
-│   │   │   ├── TestAuthenticationSchemeOptions.cs
-│   │   │   └── TestAuthenticationService.cs
-│   ├── Mocks/                    # Objetos mock
-│   │   ├── Http/                        # Mocks HTTP
-│   │   ├── Jobs/                        # Mocks de jobs
-│   │   └── Messaging/                   # Mocks de messaging
-│   ├── Options/                  # Opções de configuração
+├── TestInfrastructure/                  # Infraestrutura compartilhada
+│   ├── Base/                            # Classes base para testes
+│   │   ├── BaseIntegrationTest.cs       # Base para testes com containers compartilhados
+│   │   ├── BaseDatabaseTest.cs          # Base para testes com DB isolado (Respawn)
+│   │   ├── BaseInMemoryDatabaseTest.cs  # Base para testes com EF Core InMemory
+│   │   ├── BaseSqliteInMemoryDatabaseTest.cs  # Base para testes com SQLite in-memory
+│   │   ├── BaseEventHandlerTest.cs      # Base para testes de event handlers
+│   │   └── BaseModuleApiTest.cs         # Base para testes de API de módulos
+│   ├── Builders/                        # Test data builders (padrão Builder)
+│   │   ├── BaseBuilder.cs               # Builder base genérico
+│   │   └── Modules/                     # Builders por módulo
+│   │       ├── Bookings/                # BookingBuilder, AvailabilityBuilder, etc.
+│   │       ├── Communications/          # CommunicationLogBuilder, EmailTemplateBuilder, etc.
+│   │       ├── Documents/               # DocumentBuilder
+│   │       ├── Locations/               # AllowedCityBuilder
+│   │       ├── Payments/                # PaymentTransactionBuilder, SubscriptionBuilder, etc.
+│   │       ├── Providers/               # ProviderBuilder, BusinessProfileDtoBuilder
+│   │       ├── Ratings/                 # ReviewBuilder
+│   │       ├── SearchProviders/         # SearchableProviderBuilder
+│   │       ├── ServiceCatalogs/         # ServiceBuilder, ServiceCategoryBuilder
+│   │       └── Users/                   # UserBuilder, EmailBuilder, UsernameBuilder
+│   ├── Collections/                     # Definições de collections xUnit
+│   │   └── ModuleCollections.cs         # Collections consolidadas (10 módulos)
+│   ├── Commands/                        # Testes de CQRS commands
+│   │   ├── TestCommand.cs
+│   │   ├── TestCommandHandlers.cs
+│   │   └── TestPipelineBehavior.cs
+│   ├── Configuration/                   # Configuração de testes
+│   │   └── TestLoggingConfiguration.cs
+│   ├── Constants/                       # Constantes para testes
+│   │   ├── TestData.cs
+│   │   └── TestUrls.cs
+│   ├── Containers/                      # Containers Docker compartilhados
+│   │   ├── SharedTestContainers.cs      # Gerencia PostgreSQL, RabbitMq, Redis
+│   │   └── SimpleDatabaseFixture.cs     # Fixture simples com PostGIS
+│   ├── Extensions/                      # Extensões para testes
+│   │   ├── MigrationDiscoveryExtensions.cs
+│   │   ├── TestAuthenticationExtensions.cs
+│   │   ├── TestBaseAuthExtensions.cs
+│   │   └── TestInfrastructureExtensions.cs
+│   ├── Handlers/                        # Handlers de autenticação mock
+│   │   ├── BaseTestAuthenticationHandler.cs
+│   │   ├── ConfigurableTestAuthenticationHandler.cs
+│   │   ├── InstanceTestAuthenticationHandler.cs
+│   │   ├── TestAuthenticationConfiguration.cs
+│   │   ├── TestContextAwareHandler.cs
+│   │   └── Interfaces/
+│   │       └── ITestAuthenticationConfiguration.cs
+│   ├── Helpers/                         # Helpers utilitários
+│   │   ├── CompositeTestUnitOfWork.cs
+│   │   ├── DbContextSchemaHelper.cs
+│   │   ├── EnvironmentVariableRestorer.cs
+│   │   └── TestConnectionHelper.cs
+│   ├── Metrics/                         # Métricas para testes
+│   │   └── TestMeterFactory.cs
+│   ├── Mocks/                           # Objetos mock organizados por categoria
+│   │   ├── MockGeographicValidationService.cs
+│   │   ├── MockHostEnvironment.cs
+│   │   ├── MockLocalizerBuilder.cs
+│   │   ├── Caching/                     # FakeHybridCache
+│   │   ├── E2E/                         # MockNoOpMessaging
+│   │   ├── Http/                        # MockHttpClientBuilder, MockHttpMessageHandler
+│   │   ├── Jobs/                        # MockBackgroundJobService
+│   │   ├── Messaging/                   # FakeSynchronousMessageBus
+│   │   └── Modules/                     # Mocks específicos por módulo
+│   │       ├── Communications/
+│   │       ├── Documents/
+│   │       ├── Payments/
+│   │       ├── Providers/
+│   │       ├── ServiceCatalogs/
+│   │       └── Users/
+│   ├── Options/                         # Opções de configuração para testes
 │   │   ├── TestCacheOptions.cs
 │   │   ├── TestDatabaseOptions.cs
 │   │   ├── TestExternalServicesOptions.cs
 │   │   └── TestInfrastructureOptions.cs
-│   └── Services/                 # Serviços mock
-│       └── TestCacheService.cs          # Cache para testes
-├── Logging/                      # Testes de Logging
-│   ├── LoggingConfigurationExtensionsTests.cs
-│   └── SerilogConfiguratorTests.cs
-├── Messaging/                    # Testes de Messaging
-│   ├── EventDispatcherTests.cs
-│   └── TestEvent.cs                    # Evento de teste
-├── Performance/                  # Testes de Performance
-│   ├── BenchmarkExtensions.cs          # Extensões de benchmark
-│   ├── BenchmarkResult.cs              # Resultado de benchmark
-│   └── TestPerformanceBenchmark.cs
-└── Unit/                         # Testes unitários
-    ├── Extensions/                     # Testes de extensions
-    ├── Helpers/                        # Testes de helpers
-    ├── Middleware/                     # Testes de middleware
-    │   └── GeographicRestrictionMiddlewareTests.cs
-    └── Utils/                          # Testes de utilitários
+│   └── Services/                        # Serviços para testes
+│       └── TestCacheService.cs
+├── Contracts/                           # Testes unitários de Contracts
+│   └── Unit/
+│       ├── DTOs/
+│       ├── Functional/
+│       └── Models/
+├── ServiceDefaults/                     # Testes unitários de ServiceDefaults
+│   └── Unit/
+├── Unit/                                # Testes unitários de MeAjudaAi.Shared
+│   ├── Authorization/
+│   ├── Behaviors/
+│   ├── Caching/
+│   ├── Commands/
+│   ├── Database/
+│   ├── Domain/
+│   ├── Endpoints/
+│   ├── Events/
+│   ├── Exceptions/
+│   ├── Extensions/
+│   ├── Geolocation/
+│   ├── Jobs/
+│   ├── Messaging/
+│   ├── Middleware/
+│   ├── Modules/
+│   ├── Monitoring/
+│   ├── Queries/
+│   ├── Serialization/
+│   └── Utilities/
+├── GlobalTestConfiguration.cs           # Configuração global de paralelização
+└── README.md
 ```
 
-## 🛠️ Componentes Principais
+## Componentes Principais
 
-### TestInfrastructure/Base
+### Classes Base (`TestInfrastructure/Base/`)
 
-Classes base que fornecem funcionalidades comuns para diferentes tipos de testes:
+| Classe | Descrição |
+|--------|-----------|
+| `BaseIntegrationTest` | Base para testes de integração com containers compartilhados (PostgreSQL, RabbitMq). Auto-migração, DI, cleanup automático. |
+| `BaseDatabaseTest` | Base para testes com banco isolado por teste usando Respawn. |
+| `BaseInMemoryDatabaseTest<T>` | Base para testes com EF Core InMemory. |
+| `BaseSqliteInMemoryDatabaseTest<T>` | Base para testes com SQLite in-memory. |
+| `BaseEventHandlerTest<TEvent, THandler>` | Base para testes de event handlers com mensageria. |
+| `BaseModuleApiTest` | Base para testes de API de módulos. |
 
-- **BaseIntegrationTest**: Base para testes de integração com dependências reais
-- **DatabaseTestBase**: Base para testes que precisam de banco de dados
-- **EventHandlerTestBase**: Base para testes de event handlers com mensageria
+### Containers (`TestInfrastructure/Containers/`)
 
-### TestInfrastructure/Containers
+| Componente | Descrição |
+|------------|-----------|
+| `SharedTestContainers` | Gerencia containers estáticos compartilhados (PostgreSQL + PostGIS, RabbitMq). Start/Stop/Cleanup. |
+| `SimpleDatabaseFixture` | Fixture simples com PostGIS para testes que precisam de DB sem container compartilhado. |
 
-TestContainers compartilhados para testes de integração:
+### Collections (`TestInfrastructure/Collections/`)
 
-- **PostgreSQL + PostGIS**: `postgis/postgis:15-3.4`
-- **Redis**: Cache e locks distribuídos
-- **Azurite**: Storage emulator
+Todas as definições de collection dos módulos estão consolidadas em `ModuleCollections.cs`:
+- `UsersIntegrationTests`, `ProvidersIntegrationTests`, `BookingsIntegrationTests`, etc.
+- `DisableParallelization = true` para evitar race conditions com containers compartilhados.
 
-### TestInfrastructure/Handlers/Authentication
+### Mocks (`TestInfrastructure/Mocks/`)
 
-Handlers de autenticação mock para diferentes perfis:
+Organizados por categoria:
+- **Caching/**: `FakeHybridCache` — cache in-memory para testes
+- **Http/**: `MockHttpClientBuilder`, `MockHttpMessageHandler` — simulação de HTTP
+- **Jobs/**: `MockBackgroundJobService` — jobs em background mockados
+- **Messaging/**: `FakeSynchronousMessageBus` — message bus síncrono para testes com eventos
+- **Modules/**: Mocks específicos por módulo (Keycloak, PaymentGateway, BlobStorage, etc.)
 
-- **MockAdminAuthenticationHandler**: Simula usuário admin
-- **MockClientAuthenticationHandler**: Simula usuário cliente
-- **MockProviderAuthenticationHandler**: Simula usuário prestador
-- **TestAuthenticationService**: Serviço de autenticação para testes
+### Builders (`TestInfrastructure/Builders/`)
 
-### TestInfrastructure/Mocks
+Padrão Builder para criação de dados de teste:
+- `UserBuilder`, `ProviderBuilder`, `BookingBuilder`, etc.
+- Organizados por módulo em `Builders/Modules/`
+- `BaseBuilder<T>` fornece interface genérica
 
-Objetos mock organizados por categoria:
+### Handlers de Autenticação (`TestInfrastructure/Handlers/`)
 
-- **Http/**: HttpClient, HttpMessageHandler
-- **Jobs/**: Background jobs, schedulers
-- **Messaging/**: Event bus, message publishers
+| Handler | Descrição |
+|---------|-----------|
+| `ConfigurableTestAuthenticationHandler` | Autenticação configurável por teste via `AsyncLocal` |
+| `InstanceTestAuthenticationHandler` | Autenticação por instância (para testes que precisam de múltiplos usuários) |
+| `TestContextAwareHandler` | Injeta header `X-Test-Context-Id` nas requisições |
 
-### TestInfrastructure/Options
+### Helpers (`TestInfrastructure/Helpers/`)
 
-Opções de configuração específicas para testes:
+| Helper | Descrição |
+|--------|-----------|
+| `CompositeTestUnitOfWork` | Redireciona `IUnitOfWork` para o DbContext correto por aggregate |
+| `DbContextSchemaHelper` | Mapeia nome do DbContext → schema PostgreSQL |
+| `EnvironmentVariableRestorer` | Salva e restaura variáveis de ambiente durante testes |
+| `TestConnectionHelper` | Obtém connection strings com fallback Aspire/env vars |
 
-- **TestDatabaseOptions**: Configuração de database para testes
-- **TestCacheOptions**: Configuração de cache para testes
-- **TestExternalServicesOptions**: Mocks de serviços externos
-- **TestInfrastructureOptions**: Configurações gerais de infraestrutura
+## Como Usar
 
-## 🚀 Como Usar
-
-### Testes de Integração com Database
+### Teste de Integração com Container Compartilhado
 
 ```csharp
-public class MeuTesteDeIntegracao : DatabaseTestBase
+public class MeuTesteIntegracao : BaseIntegrationTest
 {
+    protected override TestInfrastructureOptions GetTestOptions() => new()
+    {
+        Database = new TestDatabaseOptions { Schema = "meu_schema" }
+    };
+
+    protected override void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
+    {
+        services.AddMeuModuloTestInfrastructure(options);
+    }
+
     [Fact]
     public async Task DeveSalvarEntidade()
     {
-        // Arrange
-        var entity = new MinhaEntidade { Nome = "Teste" };
-
-        // Act
-        await DbContext.AddAsync(entity);
-        await DbContext.SaveChangesAsync();
-
-        // Assert
-        var saved = await DbContext.Set<MinhaEntidade>()
-            .FirstOrDefaultAsync(e => e.Nome == "Teste");
-        saved.Should().NotBeNull();
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<MeuDbContext>();
+        // ...
     }
 }
 ```
 
-### Testes com Autenticação Mock
+### Teste com Builder
 
 ```csharp
-public class MeuTesteComAuth : BaseIntegrationTest
-{
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.ConfigureTestServices(services =>
-        {
-            // Configurar autenticação mock como admin
-            services.AddAuthentication("Test")
-                .AddScheme<TestAuthenticationSchemeOptions, MockAdminAuthenticationHandler>(
-                    "Test", options => { });
-        });
-    }
+var user = new UserBuilder()
+    .WithName("João Silva")
+    .WithEmail("joao@example.com")
+    .Build();
+```
 
+### Teste com Autenticação Mock
+
+```csharp
+public class MeuTesteAuth : BaseIntegrationTest
+{
     [Fact]
     public async Task DeveAcessarEndpointProtegido()
     {
-        // O handler mock já fornece claims de admin
+        TestAuthenticationExtensions.AuthenticateAsAdmin();
         var response = await Client.GetAsync("/api/v1/admin/users");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
 ```
 
-### Testes com Event Handlers
+### Teste de Event Handler
 
 ```csharp
-public class MeuEventHandlerTest : EventHandlerTestBase<MeuEvento, MeuEventHandler>
+public class MeuEventHandlerTest : BaseEventHandlerTest<MeuEvento, MeuEventHandler>
 {
     [Fact]
     public async Task DeveProcessarEvento()
     {
-        // Arrange
         var evento = new MeuEvento { Id = Guid.NewGuid() };
-
-        // Act
-        await Handler.Handle(evento, CancellationToken.None);
-
-        // Assert
+        await Handler.HandleAsync(evento, CancellationToken.None);
         // Verificar efeitos colaterais
-        var result = await VerifyEventProcessed(evento.Id);
-        result.Should().BeTrue();
     }
 }
 ```
 
-## 📝 Convenções
+## Convenções
 
 ### Nomenclatura
 
 - **Classes de teste**: `{ClasseTestada}Tests.cs`
-- **Mocks**: `Mock{Service}` ou `Test{Service}`
-- **Fixtures**: `{Scope}Fixture.cs`
+- **Mocks**: `Mock{Service}` (para Moq) ou `Fake{Service}` (para behavioral)
 - **Builders**: `{Entity}Builder.cs`
+- **Fixtures**: `{Scope}Fixture.cs`
 
-### Padrão AAA (Arrange-Act-Assert)
+### Padrão AAA
 
-Todos os testes seguem o padrão AAA com comentários em inglês:
+Todos os testes seguem o padrão AAA (Arrange-Act-Assert) com comentários em inglês:
 
 ```csharp
 [Fact]
@@ -203,76 +278,33 @@ public async Task DeveRealizarOperacao()
 
 ### FluentAssertions
 
-Uso obrigatório de FluentAssertions para assertivas mais expressivas:
+Uso obrigatório de FluentAssertions:
 
 ```csharp
 // ✅ Correto
 result.Should().NotBeNull();
-result.Errors.Should().BeEmpty();
 response.StatusCode.Should().Be(HttpStatusCode.Created);
 
 // ❌ Evitar
 Assert.NotNull(result);
-Assert.Empty(result.Errors);
 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 ```
 
-## 🔧 Configuração
+## Pacotes NuGet
 
-### Pacotes Necessários
+- `xunit.v3` — framework de testes
+- `FluentAssertions` — assertivas expressivas
+- `Moq` — mocking framework
+- `Bogus` — geração de dados fake
+- `AutoFixture` + `AutoFixture.AutoMoq` — dados automatizados
+- `Testcontainers.PostgreSql` — containers PostgreSQL
+- `Testcontainers.RabbitMq` — containers RabbitMQ
+- `Respawn` — reset de banco entre testes
+- `Microsoft.EntityFrameworkCore.InMemory` — DB in-memory
+- `Microsoft.EntityFrameworkCore.Sqlite` — DB SQLite in-memory
+- `Hangfire.InMemory` — Hangfire para testes
 
-```xml
-<PackageReference Include="xunit" />
-<PackageReference Include="xunit.runner.visualstudio" />
-<PackageReference Include="FluentAssertions" />
-<PackageReference Include="Moq" />
-<PackageReference Include="AutoFixture" />
-<PackageReference Include="Testcontainers" />
-<PackageReference Include="Testcontainers.PostgreSql" />
-<PackageReference Include="Testcontainers.Redis" />
-```
-
-### Configuração de TestContainers
-
-Os containers são configurados automaticamente com:
-
-- **PostgreSQL + PostGIS 15-3.4**: Para dados geográficos (NetTopologySuite)
-- **Redis 7-alpine**: Para cache e locks
-- **Connection strings**: Com `Include Error Detail=true` para diagnóstico
-
-## 📊 Status do Projeto
-
-**Última atualização**: 20 Dezembro 2025 (Sprint 5.5)
-
-### ✅ Completado
-
-- Reorganização completa da estrutura (25/25 itens)
-- TestInfrastructure com 8 subpastas organizadas
-- Separação de classes auxiliares (TestEvent, BenchmarkResult, etc.)
-- Remoção de duplicados (DocumentExtensions, EnumExtensions, SearchableProvider)
-- ModuleExtensionsTests movidos para módulos individuais
-- ~35 comentários traduzidos (AAA mantido em inglês)
-- PostGIS habilitado nos Integration.Tests
-- Build verde com 0 erros
-
-### 📝 Documentação
-
-- [Test Infrastructure](../../docs/testing/test-infrastructure.md) - Guia completo de TestContainers
-- [Technical Debt](../../docs/technical-debt.md) - Sprint 5.5 refactoring tracking
-- [Roadmap](../../docs/roadmap.md) - Sprint 5.5 activities
-
-## 🤝 Contribuindo
-
-Ao adicionar novos testes compartilhados:
-
-1. Identifique a categoria correta em `TestInfrastructure/`
-2. Siga os padrões de nomenclatura existentes
-3. Adicione documentação XML nos métodos públicos
-4. Mantenha o padrão AAA com comentários em inglês
-5. Use FluentAssertions para assertivas
-6. Adicione exemplos de uso neste README se necessário
-
-## 📚 Referências
+## Referências
 
 - [xUnit Documentation](https://xunit.net/)
 - [FluentAssertions](https://fluentassertions.com/)

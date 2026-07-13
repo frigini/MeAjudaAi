@@ -18,7 +18,7 @@ public class RatingsEndToEndTests(EventsEnabledTestContainerFixture fixture) : B
         // Note: BaseTestContainerTest handles initialization and authentication setup
         
         // 1. Criar um prestador para ser avaliado
-        EventsEnabledTestContainerFixture.AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = await CreateTestProviderAsync();
         
         // 2. Autenticar como cliente (diferente do prestador)
@@ -80,7 +80,7 @@ public class RatingsEndToEndTests(EventsEnabledTestContainerFixture fixture) : B
 
     private async Task<Guid> CreateTestProviderAsync()
     {
-        EventsEnabledTestContainerFixture.AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         var userId = await Fixture.CreateTestUserAsync();
         var name = $"Provider_{Guid.NewGuid():N}";

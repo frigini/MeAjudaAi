@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace MeAjudaAi.Integration.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Helpers;
 
 /// <summary>
 /// Helper para obter connection strings de teste com fallback entre Aspire e variáveis de ambiente
@@ -12,18 +12,13 @@ public static class TestConnectionHelper
     /// </summary>
     public static string GetConnectionString()
     {
-        // Prefer Aspire-injected connection string from orchestrated services
-        // (e.g., "ConnectionStrings__postgresdb" when using WithReference in AppHost)
         var aspireConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__postgresdb");
-        
+
         if (!string.IsNullOrWhiteSpace(aspireConnectionString))
         {
             return aspireConnectionString;
         }
 
-        // Fallback: Use environment variables (CI or local development)
-        // In CI, workflow sets MEAJUDAAI_DB_* vars pointing to PostgreSQL service
-        // Use NpgsqlConnectionStringBuilder to properly handle special characters in passwords
         var builder = new NpgsqlConnectionStringBuilder
         {
             Host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost",
