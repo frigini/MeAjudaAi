@@ -14,7 +14,7 @@ A standalone PostgreSQL setup for development when you only need the database se
 
 **File**: `keycloak-only.yml`
 
-A standalone Keycloak setup with embedded H2 database for quick authentication testing.
+A standalone Keycloak setup with PostgreSQL database for quick authentication testing.
 
 ### Usage
 
@@ -107,5 +107,5 @@ The PostgreSQL service includes automatic database setup:
 - Never commit `.env` files to version control
 - These setups are for development only - use proper secrets management in production
 - PostgreSQL service includes database initialization scripts for development convenience
-- Keycloak uses embedded H2 database (data is not persistent between container restarts)
+- Keycloak uses PostgreSQL database (data persists between container restarts)
 - Initialization scripts create development users with default passwords - change in production

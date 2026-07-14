@@ -1738,49 +1738,6 @@ thresholds: '60 80'  # Warning < 60%, Error < 80%
 
 ---
 
-## ⚙️ Scripts Auxiliares
-
-### `.github/scripts/generate-runsettings.sh`
-
-**Criado**: 4 de Dezembro de 2025 (para eliminar duplicação)
-
-**Funções**:
-
-#### `escape_xml()`
-```bash
-escape_xml() {
-  echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; ...'
-}
-```
-- Escapa caracteres especiais XML (&, <, >, ", ')
-- Previne XML malformado em runsettings
-
-#### `generate_runsettings()`
-```bash
-generate_runsettings file exclude_filter exclude_by_file exclude_by_attr [include_filter]
-```
-- Gera arquivo XML de configuração Coverlet
-- Parâmetros:
-  1. `file`: Caminho do arquivo de saída
-  2. `exclude_filter`: Assemblies a excluir (e.g., `[*]*Tests*`)
-  3. `exclude_by_file`: Arquivos a excluir (glob patterns)
-  4. `exclude_by_attr`: Atributos a excluir (e.g., `Obsolete,GeneratedCode`)
-  5. `include_filter`: (Opcional) Assemblies a incluir explicitamente
-
-**Exemplo de Uso**:
-```bash
-source ./.github/scripts/generate-runsettings.sh
-
-generate_runsettings \
-  "/tmp/unit.runsettings" \
-  "[*]*Tests*;[*]*.Migrations.*" \
-  "**/*OpenApi*.generated.cs" \
-  "Obsolete,GeneratedCode" \
-  "[MeAjudaAi.*]*"
-```
-
----
-
 ## 🚨 Condições de Falha
 
 O workflow **falha** (bloqueia merge) se:

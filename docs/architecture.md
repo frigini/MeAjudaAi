@@ -453,7 +453,7 @@ public interface IMessageBus
     Task SubscribeAsync<T>(Func<T, CancellationToken, Task> handler, CancellationToken cancellationToken = default);
 }
 
-// Estratégia 1: RabbitMQ
+// RabbitMQ (único provider)
 public class RabbitMqMessageBus : IMessageBus
 {
     public async Task PublishAsync<T>(T message, CancellationToken ct)
@@ -462,31 +462,12 @@ public class RabbitMqMessageBus : IMessageBus
     }
 }
 
-// Estratégia 2: Azure Service Bus
-public class ServiceBusMessageBus : IMessageBus
-{
-    public async Task PublishAsync<T>(T message, CancellationToken ct)
-    {
-        // Implementação Azure Service Bus
-    }
-}
-
-// Seleção em runtime (Program.cs)
-var messageBusProvider = builder.Configuration["MessageBus:Provider"];
-
-if (messageBusProvider == "ServiceBus")
-{
-    builder.Services.AddSingleton<IMessageBus, ServiceBusMessageBus>();
-}
-else
-{
-    builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
-}
+// Registro no Program.cs
+builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
 ```
 
 **Benefícios**:
 - ✅ Troca de implementação sem alterar código cliente
-- ✅ Suporte a múltiplos providers (RabbitMQ, Azure, Kafka)
 - ✅ Testabilidade (mocks)
 
 ---
@@ -559,31 +540,34 @@ services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 **Implementação Real**:
 
 ```csharp
-// Opções fortemente tipadas (Shared/Messaging)
-public sealed class MessageBusOptions
+// RabbitMQ options (Shared/Messaging/Options/RabbitMqOptions.cs)
+public sealed class RabbitMqOptions
 {
-    public const string SectionName = "MessageBus";
-    
-    public string Provider { get; set; } = "RabbitMQ"; // ou "ServiceBus"
+    public const string SectionName = "Messaging:RabbitMQ";
+
+    public string Host { get; set; } = "localhost";
+    public int Port { get; set; } = 5672;
+    public string VirtualHost { get; set; } = "/";
+    public string Username { get; set; } = "guest";
+    public string Password { get; set; } = "guest";
     public string ConnectionString { get; set; } = string.Empty;
-    public int RetryCount { get; set; } = 3;
-    public int RetryDelaySeconds { get; set; } = 5;
+    // ...
 }
 
 // Registro no Program.cs
-builder.Services.Configure<MessageBusOptions>(
-    builder.Configuration.GetSection(MessageBusOptions.SectionName));
+builder.Services.Configure<RabbitMqOptions>(
+    builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
 // Uso via injeção
 public class RabbitMqMessageBus(
-    IOptions<MessageBusOptions> options,
+    IOptions<RabbitMqOptions> options,
     ILogger<RabbitMqMessageBus> logger)
 {
-    private readonly MessageBusOptions _options = options.Value;
+    private readonly RabbitMqOptions _options = options.Value;
 
     public async Task PublishAsync<T>(T message, CancellationToken ct)
     {
-        // Usa _options.ConnectionString, _options.RetryCount, etc.
+        // Usa _options.Host, _options.Port, _options.BuildConnectionString(), etc.
     }
 }
 ```

@@ -226,7 +226,7 @@ public async Task PublishAsync_ShouldSendMessageToQueue()
     
     await messageBus.PublishAsync(new DocumentVerifiedIntegrationEvent(...));
     
-    // Verifica que a mensagem foi publicada no RabbitMQ/ServiceBus
+    // Verifica que a mensagem foi publicada no RabbitMQ
     var consumer = factory.Services.GetRequiredService<TestMessageConsumer>();
     var message = await consumer.WaitForMessageAsync<DocumentVerifiedIntegrationEvent>();
     message.Should().NotBeNull();

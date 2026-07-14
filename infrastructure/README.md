@@ -1,331 +1,55 @@
 # MeAjudaAi Infrastructure
 
-This directory contains the infrastructure configuration for the MeAjudaAi platform.
+Infrastructure as Code (IaC) and runtime configuration for the MeAjudaAi platform.
 
-## 🚀 Infraestrutura Azure e CI/CD (Bicep)
+## Contents
 
-O projeto utiliza uma arquitetura de CI/CD modularizada para maior eficiência e manutenibilidade.
-
-### Pipelines Modularizadas
-As pipelines foram divididas por responsabilidade em `.github/workflows/`:
-- **`ci-backend.yml`**: Build do .NET, testes de unidade, integração e arquitetura, além de relatórios de cobertura.
-- **`ci-frontend.yml`**: Lint, testes unitários (Vitest) e build dos apps React (Next.js) usando Nx Affected.
-- **`ci-e2e.yml`**: Testes ponta-a-ponta pesados, incluindo API (TestContainers) e UI (Playwright).
-- **`deploy-azure.yml`**: Gerenciamento e provisionamento da infraestrutura no Azure.
-
-### Infraestrutura como Código (IaC)
-A infraestrutura é definida usando **Bicep** no diretório `infrastructure/`:
-- `main.bicep`: Definição principal (PostgreSQL, Redis, Service Bus).
-- `dev.parameters.json`: Parâmetros para o ambiente de desenvolvimento.
-- `prod.parameters.json`: Parâmetros para o ambiente de produção.
-
-### Como fazer o Deployment
-O workflow `deploy-azure.yml` permite provisionar a infraestrutura manualmente:
-1. Vá para a aba **Actions** no GitHub.
-2. Selecione o workflow **Deploy to Azure**.
-3. Clique em **Run workflow** e escolha o ambiente (`dev` ou `prod`).
-4. **Input `deploy_infrastructure`**: Este é um booleano (padrão `true`) que controla se a infraestrutura será provisionada durante a execução do workflow.
-   - Selecione desmarcado (false) para pular o provisionamento (apenas faz deploy da aplicação)
-   - Deixe marcado (padrão true) para executar o provisionamento completo
-5. **Requisitos**: É necessário configurar as secrets `AZURE_CREDENTIALS` e `POSTGRES_ADMIN_PASSWORD` no repositório.
-
-### Quando atualizar o Bicep?
-Você deve atualizar os arquivos Bicep sempre que adicionar novos recursos gerenciados (como uma nova base de dados ou conta de armazenamento) no `AppHost` do .NET Aspire. Os arquivos Bicep neste diretório são a "Fonte da Verdade" para o Azure.
-
----
-
-## 🔒 Security Requirements
-
-**Before starting any environment**, you must configure secure credentials:
-
-1. **Copy the environment template**:
-   ```bash
-   cp compose/environments/.env.example compose/environments/.env
-   ```
-
-2. **Set secure passwords** for all services in `.env`:
-   - `POSTGRES_PASSWORD` - Main database password
-   - `KEYCLOAK_DB_PASSWORD` - Keycloak database password  
-   - `KEYCLOAK_ADMIN_PASSWORD` - Keycloak admin password
-   - `PGADMIN_DEFAULT_EMAIL` - PgAdmin login email
-   - `PGADMIN_DEFAULT_PASSWORD` - PgAdmin login password
-   - `RABBITMQ_USER` - RabbitMQ username (optional, defaults if not set)
-   - `RABBITMQ_PASS` - RabbitMQ password
-
-3. **Security Guidelines**:
-   - Use different passwords for each service
-   - Passwords should be at least 16 characters with mixed characters
-   - Never commit `.env` files with real credentials
-   - Use a password manager for secure generation and storage
-   - Populate all credential fields before running docker compose
-
-⚠️ **Docker Compose will fail to start** if these environment variables are not set, preventing accidental deployment with default/weak credentials.
-
-## Docker Compose Services
-
-### Keycloak Authentication
-
-**Version Management**: 
-- **All environments use pinned versions**: No `:latest` tags for reproducibility
-- **Current default**: `26.0.2`
-- **Consistent across environments**: Development, testing, and production use same `KEYCLOAK_VERSION`
-- **Override capability**: Set `KEYCLOAK_VERSION` environment variable to use different version
-- **Testing and Upgrades**:
-  - Always test new Keycloak versions in development first
-  - Check [Keycloak Release Notes](https://www.keycloak.org/docs/latest/release_notes/index.html) for breaking changes
-  - Update the default version in `.env.example` after validation
-  - **When updating**: Change `KEYCLOAK_VERSION` in all environment files simultaneously
-
-**HTTP/HTTPS Configuration**:
-- **Development**: HTTP enabled for convenience (`KC_HTTP_ENABLED=true`)
-- **Production**: HTTP enabled internally, HTTPS enforced at proxy level (`KC_PROXY=edge`)
-- **Testing**: HTTP enabled for test environment simplicity
-- All environments include `--import-realm` flag for automatic realm setup
-
-### Environment Configuration
-
-Copy `.env.example` to `.env` and configure:
-
-```dotenv
-# Keycloak Version (Production Stable)
-KEYCLOAK_VERSION=26.0.2
-
-# Keycloak Admin Configuration (REQUIRED for all environments)
-KEYCLOAK_ADMIN=admin
-KEYCLOAK_ADMIN_PASSWORD="your-secure-admin-password-here"  # REQUIRED
-
-# Database Configuration (REQUIRED for production)
-POSTGRES_PASSWORD="your-secure-postgres-password-here"     # REQUIRED for prod
-KEYCLOAK_DB_PASSWORD="your-secure-keycloak-db-password-here"  # REQUIRED for prod
-
-# RabbitMQ Configuration (REQUIRED for production)
-RABBITMQ_USER=meajudaai
-RABBITMQ_PASS="your-secure-rabbitmq-password-here"         # REQUIRED for prod
-
-# Additional production variables
-KEYCLOAK_HOSTNAME="your-keycloak-domain.com"               # REQUIRED for prod
-RABBITMQ_ERLANG_COOKIE="your-secure-erlang-cookie-here"    # REQUIRED for prod
-
-# Other configuration variables...
+```text
+infrastructure/
+├── main.bicep              # Azure resource definitions (PostgreSQL, Redis)
+├── dev.parameters.json     # Azure parameters for dev environment
+├── prod.parameters.json    # Azure parameters for production environment
+├── database/               # SQL scripts executed at runtime by the application
+│   ├── 01-init-meajudaai.sh
+│   ├── modules/            # Schema roles & permissions (10 modules)
+│   └── seeds/              # Domain seed data
+├── keycloak/
+│   ├── realms/             # OIDC realm configurations (JSON)
+│   └── themes/             # Custom Keycloak login theme
+└── compose/                # Docker Compose files (fallback for local dev without Aspire)
 ```
 
-### Development vs Production Security
+## Azure Deployment
 
-**Development Environment** (`development.yml`):
-- **REQUIRES** all password environment variables to be set (no defaults provided for security)
-- Required variables: `POSTGRES_PASSWORD`, `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `RABBITMQ_PASS`, `PGADMIN_DEFAULT_PASSWORD`
-- Some usernames have defaults (e.g., `RABBITMQ_USER` defaults to `meajudaai`, `KEYCLOAK_ADMIN` defaults to `admin`)
-- Suitable for local development with proper password configuration
-- **NEVER use weak passwords even for development environments**
+Infrastructure is deployed via the `deploy-azure.yml` GitHub Actions workflow using Bicep templates.
 
-**Production/Shared Environments**:
-- Use the same environment variables as development
-- Ensure all passwords are strong, unique, and securely generated
-- All services require secure credentials via `.env` file
+**Resources provisioned:**
+- Azure Database for PostgreSQL Flexible Server
+- Azure Cache for Redis Enterprise
 
-**Security Notes**: 
-- **All password environment variables are required for Development and Production environments** (no defaults provided)
-- **Testing environment uses built-in defaults** for test services (e.g., `POSTGRES_TEST_PASSWORD=test123`, `KEYCLOAK_TEST_DB_PASSWORD=keycloak`, `KEYCLOAK_TEST_ADMIN_PASSWORD=admin`)
-- Required passwords for Development/Production: `POSTGRES_PASSWORD`, `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `RABBITMQ_PASS`, `PGADMIN_DEFAULT_PASSWORD`
-- The compose files will fail to start in Development/Production if these variables are not provided (intentional security design)
-- Use strong, unique passwords (≥16 characters) generated by a password manager
+**How to deploy:**
+1. Go to **Actions** > **Deploy to Azure**
+2. Select environment (`dev` or `prod`)
+3. Toggle `deploy_infrastructure` to provision Azure resources
+4. Requires secrets: `AZURE_CREDENTIALS`, `POSTGRES_ADMIN_PASSWORD`
 
-**Important**: Add environment files to your `.gitignore`:
+**When to update `main.bicep`:** When adding new managed resources (databases, storage accounts, etc.) to the AppHost. The Bicep file is the source of truth for Azure.
 
-```gitignore
-# Infrastructure environment files
-infrastructure/.env
-infrastructure/*.env
-infrastructure/*.env.*
-infrastructure/**/.env*
-infrastructure/compose/environments/.env.*
-```
+## Database Modules
 
-### Development Setup
+The `database/modules/` directory contains SQL scripts that are **executed at runtime** by the application via `SchemaPermissionsManager.cs`. Each module has:
+- `00-roles.sql` — PostgreSQL roles for schema isolation
+- `01-permissions.sql` — GRANT/REVOKE statements
 
-**Required Before Starting Development Environment:**
+**These files are not dead code — they are critical runtime configuration.**
 
-1. **Generate Required Passwords:**
-   ```bash
-   # Generate all required secure passwords
-   export KEYCLOAK_ADMIN_PASSWORD="$(openssl rand -base64 32)"
-   export RABBITMQ_PASS="$(openssl rand -base64 32)"
-   export POSTGRES_PASSWORD="$(openssl rand -base64 32)"
-   export KEYCLOAK_DB_PASSWORD="$(openssl rand -base64 32)"
-   export PGADMIN_DEFAULT_PASSWORD="$(openssl rand -base64 32)"
-   export PGADMIN_DEFAULT_EMAIL="${PGADMIN_DEFAULT_EMAIL:-admin@localhost}"
-   
-   # Write all secrets to .env file with strict permissions
-   umask 077
-   cat > compose/environments/.env.development << EOF
-KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-RABBITMQ_PASS=${RABBITMQ_PASS}
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-KEYCLOAK_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
-PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
-PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-EOF
-   chmod 600 compose/environments/.env.development
-   ```
+## Keycloak
 
-2. **Alternative: Create .env file manually:**
-   ```bash
-   # Copy the base template and edit for development
-   cp compose/environments/.env.example compose/environments/.env.development
-   
-   # Generate and set all required passwords in the file
-   # Required variables: KEYCLOAK_ADMIN_PASSWORD, RABBITMQ_PASS, 
-   # POSTGRES_PASSWORD, KEYCLOAK_DB_PASSWORD, PGADMIN_DEFAULT_PASSWORD, PGADMIN_DEFAULT_EMAIL
-   chmod 600 compose/environments/.env.development
-   ```
+- `realms/meajudaai-realm.dev.json` — Development realm (imported by Aspire via `--import-realm`)
+- `themes/meajudaai/` — Custom login theme (mounted by Aspire)
 
-3. **Start Development Environment:**
-   ```bash
-   docker compose -f compose/environments/development.yml up -d
-   # OR with the custom .env file:
-   docker compose -f compose/environments/development.yml --env-file compose/environments/.env.development up -d
-   ```
+The production realm (`meajudaai-realm.prod.json`) is maintained for reference but not currently imported by any automation.
 
-### Usage
+## Docker Compose (Fallback)
 
-```bash
-# Development (Option 1: with all environment variables set)
-export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-export RABBITMQ_PASS=$(openssl rand -base64 32)
-export POSTGRES_PASSWORD=$(openssl rand -base64 32)
-export KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 32)
-export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 32)
-export PGADMIN_DEFAULT_EMAIL="admin@example.com"
-docker compose -f compose/environments/development.yml up -d
-
-# Development (Option 2: with populated .env file - recommended)
-source compose/environments/.env.development  # Load all required secrets
-docker compose -f compose/environments/development.yml up -d
-
-# Testing (uses defaults or custom .env.testing)
-docker compose -f compose/environments/testing.yml up -d
-
-# Standalone services (require explicit passwords)
-export POSTGRES_PASSWORD=$(openssl rand -base64 32)
-docker compose -f compose/standalone/postgres-only.yml up -d
-
-export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-docker compose -f compose/standalone/keycloak-only.yml up -d
-```
-
-**⚠️ Production Deployment:**
-Para ambientes de produção, use **.NET Aspire** para Azure App Service:
-```bash
-cd src/Aspire/MeAjudaAi.AppHost
-dotnet run -- deploy
-```
-Ver [documentação do Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azure/aca-deployment) para detalhes.
-
-### Standalone Services
-
-**Location**: `compose/standalone/`
-
-Individual service configurations for development scenarios where you only need specific components.
-
-**Security**: All standalone services require explicit passwords (no unsafe defaults)
-**Features**: PostgreSQL includes automatic database initialization with development schema
-- See `compose/standalone/README.md` for detailed usage instructions
-- Use `compose/standalone/.env.example` as a template for configuration
-- (dev-only) PostgreSQL automatically creates `app` schema with sample data on first startup
-
-### Testing Environment
-
-**Characteristics**:
-- **Lightweight configuration** optimized for CI/CD and local testing
-- **Separate ports** to avoid conflicts with development environment
-- **Environment variable driven** with sensible defaults
-- **PostgreSQL optimizations** for faster test execution (fsync=off, etc.)
-- **Health checks** prevent startup race conditions and ensure service readiness
-
-**Configuration**:
-```bash
-# Optional: Create custom test configuration
-   # Copy the base template and edit for testing
-    cp compose/environments/.env.example compose/environments/.env.testing
-   # Edit .env.testing if needed (passwords are required)
-
-# Run with custom config
-   docker compose -f compose/environments/testing.yml --env-file compose/environments/.env.testing up -d
-```
-
-**Default Credentials** (testing only):
-- **Main DB**: `postgres/test123` on `localhost:5433`
-- **Keycloak Admin**: `admin/admin` on `localhost:8081`
-- **Keycloak DB**: `keycloak/keycloak`
-- **Redis**: No auth on `localhost:6380`
-
-## Version Management Best Practices
-
-1. **Pin specific versions** for all production services
-2. **Test upgrades** in development environment first
-3. **Document version changes** in commit messages
-4. **Monitor security advisories** for all used versions
-
-## Database Initialization Testing
-
-The infrastructure includes scripts to validate database initialization:
-
-### Test Database Scripts
-
-**PowerShell (Windows)**:
-```powershell
-# Run database initialization tests
-.\test-database-init.ps1
-
-# With custom credentials
-.\test-database-init.ps1 -PostgresPassword "mypassword" -PostgresUser "postgres" -PostgresDb "meajudaai"
-```
-
-**Bash (Linux/Mac)**:
-```bash
-# Run database initialization tests
-./test-database-init.sh
-
-# With custom credentials
-POSTGRES_PASSWORD="mypassword" POSTGRES_USER="postgres" POSTGRES_DB="meajudaai" ./test-database-init.sh
-```
-
-### What the Test Scripts Validate
-
-The test scripts verify:
-
-✅ All module schemas created correctly:
-- `users`, `providers`, `documents`
-- `search`, `location`, `catalogs`
-- `hangfire`, `meajudaai_app`
-
-✅ All database roles created:
-- Module-specific roles (`users_role`, `providers_role`, etc.)
-- Owner roles (`users_owner`, `providers_owner`, etc.)
-- Application-wide roles (`meajudaai_app_role`, `meajudaai_app_owner`)
-- Hangfire role (`hangfire_role`)
-
-✅ PostGIS extension enabled (required for geospatial search)
-
-✅ Proper initialization sequence executed
-
-### Manual Database Connection
-
-After running the tests, you can connect to the database:
-
-```bash
-# Using Docker
-docker exec -it meajudaai-postgres psql -U postgres -d meajudaai
-
-# Using local psql
-psql -h localhost -U postgres -d meajudaai
-```
-
-### Database Initialization Scripts
-
-See `database/README.md` for detailed information about:
-- Module schema structure
-- Role-based access control
-- Adding new modules
-- Cross-module views
-- PostGIS configuration
+The `compose/` directory contains Docker Compose files for local development **without Aspire**. The primary development workflow uses .NET Aspire (`.\scripts\dev.ps1`), which manages all infrastructure automatically.

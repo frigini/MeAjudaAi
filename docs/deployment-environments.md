@@ -48,8 +48,7 @@ Para procedimentos detalhados de validação de compatibilidade Hangfire + Npgsq
 O processo de deploy usa templates Bicep para infraestrutura como código:
 
 1. **Recursos Azure**: Definidos em `infrastructure/main.bicep`
-2. **Service Bus**: Configurado em `infrastructure/servicebus.bicep`
-3. **Docker Compose**: Configurações específicas por ambiente
+2. **Docker Compose**: Configurações específicas por ambiente
 
 ### Pipeline CI/CD
 Deploy automatizado via GitHub Actions:

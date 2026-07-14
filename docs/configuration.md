@@ -51,7 +51,6 @@ Configurações para upload de documentos:
 #### 3. Dead Letter Queue Templates
 
 - **`appsettings.Development.deadletter.json`**: Configuração de dead letter queue para desenvolvimento com RabbitMQ.
-- **`appsettings.Production.deadletter.json`**: Configuração de dead letter queue para produção com ServiceBus.
 
 #### 4. Authorization Example (`appsettings.authorization.example.json`)
 - **Propósito**: Template completo de configuração de autorização.

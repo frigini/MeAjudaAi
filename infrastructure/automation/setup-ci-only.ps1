@@ -37,7 +37,7 @@ try {
     }
 } catch {
     Write-Host "❌ .NET SDK is not installed or not in PATH" -ForegroundColor Red
-    Write-Host "Please install .NET 9 SDK: https://dotnet.microsoft.com/download" -ForegroundColor Yellow
+    Write-Host "Please install .NET 10 SDK: https://dotnet.microsoft.com/download" -ForegroundColor Yellow
     exit 1
 }
 
@@ -66,10 +66,10 @@ try {
 Write-Host "`n🏗️  Testing local build..." -ForegroundColor Blue
 try {
     Write-Host "Restoring dependencies..." -ForegroundColor Gray
-    dotnet restore MeAjudaAi.sln | Out-Null
+    dotnet restore MeAjudaAi.slnx | Out-Null
     
     Write-Host "Building solution..." -ForegroundColor Gray
-    dotnet build MeAjudaAi.sln --configuration Release --no-restore | Out-Null
+    dotnet build MeAjudaAi.slnx --configuration Release --no-restore | Out-Null
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Local build successful" -ForegroundColor Green
@@ -82,13 +82,18 @@ try {
     exit 1
 }
 
-# Check if GitHub Actions workflow already exists
-$workflowPath = ".github/workflows/aspire-ci-cd.yml"
-if (Test-Path $workflowPath) {
-    Write-Host "`n✅ GitHub Actions workflow already exists: $workflowPath" -ForegroundColor Green
+# Check if GitHub Actions workflows exist
+$workflows = @(
+    ".github/workflows/ci-backend.yml",
+    ".github/workflows/ci-e2e.yml"
+)
+$existingWorkflows = $workflows | Where-Object { Test-Path $_ }
+if ($existingWorkflows.Count -gt 0) {
+    Write-Host "`n✅ GitHub Actions workflows found:" -ForegroundColor Green
+    $existingWorkflows | ForEach-Object { Write-Host "   $_" -ForegroundColor Green }
 } else {
-    Write-Host "`n❌ GitHub Actions workflow not found at: $workflowPath" -ForegroundColor Red
-    Write-Host "The workflow file should have been created. Please check if it exists." -ForegroundColor Yellow
+    Write-Host "`n❌ No GitHub Actions workflows found" -ForegroundColor Red
+    Write-Host "Expected workflows: ci-backend.yml, ci-e2e.yml" -ForegroundColor Yellow
 }
 
 # Repository setup instructions

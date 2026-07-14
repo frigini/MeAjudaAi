@@ -43,7 +43,7 @@ services:
       # - "8443:8443" # HTTPS disabled
     volumes:
       - keycloak_standalone_data:/opt/keycloak/data
-      - ../environments/keycloak/imports:/opt/keycloak/data/import
+      - ../../keycloak/realms:/opt/keycloak/data/import
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

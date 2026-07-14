@@ -3,7 +3,7 @@ name: Update API Documentation
 on:
   push:
     branches:
-      - main
+      - master
       - develop
     paths:
       # Detectar mudanças em endpoints, controllers e schemas

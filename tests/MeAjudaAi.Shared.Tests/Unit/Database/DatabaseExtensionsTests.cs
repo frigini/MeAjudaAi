@@ -339,4 +339,53 @@ public class DatabaseExtensionsTests
         // Act
         await hostedService.StopAsync(CancellationToken.None);
     }
+
+    [Fact]
+    public void ConfigureAllModulesSchemaIsolation_WhenDisabled_ShouldNotRegisterHostedServices()
+    {
+        // Arrange
+        var (services, configuration) = CreateConfig(
+            ("Postgres:SchemaIsolation:Enabled", "false"));
+
+        // Act
+        services.ConfigureAllModulesSchemaIsolation(configuration);
+
+        // Assert
+        var hasHostedService = services.Any(d => d.ServiceType == typeof(IHostedService));
+        hasHostedService.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ConfigureAllModulesSchemaIsolation_WhenEnabledButMissingPasswords_ShouldThrow()
+    {
+        // Arrange
+        var (services, configuration) = CreateConfig(
+            ("Postgres:SchemaIsolation:Enabled", "true"));
+
+        // Act
+        var act = () => services.ConfigureAllModulesSchemaIsolation(configuration);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*RolePassword*");
+    }
+
+    [Fact]
+    public void ConfigureAllModulesSchemaIsolation_WhenEnabledWithPasswords_ShouldRegister10HostedServices()
+    {
+        // Arrange
+        var (services, configuration) = CreateConfig(
+            ("Postgres:SchemaIsolation:Enabled", "true"),
+            ("Postgres:SchemaIsolation:RolePassword", "pass1"),
+            ("Postgres:SchemaIsolation:AppRolePassword", "pass2"));
+        services.AddLogging();
+        services.AddSingleton<SchemaPermissionsManager>();
+
+        // Act
+        services.ConfigureAllModulesSchemaIsolation(configuration);
+
+        // Assert
+        var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+        hostedServices.Should().HaveCount(10);
+    }
 }
