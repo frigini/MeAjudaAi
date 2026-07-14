@@ -228,11 +228,12 @@ public class MessageBusFactory : IMessageBusFactory
 ### Setup Completo
 
 ```bash
-# Setup completo do ambiente de desenvolvimento
-./scripts/setup-dev.sh
+# Setup do ambiente de desenvolvimento (via Aspire)
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 
 # Setup apenas para CI
-./setup-ci-only.ps1
+infrastructure/automation/setup-ci-only.ps1
 
 # Setup com deploy Azure
 ./setup-cicd.ps1

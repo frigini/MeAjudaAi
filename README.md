@@ -97,7 +97,6 @@ O projeto foi organizado para facilitar navegação e manutenção:
 │   ├── database/       # Init scripts + seeds SQL
 │   ├── keycloak/       # Keycloak realms + setup automatizado
 │   └── rabbitmq/       # RabbitMQ definitions
-├── 📁 scripts/         # Scripts PowerShell de desenvolvimento
 ├── 📁 src/             # Código fonte da aplicação
 │   ├── Aspire/         # .NET Aspire AppHost
 │   ├── Bootstrapper/   # API Service entry point
@@ -120,7 +119,6 @@ O projeto foi organizado para facilitar navegação e manutenção:
 | `tests/` | Testes unitários e integração | xUnit v3, testes por módulo |
 | `docs/` | Documentação técnica | Arquitetura, guias, ADRs |
 | `infrastructure/` | Infraestrutura como código | Bicep, Docker, database, CI/CD automation |
-| `scripts/` | Scripts de desenvolvimento | Exportar API, testes, deploy |
 | `build/` | Build e automação | Makefile, scripts de CI |
 | `config/` | Configurações de ferramentas | Linting, segurança, cobertura |
 
@@ -129,8 +127,9 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ### ⚡ Setup Automatizado (Primeira Vez)
 
 ```powershell
-# 1. Iniciar desenvolvimento (detecta primeira execução e faz setup automático)
-.\scripts\dev.ps1
+# 1. Navegar até o AppHost e iniciar Aspire
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 ```
 
 **Pronto!** 🎉 Acesse os serviços em desenvolvimento:
@@ -152,7 +151,8 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 ```powershell
 # Iniciar desenvolvimento
-.\scripts\dev.ps1
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 
 # Executar testes
 dotnet test
@@ -194,17 +194,15 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 | **Git** | Latest | [Download](https://git-scm.com/) |
 | Azure CLI (opcional) | Latest | Para deploy em produção |
 
-✅ **Verificar instalação**: Execute `.\scripts\setup.ps1` que valida tudo automaticamente.
+✅ **Verificar instalação**: Certifique-se de que .NET 10+ e Docker estão instalados.
 
-### 🛠️ Scripts Disponíveis
+### 🛠️ Comandos Disponíveis
 
-| Script | Descrição | Uso |
-|--------|-----------|-----|
-| **`scripts/setup.ps1`** | Setup inicial completo | Primeira vez no projeto |
-| **`scripts/dev.ps1`** | Iniciar desenvolvimento | Uso diário |
-| `scripts/ef-migrate.ps1` | Entity Framework migrations | Gerenciar banco de dados |
-| `scripts/seed-dev-data.ps1` | Popular dados de teste | Ambiente de desenvolvimento |
-| `scripts/export-openapi.ps1` | Exportar especificação API | Gerar documentação/clientes |
+| Comando | Descrição | Uso |
+|---------|-----------|-----|
+| `dotnet run` (em `src/Aspire/MeAjudaAi.AppHost`) | Iniciar Aspire | Uso diário |
+| `dotnet ef migrations add <Nome>` | Entity Framework migrations | Gerenciar banco de dados |
+| `docker compose -f infrastructure/compose/environments/development.yml up -d` | Fallback Docker | Sem Aspire |
 
 **Automação CI/CD** (em `infrastructure/automation/`):
 - `setup-cicd.ps1` - Setup completo CI/CD com Azure
@@ -276,7 +274,8 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 
 ```powershell
 # Via Aspire (recomendado)
-.\scripts\dev.ps1
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 # Acessar: https://localhost:7032/
 ```
 
@@ -310,7 +309,8 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 
 ```powershell
 # Via Aspire (recomendado - inicia tudo automaticamente)
-.\scripts\dev.ps1
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 # Acessar: http://localhost:3000/
 
 # Ou manualmente (apenas Next.js)
@@ -530,7 +530,8 @@ azd provision
 
 ### Desenvolvimento Local
 ```powershell
-.\scripts\dev.ps1  # Aspire orchestration
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run  # Aspire orchestration
 ```
 
 ### Produção (Azure Container Apps)

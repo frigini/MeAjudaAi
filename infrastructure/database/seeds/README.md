@@ -68,7 +68,6 @@ psql -h localhost -U meajudaai_user -d meajudaai_service_catalogs -f infrastruct
 | Tipo | Quando | Propósito |
 |------|--------|-----------|
 | **SQL** (`infrastructure/database/seeds/`) | Após migrations, SEMPRE | Dados essenciais de domínio |
-| **PowerShell** (`scripts/seed-dev-data.ps1`) | Manual, OPCIONAL | Dados de teste para desenvolvimento |
 
 ---
 
