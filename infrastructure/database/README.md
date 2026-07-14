@@ -75,7 +75,9 @@ To add a new module:
 1. Create directory: `modules/[module-name]/`
 2. Add `00-roles.sql` for database roles
 3. Add `01-permissions.sql` for permissions setup
-4. The initialization script will automatically detect and execute them
+4. Register the module in `ConfigureAllModulesSchemaIsolation()` in `DatabaseExtensions.cs`
+
+At runtime, `SchemaPermissionsManager` reads the SQL files, replaces `{{PLACEHOLDER}}` values, and executes them.
 
 ## Hangfire Background Jobs
 

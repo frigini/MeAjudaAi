@@ -61,7 +61,7 @@ API_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?c
     -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq -r '.[0].id')
 
 if [[ -z "${API_CLIENT_UUID}" || "${API_CLIENT_UUID}" == "null" ]]; then
-    echo "❌ Could not locate meajudaai-api client"
+    echo "❌ Could not locate meajudaai-api-service client"
     exit 1
 fi
 

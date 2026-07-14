@@ -179,6 +179,8 @@ public static class DatabaseExtensions
             AppRoleName: "meajudaai_app_role",
             AppRolePassword: appRolePassword);
 
+        // AddSingleton<IHostedService> é intencional: AddHostedService usa TryAddEnumerable
+        // e deduplica incorretamente múltiplos módulos registrados via fábrica.
         services.AddSingleton<IHostedService>(sp => new SchemaIsolationService(sp.GetRequiredService<SchemaPermissionsManager>(), configuration, config));
 
         return services;

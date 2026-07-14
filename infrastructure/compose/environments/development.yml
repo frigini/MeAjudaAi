@@ -57,7 +57,7 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_LOG_LEVEL: info
-      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be set}
       # Identity Providers (Optional for local dev - fail fast if needed by using ${VAR:?error})
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}

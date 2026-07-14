@@ -167,7 +167,7 @@ dotnet ef migrations remove --context UsersDbContext
 
 ### Realm MeAjudaAi
 
-O arquivo `infrastructure/keycloak/realms/meajudaai-realm.dev.json` (dev) ou `meajudaai-realm.prod.json` (produção) contém:
+O arquivo `infrastructure/keycloak/realms/meajudaai-realm.dev.json` (dev) ou `infrastructure/keycloak/realms/meajudaai-realm.prod.json` (produção) contém:
 
 #### Clients Configurados
 - **meajudaai-api**: Cliente backend com client credentials
@@ -218,7 +218,7 @@ public class MessageBusFactory : IMessageBusFactory
 {
     public IMessageBus CreateMessageBus()
     {
-        return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+        return _serviceProvider.GetRequiredService<IMessageBus>();
     }
 }
 ```

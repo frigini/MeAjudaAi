@@ -59,7 +59,7 @@
 
 ## 📂 Outros Diretórios com Scripts
 
-### `/infrastructure/` (9 scripts ativos)
+### `/infrastructure/` (3 scripts ativos)
 
 **Documentação:** [infrastructure/README.md](../infrastructure/README.md)
 

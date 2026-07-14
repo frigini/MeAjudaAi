@@ -4,7 +4,7 @@ Infrastructure as Code (IaC) and runtime configuration for the MeAjudaAi platfor
 
 ## Contents
 
-```
+```text
 infrastructure/
 ├── main.bicep              # Azure resource definitions (PostgreSQL, Redis)
 ├── dev.parameters.json     # Azure parameters for dev environment
