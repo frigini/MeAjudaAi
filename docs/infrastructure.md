@@ -170,8 +170,10 @@ dotnet ef migrations remove --context UsersDbContext
 O arquivo `infrastructure/keycloak/realms/meajudaai-realm.dev.json` (dev) ou `infrastructure/keycloak/realms/meajudaai-realm.prod.json` (produção) contém:
 
 #### Clients Configurados
-- **meajudaai-api**: Cliente backend com client credentials
-- **meajudaai-web**: Cliente frontend (público)
+- **meajudaai-api-service**: Service account para a API (client credentials)
+- **admin-portal**: Portal administrativo (público, PKCE)
+- **customer-app**: App de clientes (público, PKCE)
+- **provider-app**: App de prestadores (público, PKCE)
 
 #### Roles Definidas
 - **customer**: Usuários regulares
@@ -183,9 +185,9 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.dev.json` (dev) ou `in
 
 > ⚠️ **AVISO DE SEGURANÇA**: As credenciais abaixo são EXCLUSIVAMENTE para desenvolvimento local. NUNCA utilize essas credenciais em produção.
 
-- **admin** / admin123 (admin, super-admin) - **DEV ONLY**
-- **customer1** / customer123 (customer) - **DEV ONLY**
-- **provider1** / provider123 (service-provider) - **DEV ONLY**
+- **admin.portal** / admin123 (admin + múltiplas roles) - **DEV ONLY**
+- **customer.demo** / customer123 (customer) - **DEV ONLY**
+- **provider.demo** / provider123 (meajudaai-provider) - **DEV ONLY**
 
 **Apenas para desenvolvimento local. Altere imediatamente em ambientes compartilhados/produção.**
 
@@ -193,11 +195,11 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.dev.json` (dev) ou `in
 
 ```json
 {
-  "clientId": "meajudaai-api",
-  "secret": "your-client-secret-here",
+  "clientId": "meajudaai-api-service",
+  "secret": "${CLIENT_SECRET_MEAJUDAAI_API}",
   "serviceAccountsEnabled": true,
-  "standardFlowEnabled": true,
-  "directAccessGrantsEnabled": true
+  "standardFlowEnabled": false,
+  "directAccessGrantsEnabled": false
 }
 ```
 
