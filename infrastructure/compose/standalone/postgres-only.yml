@@ -38,9 +38,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_DEV_PORT:-5433}:5432"
     volumes:
-      - postgres_standalone_data:/var/lib/postgresql/data
+      - postgres_dev_standalone_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d  # Sample data only in dev
     profiles:
       - development
@@ -54,3 +54,5 @@ services:
 volumes:
   postgres_standalone_data:
     name: meajudaai-postgres-standalone-data
+  postgres_dev_standalone_data:
+    name: meajudaai-postgres-dev-standalone-data

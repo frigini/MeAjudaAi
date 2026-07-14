@@ -25,8 +25,7 @@ O script `infrastructure/database/01-init-meajudaai.sh` executa os seeds após c
 **Automática via Docker Compose:**
 1. `modules/*/00-roles.sql` - Roles por módulo
 2. `modules/*/01-permissions.sql` - Permissões por módulo
-3. `views/cross-module-views.sql` - Views cross-module
-4. **`seeds/*.sql`** - **Data seeds (aqui!)** ← Executado automaticamente
+3. **`seeds/*.sql`** - **Data seeds (aqui!)** ← Executado automaticamente
 
 **Manual (pós-migrations):**
 ```powershell

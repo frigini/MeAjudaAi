@@ -42,19 +42,14 @@ Configures complete continuous integration and deployment:
 .\infrastructure\automation\setup-ci-only.ps1
 
 # For full CI/CD setup
-.\infrastructure\automation\setup-cicd.ps1
+.\infrastructure\automation\setup-cicd.ps1 -SubscriptionId "your-subscription-id"
 ```
 
 ### Parameters
-Both scripts support various parameters for customization. Use the `-Help` parameter to see available options:
 
-```powershell
-# View help for CI-only setup
-.\automation\setup-ci-only.ps1 -Help
-
-# View help for full CI/CD setup
-.\automation\setup-cicd.ps1 -Help
-```
+`setup-cicd.ps1` accepts:
+- `-SubscriptionId` (required) - Azure subscription ID
+- `-ServicePrincipalName` (optional, default: "meajudaai-github-actions")
 
 ## Best Practices
 

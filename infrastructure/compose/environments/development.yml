@@ -48,9 +48,9 @@ services:
     container_name: meajudaai-keycloak-dev
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/meajudaai
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB:-keycloak}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
       KC_DB_SCHEMA: identity
       KC_HTTP_ENABLED: true
       KC_HOSTNAME: localhost
@@ -58,7 +58,7 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_LOG_LEVEL: info
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be set}
       # Identity Providers (Optional for local dev - fail fast if needed by using ${VAR:?error})
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
@@ -72,7 +72,7 @@ services:
       # - "8443:8443" # HTTPS disabled in dev
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ./keycloak/imports:/opt/keycloak/data/import
+      - ../../keycloak/realms:/opt/keycloak/data/import
     depends_on:
       - keycloak-db
     networks:
@@ -101,7 +101,6 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     networks:
       - meajudaai-network
 

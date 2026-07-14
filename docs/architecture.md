@@ -453,7 +453,7 @@ public interface IMessageBus
     Task SubscribeAsync<T>(Func<T, CancellationToken, Task> handler, CancellationToken cancellationToken = default);
 }
 
-// Estratégia 1: RabbitMQ
+// RabbitMQ (único provider)
 public class RabbitMqMessageBus : IMessageBus
 {
     public async Task PublishAsync<T>(T message, CancellationToken ct)
@@ -462,26 +462,8 @@ public class RabbitMqMessageBus : IMessageBus
     }
 }
 
-// Estratégia 2: Azure Service Bus
-public class ServiceBusMessageBus : IMessageBus
-{
-    public async Task PublishAsync<T>(T message, CancellationToken ct)
-    {
-        // Implementação Azure Service Bus
-    }
-}
-
-// Seleção em runtime (Program.cs)
-var messageBusProvider = builder.Configuration["MessageBus:Provider"];
-
-if (messageBusProvider == "ServiceBus")
-{
-    builder.Services.AddSingleton<IMessageBus, ServiceBusMessageBus>();
-}
-else
-{
-    builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
-}
+// Registro no Program.cs
+builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
 ```
 
 **Benefícios**:
@@ -564,7 +546,7 @@ public sealed class MessageBusOptions
 {
     public const string SectionName = "MessageBus";
     
-    public string Provider { get; set; } = "RabbitMQ"; // ou "ServiceBus"
+    public string Provider { get; set; } = "RabbitMQ";
     public string ConnectionString { get; set; } = string.Empty;
     public int RetryCount { get; set; } = 3;
     public int RetryDelaySeconds { get; set; } = 5;

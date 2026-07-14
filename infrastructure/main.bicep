@@ -20,9 +20,6 @@ param postgresAdminPassword string
 @description('The name of the Redis cache')
 param redisCacheName string = 'redis-${environmentName}-${uniqueString(resourceGroup().id)}'
 
-@description('The name of the Service Bus namespace')
-param serviceBusNamespaceName string = 'sb-${environmentName}-${uniqueString(resourceGroup().id)}'
-
 @description('The SKU of the PostgreSQL server')
 param postgresSkuName string = 'Standard_B1ms'
 
@@ -152,20 +149,9 @@ resource redisDatabase 'Microsoft.Cache/redisEnterprise/databases@2024-02-01' = 
   }
 }
 
-// Service Bus Namespace (as RabbitMQ alternative in Azure)
-resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2024-01-01' = {
-  name: serviceBusNamespaceName
-  location: location
-  sku: {
-    name: 'Standard'
-    tier: 'Standard'
-  }
-}
-
 // Outputs
 output postgresHost string = postgresServer.properties.fullyQualifiedDomainName
 output postgresDatabase string = postgresDatabaseName
 output redisHost string = redisDatabase.properties.endpoint
-output serviceBusNamespace string = serviceBusNamespaceName
 output postgresPrivateEndpointIp string = (vnetSubnetId != '') ? postgresPrivateEndpoint.properties.customDnsConfigs[0].ipAddresses[0] : ''
 output privateDnsZoneName string = (vnetId != '') ? privateDnsZone.name : ''

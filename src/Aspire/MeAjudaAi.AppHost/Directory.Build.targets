@@ -6,7 +6,7 @@
     <PackagesRoot>$([MSBuild]::NormalizeDirectory($(SolutionRoot), 'packages'))</PackagesRoot>
     
     <!-- Versão do Aspire sincronizada com global.json -->
-    <AspireVersion>13.1.0</AspireVersion>
+    <AspireVersion>13.4.6</AspireVersion>
     
     <!-- Detecção de RID e extensão de executável para binários do Aspire -->
     <AspireRid Condition="'$(AspireRid)' == '' AND '$(OS)' == 'Windows_NT'">win-x64</AspireRid>

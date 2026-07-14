@@ -118,6 +118,37 @@ public static class DatabaseExtensions
     }
 
     /// <summary>
+    /// Configura schema isolation para TODOS os módulos de uma vez.
+    /// Use este método no Program.cs da aplicação principal para garantir que todos os módulos
+    /// tenham suas permissões configuradas automaticamente.
+    /// </summary>
+    public static IServiceCollection ConfigureAllModulesSchemaIsolation(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var modules = new[]
+        {
+            (ModuleNames.Users, Schemas.Users, DatabaseRoleConstants.Users),
+            (ModuleNames.Providers, Schemas.Providers, DatabaseRoleConstants.Providers),
+            (ModuleNames.Documents, Schemas.Documents, DatabaseRoleConstants.Documents),
+            (ModuleNames.ServiceCatalogs, Schemas.ServiceCatalogs, DatabaseRoleConstants.ServiceCatalogs),
+            (ModuleNames.SearchProviders, Schemas.SearchProviders, DatabaseRoleConstants.SearchProviders),
+            (ModuleNames.Locations, Schemas.Locations, DatabaseRoleConstants.Locations),
+            (ModuleNames.Bookings, Schemas.Bookings, DatabaseRoleConstants.Bookings),
+            (ModuleNames.Communications, Schemas.Communications, DatabaseRoleConstants.Communications),
+            (ModuleNames.Payments, Schemas.Payments, DatabaseRoleConstants.Payments),
+            (ModuleNames.Ratings, Schemas.Ratings, DatabaseRoleConstants.Ratings)
+        };
+
+        foreach (var (moduleName, schemaName, roleName) in modules)
+        {
+            services.ConfigureSchemaIsolation(configuration, moduleName, schemaName, roleName);
+        }
+
+        return services;
+    }
+
+    /// <summary>
     /// Helper que configura schema isolation para um módulo se habilitado via configuração.
     /// Registra um IHostedService que executa after o container está pronto.
     /// </summary>
@@ -148,7 +179,7 @@ public static class DatabaseExtensions
             AppRoleName: "meajudaai_app_role",
             AppRolePassword: appRolePassword);
 
-        services.AddHostedService(sp => new SchemaIsolationService(sp.GetRequiredService<SchemaPermissionsManager>(), configuration, config));
+        services.AddSingleton<IHostedService>(sp => new SchemaIsolationService(sp.GetRequiredService<SchemaPermissionsManager>(), configuration, config));
 
         return services;
     }

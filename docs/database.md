@@ -471,11 +471,10 @@ infrastructure/database/
 │   └── services/                 🔄 FUTURE MODULE
 │       ├── 00-roles.sql
 │       └── 01-permissions.sql
-├── views/
-│   └── cross-module-views.sql
-├── create-module.ps1             # Script para criar novos módulos
 └── README.md                     # Esta documentação
 ```
+
+**Nota**: Schema isolation é gerenciado em runtime por `SchemaPermissionsManager` via `ConfigureAllModulesSchemaIsolation()`. Para adicionar um novo módulo, crie manualmente os arquivos `00-roles.sql` e `01-permissions.sql` seguindo os templates existentes.
 
 ## 🛠️ Adding New Modules
 
@@ -650,76 +649,41 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-## ⚡ Script Rápido de Criação de Módulo
+## ⚡ Adicionando Novo Módulo
 
-Criar este script PowerShell para configuração rápida de módulos:
+Para adicionar um novo módulo ao sistema de schema isolation:
 
-```powershell
-# create-module.ps1
-param(
-    [Parameter(Mandatory=$true)]
-    [string]$ModuleName
-)
-
-$ModulePath = "infrastructure/database/modules/$ModuleName"
-New-Item -ItemType Directory -Path $ModulePath -Force
-
-# Criar 00-roles.sql
-$RolesContent = @"
--- $ModuleName Module - Database Roles
--- Criar função dedicada para o módulo $ModuleName
--- Nota: Substitua `$env:DB_ROLE_PASSWORD pela variável de ambiente real ou recuperação segura de senha
-CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '`$env:DB_ROLE_PASSWORD';
-
--- Conceder função $ModuleName à função app para acesso entre módulos
-GRANT ${ModuleName}_role TO meajudaai_app_role;
-"@
-
-$RolesContent | Out-File -FilePath "$ModulePath/00-roles.sql" -Encoding UTF8
-
-# Criar 01-permissions.sql
-$PermissionsContent = @"
--- $ModuleName Module - Permissions
--- Conceder permissões para o módulo $ModuleName
-GRANT USAGE ON SCHEMA $ModuleName TO ${ModuleName}_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA $ModuleName TO ${ModuleName}_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA $ModuleName TO ${ModuleName}_role;
-
--- Definir privilégios padrão para futuras tabelas e sequences
-ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${ModuleName}_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT USAGE, SELECT ON SEQUENCES TO ${ModuleName}_role;
-
--- Definir search path padrão
-ALTER ROLE ${ModuleName}_role SET search_path = $ModuleName, public;
-
--- Conceder permissões entre schemas à função app
-GRANT USAGE ON SCHEMA $ModuleName TO meajudaai_app_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA $ModuleName TO meajudaai_app_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA $ModuleName TO meajudaai_app_role;
-
--- Definir privilégios padrão para função app
-ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
-
--- Conceder permissões no schema public
-GRANT USAGE ON SCHEMA public TO ${ModuleName}_role;
-"@
-
-$PermissionsContent | Out-File -FilePath "$ModulePath/01-permissions.sql" -Encoding UTF8
-
-Write-Host "✅ Scripts de banco de dados do módulo '$ModuleName' criados com sucesso!" -ForegroundColor Green
-Write-Host "📁 Localização: $ModulePath" -ForegroundColor Cyan
-```
-
-## 📝 Exemplo de Uso
+### 1. Criar estrutura de diretórios
 
 ```bash
-# Criar novo módulo providers
-./create-module.ps1 -ModuleName "providers"
-
-# Criar novo módulo services  
-./create-module.ps1 -ModuleName "services"
+mkdir infrastructure/database/modules/new_module
 ```
+
+### 2. Criar `00-roles.sql`
+
+Copie o template de um módulo existente (ex: `users/00-roles.sql`) e ajuste os placeholders. Os placeholders `{{ROLE_NAME}}`, `{{ROLE_OWNER_NAME}}`, `{{APP_ROLE_NAME}}`, `{{SCHEMA_NAME}}` são substituídos automaticamente pelo `SchemaPermissionsManager` em runtime.
+
+### 3. Criar `01-permissions.sql`
+
+Copie o template de um módulo existente (ex: `users/01-permissions.sql`) e ajuste os placeholders.
+
+### 4. Registrar no Shared
+
+Adicione o módulo ao método `ConfigureAllModulesSchemaIsolation()` em `src/Shared/Database/DatabaseExtensions.cs`:
+
+```csharp
+var modules = new[]
+{
+    // ... módulos existentes
+    (ModuleNames.NewModule, Schemas.NewModule, DatabaseRoleConstants.NewModule)
+};
+```
+
+### 5. Adicionar constantes
+
+- `src/Shared/Utilities/Constants/ModuleNames.cs` - adicionar `NewModule`
+- `src/Shared/Utilities/Constants/Schemas.cs` - adicionar `NewModule`
+- `src/Shared/Utilities/Constants/DatabaseRoleConstants.cs` - adicionar `NewModule`
 
 ## 🔒 Melhores Práticas de Segurança
 

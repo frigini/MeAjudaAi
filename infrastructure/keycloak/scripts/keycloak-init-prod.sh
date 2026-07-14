@@ -57,7 +57,7 @@ echo "✅ Successfully authenticated with Keycloak"
 echo "🔧 Configuring API client secret..."
 
 # Fetch API client UUID
-API_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?clientId=meajudaai-api" \
+API_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?clientId=meajudaai-api-service" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq -r '.[0].id')
 
 if [[ -z "${API_CLIENT_UUID}" || "${API_CLIENT_UUID}" == "null" ]]; then
@@ -126,11 +126,11 @@ fi
 echo "🌐 Configuring web client redirect URIs and origins..."
 
 # Fetch web client UUID
-WEB_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?clientId=meajudaai-web" \
+WEB_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?clientId=admin-portal" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq -r '.[0].id')
 
 if [[ -z "${WEB_CLIENT_UUID}" || "${WEB_CLIENT_UUID}" == "null" ]]; then
-    echo "❌ Could not locate meajudaai-web client"
+    echo "❌ Could not locate admin-portal client"
     exit 1
 fi
 
@@ -173,7 +173,7 @@ curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${WEB_CLIENT
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "${WEB_CLIENT_PAYLOAD}" || {
-    echo "❌ Failed to configure web client"
+    echo "❌ Failed to configure admin-portal client"
     exit 1
 }
 

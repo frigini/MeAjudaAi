@@ -151,6 +151,8 @@ legacy-analysis-report.*
 # Node & Nx caching
 **/.nx/
 **/test_results.txt
+**/test-results.json
+**/test-output.json
 **/zod.gen.ts.bak
 
 # Build outputs

@@ -61,11 +61,11 @@
 
 ### `/infrastructure/` (9 scripts ativos)
 
-**Documentação:** [infrastructure/SCRIPTS.md](../infrastructure/SCRIPTS.md)
+**Documentação:** [infrastructure/README.md](../infrastructure/README.md)
 
-- Database: `01-init-meajudaai.sh`, `create-module.ps1`, `test-database-init.*`
-- Keycloak: `keycloak-init-dev.sh`, `keycloak-init-prod.sh`
-- Docker: `setup-secrets.sh`, `verify-resources.sh`
+- Database: `01-init-meajudaai.sh`
+- Keycloak: `keycloak-init-prod.sh` (dev realm import é automático via Aspire)
+- Docker: `02-custom-setup.sh`
 
 ### `/infrastructure/automation/` (2 scripts ativos)
 

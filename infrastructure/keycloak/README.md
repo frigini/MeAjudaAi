@@ -26,8 +26,7 @@ keycloak/
 ├── realms/                       # Realm configurations (JSON exports)
 │   ├── meajudaai-realm.dev.json  # Development realm
 │   └── meajudaai-realm.prod.json # Production realm
-├── scripts/                      # Helper scripts
-│   ├── keycloak-init-dev.sh      # Development initialization
+├── scripts/
 │   └── keycloak-init-prod.sh     # Production initialization
 └── themes/                       # Custom Keycloak themes
     └── meajudaai/                # MeAjudaAi custom theme
@@ -109,13 +108,9 @@ Secrets are **NEVER** stored in realm files. Instead:
 
 ### Development Environment
 
-```bash
-# 1. Import development realm (contains demo users)
-docker exec keycloak /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/import/meajudaai-realm.dev.json
+The development realm is imported **automatically** by Aspire (`KeycloakExtensions.cs`) when you run `.\scripts\dev.ps1`.
 
-# 2. Run development initialization script
-./scripts/keycloak-init-dev.sh
-```
+No manual steps needed — Aspire mounts the realm files, imports them via `--import-realm`, and resolves client secrets from environment variables.
 
 ### Production Environment
 
@@ -128,12 +123,7 @@ export INITIAL_ADMIN_USERNAME="admin"
 export INITIAL_ADMIN_PASSWORD="$(openssl rand -base64 32)"
 export INITIAL_ADMIN_EMAIL="admin@yourcompany.com"
 
-# 2. Import production realm (no secrets, no demo users)
-# Note: For Docker Compose setups, use: docker compose exec keycloak /opt/keycloak/bin/kc.sh import ...
-# Ensure realm files are mounted at /opt/keycloak/data/import/ via volumes
-docker exec keycloak /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/import/meajudaai-realm.prod.json
-
-# 3. Run production initialization script
+# 2. Run production initialization script (after Keycloak starts)
 ./scripts/keycloak-init-prod.sh
 ```
 

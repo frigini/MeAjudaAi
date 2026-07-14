@@ -505,7 +505,6 @@ azd provision
 
 ### Mocks e Doubles
 
-- **MockServiceBusMessageBus**: Mock do Azure Service Bus
 - **MockRabbitMqMessageBus**: Mock do RabbitMQ  
 - **TestContainers**: Containers para testes de integração
 - **InMemory Database**: Banco em memória para testes rápidos

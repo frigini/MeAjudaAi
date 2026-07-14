@@ -26,7 +26,6 @@ infrastructure/
 ├── database/                   # Gerenciamento de esquemas de banco
 │   └── schemas/                # Scripts SQL para setup de schemas
 ├── main.bicep                  # Template de infraestrutura Azure
-├── servicebus.bicep            # Configuração Azure Service Bus
 └── deploy.sh                   # Script de deployment Azure
 ```
 
@@ -168,7 +167,7 @@ dotnet ef migrations remove --context UsersDbContext
 
 ### Realm MeAjudaAi
 
-O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
+O arquivo `infrastructure/keycloak/realms/meajudaai-realm.dev.json` (dev) ou `meajudaai-realm.prod.json` (produção) contém:
 
 #### Clients Configurados
 - **meajudaai-api**: Cliente backend com client credentials
@@ -212,13 +211,6 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
 builder.AddRabbitMQ("messaging");
 ```
 
-#### Produção: Azure Service Bus
-
-```csharp
-// Configuração automática via azd
-builder.AddAzureServiceBus("messaging");
-```
-
 ### Factory Pattern
 
 ```csharp
@@ -226,14 +218,7 @@ public class MessageBusFactory : IMessageBusFactory
 {
     public IMessageBus CreateMessageBus()
     {
-        if (_environment.IsDevelopment() || _environment.EnvironmentName == "Testing")
-        {
-            return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
-        }
-        else
-        {
-            return _serviceProvider.GetRequiredService<ServiceBusMessageBus>();
-        }
+        return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
     }
 }
 ```
