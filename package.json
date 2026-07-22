@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": [
     "src/Web/MeAjudaAi.Web.Customer",
+    "src/Web/MeAjudaAi.Web.Admin",
     "src/Web/MeAjudaAi.Web.Provider",
     "src/Web/libs/api-client"
   ],

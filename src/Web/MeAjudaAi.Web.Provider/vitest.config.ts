@@ -36,11 +36,20 @@ export default defineConfig({
       // Note: Provider project has separate threshold from global coverage
       // Thresholds are managed at global level via merge-coverage.mjs
     },
+    server: {
+      deps: {
+        inline: [/lucide-react/, /@radix-ui/, /tailwind-variants/, /tailwind-merge/],
+      },
+    },
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './'),
       'test-support': resolve(__dirname, '../libs/test-support/src'),
+      // Mock generated API files when they don't exist yet
+      '@/lib/api/generated/client.gen': resolve(__dirname, './__tests__/mocks/generated/client.gen.ts'),
+      '@/lib/api/generated/sdk.gen': resolve(__dirname, './__tests__/mocks/generated/sdk.gen.ts'),
+      '@/lib/api/generated/types.gen': resolve(__dirname, './__tests__/mocks/generated/types.gen.ts'),
     },
   },
 });
