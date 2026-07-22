@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando uma arquitetura de monólito modular.
 
-<!-- Atualizado: 22 JULHO 2026 - Sprint 14.6 -->
+<!-- Atualizado: 22 JULHO 2026 - Sprint 16 -->
 
 ## 🎯 Visão Geral
 
@@ -110,11 +110,11 @@ Quando executado via Aspire, os seguintes serviços estarão disponíveis:
 | **Aspire Dashboard** | [https://localhost:17155](https://localhost:17155) | Painel central de orquestração e observabilidade |
 | **Customer Web App** | [http://localhost:3000](http://localhost:3000) | Aplicação web pública para clientes |
 | **Provider Web App** | [http://localhost:3001](http://localhost:3001) | Painel dedicado para prestadores de serviço |
-| **Admin Portal** | [http://localhost:3002](http://localhost:3002) | Painel administrativo (login: `admin.portal` / `admin123`) |
+| **Admin Portal** | [http://localhost:3002](http://localhost:3002) | Painel administrativo (login local dev: `admin.portal` / `admin123`) |
 | **API Gateway** | [http://localhost:52861](http://localhost:52861) | Gateway de entrada YARP (redireciona para o ApiService) |
 | **API Swagger** | [https://localhost:7001/swagger](https://localhost:7001/swagger) | Documentação interativa da API principal |
-| **Keycloak** | [http://localhost:8080](http://localhost:8080) | Painel do Keycloak (admin / admin123) |
-| **RabbitMQ Management** | [http://localhost:15672](http://localhost:15672) | Monitor de mensageria (meajudaai / test123) |
+| **Keycloak** | [http://localhost:8080](http://localhost:8080) | Painel do Keycloak (credenciais locais dev: admin / admin123) |
+| **RabbitMQ Management** | [http://localhost:15672](http://localhost:15672) | Monitor de mensageria (credenciais locais dev: meajudaai / test123) |
 
 ---
 
@@ -163,7 +163,7 @@ dotnet test /p:CollectCoverage=true
 > ```csharp
 > protected override TestModule RequiredModules => TestModule.Documents | TestModule.Providers;
 > ```
-> Isso reduz o tempo de boot dos Testcontainers em até 83%!
+> Isso reduz significativamente o tempo de boot dos Testcontainers!
 
 ### Testes do Frontend e E2E (TypeScript)
 
@@ -206,10 +206,10 @@ As credenciais necessárias para automação de CI/CD via GitHub Actions podem s
 
 ```powershell
 # Setup completo do pipeline com deploy
-.\setup-cicd.ps1 -SubscriptionId "seu-subscription-id"
+.\infrastructure\automation\setup-cicd.ps1 -SubscriptionId "seu-subscription-id"
 
 # Apenas validação de Build/Test na nuvem (sem deploy/custo)
-.\setup-ci-only.ps1
+.\infrastructure\automation\setup-ci-only.ps1
 ```
 
 ---
