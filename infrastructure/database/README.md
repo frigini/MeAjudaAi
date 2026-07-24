@@ -60,7 +60,7 @@ This means roles, permissions, and schemas are created **at runtime**, not durin
 The `01-init-meajudaai.sh` script runs on first container start but is **informational only**:
 - Module SQL files contain placeholders that are not substituted at Docker init time
 - Seeds require tables that don't exist yet (created by EF Core migrations later)
-- Keycloak creates its own `identity` schema via `KC_DB_SCHEMA` environment variable
+- The `identity` schema for Keycloak is created by `00-create-identity-schema.sql` (Keycloak does NOT auto-create it)
 
 To seed data manually after the application has run migrations:
 ```bash

@@ -147,9 +147,8 @@
                               {
                                   "alias":  "instagram",
                                   "displayName":  "Instagram",
-                                  "providerId":  "oauth2",
-                                  "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor OAuth2 genérico para garantir que as URLs da Basic Display API sejam respeitadas e contornar a ausência de OIDC discovery no Instagram.",
-                                  "enabled":  true,
+                                   "providerId":  "oauth2",
+                                   "enabled":  true,
                                   "trustEmail":  false,
                                   "storeToken":  false,
                                   "addReadTokenRoleOnCreate":  false,

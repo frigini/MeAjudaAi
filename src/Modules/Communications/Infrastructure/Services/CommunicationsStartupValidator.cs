@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Communications.Domain.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +11,17 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 /// </summary>
 internal sealed class CommunicationsStartupValidator(
     bool stubsEnabled,
-    IEmailSender? emailSender,
-    ISmsSender? smsSender,
-    IPushSender? pushSender,
+    IServiceProvider serviceProvider,
     ILogger<CommunicationsStartupValidator> logger) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var missingServices = new List<string>();
+
+        using var scope = serviceProvider.CreateScope();
+        var emailSender = scope.ServiceProvider.GetService<IEmailSender>();
+        var smsSender = scope.ServiceProvider.GetService<ISmsSender>();
+        var pushSender = scope.ServiceProvider.GetService<IPushSender>();
 
         if (emailSender == null)
             missingServices.Add(nameof(IEmailSender));

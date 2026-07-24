@@ -44,6 +44,7 @@ public static class MeAjudaAiKeycloakExtensions
         // NOTA: Sem .WithDataVolume() em desenvolvimento para sempre iniciar limpo
         // NOTA: Keycloak pode aparecer como Unhealthy ~20-30s até completar inicialização do banco e import de realms
         var keycloak = builder.AddKeycloak("keycloak", port: 8080)
+            .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http")
             // Configurar banco de dados PostgreSQL com schema 'identity'
             // Na rede Docker do Aspire, containers se comunicam usando o nome do recurso
             .WithEnvironment("KC_DB", "postgres")

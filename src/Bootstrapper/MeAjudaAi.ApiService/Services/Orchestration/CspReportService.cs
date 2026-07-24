@@ -2,6 +2,8 @@ using MeAjudaAi.ApiService.Endpoints.Models;
 using MeAjudaAi.ApiService.Services.Orchestration.Interfaces;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.ApiService.Services.Orchestration;
@@ -10,7 +12,7 @@ namespace MeAjudaAi.ApiService.Services.Orchestration;
 /// Serviço que processa relatórios de violações de CSP (Content Security Policy).
 /// </summary>
 public sealed class CspReportService(
-    ISerializer serializer,
+    [FromKeyedServices(SerializationKeys.Default)] ISerializer serializer,
     ILogger<CspReportService> logger) : ICspReportService
 {
     public Result ProcessReport(string reportJson)
