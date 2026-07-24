@@ -1,2 +1,5 @@
 # Allow OpenAPI generated types
 !src/lib/api/generated/
+
+# typescript
+next-env.d.ts

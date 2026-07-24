@@ -18,7 +18,7 @@ export default withAuth(
         callbacks: {
             authorized: ({ req, token }) => {
                 if (isE2ETest(req as unknown as Request)) {
-                    return true;
+                    return true
                 }
 
                 const isLoggedIn = !!token

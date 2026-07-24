@@ -62,6 +62,16 @@ The `01-init-meajudaai.sh` script runs on first container start but is **informa
 - Seeds require tables that don't exist yet (created by EF Core migrations later)
 - The `identity` schema for Keycloak is created by `00-create-identity-schema.sql` (Keycloak does NOT auto-create it)
 
+### Azure Production
+
+In Azure deployments, `/docker-entrypoint-initdb.d` is not available. The `identity` schema must be provisioned before Keycloak starts:
+- The Aspire AppHost (`KeycloakExtensions.cs`) creates an `identity-schema-init` container that runs `00-create-identity-schema.sql` against the Azure PostgreSQL instance
+- Keycloak is configured with `.WaitFor(identitySchemaInit)` to ensure the schema exists before startup
+- For manual provisioning (outside Aspire), execute the script directly:
+  ```bash
+  psql -h <azure-host> -U <admin-user> -d meajudaai -f 00-create-identity-schema.sql
+  ```
+
 To seed data manually after the application has run migrations:
 ```bash
 docker exec -it meajudaai-postgres psql -U postgres -d meajudaai \

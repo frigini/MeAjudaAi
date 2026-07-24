@@ -1,2 +1,5 @@
 # Generated API types are created at build time from the OpenAPI spec
 lib/api/generated/
+
+# typescript
+next-env.d.ts
