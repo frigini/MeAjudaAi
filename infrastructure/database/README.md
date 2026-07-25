@@ -66,7 +66,7 @@ The `01-init-meajudaai.sh` script runs on first container start but is **informa
 
 In Azure deployments, `/docker-entrypoint-initdb.d` is not available. The `identity` schema must be provisioned before Keycloak starts:
 - The Aspire AppHost (`KeycloakExtensions.cs`) creates an `identity-schema-init` container that runs `00-create-identity-schema.sql` against the Azure PostgreSQL instance
-- Keycloak is configured with `.WaitFor(identitySchemaInit)` to ensure the schema exists before startup
+- Keycloak is configured with `.WaitFor(identitySchemaInit)` to ensure the init container runs first in local/Aspire environments; note that `WaitFor` only enforces ordering within the Aspire orchestration and does **not** guarantee schema creation in production Azure deployments — provision the schema separately via the manual command below or an Azure pipeline step
 - For manual provisioning (outside Aspire), execute the script directly:
   ```bash
   psql -h <azure-host> -U <admin-user> -d meajudaai -f 00-create-identity-schema.sql

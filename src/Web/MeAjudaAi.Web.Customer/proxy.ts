@@ -1,9 +1,11 @@
 import { withAuth } from "next-auth/middleware"
 
 function isE2ETest(req: Request): boolean {
+  if (process.env.NODE_ENV === "production") return false;
   const mockAuthHeader = req.headers.get("x-mock-auth");
+  if (mockAuthHeader === "true") return true;
   const cookieHeader = req.headers.get("cookie") || "";
-  return mockAuthHeader === "true" || cookieHeader.includes("x-mock-auth=true");
+  return /(?:^|;\s*)x-mock-auth=true(?:;|$)/.test(cookieHeader);
 }
 
 export default withAuth(

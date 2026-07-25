@@ -179,8 +179,8 @@ public static class MeAjudaAiKeycloakExtensions
                 "-p", options.DatabasePort.ToString(),
                 "-U", options.DatabaseUsername,
                 "-d", options.DatabaseName,
-                "-f", "/init/00-create-identity-schema.sql")
-            .WithImagePullPolicy(ImagePullPolicy.Never);
+                "-v", "ON_ERROR_STOP=1",
+                "-f", "/init/00-create-identity-schema.sql");
 
         Console.WriteLine($"[Keycloak] Identity schema init configured: {identitySchemaPath}");
 
