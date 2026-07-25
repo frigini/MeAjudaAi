@@ -14,6 +14,9 @@ export default function ProviderDashboard() {
     queryFn: () => apiMeGet(),
   });
 
+  // Ativa o streaming SSE para status de verificação
+  useProviderVerificationEvents(response?.data?.data?.id);
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-5xl py-8 px-4 sm:px-6 lg:px-8">
@@ -35,9 +38,6 @@ export default function ProviderDashboard() {
   }
 
   const provider = response.data.data;
-  
-  // Ativa o streaming SSE para status de verificação
-  useProviderVerificationEvents(provider.id);
 
   const bp = provider.businessProfile;
   const contact = bp?.contactInfo;

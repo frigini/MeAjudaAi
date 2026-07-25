@@ -27,7 +27,7 @@
       }
     },
     "lint": {
-      "command": "next lint",
+      "command": "npx eslint .",
       "options": {
         "cwd": "MeAjudaAi.Web.Provider"
       }

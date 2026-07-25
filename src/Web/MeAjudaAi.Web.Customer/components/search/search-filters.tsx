@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 // Custom hook for debouncing callbacks
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function useDebouncedCallback<T extends (...args: any[]) => void>(callback: T, delay: number) {
     const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
