@@ -20,7 +20,7 @@
             }
         },
         "lint": {
-            "command": "node_modules/.bin/eslint .",
+            "command": "../node_modules/.bin/eslint .",
             "options": {
                 "cwd": "MeAjudaAi.Web.Customer"
             }

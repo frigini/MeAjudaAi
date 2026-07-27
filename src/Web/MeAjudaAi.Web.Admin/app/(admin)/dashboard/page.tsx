@@ -1,18 +1,21 @@
 "use client";
 
- 
-
-import { useMemo } from "react";
+import { useMemo, type ComponentType, type HTMLAttributes } from "react";
 import { Users, Clock, CheckCircle, AlertCircle, TrendingUp, Loader2, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, type TooltipProps } from "recharts";
 import { useDashboardStats } from "@/hooks/admin";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
-const TypedTooltip = Tooltip as any;
-const TypedLegend = Legend as any;
+type WrapperDivProps = HTMLAttributes<HTMLDivElement>;
+
+type ExtendedTooltipProps = TooltipProps & { wrapperProps?: WrapperDivProps };
+type ExtendedLegendProps = React.ComponentProps<typeof Legend> & { wrapperProps?: WrapperDivProps };
+
+const TypedTooltip = Tooltip as ComponentType<ExtendedTooltipProps>;
+const TypedLegend = Legend as ComponentType<ExtendedLegendProps>;
 
 const verificationColors = {
   approved: "#22c55e",
@@ -160,7 +163,7 @@ export default function DashboardPage() {
                   <YAxis tickLine={false} axisLine={false} tick={{fill: '#6b7280', fontSize: 12}} dx={-10} />
                   <TypedTooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    wrapperProps={{ "data-testid": "chart-tooltip" } as any} 
+                    wrapperProps={{ "data-testid": "chart-tooltip" }} 
                   />
                   <Line type="monotone" dataKey="value" name={t("total_providers")} stroke="#395873" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                 </LineChart>
@@ -193,9 +196,9 @@ export default function DashboardPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <TypedTooltip wrapperProps={{ "data-testid": "chart-tooltip" } as any} />
+                  <TypedTooltip wrapperProps={{ "data-testid": "chart-tooltip" }} />
                   <TypedLegend 
-                    wrapperProps={{ "data-testid": "chart-legend" } as any}
+                    wrapperProps={{ "data-testid": "chart-legend" }}
                     formatter={(value: string) => <span data-testid="legend-item" className="text-sm font-medium">{value}</span>}
                   />
                 </PieChart>
