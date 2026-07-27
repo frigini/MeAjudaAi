@@ -47,9 +47,6 @@ export default function ProviderDashboard() {
   if (contact?.phoneNumber) {
     phones.push(contact.phoneNumber);
   }
-  if (contact?.additionalPhones && contact.additionalPhones.length > 0) {
-    phones.push(...contact.additionalPhones);
-  }
 
   const services: string[] = [];
   if (provider.services && provider.services.length > 0) {
@@ -62,7 +59,7 @@ export default function ProviderDashboard() {
         <ProfileHeader
           name={provider.name || "Prestador"}
           email={contact?.email || ""}
-          isOnline={provider.isActive ?? false}
+          isOnline={provider.status === 3}
           phones={phones.length > 0 ? phones : ["Sem telefone cadastrado"]}
           rating={3.5}
         />

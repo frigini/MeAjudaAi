@@ -3,7 +3,7 @@ import type {
   MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto,
   MeAjudaAiModulesProvidersApplicationDtosDocumentDto,
   MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto,
-  MeAjudaAiContractsModulesLocationsDtosModuleAllowedCityDto,
+  MeAjudaAiContractsContractsModulesLocationsDtosModuleAllowedCityDto,
   MeAjudaAiModulesUsersApplicationDtosUserDto,
 } from "../api/generated";
 import { z } from "zod";
@@ -13,7 +13,7 @@ export type ProviderDto = MeAjudaAiModulesProvidersApplicationDtosProviderDto;
 export type BusinessProfileDto = MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto;
 export type DocumentDto = MeAjudaAiModulesProvidersApplicationDtosDocumentDto;
 export type ServiceCategoryDto = MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto;
-export type AllowedCityDto = MeAjudaAiContractsModulesLocationsDtosModuleAllowedCityDto;
+export type AllowedCityDto = MeAjudaAiContractsContractsModulesLocationsDtosModuleAllowedCityDto;
 export type UserDto = MeAjudaAiModulesUsersApplicationDtosUserDto;
 
 type ProviderSchemaType = z.infer<typeof zMeAjudaAiModulesProvidersApplicationDtosProviderDto>;

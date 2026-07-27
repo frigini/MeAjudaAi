@@ -13,7 +13,11 @@ type SettingsTab = "profile" | "notifications" | "security" | "appearance";
 export default function SettingsClient() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [isSaving, setIsSaving] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const [theme, setTheme] = useState<"light" | "dark" | "system">(() => {
+    if (typeof window === "undefined") return "system";
+    const saved = localStorage.getItem("meajudaai-theme");
+    return (saved === "light" || saved === "dark" || saved === "system") ? saved : "system";
+  });
   
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
 
@@ -34,11 +38,8 @@ export default function SettingsClient() {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem("meajudaai-theme");
-    const resolved = (saved === "light" || saved === "dark" || saved === "system") ? saved : "system";
-    setTheme(resolved as "light" | "dark" | "system");
-    applyTheme(resolved as "light" | "dark" | "system");
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);

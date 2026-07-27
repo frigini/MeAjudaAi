@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
-type WrapperDivProps = HTMLAttributes<HTMLDivElement>;
+type WrapperDivProps = HTMLAttributes<HTMLDivElement> & Record<string, string>;
 
 type ExtendedTooltipProps = TooltipProps & { wrapperProps?: WrapperDivProps };
 type ExtendedLegendProps = React.ComponentProps<typeof Legend> & { wrapperProps?: WrapperDivProps };

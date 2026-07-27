@@ -32,10 +32,10 @@ const documentSchema = z.object({
 type DocumentFormData = z.infer<typeof documentSchema>;
 
 const DOCUMENT_TYPES = {
-  identity: "IdentityDocument" as const,
-  proofOfResidence: "ProofOfResidence" as const,
-  criminalRecord: "CriminalRecord" as const,
-  other: "Other" as const,
+  identity: 1 as const,
+  proofOfResidence: 2 as const,
+  criminalRecord: 3 as const,
+  other: 99 as const,
 };
 
 export default function DocumentsPage() {
@@ -52,7 +52,7 @@ export default function DocumentsPage() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+    mutationFn: async ({ file, documentType }: { file: File; documentType: 1 | 2 | 3 | 99 }) => {
       const uploadResponse = await apiUploadPost({
         body: {
           documentType,
@@ -62,11 +62,11 @@ export default function DocumentsPage() {
         },
       });
 
-      if (!uploadResponse.data?.value?.uploadUrl) {
+      if (!uploadResponse.data?.uploadUrl) {
         throw new Error("Falha ao obter URL de upload");
       }
 
-      const { uploadUrl, documentId } = uploadResponse.data.value;
+      const { uploadUrl, documentId } = uploadResponse.data;
 
       setUploadProgress(`Enviando ${file.name}...`);
 

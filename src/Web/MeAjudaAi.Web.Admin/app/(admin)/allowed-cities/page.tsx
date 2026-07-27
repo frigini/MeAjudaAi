@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -83,12 +83,6 @@ export default function AllowedCitiesPage() {
   const unfilteredTotalPages = Math.ceil(filteredCities.length / ITEMS_PER_PAGE);
   const totalPages = Math.max(1, unfilteredTotalPages);
   const safePage = Math.min(currentPage, totalPages);
-  
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
 
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginatedCities = filteredCities.slice(startIndex, startIndex + ITEMS_PER_PAGE);

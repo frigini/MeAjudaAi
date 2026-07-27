@@ -31,7 +31,6 @@ const profileSchema = z.object({
   neighborhood: z.string().min(2, "Bairro inválido"),
   city: z.string().min(2, "Cidade inválida"),
   state: z.string().length(2, "Sigla de 2 letras"),
-  showAddressToClient: z.boolean().default(false),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -54,7 +53,6 @@ export default function AlterarDadosPage() {
       neighborhood: "",
       city: "",
       state: "",
-      showAddressToClient: false,
     },
   });
 
@@ -79,9 +77,6 @@ export default function AlterarDadosPage() {
       if (contact?.phoneNumber) {
          mappedPhones.push({ number: contact.phoneNumber, isWhatsapp: false });
       }
-      if (contact?.additionalPhones && contact.additionalPhones.length > 0) {
-         contact.additionalPhones.forEach((p: string) => mappedPhones.push({ number: p, isWhatsapp: false }));
-      }
       if (mappedPhones.length === 0) {
          mappedPhones.push({ number: "", isWhatsapp: false });
       }
@@ -98,7 +93,6 @@ export default function AlterarDadosPage() {
         neighborhood: addr?.neighborhood || "",
         city: addr?.city || "",
         state: addr?.state || "",
-        showAddressToClient: bp?.showAddressToClient ?? false,
       });
     }
   }, [response, form]);
@@ -118,17 +112,14 @@ export default function AlterarDadosPage() {
 
   const onSubmit = (data: ProfileFormValues) => {
     const primaryPhone = data.phones[0]?.number || "";
-    const additionalPhones = data.phones.slice(1).map(p => p.number).filter(p => !!p);
 
     updateMutation.mutate({
       name: data.fullName,
       businessProfile: {
         fantasyName: data.fantasyName,
-        showAddressToClient: data.showAddressToClient,
         contactInfo: {
           email: data.email,
           phoneNumber: primaryPhone,
-          additionalPhones: additionalPhones,
           website: response?.data?.data?.businessProfile?.contactInfo?.website
         },
         primaryAddress: {
@@ -294,16 +285,6 @@ export default function AlterarDadosPage() {
             {form.formState.errors.state && (
               <span className="text-xs text-destructive">{form.formState.errors.state.message}</span>
             )}
-          </div>
-
-          <div className="flex items-center justify-between border-t border-border pt-6">
-            <Label htmlFor="showAddress" className="font-semibold text-foreground">Mostrar endereço para meu cliente?</Label>
-            <input 
-              id="showAddress" 
-              type="checkbox" 
-              {...form.register("showAddressToClient")}
-              className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-border transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 data-[checked=true]:bg-emerald-500 appearance-none after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] checked:bg-emerald-500 checked:after:translate-x-5"
-            />
           </div>
 
           <div className="mt-8 flex justify-center gap-4 border-t border-border pt-8">

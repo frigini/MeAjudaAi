@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiCategoriesGet } from "@/lib/api/generated/sdk.gen";
 import { MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto as ServiceCategoryDto } from "@/lib/api/generated/types.gen";
@@ -34,9 +34,13 @@ export function SearchFilters() {
     const currentMinRating = searchParams.get("minRating") || "";
     const activeCategory = searchParams.get("categoryId");
 
+    // Sync radius draft with URL params when they change externally (e.g., browser back button)
+    // This is a common pattern for URL-synchronized state
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         setRadiusDraft(currentRadius);
     }, [currentRadius]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     useEffect(() => {
         apiCategoriesGet({ query: { activeOnly: true } })
