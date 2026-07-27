@@ -1,5 +1,5 @@
 import type {
-    MeAjudaAiModulesSearchProvidersApplicationDtosSearchableProviderDto,
+    MeAjudaAiContractsModulesSearchProvidersDtosModuleSearchableProviderDto,
     MeAjudaAiModulesProvidersApplicationDtosProviderDto,
 } from '@/lib/api/generated/types.gen';
 import type { ProviderDto, BusinessProfileDto } from '@/types/api/provider';
@@ -35,7 +35,7 @@ function getMockAvatarUrl(id?: string): string {
  * Converte SearchableProviderDto (da API de busca) para ProviderDto (tipo da aplicação)
  */
 export function mapSearchableProviderToProvider(
-    dto: MeAjudaAiModulesSearchProvidersApplicationDtosSearchableProviderDto
+    dto: MeAjudaAiContractsModulesSearchProvidersDtosModuleSearchableProviderDto
 ): ProviderDto {
     return {
         id: dto.providerId ?? '',

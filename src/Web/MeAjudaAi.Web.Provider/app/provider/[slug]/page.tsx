@@ -37,7 +37,7 @@ export default function ProviderPublicPage({ params }: PageProps) {
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ["providerPublic", slug],
-    queryFn: () => apiPublicGet({ path: { id: slug } }),
+    queryFn: () => apiPublicGet({ path: { idOrSlug: slug } }),
     enabled: !!slug,
   });
 
@@ -164,12 +164,12 @@ export default function ProviderPublicPage({ params }: PageProps) {
           <div className="mt-8">
             <h2 className="mb-4 text-base font-bold text-foreground">Serviços</h2>
             <div className="flex flex-wrap gap-2">
-              {provider.services.map((serviceName, index) => (
+              {provider.services.map((service, index) => (
                 <span
                   key={index}
                   className="flex items-center rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
                 >
-                  {serviceName}
+                  {service.name}
                 </span>
               ))}
             </div>
