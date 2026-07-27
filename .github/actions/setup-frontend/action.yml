@@ -35,16 +35,16 @@ runs:
       run: |
         for attempt in 1 2 3; do
           echo "Attempt $attempt of 3..."
-          if npm install; then
-            echo "npm install succeeded on attempt $attempt"
+          if npm ci; then
+            echo "npm ci succeeded on attempt $attempt"
             exit 0
           fi
-          echo "npm install failed on attempt $attempt"
+          echo "npm ci failed on attempt $attempt"
           if [ "$attempt" -lt 3 ]; then
             sleep $((attempt * 10))
           fi
         done
-        echo "npm install failed after 3 attempts"
+        echo "npm ci failed after 3 attempts"
         exit 1
 
     - name: Nx Set SHAs

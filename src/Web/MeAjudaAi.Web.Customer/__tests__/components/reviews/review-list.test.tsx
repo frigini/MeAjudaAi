@@ -5,18 +5,18 @@ import userEvent from '@testing-library/user-event';
 
 describe('ReviewList', () => {
   it('deve renderizar corretamente', () => {
-    render(<ReviewList providerId="provider-1" />);
+    render(<ReviewList />);
     expect(screen.getByText(/ordenAR/i)).toBeInTheDocument();
   });
 
   it('deve renderizar botão carregar mais', () => {
-    render(<ReviewList providerId="provider-1" />);
+    render(<ReviewList />);
     expect(screen.getByRole('button', { name: /carregar mais/i })).toBeInTheDocument();
   });
 
   it('deve carregar mais avaliações', async () => {
     const user = userEvent.setup();
-    render(<ReviewList providerId="provider-1" />);
+    render(<ReviewList />);
     
     expect(screen.getByText(/mostrando 4 avaliações/i)).toBeInTheDocument();
     
@@ -27,7 +27,7 @@ describe('ReviewList', () => {
 
   it('deve ordenar avaliações', async () => {
     const user = userEvent.setup();
-    render(<ReviewList providerId="provider-1" />);
+    render(<ReviewList />);
     
     await user.click(screen.getByRole('button', { name: /ordenar/i }));
     
@@ -35,7 +35,7 @@ describe('ReviewList', () => {
   });
 
   it('deve renderizar estado vazio', () => {
-    const { container } = render(<ReviewList providerId="provider-1" />);
+    const { container } = render(<ReviewList />);
     const reviews = container.querySelectorAll('[class*="grid"]');
     expect(reviews.length).toBeGreaterThan(0);
   });

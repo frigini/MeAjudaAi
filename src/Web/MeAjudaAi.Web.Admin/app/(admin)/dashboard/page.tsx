@@ -196,7 +196,7 @@ export default function DashboardPage() {
                   <TypedTooltip wrapperProps={{ "data-testid": "chart-tooltip" } as any} />
                   <TypedLegend 
                     wrapperProps={{ "data-testid": "chart-legend" } as any}
-                    formatter={(value: any) => <span data-testid="legend-item" className="text-sm font-medium">{value}</span>}
+                    formatter={(value: string) => <span data-testid="legend-item" className="text-sm font-medium">{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>

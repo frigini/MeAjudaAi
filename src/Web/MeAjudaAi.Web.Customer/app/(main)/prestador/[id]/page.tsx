@@ -258,7 +258,7 @@ export default function ProviderProfilePage() {
                     <div className="bg-gray-50 p-3 rounded-lg">
                         <ReviewForm providerId={id} />
                     </div>
-                    <ReviewList providerId={id} />
+                    <ReviewList />
                 </div>
             </div>
         </div>
