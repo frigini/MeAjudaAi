@@ -50,6 +50,12 @@ public static class Extensions
             builder.UseSnakeCaseNamingConvention();
             builder.EnableServiceProviderCaching();
             builder.EnableSensitiveDataLogging(false);
+
+            if (environment.IsDevelopment())
+            {
+                builder.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
         });
 
         // Unit of Work e Repositórios
@@ -102,9 +108,7 @@ public static class Extensions
         services.AddHostedService(sp =>
             new CommunicationsStartupValidator(
                 stubsEnabled,
-                sp.GetService<IEmailSender>(),
-                sp.GetService<ISmsSender>(),
-                sp.GetService<IPushSender>(),
+                sp,
                 sp.GetRequiredService<ILogger<CommunicationsStartupValidator>>()));
     }
 

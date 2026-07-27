@@ -1,9 +1,11 @@
 import { withAuth } from "next-auth/middleware"
 
 function isE2ETest(req: Request): boolean {
+  if (process.env.MOCK_AUTH !== "true") return false;
   const mockAuthHeader = req.headers.get("x-mock-auth");
+  if (mockAuthHeader === "true") return true;
   const cookieHeader = req.headers.get("cookie") || "";
-  return mockAuthHeader === "true" || cookieHeader.includes("x-mock-auth=true");
+  return /(?:^|;\s*)x-mock-auth=true(?:;|$)/.test(cookieHeader);
 }
 
 export default withAuth(
@@ -18,7 +20,7 @@ export default withAuth(
         callbacks: {
             authorized: ({ req, token }) => {
                 if (isE2ETest(req as unknown as Request)) {
-                    return true;
+                    return true
                 }
 
                 const isLoggedIn = !!token

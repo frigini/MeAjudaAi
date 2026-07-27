@@ -18,13 +18,12 @@ const generateMockReviews = (count: number): Review[] => {
     }));
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function ReviewList({ providerId }: { providerId: string }) {
+
+export function ReviewList() {
     const [reviews, setReviews] = useState<Review[]>(() => generateMockReviews(4));
 
     const loadMore = () => {
-        // Mock loading more
-        // TODO: Mudar para API real e usar providerId
+        // TODO: Integrar com API real de avaliações; o componente precisará receber o identificador do prestador como prop
         setReviews(prev => {
             if (prev.length >= 20) return prev; // mock cap
             const newReviews = generateMockReviews(4).map(r => ({

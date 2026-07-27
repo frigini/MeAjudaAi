@@ -185,6 +185,7 @@ jobs:
           for dir in MeAjudaAi.Web.Admin MeAjudaAi.Web.Customer MeAjudaAi.Web.Provider; do
             cat > $dir/.env.local << 'EOF'
           CI=true
+          MOCK_AUTH=true
           KEYCLOAK_ADMIN_CLIENT_ID=ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET=ci-build-placeholder
           KEYCLOAK_CLIENT_ID=ci-build-placeholder
@@ -199,6 +200,7 @@ jobs:
         working-directory: ./src/Web
         env:
           NEXT_PUBLIC_API_URL: http://localhost:7002
+          MOCK_AUTH: "true"
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
           KEYCLOAK_CLIENT_ID: ci-build-placeholder

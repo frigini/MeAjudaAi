@@ -62,11 +62,12 @@ export default function DocumentsPage() {
         },
       });
 
-      if (!uploadResponse.data?.value?.uploadUrl) {
+      const result = uploadResponse.data?.value;
+      if (!result?.uploadUrl) {
         throw new Error("Falha ao obter URL de upload");
       }
 
-      const { uploadUrl, documentId } = uploadResponse.data.value;
+      const { uploadUrl, documentId } = result;
 
       setUploadProgress(`Enviando ${file.name}...`);
 

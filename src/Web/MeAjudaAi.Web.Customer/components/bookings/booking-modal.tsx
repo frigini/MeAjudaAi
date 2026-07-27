@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,16 +88,13 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
         enabled: open && !!providerId,
     });
 
-    useEffect(() => {
-        if (selectedSlot && availability) {
-            const stillExists = availability.slots.some(
-                (s: TimeSlot) => s.start === selectedSlot.start && s.end === selectedSlot.end
-            );
-            if (!stillExists) {
-                setSelectedSlot(null);
-            }
-        }
-    }, [availability, selectedSlot]);
+    const validSelectedSlot = useMemo(() => {
+        if (!selectedSlot || !availability) return null;
+        const stillExists = availability.slots.some(
+            (s: TimeSlot) => s.start === selectedSlot.start && s.end === selectedSlot.end
+        );
+        return stillExists ? selectedSlot : null;
+    }, [selectedSlot, availability]);
 
     // Mutação para criar agendamento
     const createBooking = useMutation({
@@ -105,7 +102,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             if (!session || !session.accessToken) {
                 throw new Error("Você precisa estar autenticado para realizar um agendamento.");
             }
-            if (!selectedSlot) throw new Error("Selecione um horário.");
+            if (!validSelectedSlot) throw new Error("Selecione um horário.");
             
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/bookings`, {
@@ -117,8 +114,8 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                 body: JSON.stringify({
                     providerId,
                     serviceId,
-                    start: combineDateAndTime(selectedDate, selectedSlot.start),
-                    end: combineDateAndTime(selectedDate, selectedSlot.end)
+                    start: combineDateAndTime(selectedDate, validSelectedSlot.start),
+                    end: combineDateAndTime(selectedDate, validSelectedSlot.end)
                 })
             });
 
@@ -156,7 +153,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
         setSelectedSlot(null);
     };
 
-    const isConfirmDisabled = !selectedSlot || !serviceId || createBooking.isPending || !session?.accessToken || !availability?.slots.some(s => s.start === selectedSlot?.start && s.end === selectedSlot?.end);
+    const isConfirmDisabled = !validSelectedSlot || !serviceId || createBooking.isPending || !session?.accessToken;
 
     return (
         <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -206,7 +203,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                                             key={i}
                                             onClick={() => setSelectedSlot(slot)}
                                             className={`p-2 text-[11px] font-medium border rounded-md transition-colors ${
-                                                (selectedSlot && slot.start === selectedSlot.start && slot.end === selectedSlot.end) 
+                                                (validSelectedSlot && slot.start === validSelectedSlot.start && slot.end === validSelectedSlot.end) 
                                                     ? "bg-[#002D62] text-white border-[#002D62]" 
                                                     : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
                                             }`}

@@ -89,7 +89,6 @@ export default function BasicInfoPage() {
         fantasyName: currentBp?.fantasyName,
         description: data.description,
         contactInfo: currentBp?.contactInfo,
-        showAddressToClient: currentBp?.showAddressToClient,
         primaryAddress: {
           street: data.street,
           number: data.number,

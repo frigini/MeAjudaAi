@@ -164,8 +164,29 @@ public static class MeAjudaAiKeycloakExtensions
         var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", options.AdminPassword, secret: true);
         var postgresPassword = builder.AddParameter("postgres-password", options.DatabasePassword, secret: true);
 
+        // Provisionar o schema 'identity' no Azure PostgreSQL antes do Keycloak iniciar.
+        // Em produção, o /docker-entrypoint-initdb.d não é usado (é Docker-only).
+        // Este container executa o SQL de criação do schema e encerra.
+        var appHostDir = AppContext.BaseDirectory;
+        var identitySchemaPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "database", "00-create-identity-schema.sql"));
+
+        var identitySchemaInit = builder.AddContainer("identity-schema-init", "postgres", "17-alpine")
+            .WithBindMount(identitySchemaPath, "/init/00-create-identity-schema.sql")
+            .WithEnvironment("PGPASSWORD", postgresPassword)
+            .WithArgs(
+                "psql",
+                $"-h", options.DatabaseHost,
+                "-p", options.DatabasePort.ToString(),
+                "-U", options.DatabaseUsername,
+                "-d", options.DatabaseName,
+                "-v", "ON_ERROR_STOP=1",
+                "-f", "/init/00-create-identity-schema.sql");
+
+        Console.WriteLine($"[Keycloak] Identity schema init configured: {identitySchemaPath}");
+
         var keycloak = builder.AddKeycloak("keycloak")
             .WithDataVolume()
+            .WaitFor(identitySchemaInit)
             // Configurar banco de dados PostgreSQL com schema 'identity'
             .WithEnvironment("KC_DB", "postgres")
             .WithEnvironment("KC_DB_URL", $"jdbc:postgresql://{options.DatabaseHost}:{options.DatabasePort}/{options.DatabaseName}?currentSchema={options.DatabaseSchema}")
@@ -199,7 +220,6 @@ public static class MeAjudaAiKeycloakExtensions
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
             // Montar arquivo de realm para importação
-            var appHostDir = AppContext.BaseDirectory;
             var realmPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "realms"));
             
             if (!Directory.Exists(realmPath))

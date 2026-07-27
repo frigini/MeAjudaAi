@@ -1,6 +1,5 @@
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
-using MeAjudaAi.AppHost.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.AppHost;
@@ -11,25 +10,8 @@ internal static class Program
     {
         var builder = DistributedApplication.CreateBuilder(args);
         
-        // Recurso sentinela para sincronização da criação de clientes no Keycloak
-        var keycloakBootstrap = builder.AddResource(new Resources.KeycloakBootstrapResource("keycloak-clients-ready"))
-            .ExcludeFromManifest()
-            .WithInitialState(new CustomResourceSnapshot
-            {
-                ResourceType = "Sentinels",
-                State = new ResourceStateSnapshot("Waiting", "gray"),
-                Properties = [new ResourcePropertySnapshot("Status", "Waiting for Keycloak Bootstrap...")]
-            });
-
-        // Registra o serviço em segundo plano Keycloak Bootstrap
-        if (EnvironmentHelpers.IsDevelopment(builder))
-        {
-            builder.Services.AddHostedService<KeycloakBootstrapService>();
-        }
-
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
 
-        // Log ambiente detectado para debug
         var detectedEnv = EnvironmentHelpers.GetEnvironmentName(builder);
         Console.WriteLine($"🔍 Detected environment: '{detectedEnv}' (IsTesting: {isTestingEnv}, IsDevelopment: {EnvironmentHelpers.IsDevelopment(builder)}, IsProduction: {EnvironmentHelpers.IsProduction(builder)})");
 
@@ -41,12 +23,12 @@ internal static class Program
         else if (EnvironmentHelpers.IsDevelopment(builder))
         {
             Console.WriteLine("⚙️  Configuring DEVELOPMENT environment");
-            ConfigureDevelopmentEnvironment(builder, keycloakBootstrap);
+            ConfigureDevelopmentEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsProduction(builder))
         {
             Console.WriteLine("⚙️  Configuring PRODUCTION environment");
-            ConfigureProductionEnvironment(builder, keycloakBootstrap);
+            ConfigureProductionEnvironment(builder);
         }
         else
         {
@@ -107,7 +89,7 @@ internal static class Program
             .WithEnvironment("HealthChecks__Timeout", "30");
     }
 
-    private static void ConfigureDevelopmentEnvironment(IDistributedApplicationBuilder builder, IResourceBuilder<Resources.KeycloakBootstrapResource> keycloakBootstrap)
+    private static void ConfigureDevelopmentEnvironment(IDistributedApplicationBuilder builder)
     {
         var mainDatabase = Environment.GetEnvironmentVariable("MAIN_DATABASE") ?? "meajudaai";
         var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "postgres";
@@ -206,7 +188,6 @@ internal static class Program
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
-            .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         var gateway = builder.AddProject<Projects.MeAjudaAi_Gateway>("gateway")
@@ -226,8 +207,7 @@ internal static class Program
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
             .WaitFor(gateway)
-            .WaitFor(keycloak.Keycloak)
-            .WaitFor(keycloakBootstrap);
+            .WaitFor(keycloak.Keycloak);
 
         // Aplicação Web do Cliente (Next.js 15)
         var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Customer");
@@ -240,10 +220,7 @@ internal static class Program
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
-            .WaitFor(gateway)
-            .WaitFor(keycloakBootstrap);
-            // Nota: AddJavaScriptApp usa o script "dev" por padrão em desenvolvimento
-            // e o script "build" em produção. Verifique o package.json para os scripts configurados.
+            .WaitFor(gateway);
 
         // Aplicação Web do Prestador (Next.js 15)
         var providerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Provider");
@@ -256,16 +233,10 @@ internal static class Program
             .WithHttpEndpoint(port: 3001, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", gateway.GetEndpoint("http"))
-            .WaitFor(gateway)
-            .WaitFor(keycloakBootstrap);
-
-        // Passar endpoints resolvidos para as opções do Keycloak para o bootstrap
-        keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("http");
-        keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
-        keycloakSettings.ProviderWebEndpoint = providerWeb.GetEndpoint("http");
+            .WaitFor(gateway);
     }
 
-    private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder, IResourceBuilder<Resources.KeycloakBootstrapResource> keycloakBootstrap)
+    private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)
     {
         var postgresql = builder.AddMeAjudaAiAzurePostgreSQL(options =>
         {
@@ -288,7 +259,6 @@ internal static class Program
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
-            .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         var gateway = builder.AddProject<Projects.MeAjudaAi_Gateway>("gateway")
