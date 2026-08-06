@@ -41,8 +41,8 @@
       },
       "Asp.Versioning.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.0",
-        "contentHash": "cMRE5nvNMfBgfkb0XFWst/7UtyXCjoAXnV0L4Scx4P9fcf0idgrj1Z0c+3ylsy01K4cOib7dKhCBfpg5z3r0Kg==",
+        "resolved": "10.2.0",
+        "contentHash": "Jt+Lt4PSAPkXGv7vQwnEe4UXWQvgS2zOMOM4WuYAxH74Ncso9JgwcOyPIZrfmfOv7QUrwTdNGR0BMbS1CuDtNw==",
         "dependencies": {
           "Microsoft.Extensions.Primitives": "10.0.0"
         }
@@ -389,11 +389,11 @@
       },
       "Asp.Versioning.Http": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "xmNm9FM2d20NKy7i1osEQysf7pJ4iJjWnM6e8CoeIhUREqG8nugsfC82pGpmzlatjAJL5T52ieSpyW+GFdSsSQ==",
+        "requested": "[10.2.0, )",
+        "resolved": "10.2.0",
+        "contentHash": "XRLjob+PQd5NGUVKnHY+GPdU4kWSLiA0ZdxlT/DNcFGyY3oqU/IrjuiJM1A96TJoUXyiRD7zEKQHuL84ybgGJw==",
         "dependencies": {
-          "Asp.Versioning.Abstractions": "10.0.0"
+          "Asp.Versioning.Abstractions": "10.2.0"
         }
       },
       "Asp.Versioning.Mvc": {
