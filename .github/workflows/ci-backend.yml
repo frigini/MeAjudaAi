@@ -276,7 +276,7 @@ jobs:
           classfilters: "+*;-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*DbContextFactory;+MeAjudaAi.Modules.Payments.API.*Endpoint;+MeAjudaAi.Modules.Bookings.API.*Endpoint;-*Endpoint;-*Options;-*IntegrationEvent;-*Request;-*Response;-*Dto;-*DTO"
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: coverage-reports
@@ -476,7 +476,7 @@ jobs:
           echo "✅ No critical vulnerabilities found in direct dependencies."
 
       - name: Upload Security Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: security-audit-reports
